@@ -32,11 +32,11 @@ type DeleteDocumentCommand struct{
 
 	ravenCommand RavenCommand
 
-	//unique key under which document will be stored
+	//unique key under which document will be deleted
 	key string
 
 	//current document etag, used for concurrency checks (nil to skip check)
-	etag int
+	etag int64
 }
 
 type PutDocumentCommand struct{
@@ -50,5 +50,5 @@ type PutDocumentCommand struct{
 	document []interface{}
 
 	//current document etag, used for concurrency checks (nil to skip check)
-	etag int
+	etag int64
 }
