@@ -17,6 +17,13 @@ const (
 	FASTEST_NODE
 )
 
+const (
+	COLLECTION = "@collection"
+	METADATA_KEY = "@metadata"
+	METADATA_ID = "@id"
+	METADATA_ETAG = "@etag"
+)
+
 var ReadBehaviours = [...]string{
 	"LeaderOnly",
 	"LeaderWithFailover",
