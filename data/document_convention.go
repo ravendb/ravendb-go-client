@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 	"fmt"
+	"reflect"
+	"github.com/gedex/inflector"
 )
 
 type BehaviorType uint8
@@ -61,6 +63,11 @@ type DocumentConvention struct {
 	DefaultUseOptimisticConcurrency bool
 	IdentityPartsSeparator string
 	JsonDefaultMethod func(obj interface{}) (interface{}, error)
+	DocumentIdGenerator func(DBName string, entity interface{}) string
+	registeredIdConventions map[string]func(DBName string, entity interface{}) string
+	defaultCollectionNamesCache map[reflect.Type]string
+	collectionNameFounder func(reflect.Type) (string, bool)
+	TypeCollectionNameToDocumentIdPrefixTransformer func(string) string
 }
 
 func (b Behaviour) getBehaviourName() string{
@@ -136,4 +143,42 @@ func jsonDefault(obj interface{}) (interface{}, error){
 		//TODO format datetime
 		return v, nil
 	}
+}
+
+func (convention DocumentConvention) GenerateDocumentId(DBName string, entity interface{}) string{
+	entityType := reflect.TypeOf(entity)
+	registeredIdConvention, ok := convention.registeredIdConventions[string(entityType)]
+	if ok{
+		return registeredIdConvention(DBName, entity)
+	}
+	return convention.DocumentIdGenerator(DBName, entity)
+}
+
+func (convention DocumentConvention) GenerateDocumentIdAsync(DBName string, entity interface{}) <-chan string{
+	out := make(chan string, 1)
+	go func(){
+		out <- convention.GenerateDocumentId(DBName, entity)
+		close(out)
+	}()
+	return out
+}
+
+func (convention DocumentConvention) GetCollectionName(entity interface{}) string{
+	if entity == nil{
+		return nil
+	}
+	entityType := reflect.TypeOf(entity)
+	result, ok := convention.collectionNameFounder(entityType)
+	if !ok{
+		result = convention.getDefaultCollectionName(entityType)
+	}
+
+	return result
+}
+
+func (convention DocumentConvention) getDefaultCollectionName(t reflect.Type) string{
+	if _, ok := convention.defaultCollectionNamesCache[t]; !ok{
+		convention.defaultCollectionNamesCache[t] = inflector.Pluralize(t.Name())
+	}
+	return convention.defaultCollectionNamesCache[t]
 }
