@@ -31,7 +31,9 @@ type MultiTypeHiLoIdGenerator struct{
 }
 
 type MultiDatabaseHiLoIdGenerator struct{
-
+	store documents.DocumentStore
+	convention data.DocumentConvention
+	generatorsCollection map[string]MultiTypeHiLoIdGenerator
 }
 
 type RangeValue struct{
@@ -50,6 +52,10 @@ func NewHiLoIdGenerator(tag string, store documents.DocumentStore, dBName string
 
 func NewMultiTypeHiLoIdGenerator(store documents.DocumentStore, dBName string, convention data.DocumentConvention) (*MultiTypeHiLoIdGenerator, error){
 	return &MultiTypeHiLoIdGenerator{store: store, dBName: dBName, convention: convention}, nil
+}
+
+func NewMultiDatabaseHiLoIdGenerator(store documents.DocumentStore, convention data.DocumentConvention) (*MultiDatabaseHiLoIdGenerator, error){
+	return &MultiDatabaseHiLoIdGenerator{store: store, convention: convention}, nil
 }
 
 //Thread safe Id generation
@@ -89,7 +95,7 @@ func (generator HiLoIdGenerator) CreateDocumentIdFromId(id int64) string{
 //Thread safe document id generator
 func (multiGenerator MultiTypeHiLoIdGenerator) GenerateDocumentId(entity interface{}) string{
 	typeTagName := multiGenerator.convention.GetCollectionName(entity)
-	if typeTagName{
+	if typeTagName == ""{
 		return "" //todo is it error condition?
 	}
 	tag := multiGenerator.convention.TypeCollectionNameToDocumentIdPrefixTransformer(typeTagName)
@@ -111,4 +117,30 @@ func (multiGenerator MultiTypeHiLoIdGenerator) ReturnUnusedRange(){
 	for _, generator := range multiGenerator.generatorsCollection{
 		generator.ReturnUnusedRange()
 	}
+}
+
+//Not thread safe yet
+func (multiGenerator MultiDatabaseHiLoIdGenerator) GenerateDocumentId(dBName string, entity interface{}) string{
+	db := dBName
+	if db == "" {
+		db = multiGenerator.store.DefaultDBName
+	}
+	generator, ok := multiGenerator.generatorsCollection[db]
+	if !ok{
+		generatorPtr, _ := multiGenerator.MultiTypeHiLoIdGenerator(db)
+		generator = *generatorPtr
+		multiGenerator.generatorsCollection[db] = generator
+	}
+	return generator.GenerateDocumentId(entity)
+}
+
+func (multiGenerator MultiDatabaseHiLoIdGenerator) ReturnUnusedRange(){
+	for _, generator := range multiGenerator.generatorsCollection{
+		generator.ReturnUnusedRange()
+	}
+}
+
+func (multiGenerator MultiDatabaseHiLoIdGenerator) MultiTypeHiLoIdGenerator(dBName string) (*MultiTypeHiLoIdGenerator, error){
+	generatorPtr, _ := NewMultiTypeHiLoIdGenerator(multiGenerator.store, dBName, multiGenerator.convention)
+	return generatorPtr, nil
 }
