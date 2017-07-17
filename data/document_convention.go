@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"github.com/gedex/inflector"
+	"strings"
 )
 
 type BehaviorType uint8
@@ -143,6 +144,16 @@ func jsonDefault(obj interface{}) (interface{}, error){
 		//TODO format datetime
 		return v, nil
 	}
+}
+
+func LookupIdentityPropertyIdxByTag(entityType reflect.Type) (int, bool){
+	for i := 0; i < entityType.NumField(); i++ {
+		val := entityType.Field(i).Tag.Get("ravendb")
+		if strings.HasSuffix(val, "id") || strings.Contains(val, "id,"){
+			return i, true
+		}
+	}
+	return nil, false
 }
 
 func (convention DocumentConvention) GenerateDocumentId(DBName string, entity interface{}) string{

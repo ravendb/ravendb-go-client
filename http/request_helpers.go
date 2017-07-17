@@ -9,7 +9,7 @@ const MAX_RESPONSES uint8 = 5
 const RATE_SUPRESSION_COEF = 0.75
 
 type ServerNode struct{
-	Url, Database, ApiKey, CurrentToken string
+	Url, Database, ApiKey, CurrentToken, ClusterToken string
 	IsFailed, isRateSurpassed bool
 	responseTime []time.Duration
 }

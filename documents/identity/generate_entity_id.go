@@ -2,7 +2,7 @@ package identity
 
 import (
 	"reflect"
-	"strings"
+	"../../data"
 )
 
 //Attempts to get the document ID from an instance
@@ -30,23 +30,13 @@ func LookupIdFromInstance(entity interface{}) (id string, ok bool){
 }
 
 func getIdentityField(entType reflect.Type) (reflect.StructField, bool){
-	propertyFieldIdx, ok := lookupIdentityPropertyIdxByTag(entType)
+	propertyFieldIdx, ok := data.LookupIdentityPropertyIdxByTag(entType)
 	if ok{
 		return entType.Field(propertyFieldIdx), true
 	}
 	id, ok := entType.FieldByName("Id")
 	if ok{
 		return id, true
-	}
-	return nil, false
-}
-
-func lookupIdentityPropertyIdxByTag(entityType reflect.Type) (int, bool){
-	for i := 0; i < entityType.NumField(); i++ {
-		val := entityType.Field(i).Tag.Get("ravendb")
-		if strings.HasSuffix(val, "id") || strings.Contains(val, "id,"){
-			return i, true
-		}
 	}
 	return nil, false
 }

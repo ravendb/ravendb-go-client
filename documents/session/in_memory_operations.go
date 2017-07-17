@@ -18,6 +18,7 @@ const (
 type InMemoryDocumentSessionOperator struct{
 	generateDocumentIdsOnStore bool
 	documentInfoCache map[string]DocumentInfo
+	IdGenerator identity.OnClientIdGenerator
 }
 
 type DocumentInfo struct{
@@ -31,7 +32,8 @@ type DocumentInfo struct{
 }
 
 func NewInMemoryDocumentSessionOperator() (*InMemoryDocumentSessionOperator, error){
-	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo)}, nil
+	idGenerator, _ := identity.NewOnClientIdGenerator()
+	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),idGenerator}, nil
 }
 
 func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo, error){
@@ -55,10 +57,13 @@ func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity inte
 	var documentInfo DocumentInfo
 	if id == ""{
 		if sessionOperator.generateDocumentIdsOnStore{
-			id = identity.GenerateDocumentIdForStorage(entity)
+			id = sessionOperator.IdGenerator.GenerateDocumentIdForStorage(entity)
 		}else{
-			//RememberEntityForDocumentIdGeneration(entity);//todo
+			sessionOperator.rememberEntityForDocumentIdGeneration(entity);//todo should be overrided
 		}
+	}else{
+		// Store it back into the Id field so the client has access to it
+		sessionOperator.IdGenerator.TrySetIdentity(entity, id);//todo
 	}
 	documentInfo, ok := sessionOperator.documentInfoCache[id]
 	if !ok{
