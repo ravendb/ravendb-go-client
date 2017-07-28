@@ -23,6 +23,15 @@ type Topology struct{
 	Nodes []ServerNode
 }
 
+type NodeStatus struct{
+	tickerPeriod time.Duration
+	ticker time.Ticker
+	shouldPerformNextTick chan(bool)
+	requestExecutor RequestExecutor
+	NodeIndex int
+	Node ServerNode
+}
+
 func NewServerNode(url, database, apiKey, currentToken string, isFailed bool) *ServerNode{
 	return &ServerNode{url, database, apiKey, currentToken, isFailed,
 		false, nil}
@@ -47,6 +56,12 @@ func NewTopology(etag int64, leaderNode ServerNode, readBehaviour data.ReadBehav
 		readBehaviour, writeBehaviour,
 		nodes,
 	}
+}
+
+func NewNodeStatus(executor RequestExecutor, nodeIndex int, node ServerNode) (*NodeStatus, error){
+	period := time.Duration(time.Millisecond*100)
+	ticker := time.NewTicker(period)
+	return &NodeStatus{requestExecutor: executor, NodeIndex: nodeIndex, Node: node, timerPeriod:period, ticker:*ticker}, nil
 }
 
 func (sn ServerNode) ResponseTime() []time.Duration{
@@ -76,4 +91,38 @@ func (sn ServerNode) IsRateSupressed(requestTimeSlaTresholdInMilliseconds uint) 
 	}
 	sn.isRateSurpassed = float64(sn.Ewma()) >= supressionThreshold
 	return sn.isRateSurpassed
+}
+
+func (ns NodeStatus) StartTicker(){
+	go func(){
+		for {
+			select {
+			case <-ns.ticker.C:
+				ns.requestExecutor.CheckNodeStatusCallback(&ns)
+			case <-ns.shouldPerformNextTick:
+				ns.ticker.Stop()
+				return
+			default:
+				time.Sleep(ns.getTickerPeriod())
+			}
+		}
+	}()
+}
+
+func (ns NodeStatus) StopTicker(){
+	close(ns.shouldPerformNextTick)
+}
+
+func (ns NodeStatus) getTickerPeriod() time.Duration{
+	if ns.tickerPeriod >= time.Second * 5{
+		return time.Second * 5
+	}
+
+	ns.tickerPeriod += time.Millisecond * 100
+	return ns.tickerPeriod
+}
+
+func (ns NodeStatus) UpdateTicker(){
+	ns.ticker.Stop()
+	ns.ticker = *time.NewTicker(ns.getTickerPeriod())
 }

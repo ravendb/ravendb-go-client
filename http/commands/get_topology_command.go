@@ -11,6 +11,7 @@ import(
 type GetTopologyCommand struct{
 	forcedUrl string
 	ravenCommand http.RavenCommand
+	Result http.Topology
 }
 
 func NewGetTopologyCommand(forcedUrl string) (*GetTopologyCommand, error){

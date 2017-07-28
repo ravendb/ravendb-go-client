@@ -5,6 +5,7 @@ import (
 	"../tools"
 	"./commands"
 	ravenErrors "../errors"
+	ravenHttp "../http"
 	"net/http"
 	"time"
 	"sync"
@@ -26,6 +27,7 @@ type RequestExecutor struct{
 	GlobalHttpClientTimeout time.Duration
 	GlobalHttpClient http.Client
 	ServerNode ServerNode
+	failedNodesTickers map[ServerNode]NodeStatus
 
 	convention data.DocumentConvention
 	topology Topology
@@ -39,7 +41,9 @@ type RequestExecutor struct{
 
 type NodeSelector struct{
 	topology Topology
+	topologyLock sync.Mutex
 	currentNodeIdx int
+	nodeIndexLock sync.RWMutex
 }
 
 func NewRequestExecutor(dBName string, apiKey string) (*RequestExecutor, error){
@@ -66,11 +70,18 @@ func (executor RequestExecutor) UpdateTopology(node ServerNode, timeout int) (bo
 		return false, nil
 	}
 
-	//start of json operation conetext
+	//start of json operation context
 	command, _ := commands.NewGetTopologyCommand()
 	executor.Execute(node, context, command, shouldRetry: false)
-	serverHash := GetServerHash(node.Url, executor.database)
-
+	serverHash := ravenHttp.GetServerHashS(node.Url, executor.database)
+	//Todo: Save topology to local cache
+	if &executor.nodeSelector == nil {
+		nodesSelectorPtr, _ := NewNodeSelector(command.Result)
+		executor.nodeSelector = *nodesSelectorPtr
+	}else if executor.nodeSelector.OnUpdateTopology(command.Result, false){
+		executor.DisposeAllFailedNodesTimers()
+	}
+	executor.TopologyEtag = executor.nodeSelector.topology.Etag
 	//end of json operation context
 
 	return false
@@ -85,11 +96,19 @@ func (executor RequestExecutor) UpdateTopologyAsync(node ServerNode, timeout int
 	return promise
 }
 
+func (executor RequestExecutor) DisposeAllFailedNodesTickers(){
+	oldFailedNodesTimers := executor.failedNodesTimers
+	executor.failedNodesTickers = make(map[ServerNode]NodeStatus)
+	for node, status := range oldFailedNodesTimers{
+		status.StopTicker()
+	}
+}
+
 func (executor RequestExecutor) firstTopologyUpdate(initialUrls []string){
 	var errorList map[string]error
 	var promises []chan error
 	for url := range initialUrls{
-		serverNode := NewServerNode(url, executor.database)
+		serverNode := *NewServerNode(url, executor.database)
 		promise := executor.UpdateTopologyAsync(serverNode, 0)
 		initPeriodicTopologyUpdates()
 	}
@@ -168,14 +187,22 @@ func (executor RequestExecutor) getHttpClientForCommand(command RavenRequestable
 	return executor.GlobalHttpClient, nil
 }
 
-func (executor RequestExecutor) HandleServerDown(chosenNode ServerNode, nodeIdx int, command RavenRequestable, request http.Request, response http.Response){
+func (executor RequestExecutor) HandleServerDown(chosenNode ServerNode, nodeIdx int, command RavenRequestable, request http.Request, response http.Response) (bool){
 	serverError, err := ravenErrors.NewServerError(response)
 	if err != nil{
-		return
+		return false
 	}
 	executor.AddFailedResponseToCommand(chosenNode, command, serverError)
-	nodeSelector = executor.nodeSelector
-	SpawnHealthchecks()
+	nodeSelector := executor.nodeSelector
+	executor.SpawnHealthChecks(chosenNode, nodeIdx)
+	if &nodeSelector != nil{
+		nodeSelector.OnFailedRequest(nodeIdx)
+	}
+	currentNode, _ := executor.nodeSelector.GetCurrentNode()
+	if _, ok := command.GetFailedNodes()[currentNode]; ok{
+		return false
+	}
+	
 }
 
 func (executor RequestExecutor) AddFailedResponseToCommand(chosenNode ServerNode, command RavenRequestable, err error) error{
@@ -183,7 +210,47 @@ func (executor RequestExecutor) AddFailedResponseToCommand(chosenNode ServerNode
 	return nil
 }
 
+func (executor RequestExecutor) CheckNodeStatusCallback(ns *NodeStatus){
+	copy := executor.nodeSelector.topology.Nodes
+	if ns.NodeIndex >= len(copy){
+		return// topology index changed / removed
+	}
+	serverNode := copy[ns.NodeIndex]
+	if &serverNode != &ns.Node{
+		return// topology changed, nothing to check
+	}
+	_, err := executor.PerformHealthCheck(serverNode)
+	if err{
+		//log
+		if val ,ok := executor.failedNodesTickers[ns.Node]; ok{
+			val.UpdateTicker()
+		}
+		return
+	}
+
+	if val ,ok := executor.failedNodesTickers[ns.Node]; ok{
+		val.StopTicker()
+		delete(executor.failedNodesTickers, ns.Node)
+	}
+	executor.nodeSelector.RestoreNodeIndex(ns.NodeIndex)
+}
+
+func (executor RequestExecutor) PerformHealthCheck(serverNode ServerNode) (interface{}, error){
+	getStatisticsCommand := commands.NewGetStatisticsCommand()
+	return executor.Execute(serverNode, getStatisticsCommand, false)
+}
+
+func (executor RequestExecutor) SpawnHealthChecks(chosenNode ServerNode, nodeIndex int){
+	nodeStatus, _ := NewNodeStatus(executor, nodeIndex, chosenNode)
+	if _, ok := executor.failedNodesTickers[chosenNode]; !ok{
+		executor.failedNodesTickers[chosenNode] = *nodeStatus
+		nodeStatus.StartTicker()
+	}
+}
+
 func (selector NodeSelector) GetCurrentNodeIndex() int{
+	selector.nodeIndexLock.RLock()
+	defer selector.nodeIndexLock.RUnlock()
 	return selector.currentNodeIdx
 }
 
@@ -192,4 +259,39 @@ func (selector NodeSelector) GetCurrentNode() (ServerNode, error){
 		return nil, errors.New("request_executor:Topology has no nodes")
 	}
 	return selector.topology.Nodes[selector.currentNodeIdx], nil
+}
+
+func (selector NodeSelector) OnUpdateTopology(topology Topology, forceUpdate bool) bool{
+	if &topology == nil{
+		return false
+	}
+
+	oldTopology := selector.topology
+	if oldTopology.Etag >= topology.Etag && !forceUpdate{
+		return false
+	}
+
+	if &selector.topology == &oldTopology{
+		selector.topology = topology
+	}
+	return &selector.topology == &topology
+}
+
+func (selector NodeSelector) RestoreNodeIndex(nodeIndex int){
+	selector.nodeIndexLock.Lock()
+	defer selector.nodeIndexLock.Unlock()
+	selector.currentNodeIdx = nodeIndex
+}
+
+func (selector NodeSelector) OnFailedRequest(nodeIdx int){
+	if len(selector.topology.Nodes) == 0{
+		return
+	}
+
+	if nodeIdx < len(selector.topology.Nodes) - 1{
+		nodeIdx = nodeIdx+1
+	}else{
+		nodeIdx = 0
+	}
+	selector.RestoreNodeIndex(nodeIdx)
 }
