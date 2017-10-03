@@ -7,14 +7,14 @@ import (
 
 func TestCRUD(t *testing.T){
 
-	store := NewDocumentStore()
+	store, _ := NewDocumentStore("test")
 	session := store.OpenSession()
-	session.Store(testingUtils.User{Name: "user1"}, "user/1")
+	session.Store(testingUtils.User{Name: "user1"}, 1, "user/1")
 	user2 := testingUtils.User{Name: "user2", Age: 1}
-	session.Store(user2, "user/2")
+	session.Store(user2,  2, "user/2")
 	user3 := testingUtils.User{Name: "user3", Age: 1}
-	session.Store(user3, "user/3")
-	session.Store(testingUtils.User{Name: "user4"}, "user/4")
+	session.Store(user3, 3, "user/3")
+	session.Store(testingUtils.User{Name: "user4"}, 4, "user/4")
 
 	session.Delete(user2)
 	user3.Age = 3

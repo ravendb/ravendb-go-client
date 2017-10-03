@@ -8,6 +8,13 @@ import (
 const MAX_RESPONSES uint8 = 5
 const RATE_SUPRESSION_COEF = 0.75
 
+type IServerNode interface{
+	GetClusterToken() string
+	GetCurrentToken() string
+	GetUrl() string
+	GetDatabase() string
+}
+
 type ServerNode struct{
 	Url, Database, ApiKey, CurrentToken, ClusterToken string
 	IsFailed, isRateSurpassed bool
@@ -29,12 +36,12 @@ type NodeStatus struct{
 	shouldPerformNextTick chan(bool)
 	requestExecutor RequestExecutor
 	NodeIndex int
-	Node ServerNode
+	Node IServerNode
 }
 
 func NewServerNode(url, database, apiKey, currentToken string, isFailed bool) *ServerNode{
-	return &ServerNode{url, database, apiKey, currentToken, isFailed,
-		false, nil}
+	return &ServerNode{url, database, apiKey, currentToken,  "",isFailed,
+		false, []time.Duration{}}
 }
 
 func NewTopology(etag int64, leaderNode ServerNode, readBehaviour data.ReadBehaviour,
@@ -58,10 +65,10 @@ func NewTopology(etag int64, leaderNode ServerNode, readBehaviour data.ReadBehav
 	}
 }
 
-func NewNodeStatus(executor RequestExecutor, nodeIndex int, node ServerNode) (*NodeStatus, error){
+func NewNodeStatus(executor RequestExecutor, nodeIndex int, node IServerNode) (*NodeStatus, error){
 	period := time.Duration(time.Millisecond*100)
 	ticker := time.NewTicker(period)
-	return &NodeStatus{requestExecutor: executor, NodeIndex: nodeIndex, Node: node, timerPeriod:period, ticker:*ticker}, nil
+	return &NodeStatus{requestExecutor: executor, NodeIndex: nodeIndex, Node: node, tickerPeriod:period, ticker:*ticker}, nil
 }
 
 func (sn ServerNode) ResponseTime() []time.Duration{
@@ -70,6 +77,22 @@ func (sn ServerNode) ResponseTime() []time.Duration{
 
 func (sn ServerNode) SetResponseTime(val time.Duration){
 	sn.responseTime[uint8(len(sn.responseTime)) % MAX_RESPONSES] = val
+}
+
+func (sn ServerNode) GetClusterToken() string{
+	return sn.ClusterToken
+}
+
+func (sn ServerNode) GetCurrentToken() string{
+	return sn.CurrentToken
+}
+
+func (sn ServerNode) GetUrl() string{
+	return sn.Url
+}
+
+func (sn ServerNode) GetDatabase() string{
+	return sn.Database
 }
 
 func (sn ServerNode) Ewma() uint{

@@ -4,7 +4,10 @@ import (
 	"errors"
 	"../identity"
 	"../../data"
+	documents "../../documents"
+	ravenHttp "../../http"
 	"fmt"
+	"net/http"
 )
 
 type ConcurrencyCheckMode uint8
@@ -19,6 +22,10 @@ type InMemoryDocumentSessionOperator struct{
 	generateDocumentIdsOnStore bool
 	documentInfoCache map[string]DocumentInfo
 	IdGenerator identity.OnClientIdGenerator
+
+	database string
+	store documents.DocumentStore
+	requestExecutor ravenHttp.RequestExecutor
 }
 
 type DocumentInfo struct{
@@ -31,9 +38,9 @@ type DocumentInfo struct{
 	Entity interface{}
 }
 
-func NewInMemoryDocumentSessionOperator() (*InMemoryDocumentSessionOperator, error){
+func NewInMemoryDocumentSessionOperator(dbName string, documentStore documents.DocumentStore, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error){
 	idGenerator, _ := identity.NewOnClientIdGenerator()
-	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),idGenerator}, nil
+	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),*idGenerator, dbName, documentStore, requestExecutor}, nil
 }
 
 func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo, error){
@@ -109,6 +116,14 @@ func (sessionOperator InMemoryDocumentSessionOperator) Store(entity interface{},
 //Marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (sessionOperator InMemoryDocumentSessionOperator) Delete(arg interface{}) error{
 	return nil
+}
+
+func (sessionOperator InMemoryDocumentSessionOperator) GetDatabase() string{
+	return sessionOperator.database
+}
+
+func (sessionOperator InMemoryDocumentSessionOperator) GetRequestExecutor() ravenHttp.RequestExecutor{
+	return sessionOperator.requestExecutor
 }
 
 //errors

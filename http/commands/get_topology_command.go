@@ -20,7 +20,7 @@ func NewGetTopologyCommand(forcedUrl string) (*GetTopologyCommand, error){
 	if err != nil{
 		return nil, err
 	}
-	return &GetTopologyCommand{forcedUrl, *ravenCommand}, nil
+	return &GetTopologyCommand{forcedUrl, *ravenCommand, nil}, nil
 }
 
 func (command GetTopologyCommand) CreateRequest(node http.ServerNode, urlPtr *string) (*gohttp.Request, error){

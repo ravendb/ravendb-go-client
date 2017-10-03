@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 	"time"
+	"strconv"
 )
 
 type ResponseType uint8
@@ -14,11 +15,14 @@ const (
 )
 
 type RavenRequestable interface{
-	CreateRequest(ServerNode, *string) http.Request
+	CreateRequest(IServerNode, *string) http.Request
 	GetTimeout() time.Duration
 	Send(http.Client, http.Request) (http.Response, error)
 	GetFailedNodes() map[ServerNode]error
-	SetFailedNode(ServerNode, error)
+	SetFailedNode(IServerNode, error)
+	SetStatusCode(int)
+	ShouldRefreshTopology() bool
+	ProcessResponse(http.Response, string)
 }
 
 type RavenCommand struct{
@@ -26,6 +30,7 @@ type RavenCommand struct{
 	FailedNodes map[ServerNode]error
 	Result interface{}
 	timeout time.Duration
+	RefreshTopology bool
 
 }
 
@@ -45,4 +50,21 @@ func (command RavenCommand) GetFailedNodes() map[ServerNode]error{
 	if command.FailedNodes == nil{
 		command.FailedNodes = make(map[ServerNode]error)
 	}
+}
+
+func (command RavenCommand) ShouldRefreshTopology() bool{
+	return command.RefreshTopology
+}
+
+func (command RavenCommand) ProcessResponse(response http.Response, url string){
+	if response.ContentLength == 0{
+		return
+	}
+	refreshTopologyHeaderVal := response.Header.Get("Refresh-Topology")
+	refreshTopology, err := strconv.ParseBool(refreshTopologyHeaderVal)
+	if err != nil{
+		refreshTopology = false
+	}
+	command.RefreshTopology = refreshTopology
+	command.setResponseRaw(response)
 }
