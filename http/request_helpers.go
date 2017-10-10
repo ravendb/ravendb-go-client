@@ -45,7 +45,7 @@ func NewServerNode(url, database, apiKey, currentToken string, isFailed bool) *S
 }
 
 func NewTopology(etag int64, leaderNode ServerNode, readBehaviour data.ReadBehaviour,
-	writeBehaviour data.WriteBehaviour, nodes []ServerNode, sla int) *Topology{
+	writeBehaviour data.WriteBehaviour, nodes []IServerNode, sla int) *Topology{
 
 	if readBehaviour.IsEmpty(){
 		rb, _ := data.NewReadBehaviour(data.LEADER_ONLY)

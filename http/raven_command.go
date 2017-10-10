@@ -15,30 +15,30 @@ const (
 )
 
 type RavenRequestable interface{
-	CreateRequest(IServerNode, *string) http.Request
+	CreateRequest(IServerNode, *string) (http.Request, error)
 	GetTimeout() time.Duration
-	Send(http.Client, http.Request) (http.Response, error)
-	GetFailedNodes() map[ServerNode]error
+	Send(http.Client, *http.Request) (*http.Response, error)
+	GetFailedNodes() map[IServerNode]error
 	SetFailedNode(IServerNode, error)
 	SetStatusCode(int)
 	ShouldRefreshTopology() bool
-	ProcessResponse(http.Response, string)
+	ProcessResponse(*http.Response, string)
 }
 
 type RavenCommand struct{
 	ResponseType ResponseType
-	FailedNodes map[ServerNode]error
+	FailedNodes map[IServerNode]error
 	Result interface{}
 	timeout time.Duration
 	RefreshTopology bool
-
+	statusCode int
 }
 
 func NewRavenCommand() (*RavenCommand, error){
-	return &RavenCommand{OBJECT, timeout:0}, nil
+	return &RavenCommand{ResponseType: OBJECT, timeout:0}, nil
 }
 
-func (command RavenCommand) Send(client http.Client, request http.Request) (http.Response, error){
+func (command RavenCommand) Send(client http.Client, request *http.Request) (*http.Response, error){
 	return client.Do(request)
 }
 
@@ -46,10 +46,14 @@ func (command RavenCommand) GetTimeout() time.Duration{
 	return command.timeout
 }
 
-func (command RavenCommand) GetFailedNodes() map[ServerNode]error{
+func (command RavenCommand) GetFailedNodes() map[IServerNode]error{
 	if command.FailedNodes == nil{
-		command.FailedNodes = make(map[ServerNode]error)
+		command.FailedNodes = make(map[IServerNode]error)
 	}
+}
+
+func (command RavenCommand) SetStatusCode(code int){
+	command.statusCode = code
 }
 
 func (command RavenCommand) ShouldRefreshTopology() bool{

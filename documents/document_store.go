@@ -3,6 +3,7 @@ package documents
 import (
 	"errors"
 	ravenHttp "../http"
+	"../data"
 	"github.com/google/uuid"
 )
 
@@ -12,8 +13,10 @@ type IDocumentStore interface{
 
 type DocumentStore struct{
 	Urls []string
-	Database string
+	Database, ApiKey string
 	initialized, closed bool
+	requestExecutors map[string]ravenHttp.RequestExecutor
+	DocumentConventions data.DocumentConvention
 
 	OperationsExecutor, AdminOperationsExecutor, ServerOperationsExecutor IOperationExecutor
 }
@@ -74,8 +77,21 @@ func (store *DocumentStore) validateConfiguration() error{
 	return nil
 }
 
-func (store *DocumentStore) GetRequestExecutor() ravenHttp.RequestExecutor{
-
+func (store *DocumentStore) GetRequestExecutor(database string) ravenHttp.RequestExecutor{
+	if database == ""{
+		database = store.Database
+	}
+	_, ok := store.requestExecutors[database]
+	if !ok{
+		executor, err := ravenHttp.NewRequestExecutor(database, store.ApiKey)
+		if store.DocumentConventions.DisableTopologyUpdates == false{
+			executor.Create(store.Urls, database, store.ApiKey)
+		}else{
+			executor.CreateForSingleNode(store.Urls[0], database, store.ApiKey)
+		}
+		store.requestExecutors[database] = *executor
+	}
+	return store.requestExecutors[database]
 }
 
 func (store *DocumentStore) Operations() IOperationExecutor{

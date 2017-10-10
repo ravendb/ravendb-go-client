@@ -9,6 +9,6 @@ func GetServerHash(url string) string{
 	return fmt.Sprintf("%x", xxhash.ChecksumString64(url))
 }
 
-func GetServerHashS(url string, database string) string{
+func GetServerHashWithSeed(url string, database string) string{
 	return fmt.Sprintf("%x", xxhash.ChecksumString64S(url, xxhash.ChecksumString64(database)))
 }

@@ -10,7 +10,6 @@ import (
 	"sync"
 	"errors"
 	"fmt"
-	"net/rpc"
 )
 
 type RequestExecutor struct{
@@ -22,7 +21,7 @@ type RequestExecutor struct{
 	disposed bool
 	updateTopologyTickerStarted, withoutTopology bool
 	updateTopologyTickerLock sync.Mutex
-	nodeSelector NodeSelector
+	nodeSelector *NodeSelector
 	updateTopologyLock sync.Mutex
 	GlobalHttpClientTimeout time.Duration
 	GlobalHttpClient http.Client
@@ -40,7 +39,7 @@ type RequestExecutor struct{
 }
 
 type NodeSelector struct{
-	topology Topology
+	topology *Topology
 	topologyLock sync.Mutex
 	currentNodeIdx int
 	nodeIndexLock sync.RWMutex
@@ -50,12 +49,19 @@ func NewRequestExecutor(dBName string, apiKey string) (*RequestExecutor, error){
 	return &RequestExecutor{database:dBName, apiKey:apiKey, TopologyEtag:0, lastReturnedResponseTime:time.Now(), updateTopologyTickerStarted:false}, nil
 }
 
-func NewNodeSelector(topology Topology) (*NodeSelector, error){
+func NewNodeSelector(topology *Topology) (*NodeSelector, error){
 	return &NodeSelector{topology, sync.Mutex{}, nil, sync.Mutex{}}, nil
 }
 
-func (executor RequestExecutor) Create(){
+func (executor RequestExecutor) Create(urls []string, databaseName string, apiKey string){
+	executor.firstTopologyUpdate = executor.doFirstTopologyUpdate(urls)
+}
 
+func (executor RequestExecutor) CreateForSingleNode(url string, databaseName string, apiKey string){
+	node := NewServerNode(url, databaseName, apiKey, "", false)
+	nodes := []IServerNode{node}
+	topology := NewTopology(-1, ServerNode{}, data.ReadBehaviour{}, data.WriteBehaviour{}, nodes, 0)
+	executor.nodeSelector, _ = NewNodeSelector(topology)
 }
 
 func (executor RequestExecutor) UpdateTopology(node ServerNode, timeout int) (bool, error){
@@ -73,13 +79,13 @@ func (executor RequestExecutor) UpdateTopology(node ServerNode, timeout int) (bo
 	//start of json operation context
 	command, _ := commands.NewGetTopologyCommand("")
 	executor.Execute(node, *command,  false)
-	serverHash := ravenHttp.GetServerHashS(node.Url, executor.database)
+	//serverHash := GetServerHashWithSeed(node.Url, executor.database)
 	//Todo: Save topology to local cache
 	if &executor.nodeSelector == nil {
 		nodesSelectorPtr, _ := NewNodeSelector(command.Result)
 		executor.nodeSelector = *nodesSelectorPtr
 	}else if executor.nodeSelector.OnUpdateTopology(command.Result, false){
-		executor.DisposeAllFailedNodesTimers()
+		executor.DisposeAllFailedNodesTickers()
 	}
 	executor.TopologyEtag = executor.nodeSelector.topology.Etag
 	//end of json operation context
@@ -97,22 +103,21 @@ func (executor RequestExecutor) UpdateTopologyAsync(node ServerNode, timeout int
 }
 
 func (executor RequestExecutor) DisposeAllFailedNodesTickers(){
-	oldFailedNodesTimers := executor.failedNodesTimers
+	oldFailedNodesTickers := executor.failedNodesTickers
 	executor.failedNodesTickers = make(map[ServerNode]NodeStatus)
-	for node, status := range oldFailedNodesTimers{
+	for node, status := range oldFailedNodesTickers{
 		status.StopTicker()
 	}
 }
 
-func (executor RequestExecutor) doFirstTopologyUpdate(initialUrls []string){
+func (executor RequestExecutor) doFirstTopologyUpdate(initialUrls []string) chan(bool){
 	var errorList map[string]error
 	var promises []chan error
 	for url := range initialUrls{
 		serverNode := *NewServerNode(url, executor.database)
 		promise := executor.UpdateTopologyAsync(serverNode, 0)
-		initPeriodicTopologyUpdates()
+		executor.initPeriodicTopologyUpdates()
 	}
-	res <-
 }
 
 

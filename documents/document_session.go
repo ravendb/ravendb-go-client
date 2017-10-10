@@ -7,7 +7,6 @@ import (
 )
 
 type IDocumentSession interface{
-	OpenSession() error
 	SaveChanges() error
 	Store(interface{}, int64, string) error
 	Delete(interface{}) error
@@ -57,6 +56,10 @@ func (documentSession DocumentSession) Store(object interface{}, etag int64, id 
 
 //Marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (documentSession DocumentSession) Delete(arg interface{}) error{
+	return documentSession.inMemoryDocumentSessionOperator.Delete(arg)
+}
+
+func (documentSession DocumentSession) DeleteById(id string, expectedChangeVector string) error{
 	return documentSession.inMemoryDocumentSessionOperator.Delete(arg)
 }
 
