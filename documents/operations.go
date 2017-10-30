@@ -1,7 +1,7 @@
 package documents
 
 import (
-	"../http"
+	"github.com/ravendb-go-client/http"
 )
 
 type IOperation interface{

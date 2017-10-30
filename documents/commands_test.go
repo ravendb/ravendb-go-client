@@ -8,7 +8,7 @@ import (
 func TestCRUD(t *testing.T){
 
 	store, _ := NewDocumentStore("test")
-	session := store.OpenSession()
+	session, _ := store.OpenSession()
 	session.Store(testingUtils.User{Name: "user1"}, 1, "user/1")
 	user2 := testingUtils.User{Name: "user2", Age: 1}
 	session.Store(user2,  2, "user/2")

@@ -2,12 +2,10 @@ package session
 
 import (
 	"errors"
-	"../identity"
-	"../../data"
-	documents "../../documents"
-	ravenHttp "../../http"
+	ravenHttp "github.com/ravendb-go-client/http"
 	"fmt"
-	"net/http"
+	"github.com/ravendb-go-client/data"
+	"github.com/ravendb-go-client/documents/identity"
 )
 
 type ConcurrencyCheckMode uint8
@@ -24,7 +22,6 @@ type InMemoryDocumentSessionOperator struct{
 	IdGenerator identity.OnClientIdGenerator
 
 	database string
-	store documents.DocumentStore
 	requestExecutor ravenHttp.RequestExecutor
 }
 
@@ -38,9 +35,9 @@ type DocumentInfo struct{
 	Entity interface{}
 }
 
-func NewInMemoryDocumentSessionOperator(dbName string, documentStore documents.DocumentStore, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error){
+func NewInMemoryDocumentSessionOperator(dbName string, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error){
 	idGenerator, _ := identity.NewOnClientIdGenerator()
-	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),*idGenerator, dbName, documentStore, requestExecutor}, nil
+	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),*idGenerator, dbName,  requestExecutor}, nil
 }
 
 func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo, error){
@@ -60,7 +57,7 @@ func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo,
 	return &DocumentInfo{string(id), int64(etag), document, metadata, FORCED, false, true,nil}, nil
 }
 
-func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity interface{}, etag int64, id string, forceConcurrencyCheck session.ConcurrencyCheckMode) error{
+func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity interface{}, etag int64, id string, forceConcurrencyCheck ConcurrencyCheckMode) error{
 	var documentInfo DocumentInfo
 	if id == ""{
 		if sessionOperator.generateDocumentIdsOnStore{
