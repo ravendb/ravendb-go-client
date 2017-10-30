@@ -1,8 +1,8 @@
 package identity
 
 import(
-	documents ".."
-	data "../../data"
+	"github.com/ravendb-go-client/documents"
+	"github.com/ravendb-go-client/data"
 	"sync/atomic"
 	"sync"
 	"fmt"
@@ -34,6 +34,7 @@ type MultiDatabaseHiLoIdGenerator struct{
 	store documents.DocumentStore
 	convention data.DocumentConvention
 	generatorsCollection map[string]MultiTypeHiLoIdGenerator
+	generatorMutex sync.Mutex
 }
 
 type RangeValue struct{
@@ -102,13 +103,13 @@ func (multiGenerator MultiTypeHiLoIdGenerator) GenerateDocumentId(entity interfa
 	generator, ok := multiGenerator.generatorsCollection[tag]
 	if !ok{
 		multiGenerator.generatorMutex.Lock()
+		defer multiGenerator.generatorMutex.Unlock()
 		generator, ok := multiGenerator.generatorsCollection[tag]
 		if !ok{
 			generatorPtr, _ := NewHiLoIdGenerator(tag, generator.store, generator.dBName, generator.conventions.IdentityPartsSeparator)
 			multiGenerator.generatorsCollection[tag] = *generatorPtr
 			generator = multiGenerator.generatorsCollection[tag]
 		}
-		multiGenerator.generatorMutex.Unlock()
 	}
 	return generator.CreateDocumentIdFromId(generator.GenerateDocumentId(entity))
 }
@@ -119,7 +120,7 @@ func (multiGenerator MultiTypeHiLoIdGenerator) ReturnUnusedRange(){
 	}
 }
 
-//Not thread safe yet
+//Thread safe document id generator
 func (multiGenerator MultiDatabaseHiLoIdGenerator) GenerateDocumentId(dBName string, entity interface{}) string{
 	db := dBName
 	if db == "" {
@@ -127,9 +128,14 @@ func (multiGenerator MultiDatabaseHiLoIdGenerator) GenerateDocumentId(dBName str
 	}
 	generator, ok := multiGenerator.generatorsCollection[db]
 	if !ok{
-		generatorPtr, _ := multiGenerator.MultiTypeHiLoIdGenerator(db)
-		generator = *generatorPtr
-		multiGenerator.generatorsCollection[db] = generator
+		multiGenerator.generatorMutex.Lock()
+		defer multiGenerator.generatorMutex.Unlock()
+		generator, ok := multiGenerator.generatorsCollection[db]
+		if !ok {
+			generatorPtr, _ := multiGenerator.MultiTypeHiLoIdGenerator(db)
+			generator = *generatorPtr
+			multiGenerator.generatorsCollection[db] = generator
+		}
 	}
 	return generator.GenerateDocumentId(entity)
 }

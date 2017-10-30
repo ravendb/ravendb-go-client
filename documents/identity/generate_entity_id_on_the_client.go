@@ -1,8 +1,6 @@
 package identity
 
 import (
-	"reflect"
-	"../../data"
 )
 
 type OnClientIdGenerator struct{

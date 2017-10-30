@@ -1,1 +1,0 @@
-# ravendb-go-client

@@ -2,9 +2,10 @@ package session
 
 import (
 	"errors"
-	"../identity"
-	"../../data"
+	ravenHttp "github.com/ravendb-go-client/http"
 	"fmt"
+	"github.com/ravendb-go-client/data"
+	"github.com/ravendb-go-client/documents/identity"
 )
 
 type ConcurrencyCheckMode uint8
@@ -19,6 +20,9 @@ type InMemoryDocumentSessionOperator struct{
 	generateDocumentIdsOnStore bool
 	documentInfoCache map[string]DocumentInfo
 	IdGenerator identity.OnClientIdGenerator
+
+	database string
+	requestExecutor ravenHttp.RequestExecutor
 }
 
 type DocumentInfo struct{
@@ -31,9 +35,9 @@ type DocumentInfo struct{
 	Entity interface{}
 }
 
-func NewInMemoryDocumentSessionOperator() (*InMemoryDocumentSessionOperator, error){
+func NewInMemoryDocumentSessionOperator(dbName string, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error){
 	idGenerator, _ := identity.NewOnClientIdGenerator()
-	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),idGenerator}, nil
+	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),*idGenerator, dbName,  requestExecutor}, nil
 }
 
 func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo, error){
@@ -53,7 +57,7 @@ func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo,
 	return &DocumentInfo{string(id), int64(etag), document, metadata, FORCED, false, true,nil}, nil
 }
 
-func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity interface{}, etag int64, id string, forceConcurrencyCheck session.ConcurrencyCheckMode) error{
+func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity interface{}, etag int64, id string, forceConcurrencyCheck ConcurrencyCheckMode) error{
 	var documentInfo DocumentInfo
 	if id == ""{
 		if sessionOperator.generateDocumentIdsOnStore{
@@ -109,6 +113,14 @@ func (sessionOperator InMemoryDocumentSessionOperator) Store(entity interface{},
 //Marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (sessionOperator InMemoryDocumentSessionOperator) Delete(arg interface{}) error{
 	return nil
+}
+
+func (sessionOperator InMemoryDocumentSessionOperator) GetDatabase() string{
+	return sessionOperator.database
+}
+
+func (sessionOperator InMemoryDocumentSessionOperator) GetRequestExecutor() ravenHttp.RequestExecutor{
+	return sessionOperator.requestExecutor
 }
 
 //errors

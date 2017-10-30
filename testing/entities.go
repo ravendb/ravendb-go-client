@@ -5,3 +5,7 @@ type User struct{
 	Name, Lastname, AddressId string
 	Count, Age int
 }
+
+type Product struct{
+	Name string
+}
