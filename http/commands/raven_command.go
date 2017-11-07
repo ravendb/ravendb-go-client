@@ -5,10 +5,10 @@ import (
 	"io/ioutil"
 	"github.com/ravendb-go-client/http/server_nodes"
 )
-
-type RavenRequestable interface{
+// interface for RequestExecutor.Execute method
+type IRavenRequestable interface{
 	CreateRequest(server_nodes.IServerNode)
-	SetResponse(*http.Response) ([]byte, error)
+	GetResponseRaw(*http.Response) ([]byte, error)
 	ICommand
 }
 
@@ -32,49 +32,52 @@ type Command struct{
 	Result []byte
 	Method, Url string
 	FailedNodes []server_nodes.IServerNode
+	IsReadRequest, UseStream, ravenCommand bool
 }
 
-func NewRavenCommand() (*Command, error){
-	return &Command{}, nil
+func NewRavenCommand() (ref *Command, err error){
+	ref = &Command{}
+	ref.ravenCommand = true
+	return
 }
 
-func (command Command) SetHeaders(headers map[string]string){
+func (command *Command) SetHeaders(headers map[string]string){
 	command.Headers = headers
 }
 
-func (command Command) GetHeaders() map[string]string{
+func (command *Command) GetHeaders() map[string]string{
 	return command.Headers
 }
 
-func (command Command) GetMethod() string{
+func (command *Command) GetMethod() string{
 	return command.Method
 }
 
-func (command Command) SetMethod(method string){
+func (command *Command) SetMethod(method string){
 	command.Method = method
 }
 
-func (command Command) GetUrl() string{
+func (command *Command) GetUrl() string{
 	return command.Url
 }
 
-func (command Command) SetUrl(url string){
+func (command *Command) SetUrl(url string){
 	command.Url = url
 }
 
-func (command Command) GetData() interface{}{
+func (command *Command) GetData() interface{}{
 	return command.Data
 }
 
-func (command Command) SetData(data interface{}){
+func (command *Command) SetData(data interface{}){
 	command.Data = data
 }
 
-func (command Command) GetFailedNodes() []server_nodes.IServerNode{
+func (command *Command) GetFailedNodes() []server_nodes.IServerNode{
 	return command.FailedNodes
 }
-
-func (command Command) SetResponse(resp *http.Response) ([]byte, error){
+// should rename
+func (command *Command) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp == nil{
 		command.Result = []byte{}
 		return command.Result, nil
@@ -87,15 +90,32 @@ func (command Command) SetResponse(resp *http.Response) ([]byte, error){
 	return command.Result, err
 }
 
-func (command Command) AddFailedNode(node server_nodes.IServerNode, err error){
+func (command *Command) AddFailedNode(node server_nodes.IServerNode, err error){
 	command.FailedNodes = append(command.FailedNodes, node)
 }
 
-func (command Command) HasFailedWithNode(node server_nodes.IServerNode) bool{
+func (command *Command) HasFailedWithNode(node server_nodes.IServerNode) bool{
 	for _, v := range command.FailedNodes {
 		if v == node {
 			return true
 		}
 	}
 	return false
+}
+//todo: implement
+type BatchCommand struct {
+	IRavenRequestable
+	commands []string
+}
+func NewBatchCommand(commans []string) *BatchCommand {
+	return &BatchCommand{commands:commans}
+}
+//todo: implement
+type GetOperationStateCommand struct {
+	IRavenRequestable
+	operationId            string
+	isServerStoreOperation bool
+}
+func NewGetOperationStateCommand(operationId string) *GetOperationStateCommand {
+	return &GetOperationStateCommand{operationId: operationId}
 }

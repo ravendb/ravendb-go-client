@@ -24,12 +24,12 @@ type RequestExecutor struct{
 	Headers map[string]string
 	GlobalHttpClient http.Client
 
-	updateTopologyTickerRunning bool
-	updateTopologyTicker time.Ticker
-	updateTopologyLock sync.Mutex
-	updateTickerLock sync.Mutex
-	failedNodesTickers map[server_nodes.IServerNode]NodeStatus
-	disableTopologyUpdates, closed bool
+	updateTopologyTickerRunning    bool
+	updateTopologyTicker           time.Ticker
+	updateTopologyLock             sync.Mutex
+	updateTickerLock               sync.Mutex
+	failedNodesTickers             map[server_nodes.IServerNode]NodeStatus
+	DisableTopologyUpdates, closed bool
 }
 
 func Create(urls []string, databaseName string) (*RequestExecutor, error){
@@ -43,10 +43,10 @@ func CreateForSingleNode(url string, databaseName string) (*RequestExecutor, err
 	topology, _ := NewTopology(-1, []server_nodes.IServerNode{*nodePtr})
 	nodeSelectorPtr, _ := NewNodeSelector(topology)
 	return &RequestExecutor{
-		databaseName:databaseName,
-		NodeSelector: *nodeSelectorPtr,
-		TopologyEtag:-2,
-		disableTopologyUpdates:true,
+		databaseName:           databaseName,
+		NodeSelector:           *nodeSelectorPtr,
+		TopologyEtag:           -2,
+		DisableTopologyUpdates: true,
 	}, nil
 }
 
@@ -68,9 +68,9 @@ func (executor RequestExecutor) FirstTopologyUpdate(initialUrls []string) (bool,
 	return false, TopologyUpdateError{"Failed to retrieve cluster topology from all known nodes", errorList}
 }
 
-func (executor RequestExecutor) ExecuteOnCurrentNode(command commands.RavenRequestable, shouldRetry bool) ([]byte, error){
+func (executor RequestExecutor) ExecuteOnCurrentNode(command commands.IRavenRequestable, shouldRetry bool) ([]byte, error){
 	//topologyUpdate := executor.updateTopologyTickerRunning
-	if !executor.disableTopologyUpdates{
+	if !executor.DisableTopologyUpdates {
 		if !executor.updateTopologyTickerRunning{
 			if len(executor.lastKnownUrls) == 0{
 				return []byte{}, errors.New("No known topology and no previously known one, cannot proceed, likely a bug")
@@ -86,7 +86,7 @@ func (executor RequestExecutor) ExecuteOnCurrentNode(command commands.RavenReque
 	return executor.Execute(node, command, shouldRetry)
 }
 
-func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command commands.RavenRequestable, shouldRetry bool) ([]byte, error){
+func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command commands.IRavenRequestable, shouldRetry bool) ([]byte, error){
 	for{
 		command.CreateRequest(node)
 		var nodeIndex int
@@ -96,7 +96,7 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 
 		//open session?
 		command.SetHeaders(executor.Headers)
-		if !executor.disableTopologyUpdates{
+		if !executor.DisableTopologyUpdates {
 			headers := command.GetHeaders()
 			headers["Topology-Etag"] = fmt.Sprintf("\"%d\"", executor.TopologyEtag)
 			command.SetHeaders(headers)
@@ -130,6 +130,7 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 					if err2 != nil{
 						return []byte{}, err
 					}
+					// почему здесь возвращается не nil ?
 					return []byte{}, topologyErrPtr
 				}
 				node = executor.NodeSelector.GetCurrentNode()
@@ -145,7 +146,8 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 			node.SetResponseTime(elapsedTime)
 
 			if respPtr.StatusCode == 404{
-				return command.SetResponse(nil)
+				// nil зачем передавать ? Это ж точно лишний вызов?
+				return command.GetResponseRaw(nil)
 			}else if respPtr.StatusCode == 403{
 				//todo handle cert
 			}else if respPtr.StatusCode == 408 || respPtr.StatusCode == 502 || respPtr.StatusCode == 503 || respPtr.StatusCode == 504{
@@ -167,12 +169,12 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 				executor.UpdateTopology(*newNode)
 			}
 			executor.lastReturnedResponseTime = time.Now()
-			return command.SetResponse(respPtr)
+			return command.GetResponseRaw(respPtr)
 		}
 	}
 }
 
-func (executor RequestExecutor) getHttpClientForCommand(command commands.RavenRequestable) (http.Client, error){
+func (executor RequestExecutor) getHttpClientForCommand(command commands.IRavenRequestable) (http.Client, error){
 	return executor.GlobalHttpClient, nil
 }
 
@@ -214,7 +216,7 @@ func (executor RequestExecutor) UpdateTopology(node server_nodes.IServerNode) (b
 	return true, nil
 }
 
-func (executor RequestExecutor) HandleServerDown(node server_nodes.IServerNode, nodeIndex int, command commands.RavenRequestable, err error) (bool, error){
+func (executor RequestExecutor) HandleServerDown(node server_nodes.IServerNode, nodeIndex int, command commands.IRavenRequestable, err error) (bool, error){
 	command.AddFailedNode(node, err)
 
 	if _, nodeIsFailed := executor.failedNodesTickers[node]; &executor.NodeSelector != nil && !nodeIsFailed{

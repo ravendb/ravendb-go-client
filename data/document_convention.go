@@ -61,13 +61,15 @@ type WriteBehaviour struct {
 type DocumentConvention struct {
 	MaxNumberOfRequestsPerSession, MaxIdsToCatch,
 	Timeout, MaxLengthOfQueryUsingGetUrl uint
-	DefaultUseOptimisticConcurrency bool
-	IdentityPartsSeparator string
-	JsonDefaultMethod func(obj interface{}) (interface{}, error)
-	DocumentIdGenerator func(DBName string, entity interface{}) string
-	registeredIdConventions map[string]func(DBName string, entity interface{}) string
-	defaultCollectionNamesCache map[reflect.Type]string
-	collectionNameFounder func(reflect.Type) (string, bool)
+	DefaultUseOptimisticConcurrency                 bool
+	RaiseIfQueryPageSizeIsNotSet                    bool
+	DisableTopologyUpdates                          bool
+	IdentityPartsSeparator                          string
+	JSONDefaultMethod                               func(obj interface{}) (interface{}, error)
+	DocumentIdGenerator                             func(DBName string, entity interface{}) string
+	registeredIdConventions                         map[string]func(DBName string, entity interface{}) string
+	defaultCollectionNamesCache                     map[reflect.Type]string
+	collectionNameFounder                           func(reflect.Type) (string, bool)
 	TypeCollectionNameToDocumentIdPrefixTransformer func(string) string
 }
 
@@ -121,14 +123,29 @@ func NewWriteBehaviour(behaviourType BehaviorType) (*WriteBehaviour, error){
 	return &b, nil
 }
 
-func NewDocumentConvention() (*DocumentConvention, error){
-	dc := DocumentConvention{
-		30, 32,
-		30, 1024 + 512,
-		false,
-		"/", jsonDefault,
+func NewDocumentConvention() *DocumentConvention {
+	dc := &DocumentConvention{
+		MaxNumberOfRequestsPerSession:   30,
+		MaxIdsToCatch:                   32,
+		Timeout:                         30,
+		MaxLengthOfQueryUsingGetUrl:     1024 + 512,
+		DefaultUseOptimisticConcurrency: false,
+		IdentityPartsSeparator:          "/",
+		JSONDefaultMethod:               jsonDefault,
 	}
-	return &dc, nil
+	//todo: implement this
+	//self.raise_if_query_page_size_is_not_set = kwargs.get("raise_if_query_page_size_is_not_set", False)
+
+	//dc := &DocumentConvention{
+	//	30,
+	//	32,
+	//	30,
+	//	1024 + 512,
+	//	false,
+	//	"/",
+	//	jsonDefault,
+	//}
+	return dc
 }
 
 func jsonDefault(obj interface{}) (interface{}, error){
@@ -153,12 +170,12 @@ func LookupIdentityPropertyIdxByTag(entityType reflect.Type) (int, bool){
 			return i, true
 		}
 	}
-	return nil, false
+	return -1, false
 }
 
 func (convention DocumentConvention) GenerateDocumentId(DBName string, entity interface{}) string{
 	entityType := reflect.TypeOf(entity)
-	registeredIdConvention, ok := convention.registeredIdConventions[string(entityType)]
+	registeredIdConvention, ok := convention.registeredIdConventions[entityType.String()]
 	if ok{
 		return registeredIdConvention(DBName, entity)
 	}
@@ -176,7 +193,7 @@ func (convention DocumentConvention) GenerateDocumentIdAsync(DBName string, enti
 
 func (convention DocumentConvention) GetCollectionName(entity interface{}) string{
 	if entity == nil{
-		return nil
+		return ""
 	}
 	entityType := reflect.TypeOf(entity)
 	result, ok := convention.collectionNameFounder(entityType)
