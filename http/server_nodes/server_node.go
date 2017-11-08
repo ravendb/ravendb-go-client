@@ -8,7 +8,7 @@ type IServerNode interface{
 	GetUrl() string
 	GetDatabase() string
 }
-
+//Its better to make fields private esp considering that there are setters there
 type ServerNode struct{
 	Url, Database string
 	ClusterTag string
