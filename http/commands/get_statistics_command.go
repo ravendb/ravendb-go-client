@@ -8,11 +8,11 @@ import (
 )
 
 type GetStatisticsCommand struct{
-	command *Command
+	command *RavenCommand
 }
 
 func NewGetStatisticsCommand() (*GetStatisticsCommand, error){
-	command, err := NewRavenCommand()
+	command := NewRavenCommand()
 	command.SetMethod("GET")
 	return &GetStatisticsCommand{command: command}, err
 }
@@ -21,7 +21,7 @@ func (command *GetStatisticsCommand) CreateRequest(node server_nodes.IServerNode
 	command.SetUrl(fmt.Sprintf("%s/database/%s/stats", node.GetUrl(), node.GetDatabase()))
 }
 
-func (command *GetStatisticsCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
+func (command GetStatisticsCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp.StatusCode == 200{
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil{

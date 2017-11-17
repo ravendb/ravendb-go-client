@@ -10,7 +10,7 @@ import (
 )
 
 type GetDocumentCommand struct{
-	command *Command
+	command *RavenCommand
 	Document interface{}
 	metadataOnly bool
 	includes []string
@@ -18,7 +18,7 @@ type GetDocumentCommand struct{
 }
 
 func NewGetDocumentCommand(key string, includes []string, metadataOnly bool) (*GetDocumentCommand, error){
-	command, err := NewRavenCommand()
+	command := NewRavenCommand()
 	command.SetMethod("GET")
 	return &GetDocumentCommand{command: command, Key:key, includes:includes, metadataOnly:metadataOnly}, err
 }
@@ -36,7 +36,7 @@ func (command *GetDocumentCommand) CreateRequest(node server_nodes.IServerNode){
 	command.SetUrl(fmt.Sprintf("%s/databases/%s/docs?id=%s", node.GetUrl(), node.GetDatabase(), url.QueryEscape(command.Key)))
 }
 
-func (command *GetDocumentCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
+func (command GetDocumentCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp.StatusCode == 200{
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil{

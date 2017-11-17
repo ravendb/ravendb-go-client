@@ -40,7 +40,7 @@ func NewQueryOperationOptions(allow_stale bool, stale_timeout time.Duration, max
 }
 
 type Operation struct {
-	commands.Command
+	commands.RavenCommand
 	operation string
 }
 func (ref *Operation) init() {

@@ -67,7 +67,7 @@ func (executor RequestExecutor) FirstTopologyUpdate(initialUrls []string) (bool,
 	executor.lastKnownUrls = initialUrls
 	return false, TopologyUpdateError{"Failed to retrieve cluster topology from all known nodes", errorList}
 }
-
+// ExecuteOnCurrentNode - shouldRetry must be true default
 func (executor RequestExecutor) ExecuteOnCurrentNode(command commands.IRavenRequestable, shouldRetry bool) ([]byte, error){
 	//topologyUpdate := executor.updateTopologyTickerRunning
 	if !executor.DisableTopologyUpdates {
@@ -106,15 +106,15 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 		if &rawData != nil{
 			data, err := json.Marshal(command.GetData())
 			if err != nil{
-				return []byte{}, err
+				return nil, err
 			}
 			requestPtr, err := http.NewRequest(command.GetMethod(), command.GetUrl(), bytes.NewBuffer(data))
 			if err != nil{
-				return []byte{}, nil
+				return nil, nil
 			}
 			client, err := executor.getHttpClientForCommand(command)
 			if err != nil{
-				return []byte{}, err
+				return nil, err
 			}
 			startTime := time.Now()
 			var endTime time.Time
@@ -122,16 +122,16 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 			if err != nil{
 				endTime = time.Now()
 				if !shouldRetry{
-					return []byte{}, err
+					return nil, err
 				}
 				handled, err := executor.HandleServerDown(node, nodeIndex, command, err)
 				if !handled || err != nil{
 					topologyErrPtr, err2 := NewAllTopologyNodesDownError("Tried to send request to all configured nodes in the topology,\nall of them seem to be down or not responding.", executor.NodeSelector.Topology)
 					if err2 != nil{
-						return []byte{}, err
+						return nil, err
 					}
-					// почему здесь возвращается не nil ?
-					return []byte{}, topologyErrPtr
+
+					return nil, topologyErrPtr
 				}
 				node = executor.NodeSelector.GetCurrentNode()
 				continue
@@ -156,9 +156,9 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 					node = failedNodes[0]
 					reqError, err2 := NewUnsuccessfulRequestError(command.GetUrl(), node)
 					if err2 != nil{
-						return []byte{}, err2
+						return nil, err2
 					}
-					return []byte{}, reqError
+					return nil, reqError
 				}
 			}else if respPtr.StatusCode == 409{
 				//todo

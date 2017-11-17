@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"github.com/gedex/inflector"
 	"strings"
+	"unicode"
 )
 
 type BehaviorType uint8
@@ -57,22 +58,6 @@ type ReadBehaviour struct {
 type WriteBehaviour struct {
 	behaviour Behaviour
 }
-
-type DocumentConvention struct {
-	MaxNumberOfRequestsPerSession, MaxIdsToCatch,
-	Timeout, MaxLengthOfQueryUsingGetUrl uint
-	DefaultUseOptimisticConcurrency                 bool
-	RaiseIfQueryPageSizeIsNotSet                    bool
-	DisableTopologyUpdates                          bool
-	IdentityPartsSeparator                          string
-	JSONDefaultMethod                               func(obj interface{}) (interface{}, error)
-	DocumentIdGenerator                             func(DBName string, entity interface{}) string
-	registeredIdConventions                         map[string]func(DBName string, entity interface{}) string
-	defaultCollectionNamesCache                     map[reflect.Type]string
-	collectionNameFounder                           func(reflect.Type) (string, bool)
-	TypeCollectionNameToDocumentIdPrefixTransformer func(string) string
-}
-
 func (b Behaviour) getBehaviourName() string{
 	return b.allowedBehaviours[b.behaviorType]
 }
@@ -122,6 +107,22 @@ func NewWriteBehaviour(behaviourType BehaviorType) (*WriteBehaviour, error){
 	b := WriteBehaviour{*baseBehaviour}
 	return &b, nil
 }
+///     The set of conventions used by the <see cref="DocumentStore" /> which allow the users to customize
+///     the way the Raven client API behaves
+type DocumentConvention struct {
+	MaxNumberOfRequestsPerSession, MaxIdsToCatch,
+	Timeout, MaxLengthOfQueryUsingGetUrl uint
+	DefaultUseOptimisticConcurrency                 bool
+	RaiseIfQueryPageSizeIsNotSet                    bool
+	DisableTopologyUpdates                          bool
+	IdentityPartsSeparator                          string
+	JSONDefaultMethod                               func(obj interface{}) (interface{}, error)
+	DocumentIdGenerator                             func(DBName string, entity interface{}) string
+	registeredIdConventions                         map[string]func(DBName string, entity interface{}) string
+	defaultCollectionNamesCache                     map[reflect.Type]string
+	collectionNameFounder                           func(reflect.Type) (string, bool)
+	TypeCollectionNameToDocumentIdPrefixTransformer func(string) string
+}
 
 func NewDocumentConvention() *DocumentConvention {
 	dc := &DocumentConvention{
@@ -147,7 +148,27 @@ func NewDocumentConvention() *DocumentConvention {
 	//}
 	return dc
 }
-
+// todo: совершенно непонимаю - что она должна делать
+// имя обьекита по которому создается коллекция в базе в единичном числе, имя коллекции же в множдественном. эта функа преобразвоует
+func (ref *DocumentConvention) defaultTransformPlural(name string) string{
+	//Returns the plural form of a word if first parameter is greater than 1
+	return "inflector.conditional_plural(2, name)"
+}
+func (ref *DocumentConvention) DefaultTransformTypeTagName(name string) string {
+	count := 1
+	for _, c := range []rune(name) {
+		if c == unicode.ToUpper(c) {
+			count ++
+		}
+	}
+	// simple name, just lower case it
+	if count <= 1 {
+		return ref.defaultTransformPlural(strings.ToLower(name))
+	}
+	// multiple capital letters, so probably something that we want to preserve caps on.
+	return ref.defaultTransformPlural(name)
+	// @staticmethod
+}
 func jsonDefault(obj interface{}) (interface{}, error){
 	switch v := obj.(type) {
 	default:

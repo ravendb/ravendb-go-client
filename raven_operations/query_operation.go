@@ -32,7 +32,7 @@ func (obj IndexQuery) to_json() interface{} {
 //@param bool indexEntriesOnly: True if query results should contain only index entries.
 //@return:json
 type QueryOperation struct {
-	commands.Command
+	commands.RavenCommand
 	session  *store.DocumentSession
 	indexName string
 	indexQuery IndexQuery
