@@ -10,13 +10,13 @@ import (
 )
 // AdminOperation abstract class  - root operations classes
 type AdminOperation struct {
-	command *commands.Command
+	command *commands.RavenCommand
 	operation string
 	Url string
 }
 func (ref *AdminOperation) init()  {
 	ref.operation = "AdminOperation"
-	ref.command, _ = commands.NewRavenCommand()
+	ref.command = commands.NewRavenCommand()
 	//ref.command.Init()
 
 }

@@ -9,13 +9,13 @@ import (
 )
 
 type PutDocumentCommand struct{
-	command *Command
+	command *RavenCommand
 	Document interface{}
 	Key string
 }
 
 func NewPutDocumentCommand(key string, document interface{}) (*PutDocumentCommand, error){
-	command, err := NewRavenCommand()
+	command := NewRavenCommand()
 	command.SetMethod("PUT")
 	if document == nil{
 		document = struct{}{}
@@ -31,7 +31,7 @@ func (command *PutDocumentCommand) CreateRequest(node server_nodes.IServerNode){
 	command.SetUrl(fmt.Sprintf("%s/databases/%s/docs?id=%s", urlv, database, url.QueryEscape(key)))
 }
 
-func (command *PutDocumentCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
+func (command PutDocumentCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp.StatusCode == 200{
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil{

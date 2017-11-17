@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"math/big"
 	"strings"
+	"crypto/x509"
+	"encoding/pem"
+	"os"
 )
 
 const noValidName = "Database name can only contain only A-Z, a-z, \"_\", \".\" or \"-\" but was: "
@@ -48,6 +51,31 @@ func GetChangeVectorFromHeader(resp *http.Response) string{
 		header := headers[0]
 		return header[1: len(header)-2]
 	}
+
+	return ""
+}
+
+func GetCertFileFingerprint(pemPath string) string{
+
+	ioReader, _ := os.Open(pemPath)
+	stat, err := ioReader.Stat()
+	if err != nil {
+		panic(err) // panic is used only as an example and is not otherwise recommended.
+	}
+
+	rootPEM := make([]byte, stat.Size())
+	_, _ = ioReader.Read(rootPEM)
+
+	roots := x509.NewCertPool()
+	_ := roots.AppendCertsFromPEM([]byte(rootPEM))
+	//block, _ := pem.Decode([]byte(certPEM))
+	//if block == nil {
+	//	panic("failed to parse certificate PEM")
+	//}
+	//cert, err := x509.ParseCertificate(block.Bytes)
+	//if err != nil {
+	//	panic("failed to parse certificate: " + err.Error())
+	//}
 
 	return ""
 }

@@ -8,11 +8,11 @@ import (
 )
 
 type GetTopologyCommand struct{
-	command *Command
+	command *RavenCommand
 }
 
 func NewGetTopologyCommand() (*GetTopologyCommand, error){
-	command, err := NewRavenCommand()
+	command := NewRavenCommand()
 	command.SetMethod("GET")
 	return &GetTopologyCommand{command: command}, err
 }
@@ -21,7 +21,7 @@ func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode){
 	command.SetUrl(fmt.Sprintf("%s/topology?name=%s", node.GetUrl(), node.GetDatabase()))
 }
 
-func (command *GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
+func (command GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp.StatusCode == 200{
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil{

@@ -8,31 +8,21 @@ import (
 	"time"
 	"github.com/ravendb-go-client/http/commands"
 	"github.com/ravendb-go-client/tools"
+	"github.com/ravendb-go-client/hilo"
 	"github.com/ravendb-go-client/tools/types"
 )
-// todo: move to packet hilo
-type HiLoKeyGenerator struct {
-
-}
-func (ref *HiLoKeyGenerator) assert_initialize(){
-	// TODO : implement
-}
-func (ref *HiLoKeyGenerator) generateDocumentKey(db_name string, entity types.TDocByEntity) string{
-	// TODO : implement
-	return ""
-}
 type DocumentStore struct {
-	conventions     *data.DocumentConvention
-	urls []string
-	dbName    string
+	Conventions     *data.DocumentConvention
+	urls            []string
+	DefaultDBName   string
 	certificate     io.ByteReader
 	requestExecutor *http.RequestExecutor
-	generator *HiLoKeyGenerator
-	operations *OperationExecutor
-	initialize bool
-	admin *AdminOperationExecutor
+	generator       *hilo.MultiDatabaseHiLoKeyGenerator
+	operations      *OperationExecutor
+	initialize      bool
+	admin           *AdminOperationExecutor
 }
-// rename parameter database to dbName
+// rename parameter database to DefaultDBName
 //  add method initialize theare
 func NewDocumentStore(urls []string, dbName string, certificate io.ByteReader) (*DocumentStore, error) {
 
@@ -40,18 +30,18 @@ func NewDocumentStore(urls []string, dbName string, certificate io.ByteReader) (
 		return nil, errors.New("Document store URLs cannot be empty")
 	}
 	if dbName == "" {
-		return nil, errors.New("dbName is not valid")
+		return nil, errors.New("DefaultDBName is not valid")
 	}
 
 	ref := &DocumentStore{}
 	ref.urls = urls
-	ref.dbName = dbName
-	ref.conventions = data.NewDocumentConvention()
+	ref.DefaultDBName = dbName
+	ref.Conventions = data.NewDocumentConvention()
 	ref.certificate = certificate
 	//TODO: implamate later
 	//ref.lock = Lock()
-//ref.operations, err = NewOperationExecutor(ref, ref.dbName)
-//ref.generator = MultiDatabaseHiLoKeyGenerator(ref)
+//ref.operations, err = NewOperationExecutor(ref, ref.DefaultDBName)
+	ref.generator = hilo.NewMultiDatabaseHiLoKeyGenerator(ref.DefaultDBName, ref.urls[0], ref.Conventions)
 	ref.admin = NewAdminOperationExecutor(ref, dbName)
 	//ref.subscription = DocumentSubscriptions(ref)
 
@@ -74,15 +64,15 @@ func (ref *DocumentStore) GetOperations() *OperationExecutor{
 //		ref.generator.return_unused_range()
 //	}
 //}
-func (ref *DocumentStore) get_request_executor(db_name string) (*http.RequestExecutor, error) {
+func (ref *DocumentStore) GetRequestExecutor(db_name string) (*http.RequestExecutor, error) {
 	if db_name == "" {
-		db_name = ref.dbName
+		db_name = ref.DefaultDBName
 	}
 
 	//with ref.lock:
 	//if db_name not in ref.requestExecutor:
 	//ref.requestExecutor[db_name] = RequestsExecutor.create(ref.urls, db_name, ref.certificate,
-	//ref.conventions)
+	//ref.Conventions)
 	//return ref.requestExecutor[db_name]
 
 	return http.CreateForSingleNode(ref.urls[0], db_name)
@@ -90,7 +80,7 @@ func (ref *DocumentStore) get_request_executor(db_name string) (*http.RequestExe
 //todo: must be remove
 func (ref *DocumentStore) assert_initialize() error {
 	if !ref.initialize {
-		return errors.New("You cannot open a session || access the dbName commands before initializing the document store.Did you forget calling initialize()?")
+		return errors.New("You cannot open a session || access the DefaultDBName commands before initializing the document store.Did you forget calling initialize()?")
 	}
 	return nil
 }
@@ -98,7 +88,7 @@ func (ref *DocumentStore) open_session(database string, requests_executor *http.
 	ref.assert_initialize()
 	session_id := tools.Uuid4()
 	if requests_executor == nil {
-		requests_executor, err := ref.get_request_executor(database)
+		requests_executor, err := ref.GetRequestExecutor(database)
 		if err != nil {
 			return nil, err
 		}
@@ -110,7 +100,7 @@ func (ref *DocumentStore) open_session(database string, requests_executor *http.
 }
 func (ref *DocumentStore) generate_id(dbName string, entity types.TDocByEntity) string{
 	if ref.generator != nil{
-		return ref.generator.generateDocumentKey(dbName, entity)
+		return ref.generator.GenerateDocumentKey(dbName, entity)
 	}
 	return ""
 }
@@ -129,7 +119,7 @@ func NewAdminOperationExecutor(documentStore *DocumentStore, dbName string) *Adm
 	if dbName > "" {
 		ref.dbName = dbName
 	} else {
-		ref.dbName = documentStore.dbName
+		ref.dbName = documentStore.DefaultDBName
 	}
 	ref.server = NewServerOperationExecutor(ref.store)
 
@@ -138,7 +128,7 @@ func NewAdminOperationExecutor(documentStore *DocumentStore, dbName string) *Adm
 
 func (ref *AdminOperationExecutor) GetRequestExecutor() *http.RequestExecutor {
 	if ref.requestExecutor == nil {
-		ref.requestExecutor,_ = ref.store.get_request_executor(ref.dbName)
+		ref.requestExecutor,_ = ref.store.GetRequestExecutor(ref.dbName)
 	}
 	return ref.requestExecutor
 }
@@ -164,16 +154,16 @@ func NewServerOperationExecutor(documentStore *DocumentStore) *ServerOperationEx
 func (ref *ServerOperationExecutor) request_executor() (*http.RequestExecutor, error) {
 	if ref.requestExecutor == nil {
 		var err error
-		if ref.store.conventions.DisableTopologyUpdates {
+		if ref.store.Conventions.DisableTopologyUpdates {
 			//                 self._request_executor = ClusterRequestExecutor.create_for_single_node(self._store.urls[0],
 			//self._store.certificate)
-			// todo:  добавить реалищзацию типа http.CreateForSingleNode(ref.store.urls[0], ref.store.certificate)
+			// todo:  add implementation like http.CreateForSingleNode(ref.store.urls[0], ref.store.certificate)
 
-			ref.requestExecutor, err = http.CreateForSingleNode(ref.store.urls[0], ref.store.dbName)
+			ref.requestExecutor, err = http.CreateForSingleNode(ref.store.urls[0], ref.store.DefaultDBName)
 		} else {
 		//	                self._request_executor = ClusterRequestExecutor.create(self._store.urls, self._store.certificate)
-		// todo: добавить реализацию типаhttp.Create(ref.store.urls, ref.store.certificate)
-			ref.requestExecutor,err = http.Create(ref.store.urls, ref.store.dbName)
+		// todo: add implementation like http.Create(ref.store.urls, ref.store.certificate)
+			ref.requestExecutor,err = http.Create(ref.store.urls, ref.store.DefaultDBName)
 		}
 		return ref.requestExecutor, err
 	}
@@ -200,7 +190,7 @@ type OperationExecutor struct {
 }
 func NewOperationExecutor(documentStore *DocumentStore, database_name string) (ref *OperationExecutor, err error){
 	ref = &OperationExecutor{documentStore: documentStore, database_name: database_name }
-	ref.requestExecutor, err = documentStore.get_request_executor(database_name)
+	ref.requestExecutor, err = documentStore.GetRequestExecutor(database_name)
 
 	return
 }

@@ -26,7 +26,7 @@ type ICommand interface{
 	HasFailedWithNode(server_nodes.IServerNode) bool
 }
 
-type Command struct{
+type RavenCommand struct{
 	Headers map[string]string
 	Data interface{}
 	Result []byte
@@ -35,66 +35,65 @@ type Command struct{
 	IsReadRequest, UseStream, ravenCommand bool
 }
 
-func NewRavenCommand() (ref *Command, err error){
-	ref = &Command{}
-	ref.ravenCommand = true
+func NewRavenCommand() (ref *RavenCommand){
+	ref = &RavenCommand{}
 	return
 }
 
-func (command *Command) SetHeaders(headers map[string]string){
+func (command RavenCommand) SetHeaders(headers map[string]string){
 	command.Headers = headers
 }
 
-func (command *Command) GetHeaders() map[string]string{
+func (command RavenCommand) GetHeaders() map[string]string{
 	return command.Headers
 }
 
-func (command *Command) GetMethod() string{
+func (command RavenCommand) GetMethod() string{
 	return command.Method
 }
 
-func (command *Command) SetMethod(method string){
+func (command RavenCommand) SetMethod(method string){
 	command.Method = method
 }
 
-func (command *Command) GetUrl() string{
+func (command RavenCommand) GetUrl() string{
 	return command.Url
 }
 
-func (command *Command) SetUrl(url string){
+func (command RavenCommand) SetUrl(url string){
 	command.Url = url
 }
 
-func (command *Command) GetData() interface{}{
+func (command RavenCommand) GetData() interface{}{
 	return command.Data
 }
 
-func (command *Command) SetData(data interface{}){
+func (command RavenCommand) SetData(data interface{}){
 	command.Data = data
 }
 
-func (command *Command) GetFailedNodes() []server_nodes.IServerNode{
+func (command RavenCommand) GetFailedNodes() []server_nodes.IServerNode{
 	return command.FailedNodes
 }
-// should rename
-func (command *Command) GetResponseRaw(resp *http.Response) ([]byte, error){
+// GetResponseRaw revert response object to JSON slice
+func (command RavenCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp == nil{
 		command.Result = []byte{}
 		return command.Result, nil
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil{
-		return []byte{}, err
+		return nil, err
 	}
 	command.Result = data
 	return command.Result, err
 }
 
-func (command *Command) AddFailedNode(node server_nodes.IServerNode, err error){
+func (command RavenCommand) AddFailedNode(node server_nodes.IServerNode, err error){
 	command.FailedNodes = append(command.FailedNodes, node)
 }
 
-func (command *Command) HasFailedWithNode(node server_nodes.IServerNode) bool{
+func (command RavenCommand) HasFailedWithNode(node server_nodes.IServerNode) bool{
 	for _, v := range command.FailedNodes {
 		if v == node {
 			return true

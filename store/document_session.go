@@ -39,9 +39,9 @@ type DocumentSession struct {
 }
 //Implements Unit of Work for accessing the RavenDB server
 //
-//@param str dbName: the name of the dbName we open a session to
+//@param str DefaultDBName: the name of the DefaultDBName we open a session to
 //@param DocumentStore documentStore: the store that we work on
-// parameter kwargs is deleted since its unused
+// parameter kwargs удалил как неиспользуемый
 func NewDocumentSession(dbName string, docStore *DocumentStore, reqExecutor *http.RequestExecutor, sessionId uint64) *DocumentSession{
 	ref := &DocumentSession{}
 	ref.sessionId = sessionId
@@ -55,14 +55,6 @@ func NewDocumentSession(dbName string, docStore *DocumentStore, reqExecutor *htt
 func (obj DocumentSession) GetConvention() *data.DocumentConvention{
 	return obj.conventions
 }
-// Dont understand what is this
-func (ref *DocumentSession) Enter() *DocumentSession{
-	return ref
-}
-// TODO: sort out and implement
-//func (ref *DocumentSession) Exit(exc_type, exc_val, exc_tb) {
-//}
-
 
 func (ref *DocumentSession) RequestsExecutor() *http.RequestExecutor{
 	return ref.requestsExecutor
@@ -93,7 +85,7 @@ func (ref *DocumentSession) GetIncludedDocumentsById() types.SETstr{
 }
 
 func (ref *DocumentSession) GetConventions() *data.DocumentConvention{
-	return ref.documentStore.conventions
+	return ref.documentStore.Conventions
 }
 
 func (ref *DocumentSession) GetQuery() *Query{
@@ -124,7 +116,7 @@ func (ref *DocumentSession) saveEntity(key string, entity, original_metadata, me
 //todo: complete this method
 func (ref *DocumentSession) convertAndSaveEntity(key, document, object_type, nested_object_types string) {
 	if _, ok := ref.documentsById[key]; !ok {
-		//entity, metadata, original_metadata = Utils.convert_to_entity(document, object_type, ref.conventions,
+		//entity, metadata, original_metadata = Utils.convert_to_entity(document, object_type, ref.Conventions,
 		//nested_object_types)
 		//ref.saveEntity(key, entity, original_metadata, metadata, document)
 	}
@@ -307,7 +299,7 @@ func (ref *DocumentSession) store(entity, key, change_vector string) error {
 	//		return errors.New("Can't store object, it was already deleted in this session.  Document id: " + entity_id)
 	//	}
 
-	//metadata = ref.conventions.build_default_metadata(entity)
+	//metadata = ref.Conventions.build_default_metadata(entity)
 	//ref.deleted_entities.discard(entity)
 	//ref.saveEntity(entity_id, entity, {}, metadata, {}, force_concurrency_check=force_concurrency_check)
 	return nil

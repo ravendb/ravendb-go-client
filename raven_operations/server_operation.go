@@ -11,12 +11,13 @@ import (
 	"time"
 	"io"
 	"strconv"
+
 )
 
 // ServerOperation abstract class  - root operations classes
 type ServerOperation struct {
 	operation string
-	commands.Command
+	commands.RavenCommand
 }
 func (ref *ServerOperation) init() {
 	ref.operation = "ServerOperation"
