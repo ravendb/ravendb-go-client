@@ -9,24 +9,7 @@ import (
 	"net/http"
 	"github.com/ravendb-go-client/tools"
 )
-// TODO: move into ./data/query.go
-//@param str query: Actual query that will be performed.
-//@param dict query_parameters: Parameters to the query
-//@param int start:  Number of records that should be skipped.
-//@param int page_size:  Maximum number of records that will be retrieved.
-//@param bool wait_for_non_stale_results: True to wait in the server side to non stale result
-//@param None or float cutoff_etag: Gets or sets the cutoff etag.
 
-type IndexQuery struct {
-	PageSize uint
-	PageSizeSet bool
-}
-func (ref * IndexQuery) get_query_hash() string{
-	return "hash"
-}
-func (obj IndexQuery) to_json() interface{} {
-	return ""
-}
 //@param IndexQuery indexQuery: A query definition containing all information required to query a specified index.
 //@param bool metadataOnly: True if returned documents should include only metadata without a document body.
 //@param bool indexEntriesOnly: True if query results should contain only index entries.
