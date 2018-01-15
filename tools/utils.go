@@ -8,9 +8,10 @@ import (
 	"encoding/json"
 	"math/big"
 	"strings"
-	"crypto/x509"
-	"encoding/pem"
-	"os"
+	//"crypto/x509"
+	//"os"
+	"github.com/ravendb-go-client/data"
+	"reflect"
 )
 
 const noValidName = "Database name can only contain only A-Z, a-z, \"_\", \".\" or \"-\" but was: "
@@ -55,19 +56,29 @@ func GetChangeVectorFromHeader(resp *http.Response) string{
 	return ""
 }
 
+func ConvertToEntity(document interface{})(interface{}, data.Metadata, data.Metadata, error){
+	entity := document.(map[string]interface{})
+	metadata, ok := entity["@metadata"].(data.Metadata)
+	if ok {
+		delete(entity, "@metadata")
+	}
+	originalMetadata := metadata
+	return entity, metadata, originalMetadata, nil
+}
+
 func GetCertFileFingerprint(pemPath string) string{
 
-	ioReader, _ := os.Open(pemPath)
-	stat, err := ioReader.Stat()
-	if err != nil {
-		panic(err) // panic is used only as an example and is not otherwise recommended.
-	}
-
-	rootPEM := make([]byte, stat.Size())
-	_, _ = ioReader.Read(rootPEM)
-
-	roots := x509.NewCertPool()
-	_ := roots.AppendCertsFromPEM([]byte(rootPEM))
+	//ioReader, _ := os.Open(pemPath)
+	//stat, err := ioReader.Stat()
+	//if err != nil {
+	//	panic(err) // panic is used only as an example and is not otherwise recommended.
+	//}
+	//
+	//rootPEM := make([]byte, stat.Size())
+	//_, _ = ioReader.Read(rootPEM)
+	//
+	//roots := x509.NewCertPool()
+	//_ := roots.AppendCertsFromPEM([]byte(rootPEM))
 	//block, _ := pem.Decode([]byte(certPEM))
 	//if block == nil {
 	//	panic("failed to parse certificate PEM")
@@ -78,4 +89,8 @@ func GetCertFileFingerprint(pemPath string) string{
 	//}
 
 	return ""
+}
+
+func IsZeroOfUnderlyingType(x interface{}) bool {
+	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
 }

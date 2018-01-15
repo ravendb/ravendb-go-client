@@ -26,6 +26,13 @@ func (ref Set) Append(newSet Set)  {
 		ref.Add(key)
 	}
 }
+func NewSETFromArray(array []string) (*Set){
+	set := make(Set, len(array))
+	for _, val := range array{
+		set.Add(val)
+	}
+	return &set
+}
 
 type SETstr map[string] struct{}
 
@@ -73,4 +80,20 @@ func (ref SETint) Append(newSet Set)  {
 	for key, _ := range newSet {
 		ref.Add(key.(int))
 	}
+}
+
+func NewSETstrFromArray(array []string) (*SETstr){
+	setStr := make(SETstr, len(array))
+	for _, val := range array{
+		setStr.Add(val)
+	}
+	return &setStr
+}
+
+func NewSETintFromArray(array []int) (*SETint){
+	setInt := make(SETint, len(array))
+	for _, val := range array{
+		setInt.Add(val)
+	}
+	return &setInt
 }

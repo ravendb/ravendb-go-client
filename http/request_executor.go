@@ -32,8 +32,13 @@ type RequestExecutor struct{
 	DisableTopologyUpdates, closed bool
 }
 
+type Response struct{
+	Results []interface{}
+	Includes interface{}
+}
 func Create(urls []string, databaseName string) (*RequestExecutor, error){
 	executor := RequestExecutor{databaseName:databaseName}
+	executor.failedNodesTickers = make(map[server_nodes.IServerNode]NodeStatus)
 	go executor.FirstTopologyUpdate(urls)
 	return &executor, nil
 }
@@ -42,12 +47,14 @@ func CreateForSingleNode(url string, databaseName string) (*RequestExecutor, err
 	nodePtr, _ := server_nodes.NewServerNode(url, databaseName)
 	topology, _ := NewTopology(-1, []server_nodes.IServerNode{*nodePtr})
 	nodeSelectorPtr, _ := NewNodeSelector(topology)
-	return &RequestExecutor{
+	ref := &RequestExecutor{
 		databaseName:           databaseName,
 		NodeSelector:           *nodeSelectorPtr,
 		TopologyEtag:           -2,
 		DisableTopologyUpdates: true,
-	}, nil
+	}
+	ref.failedNodesTickers = make(map[server_nodes.IServerNode]NodeStatus)
+	return ref, nil
 }
 
 func (executor RequestExecutor) FirstTopologyUpdate(initialUrls []string) (bool, error){
@@ -67,26 +74,31 @@ func (executor RequestExecutor) FirstTopologyUpdate(initialUrls []string) (bool,
 	executor.lastKnownUrls = initialUrls
 	return false, TopologyUpdateError{"Failed to retrieve cluster topology from all known nodes", errorList}
 }
+func unmarshalResponse(data []byte) (*Response, error){
+	var resp Response
+	err := json.Unmarshal(data, &resp)
+	return &resp, err
+}
 // ExecuteOnCurrentNode - shouldRetry must be true default
-func (executor RequestExecutor) ExecuteOnCurrentNode(command commands.IRavenRequestable, shouldRetry bool) ([]byte, error){
+func (executor RequestExecutor) ExecuteOnCurrentNode(command commands.IRavenRequestable, shouldRetry bool) (*Response, error){
 	//topologyUpdate := executor.updateTopologyTickerRunning
 	if !executor.DisableTopologyUpdates {
 		if !executor.updateTopologyTickerRunning{
 			if len(executor.lastKnownUrls) == 0{
-				return []byte{}, errors.New("No known topology and no previously known one, cannot proceed, likely a bug")
+				return nil, errors.New("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 			executor.FirstTopologyUpdate(executor.lastKnownUrls)
 		}
 	}
 
 	if &executor.NodeSelector == nil{
-		return []byte{}, errors.New("A connection with the server could not be established\nnode_selector cannot be Nil, please check your connection\nor supply a valid node_selector")
+		return nil, errors.New("A connection with the server could not be established\nnode_selector cannot be Nil, please check your connection\nor supply a valid node_selector")
 	}
 	node := executor.NodeSelector.GetCurrentNode()
 	return executor.Execute(node, command, shouldRetry)
 }
 
-func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command commands.IRavenRequestable, shouldRetry bool) ([]byte, error){
+func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command commands.IRavenRequestable, shouldRetry bool) (*Response, error){
 	for{
 		command.CreateRequest(node)
 		var nodeIndex int
@@ -146,8 +158,7 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 			node.SetResponseTime(elapsedTime)
 
 			if respPtr.StatusCode == 404{
-				// nil зачем передавать ? Это ж точно лишний вызов?
-				return command.GetResponseRaw(nil)
+				return nil, nil
 			}else if respPtr.StatusCode == 403{
 				//todo handle cert
 			}else if respPtr.StatusCode == 408 || respPtr.StatusCode == 502 || respPtr.StatusCode == 503 || respPtr.StatusCode == 504{
@@ -169,7 +180,11 @@ func (executor RequestExecutor) Execute(node server_nodes.IServerNode, command c
 				executor.UpdateTopology(*newNode)
 			}
 			executor.lastReturnedResponseTime = time.Now()
-			return command.GetResponseRaw(respPtr)
+			rawResp, err := command.GetResponseRaw(respPtr)
+			if err != nil{
+				return nil, err
+			}
+			return unmarshalResponse(rawResp)
 		}
 	}
 }
@@ -192,12 +207,12 @@ func (executor RequestExecutor) UpdateTopology(node server_nodes.IServerNode) (b
 
 	command, _ := commands.NewGetTopologyCommand()
 
-	response, err := executor.Execute(node, *command,false)
+	response, err := executor.Execute(node, command,false)
 	if err != nil{
 		return false, err
 	}
 
-	topologyPtr, err := CreateFromJSON(response)//Todo: Save topology to local cache
+	topologyPtr := response.Results[0].(*Topology)
 	if err != nil{
 		return false, err
 	}
@@ -258,7 +273,7 @@ func (executor RequestExecutor) PerformHealthCheck(node server_nodes.IServerNode
 	if err != nil{
 		return err
 	}
-	_, err = executor.Execute(node, *commandPtr, false)
+	_, err = executor.Execute(node, commandPtr, false)
 	if err != nil{
 		glog.Info(fmt.Sprintf("%s is still down", node.GetClusterTag()))
 		if nodeStatus, ok := executor.failedNodesTickers[node]; ok{

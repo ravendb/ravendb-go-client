@@ -11,3 +11,31 @@ test http package:
 
 `./http.go`
 
+# Usage
+
+#####Load a single or several document\s from the store:
+```go
+package main
+
+import (
+	"morty/ravendb-go-client/store"
+	"fmt"
+)
+
+func main() {
+	urls := []string{"http://localhost:8080"}
+	store, _ := store.NewDocumentStore(urls, "test", nil)
+	session, _ := store.OpenSession("", nil)
+	ids := []string{"foos/1"}
+	foo, _ := session.Load(ids, nil, []string{}, []interface{}{})
+	for _, b := range foo{
+		fmt.Printf("%v", *b)
+	}
+}
+```
+
+##### Delete the document
+```go
+_ := session.Delete("foos/1", nil, nil)
+	_ = session.SaveChanges()
+```

@@ -14,11 +14,12 @@ type GetTopologyCommand struct{
 func NewGetTopologyCommand() (*GetTopologyCommand, error){
 	command := NewRavenCommand()
 	command.SetMethod("GET")
-	return &GetTopologyCommand{command: command}, err
+	return &GetTopologyCommand{command: command}, nil
 }
 
-func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode){
+func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode) error{
 	command.SetUrl(fmt.Sprintf("%s/topology?name=%s", node.GetUrl(), node.GetDatabase()))
+	return nil
 }
 
 func (command GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error){

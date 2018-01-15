@@ -14,16 +14,16 @@ type GetDocumentCommand struct{
 	Document interface{}
 	metadataOnly bool
 	includes []string
-	Key string
+	Keys []string
 }
 
-func NewGetDocumentCommand(key string, includes []string, metadataOnly bool) (*GetDocumentCommand, error){
+func NewGetDocumentCommand(keys []string, includes []string, metadataOnly bool) (*GetDocumentCommand, error){
 	command := NewRavenCommand()
 	command.SetMethod("GET")
-	return &GetDocumentCommand{command: command, Key:key, includes:includes, metadataOnly:metadataOnly}, err
+	return &GetDocumentCommand{command: command, Keys:keys, includes:includes, metadataOnly:metadataOnly}, nil
 }
 
-func (command *GetDocumentCommand) CreateRequest(node server_nodes.IServerNode){
+func (command *GetDocumentCommand) CreateRequest(node server_nodes.IServerNode) error{
 	path := "docs?"
 	if len(command.includes) > 0{
 		includes := make([]string, len(command.includes))
@@ -33,18 +33,25 @@ func (command *GetDocumentCommand) CreateRequest(node server_nodes.IServerNode){
 		path += strings.Join(includes, ",")
 	}
 	command.SetData(command.Document)
-	command.SetUrl(fmt.Sprintf("%s/databases/%s/docs?id=%s", node.GetUrl(), node.GetDatabase(), url.QueryEscape(command.Key)))
+	escapedKeys := make([]string, 0, len(command.Keys))
+	for _, key := range command.Keys{
+		escapedKeys = append(escapedKeys, url.QueryEscape(key))
+	}
+	keysStr := strings.Join(escapedKeys, "&id=")
+	command.SetUrl(fmt.Sprintf("%s/databases/%s/docs?id=%s", node.GetUrl(), node.GetDatabase(), keysStr))
+	return nil
 }
 
 func (command GetDocumentCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
 	if resp.StatusCode == 200{
 		data, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
 		if err != nil{
-			return []byte{}, err
+			return nil, err
 		}
 		return data, err
 	}
-	return []byte{}, nil
+	return nil, nil
 }
 
 
