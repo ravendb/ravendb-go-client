@@ -6,7 +6,7 @@ Since you cant build project module-by-module with relative imports - they are a
 # Build
 In order to build client script that uses lib execute command:
 ```
-go get github.com/ravendb-go-client
+go get github.com/ravendb/ravendb-go-client
 go build -i $GOPATH/path/to/script.go
 ```
 # Running tests
