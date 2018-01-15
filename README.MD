@@ -3,7 +3,12 @@
 Since you cant build project module-by-module with relative imports - they are absolute. But because of that you need explicitly(for now) change vendor name in imports. Line i use for this purpose is:
 
 `find . -type f -name "*.go" -exec sed -i'' -e 's#github.com/ravendb#foo/ravendb#g' {} +`
-
+# Build
+In order to build client script that uses lib execute command:
+```
+go get github.com/ravendb-go-client
+go build -i $GOPATH/path/to/script.go
+```
 # Running tests
 test http package:
 
@@ -18,7 +23,7 @@ test http package:
 package main
 
 import (
-	"morty/ravendb-go-client/store"
+	"github.com/ravendb-go-client/store"
 	"fmt"
 )
 
