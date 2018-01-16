@@ -1,15 +1,15 @@
 package store
 
 import (
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/data"
 	"io"
 	"errors"
-	"github.com/ravendb-go-client/http"
+	"github.com/ravendb/ravendb-go-client/http"
 	"time"
-	"github.com/ravendb-go-client/http/commands"
-	"github.com/ravendb-go-client/tools"
-	"github.com/ravendb-go-client/hilo"
-	"github.com/ravendb-go-client/tools/types"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/hilo"
+	"github.com/ravendb/ravendb-go-client/tools/types"
 )
 type DocumentStore struct {
 	Conventions     *data.DocumentConvention

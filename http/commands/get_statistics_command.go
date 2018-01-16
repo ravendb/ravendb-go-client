@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"net/http"
 	"fmt"
 	"io/ioutil"

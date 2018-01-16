@@ -1,11 +1,11 @@
 package raven_operations
 
 import (
-	"github.com/ravendb-go-client/http/commands"
-	SecurityClearance "github.com/ravendb-go-client/data"
-	Utils "github.com/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	SecurityClearance "github.com/ravendb/ravendb-go-client/data"
+	Utils "github.com/ravendb/ravendb-go-client/tools"
 	"errors"
-	SrvNodes "github.com/ravendb-go-client/http/server_nodes"
+	SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"net/http"
 	"fmt"
 	"time"

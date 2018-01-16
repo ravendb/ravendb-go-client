@@ -2,8 +2,8 @@ package http
 
 import (
 	"testing"
-	"github.com/ravendb-go-client/http/commands"
-	testing2 "github.com/ravendb-go-client/testing"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	testing2 "github.com/ravendb/ravendb-go-client/testing"
 	"encoding/json"
 )
 

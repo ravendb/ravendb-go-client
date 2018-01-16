@@ -4,14 +4,14 @@ import (
 	"fmt"
     "time"
     "net/http"
-    executor "github.com/ravendb-go-client/http"
-    SrvNodes "github.com/ravendb-go-client/http/server_nodes"
-	"github.com/ravendb-go-client/http/commands"
-    "github.com/ravendb-go-client/tools/types"
+    executor "github.com/ravendb/ravendb-go-client/http"
+    SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+    "github.com/ravendb/ravendb-go-client/tools/types"
     "sync"
     "encoding/json"
     "io/ioutil"
-    "github.com/ravendb-go-client/data"
+    "github.com/ravendb/ravendb-go-client/data"
 )
 
 /// RangeValue. The result of a NextHiLo operation

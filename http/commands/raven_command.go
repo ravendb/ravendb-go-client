@@ -3,7 +3,7 @@ package commands
 import (
 	"net/http"
 	"io/ioutil"
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"errors"
 	"fmt"
 )

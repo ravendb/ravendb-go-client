@@ -1,14 +1,14 @@
 package store
 
 import (
-	"github.com/ravendb-go-client/http"
-	"github.com/ravendb-go-client/data"
-	"github.com/ravendb-go-client/tools/types"
+	"github.com/ravendb/ravendb-go-client/http"
+	"github.com/ravendb/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/tools/types"
 	"errors"
-	"github.com/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/http/commands"
 	"fmt"
 	"reflect"
-	"github.com/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/tools"
 )
 
 type SaveChangesData struct {

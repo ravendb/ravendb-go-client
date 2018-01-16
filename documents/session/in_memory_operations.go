@@ -2,10 +2,10 @@ package session
 
 import (
 	"errors"
-	ravenHttp "github.com/ravendb-go-client/http"
+	ravenHttp "github.com/ravendb/ravendb-go-client/http"
 	"fmt"
-	"github.com/ravendb-go-client/data"
-	"github.com/ravendb-go-client/documents/identity"
+	"github.com/ravendb/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/documents/identity"
 )
 
 type ConcurrencyCheckMode uint8

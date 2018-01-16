@@ -1,6 +1,6 @@
 package types
 
-import "github.com/ravendb-go-client/data"
+import "github.com/ravendb/ravendb-go-client/data"
 
 //todo: type is not implement
 type TDocByID map[string]*Document

@@ -2,7 +2,7 @@ package raven_operations
 
 import (
 	"errors"
-	"github.com/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/http/commands"
 	"fmt"
 	"strconv"
 	"net/http"

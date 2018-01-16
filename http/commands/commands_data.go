@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/ravendb-go-client/tools/types"
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/tools/types"
+	"github.com/ravendb/ravendb-go-client/data"
 )
 
 type ICommandData interface{

@@ -2,9 +2,9 @@ package documents
 
 import (
 	"errors"
-	ravenHttp "github.com/ravendb-go-client/http"
+	ravenHttp "github.com/ravendb/ravendb-go-client/http"
 	"github.com/google/uuid"
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/data"
 )
 
 type IDocumentStore interface{

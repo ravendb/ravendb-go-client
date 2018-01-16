@@ -1,8 +1,8 @@
 package identity
 
 import(
-	"github.com/ravendb-go-client/documents"
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/documents"
+	"github.com/ravendb/ravendb-go-client/data"
 	"sync/atomic"
 	"sync"
 	"fmt"

@@ -2,7 +2,7 @@ package identity
 
 import (
 	"reflect"
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/data"
 )
 
 //Attempts to get the document ID from an instance

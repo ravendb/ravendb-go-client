@@ -2,9 +2,9 @@ package raven_operations
 
 import (
 	"testing"
-	//httpSelf "github.com/ravendb-go-client/http"
-	//"github.com/ravendb-go-client/http/commands"
-	SrvNodes "github.com/ravendb-go-client/http/server_nodes"
+	//httpSelf "github.com/ravendb/ravendb-go-client/http"
+	//"github.com/ravendb/ravendb-go-client/http/commands"
+	SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
 )
 func TestAdminOperation_GetOperation(t *testing.T) {
 	oper := &AdminOperation{}

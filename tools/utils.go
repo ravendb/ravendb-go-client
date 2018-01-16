@@ -10,7 +10,7 @@ import (
 	"strings"
 	//"crypto/x509"
 	//"os"
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/data"
 	"reflect"
 )
 

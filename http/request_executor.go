@@ -4,13 +4,13 @@ import (
 	"errors"
 	"time"
 	"sync"
-	"github.com/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/http/commands"
 	"github.com/golang/glog"
 	"fmt"
 	"encoding/json"
 	"net/http"
 	"bytes"
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 )
 
 type RequestExecutor struct{

@@ -2,7 +2,7 @@ package http
 
 import (
 	"time"
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 )
 
 type NodeStatus struct{

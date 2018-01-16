@@ -1,13 +1,13 @@
 package raven_operations
 
 import (
-	"github.com/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/http/commands"
 	"errors"
-	"github.com/ravendb-go-client/store"
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/store"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"fmt"
 	"net/http"
-	"github.com/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/tools"
 )
 
 //@param IndexQuery indexQuery: A query definition containing all information required to query a specified index.

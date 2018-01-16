@@ -23,7 +23,7 @@ test http package:
 package main
 
 import (
-	"github.com/ravendb-go-client/store"
+	"github.com/ravendb/ravendb-go-client/store"
 	"fmt"
 )
 
