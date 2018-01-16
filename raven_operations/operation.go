@@ -2,15 +2,15 @@ package raven_operations
 
 import (
 	"time"
-	"github.com/ravendb-go-client/http/commands"
-	SrvNodes "github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"errors"
 	"strconv"
 	"fmt"
 	"net/http"
-	"github.com/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/tools"
 	"encoding/json"
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/data"
 )
 
 //@param allow_stale Indicates whether operations are allowed on stale indexes.

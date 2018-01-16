@@ -2,8 +2,8 @@ package documents
 
 import (
 	"github.com/google/uuid"
-	"github.com/ravendb-go-client/documents/session"
-	"github.com/ravendb-go-client/http"
+	"github.com/ravendb/ravendb-go-client/documents/session"
+	"github.com/ravendb/ravendb-go-client/http"
 )
 
 type IDocumentSession interface{

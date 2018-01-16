@@ -8,6 +8,7 @@ import (
 	"github.com/gedex/inflector"
 	"strings"
 	"unicode"
+	"go/types"
 )
 
 type BehaviorType uint8
@@ -106,6 +107,15 @@ func NewWriteBehaviour(behaviourType BehaviorType) (*WriteBehaviour, error){
 	}
 	b := WriteBehaviour{*baseBehaviour}
 	return &b, nil
+}
+
+type Metadata struct{//todo make it dynamic
+	Id string `json:"@id"`
+	Collection string `json:"@collection"`
+	ChangeVector string `json:"@change-vector"`
+	LastModified time.Time `json:"@last-modified"`
+	RavenGoType types.Type `json:"Raven-Go-Type"`
+	RavenReadOnly bool `json:"Raven-Read-Only"`
 }
 ///     The set of conventions used by the <see cref="DocumentStore" /> which allow the users to customize
 ///     the way the Raven client API behaves
@@ -230,4 +240,11 @@ func (convention DocumentConvention) getDefaultCollectionName(t reflect.Type) st
 		convention.defaultCollectionNamesCache[t] = inflector.Pluralize(t.Name())
 	}
 	return convention.defaultCollectionNamesCache[t]
+}
+
+func (convention DocumentConvention) TryGetTypeFromMetadata(metadata Metadata) (types.Type, bool){
+	if metadata.RavenGoType != nil {
+		return metadata.RavenGoType, true
+	}
+	return nil, false
 }

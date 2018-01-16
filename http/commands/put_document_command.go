@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"net/http"
 	"fmt"
 	"io/ioutil"
@@ -20,7 +20,7 @@ func NewPutDocumentCommand(key string, document interface{}) (*PutDocumentComman
 	if document == nil{
 		document = struct{}{}
 	}
-	return &PutDocumentCommand{command: command, Document:document, Key:key}, err
+	return &PutDocumentCommand{command: command, Document:document, Key:key}, nil
 }
 
 func (command *PutDocumentCommand) CreateRequest(node server_nodes.IServerNode){

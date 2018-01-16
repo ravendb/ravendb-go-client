@@ -3,11 +3,13 @@ package commands
 import (
 	"net/http"
 	"io/ioutil"
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
+	"errors"
+	"fmt"
 )
 // interface for RequestExecutor.Execute method
 type IRavenRequestable interface{
-	CreateRequest(server_nodes.IServerNode)
+	CreateRequest(server_nodes.IServerNode) error
 	GetResponseRaw(*http.Response) ([]byte, error)
 	ICommand
 }
@@ -40,40 +42,40 @@ func NewRavenCommand() (ref *RavenCommand){
 	return
 }
 
-func (command RavenCommand) SetHeaders(headers map[string]string){
-	command.Headers = headers
+func (ref *RavenCommand) SetHeaders(headers map[string]string){
+	ref.Headers = headers
 }
 
-func (command RavenCommand) GetHeaders() map[string]string{
-	return command.Headers
+func (ref *RavenCommand) GetHeaders() map[string]string{
+	return ref.Headers
 }
 
-func (command RavenCommand) GetMethod() string{
-	return command.Method
+func (ref *RavenCommand) GetMethod() string{
+	return ref.Method
 }
 
-func (command RavenCommand) SetMethod(method string){
-	command.Method = method
+func (ref *RavenCommand) SetMethod(method string){
+	ref.Method = method
 }
 
-func (command RavenCommand) GetUrl() string{
-	return command.Url
+func (ref *RavenCommand) GetUrl() string{
+	return ref.Url
 }
 
-func (command RavenCommand) SetUrl(url string){
-	command.Url = url
+func (ref *RavenCommand) SetUrl(url string){
+	ref.Url = url
 }
 
-func (command RavenCommand) GetData() interface{}{
-	return command.Data
+func (ref *RavenCommand) GetData() interface{}{
+	return ref.Data
 }
 
-func (command RavenCommand) SetData(data interface{}){
-	command.Data = data
+func (ref *RavenCommand) SetData(data interface{}){
+	ref.Data = data
 }
 
-func (command RavenCommand) GetFailedNodes() []server_nodes.IServerNode{
-	return command.FailedNodes
+func (ref *RavenCommand) GetFailedNodes() []server_nodes.IServerNode{
+	return ref.FailedNodes
 }
 // GetResponseRaw revert response object to JSON slice
 func (command RavenCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
@@ -103,11 +105,27 @@ func (command RavenCommand) HasFailedWithNode(node server_nodes.IServerNode) boo
 }
 //todo: implement
 type BatchCommand struct {
-	IRavenRequestable
-	commands []string
+	ICommand
+	commands []ICommandData
 }
-func NewBatchCommand(commans []string) *BatchCommand {
-	return &BatchCommand{commands:commans}
+func NewBatchCommand(commands []ICommandData) *BatchCommand {
+	ravCommand := NewRavenCommand()
+	return &BatchCommand{ICommand: ravCommand, commands:commands}
+}
+func (ref *BatchCommand) CreateRequest(node server_nodes.IServerNode) error{
+	var data []map[string]interface{}
+	for _, commandData := range ref.commands{
+		if !commandData.GetCommand(){
+			return errors.New("Not a valid command")
+		}
+		data = append(data, commandData.ToJson())
+	}
+	ref.SetUrl(fmt.Sprintf("%s/databases/%s/bulk_docs", node.GetUrl(), node.GetDatabase()))
+	ref.SetData(map[string][]map[string]interface{}{"Commands": data})
+	return nil
+}
+func (ref *BatchCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
+	return nil, nil
 }
 //todo: implement
 type GetOperationStateCommand struct {

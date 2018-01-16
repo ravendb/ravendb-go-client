@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 	"net/http"
 	"fmt"
 	"io/ioutil"
@@ -14,11 +14,12 @@ type GetStatisticsCommand struct{
 func NewGetStatisticsCommand() (*GetStatisticsCommand, error){
 	command := NewRavenCommand()
 	command.SetMethod("GET")
-	return &GetStatisticsCommand{command: command}, err
+	return &GetStatisticsCommand{command: command}, nil
 }
 
-func (command *GetStatisticsCommand) CreateRequest(node server_nodes.IServerNode){
+func (command *GetStatisticsCommand) CreateRequest(node server_nodes.IServerNode) error{
 	command.SetUrl(fmt.Sprintf("%s/database/%s/stats", node.GetUrl(), node.GetDatabase()))
+	return nil
 }
 
 func (command GetStatisticsCommand) GetResponseRaw(resp *http.Response) ([]byte, error){

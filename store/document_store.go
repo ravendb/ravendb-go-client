@@ -1,15 +1,15 @@
 package store
 
 import (
-	"github.com/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/data"
 	"io"
 	"errors"
-	"github.com/ravendb-go-client/http"
+	"github.com/ravendb/ravendb-go-client/http"
 	"time"
-	"github.com/ravendb-go-client/http/commands"
-	"github.com/ravendb-go-client/tools"
-	"github.com/ravendb-go-client/hilo"
-	"github.com/ravendb-go-client/tools/types"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/hilo"
+	"github.com/ravendb/ravendb-go-client/tools/types"
 )
 type DocumentStore struct {
 	Conventions     *data.DocumentConvention
@@ -53,7 +53,7 @@ func (ref *DocumentStore) GetCertificate() io.ByteReader {
 }
 
 func (ref *DocumentStore) GetOperations() *OperationExecutor{
-	ref.assert_initialize()
+	ref.assertInitialize()
 	return ref.operations
 }
 //func (ref *DocumentStore) __enter__() {
@@ -77,16 +77,15 @@ func (ref *DocumentStore) GetRequestExecutor(db_name string) (*http.RequestExecu
 
 	return http.CreateForSingleNode(ref.urls[0], db_name)
 }
-//todo: must be remove
-func (ref *DocumentStore) assert_initialize() error {
+func (ref *DocumentStore) assertInitialize() error {
 	if !ref.initialize {
 		return errors.New("You cannot open a session || access the DefaultDBName commands before initializing the document store.Did you forget calling initialize()?")
 	}
 	return nil
 }
-func (ref *DocumentStore) open_session(database string, requests_executor *http.RequestExecutor) (*DocumentSession, error){
-	ref.assert_initialize()
-	session_id := tools.Uuid4()
+func (ref *DocumentStore) OpenSession(database string, requests_executor *http.RequestExecutor) (*DocumentSession, error){
+	ref.assertInitialize()
+	sessionId := tools.Uuid4()
 	if requests_executor == nil {
 		requests_executor, err := ref.GetRequestExecutor(database)
 		if err != nil {
@@ -96,9 +95,9 @@ func (ref *DocumentStore) open_session(database string, requests_executor *http.
 	} else {
 		ref.requestExecutor = requests_executor
 	}
-	return NewDocumentSession(database, ref, ref.requestExecutor, session_id), nil
+	return NewDocumentSession(database, ref, ref.requestExecutor, sessionId), nil
 }
-func (ref *DocumentStore) generate_id(dbName string, entity types.TDocByEntity) string{
+func (ref *DocumentStore) generate_id(dbName string, entity types.Document) string{
 	if ref.generator != nil{
 		return ref.generator.GenerateDocumentKey(dbName, entity)
 	}
@@ -132,7 +131,7 @@ func (ref *AdminOperationExecutor) GetRequestExecutor() *http.RequestExecutor {
 	}
 	return ref.requestExecutor
 }
-func (ref *AdminOperationExecutor) send(operation commands.IRavenRequestable) ([]byte,error){
+func (ref *AdminOperationExecutor) send(operation commands.IRavenRequestable) (*http.Response,error){
 //if operation_type := operation.GetOperation(); operation_type != "AdminOperation" {
 //	return nil, errors.New("operation type cannot be " + operation_type + " need to be Operation")
 //}
@@ -199,7 +198,7 @@ func (ref *OperationExecutor) wait_for_operation_complete(operation_id string, t
 	get_operation_command := commands.NewGetOperationStateCommand(operation_id)
 	for {
 		resp, err := ref.requestExecutor.ExecuteOnCurrentNode(get_operation_command, false)
-		if err != nil || len(resp) == 0 {
+		if err != nil || len(resp.Results) == 0 {
 			return err
 		}
 		if (timeout > 0) && (time.Since(start_time) > timeout) {

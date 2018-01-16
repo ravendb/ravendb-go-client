@@ -1,6 +1,6 @@
 package http
 
-import "github.com/ravendb-go-client/http/server_nodes"
+import "github.com/ravendb/ravendb-go-client/http/server_nodes"
 
 type NodeSelector struct{
 	Topology Topology

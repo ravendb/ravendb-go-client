@@ -4,14 +4,14 @@ import (
 	"fmt"
     "time"
     "net/http"
-    executor "github.com/ravendb-go-client/http"
-    SrvNodes "github.com/ravendb-go-client/http/server_nodes"
-	"github.com/ravendb-go-client/http/commands"
-    "github.com/ravendb-go-client/tools/types"
+    executor "github.com/ravendb/ravendb-go-client/http"
+    SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+    "github.com/ravendb/ravendb-go-client/tools/types"
     "sync"
     "encoding/json"
     "io/ioutil"
-    "github.com/ravendb-go-client/data"
+    "github.com/ravendb/ravendb-go-client/data"
 )
 
 /// RangeValue. The result of a NextHiLo operation
@@ -49,9 +49,10 @@ func NewHiLoReturnCommand(tag string, last, end uint) (*HiLoReturnCommand, error
 
     return ref, nil
 }
-func (ref *HiLoReturnCommand)  CreateRequest(sn SrvNodes.IServerNode) {
+func (ref *HiLoReturnCommand)  CreateRequest(sn SrvNodes.IServerNode) error{
 	ref.Url = fmt.Sprintf(`%s/databases/%s/hilo/return?tag=%s&end=%s&last=%s`, sn.GetUrl(), sn.GetDatabase(),
 		ref.tag, ref.end, ref.last)
+	return nil
 }
 type NextHiLoCommand struct {
     commands.RavenCommand
@@ -74,10 +75,11 @@ func NewNextHiLoCommand(tag string, lastBatchSize uint, lastRangeAt time.Time, i
     ref.Method = "GET"
     return ref, nil
 }
-func (ref *NextHiLoCommand)  CreateRequest(sn SrvNodes.IServerNode) {
+func (ref *NextHiLoCommand)  CreateRequest(sn SrvNodes.IServerNode) error{
         path := fmt.Sprintf(`hilo/next?tag=%s&lastBatchSize=%d&lastRangeAt=%s&identityPartsSeparator=%s&lastMax=%d`,
             ref.tag, ref.lastBatchSize, ref.lastRangeAt, ref.identityPartsSeparator, ref.lastRangeMax)
         ref.Url = fmt.Sprintf(`%s/databases/%s/%s`,sn.GetUrl(), sn.GetDatabase(), path)
+        return nil
 }
 //{"prefix": response["Prefix"], "serverTag": response["ServerTag"], "low": response["Low"],
 //    "high": response["High"],
@@ -118,7 +120,7 @@ func NewMultiDatabaseHiLoKeyGenerator(dbName, url string, conventions *data.Docu
 	make(map[string]*MultiTypeHiLoKeyGenerator, 0),
     }
 }
-func (ref *MultiDatabaseHiLoKeyGenerator) GenerateDocumentKey(dbName string, entity types.TDocByEntity) string {
+func (ref *MultiDatabaseHiLoKeyGenerator) GenerateDocumentKey(dbName string, entity types.Document) string {
 	if dbName == "" {
 		dbName = ref.DefaultDBName
 	}
@@ -152,7 +154,7 @@ func NewMultiTypeHiLoKeyGenerator(parent MultiDatabaseHiLoKeyGenerator) *MultiTy
 }
 /// Generates the document ID.
 //todo: пока не понимаю -как формируется этот таг
-func (ref *MultiTypeHiLoKeyGenerator) generateDocumentKey(entity types.TDocByEntity) string {
+func (ref *MultiTypeHiLoKeyGenerator) generateDocumentKey(entity types.Document) string {
         tag := ref.parent.conventions.DefaultTransformTypeTagName(entity.Key) //.class.name)
         if tag == "" {
             return ""
@@ -238,12 +240,11 @@ func (ref *HiLoKeyGenerator) getNextRange() error {
     }
     executor, err := ref.parent.parent.createExecutor()
     if err == nil {
-        buf, err := executor.ExecuteOnCurrentNode(hilo_command, true)
+        response, err := executor.ExecuteOnCurrentNode(hilo_command, true)
+        result := response.Results[0].(resHiloCommand)
         if err != nil {
             return err
         }
-        var result resHiloCommand
-        err = json.Unmarshal(buf, result)
         if err != nil {
             return err
         }
@@ -268,7 +269,6 @@ func (ref *HiLoKeyGenerator) returnUnusedRange() error {
         //ref.store.GetRequestExecutor("")
     executor, err := ref.parent.parent.createExecutor()
         if err == nil {
-            // todo: мы никак не используем и не проверяем возврат байтов?
             _, err = executor.ExecuteOnCurrentNode(return_command, true)
         }
 

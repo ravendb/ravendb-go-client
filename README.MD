@@ -3,7 +3,12 @@
 Since you cant build project module-by-module with relative imports - they are absolute. But because of that you need explicitly(for now) change vendor name in imports. Line i use for this purpose is:
 
 `find . -type f -name "*.go" -exec sed -i'' -e 's#github.com/ravendb#foo/ravendb#g' {} +`
-
+# Build
+In order to build client script that uses lib execute command:
+```
+go get github.com/ravendb/ravendb-go-client
+go build -i $GOPATH/path/to/script.go
+```
 # Running tests
 test http package:
 
@@ -11,3 +16,31 @@ test http package:
 
 `./http.go`
 
+# Usage
+
+#####Load a single or several document\s from the store:
+```go
+package main
+
+import (
+	"github.com/ravendb/ravendb-go-client/store"
+	"fmt"
+)
+
+func main() {
+	urls := []string{"http://localhost:8080"}
+	store, _ := store.NewDocumentStore(urls, "test", nil)
+	session, _ := store.OpenSession("", nil)
+	ids := []string{"foos/1"}
+	foo, _ := session.Load(ids, nil, []string{}, []interface{}{})
+	for _, b := range foo{
+		fmt.Printf("%v", *b)
+	}
+}
+```
+
+##### Delete the document
+```go
+_ := session.Delete("foos/1", nil, nil)
+	_ = session.SaveChanges()
+```

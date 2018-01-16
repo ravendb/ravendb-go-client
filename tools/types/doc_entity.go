@@ -1,18 +1,37 @@
 package types
+
+import "github.com/ravendb/ravendb-go-client/data"
+
 //todo: type is not implement
-type TDocByID map[string]string
+type TDocByID map[string]*Document
 func (ref TDocByID) Clear() {
 	ref = make(TDocByID,0)
 }
-type TDocByEntities map[string] *TDocByEntity
+type TDocByEntities map[*interface{}]*Document
 func (ref TDocByEntities) Clear() {
 	ref = make(TDocByEntities,0)
 }
-type TDocByEntity struct{
-	Original_value string
-	Metadata string
-	Original_metadata string
-	Change_vector string
-	Key string
-	Force_concurrency_check bool
+func (ref TDocByEntities) GetKeyByValue(val *Document) (*interface{}, bool){
+	for k, v := range ref{
+		if v == val{
+			return k, true
+		}
+	}
+	return nil, false
+}
+func (ref TDocByEntities) HasValue(val *Document) bool{
+	for _, v := range ref{
+		if v == val{
+			return true
+		}
+	}
+	return false
+}
+type Document struct{
+	OriginalValue         interface{}
+	Metadata              *data.Metadata
+	OriginalMetadata      *data.Metadata
+	ChangeVector          []string
+	Key                   string
+	ForceConcurrencyCheck bool
 }
