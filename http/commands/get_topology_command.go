@@ -15,7 +15,7 @@ type GetTopologyCommand struct {
 func NewGetTopologyCommand() (*GetTopologyCommand, error) {
 	command := NewRavenCommand()
 	command.SetMethod("GET")
-	return &GetTopologyCommand{command: command}, err
+	return &GetTopologyCommand{command: command}, nil
 }
 
 func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode) {

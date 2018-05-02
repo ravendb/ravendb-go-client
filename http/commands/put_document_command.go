@@ -21,7 +21,7 @@ func NewPutDocumentCommand(key string, document interface{}) (*PutDocumentComman
 	if document == nil {
 		document = struct{}{}
 	}
-	return &PutDocumentCommand{command: command, Document: document, Key: key}, err
+	return &PutDocumentCommand{command: command, Document: document, Key: key}, nil
 }
 
 func (command *PutDocumentCommand) CreateRequest(node server_nodes.IServerNode) {

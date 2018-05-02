@@ -15,7 +15,7 @@ type GetStatisticsCommand struct {
 func NewGetStatisticsCommand() (*GetStatisticsCommand, error) {
 	command := NewRavenCommand()
 	command.SetMethod("GET")
-	return &GetStatisticsCommand{command: command}, err
+	return &GetStatisticsCommand{command: command}, nil
 }
 
 func (command *GetStatisticsCommand) CreateRequest(node server_nodes.IServerNode) {

@@ -21,7 +21,7 @@ type GetDocumentCommand struct {
 func NewGetDocumentCommand(key string, includes []string, metadataOnly bool) (*GetDocumentCommand, error) {
 	command := NewRavenCommand()
 	command.SetMethod("GET")
-	return &GetDocumentCommand{command: command, Key: key, includes: includes, metadataOnly: metadataOnly}, err
+	return &GetDocumentCommand{command: command, Key: key, includes: includes, metadataOnly: metadataOnly}, nil
 }
 
 func (command *GetDocumentCommand) CreateRequest(node server_nodes.IServerNode) {
