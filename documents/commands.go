@@ -1,20 +1,18 @@
 package documents
 
-
-type RavenCommand struct{
-	url string
-	method string
-	data string
-	headers string
+type RavenCommand struct {
+	url            string
+	method         string
+	data           string
+	headers        string
 	isRavenCommand bool
-	isReadRequest bool
-	failedNodes []int
-	authRetries int
-	avoidFailover bool
+	isReadRequest  bool
+	failedNodes    []int
+	authRetries    int
+	avoidFailover  bool
 }
 
-type GetDocumentCommand struct{
-
+type GetDocumentCommand struct {
 	ravenCommand RavenCommand
 
 	//The key of the documents you want to retrieve
@@ -27,8 +25,7 @@ type GetDocumentCommand struct{
 	metadataOnly bool
 }
 
-type DeleteDocumentCommand struct{
-
+type DeleteDocumentCommand struct {
 	ravenCommand RavenCommand
 
 	//unique key under which document will be deleted
@@ -38,8 +35,7 @@ type DeleteDocumentCommand struct{
 	etag int64
 }
 
-type PutDocumentCommand struct{
-
+type PutDocumentCommand struct {
 	ravenCommand RavenCommand
 
 	//unique key under which document will be stored

@@ -4,7 +4,10 @@
 
 package _import
 
-import ("github.com/gotools/observer")
-func TestImport()  {
+import (
+	"github.com/gotools/observer"
+)
+
+func TestImport() {
 
 }

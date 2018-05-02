@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 )
+
 type RavenCommand struct {
 	Url, Method, Data                      string
 	Headers                                map[string]string
@@ -13,17 +14,17 @@ type RavenCommand struct {
 	timeout                                time.Duration
 	requested_node                         string
 }
+
 func (ref *RavenCommand) Init() {
 	if ref.Headers == nil {
-		ref.Headers = make(map[string] string, 0)
+		ref.Headers = make(map[string]string, 0)
 	}
 }
 func (ref *RavenCommand) createRequest(serverNode string) {
 	panic(errors.New("NotImplementedError"))
 }
 
-
-func (ref *RavenCommand) GetResponseRaw(resp *http.Response){
+func (ref *RavenCommand) GetResponseRaw(resp *http.Response) {
 	panic(errors.New("NotImplementedError"))
 }
 

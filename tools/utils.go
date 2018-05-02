@@ -1,34 +1,36 @@
 package tools
 
 import (
-	"regexp"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"io/ioutil"
-	"net/http"
-	"encoding/json"
 	"math/big"
-	"strings"
-	"crypto/x509"
-	"encoding/pem"
+	"net/http"
 	"os"
+	"regexp"
+	"strings"
 )
 
 const noValidName = "Database name can only contain only A-Z, a-z, \"_\", \".\" or \"-\" but was: "
+
 var dbValidName = regexp.MustCompile(`^([A-Za-z0-9_\-\.]+)$`)
+
 // DatabaseNameValidation return error is name not valid
-func DatabaseNameValidation(name string) error{
+func DatabaseNameValidation(name string) error {
 	if name == "" {
 		return errors.New(("None name is not valid"))
 	}
 	if !dbValidName.MatchString(name) {
-		return errors.New( noValidName + name)
+		return errors.New(noValidName + name)
 	}
 
 	return nil
 }
 
 func ResponseToJSON(resp *http.Response) (out []byte, err error) {
-	if data, err := ioutil.ReadAll(resp.Body); err != nil{
+	if data, err := ioutil.ReadAll(resp.Body); err != nil {
 		return nil, err
 	} else {
 		out, err = json.Marshal(data)
@@ -36,6 +38,7 @@ func ResponseToJSON(resp *http.Response) (out []byte, err error) {
 
 	return
 }
+
 // todo: implemented later accuracy
 func Uuid4() uint64 {
 
@@ -45,17 +48,17 @@ func Uuid4() uint64 {
 	return i.Uint64()
 }
 
-func GetChangeVectorFromHeader(resp *http.Response) string{
+func GetChangeVectorFromHeader(resp *http.Response) string {
 	headers, ok := resp.Header["ETag"]
-	if ok && strings.HasPrefix( headers[0], `"`) {
+	if ok && strings.HasPrefix(headers[0], `"`) {
 		header := headers[0]
-		return header[1: len(header)-2]
+		return header[1 : len(header)-2]
 	}
 
 	return ""
 }
 
-func GetCertFileFingerprint(pemPath string) string{
+func GetCertFileFingerprint(pemPath string) string {
 
 	ioReader, _ := os.Open(pemPath)
 	stat, err := ioReader.Stat()

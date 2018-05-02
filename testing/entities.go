@@ -1,11 +1,11 @@
 package testing
 
-type User struct{
-	Id string `ravendb:"id"`
+type User struct {
+	Id                        string `ravendb:"id"`
 	Name, Lastname, AddressId string
-	Count, Age int
+	Count, Age                int
 }
 
-type Product struct{
+type Product struct {
 	Name string
 }

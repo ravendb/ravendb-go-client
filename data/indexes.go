@@ -30,19 +30,19 @@ const FIELD_TERM_VECTOR_WITH_POSITIONS = "WithPositions"
 const FIELD_TERM_VECTOR_WITH_OFFSETS = "WithOffsets"
 const FIELD_TERM_VECTORWITH_POSITIONS_AND_OFFSETS = "WithPositionsAndOffsets"
 
-type IndexDefinition struct{
-	Name string
+type IndexDefinition struct {
+	Name          string
 	Configuration []string
-	Reduce bool
-	IndexId int
-	IsTestIndex bool
-	LockMode IndexLockMode
-	Priority IndexPriority
-	Maps []string
-	Fields map[string]IndexFieldOptions
-
+	Reduce        bool
+	IndexId       int
+	IsTestIndex   bool
+	LockMode      IndexLockMode
+	Priority      IndexPriority
+	Maps          []string
+	Fields        map[string]IndexFieldOptions
 }
-func NewIndexDefinition(name string, maps []string, configuration []string, reduce bool, index_id int, is_test_index bool, lock_mod IndexLockMode, priority IndexPriority, fields map[string]IndexFieldOptions)(* IndexDefinition, error){
+
+func NewIndexDefinition(name string, maps []string, configuration []string, reduce bool, index_id int, is_test_index bool, lock_mod IndexLockMode, priority IndexPriority, fields map[string]IndexFieldOptions) (*IndexDefinition, error) {
 	ref := &IndexDefinition{}
 
 	ref.Name = name
@@ -57,15 +57,17 @@ func NewIndexDefinition(name string, maps []string, configuration []string, redu
 
 	return ref, nil
 }
-type IndexFieldOptions struct{
-	SortOptions SortOptions
-	FieldIndexing FieldIndexing
-	Storage bool
-	Suggestions bool
+
+type IndexFieldOptions struct {
+	SortOptions     SortOptions
+	FieldIndexing   FieldIndexing
+	Storage         bool
+	Suggestions     bool
 	FieldTermVector FieldTermVector
-	Analyzer string
+	Analyzer        string
 }
-func NewIndexFieldOptions(sort_options SortOptions, field_indexing FieldIndexing, storage bool, suggestions bool, term_vector FieldTermVector, analyzer string)(* IndexFieldOptions, error){
+
+func NewIndexFieldOptions(sort_options SortOptions, field_indexing FieldIndexing, storage bool, suggestions bool, term_vector FieldTermVector, analyzer string) (*IndexFieldOptions, error) {
 
 	ref := &IndexFieldOptions{}
 	ref.SortOptions = sort_options
@@ -81,26 +83,26 @@ func (obj IndexFieldOptions) ToJson() map[string]interface{} {
 
 	var data map[string]interface{}
 	data["Analyzer"] = obj.Analyzer
-	if obj.FieldIndexing == ""{
+	if obj.FieldIndexing == "" {
 		data["Indexing"] = nil
-	}else {
+	} else {
 		data["Indexing"] = obj.FieldIndexing
 	}
-	if obj.FieldIndexing == ""{
+	if obj.FieldIndexing == "" {
 		data["Sort"] = nil
-	}else {
+	} else {
 		data["Sort"] = obj.SortOptions
 	}
 	data["Spatial"] = nil
-	if obj.Storage{
+	if obj.Storage {
 		data["Storage"] = "Yes"
-	}else {
+	} else {
 		data["Storage"] = "No"
 	}
 	data["Suggestions"] = obj.Suggestions
-	if obj.FieldIndexing == ""{
+	if obj.FieldIndexing == "" {
 		data["TermVector"] = nil
-	}else {
+	} else {
 		data["TermVector"] = obj.FieldTermVector
 	}
 

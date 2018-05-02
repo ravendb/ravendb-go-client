@@ -2,11 +2,11 @@ package data
 
 import (
 	"errors"
-	"time"
 	"fmt"
-	"reflect"
 	"github.com/gedex/inflector"
+	"reflect"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -22,9 +22,9 @@ const (
 )
 
 const (
-	COLLECTION = "@collection"
-	METADATA_KEY = "@metadata"
-	METADATA_ID = "@id"
+	COLLECTION    = "@collection"
+	METADATA_KEY  = "@metadata"
+	METADATA_ID   = "@id"
 	METADATA_ETAG = "@etag"
 )
 
@@ -48,7 +48,7 @@ type Behaviourer interface {
 
 type Behaviour struct {
 	allowedBehaviours []string
-	behaviorType BehaviorType
+	behaviorType      BehaviorType
 }
 
 type ReadBehaviour struct {
@@ -58,39 +58,40 @@ type ReadBehaviour struct {
 type WriteBehaviour struct {
 	behaviour Behaviour
 }
-func (b Behaviour) getBehaviourName() string{
+
+func (b Behaviour) getBehaviourName() string {
 	return b.allowedBehaviours[b.behaviorType]
 }
 
-func (b Behaviour) IsEmpty() bool{
+func (b Behaviour) IsEmpty() bool {
 	return len(b.allowedBehaviours) == 0 && b.behaviorType == 0
 }
 
-func (b ReadBehaviour) getBehaviourName() string{
+func (b ReadBehaviour) getBehaviourName() string {
 	return b.behaviour.getBehaviourName()
 }
 
-func (b ReadBehaviour) IsEmpty() bool{
+func (b ReadBehaviour) IsEmpty() bool {
 	return b.behaviour.IsEmpty()
 }
 
-func (b WriteBehaviour) getBehaviourName() string{
+func (b WriteBehaviour) getBehaviourName() string {
 	return b.behaviour.getBehaviourName()
 }
 
-func (b WriteBehaviour) IsEmpty() bool{
+func (b WriteBehaviour) IsEmpty() bool {
 	return b.behaviour.IsEmpty()
 }
 
-func NewBehaviour(allowedBehaviours []string, behaviourType BehaviorType) (*Behaviour, error){
-	if int(behaviourType) >= len(allowedBehaviours){
+func NewBehaviour(allowedBehaviours []string, behaviourType BehaviorType) (*Behaviour, error) {
+	if int(behaviourType) >= len(allowedBehaviours) {
 		return nil, errors.New("data: Behaviour type out of range")
 	}
 	b := Behaviour{allowedBehaviours, behaviourType}
 	return &b, nil
 }
 
-func NewReadBehaviour(behaviourType BehaviorType) (*ReadBehaviour, error){
+func NewReadBehaviour(behaviourType BehaviorType) (*ReadBehaviour, error) {
 	baseBehaviour, err := NewBehaviour(ReadBehaviours[:], behaviourType)
 	if err != nil {
 		return nil, err
@@ -99,7 +100,7 @@ func NewReadBehaviour(behaviourType BehaviorType) (*ReadBehaviour, error){
 	return &b, nil
 }
 
-func NewWriteBehaviour(behaviourType BehaviorType) (*WriteBehaviour, error){
+func NewWriteBehaviour(behaviourType BehaviorType) (*WriteBehaviour, error) {
 	baseBehaviour, err := NewBehaviour(WriteBehaviours[:], behaviourType)
 	if err != nil {
 		return nil, err
@@ -107,6 +108,7 @@ func NewWriteBehaviour(behaviourType BehaviorType) (*WriteBehaviour, error){
 	b := WriteBehaviour{*baseBehaviour}
 	return &b, nil
 }
+
 ///     The set of conventions used by the <see cref="DocumentStore" /> which allow the users to customize
 ///     the way the Raven client API behaves
 type DocumentConvention struct {
@@ -148,9 +150,10 @@ func NewDocumentConvention() *DocumentConvention {
 	//}
 	return dc
 }
+
 // todo: совершенно непонимаю - что она должна делать
 // имя обьекита по которому создается коллекция в базе в единичном числе, имя коллекции же в множдественном. эта функа преобразвоует
-func (ref *DocumentConvention) defaultTransformPlural(name string) string{
+func (ref *DocumentConvention) defaultTransformPlural(name string) string {
 	//Returns the plural form of a word if first parameter is greater than 1
 	return "inflector.conditional_plural(2, name)"
 }
@@ -158,7 +161,7 @@ func (ref *DocumentConvention) DefaultTransformTypeTagName(name string) string {
 	count := 1
 	for _, c := range []rune(name) {
 		if c == unicode.ToUpper(c) {
-			count ++
+			count++
 		}
 	}
 	// simple name, just lower case it
@@ -169,7 +172,7 @@ func (ref *DocumentConvention) DefaultTransformTypeTagName(name string) string {
 	return ref.defaultTransformPlural(name)
 	// @staticmethod
 }
-func jsonDefault(obj interface{}) (interface{}, error){
+func jsonDefault(obj interface{}) (interface{}, error) {
 	switch v := obj.(type) {
 	default:
 		return nil, errors.New(fmt.Sprintf("data: %#v is not JSON serializable (Try add a json default method to store convention)", obj))
@@ -184,49 +187,49 @@ func jsonDefault(obj interface{}) (interface{}, error){
 	}
 }
 
-func LookupIdentityPropertyIdxByTag(entityType reflect.Type) (int, bool){
+func LookupIdentityPropertyIdxByTag(entityType reflect.Type) (int, bool) {
 	for i := 0; i < entityType.NumField(); i++ {
 		val := entityType.Field(i).Tag.Get("ravendb")
-		if strings.HasSuffix(val, "id") || strings.Contains(val, "id,"){
+		if strings.HasSuffix(val, "id") || strings.Contains(val, "id,") {
 			return i, true
 		}
 	}
 	return -1, false
 }
 
-func (convention DocumentConvention) GenerateDocumentId(DBName string, entity interface{}) string{
+func (convention DocumentConvention) GenerateDocumentId(DBName string, entity interface{}) string {
 	entityType := reflect.TypeOf(entity)
 	registeredIdConvention, ok := convention.registeredIdConventions[entityType.String()]
-	if ok{
+	if ok {
 		return registeredIdConvention(DBName, entity)
 	}
 	return convention.DocumentIdGenerator(DBName, entity)
 }
 
-func (convention DocumentConvention) GenerateDocumentIdAsync(DBName string, entity interface{}) <-chan string{
+func (convention DocumentConvention) GenerateDocumentIdAsync(DBName string, entity interface{}) <-chan string {
 	out := make(chan string, 1)
-	go func(){
+	go func() {
 		out <- convention.GenerateDocumentId(DBName, entity)
 		close(out)
 	}()
 	return out
 }
 
-func (convention DocumentConvention) GetCollectionName(entity interface{}) string{
-	if entity == nil{
+func (convention DocumentConvention) GetCollectionName(entity interface{}) string {
+	if entity == nil {
 		return ""
 	}
 	entityType := reflect.TypeOf(entity)
 	result, ok := convention.collectionNameFounder(entityType)
-	if !ok{
+	if !ok {
 		result = convention.getDefaultCollectionName(entityType)
 	}
 
 	return result
 }
 
-func (convention DocumentConvention) getDefaultCollectionName(t reflect.Type) string{
-	if _, ok := convention.defaultCollectionNamesCache[t]; !ok{
+func (convention DocumentConvention) getDefaultCollectionName(t reflect.Type) string {
+	if _, ok := convention.defaultCollectionNamesCache[t]; !ok {
 		convention.defaultCollectionNamesCache[t] = inflector.Pluralize(t.Name())
 	}
 	return convention.defaultCollectionNamesCache[t]

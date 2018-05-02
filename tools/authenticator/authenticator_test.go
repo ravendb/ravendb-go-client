@@ -1,14 +1,14 @@
 package authenticator
 
-import(
-	"testing"
-	"fmt"
+import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"strings"
+	"testing"
 )
 
-func TestBuildServerRequest(t *testing.T){
+func TestBuildServerRequest(t *testing.T) {
 
 	const pk = "\xea\x9b\xebU\x97G+%\x9cdp\x89\x1cn\x05\xad\x81\xb8\xc6\xa8Ny\x9d\xe79\xf41\x03\\\xbaz\x1f"
 	const sk = "\xa5]\xb2\xc44\x19d,E\xb4Q\xb6Nx\xba\x82\xadl\x8e\xf3>Y>z\\\xba7{a\x07\x14\x7f"
@@ -43,7 +43,7 @@ func TestBuildServerRequest(t *testing.T){
 	}
 }
 
-func hexArToByteAr(str string) ([]byte, error){
+func hexArToByteAr(str string) ([]byte, error) {
 	var s string
 	for i := 0; i < len(str); i++ {
 		s += fmt.Sprintf("%x", str[i])

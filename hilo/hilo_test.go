@@ -8,16 +8,17 @@ import (
 	"testing"
 	"time"
 )
+
 // TestNewHiLoReturnCommand_EmptyParam must error test if not get error during Create ReturnCommand with empty parameters
 func TestNewHiLoReturnCommand_EmptyParam(t *testing.T) {
-	_, err := NewHiLoReturnCommand("", 0,  0)
+	_, err := NewHiLoReturnCommand("", 0, 0)
 	if err == nil {
 		t.Error("Not return error message during call NewNextHiLoCommand with empty parameter TAG")
 		return
 	}
 }
 func TestNewHiLoReturnCommand(t *testing.T) {
-	ref, err := NewHiLoReturnCommand("test", 1,  1)
+	ref, err := NewHiLoReturnCommand("test", 1, 1)
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -44,7 +45,7 @@ func TestNewNextHiLoCommand(t *testing.T) {
 	}
 }
 func TestNewHiLoKeyGenerator(t *testing.T) {
-	root := NewMultiDatabaseHiLoKeyGenerator("test", "localhost",nil)
+	root := NewMultiDatabaseHiLoKeyGenerator("test", "localhost", nil)
 	parent := NewMultiTypeHiLoKeyGenerator(*root)
 	ref := NewHiLoKeyGenerator("test", *parent)
 	if (ref.rangeValues.min_id != 1) || (ref.rangeValues.max_id != 0) {

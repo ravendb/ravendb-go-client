@@ -6,17 +6,18 @@ package data
 //@param int page_size:  Maximum number of records that will be retrieved.
 //@param bool wait_for_non_stale_results: True to wait in the server side to non stale result
 //@param None or float cutoff_etag: Gets or sets the cutoff etag.
-type BaseIndexQuery struct{
-	PageSize uint
-	PageSizeIsSet bool
-	Query string
-	QueryParams []string
-	Start uint
-	WaitForNonStaleResults bool
+type BaseIndexQuery struct {
+	PageSize                      uint
+	PageSizeIsSet                 bool
+	Query                         string
+	QueryParams                   []string
+	Start                         uint
+	WaitForNonStaleResults        bool
 	WaitForNonStaleResultsTimeout uint
-	CutoffEtag float64
+	CutoffEtag                    float64
 }
-func NewBaseIndexQuery(query string, query_parameters []string, start uint, page_size uint, wait_for_non_stale_results bool, wait_for_non_stale_results_timeout uint, cutoff_etag float64) (* BaseIndexQuery, error){
+
+func NewBaseIndexQuery(query string, query_parameters []string, start uint, page_size uint, wait_for_non_stale_results bool, wait_for_non_stale_results_timeout uint, cutoff_etag float64) (*BaseIndexQuery, error) {
 
 	ref := &BaseIndexQuery{}
 	ref.Query = query
@@ -29,21 +30,22 @@ func NewBaseIndexQuery(query string, query_parameters []string, start uint, page
 
 	return ref, nil
 }
-func (obj BaseIndexQuery) getPageSize() uint{
+func (obj BaseIndexQuery) getPageSize() uint {
 	return obj.PageSize
 }
-func (obj BaseIndexQuery) getPageSizeSet() bool{
+func (obj BaseIndexQuery) getPageSizeSet() bool {
 	return obj.PageSizeIsSet
 }
 
 type IndexQuery struct {
-	BaseIndexQuery *BaseIndexQuery
+	BaseIndexQuery                                              *BaseIndexQuery
 	AllowMultipleIndexEntriesForSameDocumentToResultTransformer bool
-	Includes []string
-	ShowTimings bool
-	SkipDuplicateChecking bool
+	Includes                                                    []string
+	ShowTimings                                                 bool
+	SkipDuplicateChecking                                       bool
 }
-func NewIndexQuery(query string, query_params []string, start uint, includes []string, show_timings bool, skip_duplicate_checking bool, page_size uint, wait_for_non_stale_results bool, wait_for_non_stale_results_timeout uint, cutoff_etag float64)(* IndexQuery, error){
+
+func NewIndexQuery(query string, query_params []string, start uint, includes []string, show_timings bool, skip_duplicate_checking bool, page_size uint, wait_for_non_stale_results bool, wait_for_non_stale_results_timeout uint, cutoff_etag float64) (*IndexQuery, error) {
 
 	ref := &IndexQuery{}
 	baseIndexQuery, _ := NewBaseIndexQuery(query, query_params, start, page_size, wait_for_non_stale_results, wait_for_non_stale_results_timeout, cutoff_etag)
@@ -54,7 +56,7 @@ func NewIndexQuery(query string, query_params []string, start uint, includes []s
 
 	return ref, nil
 }
-func (obj IndexQuery) GetQueryHash() string{
+func (obj IndexQuery) GetQueryHash() string {
 	//todo find xxhash lib with digest
 	return ""
 }
@@ -62,53 +64,54 @@ func (obj IndexQuery) ToJson() map[string]interface{} {
 	var data map[string]interface{}
 	data["Query"] = obj.BaseIndexQuery.Query
 	data["CutoffEtag"] = obj.BaseIndexQuery.CutoffEtag
-	if obj.GetPageSizeSet(){
+	if obj.GetPageSizeSet() {
 		data["PageSize"] = obj.GetPageSize()
 	}
-	if obj.BaseIndexQuery.WaitForNonStaleResults{
+	if obj.BaseIndexQuery.WaitForNonStaleResults {
 		data["WaitForNonStaleResults"] = obj.BaseIndexQuery.WaitForNonStaleResults
 	}
-	if obj.BaseIndexQuery.Start != 0{
+	if obj.BaseIndexQuery.Start != 0 {
 		data["Start"] = obj.BaseIndexQuery.Start
 	}
-	if obj.BaseIndexQuery.WaitForNonStaleResultsTimeout > 0{
+	if obj.BaseIndexQuery.WaitForNonStaleResultsTimeout > 0 {
 		data["WaitForNonStaleResultsTimeout"] = obj.BaseIndexQuery.WaitForNonStaleResultsTimeout
 	}
-	if obj.AllowMultipleIndexEntriesForSameDocumentToResultTransformer{
+	if obj.AllowMultipleIndexEntriesForSameDocumentToResultTransformer {
 		data["AllowMultipleIndexEntriesForSameDocumentToResultTransformer"] = obj.AllowMultipleIndexEntriesForSameDocumentToResultTransformer
 	}
-	if obj.ShowTimings{
+	if obj.ShowTimings {
 		data["ShowTimings"] = obj.ShowTimings
 	}
-	if obj.SkipDuplicateChecking{
+	if obj.SkipDuplicateChecking {
 		data["SkipDuplicateChecking"] = obj.SkipDuplicateChecking
 	}
-	if len(obj.Includes) > 0{
+	if len(obj.Includes) > 0 {
 		data["Includes"] = obj.Includes
 	}
 	if len(obj.BaseIndexQuery.QueryParams) > 0 {
 		data["QueryParameters"] = obj.BaseIndexQuery.QueryParams
-	}else{
+	} else {
 		data["QueryParameters"] = nil
 	}
 	return data
 }
-func (obj IndexQuery) GetPageSize() uint{
+func (obj IndexQuery) GetPageSize() uint {
 	return obj.BaseIndexQuery.getPageSize()
 }
-func (obj IndexQuery) GetPageSizeSet() bool{
+func (obj IndexQuery) GetPageSizeSet() bool {
 	return obj.BaseIndexQuery.getPageSizeSet()
 }
-func (obj IndexQuery) GetCustomQueryStrVariables() string{
+func (obj IndexQuery) GetCustomQueryStrVariables() string {
 	return ""
 }
 
 type FacetQuery struct {
 	BaseIndexQuery *BaseIndexQuery
-	Facets []Facet//todo implement Facet
-	FacetSetupDoc string
+	Facets         []Facet //todo implement Facet
+	FacetSetupDoc  string
 }
-func NewFacetQuery(query string, facet_setup_doc string, facets []Facet, start uint, page_size uint)(* FacetQuery, error){
+
+func NewFacetQuery(query string, facet_setup_doc string, facets []Facet, start uint, page_size uint) (*FacetQuery, error) {
 
 	ref := &FacetQuery{}
 	baseIndexQuery, _ := NewBaseIndexQuery(query, []string{}, start, page_size, false, 0, 0)
@@ -118,45 +121,46 @@ func NewFacetQuery(query string, facet_setup_doc string, facets []Facet, start u
 
 	return ref, nil
 }
-func (obj FacetQuery) GetPageSize() uint{
+func (obj FacetQuery) GetPageSize() uint {
 	return obj.BaseIndexQuery.getPageSize()
 }
-func (obj FacetQuery) GetPageSizeSet() bool{
+func (obj FacetQuery) GetPageSizeSet() bool {
 	return obj.BaseIndexQuery.getPageSizeSet()
 }
 func (obj FacetQuery) ToJson() map[string]interface{} {
 	var data map[string]interface{}
 	data["Query"] = obj.BaseIndexQuery.Query
 	data["CutoffEtag"] = obj.BaseIndexQuery.CutoffEtag
-	if obj.GetPageSizeSet(){
+	if obj.GetPageSizeSet() {
 		data["PageSize"] = obj.GetPageSize()
 	}
-	if obj.BaseIndexQuery.WaitForNonStaleResults{
+	if obj.BaseIndexQuery.WaitForNonStaleResults {
 		data["WaitForNonStaleResults"] = obj.BaseIndexQuery.WaitForNonStaleResults
 	}
-	if obj.BaseIndexQuery.Start != 0{
+	if obj.BaseIndexQuery.Start != 0 {
 		data["Start"] = obj.BaseIndexQuery.Start
 	}
-	if obj.BaseIndexQuery.WaitForNonStaleResultsTimeout > 0{
+	if obj.BaseIndexQuery.WaitForNonStaleResultsTimeout > 0 {
 		data["WaitForNonStaleResultsTimeout"] = obj.BaseIndexQuery.WaitForNonStaleResultsTimeout
 	}
 	if len(obj.BaseIndexQuery.QueryParams) > 0 {
 		data["QueryParameters"] = obj.BaseIndexQuery.QueryParams
-	}else{
+	} else {
 		data["QueryParameters"] = nil
 	}
-	if len(obj.Facets) > 0{
+	if len(obj.Facets) > 0 {
 		data["Facets"] = obj.Facets
 	}
-	if obj.FacetSetupDoc != ""{
+	if obj.FacetSetupDoc != "" {
 		data["FacetSetupDoc"] = obj.FacetSetupDoc
 	}
 	return data
 }
-func (obj FacetQuery) GetQueryHash() string{
+func (obj FacetQuery) GetQueryHash() string {
 	//todo find xxhash lib with digest
 	return ""
 }
+
 type FacetMode string
 type FacetAggregation string
 type FacetTermSortMode string
@@ -176,19 +180,20 @@ const FACET_TERM_SORT_MODE_VALUE_DESC FacetTermSortMode = "ValueDesc"
 const FACET_TERM_SORT_MODE_HITS_ASC FacetTermSortMode = "HitsAsc"
 const FACET_TERM_SORT_MODE_HITS_DESC FacetTermSortMode = "HitsDesc"
 
-type Facet struct{
-	Name string
-	DisplayName string
-	Ranges []int
-	Mode FacetMode
-	Aggregation FacetAggregation
-	AggregationField string
-	AggregationType string
-	MaxResult int
-	TermSortMode FacetTermSortMode
+type Facet struct {
+	Name                  string
+	DisplayName           string
+	Ranges                []int
+	Mode                  FacetMode
+	Aggregation           FacetAggregation
+	AggregationField      string
+	AggregationType       string
+	MaxResult             int
+	TermSortMode          FacetTermSortMode
 	IncludeRemainingTerms bool
 }
-func NewFacet(name string, display_name string, ranges []int, mode FacetMode, aggregation FacetAggregation, aggregation_field string, aggregation_type string, max_result int, term_sort_mode FacetTermSortMode, include_remaining_terms bool)(* Facet, error){
+
+func NewFacet(name string, display_name string, ranges []int, mode FacetMode, aggregation FacetAggregation, aggregation_field string, aggregation_type string, max_result int, term_sort_mode FacetTermSortMode, include_remaining_terms bool) (*Facet, error) {
 
 	ref := &Facet{}
 	ref.Name = name
@@ -214,13 +219,13 @@ func (obj Facet) ToJson() map[string]interface{} {
 	data["Name"] = obj.Name
 	data["TermSortMode"] = obj.TermSortMode
 	data["IncludeRemainingTerms"] = obj.IncludeRemainingTerms
-	if obj.MaxResult>0{
+	if obj.MaxResult > 0 {
 		data["MaxResult"] = obj.MaxResult
 	}
-	if obj.DisplayName != "" && obj.DisplayName != obj.Name{
+	if obj.DisplayName != "" && obj.DisplayName != obj.Name {
 		data["DisplayName"] = obj.DisplayName
 	}
-	if len(obj.Ranges)>0{
+	if len(obj.Ranges) > 0 {
 		data["Ranges"] = obj.Ranges
 	}
 
