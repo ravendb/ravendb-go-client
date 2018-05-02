@@ -1,4 +1,4 @@
-package identity
+package documents
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/ravendb/ravendb-go-client/data"
-	"github.com/ravendb/ravendb-go-client/documents"
+	"github.com/ravendb/ravendb-go-client/store"
 )
 
 type IHiLoGenerator interface {
@@ -15,7 +15,7 @@ type IHiLoGenerator interface {
 }
 
 type HiLoIdGenerator struct {
-	store                                                  documents.DocumentStore
+	store.DocumentStore
 	conventions                                            data.DocumentConvention
 	tag, dBName, identityPartsSeparator, prefix, serverTag string
 	availableRange                                         RangeValue
@@ -25,14 +25,14 @@ type HiLoIdGenerator struct {
 
 type MultiTypeHiLoIdGenerator struct {
 	generatorsCollection map[string]HiLoIdGenerator
-	store                documents.DocumentStore
+	store                DocumentStore
 	dBName               string
 	convention           data.DocumentConvention
 	generatorMutex       sync.Mutex
 }
 
 type MultiDatabaseHiLoIdGenerator struct {
-	store                documents.DocumentStore
+	store                DocumentStore
 	convention           data.DocumentConvention
 	generatorsCollection map[string]MultiTypeHiLoIdGenerator
 	generatorMutex       sync.Mutex
@@ -46,17 +46,17 @@ func NewRangeValue(min int64, max int64) (*RangeValue, error) {
 	return &RangeValue{min, max, min - 1}, nil
 }
 
-func NewHiLoIdGenerator(tag string, store documents.DocumentStore, dBName string, identityPartsSeparator string) (*HiLoIdGenerator, error) {
+func NewHiLoIdGenerator(tag string, store DocumentStore, dBName string, identityPartsSeparator string) (*HiLoIdGenerator, error) {
 	rangeVal, _ := NewRangeValue(1, 0)
 	rangesUpdateChan := make(chan RangeValue, 1)
 	return &HiLoIdGenerator{store: store, tag: tag, dBName: dBName, identityPartsSeparator: identityPartsSeparator, availableRange: *rangeVal, rangesUpdateChan: rangesUpdateChan}, nil
 }
 
-func NewMultiTypeHiLoIdGenerator(store documents.DocumentStore, dBName string, convention data.DocumentConvention) (*MultiTypeHiLoIdGenerator, error) {
+func NewMultiTypeHiLoIdGenerator(store DocumentStore, dBName string, convention data.DocumentConvention) (*MultiTypeHiLoIdGenerator, error) {
 	return &MultiTypeHiLoIdGenerator{store: store, dBName: dBName, convention: convention}, nil
 }
 
-func NewMultiDatabaseHiLoIdGenerator(store documents.DocumentStore, convention data.DocumentConvention) (*MultiDatabaseHiLoIdGenerator, error) {
+func NewMultiDatabaseHiLoIdGenerator(store DocumentStore, convention data.DocumentConvention) (*MultiDatabaseHiLoIdGenerator, error) {
 	return &MultiDatabaseHiLoIdGenerator{store: store, convention: convention}, nil
 }
 

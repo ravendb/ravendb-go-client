@@ -1,8 +1,9 @@
 package documents
 
 import (
-	testingUtils "../testing"
 	"testing"
+
+	testingUtils "github.com/ravendb/ravendb-go-client/testing"
 )
 
 func TestCRUD(t *testing.T) {

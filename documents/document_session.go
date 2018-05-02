@@ -2,7 +2,6 @@ package documents
 
 import (
 	"github.com/google/uuid"
-	"github.com/ravendb/ravendb-go-client/documents/session"
 	"github.com/ravendb/ravendb-go-client/http"
 )
 
@@ -19,7 +18,7 @@ type ISessionOptions interface {
 }
 
 type DocumentSession struct {
-	inMemoryDocumentSessionOperator session.InMemoryDocumentSessionOperator
+	inMemoryDocumentSessionOperator InMemoryDocumentSessionOperator
 }
 
 type SessionOptions struct {
@@ -28,7 +27,7 @@ type SessionOptions struct {
 }
 
 func NewDocumentSession(dbName string, store DocumentStore, id uuid.UUID, requestExecutor http.RequestExecutor) (*DocumentSession, error) {
-	inMemoryDocumentSessionOperator, err := session.NewInMemoryDocumentSessionOperator(dbName, store, requestExecutor)
+	inMemoryDocumentSessionOperator, err := NewInMemoryDocumentSessionOperator(dbName, requestExecutor)
 	return &DocumentSession{*inMemoryDocumentSessionOperator}, err
 }
 
@@ -60,9 +59,9 @@ func (documentSession DocumentSession) Delete(arg interface{}) error {
 }
 
 func (documentSession DocumentSession) DeleteById(id string, expectedChangeVector string) error {
-	return documentSession.inMemoryDocumentSessionOperator.Delete(arg)
+	return documentSession.inMemoryDocumentSessionOperator.Delete(id)
 }
 
 func (documentSession DocumentSession) Load(id string) (interface{}, bool) {
-
+	return nil, false
 }

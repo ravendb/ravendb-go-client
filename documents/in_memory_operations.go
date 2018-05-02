@@ -1,11 +1,10 @@
-package session
+package documents
 
 import (
 	"errors"
 	"fmt"
 
 	"github.com/ravendb/ravendb-go-client/data"
-	"github.com/ravendb/ravendb-go-client/documents/identity"
 	ravenHttp "github.com/ravendb/ravendb-go-client/http"
 )
 
@@ -20,7 +19,7 @@ const (
 type InMemoryDocumentSessionOperator struct {
 	generateDocumentIdsOnStore bool
 	documentInfoCache          map[string]DocumentInfo
-	IdGenerator                identity.OnClientIdGenerator
+	IdGenerator                OnClientIdGenerator
 
 	database        string
 	requestExecutor ravenHttp.RequestExecutor
@@ -37,7 +36,7 @@ type DocumentInfo struct {
 }
 
 func NewInMemoryDocumentSessionOperator(dbName string, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error) {
-	idGenerator, _ := identity.NewOnClientIdGenerator()
+	idGenerator, _ := NewOnClientIdGenerator()
 	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo), *idGenerator, dbName, requestExecutor}, nil
 }
 
@@ -90,7 +89,7 @@ func (sessionOperator InMemoryDocumentSessionOperator) Store(entity interface{},
 	var concurrencyCheckMode ConcurrencyCheckMode
 	switch {
 	case etag == 0 && id == "":
-		possibleId, ok := identity.LookupIdFromInstance(entity)
+		possibleId, ok := LookupIdFromInstance(entity)
 		if ok {
 			id = possibleId
 			concurrencyCheckMode = AUTO

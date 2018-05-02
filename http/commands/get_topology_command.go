@@ -22,7 +22,7 @@ func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode) 
 	command.SetUrl(fmt.Sprintf("%s/topology?name=%s", node.GetUrl(), node.GetDatabase()))
 }
 
-func (command GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error) {
+func (command *GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error) {
 	if resp.StatusCode == 200 {
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {

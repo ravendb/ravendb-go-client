@@ -1,4 +1,4 @@
-package identity
+package documents
 
 import (
 	"reflect"

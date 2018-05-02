@@ -1,6 +1,4 @@
-package identity
-
-import ()
+package documents
 
 type OnClientIdGenerator struct {
 	method func(interface{}) string

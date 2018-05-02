@@ -3,7 +3,6 @@ package tools
 import (
 	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"io/ioutil"
 	"math/big"
@@ -70,7 +69,7 @@ func GetCertFileFingerprint(pemPath string) string {
 	_, _ = ioReader.Read(rootPEM)
 
 	roots := x509.NewCertPool()
-	_ := roots.AppendCertsFromPEM([]byte(rootPEM))
+	roots.AppendCertsFromPEM([]byte(rootPEM))
 	//block, _ := pem.Decode([]byte(certPEM))
 	//if block == nil {
 	//	panic("failed to parse certificate PEM")
