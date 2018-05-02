@@ -194,7 +194,7 @@ func (executor RequestExecutor) UpdateTopology(node server_nodes.IServerNode) (b
 
 	command, _ := commands.NewGetTopologyCommand()
 
-	response, err := executor.Execute(node, *command, false)
+	response, err := executor.Execute(node, command, false)
 	if err != nil {
 		return false, err
 	}
@@ -260,7 +260,7 @@ func (executor RequestExecutor) PerformHealthCheck(node server_nodes.IServerNode
 	if err != nil {
 		return err
 	}
-	_, err = executor.Execute(node, *commandPtr, false)
+	_, err = executor.Execute(node, commandPtr, false)
 	if err != nil {
 		glog.Info(fmt.Sprintf("%s is still down", node.GetClusterTag()))
 		if nodeStatus, ok := executor.failedNodesTickers[node]; ok {
