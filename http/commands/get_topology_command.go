@@ -1,30 +1,31 @@
 package commands
 
 import (
-	"github.com/ravendb-go-client/http/server_nodes"
-	"net/http"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
 )
 
-type GetTopologyCommand struct{
+type GetTopologyCommand struct {
 	command *RavenCommand
 }
 
-func NewGetTopologyCommand() (*GetTopologyCommand, error){
+func NewGetTopologyCommand() (*GetTopologyCommand, error) {
 	command := NewRavenCommand()
 	command.SetMethod("GET")
 	return &GetTopologyCommand{command: command}, err
 }
 
-func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode){
+func (command *GetTopologyCommand) CreateRequest(node server_nodes.IServerNode) {
 	command.SetUrl(fmt.Sprintf("%s/topology?name=%s", node.GetUrl(), node.GetDatabase()))
 }
 
-func (command GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error){
-	if resp.StatusCode == 200{
+func (command GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, error) {
+	if resp.StatusCode == 200 {
 		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil{
+		if err != nil {
 			return []byte{}, err
 		}
 		return data, err
@@ -32,47 +33,46 @@ func (command GetTopologyCommand) GetResponseRaw(resp *http.Response) ([]byte, e
 	return []byte{}, nil
 }
 
-
-func (command *GetTopologyCommand) SetHeaders(headers map[string]string){
+func (command *GetTopologyCommand) SetHeaders(headers map[string]string) {
 	command.command.SetHeaders(headers)
 }
 
-func (command *GetTopologyCommand) GetHeaders() map[string]string{
+func (command *GetTopologyCommand) GetHeaders() map[string]string {
 	return command.command.GetHeaders()
 }
 
-func (command *GetTopologyCommand) GetUrl() string{
+func (command *GetTopologyCommand) GetUrl() string {
 	return command.command.GetUrl()
 }
 
-func (command *GetTopologyCommand) SetUrl(url string){
+func (command *GetTopologyCommand) SetUrl(url string) {
 	command.command.SetUrl(url)
 }
 
-func (command *GetTopologyCommand) GetMethod() string{
+func (command *GetTopologyCommand) GetMethod() string {
 	return command.command.GetMethod()
 }
 
-func (command *GetTopologyCommand) SetMethod(method string){
+func (command *GetTopologyCommand) SetMethod(method string) {
 	command.command.SetMethod(method)
 }
 
-func (command *GetTopologyCommand) GetData() interface{}{
+func (command *GetTopologyCommand) GetData() interface{} {
 	return command.command.GetData()
 }
 
-func (command *GetTopologyCommand) SetData(data interface{}){
+func (command *GetTopologyCommand) SetData(data interface{}) {
 	command.command.SetData(data)
 }
 
-func (command *GetTopologyCommand) GetFailedNodes() []server_nodes.IServerNode{
+func (command *GetTopologyCommand) GetFailedNodes() []server_nodes.IServerNode {
 	return command.command.GetFailedNodes()
 }
 
-func (command *GetTopologyCommand) AddFailedNode(nodes server_nodes.IServerNode, err error){
+func (command *GetTopologyCommand) AddFailedNode(nodes server_nodes.IServerNode, err error) {
 	command.command.AddFailedNode(nodes, err)
 }
 
-func (command *GetTopologyCommand) HasFailedWithNode(node server_nodes.IServerNode) bool{
+func (command *GetTopologyCommand) HasFailedWithNode(node server_nodes.IServerNode) bool {
 	return command.command.HasFailedWithNode(node)
 }

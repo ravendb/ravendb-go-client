@@ -7,7 +7,7 @@ Since you cant build project module-by-module with relative imports - they are a
 # Running tests
 test http package:
 
-`go test -c -i github.com/ravendb-go-client/http`
+`go test -c -i github.com/ravendb/ravendb-go-client/http`
 
 `./http.go`
 

@@ -2,10 +2,11 @@ package session
 
 import (
 	"errors"
-	ravenHttp "github.com/ravendb-go-client/http"
 	"fmt"
-	"github.com/ravendb-go-client/data"
-	"github.com/ravendb-go-client/documents/identity"
+
+	"github.com/ravendb/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/documents/identity"
+	ravenHttp "github.com/ravendb/ravendb-go-client/http"
 )
 
 type ConcurrencyCheckMode uint8
@@ -16,31 +17,31 @@ const (
 	DISABLED
 )
 
-type InMemoryDocumentSessionOperator struct{
+type InMemoryDocumentSessionOperator struct {
 	generateDocumentIdsOnStore bool
-	documentInfoCache map[string]DocumentInfo
-	IdGenerator identity.OnClientIdGenerator
+	documentInfoCache          map[string]DocumentInfo
+	IdGenerator                identity.OnClientIdGenerator
 
-	database string
+	database        string
 	requestExecutor ravenHttp.RequestExecutor
 }
 
-type DocumentInfo struct{
-	Id string
-	Etag int64
-	Document map[string]map[string]interface{}
-	Metadata map[string]interface{}
-	ConcurrencyCheckMode ConcurrencyCheckMode
+type DocumentInfo struct {
+	Id                           string
+	Etag                         int64
+	Document                     map[string]map[string]interface{}
+	Metadata                     map[string]interface{}
+	ConcurrencyCheckMode         ConcurrencyCheckMode
 	IgnoreChanges, IsNewDocument bool
-	Entity interface{}
+	Entity                       interface{}
 }
 
-func NewInMemoryDocumentSessionOperator(dbName string, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error){
+func NewInMemoryDocumentSessionOperator(dbName string, requestExecutor ravenHttp.RequestExecutor) (*InMemoryDocumentSessionOperator, error) {
 	idGenerator, _ := identity.NewOnClientIdGenerator()
-	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo),*idGenerator, dbName,  requestExecutor}, nil
+	return &InMemoryDocumentSessionOperator{true, make(map[string]DocumentInfo), *idGenerator, dbName, requestExecutor}, nil
 }
 
-func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo, error){
+func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo, error) {
 	var metadata map[string]interface{}
 	metadata, ok := document[data.METADATA_KEY]
 	if !ok {
@@ -54,48 +55,46 @@ func NewDocumentInfo(document map[string]map[string]interface{}) (*DocumentInfo,
 	if !ok {
 		return nil, InvalidOperationError{metadata, "etag"}
 	}
-	return &DocumentInfo{string(id), int64(etag), document, metadata, FORCED, false, true,nil}, nil
+	return &DocumentInfo{string(id), int64(etag), document, metadata, FORCED, false, true, nil}, nil
 }
 
-func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity interface{}, etag int64, id string, forceConcurrencyCheck ConcurrencyCheckMode) error{
+func (sessionOperator InMemoryDocumentSessionOperator) storeInternal(entity interface{}, etag int64, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	var documentInfo DocumentInfo
-	if id == ""{
-		if sessionOperator.generateDocumentIdsOnStore{
+	if id == "" {
+		if sessionOperator.generateDocumentIdsOnStore {
 			id = sessionOperator.IdGenerator.GenerateDocumentIdForStorage(entity)
-		}else{
-			sessionOperator.rememberEntityForDocumentIdGeneration(entity);//todo should be overrided
+		} else {
+			sessionOperator.rememberEntityForDocumentIdGeneration(entity) //todo should be overrided
 		}
-	}else{
+	} else {
 		// Store it back into the Id field so the client has access to it
-		sessionOperator.IdGenerator.TrySetIdentity(entity, id);//todo
+		sessionOperator.IdGenerator.TrySetIdentity(entity, id) //todo
 	}
 	documentInfo, ok := sessionOperator.documentInfoCache[id]
-	if !ok{
-		if etag != 0{
+	if !ok {
+		if etag != 0 {
 			documentInfo.Etag = etag
 		}
 		documentInfo.ConcurrencyCheckMode = FORCED
 		return nil
 	}
 
-
-
 	return nil
 }
 
 //Stores the specified dynamic entity in the session. The entity will be saved when SaveChanges is called.
-func (sessionOperator InMemoryDocumentSessionOperator) Store(entity interface{}, etag int64, id string) error{
-	if entity == nil{
+func (sessionOperator InMemoryDocumentSessionOperator) Store(entity interface{}, etag int64, id string) error {
+	if entity == nil {
 		return errors.New("documents: store empty object")
 	}
 	var concurrencyCheckMode ConcurrencyCheckMode
-	switch{
+	switch {
 	case etag == 0 && id == "":
 		possibleId, ok := identity.LookupIdFromInstance(entity)
-		if ok{
+		if ok {
 			id = possibleId
 			concurrencyCheckMode = AUTO
-		}else{
+		} else {
 			concurrencyCheckMode = FORCED
 		}
 	case etag != 0 && id == "":
@@ -111,25 +110,25 @@ func (sessionOperator InMemoryDocumentSessionOperator) Store(entity interface{},
 }
 
 //Marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
-func (sessionOperator InMemoryDocumentSessionOperator) Delete(arg interface{}) error{
+func (sessionOperator InMemoryDocumentSessionOperator) Delete(arg interface{}) error {
 	return nil
 }
 
-func (sessionOperator InMemoryDocumentSessionOperator) GetDatabase() string{
+func (sessionOperator InMemoryDocumentSessionOperator) GetDatabase() string {
 	return sessionOperator.database
 }
 
-func (sessionOperator InMemoryDocumentSessionOperator) GetRequestExecutor() ravenHttp.RequestExecutor{
+func (sessionOperator InMemoryDocumentSessionOperator) GetRequestExecutor() ravenHttp.RequestExecutor {
 	return sessionOperator.requestExecutor
 }
 
 //errors
 
-type InvalidOperationError struct{
+type InvalidOperationError struct {
 	document map[string]interface{}
-	field string
+	field    string
 }
 
-func (e InvalidOperationError) Error() string{
+func (e InvalidOperationError) Error() string {
 	return fmt.Sprintf("session: Document must have a %s", e.field)
 }

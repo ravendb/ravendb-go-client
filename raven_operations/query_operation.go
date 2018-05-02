@@ -1,13 +1,14 @@
 package raven_operations
 
 import (
-	"github.com/ravendb-go-client/http/commands"
 	"errors"
-	"github.com/ravendb-go-client/store"
-	"github.com/ravendb-go-client/http/server_nodes"
 	"fmt"
 	"net/http"
-	"github.com/ravendb-go-client/tools"
+
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/store"
+	"github.com/ravendb/ravendb-go-client/tools"
 )
 
 //@param IndexQuery indexQuery: A query definition containing all information required to query a specified index.
@@ -16,11 +17,12 @@ import (
 //@return:json
 type QueryOperation struct {
 	commands.RavenCommand
-	session  *store.DocumentSession
-	indexName string
-	indexQuery IndexQuery
+	session                                                 *store.DocumentSession
+	indexName                                               string
+	indexQuery                                              IndexQuery
 	disableEntitiesTracking, metadataOnly, indexEntriesOnly bool
 }
+
 func NewQueryOperation(session *store.DocumentSession, indexName string, indexQuery IndexQuery, disableEntitiesTracking, metadataOnly, indexEntriesOnly bool) (*QueryOperation, error) {
 
 	if session.GetConvention().RaiseIfQueryPageSizeIsNotSet && !indexQuery.PageSizeSet {
@@ -40,7 +42,7 @@ func NewQueryOperation(session *store.DocumentSession, indexName string, indexQu
 	return ref, nil
 
 }
-func (ref *QueryOperation) GetIndexQuery() IndexQuery{
+func (ref *QueryOperation) GetIndexQuery() IndexQuery {
 	return ref.indexQuery
 }
 func (ref *QueryOperation) createRequest(serverNode server_nodes.IServerNode) {

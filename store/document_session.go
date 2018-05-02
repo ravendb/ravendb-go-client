@@ -1,27 +1,30 @@
 package store
 
 import (
-	"github.com/ravendb-go-client/http"
-	"github.com/ravendb-go-client/data"
-	"github.com/ravendb-go-client/tools/types"
 	"errors"
-	"github.com/ravendb-go-client/http/commands"
 	"fmt"
+
+	"github.com/ravendb/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/http"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/tools/types"
 )
 
 type SaveChangesData struct {
-	commands []string
+	commands             []string
 	deferredCommandCount int
-	entities []string
+	entities             []string
 }
-func NewSaveChangesData(commands []string, deferredCommandCount int, entities ...string) (*SaveChangesData) {
+
+func NewSaveChangesData(commands []string, deferredCommandCount int, entities ...string) *SaveChangesData {
 	ref := &SaveChangesData{}
 	ref.commands = commands
-	ref.entities = entities 
+	ref.entities = entities
 	ref.deferredCommandCount = deferredCommandCount
-	
+
 	return ref
 }
+
 // DocumentSession - not fill inplemented
 type DocumentSession struct {
 	id_value, numberOfRequestsInSession             uint
@@ -37,12 +40,13 @@ type DocumentSession struct {
 	conventions                                     *data.DocumentConvention
 	advanced                                        *Advanced
 }
+
 //Implements Unit of Work for accessing the RavenDB server
 //
 //@param str DefaultDBName: the name of the DefaultDBName we open a session to
 //@param DocumentStore documentStore: the store that we work on
 // parameter kwargs удалил как неиспользуемый
-func NewDocumentSession(dbName string, docStore *DocumentStore, reqExecutor *http.RequestExecutor, sessionId uint64) *DocumentSession{
+func NewDocumentSession(dbName string, docStore *DocumentStore, reqExecutor *http.RequestExecutor, sessionId uint64) *DocumentSession {
 	ref := &DocumentSession{}
 	ref.sessionId = sessionId
 	ref.database = dbName
@@ -52,43 +56,43 @@ func NewDocumentSession(dbName string, docStore *DocumentStore, reqExecutor *htt
 
 	return ref
 }
-func (obj DocumentSession) GetConvention() *data.DocumentConvention{
+func (obj DocumentSession) GetConvention() *data.DocumentConvention {
 	return obj.conventions
 }
 
-func (ref *DocumentSession) RequestsExecutor() *http.RequestExecutor{
+func (ref *DocumentSession) RequestsExecutor() *http.RequestExecutor {
 	return ref.requestsExecutor
 }
 
-func (ref *DocumentSession) GetNumberOfRequestsInSession() uint{
+func (ref *DocumentSession) GetNumberOfRequestsInSession() uint {
 	return ref.numberOfRequestsInSession
 }
 
-func (ref *DocumentSession) GetDocumentByEntity() types.TDocByEntities{
+func (ref *DocumentSession) GetDocumentByEntity() types.TDocByEntities {
 	return ref.documentsByEntity
 }
 
-func (ref *DocumentSession) GetDeletedEntities() types.SETstr{
+func (ref *DocumentSession) GetDeletedEntities() types.SETstr {
 	return ref.deletedEntities
 }
 
-func (ref *DocumentSession) documents_by_id() types.TDocByID{
+func (ref *DocumentSession) documents_by_id() types.TDocByID {
 	return ref.documentsById
 }
 
-func (ref *DocumentSession) GetKnownMissingIds() types.SETstr{
+func (ref *DocumentSession) GetKnownMissingIds() types.SETstr {
 	return ref.knownMissingIds
 }
 
-func (ref *DocumentSession) GetIncludedDocumentsById() types.SETstr{
+func (ref *DocumentSession) GetIncludedDocumentsById() types.SETstr {
 	return ref.includedDocumentsById
 }
 
-func (ref *DocumentSession) GetConventions() *data.DocumentConvention{
+func (ref *DocumentSession) GetConventions() *data.DocumentConvention {
 	return ref.documentStore.Conventions
 }
 
-func (ref *DocumentSession) GetQuery() *Query{
+func (ref *DocumentSession) GetQuery() *Query {
 	if ref.query == nil {
 		ref.query = NewQuery()
 	}
@@ -106,13 +110,14 @@ func (ref *DocumentSession) saveEntity(key string, entity, original_metadata, me
 			ref.documentsById[key] = entity
 
 			ref.documentsByEntity[entity] = &types.TDocByEntity{
-				Original_value:    "document.copy()", Metadata: metadata,
+				Original_value: "document.copy()", Metadata: metadata,
 				Original_metadata: original_metadata, Change_vector: `metadata.get("change_vector", None)`,
-				Key:               key, Force_concurrency_check: force_concurrency_check,
+				Key: key, Force_concurrency_check: force_concurrency_check,
 			}
 		}
 	}
 }
+
 //todo: complete this method
 func (ref *DocumentSession) convertAndSaveEntity(key, document, object_type, nested_object_types string) {
 	if _, ok := ref.documentsById[key]; !ok {
@@ -121,8 +126,9 @@ func (ref *DocumentSession) convertAndSaveEntity(key, document, object_type, nes
 		//ref.saveEntity(key, entity, original_metadata, metadata, document)
 	}
 }
+
 // todo: nedd to full refactoring
-func (ref *DocumentSession) multiLoad(keys []string,  object_type interface{}, includes []string, nested_object_types []interface{}) []string {
+func (ref *DocumentSession) multiLoad(keys []string, object_type interface{}, includes []string, nested_object_types []interface{}) []string {
 	if len(keys) == 0 {
 		return nil
 	}
@@ -157,9 +163,10 @@ func (ref *DocumentSession) multiLoad(keys []string,  object_type interface{}, i
 	//ref.save_includes(includes)
 	//return [None if key in ref.known_missing_ids else ref.documents_by_id[
 	//key] if key in ref.documents_by_id else None for key in keys]
-	
+
 	return nil
 }
+
 // todo: again bind to previous method and create single processing and loop where it is needed
 //@param key_or_keys: Identifier of a document that will be loaded.
 //:type str || list
@@ -220,41 +227,43 @@ func (ref *DocumentSession) deleteByEntity(entity string) error {
 		ref.knownMissingIds.Add(item.Key)
 		ref.deletedEntities.Add(entity)
 	}
-	
+
 	return nil
 }
+
 //todo: split in two separate methods
 //@param key_or_entity:can be the key || the entity we like to delete
 func (ref *DocumentSession) delete(key_or_entity string) error {
-		if key_or_entity  == "" {
-			return errors.New("None key is invalid")
-		}
-		//if not isinstance(key_or_entity, str):
-		//ref.deleteByEntity(key_or_entity)
-		//return
-		if entity, ok := ref.documentsById[key_or_entity]; ok {
-			if ref.hasChange(entity) {
-				return errors.New("Can't delete changed entity using identifier. Use deleteByEntity(entity) instead.")
-			}
-			if doc, ok := ref.documentsByEntity[entity]; !ok {
-				return errors.New(entity + " is not associated with the session, cannot delete unknown entity instance")
-			} else if "Raven-Read-Only" == doc.Original_metadata {
-				return errors.New(entity + " is marked as read only && cannot be deleted")
-			}
-			ref.deleteByEntity(entity)
-		} else {
-			ref.knownMissingIds.Add(key_or_entity)
-			//ref.includedDocumentsById.Add(key_or_entity)
-			//ref.deferCommands.Add(commands_data.DeleteCommandData(key_or_entity))
-		}
-	return nil
+	if key_or_entity == "" {
+		return errors.New("None key is invalid")
 	}
+	//if not isinstance(key_or_entity, str):
+	//ref.deleteByEntity(key_or_entity)
+	//return
+	if entity, ok := ref.documentsById[key_or_entity]; ok {
+		if ref.hasChange(entity) {
+			return errors.New("Can't delete changed entity using identifier. Use deleteByEntity(entity) instead.")
+		}
+		if doc, ok := ref.documentsByEntity[entity]; !ok {
+			return errors.New(entity + " is not associated with the session, cannot delete unknown entity instance")
+		} else if "Raven-Read-Only" == doc.Original_metadata {
+			return errors.New(entity + " is marked as read only && cannot be deleted")
+		}
+		ref.deleteByEntity(entity)
+	} else {
+		ref.knownMissingIds.Add(key_or_entity)
+		//ref.includedDocumentsById.Add(key_or_entity)
+		//ref.deferCommands.Add(commands_data.DeleteCommandData(key_or_entity))
+	}
+	return nil
+}
 func (ref *DocumentSession) assert_no_non_unique_instance(entity, key string) {
 	//if not (key is None || key.endswith("/") || key not in ref.documents_by_id
 	//or ref.documents_by_id[key] is entity):
 	//return nil, errors.New exceptions.NonUniqueObjectException(
-	//"Attempted to associate a different object with id '{0}'.".format(key)) 
+	//"Attempted to associate a different object with id '{0}'.".format(key))
 }
+
 //@param entity: Entity that will be stored
 //:type object:
 //@param key: Entity will be stored under this key, (None to generate automatically)
@@ -304,17 +313,18 @@ func (ref *DocumentSession) store(entity, key, change_vector string) error {
 	//ref.saveEntity(entity_id, entity, {}, metadata, {}, force_concurrency_check=force_concurrency_check)
 	return nil
 }
+
 // todo: sort out - force_concurrency_check obviously bool based on lines above but its a string here!
 func (ref *DocumentSession) getConcurrencyCheckMode(entity, key, change_vector string) bool {
-	
-    defaultResult := "forced"
-    if change_vector == "" {
+
+	defaultResult := "forced"
+	if change_vector == "" {
 		defaultResult = "disabled"
 	}
 
 	if key == "" {
-	    fmt.Print(defaultResult)
-		return  false
+		fmt.Print(defaultResult)
+		return false
 	}
 	//todo: dig into upper layer
 	//if change_vector == "" {
@@ -328,8 +338,8 @@ func (ref *DocumentSession) getConcurrencyCheckMode(entity, key, change_vector s
 	//}
 	//defaultResult
 	return false
-	}
-func (ref *DocumentSession) saveChanges() error{
+}
+func (ref *DocumentSession) saveChanges() error {
 	data := NewSaveChangesData(ref.deferCommands.ToSlice(), len(ref.deferCommands))
 	ref.deferCommands.Clear()
 	ref.prepareForDeleteCommands(data)
@@ -341,12 +351,12 @@ func (ref *DocumentSession) saveChanges() error{
 		batch_result, err := ref.requestsExecutor.ExecuteOnCurrentNode(batch_command, true)
 		if err != nil {
 			return err
-		}else if batch_result == nil {
+		} else if batch_result == nil {
 			return errors.New("Cannot call Save Changes after the document store was disposed.")
 		}
 		ref.updateBatchResult(batch_result, data)
 	}
-			
+
 	return nil
 }
 func (ref *DocumentSession) updateBatchResult(batch_result []byte, data *SaveChangesData) {
@@ -393,7 +403,7 @@ func (ref *DocumentSession) prepareForDeleteCommands(data *SaveChangesData) {
 func (ref *DocumentSession) prepareForPutsCommands(data *SaveChangesData) {
 	for name, entity := range ref.documentsByEntity {
 		if ref.hasChange(name) {
-			key      := entity.Key
+			key := entity.Key
 			metadata := entity.Metadata
 			change_vector := ""
 			if ref.advanced.use_optimistic_concurrency && entity.Force_concurrency_check {
@@ -406,19 +416,19 @@ func (ref *DocumentSession) prepareForPutsCommands(data *SaveChangesData) {
 				//document = entity.__dict__.copy()
 				//document.pop('Id',None)
 			}
-			data.commands = append(data.commands, "commands_data.PutCommandData(key," + change_vector +", document" + metadata)
+			data.commands = append(data.commands, "commands_data.PutCommandData(key,"+change_vector+", document"+metadata)
 		}
 	}
 }
 func (obj DocumentSession) hasChange(entityName string) bool {
 	entity := obj.documentsByEntity[entityName]
-	
+
 	return entity.Original_metadata != entity.Metadata || entity.Original_value != "entity.__dict__"
 }
-func (ref *DocumentSession) IncrementRequestsCount() error{
-	ref.numberOfRequestsInSession ++
+func (ref *DocumentSession) IncrementRequestsCount() error {
+	ref.numberOfRequestsInSession++
 	if ref.numberOfRequestsInSession > ref.conventions.MaxNumberOfRequestsPerSession {
-		return errors.New( fmt.Sprintf(`The maximum number of requests (%d) allowed for this session has been reached. Raven limits the number \
+		return errors.New(fmt.Sprintf(`The maximum number of requests (%d) allowed for this session has been reached. Raven limits the number \
 	of remote calls that a session is allowed to make as an early warning system. Sessions are expected to \
 	be short lived, && Raven provides facilities like batch saves (call saveChanges() only once).\
 	You can increase the limit by setting DocumentConvention.\
@@ -434,6 +444,7 @@ type Advanced struct {
 	session                    *DocumentSession
 	use_optimistic_concurrency bool
 }
+
 func NewAdvanced(session *DocumentSession) *Advanced {
 	ref := &Advanced{}
 	ref.session = session
@@ -451,6 +462,7 @@ func (ref *Advanced) get_document_id(instance string) string {
 	}
 	return ""
 }
+
 //The document store associated with this session
 func (ref *Advanced) documentStore() *DocumentStore {
 	return ref.session.documentStore

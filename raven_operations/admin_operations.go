@@ -2,25 +2,27 @@ package raven_operations
 
 import (
 	"errors"
-	"github.com/ravendb-go-client/http/commands"
 	"fmt"
-	"strconv"
 	"net/http"
+	"strconv"
 
+	"github.com/ravendb/ravendb-go-client/http/commands"
 )
+
 // AdminOperation abstract class  - root operations classes
 type AdminOperation struct {
-	command *commands.RavenCommand
+	command   *commands.RavenCommand
 	operation string
-	Url string
+	Url       string
 }
-func (ref *AdminOperation) init()  {
+
+func (ref *AdminOperation) init() {
 	ref.operation = "AdminOperation"
 	ref.command = commands.NewRavenCommand()
 	//ref.command.Init()
 
 }
-func (obj AdminOperation) GetOperation() string{
+func (obj AdminOperation) GetOperation() string {
 	return obj.operation
 }
 func (ref *AdminOperation) GetCommand(conventions string) (*AdminOperation, error) {
@@ -29,21 +31,25 @@ func (ref *AdminOperation) GetCommand(conventions string) (*AdminOperation, erro
 func (ref *AdminOperation) GetResponseRaw(resp *http.Response) (out []byte, err error) {
 	return nil, nil
 }
+
 // serverNode - unknow class
 type serverNode struct {
-	url, database   string
+	url, database string
 }
-func (serverNode serverNode) getFormatURL(suffux string, args ... interface{}) string {
-	values := [] interface{} {serverNode.url, serverNode.database}
+
+func (serverNode serverNode) getFormatURL(suffux string, args ...interface{}) string {
+	values := []interface{}{serverNode.url, serverNode.database}
 	values = append(values, args)
-	return fmt.Sprintf("%s/databases/%s/" + suffux, values ...)
+	return fmt.Sprintf("%s/databases/%s/"+suffux, values...)
 }
+
 // begin declaration DeleteIndexOperation class
 type DeleteIndexOperation struct {
 	AdminOperation
 	indexName string
-	resp *http.Response
+	resp      *http.Response
 }
+
 // constructor DeleteIndexOperation (must have not null indexName)
 func NewDeleteIndexOperation(indexName string) (ref *DeleteIndexOperation, err error) {
 	if indexName == "" {
@@ -62,12 +68,14 @@ func (obj *DeleteIndexOperation) CreateRequest(serverNode serverNode) {
 func (obj *DeleteIndexOperation) GetResponseRaw(resp *http.Response) {
 	obj.resp = resp
 }
+
 // begin declaration GetIndexOperation class
 type GetIndexOperation struct {
 	AdminOperation
 	indexName string
-	resp *http.Response
+	resp      *http.Response
 }
+
 // constructor GetIndexOperation (must have not null indexName)
 func NewGetIndexOperation(indexName string) (ref *GetIndexOperation, err error) {
 	if indexName == "" {
@@ -88,25 +96,26 @@ func (obj *GetIndexOperation) GetResponseRaw(resp *http.Response) {
 	if resp == nil {
 		return
 	}
-//	data = {}
-//try:
-//	response = response.json()["Results"]
-//	if len(response) > 1:
-//	raise ValueError("response is Invalid")
-//	for key, value in response[0].items():
-//	data[Utils.convert_to_snake_case(key)] = value
-//	return IndexDefinition(**data)
-//
-//	except ValueError:
-//	raise response.raise_for_status()
-	}
+	//	data = {}
+	//try:
+	//	response = response.json()["Results"]
+	//	if len(response) > 1:
+	//	raise ValueError("response is Invalid")
+	//	for key, value in response[0].items():
+	//	data[Utils.convert_to_snake_case(key)] = value
+	//	return IndexDefinition(**data)
+	//
+	//	except ValueError:
+	//	raise response.raise_for_status()
+}
 
 // begin declaration PutIndexesCommand class
 type PutIndexesOperation struct {
 	AdminOperation
 	indexName string
-	resp *http.Response
+	resp      *http.Response
 }
+
 // constructor PutIndexesOperation (must have not null indexName)
 func NewPutIndexesOperation(indexName string) (ref *PutIndexesOperation, err error) {
 	if indexName == "" {
@@ -125,4 +134,3 @@ func (obj *PutIndexesOperation) CreateRequest(serverNode serverNode) {
 func (obj *PutIndexesOperation) GetResponseRaw(resp *http.Response) {
 	obj.resp = resp
 }
-

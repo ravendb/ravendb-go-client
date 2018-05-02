@@ -2,19 +2,20 @@ package identity
 
 import (
 	"reflect"
-	"github.com/ravendb-go-client/data"
+
+	"github.com/ravendb/ravendb-go-client/data"
 )
 
 //Attempts to get the document ID from an instance
-func LookupIdFromInstance(entity interface{}) (id string, ok bool){
-	if entity == nil{
+func LookupIdFromInstance(entity interface{}) (id string, ok bool) {
+	if entity == nil {
 		return nil, false
 	}
 	identityField, ok := getIdentityField(reflect.TypeOf(entity))
-	if ok{
+	if ok {
 		entityElem := reflect.ValueOf(&entity).Elem()
 		fieldVal := entityElem.FieldByIndex(identityField.Index)
-		if fieldVal.CanInterface(){
+		if fieldVal.CanInterface() {
 			if fieldVal.Kind() != reflect.String {
 				return nil, false
 			}
@@ -22,20 +23,20 @@ func LookupIdFromInstance(entity interface{}) (id string, ok bool){
 		}
 	}
 	id = reflect.TypeOf(entity).Name()
-	if id == ""{
+	if id == "" {
 		return nil, false
 	}
 
 	return id, true
 }
 
-func getIdentityField(entType reflect.Type) (reflect.StructField, bool){
+func getIdentityField(entType reflect.Type) (reflect.StructField, bool) {
 	propertyFieldIdx, ok := data.LookupIdentityPropertyIdxByTag(entType)
-	if ok{
+	if ok {
 		return entType.Field(propertyFieldIdx), true
 	}
 	id, ok := entType.FieldByName("Id")
-	if ok{
+	if ok {
 		return id, true
 	}
 	return nil, false

@@ -1,16 +1,17 @@
 package raven_operations
 
 import (
-	"time"
-	"github.com/ravendb-go-client/http/commands"
-	SrvNodes "github.com/ravendb-go-client/http/server_nodes"
+	"encoding/json"
 	"errors"
-	"strconv"
 	"fmt"
 	"net/http"
-	"github.com/ravendb-go-client/tools"
-	"encoding/json"
-	"github.com/ravendb-go-client/data"
+	"strconv"
+	"time"
+
+	"github.com/ravendb/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
+	"github.com/ravendb/ravendb-go-client/tools"
 )
 
 //@param allow_stale Indicates whether operations are allowed on stale indexes.
@@ -24,18 +25,19 @@ import (
 //@param retrieve_details Determines whether Operation details about each document should be returned by server.
 //:type bool
 type QueryOperationOptions struct {
-	allow_stale bool
-	stale_timeout time.Duration
-	max_ops_per_sec int
+	allow_stale      bool
+	stale_timeout    time.Duration
+	max_ops_per_sec  int
 	retrieve_details bool
 }
+
 func NewQueryOperationOptions(allow_stale bool, stale_timeout time.Duration, max_ops_per_sec int, retrieve_details bool) *QueryOperationOptions {
 	ref := &QueryOperationOptions{}
 	ref.allow_stale = allow_stale
 	ref.stale_timeout = stale_timeout
 	ref.retrieve_details = retrieve_details
 	ref.max_ops_per_sec = max_ops_per_sec
-	
+
 	return ref
 }
 
@@ -43,16 +45,19 @@ type Operation struct {
 	commands.RavenCommand
 	operation string
 }
+
 func (ref *Operation) init() {
 	ref.operation = "Operation"
 }
-func (ref *Operation) GetOperation() string{
+func (ref *Operation) GetOperation() string {
 	return ref.operation
 }
+
 type DeleteAttachmentOperation struct {
 	Operation
 	document_id, name, change_vector string
 }
+
 func NewDeleteAttachmentOperation(document_id, name, change_vector string) (*DeleteAttachmentOperation, error) {
 	if document_id == "" {
 		return nil, errors.New("Invalid documentId")
@@ -62,20 +67,21 @@ func NewDeleteAttachmentOperation(document_id, name, change_vector string) (*Del
 	}
 	ref := &DeleteAttachmentOperation{}
 	ref.init()
-	ref.Method="DELETE"
+	ref.Method = "DELETE"
 	ref.document_id = document_id
 	ref.name = name
 	ref.change_vector = change_vector
-	
+
 	return ref, nil
 }
 func (ref *DeleteAttachmentOperation) create_request(sn SrvNodes.IServerNode) {
 	ref.Url = fmt.Sprintf("%s/databases/%s/attachments?id=%s&name=%s", sn.GetUrl(), sn.GetDatabase(), strconv.Quote(ref.document_id),
 		strconv.Quote(ref.name))
 	if ref.change_vector > "" {
-		ref.SetHeaders( map[string] string { "If-Match": `"` + ref.change_vector + `"` })
+		ref.SetHeaders(map[string]string{"If-Match": `"` + ref.change_vector + `"`})
 	}
 }
+
 //@param query_to_update: query that will be performed
 //:type IndexQuery or str
 //@param options: various Operation options e.g. AllowStale or MaxOpsPerSec
@@ -85,8 +91,9 @@ func (ref *DeleteAttachmentOperation) create_request(sn SrvNodes.IServerNode) {
 type PatchByQueryOperation struct {
 	Operation
 	query_to_update *IndexQuery
-	options *QueryOperationOptions
+	options         *QueryOperationOptions
 }
+
 func NewPatchByQueryOperation(query_to_update *IndexQuery, options *QueryOperationOptions) (*PatchByQueryOperation, error) {
 	if query_to_update == nil {
 		return nil, errors.New("Invalid query")
@@ -96,7 +103,7 @@ func NewPatchByQueryOperation(query_to_update *IndexQuery, options *QueryOperati
 	}
 	ref := &PatchByQueryOperation{options: options, query_to_update: query_to_update}
 	ref.init()
-	ref.Method="PATCH"
+	ref.Method = "PATCH"
 
 	return ref, nil
 }
@@ -112,25 +119,25 @@ func (ref *PatchByQueryOperation) create_request(sn SrvNodes.IServerNode) {
 		ref.Url += "&staleTimeout=" + ref.options.stale_timeout.String()
 	}
 
-	ref.Data = map[string] interface{} { "Query": ref.query_to_update.to_json(), }
+	ref.Data = map[string]interface{}{"Query": ref.query_to_update.to_json()}
 }
 func (ref *Operation) GetResponseRaw(resp *http.Response) (out []byte, err error) {
 	if resp == nil {
 		return nil, errors.New("Invalid Response")
 	}
-//	response = response.json()
-//	if "Error" in
-//response:
-//	return nil, errors.New(response["Error"])
-//	return
-//	{
-//		"operation_id": response["OperationId"]
-//	}
-//	except
-//ValueError:
-//	raise
-//	response.raise_for_status()
-return
+	//	response = response.json()
+	//	if "Error" in
+	//response:
+	//	return nil, errors.New(response["Error"])
+	//	return
+	//	{
+	//		"operation_id": response["OperationId"]
+	//	}
+	//	except
+	//ValueError:
+	//	raise
+	//	response.raise_for_status()
+	return
 }
 
 //@param query_to_delete: query that will be performed
@@ -141,8 +148,9 @@ return
 type DeleteByQueryOperation struct {
 	Operation
 	query_to_delete *IndexQuery
-	options *QueryOperationOptions
+	options         *QueryOperationOptions
 }
+
 func NewDeleteByQueryOperation(query_to_delete *IndexQuery, options *QueryOperationOptions) (*DeleteByQueryOperation, error) {
 	if query_to_delete == nil {
 		return nil, errors.New("Invalid query")
@@ -153,7 +161,7 @@ func NewDeleteByQueryOperation(query_to_delete *IndexQuery, options *QueryOperat
 	}
 	ref := &DeleteByQueryOperation{query_to_delete: query_to_delete, options: options}
 	ref.init()
-	ref.Method="DELETE"
+	ref.Method = "DELETE"
 
 	return ref, nil
 }
@@ -167,7 +175,7 @@ func (ref *DeleteByQueryOperation) create_request(sn SrvNodes.IServerNode) {
 	if ref.options.stale_timeout > 0 {
 		ref.Url += "&staleTimeout=" + ref.options.stale_timeout.String()
 	}
-	ref.Data = map[string]interface{}{"Query": ref.query_to_delete.to_json(),}
+	ref.Data = map[string]interface{}{"Query": ref.query_to_delete.to_json()}
 }
 
 func (ref *DeleteByQueryOperation) set_response(resp *http.Response) (out []byte, err error) {
@@ -184,13 +192,16 @@ func (ref *DeleteByQueryOperation) set_response(resp *http.Response) (out []byte
 	//	"operation_id": response.json()["OperationId"]
 	//}
 }
+
 type AttachmentType string
+
 func (obj AttachmentType) String() string {
 	return string(obj)
 }
+
 const (
-document AttachmentType = "1"
-revision = "2"
+	document AttachmentType = "1"
+	revision                = "2"
 )
 
 //@param documentId: The id of the document
@@ -206,9 +217,10 @@ revision = "2"
 type GetAttachmentOperation struct {
 	Operation
 	document_id, name string
-	attachment_type AttachmentType
-	change_vector string
+	attachment_type   AttachmentType
+	change_vector     string
 }
+
 func NewGetAttachmentOperation(document_id, name string, attachment_type AttachmentType, change_vector string) (*GetAttachmentOperation, error) {
 	if document_id == "" {
 		return nil, errors.New("Invalid documentId")
@@ -217,7 +229,7 @@ func NewGetAttachmentOperation(document_id, name string, attachment_type Attachm
 		return nil, errors.New("Invalid name")
 	}
 
-	if attachment_type != document && change_vector == ""{
+	if attachment_type != document && change_vector == "" {
 		return nil, errors.New("Change Vector cannot be null for attachment type " + attachment_type.String())
 	}
 
@@ -239,19 +251,21 @@ func (ref *GetAttachmentOperation) CreateRequest(sn SrvNodes.IServerNode) {
 
 	if ref.attachment_type != document {
 		ref.Method = "POST"
-		ref.Data = map[string]string{"Type": string(ref.attachment_type), "ChangeVector": ref.change_vector,}
+		ref.Data = map[string]string{"Type": string(ref.attachment_type), "ChangeVector": ref.change_vector}
 	}
 }
+
 type tAttachmentDetail struct {
 	ContentType  []string `json:"contentType"`
-	ChangeVector string `json:"changeVector"`
-	Hash string `json:"hash"`
-	Size string `json:"size"`
+	ChangeVector string   `json:"changeVector"`
+	Hash         string   `json:"hash"`
+	Size         string   `json:"size"`
 }
 type tResponse struct {
-	Response *http.Response `json:"response"`
-	Details  tAttachmentDetail			`json:"details"`
+	Response *http.Response    `json:"response"`
+	Details  tAttachmentDetail `json:"details"`
 }
+
 func (ref *GetAttachmentOperation) GetResponseRaw(resp *http.Response) (out []byte, err error) {
 	if resp == nil {
 		return nil, nil
@@ -265,11 +279,12 @@ func (ref *GetAttachmentOperation) GetResponseRaw(resp *http.Response) (out []by
 			Size:         resp.Header["Attachment-Size"][0],
 		}
 
-		return json.Marshal(tResponse{ Response: resp, Details: attachment_details})
+		return json.Marshal(tResponse{Response: resp, Details: attachment_details})
 
 	}
 	return
 }
+
 //@param str documentId: The id of the document
 //@param str changeVector: The changeVector
 //@param PatchRequest patch: The patch that going to be applied on the document
@@ -281,6 +296,7 @@ type PatchOperation struct {
 	patch, patchIfMissing                                         data.PatchRequest
 	skipPatchIfChangeVectorMismatch, returnDebugInformation, test bool
 }
+
 func NewPatchOperation(document_id, change_vector string, patch, patch_if_missing data.PatchRequest, skip_patch_if_change_vector_mismatch bool) *PatchOperation {
 	ref := &PatchOperation{}
 	ref.documentId = document_id
@@ -290,6 +306,7 @@ func NewPatchOperation(document_id, change_vector string, patch, patch_if_missin
 	ref.skipPatchIfChangeVectorMismatch = skip_patch_if_change_vector_mismatch
 	return ref
 }
+
 //@param documentId: The id of the document
 //@param name: Name of the attachment
 //@param stream: The attachment as bytes (ex.open("file_path", "rb"))
@@ -301,6 +318,7 @@ type PutAttachmentOperation struct {
 	documentId, name, contentType, changeVector                   string
 	skipPatchIfChangeVectorMismatch, returnDebugInformation, test bool
 }
+
 func NewPutAttachmentOperation(document_id, name string, stream []byte, content_type, change_vector string) *PutAttachmentOperation {
 	ref := &PutAttachmentOperation{}
 	ref.documentId = document_id
@@ -311,15 +329,17 @@ func NewPutAttachmentOperation(document_id, name string, stream []byte, content_
 
 	return ref
 }
+
 //todo: implement
 type FacetQuery struct {
-
 }
+
 //@param FacetQuery query: The query we wish to get
 type GetFacetsOperation struct {
 	Operation
 	query *FacetQuery
 }
+
 func NewGetFacetsOperation(query *FacetQuery) (*GetFacetsOperation, error) {
 	if query == nil {
 		return nil, errors.New("Invalid query")
@@ -330,10 +350,12 @@ func NewGetFacetsOperation(query *FacetQuery) (*GetFacetsOperation, error) {
 	//self.timeout = self._query.wait_for_non_stale_results_timeout + timedelta(seconds=10)
 	return ref, nil
 }
+
 type GetMultiFacetsOperation struct {
 	Operation
 	queries []FacetQuery
 }
+
 func NewGetMultiFacetsOperation(queries []FacetQuery) (*GetMultiFacetsOperation, error) {
 	if queries == nil || len(queries) == 0 {
 		return nil, errors.New("Invalid queries")

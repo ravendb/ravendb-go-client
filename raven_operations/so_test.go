@@ -2,10 +2,11 @@ package raven_operations
 
 import (
 	"testing"
-	//httpSelf "github.com/ravendb-go-client/http"
-	//"github.com/ravendb-go-client/http/commands"
-	SrvNodes "github.com/ravendb-go-client/http/server_nodes"
+	//httpSelf "github.com/ravendb/ravendb-go-client/http"
+	//"github.com/ravendb/ravendb-go-client/http/commands"
+	SrvNodes "github.com/ravendb/ravendb-go-client/http/server_nodes"
 )
+
 func TestAdminOperation_GetOperation(t *testing.T) {
 	oper := &AdminOperation{}
 	oper.init()
@@ -58,6 +59,7 @@ func TestCreateDatabaseOperation_CreateRequest(t *testing.T) {
 
 	return
 }
+
 //func TestPut(t *testing.T)  {
 //
 //	requestExecutor, _ := httpSelf.CreateForSingleNode("http://localhost:8080", "test")

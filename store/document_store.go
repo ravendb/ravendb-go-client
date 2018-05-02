@@ -1,16 +1,18 @@
 package store
 
 import (
-	"github.com/ravendb-go-client/data"
-	"io"
 	"errors"
-	"github.com/ravendb-go-client/http"
+	"io"
 	"time"
-	"github.com/ravendb-go-client/http/commands"
-	"github.com/ravendb-go-client/tools"
-	"github.com/ravendb-go-client/hilo"
-	"github.com/ravendb-go-client/tools/types"
+
+	"github.com/ravendb/ravendb-go-client/data"
+	"github.com/ravendb/ravendb-go-client/hilo"
+	"github.com/ravendb/ravendb-go-client/http"
+	"github.com/ravendb/ravendb-go-client/http/commands"
+	"github.com/ravendb/ravendb-go-client/tools"
+	"github.com/ravendb/ravendb-go-client/tools/types"
 )
+
 type DocumentStore struct {
 	Conventions     *data.DocumentConvention
 	urls            []string
@@ -22,6 +24,7 @@ type DocumentStore struct {
 	initialize      bool
 	admin           *AdminOperationExecutor
 }
+
 // rename parameter database to DefaultDBName
 //  add method initialize theare
 func NewDocumentStore(urls []string, dbName string, certificate io.ByteReader) (*DocumentStore, error) {
@@ -40,7 +43,7 @@ func NewDocumentStore(urls []string, dbName string, certificate io.ByteReader) (
 	ref.certificate = certificate
 	//TODO: implamate later
 	//ref.lock = Lock()
-//ref.operations, err = NewOperationExecutor(ref, ref.DefaultDBName)
+	//ref.operations, err = NewOperationExecutor(ref, ref.DefaultDBName)
 	ref.generator = hilo.NewMultiDatabaseHiLoKeyGenerator(ref.DefaultDBName, ref.urls[0], ref.Conventions)
 	ref.admin = NewAdminOperationExecutor(ref, dbName)
 	//ref.subscription = DocumentSubscriptions(ref)
@@ -52,10 +55,11 @@ func (ref *DocumentStore) GetCertificate() io.ByteReader {
 	return ref.certificate
 }
 
-func (ref *DocumentStore) GetOperations() *OperationExecutor{
+func (ref *DocumentStore) GetOperations() *OperationExecutor {
 	ref.assert_initialize()
 	return ref.operations
 }
+
 //func (ref *DocumentStore) __enter__() {
 //	return ref
 //}
@@ -77,6 +81,7 @@ func (ref *DocumentStore) GetRequestExecutor(db_name string) (*http.RequestExecu
 
 	return http.CreateForSingleNode(ref.urls[0], db_name)
 }
+
 //todo: must be remove
 func (ref *DocumentStore) assert_initialize() error {
 	if !ref.initialize {
@@ -84,7 +89,7 @@ func (ref *DocumentStore) assert_initialize() error {
 	}
 	return nil
 }
-func (ref *DocumentStore) open_session(database string, requests_executor *http.RequestExecutor) (*DocumentSession, error){
+func (ref *DocumentStore) open_session(database string, requests_executor *http.RequestExecutor) (*DocumentSession, error) {
 	ref.assert_initialize()
 	session_id := tools.Uuid4()
 	if requests_executor == nil {
@@ -98,13 +103,12 @@ func (ref *DocumentStore) open_session(database string, requests_executor *http.
 	}
 	return NewDocumentSession(database, ref, ref.requestExecutor, session_id), nil
 }
-func (ref *DocumentStore) generate_id(dbName string, entity types.TDocByEntity) string{
-	if ref.generator != nil{
+func (ref *DocumentStore) generate_id(dbName string, entity types.TDocByEntity) string {
+	if ref.generator != nil {
 		return ref.generator.GenerateDocumentKey(dbName, entity)
 	}
 	return ""
 }
-
 
 //# ------------------------------Operation executors ---------------------------->
 type AdminOperationExecutor struct {
@@ -113,6 +117,7 @@ type AdminOperationExecutor struct {
 	server          *ServerOperationExecutor
 	requestExecutor *http.RequestExecutor
 }
+
 func NewAdminOperationExecutor(documentStore *DocumentStore, dbName string) *AdminOperationExecutor {
 	ref := &AdminOperationExecutor{}
 	ref.store = documentStore
@@ -128,22 +133,23 @@ func NewAdminOperationExecutor(documentStore *DocumentStore, dbName string) *Adm
 
 func (ref *AdminOperationExecutor) GetRequestExecutor() *http.RequestExecutor {
 	if ref.requestExecutor == nil {
-		ref.requestExecutor,_ = ref.store.GetRequestExecutor(ref.dbName)
+		ref.requestExecutor, _ = ref.store.GetRequestExecutor(ref.dbName)
 	}
 	return ref.requestExecutor
 }
-func (ref *AdminOperationExecutor) send(operation commands.IRavenRequestable) ([]byte,error){
-//if operation_type := operation.GetOperation(); operation_type != "AdminOperation" {
-//	return nil, errors.New("operation type cannot be " + operation_type + " need to be Operation")
-//}
-//command = operation.get_command(ref.requestExecutor.convention)
-return ref.requestExecutor.ExecuteOnCurrentNode(operation, false)
+func (ref *AdminOperationExecutor) send(operation commands.IRavenRequestable) ([]byte, error) {
+	//if operation_type := operation.GetOperation(); operation_type != "AdminOperation" {
+	//	return nil, errors.New("operation type cannot be " + operation_type + " need to be Operation")
+	//}
+	//command = operation.get_command(ref.requestExecutor.convention)
+	return ref.requestExecutor.ExecuteOnCurrentNode(operation, false)
 }
 
 type ServerOperationExecutor struct {
-	store *DocumentStore
+	store           *DocumentStore
 	requestExecutor *http.RequestExecutor
 }
+
 func NewServerOperationExecutor(documentStore *DocumentStore) *ServerOperationExecutor {
 	ref := &ServerOperationExecutor{}
 	ref.store = documentStore
@@ -161,35 +167,37 @@ func (ref *ServerOperationExecutor) request_executor() (*http.RequestExecutor, e
 
 			ref.requestExecutor, err = http.CreateForSingleNode(ref.store.urls[0], ref.store.DefaultDBName)
 		} else {
-		//	                self._request_executor = ClusterRequestExecutor.create(self._store.urls, self._store.certificate)
-		// todo: add implementation like http.Create(ref.store.urls, ref.store.certificate)
-			ref.requestExecutor,err = http.Create(ref.store.urls, ref.store.DefaultDBName)
+			//	                self._request_executor = ClusterRequestExecutor.create(self._store.urls, self._store.certificate)
+			// todo: add implementation like http.Create(ref.store.urls, ref.store.certificate)
+			ref.requestExecutor, err = http.Create(ref.store.urls, ref.store.DefaultDBName)
 		}
 		return ref.requestExecutor, err
 	}
 
 	return ref.requestExecutor, nil
 }
+
 //todo: implementation
 func (ref *ServerOperationExecutor) send(operation OperationExecutor) {
-//try:
-//operation_type = getattr(operation, 'operation')
-//if operation_type != "ServerOperation":
-//return errors.New("operation type cannot be {0} need to be Operation".format(operation_type))
-//except AttributeError:
-//return errors.New("Invalid operation")
-//
-//command = operation.get_command(ref.request_executor.convention)
-//return ref.request_executor.execute(command)
-	}
+	//try:
+	//operation_type = getattr(operation, 'operation')
+	//if operation_type != "ServerOperation":
+	//return errors.New("operation type cannot be {0} need to be Operation".format(operation_type))
+	//except AttributeError:
+	//return errors.New("Invalid operation")
+	//
+	//command = operation.get_command(ref.request_executor.convention)
+	//return ref.request_executor.execute(command)
+}
 
 type OperationExecutor struct {
-	documentStore *DocumentStore
-	database_name string
+	documentStore   *DocumentStore
+	database_name   string
 	requestExecutor *http.RequestExecutor
 }
-func NewOperationExecutor(documentStore *DocumentStore, database_name string) (ref *OperationExecutor, err error){
-	ref = &OperationExecutor{documentStore: documentStore, database_name: database_name }
+
+func NewOperationExecutor(documentStore *DocumentStore, database_name string) (ref *OperationExecutor, err error) {
+	ref = &OperationExecutor{documentStore: documentStore, database_name: database_name}
 	ref.requestExecutor, err = documentStore.GetRequestExecutor(database_name)
 
 	return
@@ -212,16 +220,17 @@ func (ref *OperationExecutor) wait_for_operation_complete(operation_id string, t
 		time.Sleep(500)
 	}
 }
+
 //todo: implement
 func (ref *OperationExecutor) send(operation commands.IRavenRequestable) {
-//try:
-//operation_type = getattr(operation, 'operation')
-//if operation_type != "Operation":
-//return errors.New("operation type cannot be {0} need to be Operation".format(operation_type))
-//except AttributeError:
-//return errors.New("Invalid operation")
-//
-//command = operation.get_command(ref.document_store, ref.request_executor.convention)
-//return ref.request_executor.execute(command)
-//
+	//try:
+	//operation_type = getattr(operation, 'operation')
+	//if operation_type != "Operation":
+	//return errors.New("operation type cannot be {0} need to be Operation".format(operation_type))
+	//except AttributeError:
+	//return errors.New("Invalid operation")
+	//
+	//command = operation.get_command(ref.document_store, ref.request_executor.convention)
+	//return ref.request_executor.execute(command)
+	//
 }
