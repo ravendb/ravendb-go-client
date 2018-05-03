@@ -12,6 +12,17 @@ func must(err error) {
 	}
 }
 
+func testGetClusterTopologyCommand() {
+	store := ravendb.NewDocumentStore([]string{"http://localhost:9999"}, "PyRavenDB")
+	store.Initialize()
+	re := store.GetRequestExecutor("")
+	cmd := ravendb.NewGetClusterTopologyCommand()
+	exec := re.GetExecutor()
+	rsp, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd, true)
+	must(err)
+	fmt.Printf("%v\n", rsp)
+}
+
 func testDbNotExist() {
 	store := ravendb.NewDocumentStore([]string{"http://localhost:9999"}, "PyRavenDB")
 	store.Initialize()

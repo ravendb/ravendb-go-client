@@ -1,12 +1,28 @@
 package ravendb
 
 import (
-	"errors"
+	"encoding/json"
+	"io"
 	"net/http"
 )
 
 // RavenCommand represents data needed to issue an HTTP command to the server
 type RavenCommand struct {
+	Method        string // GET, PUT etc.
+	IsReadRequest bool
+	// to create a full url, replace {url} and {db} with ServerNode.URL and
+	// ServerNode.Database
+	URLTemplate string
+}
+
+// NewGetClusterTopologyCommand creates a new GetClusterTopologyCommand
+func NewGetClusterTopologyCommand() *RavenCommand {
+	res := &RavenCommand{
+		Method:        http.MethodGet,
+		IsReadRequest: true,
+		URLTemplate:   "{url}/cluster/topology",
+	}
+	return res
 }
 
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
@@ -18,9 +34,28 @@ func ExecuteCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry boo
 	return exec(cmd, shouldRetry)
 }
 
+func decodeJSONFromReader(r io.Reader, v interface{}) error {
+	return json.NewDecoder(r).Decode(v)
+}
+
 // ExecuteGetClusterTopologyCommand executes GetClusterTopologyCommand
 func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*ClusterTopologyResponse, error) {
-	return nil, errors.New("NYI")
+	rsp, err := ExecuteCommand(exec, cmd, shouldRetry)
+	if err != nil {
+		return nil, err
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode == 200 {
+		var res ClusterTopologyResponse
+		err = decodeJSONFromReader(rsp.Body, &res)
+		if err != nil {
+			return nil, err
+		}
+		return &res, nil
+	}
+
+	return nil, nil
 }
 
 // ServerNode describes a single server node
