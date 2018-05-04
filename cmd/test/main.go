@@ -10,6 +10,9 @@ import (
 var (
 	serverURL = "http://localhost:9999"
 	dbName    = "PyRavenDB"
+
+	// enable to see more information for each test
+	verboseLog = false
 )
 
 func getExecutor() ravendb.CommandExecutorFunc {
@@ -42,8 +45,15 @@ func testGetClusterTopologyCommand() {
 	cmd := ravendb.NewGetClusterTopologyCommand()
 	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd, false)
 	must(err)
-	fmt.Printf("  %#v\n", clusterTopology)
-	fmt.Printf("  %#v\n", clusterTopology.Topology)
+	nServers := len(clusterTopology.Topology.Members)
+	panicIf(nServers < 1, "returned no Members server, expected at least 1")
+	// Note: not sure if the name will always be "A", that's what happens when
+	// I run agains my local setup
+	panicIf(clusterTopology.Leader != "A", "clusterTopology.Leader is '%s', expected 'A'", clusterTopology.Leader)
+	if verboseLog {
+		fmt.Printf("  %#v\n", clusterTopology)
+		fmt.Printf("  %#v\n", clusterTopology.Topology)
+	}
 	fmt.Printf("testGetClusterTopologyCommand ok\n")
 }
 

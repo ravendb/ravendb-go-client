@@ -23,3 +23,5 @@ To run current tests do: `./run_tests.sh`.
 It compiles and runs code in `cmd/test`.
 
 Unsecured server should be running on http://localhost:9999.
+
+So far this only has been tested on mac.
