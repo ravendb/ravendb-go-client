@@ -1,5 +1,5 @@
 from pyravendb.store import document_store
-from pyravendb.raven_operations.server_operations import GetDatabaseNamesOperation
+from pyravendb.raven_operations.server_operations import GetDatabaseNamesOperation, CreateDatabaseOperation
 from pyravendb.raven_operations.maintenance_operations import GetStatisticsOperation
 from pyravendb.commands.raven_commands import GetTopologyCommand
 
@@ -17,34 +17,46 @@ from pyravendb.commands.raven_commands import GetTopologyCommand
 def testGetDatabaseNamesOp():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="")
     store.initialize()
-    res = store.maintenance.server.send(GetDatabaseNamesOperation(0, 3))
+    op = GetDatabaseNamesOperation(0, 3)
+    res = store.maintenance.server.send(op)
     print(res)
 
 def testGetStatisticsOp():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="PyRavenDB")
     store.initialize()
-    res = store.maintenance.send(GetStatisticsOperation())
+    op = GetStatisticsOperation()
+    res = store.maintenance.send(op)
     print(res)
 
 def testGetStatisticsBadDb():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="not-exists")
     store.initialize()
-    res = store.maintenance.send(GetStatisticsOperation())
+    op = GetStatisticsOperation()
+    res = store.maintenance.send(op)
     print(res)
 
 def testGetTopology():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="PyRavenDB")
     store.initialize()
     with store.open_session() as session:
-        res = session.requests_executor.execute(GetTopologyCommand())
+        op = GetTopologyCommand()
+        res = session.requests_executor.execute()
         print(res)
 
 def testGetTopologyBadDb():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="invalid-db")
     store.initialize()
     with store.open_session() as session:
-        res = session.requests_executor.execute(GetTopologyCommand())
+        op = GetTopologyCommand()
+        res = session.requests_executor.execute(op)
         print(res)
+
+def testCreateDatabaseOp():
+    store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="")
+    store.initialize()
+    op = CreateDatabaseOperation(database_name="TestDb")
+    res = store.maintenance.server.send(op)
+    print(res)
 
 def main():
     #testGetDatabaseNamesOp()
@@ -53,6 +65,7 @@ def main():
     #testGetTopology()
     #testGetTopology()
     #testGetTopologyBadDb()
+    testCreateDatabaseOp()
 
 if __name__ == "__main__":
     main()

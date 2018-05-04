@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,6 +19,7 @@ type RavenCommand struct {
 	URLTemplate string
 	// additional HTTP request headers
 	Headers map[string]string
+	Data    []byte
 }
 
 // BadRequestError is returned when server returns 400 Bad Request response
@@ -67,6 +69,22 @@ Type: %s
 Message: %s`, e.Type, e.Message)
 }
 
+// ConflictError is retruned when server returns 409 Conflict response
+type ConflictError struct {
+	URL      string `json:"Url"`
+	Type     string `json:"Type"`
+	Message  string `json:"Message"`
+	ErrorStr string `json:"Error"`
+}
+
+// Error makes it conform to error interface
+func (e *ConflictError) Error() string {
+	return fmt.Sprintf(`Server returned 409 Conflict for URL '%s'
+Type: %s
+Message: %s
+Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
+}
+
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
 // returns raw HTTP response
 type CommandExecutorFunc func(cmd *RavenCommand, shouldRetry bool) (*http.Response, error)
@@ -88,7 +106,14 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 	}
 	url := strings.Replace(cmd.URLTemplate, "{url}", n.URL, -1)
 	url = strings.Replace(url, "{db}", n.Database, -1)
-	req, err := http.NewRequest(cmd.Method, url, nil)
+	var body io.Reader
+	if cmd.Method == http.MethodPut {
+		// TODO: should this be mandatory?
+		if cmd.Data != nil {
+			body = bytes.NewBuffer(cmd.Data)
+		}
+	}
+	req, err := http.NewRequest(cmd.Method, url, body)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +164,20 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 		return nil, &res
 	}
 
+	// convert 409 Conflict to ConflictError
+	if rsp.StatusCode == http.StatusConflict {
+		var res ConflictError
+		err = decodeJSONFromReader(rsp.Body, &res)
+		if err != nil {
+			return nil, err
+		}
+		return nil, &res
+	}
+
 	// TODO: handle other server errors
-	panicIf(rsp.StatusCode != http.StatusOK, "not handled status %d", rsp.StatusCode)
+
+	isStatusOk := (rsp.StatusCode == http.StatusOK) || (rsp.StatusCode == http.StatusCreated)
+	panicIf(!isStatusOk, "unhandled status code %d", rsp.StatusCode)
 
 	return rsp, nil
 }
@@ -340,6 +377,78 @@ func NewGetDatabaseNamesCommand(start, pageSize int) *RavenCommand {
 // ExecuteGetDatabaseNamesCommand executes GetClusterTopologyCommand
 func ExecuteGetDatabaseNamesCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*GetDatabaseNamesResponse, error) {
 	var res GetDatabaseNamesResponse
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// CreateDatabasePayload is payload for CreateDatabaseCommand
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/serverwide/DatabaseRecord.java#L6
+type CreateDatabasePayload struct {
+	DatabaseName  string            `json:"DatabaseName"`
+	Disabled      bool              `json:"Disabled"`
+	Encrypted     bool              `json:"Encrypted"`
+	DataDirectory *string           `json:"DataDirectory",omitempty`
+	Settings      map[string]string `json:"Settings",omitempty`
+}
+
+// NewCreateDatabaseCommand creates a new CreateDatabaseCommand
+// TODO: Settings, SecureSettings
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/raven_operations/server_operations.py#L24
+func NewCreateDatabaseCommand(dbName string, replicationFactor int) *RavenCommand {
+	if replicationFactor < 1 {
+		replicationFactor = 1
+	}
+	url := fmt.Sprintf("{url}/admin/databases?name=%s&replication-factor=%d", dbName, replicationFactor)
+	p := CreateDatabasePayload{
+		DatabaseName: dbName,
+	}
+	data, err := json.Marshal(&p)
+	must(err)
+	res := &RavenCommand{
+		Method:      http.MethodPut,
+		URLTemplate: url,
+		Data:        data,
+	}
+	return res
+}
+
+// DatabasePutResponse decribes server response for e.g. CreateDatabaseCommand
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/serverwide/operations/DatabasePutResult.java#L7
+type DatabasePutResponse struct {
+	RaftCommandIndex int      `json:"RaftCommandIndex"`
+	Name             string   `json:"Name"`
+	DatabaseTopology Topology `json:"Topology"`
+	NodesAddedTo     []string `json:"NodesAddedTo"`
+}
+
+// DatabaseTopology describes a topology of the database
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/serverwide/DatabaseTopology.java#L8
+type DatabaseTopology struct {
+	Members                  []string          `json:"Members"`
+	Promotables              []string          `json:"Promotables"`
+	Rehabs                   []string          `json:"Rehabs"`
+	PredefinedMentors        map[string]string `json:"PredefinedMentors"` // TODO: not present in JSON response from python test
+	DemotionReasons          map[string]string `json:"DemotionReasons"`
+	PromotablesStatus        map[string]string `json:"PromotablesStatus"`
+	ReplicationFactor        int               `json:"ReplicationFactor"`
+	DynamicNodesDistribution bool              `json:"DynamicNodesDistribution"`
+	Stamp                    LeaderStamp       `json:"Stamp"`
+}
+
+// LeaderStamp describes leader stamp
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/serverwide/LeaderStamp.java#L3
+type LeaderStamp struct {
+	Index        int `json:"Index"`
+	Term         int `json:"Term"`
+	LeadersTicks int `json:"LeadersTicks"`
+}
+
+// ExecuteCreateDatabaseCommand executes CreateDatabaseCommand
+func ExecuteCreateDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DatabasePutResponse, error) {
+	var res DatabasePutResponse
 	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
 	if err != nil {
 		return nil, err
