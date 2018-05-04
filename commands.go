@@ -153,6 +153,20 @@ func MakeSimpleExecutor(n *ServerNode) CommandExecutorFunc {
 	return fn
 }
 
+func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool, v interface{}) error {
+	rsp, err := ExecuteCommand(exec, cmd, shouldRetry)
+	if err != nil {
+		return err
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode == 200 {
+		return decodeJSONFromReader(rsp.Body, v)
+	}
+
+	return nil
+}
+
 // ClusterTopology is a part of ClusterTopologyResponse
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/http/ClusterTopology.java#L6
 type ClusterTopology struct {
@@ -201,20 +215,6 @@ func NewGetClusterTopologyCommand() *RavenCommand {
 		URLTemplate:   "{url}/cluster/topology",
 	}
 	return res
-}
-
-func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool, v interface{}) error {
-	rsp, err := ExecuteCommand(exec, cmd, shouldRetry)
-	if err != nil {
-		return err
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode == 200 {
-		return decodeJSONFromReader(rsp.Body, v)
-	}
-
-	return nil
 }
 
 // ExecuteGetClusterTopologyCommand executes GetClusterTopologyCommand
@@ -288,17 +288,37 @@ func ExecuteGetStatisticsCommand(exec CommandExecutorFunc, cmd *RavenCommand, sh
 // ServerNode describes a single server node
 type ServerNode struct {
 	URL        string `json:"Url"`
-	ClusterTag string
-	Database   string
+	ClusterTag string `json:"ClusterTag"`
+	ServerRole string `json:"ServerRole"`
+	Database   string `json:"Database"`
 }
 
 // Topology describes server nodes
 // Result of
 // {"Nodes":[{"Url":"http://localhost:9999","ClusterTag":"A","Database":"PyRavenDB","ServerRole":"Rehab"}],"Etag":10}
 type Topology struct {
-	Nodes      []ServerNode
-	ServerRole string
-	Etag       int
+	Nodes []ServerNode `json:"Nodes"`
+	Etag  int          `json:"Etag"`
+}
+
+// NewGetTopologyCommand creates a new GetClusterTopologyCommand
+func NewGetTopologyCommand() *RavenCommand {
+	res := &RavenCommand{
+		Method:        http.MethodGet,
+		IsReadRequest: true,
+		URLTemplate:   "{url}/topology?name={db}",
+	}
+	return res
+}
+
+// ExecuteGetTopologyCommand executes GetClusterTopologyCommand
+func ExecuteGetTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*Topology, error) {
+	var res Topology
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 /*
@@ -307,7 +327,6 @@ DeleteCommandData
 PatchCommandData
 PutAttachmentCommandData
 DeleteAttachmentCommandData
-
 
 Commands to implement:
 
@@ -320,7 +339,7 @@ DeleteIndexCommand
 PatchCommand
 QueryCommand
   GetStatisticsCommand
-GetTopologyCommand
+  GetTopologyCommand
   GetClusterTopologyCommand
 GetOperationStateCommand
 PutAttachmentCommand

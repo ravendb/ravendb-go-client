@@ -80,8 +80,10 @@ func testGetStatisticsCommand() {
 func testGetStatisticsCommandBadDb() {
 	exec := getInvalidDbExecutor()
 	cmd := ravendb.NewGetStatisticsCommand("")
-	stats, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd, false)
-	panicIf(stats != nil, "expected stats to be nil")
+	res, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd, false)
+	panicIf(res != nil, "expected res to be nil")
+	// TODO: should this be 501? In Python test it's not possible to execute
+	// this command directly, it'll fail after GetTopology command
 	re := err.(*ravendb.InternalServerError)
 	if verboseLog {
 		fmt.Printf("error: %s\n", re)
@@ -89,9 +91,35 @@ func testGetStatisticsCommandBadDb() {
 	fmt.Printf("testGetStatisticsCommandBadDb ok\n")
 }
 
+func testGetTopologyCommand() {
+	exec := getExecutor()
+	cmd := ravendb.NewGetTopologyCommand()
+	res, err := ravendb.ExecuteGetTopologyCommand(exec, cmd, false)
+	must(err)
+	if verboseLog {
+		fmt.Printf("topology: %#v\n", res)
+	}
+	fmt.Printf("testGetTopologyCommand ok\n")
+}
+
+func testGetTopologyCommandBadDb() {
+	exec := getInvalidDbExecutor()
+	cmd := ravendb.NewGetTopologyCommand()
+	res, err := ravendb.ExecuteGetTopologyCommand(exec, cmd, false)
+	panicIf(res != nil, "expected res to be nil")
+	panicIf(err == nil, "expected err to be non nil")
+	re := err.(*ravendb.ServiceUnavailableError)
+	if verboseLog {
+		fmt.Printf("error: %s\n", re)
+	}
+	fmt.Printf("testGetTopologyCommandBadDb ok\n")
+}
+
 func main() {
-	testInvalidCommand()
-	testGetClusterTopologyCommand()
-	testGetStatisticsCommand()
-	testGetStatisticsCommandBadDb()
+	//testInvalidCommand()
+	//testGetClusterTopologyCommand()
+	//testGetStatisticsCommand()
+	//testGetStatisticsCommandBadDb()
+	//testGetTopologyCommand()
+	testGetTopologyCommandBadDb()
 }
