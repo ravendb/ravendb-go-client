@@ -321,6 +321,32 @@ func ExecuteGetTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shou
 	return &res, nil
 }
 
+// GetDatabaseNamesResponse describes response of GetDatabaseNames command
+type GetDatabaseNamesResponse struct {
+	Databases []string `json:"Databases"`
+}
+
+// NewGetDatabaseNamesCommand creates a new GetClusterTopologyCommand
+func NewGetDatabaseNamesCommand(start, pageSize int) *RavenCommand {
+	url := fmt.Sprintf("{url}/databases?start=%d&pageSize=%d&namesOnly=true", start, pageSize)
+	res := &RavenCommand{
+		Method:        http.MethodGet,
+		IsReadRequest: true,
+		URLTemplate:   url,
+	}
+	return res
+}
+
+// ExecuteGetDatabaseNamesCommand executes GetClusterTopologyCommand
+func ExecuteGetDatabaseNamesCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*GetDatabaseNamesResponse, error) {
+	var res GetDatabaseNamesResponse
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
 /*
 PutCommandData
 DeleteCommandData
@@ -376,7 +402,7 @@ _GetMultiFacetsCommand
 // server_operations.py
 _CreateDatabaseCommand
 _DeleteDatabaseCommand
-_GetDatabaseNamesCommand
+  _GetDatabaseNamesCommand
 
 _GetCertificateCommand
 _CreateClientCertificateCommand

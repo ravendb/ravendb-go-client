@@ -115,11 +115,23 @@ func testGetTopologyCommandBadDb() {
 	fmt.Printf("testGetTopologyCommandBadDb ok\n")
 }
 
+func testGetDatabaseNamesCommand() {
+	exec := getExecutor()
+	cmd := ravendb.NewGetDatabaseNamesCommand(0, 3)
+	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd, false)
+	must(err)
+	if verboseLog {
+		fmt.Printf("databases: %#v\n", res.Databases)
+	}
+	fmt.Printf("testGetDatabaseNamesCommand ok\n")
+}
+
 func main() {
 	//testInvalidCommand()
 	//testGetClusterTopologyCommand()
 	//testGetStatisticsCommand()
 	//testGetStatisticsCommandBadDb()
 	//testGetTopologyCommand()
-	testGetTopologyCommandBadDb()
+	//testGetTopologyCommandBadDb()
+	testGetDatabaseNamesCommand()
 }

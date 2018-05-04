@@ -26,7 +26,7 @@ def testGetStatisticsOp():
     res = store.maintenance.send(GetStatisticsOperation())
     print(res)
 
-def testGetStatisticsInvalidDb():
+def testGetStatisticsBadDb():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="not-exists")
     store.initialize()
     res = store.maintenance.send(GetStatisticsOperation())
@@ -39,11 +39,20 @@ def testGetTopology():
         res = session.requests_executor.execute(GetTopologyCommand())
         print(res)
 
+def testGetTopologyBadDb():
+    store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="invalid-db")
+    store.initialize()
+    with store.open_session() as session:
+        res = session.requests_executor.execute(GetTopologyCommand())
+        print(res)
+
 def main():
-    # testGetDatabaseNamesOp()
+    #testGetDatabaseNamesOp()
     #testGetStatisticsOp()
-    #testGetStatisticsInvalidDb()
-    testGetTopology()
+    #testGetStatisticsBadDb()
+    #testGetTopology()
+    #testGetTopology()
+    #testGetTopologyBadDb()
 
 if __name__ == "__main__":
     main()
