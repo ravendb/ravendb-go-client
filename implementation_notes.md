@@ -20,7 +20,7 @@ In Python, the pattern is:
 
 ```python
     database_names = store.maintenance.server.send(GetDatabaseNamesOperation(0, 3))
-``
+```
 
 As everything in Python, the result is dynamically typed, but the caller knows
 what to expect.
