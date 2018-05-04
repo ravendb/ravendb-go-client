@@ -15,6 +15,7 @@ type RequestsExecutor struct {
 	databaseName string
 	TopologyEtag int
 
+	urls                   []string // TODO: temporary
 	lastReturnResponse     time.Time
 	Conventions            *DocumentConventions
 	nodeSelector           *NodeSelector
@@ -52,6 +53,7 @@ func NewRequestsExecutor(databaseName string, conventions *DocumentConventions) 
 // TODO: certificate, conventions
 func CreateRequestsExecutor(urls []string, databaseName string, conventions *DocumentConventions) *RequestsExecutor {
 	re := NewRequestsExecutor(databaseName, conventions)
+	re.urls = urls
 	re.startFirstTopologyThread(urls)
 	return re
 }
@@ -70,4 +72,14 @@ func (re *RequestsExecutor) GetExecutor() CommandExecutorFunc {
 	return fn
 }
 
-func (re *RequestsExecutor) Execute(cmd *RavenCommand, shouldRetry bool)
+// Execute executes a command
+func (re *RequestsExecutor) Execute(cmd *RavenCommand, shouldRetry bool) {
+	/*node := &ServerNode{
+		URL:        re.urls[0],
+		Database:   re.databaseName,
+		ClusterTag: "0", // TODO: is it re.TopologyEtag?
+	}
+	exec := MakeSimpleExecutor(node)
+	ExecuteCommand(exec, cmd)
+	*/
+}

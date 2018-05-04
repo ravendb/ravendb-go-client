@@ -13,14 +13,16 @@ type DocumentStore struct {
 	mu            sync.Mutex
 	// maps database name to its RequestsExecutor
 	requestsExecutors map[string]*RequestsExecutor
+	Conventions       *DocumentConventions
 }
 
 // NewDocumentStore creates a DocumentStore
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L13
 func NewDocumentStore(urls []string, db string) *DocumentStore {
 	res := &DocumentStore{
-		urls:     urls,
-		database: db,
+		urls:        urls,
+		database:    db,
+		Conventions: NewDocumentConventions(),
 	}
 	return res
 }
@@ -36,6 +38,7 @@ func (s *DocumentStore) Initialize() error {
 	if len(s.urls) == 0 {
 		return fmt.Errorf("Must provide urls to NewDocumentStore")
 	}
+	// TODO: for some operations (like listing databases) you don't need database name
 	if s.database == "" {
 		return fmt.Errorf("Must provide database name to NewDocumentStore")
 	}
@@ -59,8 +62,8 @@ func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestsExecutor {
 	if re, ok := s.requestsExecutors[dbName]; ok {
 		return re
 	}
-	// TODO: certificate, conventions
-	re := CreateRequestsExecutor(s.urls, dbName)
+	// TODO: certificate
+	re := CreateRequestsExecutor(s.urls, dbName, s.Conventions)
 	s.requestsExecutors[dbName] = re
 	return re
 }

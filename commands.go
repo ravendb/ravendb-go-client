@@ -2,8 +2,11 @@ package ravendb
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 )
 
 // RavenCommand represents data needed to issue an HTTP command to the server
@@ -13,6 +16,25 @@ type RavenCommand struct {
 	// to create a full url, replace {url} and {db} with ServerNode.URL and
 	// ServerNode.Database
 	URLTemplate string
+	// additional HTTP request headers
+	Headers map[string]string
+}
+
+// BadRequestError is returned when server returns 400 Bad Request response
+// This is additional information sent by the server
+type BadRequestError struct {
+	URL      string `json:"Url"`
+	Type     string `json:"Type"`
+	Message  string `json:"Message"`
+	ErrorStr string `json:"Error"`
+}
+
+// Error makes it conform to error interface
+func (e *BadRequestError) Error() string {
+	return fmt.Sprintf(`Server returned 400 Bad Request for URL '%s'
+Type: %s
+Message: %s
+Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
 }
 
 // NewGetClusterTopologyCommand creates a new GetClusterTopologyCommand
@@ -58,6 +80,55 @@ func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenComman
 	return nil, nil
 }
 
+// TODO: do I need to explicitly enable compression or does the client does
+// it by default? It seems to send Accept-Encoding: gzip by default
+func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.Response, error) {
+	client := &http.Client{
+		Timeout: time.Second * 5,
+	}
+	url := strings.Replace(cmd.URLTemplate, "{url}", n.URL, -1)
+	url = strings.Replace(url, "{db}", n.Database, -1)
+	req, err := http.NewRequest(cmd.Method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range cmd.Headers {
+		req.Header.Add(k, v)
+	}
+	req.Header.Add("User-Agent", "ravendb-go-client/1.0")
+	req.Header.Add("Raven-Client-Version", "4.0.0.0")
+	req.Header.Add("Accept", "application/json")
+	panicIf(n.ClusterTag == "", "ClusterTag is empty string in %v", n)
+	// TODO: do I need to quote the tag? Python client
+	etag := fmt.Sprintf(`"%s"`, n.ClusterTag)
+	req.Header.Add("Topology-Etag", etag)
+	rsp, err := client.Do(req)
+	// this is for network-level errors when we don't get response
+	if err != nil {
+		return rsp, err
+	}
+	// we have response but it could be one of the error server response
+
+	// convert 400 Bad Request response to BadReqeustError
+	if rsp.StatusCode == 400 {
+		var res BadRequestError
+		err = decodeJSONFromReader(rsp.Body, &res)
+		if err != nil {
+			return nil, err
+		}
+		return nil, &res
+	}
+	return rsp, nil
+}
+
+// MakeSimpleExecutor creates a command executor talking to a given node
+func MakeSimpleExecutor(n *ServerNode) CommandExecutorFunc {
+	fn := func(cmd *RavenCommand, shouldRetry bool) (*http.Response, error) {
+		return simpleExecutor(n, cmd, shouldRetry)
+	}
+	return fn
+}
+
 // ServerNode describes a single server node
 type ServerNode struct {
 	URL        string `json:"Url"`
@@ -80,6 +151,7 @@ type ClusterTopology struct {
 	LastNodeID string `json:"LastNodeId"`
 	TopologyID string `json:"TopologyId"`
 
+	// Those map name like A to server url like http://localhost:9999
 	Members     map[string]string
 	Promotables map[string]string
 	Watchers    map[string]string
@@ -88,9 +160,17 @@ type ClusterTopology struct {
 // GetAllNodes returns all nodes
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/http/ClusterTopology.java#L46
 func (t *ClusterTopology) GetAllNodes() map[string]string {
-	// TODO: implement me
-	panicIf(true, "NYI")
-	return nil
+	res := map[string]string{}
+	for name, uri := range t.Members {
+		res[name] = uri
+	}
+	for name, uri := range t.Promotables {
+		res[name] = uri
+	}
+	for name, uri := range t.Watchers {
+		res[name] = uri
+	}
+	return res
 }
 
 // ClusterTopologyResponse is a response of GetClusterTopologyCommand
@@ -102,6 +182,7 @@ type ClusterTopologyResponse struct {
 	Leader   string           `json:"Leader"`
 	NodeTag  string           `json:"NodeTag"`
 	// note: the response returns more info
+	// see https://app.quicktype.io?share=pzquGxXJcXyMncfA9JPa for fuller definition
 }
 
 /*

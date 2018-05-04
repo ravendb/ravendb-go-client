@@ -1,13 +1,25 @@
-# Imports
+# How to install and run
 
-Since you cant build project module-by-module with relative imports - they are absolute. But because of that you need explicitly(for now) change vendor name in imports. Line i use for this purpose is:
+Before this code is marged into github.com/ravendb/ravendb-go-client, the way to
+install it on your computer and run the code:
 
-`find . -type f -name "*.go" -exec sed -i'' -e 's#github.com/ravendb#foo/ravendb#g' {} +`
+```
+mkdir -p $GOPATH/src/github.com/ravendb
+cd $GOPATH/src/github.com/ravendb
+rm -rf ravendb-go-client
+git clone github.com/kjk/ravendb-go-client
+cd ravendb-go-client
+```
+
+Basically in order to avoid renaming imports between github.com/ravendb/ravendb-go-client
+and github.com/kjk/ravendb-go-client, my repo acts as if it is github.com/ravendb/ravendb-go-client
+which means you can use `go get github.com/kjk/ravendb-go-client` but
+have to place it in `$GOPATH/src/github.com/ravendb/ravendb-go-client` manually.
 
 # Running tests
-test http package:
 
-`go test -c -i github.com/ravendb/ravendb-go-client/http`
+To run current tests do: `./run_tests.sh`.
 
-`./http.go`
+It compiles and runs code in `cmd/test`.
 
+Unsecured server should be running on http://localhost:9999.
