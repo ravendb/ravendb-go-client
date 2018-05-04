@@ -37,14 +37,34 @@ Message: %s
 Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
 }
 
-// NewGetClusterTopologyCommand creates a new GetClusterTopologyCommand
-func NewGetClusterTopologyCommand() *RavenCommand {
-	res := &RavenCommand{
-		Method:        http.MethodGet,
-		IsReadRequest: true,
-		URLTemplate:   "{url}/cluster/topology",
-	}
-	return res
+// InternalServerError is retruned when server returns 500 Internal Server response
+type InternalServerError struct {
+	URL      string `json:"Url"`
+	Type     string `json:"Type"`
+	Message  string `json:"Message"`
+	ErrorStr string `json:"Error"`
+}
+
+// Error makes it conform to error interface
+func (e *InternalServerError) Error() string {
+	return fmt.Sprintf(`Server returned 500 Internal Server for URL '%s'
+Type: %s
+Message: %s
+Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
+}
+
+// ServiceUnavailableError is returned when server returns 501 Service Unavailable
+// response. This is additional information sent by the server.
+type ServiceUnavailableError struct {
+	Type    string `json:"Type"`
+	Message string `json:"Message"`
+}
+
+// Error makes it conform to error interface
+func (e *ServiceUnavailableError) Error() string {
+	return fmt.Sprintf(`Server returned 501 Service Unavailable'
+Type: %s
+Message: %s`, e.Type, e.Message)
 }
 
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
@@ -58,26 +78,6 @@ func ExecuteCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry boo
 
 func decodeJSONFromReader(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
-}
-
-// ExecuteGetClusterTopologyCommand executes GetClusterTopologyCommand
-func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*ClusterTopologyResponse, error) {
-	rsp, err := ExecuteCommand(exec, cmd, shouldRetry)
-	if err != nil {
-		return nil, err
-	}
-	defer rsp.Body.Close()
-
-	if rsp.StatusCode == 200 {
-		var res ClusterTopologyResponse
-		err = decodeJSONFromReader(rsp.Body, &res)
-		if err != nil {
-			return nil, err
-		}
-		return &res, nil
-	}
-
-	return nil, nil
 }
 
 // TODO: do I need to explicitly enable compression or does the client does
@@ -110,7 +110,7 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 	// we have response but it could be one of the error server response
 
 	// convert 400 Bad Request response to BadReqeustError
-	if rsp.StatusCode == 400 {
+	if rsp.StatusCode == http.StatusBadRequest {
 		var res BadRequestError
 		err = decodeJSONFromReader(rsp.Body, &res)
 		if err != nil {
@@ -118,6 +118,30 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 		}
 		return nil, &res
 	}
+
+	// convert 503 Service Unavailable to ServiceUnavailableError
+	if rsp.StatusCode == http.StatusServiceUnavailable {
+		var res ServiceUnavailableError
+		err = decodeJSONFromReader(rsp.Body, &res)
+		if err != nil {
+			return nil, err
+		}
+		return nil, &res
+	}
+
+	// convert 500 Internal Server to InternalServerError
+	if rsp.StatusCode == http.StatusInternalServerError {
+		var res InternalServerError
+		err = decodeJSONFromReader(rsp.Body, &res)
+		if err != nil {
+			return nil, err
+		}
+		return nil, &res
+	}
+
+	// TODO: handle other server errors
+	panicIf(rsp.StatusCode != http.StatusOK, "not handled status %d", rsp.StatusCode)
+
 	return rsp, nil
 }
 
@@ -127,22 +151,6 @@ func MakeSimpleExecutor(n *ServerNode) CommandExecutorFunc {
 		return simpleExecutor(n, cmd, shouldRetry)
 	}
 	return fn
-}
-
-// ServerNode describes a single server node
-type ServerNode struct {
-	URL        string `json:"Url"`
-	ClusterTag string
-	Database   string
-}
-
-// Topology describes server nodes
-// Result of
-// {"Nodes":[{"Url":"http://localhost:9999","ClusterTag":"A","Database":"PyRavenDB","ServerRole":"Rehab"}],"Etag":10}
-type Topology struct {
-	Nodes      []ServerNode
-	ServerRole string
-	Etag       int
 }
 
 // ClusterTopology is a part of ClusterTopologyResponse
@@ -185,6 +193,114 @@ type ClusterTopologyResponse struct {
 	// see https://app.quicktype.io?share=pzquGxXJcXyMncfA9JPa for fuller definition
 }
 
+// NewGetClusterTopologyCommand creates a new GetClusterTopologyCommand
+func NewGetClusterTopologyCommand() *RavenCommand {
+	res := &RavenCommand{
+		Method:        http.MethodGet,
+		IsReadRequest: true,
+		URLTemplate:   "{url}/cluster/topology",
+	}
+	return res
+}
+
+func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool, v interface{}) error {
+	rsp, err := ExecuteCommand(exec, cmd, shouldRetry)
+	if err != nil {
+		return err
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode == 200 {
+		return decodeJSONFromReader(rsp.Body, v)
+	}
+
+	return nil
+}
+
+// ExecuteGetClusterTopologyCommand executes GetClusterTopologyCommand
+func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*ClusterTopologyResponse, error) {
+	var res ClusterTopologyResponse
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// DatabaseStatistics describes a result of GetStatisticsCommand
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/operations/DatabaseStatistics.java#L8:14
+type DatabaseStatistics struct {
+	LastDocEtag               int64 `json:"LastDocEtag"`
+	CountOfIndexes            int64 `json:"CountOfIndexes"`
+	CountOfDocuments          int64 `json:"CountOfDocuments"`
+	CountOfRevisionDocuments  int64 `json:"CountOfRevisionDocuments"` // TODO: present in Java, not seen in JSON
+	CountOfDocumentsConflicts int64 `json:"CountOfDocumentsConflicts"`
+	CountOfTombstones         int64 `json:"CountOfTombstones"`
+	CountOfConflicts          int64 `json:"CountOfConflicts"`
+	CountOfAttachments        int64 `json:"CountOfAttachments"`
+	CountOfUniqueAttachments  int64 `json:"CountOfUniqueAttachments"`
+
+	Indexes []interface{} `json:"Indexes"` // TODO: this is []IndexInformation
+
+	DatabaseChangeVector                     string      `json:"DatabaseChangeVector"`
+	DatabaseID                               string      `json:"DatabaseId"`
+	Is64Bit                                  bool        `json:"Is64Bit"`
+	Pager                                    string      `json:"Pager"`
+	LastIndexingTime                         interface{} `json:"LastIndexingTime"` // TODO: this is time, can be null so must be a pointer
+	SizeOnDisk                               SizeOnDisk  `json:"SizeOnDisk"`
+	NumberOfTransactionMergerQueueOperations int64       `json:"NumberOfTransactionMergerQueueOperations"`
+}
+
+// SizeOnDisk describes size of entity on disk
+type SizeOnDisk struct {
+	HumaneSize  string `json:"HumaneSize"`
+	SizeInBytes int64  `json:"SizeInBytes"`
+}
+
+// TODO: add IndexInformation
+
+// NewGetStatisticsCommand creates a new GetStatisticsCommand
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L322
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/operations/GetStatisticsOperation.java#L12
+func NewGetStatisticsCommand(debugTag string) *RavenCommand {
+	url := "{url}/databases/{db}/stats"
+	if debugTag != "" {
+		url += "?" + debugTag
+	}
+
+	res := &RavenCommand{
+		Method:      http.MethodGet,
+		URLTemplate: url,
+	}
+	return res
+}
+
+// ExecuteGetStatisticsCommand executes GetStatisticsCommand
+func ExecuteGetStatisticsCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DatabaseStatistics, error) {
+	var res DatabaseStatistics
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// ServerNode describes a single server node
+type ServerNode struct {
+	URL        string `json:"Url"`
+	ClusterTag string
+	Database   string
+}
+
+// Topology describes server nodes
+// Result of
+// {"Nodes":[{"Url":"http://localhost:9999","ClusterTag":"A","Database":"PyRavenDB","ServerRole":"Rehab"}],"Etag":10}
+type Topology struct {
+	Nodes      []ServerNode
+	ServerRole string
+	Etag       int
+}
+
 /*
 PutCommandData
 DeleteCommandData
@@ -203,9 +319,9 @@ BatchCommand
 DeleteIndexCommand
 PatchCommand
 QueryCommand
-GetStatisticsCommand
+  GetStatisticsCommand
 GetTopologyCommand
-GetClusterTopologyCommand
+  GetClusterTopologyCommand
 GetOperationStateCommand
 PutAttachmentCommand
 GetFacetsCommand

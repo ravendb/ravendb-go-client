@@ -24,6 +24,15 @@ func getExecutor() ravendb.CommandExecutorFunc {
 	return ravendb.MakeSimpleExecutor(node)
 }
 
+func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
+	node := &ravendb.ServerNode{
+		URL:        serverURL,
+		Database:   "invalid-database",
+		ClusterTag: "0",
+	}
+	return ravendb.MakeSimpleExecutor(node)
+}
+
 // test that when we send invalid command to the server, we get the right
 // error code
 func testInvalidCommand() {
@@ -57,7 +66,32 @@ func testGetClusterTopologyCommand() {
 	fmt.Printf("testGetClusterTopologyCommand ok\n")
 }
 
+func testGetStatisticsCommand() {
+	exec := getExecutor()
+	cmd := ravendb.NewGetStatisticsCommand("")
+	stats, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd, false)
+	must(err)
+	if verboseLog {
+		fmt.Printf("stats: %#v\n", stats)
+	}
+	fmt.Printf("testGetStatisticsCommand ok\n")
+}
+
+func testGetStatisticsCommandBadDb() {
+	exec := getInvalidDbExecutor()
+	cmd := ravendb.NewGetStatisticsCommand("")
+	stats, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd, false)
+	panicIf(stats != nil, "expected stats to be nil")
+	re := err.(*ravendb.InternalServerError)
+	if verboseLog {
+		fmt.Printf("error: %s\n", re)
+	}
+	fmt.Printf("testGetStatisticsCommandBadDb ok\n")
+}
+
 func main() {
 	testInvalidCommand()
 	testGetClusterTopologyCommand()
+	testGetStatisticsCommand()
+	testGetStatisticsCommandBadDb()
 }
