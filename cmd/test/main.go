@@ -128,13 +128,41 @@ func testGetDatabaseNamesCommand() {
 
 func testCreateDatabaseCommand() {
 	exec := getExecutor()
-	cmd := ravendb.NewCreateDatabaseCommand("TestDatabase12", 1)
+	dbName := ravendb.NewUUID().Hex()
+	cmd := ravendb.NewCreateDatabaseCommand(dbName, 1)
 	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd, false)
 	must(err)
-	if true || verboseLog {
+	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
+	panicIf(res.Name != dbName, "res.Name is '%s', expected '%s'", res.Name, dbName)
+	if verboseLog {
 		fmt.Printf("res: %#v\n", res)
 	}
 	fmt.Printf("testCreateDatabaseCommand ok\n")
+}
+
+func testCreateAndDeleteDatabaseCommand() {
+	dbName := ravendb.NewUUID().Hex()
+	exec := getExecutor()
+	cmd := ravendb.NewCreateDatabaseCommand(dbName, 1)
+	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd, false)
+	must(err)
+	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
+	panicIf(res.Name != dbName, "res.Name is '%s', expected '%s'", res.Name, dbName)
+	if true || verboseLog {
+		fmt.Printf("res: %#v\n", res)
+	}
+
+	// TODO: do I need to wait?
+
+	cmd2 := ravendb.NewDeleteDatabaseCommand(dbName, false, "")
+	res2, err := ravendb.ExecuteDeleteDatabaseCommand(exec, cmd2, false)
+	must(err)
+	panicIf(res2.RaftCommandIndex == 0, "res2.RaftCommandIndex is 0")
+	if verboseLog {
+		fmt.Printf("res2: %#v\n", res2)
+	}
+
+	fmt.Printf("testCreateAndDeleteDatabaseCommand ok\n")
 }
 
 func main() {
@@ -145,5 +173,6 @@ func main() {
 	//testGetTopologyCommand()
 	//testGetTopologyCommandBadDb()
 	//testGetDatabaseNamesCommand()
-	testCreateDatabaseCommand()
+	//testCreateDatabaseCommand()
+	testCreateAndDeleteDatabaseCommand()
 }

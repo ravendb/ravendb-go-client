@@ -1,7 +1,8 @@
 from pyravendb.store import document_store
-from pyravendb.raven_operations.server_operations import GetDatabaseNamesOperation, CreateDatabaseOperation
+from pyravendb.raven_operations.server_operations import GetDatabaseNamesOperation, CreateDatabaseOperation, DeleteDatabaseOperation
 from pyravendb.raven_operations.maintenance_operations import GetStatisticsOperation
 from pyravendb.commands.raven_commands import GetTopologyCommand
+import uuid
 
 # def testLoad():
 #     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="PyRavenDB2")
@@ -58,6 +59,19 @@ def testCreateDatabaseOp():
     res = store.maintenance.server.send(op)
     print(res)
 
+def testCreateAndDeleteDatabaseOp():
+    randomName = uuid.uuid4().hex
+    print("name: " + randomName)
+    store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="")
+    store.initialize()
+    op = CreateDatabaseOperation(database_name=randomName)
+    res = store.maintenance.server.send(op)
+    print(res)
+    op = DeleteDatabaseOperation(database_name=randomName, hard_delete=False)
+    res = store.maintenance.server.send(op)
+    print(res)
+
+
 def main():
     #testGetDatabaseNamesOp()
     #testGetStatisticsOp()
@@ -65,7 +79,8 @@ def main():
     #testGetTopology()
     #testGetTopology()
     #testGetTopologyBadDb()
-    testCreateDatabaseOp()
+    #testCreateDatabaseOp()
+    testCreateAndDeleteDatabaseOp()
 
 if __name__ == "__main__":
     main()

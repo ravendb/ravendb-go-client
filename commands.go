@@ -107,7 +107,7 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 	url := strings.Replace(cmd.URLTemplate, "{url}", n.URL, -1)
 	url = strings.Replace(url, "{db}", n.Database, -1)
 	var body io.Reader
-	if cmd.Method == http.MethodPut {
+	if cmd.Method == http.MethodPut || cmd.Method == http.MethodDelete {
 		// TODO: should this be mandatory?
 		if cmd.Data != nil {
 			body = bytes.NewBuffer(cmd.Data)
@@ -197,7 +197,7 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, shouldR
 	}
 	defer rsp.Body.Close()
 
-	if rsp.StatusCode == 200 {
+	if rsp.StatusCode == 200 || rsp.StatusCode == 201 {
 		return decodeJSONFromReader(rsp.Body, v)
 	}
 
@@ -449,6 +449,47 @@ type LeaderStamp struct {
 // ExecuteCreateDatabaseCommand executes CreateDatabaseCommand
 func ExecuteCreateDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DatabasePutResponse, error) {
 	var res DatabasePutResponse
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// DeleteDatabaseResult represents result of Delete Database command
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/serverwide/operations/DeleteDatabaseResult.java#L3
+type DeleteDatabaseResult struct {
+	RaftCommandIndex int `json:"RaftCommandIndex"`
+	//PendingDeletes   []string `json:"PendingDeletes"` // TODO: not send back in python test
+}
+
+// NewDeleteDatabaseCommand creates a new DeleteDatabaseCommand.
+// fromNode can be empty string
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/raven_operations/server_operations.py#L79
+// TODO: add timeToWaitForConfirmation time.Duration? Don't know the format,
+// python example sends null
+func NewDeleteDatabaseCommand(dbName string, hardDelete bool, fromNode string) *RavenCommand {
+
+	opts := map[string]interface{}{}
+	opts["DatabaseNames"] = []string{dbName}
+	opts["HardDelete"] = hardDelete
+	if fromNode != "" {
+		opts["FromNodes"] = []string{fromNode}
+	}
+
+	data, err := json.Marshal(opts)
+	must(err)
+	res := &RavenCommand{
+		Method:      http.MethodDelete,
+		URLTemplate: "{url}/admin/databases",
+		Data:        data,
+	}
+	return res
+}
+
+// ExecuteDeleteDatabaseCommand executes CreateDatabaseCommand
+func ExecuteDeleteDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DeleteDatabaseResult, error) {
+	var res DeleteDatabaseResult
 	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
 	if err != nil {
 		return nil, err
