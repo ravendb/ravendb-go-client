@@ -72,9 +72,8 @@ func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestsExecutor {
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L112
 func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 	s.assertInitialized()
-	res := &DocumentSession{}
 
 	sessionID := NewUUID().String()
 	re := s.GetRequestExecutor(s.database)
-	return DocumentSession(s.database, re, sessionID)
+	return NewDocumentSession(s.database, s, sessionID, re), nil
 }

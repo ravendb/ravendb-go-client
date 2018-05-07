@@ -66,7 +66,7 @@ func (re *RequestsExecutor) startFirstTopologyThread(urls []string) {
 
 // GetExecutor returns command executor function
 func (re *RequestsExecutor) GetExecutor() CommandExecutorFunc {
-	fn := func(cmd *RavenCommand, shouldRetry bool) (*http.Response, error) {
+	fn := func(cmd *RavenCommand) (*http.Response, error) {
 		return nil, nil
 	}
 	return fn

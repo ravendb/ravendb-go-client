@@ -42,7 +42,7 @@ func testInvalidCommand() {
 		IsReadRequest: true,
 		URLTemplate:   "{url}/cluster/invalid",
 	}
-	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd, false)
+	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd)
 	panicIf(clusterTopology != nil, "expected nil clusterTopology")
 	re := err.(*ravendb.BadRequestError)
 	panicIf(re.URL != "/cluster/invalid", "unexpected re.URL. is '%s', should be '/cluster/invalid'", re.URL)
@@ -52,7 +52,7 @@ func testInvalidCommand() {
 func testGetClusterTopologyCommand() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetClusterTopologyCommand()
-	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd, false)
+	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd)
 	must(err)
 	nServers := len(clusterTopology.Topology.Members)
 	panicIf(nServers < 1, "returned no Members server, expected at least 1")
@@ -69,7 +69,7 @@ func testGetClusterTopologyCommand() {
 func testGetStatisticsCommand() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetStatisticsCommand("")
-	stats, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd, false)
+	stats, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd)
 	must(err)
 	if verboseLog {
 		fmt.Printf("stats: %#v\n", stats)
@@ -80,7 +80,7 @@ func testGetStatisticsCommand() {
 func testGetStatisticsCommandBadDb() {
 	exec := getInvalidDbExecutor()
 	cmd := ravendb.NewGetStatisticsCommand("")
-	res, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd, false)
+	res, err := ravendb.ExecuteGetStatisticsCommand(exec, cmd)
 	panicIf(res != nil, "expected res to be nil")
 	// TODO: should this be 501? In Python test it's not possible to execute
 	// this command directly, it'll fail after GetTopology command
@@ -94,7 +94,7 @@ func testGetStatisticsCommandBadDb() {
 func testGetTopologyCommand() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetTopologyCommand()
-	res, err := ravendb.ExecuteGetTopologyCommand(exec, cmd, false)
+	res, err := ravendb.ExecuteGetTopologyCommand(exec, cmd)
 	must(err)
 	if verboseLog {
 		fmt.Printf("topology: %#v\n", res)
@@ -105,7 +105,7 @@ func testGetTopologyCommand() {
 func testGetTopologyCommandBadDb() {
 	exec := getInvalidDbExecutor()
 	cmd := ravendb.NewGetTopologyCommand()
-	res, err := ravendb.ExecuteGetTopologyCommand(exec, cmd, false)
+	res, err := ravendb.ExecuteGetTopologyCommand(exec, cmd)
 	panicIf(res != nil, "expected res to be nil")
 	panicIf(err == nil, "expected err to be non nil")
 	re := err.(*ravendb.ServiceUnavailableError)
@@ -118,7 +118,7 @@ func testGetTopologyCommandBadDb() {
 func testGetDatabaseNamesCommand() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetDatabaseNamesCommand(0, 3)
-	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd, false)
+	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd)
 	must(err)
 	if verboseLog {
 		fmt.Printf("databases: %#v\n", res.Databases)
@@ -130,7 +130,7 @@ func testCreateDatabaseCommand() {
 	exec := getExecutor()
 	dbName := ravendb.NewUUID().Hex()
 	cmd := ravendb.NewCreateDatabaseCommand(dbName, 1)
-	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd, false)
+	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd)
 	must(err)
 	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
 	panicIf(res.Name != dbName, "res.Name is '%s', expected '%s'", res.Name, dbName)
@@ -144,7 +144,7 @@ func testCreateAndDeleteDatabaseCommand() {
 	dbName := ravendb.NewUUID().Hex()
 	exec := getExecutor()
 	cmd := ravendb.NewCreateDatabaseCommand(dbName, 1)
-	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd, false)
+	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd)
 	must(err)
 	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
 	panicIf(res.Name != dbName, "res.Name is '%s', expected '%s'", res.Name, dbName)
@@ -155,7 +155,7 @@ func testCreateAndDeleteDatabaseCommand() {
 	// TODO: do I need to wait?
 
 	cmd2 := ravendb.NewDeleteDatabaseCommand(dbName, false, "")
-	res2, err := ravendb.ExecuteDeleteDatabaseCommand(exec, cmd2, false)
+	res2, err := ravendb.ExecuteDeleteDatabaseCommand(exec, cmd2)
 	must(err)
 	panicIf(res2.RaftCommandIndex == 0, "res2.RaftCommandIndex is 0")
 	if verboseLog {

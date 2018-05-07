@@ -14,7 +14,7 @@ func testGetClusterTopologyCommand2() {
 	re := store.GetRequestExecutor("")
 	cmd := ravendb.NewGetClusterTopologyCommand()
 	exec := re.GetExecutor()
-	rsp, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd, true)
+	rsp, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd)
 	must(err)
 	fmt.Printf("%v\n", rsp)
 }

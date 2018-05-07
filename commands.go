@@ -87,11 +87,11 @@ Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
 
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
 // returns raw HTTP response
-type CommandExecutorFunc func(cmd *RavenCommand, shouldRetry bool) (*http.Response, error)
+type CommandExecutorFunc func(cmd *RavenCommand) (*http.Response, error)
 
 // ExecuteCommand executes RavenCommand with a given executor function
-func ExecuteCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*http.Response, error) {
-	return exec(cmd, shouldRetry)
+func ExecuteCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*http.Response, error) {
+	return exec(cmd)
 }
 
 func decodeJSONFromReader(r io.Reader, v interface{}) error {
@@ -100,7 +100,7 @@ func decodeJSONFromReader(r io.Reader, v interface{}) error {
 
 // TODO: do I need to explicitly enable compression or does the client does
 // it by default? It seems to send Accept-Encoding: gzip by default
-func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.Response, error) {
+func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	client := &http.Client{
 		Timeout: time.Second * 5,
 	}
@@ -184,14 +184,14 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 
 // MakeSimpleExecutor creates a command executor talking to a given node
 func MakeSimpleExecutor(n *ServerNode) CommandExecutorFunc {
-	fn := func(cmd *RavenCommand, shouldRetry bool) (*http.Response, error) {
-		return simpleExecutor(n, cmd, shouldRetry)
+	fn := func(cmd *RavenCommand) (*http.Response, error) {
+		return simpleExecutor(n, cmd)
 	}
 	return fn
 }
 
-func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool, v interface{}) error {
-	rsp, err := ExecuteCommand(exec, cmd, shouldRetry)
+func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v interface{}) error {
+	rsp, err := ExecuteCommand(exec, cmd)
 	if err != nil {
 		return err
 	}
@@ -255,9 +255,9 @@ func NewGetClusterTopologyCommand() *RavenCommand {
 }
 
 // ExecuteGetClusterTopologyCommand executes GetClusterTopologyCommand
-func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*ClusterTopologyResponse, error) {
+func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*ClusterTopologyResponse, error) {
 	var res ClusterTopologyResponse
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -313,9 +313,9 @@ func NewGetStatisticsCommand(debugTag string) *RavenCommand {
 }
 
 // ExecuteGetStatisticsCommand executes GetStatisticsCommand
-func ExecuteGetStatisticsCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DatabaseStatistics, error) {
+func ExecuteGetStatisticsCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*DatabaseStatistics, error) {
 	var res DatabaseStatistics
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -349,9 +349,9 @@ func NewGetTopologyCommand() *RavenCommand {
 }
 
 // ExecuteGetTopologyCommand executes GetClusterTopologyCommand
-func ExecuteGetTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*Topology, error) {
+func ExecuteGetTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*Topology, error) {
 	var res Topology
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -375,9 +375,9 @@ func NewGetDatabaseNamesCommand(start, pageSize int) *RavenCommand {
 }
 
 // ExecuteGetDatabaseNamesCommand executes GetClusterTopologyCommand
-func ExecuteGetDatabaseNamesCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*GetDatabaseNamesResponse, error) {
+func ExecuteGetDatabaseNamesCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*GetDatabaseNamesResponse, error) {
 	var res GetDatabaseNamesResponse
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -447,9 +447,9 @@ type LeaderStamp struct {
 }
 
 // ExecuteCreateDatabaseCommand executes CreateDatabaseCommand
-func ExecuteCreateDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DatabasePutResponse, error) {
+func ExecuteCreateDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*DatabasePutResponse, error) {
 	var res DatabasePutResponse
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -488,9 +488,9 @@ func NewDeleteDatabaseCommand(dbName string, hardDelete bool, fromNode string) *
 }
 
 // ExecuteDeleteDatabaseCommand executes CreateDatabaseCommand
-func ExecuteDeleteDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*DeleteDatabaseResult, error) {
+func ExecuteDeleteDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*DeleteDatabaseResult, error) {
 	var res DeleteDatabaseResult
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -516,9 +516,9 @@ func NewGetOperationStateCommand(opID string) *RavenCommand {
 }
 
 // ExecuteGetOperationStateCommand executes GetOperationsState command
-func ExecuteGetOperationStateCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*GetOperationStateCommandResult, error) {
+func ExecuteGetOperationStateCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*GetOperationStateCommandResult, error) {
 	var res GetOperationStateCommandResult
-	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
