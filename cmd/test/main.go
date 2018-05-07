@@ -227,9 +227,31 @@ func testPutGetDeleteDocument() {
 	res2, err := ravendb.ExecuteGetDocumentCommand(exec, cmd)
 	must(err)
 	if verboseLog {
-		fmt.Printf("len(res2.Includes): %d, len(res.Results): %d\n", len(res2.Includes), len(res2.Results))
+		fmt.Printf("len(res2.Includes): %d, len(res2.Results): %d\n", len(res2.Includes), len(res2.Results))
 	}
 
+	// test get of non-existent document
+	cmd = ravendb.NewGetDocumentCommand([]string{"testing/asdf"}, nil, false)
+	res3, err := ravendb.ExecuteGetDocumentCommand(exec, cmd)
+	panicIf(err == nil, "unexpected err is nil")
+	panicIf(res3 != nil, "unexpected res3 is != nil: %#v", res3)
+	// verify that it returns 404 Not Found
+	notFound := err.(*ravendb.NotFoundError)
+	if verboseLog {
+		fmt.Printf("not found url: '%s'\n", notFound.URL)
+	}
+
+	cmd = ravendb.NewDeleteDocumentCommand(key, "")
+	err = ravendb.ExecuteDeleteDocumentCommand(exec, cmd)
+	must(err)
+
+	// test delete of non-existent document
+	// it succeeds even if document doesn't exist
+	cmd = ravendb.NewDeleteDocumentCommand("testing/asdf", "")
+	err = ravendb.ExecuteDeleteDocumentCommand(exec, cmd)
+	must(err)
+
+	// TODO: test changeVector
 	fmt.Printf("testPutGetDeleteDocument ok\n")
 }
 

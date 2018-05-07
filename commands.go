@@ -22,7 +22,7 @@ type RavenCommand struct {
 	Data    []byte
 }
 
-// BadRequestError is returned when server returns 400 Bad Request response
+// BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {
 	URL      string `json:"Url"`
@@ -39,7 +39,7 @@ Message: %s
 Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
 }
 
-// InternalServerError is retruned when server returns 500 Internal Server response
+// InternalServerError maps to server's 500 Internal Server response
 type InternalServerError struct {
 	URL      string `json:"Url"`
 	Type     string `json:"Type"`
@@ -55,7 +55,7 @@ Message: %s
 Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
 }
 
-// ServiceUnavailableError is returned when server returns 501 Service Unavailable
+// ServiceUnavailableError maps to server's 501 Service Unavailable
 // response. This is additional information sent by the server.
 type ServiceUnavailableError struct {
 	Type    string `json:"Type"`
@@ -69,7 +69,7 @@ Type: %s
 Message: %s`, e.Type, e.Message)
 }
 
-// ConflictError is retruned when server returns 409 Conflict response
+// ConflictError maps to server's 409 Conflict response
 type ConflictError struct {
 	URL      string `json:"Url"`
 	Type     string `json:"Type"`
@@ -83,6 +83,16 @@ func (e *ConflictError) Error() string {
 Type: %s
 Message: %s
 Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
+}
+
+// NotFoundError maps to server's 404 Not Found
+type NotFoundError struct {
+	URL string
+}
+
+// Error makes it conform to error interface
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf(`Server returned 404 Not Found for URL '%s'`, e.URL)
 }
 
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
@@ -174,9 +184,22 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 		return nil, &res
 	}
 
+	// conert 404 Not Found to NotFoundError
+	if rsp.StatusCode == http.StatusNotFound {
+		// TODO: does it ever return non-empty response?
+		res := NotFoundError{
+			URL: req.URL.String(),
+		}
+		return nil, &res
+	}
+
 	// TODO: handle other server errors
 
-	isStatusOk := (rsp.StatusCode == http.StatusOK) || (rsp.StatusCode == http.StatusCreated)
+	isStatusOk := false
+	switch rsp.StatusCode {
+	case http.StatusOK, http.StatusCreated, http.StatusNoContent:
+		isStatusOk = true
+	}
 	panicIf(!isStatusOk, "unhandled status code %d", rsp.StatusCode)
 
 	return rsp, nil
@@ -188,6 +211,21 @@ func MakeSimpleExecutor(n *ServerNode) CommandExecutorFunc {
 		return simpleExecutor(n, cmd)
 	}
 	return fn
+}
+
+func excuteCmdWithEmptyResult(exec CommandExecutorFunc, cmd *RavenCommand) error {
+	rsp, err := ExecuteCommand(exec, cmd)
+	if err != nil {
+		return err
+	}
+	rsp.Body.Close()
+
+	// expectes 204 No Content
+	if rsp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("Returned unexpected status code %d (expected 204)", rsp.StatusCode)
+	}
+	return nil
+
 }
 
 func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v interface{}) error {
@@ -533,6 +571,15 @@ type PutResult struct {
 	ChangeVector string `json:"ChangeVector"`
 }
 
+func addChangeVectorIfNotEmpty(cmd *RavenCommand, changeVector string) {
+	if changeVector != "" {
+		if cmd.Headers == nil {
+			cmd.Headers = map[string]string{}
+		}
+		cmd.Headers["If-Match"] = fmt.Sprintf(`"%s"`, changeVector)
+	}
+}
+
 // NewPutDocumentJSONCommand creates a command for PutDocument operation
 // TODO: should I validatte js is a valid json?
 func NewPutDocumentJSONCommand(key string, js []byte, changeVector string) *RavenCommand {
@@ -541,9 +588,7 @@ func NewPutDocumentJSONCommand(key string, js []byte, changeVector string) *Rave
 		Method:      http.MethodPut,
 		URLTemplate: "{url}/databases/{db}/docs?id=" + quoteKey(key),
 	}
-	if changeVector != "" {
-		res.Headers["If-Match"] = fmt.Sprintf(`"%s"`, changeVector)
-	}
+	addChangeVectorIfNotEmpty(res, changeVector)
 	res.Data = js
 	return res
 }
@@ -626,6 +671,39 @@ func ExecuteGetDocumentCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*Ge
 	return &res, nil
 }
 
+// NewDeleteDocumentCommand creates DeleteDocument command
+func NewDeleteDocumentCommand(key string, changeVector string) *RavenCommand {
+	url := fmt.Sprintf("{url}/databases/{db}/docs?id=%s", quoteKey(key))
+	res := &RavenCommand{
+		Method:      http.MethodDelete,
+		URLTemplate: url,
+	}
+	addChangeVectorIfNotEmpty(res, changeVector)
+	return res
+}
+
+// ExecuteDeleteDocumentCommand executes DeleteDocument command
+func ExecuteDeleteDocumentCommand(exec CommandExecutorFunc, cmd *RavenCommand) error {
+	return excuteCmdWithEmptyResult(exec, cmd)
+}
+
+/* Done:
+GetDocumentCommand
+DeleteDocumentCommand
+PutDocumentCommand
+
+GetStatisticsCommand
+GetTopologyCommand
+GetClusterTopologyCommand
+GetOperationStateCommand
+
+// server_operations.py
+_CreateDatabaseCommand
+_DeleteDatabaseCommand
+_GetDatabaseNamesCommand
+
+*/
+
 /*
 PutCommandData
 DeleteCommandData
@@ -636,22 +714,15 @@ DeleteAttachmentCommandData
 Commands to implement:
 
 // raven_commands.py
-  GetDocumentCommand
-DeleteDocumentCommand
-  PutDocumentCommand
 BatchCommand
 DeleteIndexCommand
 PatchCommand
 QueryCommand
-  GetStatisticsCommand
-  GetTopologyCommand
-  GetClusterTopologyCommand
-  GetOperationStateCommand
 PutAttachmentCommand
 GetFacetsCommand
 MultiGetCommand
 GetDatabaseRecordCommand
-WaitForRaftIndexCommand
+WaitForRaftIndexCommand - maybe not, only in python client
 GetTcpInfoCommand
 QueryStreamCommand
 
@@ -679,10 +750,6 @@ _GetAttachmentCommand
 _GetMultiFacetsCommand
 
 // server_operations.py
-  _CreateDatabaseCommand
-  _DeleteDatabaseCommand
-  _GetDatabaseNamesCommand
-
 _GetCertificateCommand
 _CreateClientCertificateCommand
 _PutClientCertificateCommand

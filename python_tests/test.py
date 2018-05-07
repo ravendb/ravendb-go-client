@@ -130,7 +130,18 @@ def testPutGetDeleteDocument():
     res = re.execute(cmd)
     if verboseLog: print(res)
 
+    # test get of non-existent document
+    cmd = GetDocumentCommand("testing/1234")
+    res = re.execute(cmd)
+    assert res == None, "unexpected res != None"
+
     cmd = DeleteDocumentCommand(key)
+    res = re.execute(cmd)
+    if verboseLog: print(res)
+
+    # test delete of non-existent document
+    # it succeeds even if document doesn't exist
+    cmd = DeleteDocumentCommand("testing/1234")
     res = re.execute(cmd)
     if verboseLog: print(res)
 
