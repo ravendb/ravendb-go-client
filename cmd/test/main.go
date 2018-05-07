@@ -13,7 +13,7 @@ var (
 	testDbName = ""
 
 	// enable to see more information for each test
-	verboseLog = false
+	verboseLog = true
 )
 
 func getExecutor() ravendb.CommandExecutorFunc {
@@ -205,21 +205,45 @@ func testCreateAndDeleteDatabaseCommand() {
 }
 */
 
+func testPutGetDeleteDocument() {
+	exec := getExecutor()
+	key := "testing/1"
+	meta := map[string]interface{}{
+		"@collection": "Testings",
+	}
+	doc := map[string]interface{}{
+		"Name":      "test1",
+		"DocNumber": 1,
+		"@metadata": meta,
+	}
+	cmd := ravendb.NewPutDocumentRawCommand(key, doc, "")
+	res, err := ravendb.ExecutePutDocumentRawCommand(exec, cmd)
+	must(err)
+	if verboseLog {
+		fmt.Printf("res: %#v\n", res)
+	}
+
+	fmt.Printf("testPutGetDeleteDocument ok\n")
+}
+
 func main() {
+	allTests := false
 	deleteTestDatabases()
-
-	testInvalidCommand()
-
 	testCreateDatabaseCommand()
-	testGetDatabaseNamesCommand()
-	testGetTopologyCommand()
-	testGetTopologyCommandBadDb()
 
-	testGetClusterTopologyCommand()
-	testGetStatisticsCommand()
-	testGetStatisticsCommandBadDb()
+	if allTests {
+		testInvalidCommand()
 
-	//testCreateAndDeleteDatabaseCommand()
+		testGetDatabaseNamesCommand()
+		testGetTopologyCommand()
+		testGetTopologyCommandBadDb()
 
-	testDeleteDatabaseOp()
+		testGetClusterTopologyCommand()
+		testGetStatisticsCommand()
+		testGetStatisticsCommandBadDb()
+	}
+
+	testPutGetDeleteDocument()
+
+	//testDeleteDatabaseOp()
 }

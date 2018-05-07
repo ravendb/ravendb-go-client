@@ -107,7 +107,7 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	url := strings.Replace(cmd.URLTemplate, "{url}", n.URL, -1)
 	url = strings.Replace(url, "{db}", n.Database, -1)
 	var body io.Reader
-	if cmd.Method == http.MethodPut || cmd.Method == http.MethodDelete {
+	if cmd.Method == http.MethodPut || cmd.Method == http.MethodPost || cmd.Method == http.MethodDelete {
 		// TODO: should this be mandatory?
 		if cmd.Data != nil {
 			body = bytes.NewBuffer(cmd.Data)
@@ -197,7 +197,8 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v inter
 	}
 	defer rsp.Body.Close()
 
-	if rsp.StatusCode == 200 || rsp.StatusCode == 201 {
+	// ok: 200, created: 201
+	if rsp.StatusCode == http.StatusOK || rsp.StatusCode == http.StatusCreated {
 		return decodeJSONFromReader(rsp.Body, v)
 	}
 
@@ -525,6 +526,45 @@ func ExecuteGetOperationStateCommand(exec CommandExecutorFunc, cmd *RavenCommand
 	return &res, nil
 }
 
+// PutResult describes result of PutDocumentCommand
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/commands/batches/PutResult.java#L6
+type PutResult struct {
+	ID           string `json:"Id"`
+	ChangeVector string `json:"ChangeVector"`
+}
+
+// NewPutDocumentJSONCommand creates a command for PutDocument operation
+// TODO: should I validatte js is a valid json?
+func NewPutDocumentJSONCommand(key string, js []byte, changeVector string) *RavenCommand {
+	panicIf(key == "", "key can't be empty string")
+	res := &RavenCommand{
+		Method:      http.MethodPut,
+		URLTemplate: "{url}/databases/{db}/docs?id=" + quoteKey(key, false),
+	}
+	if changeVector != "" {
+		res.Headers["If-Match"] = fmt.Sprintf(`"%s"`, changeVector)
+	}
+	res.Data = js
+	return res
+}
+
+// NewPutDocumentRawCommand creates a command for PutDocument operation
+func NewPutDocumentRawCommand(key string, doc map[string]interface{}, changeVector string) *RavenCommand {
+	js, err := json.Marshal(doc)
+	must(err) // TODO: return an error
+	return NewPutDocumentJSONCommand(key, js, changeVector)
+}
+
+// ExecutePutDocumentRawCommand executes GetOperationsState command
+func ExecutePutDocumentRawCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*PutResult, error) {
+	var res PutResult
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
 /*
 PutCommandData
 DeleteCommandData
@@ -537,7 +577,7 @@ Commands to implement:
 // raven_commands.py
 GetDocumentCommand
 DeleteDocumentCommand
-PutDocumentCommand
+  PutDocumentCommand
 BatchCommand
 DeleteIndexCommand
 PatchCommand
@@ -578,13 +618,12 @@ _GetAttachmentCommand
 _GetMultiFacetsCommand
 
 // server_operations.py
-_CreateDatabaseCommand
-_DeleteDatabaseCommand
+  _CreateDatabaseCommand
+  _DeleteDatabaseCommand
   _GetDatabaseNamesCommand
 
 _GetCertificateCommand
 _CreateClientCertificateCommand
 _PutClientCertificateCommand
 _DeleteCertificateCommand
-
 */

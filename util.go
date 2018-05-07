@@ -3,6 +3,7 @@ package ravendb
 import (
 	"errors"
 	"fmt"
+	"net/url"
 )
 
 func must(err error) {
@@ -47,4 +48,17 @@ func isDatabaseNameValid(dbName string) error {
 		}
 	}
 	return nil
+}
+
+/*
+def quote_key(key, reserved_slash=False):
+	reserved = '%:=&?~#+!$,;\'*[]'
+	if reserved_slash:
+		reserved += '/'
+	return urllib.parse.quote(key, safe=reserved)
+*/
+// TODO: implement me exactly
+func quoteKey(s string, reservedSlash bool) string {
+	// https://golang.org/src/net/url/url.go?s=7512:7544#L265
+	return url.PathEscape(s)
 }
