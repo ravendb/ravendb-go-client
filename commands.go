@@ -126,7 +126,7 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand, shouldRetry bool) (*http.R
 	panicIf(n.ClusterTag == "", "ClusterTag is empty string in %v", n)
 	// TODO: do I need to quote the tag? Python client
 	etag := fmt.Sprintf(`"%s"`, n.ClusterTag)
-	req.Header.Add("Topology-Etag", etag)
+	req.Header.Add(TOPOLOGY_ETAG, etag)
 	rsp, err := client.Do(req)
 	// this is for network-level errors when we don't get response
 	if err != nil {
@@ -497,6 +497,34 @@ func ExecuteDeleteDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand, s
 	return &res, nil
 }
 
+// GetOperationStateCommandResult describes a result of GetOperationsState
+type GetOperationStateCommandResult struct {
+	ErrorStr string `json:"Error"`
+	Status   string `json:"Status"`
+}
+
+// NewGetOperationStateCommand creates GetOperationsState command
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/commands/raven_commands.py#L371
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client/-/blob/src/main/java/net/ravendb/client/documents/operations/GetOperationStateOperation.java#L14
+// TODO: add isServerStoreOp bool? Is in Python, not in Java
+func NewGetOperationStateCommand(opID string) *RavenCommand {
+	res := &RavenCommand{
+		Method:      http.MethodGet,
+		URLTemplate: "{url}/operations/state?id=" + opID,
+	}
+	return res
+}
+
+// ExecuteGetOperationStateCommand executes GetOperationsState command
+func ExecuteGetOperationStateCommand(exec CommandExecutorFunc, cmd *RavenCommand, shouldRetry bool) (*GetOperationStateCommandResult, error) {
+	var res GetOperationStateCommandResult
+	err := excuteCmdAndJSONDecode(exec, cmd, shouldRetry, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
 /*
 PutCommandData
 DeleteCommandData
@@ -517,7 +545,7 @@ QueryCommand
   GetStatisticsCommand
   GetTopologyCommand
   GetClusterTopologyCommand
-GetOperationStateCommand
+  GetOperationStateCommand
 PutAttachmentCommand
 GetFacetsCommand
 MultiGetCommand

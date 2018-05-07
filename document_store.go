@@ -74,9 +74,7 @@ func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 	s.assertInitialized()
 	res := &DocumentSession{}
 
-	//session_id = uuid.uuid4()
-	//requests_executor = self.get_request_executor(database) if request_executor is None else request_executor
-	//return DocumentSession(database, self, requests_executor, session_id)
-
-	return res, nil
+	sessionID := NewUUID().String()
+	re := s.GetRequestExecutor(s.database)
+	return DocumentSession(s.database, re, sessionID)
 }
