@@ -49,14 +49,23 @@ def testGetStatisticsOp():
     store.initialize()
     op = GetStatisticsOperation()
     res = store.maintenance.send(op)
-    print(res)
+    if verboseLog:
+        print(res)
+    print("testGetStatisticsOp ok")
 
 def testGetStatisticsBadDb():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="not-exists")
     store.initialize()
     op = GetStatisticsOperation()
-    res = store.maintenance.send(op)
-    print(res)
+    failed = False
+    try:
+        res = store.maintenance.send(op)
+        if verboseLog:
+            print(res)
+    except Exception as e:
+        failed = True
+    assert failed, "GetTopologyCommand() was supposed to throw an exception"
+    print("testGetStatisticsBadDb ok")
 
 def testGetTopology():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database=testDbName)
@@ -73,22 +82,27 @@ def testGetTopologyBadDb():
     store.initialize()
     with store.open_session() as session:
         op = GetTopologyCommand()
-        res = session.requests_executor.execute(op)
-        if verboseLog:
-            print(res)
-        print("testGetTopologyBadDb ok")
+        failed = False
+        try:
+            res = session.requests_executor.execute(op)
+            if verboseLog:
+                print(res)
+        except Exception as e:
+            failed = True
+        assert failed, "GetTopologyCommand() was supposed to throw an exception"
+    print("testGetTopologyBadDb ok")
 
-def testCreateAndDeleteDatabaseOp():
-    dbName = "tst_" + uuid.uuid4().hex
-    print("name: " + dbName)
-    store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="")
-    store.initialize()
-    op = CreateDatabaseOperation(database_name=dbName)
-    res = store.maintenance.server.send(op)
-    print(res)
-    op = DeleteDatabaseOperation(database_name=dbName, hard_delete=False)
-    res = store.maintenance.server.send(op)
-    print(res)
+# def testCreateAndDeleteDatabaseOp():
+#     dbName = "tst_" + uuid.uuid4().hex
+#     print("name: " + dbName)
+#     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="")
+#     store.initialize()
+#     op = CreateDatabaseOperation(database_name=dbName)
+#     res = store.maintenance.server.send(op)
+#     print(res)
+#     op = DeleteDatabaseOperation(database_name=dbName, hard_delete=False)
+#     res = store.maintenance.server.send(op)
+#     print(res)
 
 def testDeleteDatabaseOp():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database="")
@@ -130,17 +144,17 @@ def testPutGetDelete():
                                         "@metadata": {"@collection": "Testings"}})
 
 
-
 def main():
     deleteTestDatabases()
 
     testCreateDatabaseOp()
     testGetDatabaseNamesOp()
     testGetTopology()
-    #testGetTopologyBadDb()
+    testGetTopologyBadDb()
 
-    #testGetStatisticsOp()
-    #testGetStatisticsBadDb()
+    testGetStatisticsOp()
+    testGetStatisticsBadDb()
+
     #testCreateAndDeleteDatabaseOp()
 
     #testPutGetDelete()

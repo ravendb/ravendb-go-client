@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 var (
-	serverURL = "http://localhost:9999"
-	dbName    = "PyRavenDB"
+	serverURL  = "http://localhost:9999"
+	testDbName = ""
 
 	// enable to see more information for each test
 	verboseLog = false
@@ -18,7 +19,7 @@ var (
 func getExecutor() ravendb.CommandExecutorFunc {
 	node := &ravendb.ServerNode{
 		URL:        serverURL,
-		Database:   dbName,
+		Database:   testDbName,
 		ClusterTag: "0",
 	}
 	return ravendb.MakeSimpleExecutor(node)
@@ -117,31 +118,69 @@ func testGetTopologyCommandBadDb() {
 
 func testGetDatabaseNamesCommand() {
 	exec := getExecutor()
-	cmd := ravendb.NewGetDatabaseNamesCommand(0, 3)
+	cmd := ravendb.NewGetDatabaseNamesCommand(0, 32)
 	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd)
 	must(err)
 	if verboseLog {
 		fmt.Printf("databases: %#v\n", res.Databases)
 	}
+	panicIf(!stringInArray(res.Databases, testDbName), "%s not in %v", testDbName, res.Databases)
 	fmt.Printf("testGetDatabaseNamesCommand ok\n")
 }
 
 func testCreateDatabaseCommand() {
+	testDbName = "tst_" + ravendb.NewUUID().Hex()
 	exec := getExecutor()
-	dbName := ravendb.NewUUID().Hex()
-	cmd := ravendb.NewCreateDatabaseCommand(dbName, 1)
+	cmd := ravendb.NewCreateDatabaseCommand(testDbName, 1)
 	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd)
 	must(err)
 	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
-	panicIf(res.Name != dbName, "res.Name is '%s', expected '%s'", res.Name, dbName)
+	panicIf(res.Name != testDbName, "res.Name is '%s', expected '%s'", res.Name, testDbName)
 	if verboseLog {
 		fmt.Printf("res: %#v\n", res)
 	}
 	fmt.Printf("testCreateDatabaseCommand ok\n")
 }
 
+func deleteTestDatabases() {
+	exec := getExecutor()
+	cmd := ravendb.NewGetDatabaseNamesCommand(0, 32)
+	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd)
+	must(err)
+	if verboseLog {
+		fmt.Printf("databases: %#v\n", res.Databases)
+	}
+	for _, name := range res.Databases {
+		if !strings.HasPrefix(name, "tst_") {
+			continue
+		}
+		fmt.Printf("Deleting database %s\n", name)
+		cmd2 := ravendb.NewDeleteDatabaseCommand(name, true, "")
+		res2, err := ravendb.ExecuteDeleteDatabaseCommand(exec, cmd2)
+		must(err)
+		panicIf(res2.RaftCommandIndex == 0, "res2.RaftCommandIndex is 0")
+		if verboseLog {
+			fmt.Printf("res2: %#v\n", res2)
+		}
+	}
+}
+
+func testDeleteDatabaseOp() {
+	exec := getExecutor()
+	cmd := ravendb.NewDeleteDatabaseCommand(testDbName, true, "")
+	res, err := ravendb.ExecuteDeleteDatabaseCommand(exec, cmd)
+	must(err)
+	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
+	if verboseLog {
+		fmt.Printf("res: %#v\n", res)
+	}
+
+	fmt.Printf("testDeleteDatabaseCommand ok\n")
+}
+
+/*
 func testCreateAndDeleteDatabaseCommand() {
-	dbName := ravendb.NewUUID().Hex()
+	dbName := "tst_" + ravendb.NewUUID().Hex()
 	exec := getExecutor()
 	cmd := ravendb.NewCreateDatabaseCommand(dbName, 1)
 	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd)
@@ -164,15 +203,23 @@ func testCreateAndDeleteDatabaseCommand() {
 
 	fmt.Printf("testCreateAndDeleteDatabaseCommand ok\n")
 }
+*/
 
 func main() {
-	//testInvalidCommand()
-	//testGetClusterTopologyCommand()
-	//testGetStatisticsCommand()
-	//testGetStatisticsCommandBadDb()
-	//testGetTopologyCommand()
-	//testGetTopologyCommandBadDb()
-	//testGetDatabaseNamesCommand()
-	//testCreateDatabaseCommand()
-	testCreateAndDeleteDatabaseCommand()
+	deleteTestDatabases()
+
+	testInvalidCommand()
+
+	testCreateDatabaseCommand()
+	testGetDatabaseNamesCommand()
+	testGetTopologyCommand()
+	testGetTopologyCommandBadDb()
+
+	testGetClusterTopologyCommand()
+	testGetStatisticsCommand()
+	testGetStatisticsCommandBadDb()
+
+	//testCreateAndDeleteDatabaseCommand()
+
+	testDeleteDatabaseOp()
 }

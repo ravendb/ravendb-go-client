@@ -14,3 +14,12 @@ func panicIf(cond bool, format string, args ...interface{}) {
 		must(err)
 	}
 }
+
+func stringInArray(a []string, s string) bool {
+	for _, s2 := range a {
+		if s2 == s {
+			return true
+		}
+	}
+	return false
+}
