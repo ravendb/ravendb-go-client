@@ -223,6 +223,13 @@ func testPutGetDeleteDocument() {
 		fmt.Printf("res: %#v\n", res)
 	}
 
+	cmd = ravendb.NewGetDocumentCommand([]string{key}, nil, false)
+	res2, err := ravendb.ExecuteGetDocumentCommand(exec, cmd)
+	must(err)
+	if verboseLog {
+		fmt.Printf("len(res2.Includes): %d, len(res.Results): %d\n", len(res2.Includes), len(res2.Results))
+	}
+
 	fmt.Printf("testPutGetDeleteDocument ok\n")
 }
 

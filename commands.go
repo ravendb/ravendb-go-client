@@ -539,7 +539,7 @@ func NewPutDocumentJSONCommand(key string, js []byte, changeVector string) *Rave
 	panicIf(key == "", "key can't be empty string")
 	res := &RavenCommand{
 		Method:      http.MethodPut,
-		URLTemplate: "{url}/databases/{db}/docs?id=" + quoteKey(key, false),
+		URLTemplate: "{url}/databases/{db}/docs?id=" + quoteKey(key),
 	}
 	if changeVector != "" {
 		res.Headers["If-Match"] = fmt.Sprintf(`"%s"`, changeVector)
@@ -555,9 +555,70 @@ func NewPutDocumentRawCommand(key string, doc map[string]interface{}, changeVect
 	return NewPutDocumentJSONCommand(key, js, changeVector)
 }
 
-// ExecutePutDocumentRawCommand executes GetOperationsState command
+// ExecutePutDocumentRawCommand executes PutDocument command
 func ExecutePutDocumentRawCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*PutResult, error) {
 	var res PutResult
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func isGetDocumentPost(keys []string) bool {
+	maxKeySize := 1024
+	size := 0
+	for _, key := range keys {
+		size += len(key)
+		if size > maxKeySize {
+			return true
+		}
+	}
+	return false
+}
+
+// NewGetDocumentCommand creates a command for GetDocument operation
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L52:7
+//https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/commands/GetDocumentsCommand.java#L37
+// TODO: java has start/pageSize
+func NewGetDocumentCommand(keys []string, includes []string, metadataOnly bool) *RavenCommand {
+	panicIf(len(keys) == 0, "must provide at least one key") // TODO: return an error?
+	res := &RavenCommand{
+		Method: http.MethodGet,
+	}
+	path := "docs?"
+	for _, s := range includes {
+		path += "&include=" + quoteKey(s)
+	}
+	if metadataOnly {
+		path += "&metadataOnly=true"
+	}
+
+	if isGetDocumentPost(keys) {
+		res.Method = http.MethodPost
+		js, err := json.Marshal(keys)
+		must(err)
+		res.Data = js
+	} else {
+		for _, s := range keys {
+			path += "&id=" + quoteKey(s)
+		}
+	}
+	res.URLTemplate = "{url}/databases/{db}/" + path
+	return res
+}
+
+// GetDocumentResult is a result of GetDocument command
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/commands/GetDocumentsResult.java#L6:14
+type GetDocumentResult struct {
+	Includes      json.RawMessage   `json:"Includes"`
+	Results       []json.RawMessage `json:"Results"`
+	NextPageStart int               `json:"NextPageStart"`
+}
+
+// ExecuteGetDocumentCommand executes GetDocument command
+func ExecuteGetDocumentCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*GetDocumentResult, error) {
+	var res GetDocumentResult
 	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
@@ -575,7 +636,7 @@ DeleteAttachmentCommandData
 Commands to implement:
 
 // raven_commands.py
-GetDocumentCommand
+  GetDocumentCommand
 DeleteDocumentCommand
   PutDocumentCommand
 BatchCommand

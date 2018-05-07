@@ -58,7 +58,15 @@ def quote_key(key, reserved_slash=False):
 	return urllib.parse.quote(key, safe=reserved)
 */
 // TODO: implement me exactly
-func quoteKey(s string, reservedSlash bool) string {
+func quoteKey2(s string, reservedSlash bool) string {
 	// https://golang.org/src/net/url/url.go?s=7512:7544#L265
 	return url.PathEscape(s)
+}
+
+func quoteKey(s string) string {
+	return quoteKey2(s, false)
+}
+
+func quoteKeyWithSlash(s string) string {
+	return quoteKey2(s, true)
 }
