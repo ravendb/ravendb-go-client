@@ -15,11 +15,11 @@ type RangeValue struct {
 }
 
 // NewRangeValue creates a new RangeValue
-func NewRangeValue(minID int, maxID int) *RangeValue {
+func NewRangeValue(min int, max int) *RangeValue {
 	return &RangeValue{
-		Min:     minID,
-		Max:     maxID,
-		Current: minID - 1,
+		Min:     min,
+		Max:     max,
+		Current: min - 1,
 	}
 }
 
@@ -61,7 +61,7 @@ const (
 // NewNextHiLoCommand creates a NextHiLoCommand
 func NewNextHiLoCommand(tag string, lastBatchSize int, lastRangeAt time.Time, identityPartsSeparator string, lastRangeMax int) *RavenCommand {
 	lastRangeAtStr := quoteKey(lastRangeAt.Format(timeFormat))
-	path := fmt.Sprintf("hilo/next?tag=%s&lastBatchSize=%dd&lastRangeAt=%d&identityPartsSeparator=%s&lastMax=%d", tag, lastBatchSize, lastRangeAtStr, identityPartsSeparator, lastRangeMax)
+	path := fmt.Sprintf("hilo/next?tag=%s&lastBatchSize=%d&lastRangeAt=%s&identityPartsSeparator=%s&lastMax=%d", tag, lastBatchSize, lastRangeAtStr, identityPartsSeparator, lastRangeMax)
 	url := "{url}/databases/{db}/" + path
 	res := &RavenCommand{
 		Method:      http.MethodGet,
@@ -96,7 +96,12 @@ func (r *NextHiLoResult) GetLastRangeAt() time.Time {
 
 // ExecuteNewNextHiLoCommand executes NextHiLoResult command
 func ExecuteNewNextHiLoCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*NextHiLoResult, error) {
-	return nil, nil
+	var res NextHiLoResult
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 // HiLoKeyGenerator generates keys server side
@@ -165,12 +170,13 @@ func (g *HiLoKeyGenerator) GenerateDocumentKey() int {
 }
 
 func (g *HiLoKeyGenerator) getNextRange() {
+	exec := g.store.getSimpleExecutor()
 	cmd := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
 		g.identityPartsSeparator, g.rangev.Max)
 	// TODO: use store.getRequestsExecutor().Exec()
-	exec := g.store.getSimpleExecutor()
 	// TODO: propagate the error
-	res, _ := ExecuteNewNextHiLoCommand(exec, cmd)
+	res, err := ExecuteNewNextHiLoCommand(exec, cmd)
+	must(err)
 	g.prefix = res.Prefix
 	g.serverTag = res.ServerTag
 	g.lastRangeAt = res.GetLastRangeAt()
@@ -178,12 +184,12 @@ func (g *HiLoKeyGenerator) getNextRange() {
 	g.rangev = NewRangeValue(res.Low, res.High)
 }
 
-func (g *HiLoKeyGenerator) returnUnusedRange() error {
+// ReturnUnusedRange returns unused range
+func (g *HiLoKeyGenerator) ReturnUnusedRange() error {
 	cmd := NewHiLoReturnCommand(g.tag, g.rangev.Curr(), g.rangev.Max)
 	// TODO: use store.getRequestsExecutor().Exec()
 	exec := g.store.getSimpleExecutor()
-	err := ExecuteHiLoReturnCommand(exec, cmd)
-	return err
+	return ExecuteHiLoReturnCommand(exec, cmd)
 }
 
 // TODO:

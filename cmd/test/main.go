@@ -255,6 +255,22 @@ func testPutGetDeleteDocument() {
 	fmt.Printf("testPutGetDeleteDocument ok\n")
 }
 
+func testHiLoKeyGenerator() {
+	urls := []string{"http://localhost:9999"}
+	store := ravendb.NewDocumentStore(urls, testDbName)
+	store.Initialize()
+	tag := "my_tag"
+	generator := ravendb.NewHiLoKeyGenerator(tag, store, testDbName)
+	fmt.Printf("generator: %#v\n", generator)
+	res := generator.GenerateDocumentKey()
+	if verboseLog {
+		fmt.Printf("%#v\n", res)
+	}
+	err := generator.ReturnUnusedRange()
+	must(err)
+	print("testHiLoKeyGenerator ok\n")
+}
+
 func main() {
 	allTests := false
 	deleteTestDatabases()
@@ -270,9 +286,9 @@ func main() {
 		testGetClusterTopologyCommand()
 		testGetStatisticsCommand()
 		testGetStatisticsCommandBadDb()
+		testPutGetDeleteDocument()
 	}
 
-	testPutGetDeleteDocument()
-
+	testHiLoKeyGenerator()
 	//testDeleteDatabaseOp()
 }
