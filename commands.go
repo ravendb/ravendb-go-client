@@ -702,6 +702,10 @@ _CreateDatabaseCommand
 _DeleteDatabaseCommand
 _GetDatabaseNamesCommand
 
+// hilo_generator.py
+HiLoReturnCommand
+NextHiLoCommand
+
 */
 
 /*
@@ -731,10 +735,6 @@ DeleteSubscriptionCommand
 DropSubscriptionConnectionCommand
 GetSubscriptionsCommand
 GetSubscriptionStateCommand
-
-// hilo_generator.py
-HiLoReturnCommand
-NextHiLoCommand
 
 // maintenance_operations.py
 _DeleteIndexCommand
