@@ -2,6 +2,7 @@ from pyravendb.store import document_store
 from pyravendb.raven_operations.server_operations import GetDatabaseNamesOperation, CreateDatabaseOperation, DeleteDatabaseOperation
 from pyravendb.raven_operations.maintenance_operations import GetStatisticsOperation
 from pyravendb.commands.raven_commands import GetTopologyCommand, PutDocumentCommand, GetDocumentCommand, DeleteDocumentCommand
+from pyravendb.hilo.hilo_generator import HiLoKeyGenerator
 import uuid
 from builtins import ValueError
 
@@ -144,8 +145,18 @@ def testPutGetDeleteDocument():
     cmd = DeleteDocumentCommand("testing/1234")
     res = re.execute(cmd)
     if verboseLog: print(res)
-
     print("testPutGetDelete ok")
+
+def testHiLoKeyGenerator():
+    store =  document_store.DocumentStore(urls=["http://localhost:9999"], database=testDbName)
+    store.initialize()
+    tag = "my_tag"
+    generator = HiLoKeyGenerator(tag, store, testDbName)
+    res = generator.generate_document_key()
+    if verboseLog: print(res)
+    res = generator.return_unused_range()
+    if verboseLog: print(res)
+    print("testHiLoKeyGenerator ok")
 
 all_tests = False
 def main():
@@ -160,7 +171,9 @@ def main():
         testGetStatisticsOp()
         testGetStatisticsBadDb()
 
-    testPutGetDeleteDocument()
+        testPutGetDeleteDocument()
+
+    testHiLoKeyGenerator()
 
     #testDeleteDatabaseOp()
 

@@ -68,6 +68,16 @@ func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestsExecutor {
 	return re
 }
 
+// TODO: this is temporary, should be on RequestsExecutor
+func (s *DocumentStore) getSimpleExecutor() CommandExecutorFunc {
+	node := &ServerNode{
+		URL:        s.urls[0],
+		Database:   s.database,
+		ClusterTag: "0",
+	}
+	return MakeSimpleExecutor(node)
+}
+
 // OpenSession opens a new session to document store.
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L112
 func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
