@@ -129,12 +129,7 @@ func decodeJSONFromReader(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
 }
 
-// TODO: do I need to explicitly enable compression or does the client does
-// it by default? It seems to send Accept-Encoding: gzip by default
-func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
-	client := &http.Client{
-		Timeout: time.Second * 5,
-	}
+func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
 	url := cmd.BuildFullURL(n)
 	var body io.Reader
 	if cmd.Method == http.MethodPut || cmd.Method == http.MethodPost || cmd.Method == http.MethodDelete {
@@ -143,6 +138,10 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 			body = bytes.NewBuffer(cmd.Data)
 		}
 	}
+	/* TODO:
+	   if raven_command.files:
+	      data = {"data": data}
+	*/
 	req, err := http.NewRequest(cmd.Method, url, body)
 	if err != nil {
 		return nil, err
@@ -154,13 +153,27 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	req.Header.Add("Raven-Client-Version", "4.0.0.0")
 	req.Header.Add("Accept", "application/json")
 	panicIf(n.ClusterTag == "", "ClusterTag is empty string in %v", n)
-	// TODO: do I need to quote the tag? Python client
+	// TODO: do I need to quote the tag? Python client does
 	etag := fmt.Sprintf(`"%s"`, n.ClusterTag)
 	req.Header.Add(TOPOLOGY_ETAG, etag)
+	return req, nil
+}
+
+// TODO: do I need to explicitly enable compression or does the client does
+// it by default? It seems to send Accept-Encoding: gzip by default
+func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
+	req, err := makeHTTPRequest(n, cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{
+		Timeout: time.Second * 5,
+	}
 	rsp, err := client.Do(req)
 	// this is for network-level errors when we don't get response
 	if err != nil {
-		return rsp, err
+		return nil, err
 	}
 	// we have response but it could be one of the error server response
 

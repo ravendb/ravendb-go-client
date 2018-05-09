@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -37,9 +38,10 @@ func NewRequestsExecutor(databaseName string, conventions *DocumentConventions) 
 		conventions = NewDocumentConventions()
 	}
 	res := &RequestsExecutor{
-		Conventions:       conventions,
-		headers:           map[string]string{},
-		failedNodesTimers: map[*ServerNode]*NodeStatus{},
+		Conventions:        conventions,
+		headers:            map[string]string{},
+		failedNodesTimers:  map[*ServerNode]*NodeStatus{},
+		lastReturnResponse: time.Now(),
 	}
 	return res
 }
@@ -61,6 +63,7 @@ func CreateRequestsExecutorForSingleNode(url string, dbName string) *RequestsExe
 	topology.Etag = -1
 	node := NewServerNode(url, dbName)
 	topology.Nodes = []*ServerNode{node}
+
 	re := NewRequestsExecutor(dbName, nil)
 	re.nodeSelector = NewNodeSelector(topology)
 	re.disableTopologyUpdates = true
@@ -104,8 +107,95 @@ func (re *RequestsExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool
 
 // ExecuteWithNode sends a command to the server via http and parses a result
 func (re *RequestsExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
+	for {
+		nodeIndex := 0
+		if re.nodeSelector != nil {
+			nodeIndex = re.nodeSelector.CurrentNodeIndex
+		}
+		req, err := makeHTTPRequest(chosenNode, ravenCommand)
+		if !re.disableTopologyUpdates {
+			etagStr := fmt.Sprintf(`"%d"`, re.TopologyEtag)
+			req.Header.Add("Topology-Etag", etagStr)
+		}
 
-	return nil, nil
+		// TODO: handle an error?
+		must(err)
+		client := &http.Client{
+			Timeout: time.Second * 5,
+		}
+		rsp, err := client.Do(req)
+		// this is for network-level errors when we don't get response
+		if err != nil {
+			// if asked, retry network-level errors
+			if shouldRetry == false {
+				return nil, err
+			}
+			if !re.handleServerDown(chosenNode, nodeIndex, ravenCommand, err) {
+				// TODO: wrap in AllTopologyNodesDownError
+				return nil, err
+			}
+			chosenNode = re.nodeSelector.GetCurrentNode()
+			continue
+		}
+
+		code := rsp.StatusCode
+		// 404
+		if code == http.StatusNotFound {
+			return nil, err
+		}
+
+		// 403
+		if code == http.StatusForbidden {
+			// TOOD: if certificate is nil, load certificate and retry
+			panicIf(true, "NYI")
+			return nil, err
+		}
+
+		// 410
+		if code == http.StatusGone {
+			if shouldRetry {
+				re.updateTopology(chosenNode, true)
+				continue
+			} else {
+				// TODO: python code always retries
+				return nil, err
+			}
+		}
+
+		// 408, 502, 503, 504
+		if code == http.StatusRequestTimeout || code == http.StatusBadGateway || code == http.StatusServiceUnavailable || code == http.StatusGatewayTimeout {
+			if len(ravenCommand.failedNodes) == 1 {
+				panicIf(true, "NYI")
+				databaseMissing := rsp.Header.Get("Database-Missing")
+				if databaseMissing != "" {
+					// TODO: return DatabaseDoesNotExistException
+					return nil, err
+				}
+				// TODO: return UnsuccessfulRequestException
+				// node := ravenCommand.failedNodes[0]
+				return nil, err
+			}
+
+			// TODO: e = response.json()["Message"]
+			if re.handleServerDown(chosenNode, nodeIndex, ravenCommand, nil) {
+				chosenNode = re.nodeSelector.GetCurrentNode()
+			}
+			continue
+		}
+
+		// 409
+		if code == http.StatusConflict {
+			// TODO: conflict resolution
+			return nil, err
+		}
+
+		if rsp.Header.Get("Refresh-Topology") != "" {
+			node := NewServerNode(chosenNode.URL, re.databaseName)
+			re.updateTopology(node, false)
+		}
+		re.lastReturnResponse = time.Now()
+		return rsp, nil
+	}
 }
 
 // GetCommandExecutorWithNode returns command executor for a given node
