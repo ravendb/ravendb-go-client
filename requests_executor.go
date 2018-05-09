@@ -47,21 +47,24 @@ func NewRequestsExecutor(databaseName string, conventions *DocumentConventions) 
 // CreateRequestsExecutor creates a RequestsExecutor
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L52
 // TODO: certificate, conventions
-func CreateRequestsExecutor(urls []string, databaseName string, conventions *DocumentConventions) *RequestsExecutor {
-	re := NewRequestsExecutor(databaseName, conventions)
+func CreateRequestsExecutor(urls []string, dbName string, conventions *DocumentConventions) *RequestsExecutor {
+	re := NewRequestsExecutor(dbName, conventions)
 	re.urls = urls
 	re.startFirstTopologyThread(urls)
 	return re
 }
 
-// GetCommandExecutorWithNode returns command executor for a given node
-func (re *RequestsExecutor) GetCommandExecutorWithNode(node *ServerNode, shouldRetry bool) CommandExecutorFunc {
-	f := func(cmd *RavenCommand) (*http.Response, error) {
-		// TODO: write me
-		panicIf(true, "NYI")
-		return nil, nil
-	}
-	return f
+// CreateRequestsExecutorForSingleNode creates RequestsExecutor for a single server
+// TODO: certificate
+func CreateRequestsExecutorForSingleNode(url string, dbName string) *RequestsExecutor {
+	topology := NewTopology()
+	topology.Etag = -1
+	node := NewServerNode(url, dbName)
+	topology.Nodes = []*ServerNode{node}
+	re := NewRequestsExecutor(dbName, nil)
+	re.nodeSelector = NewNodeSelector(topology)
+	re.disableTopologyUpdates = true
+	return re
 }
 
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L63
@@ -90,6 +93,35 @@ func (re *RequestsExecutor) ensureNodeSelector() {
 func (re *RequestsExecutor) getPreferredNode() *ServerNode {
 	re.ensureNodeSelector()
 	return re.nodeSelector.GetCurrentNode()
+}
+
+// Execute sends a command to the server via http and parses a result
+func (re *RequestsExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
+	// TODO: make sure that firstTopologyUpdate finished
+	chosenNode := re.nodeSelector.GetCurrentNode()
+	return re.ExecuteWithNode(chosenNode, ravenCommand, shouldRetry)
+}
+
+// ExecuteWithNode sends a command to the server via http and parses a result
+func (re *RequestsExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
+
+	return nil, nil
+}
+
+// GetCommandExecutorWithNode returns command executor for a given node
+func (re *RequestsExecutor) GetCommandExecutorWithNode(node *ServerNode, shouldRetry bool) CommandExecutorFunc {
+	f := func(cmd *RavenCommand) (*http.Response, error) {
+		return re.ExecuteWithNode(node, cmd, shouldRetry)
+	}
+	return f
+}
+
+// GetCommandExecutor returns command executor
+func (re *RequestsExecutor) GetCommandExecutor(shouldRetry bool) CommandExecutorFunc {
+	f := func(cmd *RavenCommand) (*http.Response, error) {
+		return re.Execute(cmd, shouldRetry)
+	}
+	return f
 }
 
 func (re *RequestsExecutor) firstTopologyUpdate(initialUrls []string) error {
@@ -268,24 +300,4 @@ func (re *RequestsExecutor) Close() {
 	if re.updateTopologyTimer != nil {
 		re.updateTopologyTimer.Stop()
 	}
-}
-
-// GetExecutor returns command executor function
-func (re *RequestsExecutor) GetExecutor() CommandExecutorFunc {
-	fn := func(cmd *RavenCommand) (*http.Response, error) {
-		return nil, nil
-	}
-	return fn
-}
-
-// Execute executes a command
-func (re *RequestsExecutor) Execute(cmd *RavenCommand, shouldRetry bool) {
-	/*node := &ServerNode{
-		URL:        re.urls[0],
-		Database:   re.databaseName,
-		ClusterTag: "0", // TODO: is it re.TopologyEtag?
-	}
-	exec := MakeSimpleExecutor(node)
-	ExecuteCommand(exec, cmd)
-	*/
 }

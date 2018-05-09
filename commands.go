@@ -37,6 +37,12 @@ func (c *RavenCommand) isFailedWithNode(node *ServerNode) bool {
 	return false
 }
 
+// BuildFullURL creates a full url by filling in server address and database name
+func (c *RavenCommand) BuildFullURL(n *ServerNode) string {
+	url := strings.Replace(c.URLTemplate, "{url}", n.URL, -1)
+	return strings.Replace(url, "{db}", n.Database, -1)
+}
+
 // BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {
@@ -129,8 +135,7 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	client := &http.Client{
 		Timeout: time.Second * 5,
 	}
-	url := strings.Replace(cmd.URLTemplate, "{url}", n.URL, -1)
-	url = strings.Replace(url, "{db}", n.Database, -1)
+	url := cmd.BuildFullURL(n)
 	var body io.Reader
 	if cmd.Method == http.MethodPut || cmd.Method == http.MethodPost || cmd.Method == http.MethodDelete {
 		// TODO: should this be mandatory?
