@@ -13,6 +13,14 @@ type ServerNode struct {
 	Database   string `json:"Database"`
 }
 
+// NewServerNode creates a new ServerNode
+func NewServerNode(url string, database string) *ServerNode {
+	return &ServerNode{
+		URL:      url,
+		Database: database,
+	}
+}
+
 // TODO: on ServerNode implement:
 // response_time, ewma(), is_rate_surpassed()
 
@@ -22,6 +30,11 @@ type ServerNode struct {
 type Topology struct {
 	Nodes []*ServerNode `json:"Nodes"`
 	Etag  int           `json:"Etag"`
+}
+
+// NewTopology creates a new Topology
+func NewTopology() *Topology {
+	return &Topology{}
 }
 
 // NodeSelector describes node selector
@@ -103,6 +116,15 @@ type NodeStatus struct {
 	node             *ServerNode
 	timerPeriod      time.Duration
 	timer            *time.Timer
+}
+
+// NewNodeStatus creates a new NodeStatus
+func NewNodeStatus(re *RequestsExecutor, nodeIndex int, node *ServerNode) *NodeStatus {
+	return &NodeStatus{
+		requestsExecutor: re,
+		nodeIndex:        nodeIndex,
+		node:             node,
+	}
 }
 
 func (s *NodeStatus) nextTimerPeriod() time.Duration {

@@ -20,6 +20,21 @@ type RavenCommand struct {
 	// additional HTTP request headers
 	Headers map[string]string
 	Data    []byte
+
+	failedNodes []*ServerNode
+}
+
+func (c *RavenCommand) addFailedNode(node *ServerNode) {
+	c.failedNodes = append(c.failedNodes, node)
+}
+
+func (c *RavenCommand) isFailedWithNode(node *ServerNode) bool {
+	for _, n := range c.failedNodes {
+		if n == node {
+			return true
+		}
+	}
+	return false
 }
 
 // BadRequestError maps to server's 400 Bad Request response
