@@ -361,22 +361,6 @@ func ExecuteGetStatisticsCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*
 	return &res, nil
 }
 
-// ServerNode describes a single server node
-type ServerNode struct {
-	URL        string `json:"Url"`
-	ClusterTag string `json:"ClusterTag"`
-	ServerRole string `json:"ServerRole"`
-	Database   string `json:"Database"`
-}
-
-// Topology describes server nodes
-// Result of
-// {"Nodes":[{"Url":"http://localhost:9999","ClusterTag":"A","Database":"PyRavenDB","ServerRole":"Rehab"}],"Etag":10}
-type Topology struct {
-	Nodes []ServerNode `json:"Nodes"`
-	Etag  int          `json:"Etag"`
-}
-
 // NewGetTopologyCommand creates a new GetClusterTopologyCommand
 func NewGetTopologyCommand() *RavenCommand {
 	res := &RavenCommand{

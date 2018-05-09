@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-// NodeSelector describes node selector
-type NodeSelector struct {
-}
-
 // RequestsExecutor describes executor of HTTP requests
 type RequestsExecutor struct {
 	databaseName string
