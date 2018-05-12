@@ -158,6 +158,25 @@ def testHiLoKeyGenerator():
     if verboseLog: print(res)
     print("testHiLoKeyGenerator ok")
 
+class Foo(object):
+   def __init__(self, name, key = None):
+        self.name = name
+        self.key = key
+
+class FooBar(object):
+    def __init__(self, name, foo):
+        self.name = name
+        self.foo = foo
+
+def testStoreLoad():
+    store =  document_store.DocumentStore(urls=["http://localhost:9999"], database=testDbName)
+    store.initialize()
+    with store.open_session() as session:
+        foo = Foo("PyRavenDB")
+        session.store(foo)
+        session.save_changes()
+
+
 all_tests = False
 def main():
     deleteTestDatabases()
