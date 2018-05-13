@@ -25,6 +25,32 @@ func getExecutor() ravendb.CommandExecutorFunc {
 	return ravendb.MakeSimpleExecutor(node)
 }
 
+var (
+	gStore   *ravendb.DocumentStore
+	gSession *ravendb.DocumentSession
+)
+
+func getStore() *ravendb.DocumentStore {
+	if gStore != nil {
+		return gStore
+	}
+	urls := []string{"http://localhost:9999"}
+	store := ravendb.NewDocumentStore(urls, testDbName)
+	store.Initialize()
+	return store
+}
+
+func mustGetSession() *ravendb.DocumentSession {
+	if gSession != nil {
+		return gSession
+	}
+	s := getStore()
+	var err error
+	gSession, err = s.OpenSession()
+	must(err)
+	return gSession
+}
+
 func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
 	node := &ravendb.ServerNode{
 		URL:        serverURL,
@@ -37,7 +63,8 @@ func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
 // test that when we send invalid command to the server, we get the right
 // error code
 func testInvalidCommand() {
-	exec := getExecutor()
+	sess := mustGetSession()
+	exec := sess.RequestsExecutor.GetCommandExecutor(false)
 	cmd := &ravendb.RavenCommand{
 		Method:        http.MethodGet,
 		IsReadRequest: true,
@@ -51,7 +78,8 @@ func testInvalidCommand() {
 }
 
 func testGetClusterTopologyCommand() {
-	exec := getExecutor()
+	sess := mustGetSession()
+	exec := sess.RequestsExecutor.GetCommandExecutor(false)
 	cmd := ravendb.NewGetClusterTopologyCommand()
 	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd)
 	must(err)
@@ -86,7 +114,7 @@ func testGetStatisticsCommandBadDb() {
 	// TODO: should this be 501? In Python test it's not possible to execute
 	// this command directly, it'll fail after GetTopology command
 	re := err.(*ravendb.InternalServerError)
-	if verboseLog {
+	if false && verboseLog {
 		fmt.Printf("error: %s\n", re)
 	}
 	fmt.Printf("testGetStatisticsCommandBadDb ok\n")
@@ -110,14 +138,15 @@ func testGetTopologyCommandBadDb() {
 	panicIf(res != nil, "expected res to be nil")
 	panicIf(err == nil, "expected err to be non nil")
 	re := err.(*ravendb.ServiceUnavailableError)
-	if verboseLog {
+	if false && verboseLog {
 		fmt.Printf("error: %s\n", re)
 	}
 	fmt.Printf("testGetTopologyCommandBadDb ok\n")
 }
 
 func testGetDatabaseNamesCommand() {
-	exec := getExecutor()
+	sess := mustGetSession()
+	exec := sess.RequestsExecutor.GetCommandExecutor(false)
 	cmd := ravendb.NewGetDatabaseNamesCommand(0, 32)
 	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd)
 	must(err)
@@ -256,9 +285,7 @@ func testPutGetDeleteDocument() {
 }
 
 func testHiLoKeyGenerator() {
-	urls := []string{"http://localhost:9999"}
-	store := ravendb.NewDocumentStore(urls, testDbName)
-	store.Initialize()
+	store := getStore()
 	tag := "my_tag"
 	generator := ravendb.NewHiLoKeyGenerator(tag, store, testDbName)
 	fmt.Printf("generator: %#v\n", generator)
@@ -272,7 +299,8 @@ func testHiLoKeyGenerator() {
 }
 
 func main() {
-	allTests := false
+	allTests := true
+
 	deleteTestDatabases()
 	testCreateDatabaseCommand()
 

@@ -14,17 +14,30 @@ type DocumentStore struct {
 	// maps database name to its RequestsExecutor
 	requestsExecutors map[string]*RequestsExecutor
 	Conventions       *DocumentConventions
+	generator         *MultiDatabaseHiLoKeyGenerator
 }
 
 // NewDocumentStore creates a DocumentStore
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L13
 func NewDocumentStore(urls []string, db string) *DocumentStore {
-	res := &DocumentStore{
-		urls:        urls,
-		database:    db,
-		Conventions: NewDocumentConventions(),
+	s := &DocumentStore{
+		urls:              urls,
+		database:          db,
+		requestsExecutors: map[string]*RequestsExecutor{},
+		Conventions:       NewDocumentConventions(),
 	}
-	return res
+
+	// TODO: this belongs also to NewDocumentStore
+	if len(s.urls) == 0 {
+		err := fmt.Errorf("Must provide urls to NewDocumentStore")
+		must(err)
+	}
+	// TODO: for some operations (like listing databases) you don't need database name
+	if s.database == "" {
+		err := fmt.Errorf("Must provide database name to NewDocumentStore")
+		must(err)
+	}
+	return s
 }
 
 // Initialize initializes document store,
@@ -42,6 +55,8 @@ func (s *DocumentStore) Initialize() error {
 	if s.database == "" {
 		return fmt.Errorf("Must provide database name to NewDocumentStore")
 	}
+	s.generator = NewMultiDatabaseHiLoKeyGenerator(s)
+	s.isInitialized = true
 	return nil
 }
 
@@ -86,4 +101,12 @@ func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 	sessionID := NewUUID().String()
 	re := s.GetRequestExecutor(s.database)
 	return NewDocumentSession(s.database, s, sessionID, re), nil
+}
+
+// Close closes the store
+func (s *DocumentStore) Close() {
+	if s.generator != nil {
+		s.generator.ReturnUnusedRange()
+	}
+	// TODO: more
 }

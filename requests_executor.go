@@ -24,6 +24,8 @@ type RequestsExecutor struct {
 	lock                   sync.Mutex
 	disableTopologyUpdates bool
 
+	waitForFirstTopologyUpdate sync.WaitGroup
+
 	failedNodesTimers   map[*ServerNode]*NodeStatus
 	updateTopologyTimer *time.Timer
 	topologyNodes       []*ServerNode
@@ -42,6 +44,7 @@ func NewRequestsExecutor(databaseName string, conventions *DocumentConventions) 
 		headers:            map[string]string{},
 		failedNodesTimers:  map[*ServerNode]*NodeStatus{},
 		lastReturnResponse: time.Now(),
+		databaseName:       databaseName,
 	}
 	return res
 }
@@ -72,18 +75,17 @@ func CreateRequestsExecutorForSingleNode(url string, dbName string) *RequestsExe
 
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L63
 func (re *RequestsExecutor) startFirstTopologyThread(urls []string) {
+	fmt.Printf("startFirstTopologyThread\n")
 	initialUrls := re.urls
+	re.waitForFirstTopologyUpdate.Add(1)
 	go func() {
 		re.firstTopologyUpdate(initialUrls)
+		re.waitForFirstTopologyUpdate.Done()
 	}()
 }
 
 func (re *RequestsExecutor) ensureNodeSelector() {
-	/*
-		TODO:
-		if self._first_topology_update and self._first_topology_update.is_alive():
-		self._first_topology_update.join()
-	*/
+	re.waitForFirstTopologyUpdate.Wait()
 	if re.nodeSelector != nil {
 		return
 	}
@@ -100,7 +102,9 @@ func (re *RequestsExecutor) getPreferredNode() *ServerNode {
 
 // Execute sends a command to the server via http and parses a result
 func (re *RequestsExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
-	// TODO: make sure that firstTopologyUpdate finished
+	fmt.Printf("waiting for firstTopologyUpdate() to finish\n")
+	re.waitForFirstTopologyUpdate.Wait()
+	fmt.Printf("firstTopologyUpdate() finished\n")
 	chosenNode := re.nodeSelector.GetCurrentNode()
 	return re.ExecuteWithNode(chosenNode, ravenCommand, shouldRetry)
 }
@@ -189,6 +193,17 @@ func (re *RequestsExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand
 			return nil, err
 		}
 
+		// convert 400 Bad Request response to BadReqeustError
+		// TODO: in python code this only happends for some commands
+		if rsp.StatusCode == http.StatusBadRequest {
+			var res BadRequestError
+			err = decodeJSONFromReader(rsp.Body, &res)
+			if err != nil {
+				return nil, err
+			}
+			return nil, &res
+		}
+
 		if rsp.Header.Get("Refresh-Topology") != "" {
 			node := NewServerNode(chosenNode.URL, re.databaseName)
 			re.updateTopology(node, false)
@@ -217,6 +232,7 @@ func (re *RequestsExecutor) GetCommandExecutor(shouldRetry bool) CommandExecutor
 func (re *RequestsExecutor) firstTopologyUpdate(initialUrls []string) error {
 	var errorList []error
 	for _, url := range initialUrls {
+		panicIf(re.databaseName == "", "re.databaseName is empty")
 		node := NewServerNode(url, re.databaseName)
 		err := re.updateTopology(node, false)
 		// TODO: if DatabaseDoesNotExistException
@@ -283,6 +299,8 @@ func writeToCache(topology *Topology, node *ServerNode) {
 }
 
 func (re *RequestsExecutor) updateTopology(node *ServerNode, forceUpdate bool) error {
+	panicIf(node.Database == "", "node.Database is empty in %#v", node)
+	fmt.Printf("updateTopology\n")
 	if re.closed {
 		return errors.New("RequestsExecutor is closed")
 	}

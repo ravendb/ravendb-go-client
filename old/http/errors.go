@@ -42,11 +42,13 @@ func (err ErrorResponseError) Error() string {
 	return fmt.Sprintf("Failed to put document in the database please check the connection to the server")
 }
 
+// UnsuccessfulRequestError describes unsuccessful request error
 type UnsuccessfulRequestError struct {
 	Url        string
 	FailedNode server_nodes.IServerNode
 }
 
+// NewUnsuccessfulRequestError creates new UnsuccessfulRequestError
 func NewUnsuccessfulRequestError(url string, node server_nodes.IServerNode) (*UnsuccessfulRequestError, error) {
 	return &UnsuccessfulRequestError{FailedNode: node, Url: url}, nil
 }
@@ -55,13 +57,18 @@ func (err UnsuccessfulRequestError) Error() string {
 	return fmt.Sprintf("Request to %s on node %s failed", err.Url, err.FailedNode.GetClusterTag())
 }
 
+// ServerError describes and error json returned by the server
 type ServerError struct {
-	Url, Type, Message, Error string
+	URL      string `json:"Url"`
+	Type     string `json:"Type"`
+	Message  string `json:"Message"`
+	ErrorStr string `json:"Error"`
 }
 
-func NewServerError(response http.Response) (*ServerError, error) {
+// NewServerError creates ServerError from server HTTP response
+func NewServerError(rsp http.Response) (*ServerError, error) {
 	var servErr ServerError
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
 		return nil, err
 	}

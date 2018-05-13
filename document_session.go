@@ -4,10 +4,12 @@ package ravendb
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
 type DocumentSession struct {
-	SessionID        string
-	Database         string
-	documentStore    *DocumentStore
-	requestsExecutor *RequestsExecutor
+	SessionID                 string
+	Database                  string
+	documentStore             *DocumentStore
+	RequestsExecutor          *RequestsExecutor
+	NumberOfRequestsInSession int
+	Conventions               *DocumentConventions
 	// TODO: move rields
 	// documentsByID map[string] ??
 }
@@ -18,7 +20,8 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 		SessionID:        id,
 		Database:         dbName,
 		documentStore:    documentStore,
-		requestsExecutor: re,
+		RequestsExecutor: re,
+		Conventions:      documentStore.Conventions,
 	}
 	return res
 }

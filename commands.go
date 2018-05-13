@@ -152,10 +152,6 @@ func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
 	req.Header.Add("User-Agent", "ravendb-go-client/1.0")
 	req.Header.Add("Raven-Client-Version", "4.0.0.0")
 	req.Header.Add("Accept", "application/json")
-	panicIf(n.ClusterTag == "", "ClusterTag is empty string in %v", n)
-	// TODO: do I need to quote the tag? Python client does
-	etag := fmt.Sprintf(`"%s"`, n.ClusterTag)
-	req.Header.Add(TOPOLOGY_ETAG, etag)
 	return req, nil
 }
 
