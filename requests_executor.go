@@ -143,9 +143,14 @@ func (re *RequestsExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand
 		}
 
 		code := rsp.StatusCode
-		// 404
-		if code == http.StatusNotFound {
-			return nil, err
+
+		// convert 404 Not Found to NotFoundError
+		if rsp.StatusCode == http.StatusNotFound {
+			// TODO: does it ever return non-empty response?
+			res := NotFoundError{
+				URL: req.URL.String(),
+			}
+			return nil, &res
 		}
 
 		// 403

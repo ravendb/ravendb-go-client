@@ -235,7 +235,8 @@ func testCreateAndDeleteDatabaseCommand() {
 */
 
 func testPutGetDeleteDocument() {
-	exec := getExecutor()
+	sess := mustGetSession()
+	exec := sess.RequestsExecutor.GetCommandExecutor(false)
 	key := "testing/1"
 	meta := map[string]interface{}{
 		"@collection": "Testings",

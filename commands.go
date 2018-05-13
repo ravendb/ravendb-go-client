@@ -213,7 +213,7 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 		return nil, &res
 	}
 
-	// conert 404 Not Found to NotFoundError
+	// convert 404 Not Found to NotFoundError
 	if rsp.StatusCode == http.StatusNotFound {
 		// TODO: does it ever return non-empty response?
 		res := NotFoundError{
@@ -262,7 +262,9 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v inter
 	if err != nil {
 		return err
 	}
-	defer rsp.Body.Close()
+	if rsp == nil {
+		return nil
+	}
 
 	// ok: 200, created: 201
 	if rsp.StatusCode == http.StatusOK || rsp.StatusCode == http.StatusCreated {
