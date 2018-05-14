@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"reflect"
 )
 
 func must(err error) {
@@ -69,4 +70,29 @@ func quoteKey(s string) string {
 
 func quoteKeyWithSlash(s string) string {
 	return quoteKey2(s, true)
+}
+
+// getTypeName returns fully qualified (including package) name of the type,
+// after traversing pointers.
+// e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo
+// TODO: test
+func getTypeName(v interface{}) string {
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	typ := rv.Type()
+	return typ.String()
+}
+
+// getShortTypeName returns a short (not including package) name of the type,
+// after traversing pointers.
+// e.g. for struct Foo, the type of Foo and *Foo is "Foo"
+func getShortTypeName(v interface{}) string {
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	typ := rv.Type()
+	return typ.Name()
 }

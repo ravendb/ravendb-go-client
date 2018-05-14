@@ -110,3 +110,10 @@ func (s *DocumentStore) Close() {
 	}
 	// TODO: more
 }
+
+func (s *DocumentStore) generateID(dbName string, entity interface{}) string {
+	// s.generator is created in Initialize so should always be available
+	id := s.generator.GenerateDocumentKey(dbName, entity)
+	panicIf(id == "", "id should not be empty string")
+	return id
+}

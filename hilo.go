@@ -3,6 +3,7 @@ package ravendb
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -147,21 +148,21 @@ func (g *HiLoKeyGenerator) GetDocumentKeyFromID(nextID int) string {
 }
 
 // GenerateDocumentKey returns next key
-func (g *HiLoKeyGenerator) GenerateDocumentKey() int {
+func (g *HiLoKeyGenerator) GenerateDocumentKey() string {
 	for {
 		// local range is not exhausted yet
 		rangev := g.rangev
 
 		id := rangev.Next()
 		if id <= rangev.Max {
-			return id
+			return strconv.Itoa(id)
 		}
 
 		// local range is exhausted , need to get a new range
 		g.lock.Lock()
 		id = rangev.Curr()
 		if id <= rangev.Max {
-			return id
+			return strconv.Itoa(id)
 		}
 
 		g.getNextRange()
@@ -210,15 +211,9 @@ func NewMultiTypeHiLoKeyGenerator(store *DocumentStore, dbName string) *MultiTyp
 	}
 }
 
-func getTypeName(entity interface{}) string {
-	panicIf(true, "NYI")
-	// TODO: use reflection to get the name of the type
-	return ""
-}
-
 // GenerateDocumentKey generates a unique key for entity using its type to
 // partition keys
-func (g *MultiTypeHiLoKeyGenerator) GenerateDocumentKey(entity interface{}) int {
+func (g *MultiTypeHiLoKeyGenerator) GenerateDocumentKey(entity interface{}) string {
 	tag := getTypeName(entity)
 	g.lock.Lock()
 	generator, ok := g.keyGeneratorsByTag[tag]
@@ -252,7 +247,7 @@ func NewMultiDatabaseHiLoKeyGenerator(store *DocumentStore) *MultiDatabaseHiLoKe
 }
 
 // GenerateDocumentKey generates
-func (g *MultiDatabaseHiLoKeyGenerator) GenerateDocumentKey(dbName string, entity interface{}) int {
+func (g *MultiDatabaseHiLoKeyGenerator) GenerateDocumentKey(dbName string, entity interface{}) string {
 	if dbName == "" {
 		dbName = g.store.database
 	}

@@ -299,6 +299,23 @@ func testHiLoKeyGenerator() {
 	print("testHiLoKeyGenerator ok\n")
 }
 
+// Foo is just a test object
+type Foo struct {
+	ID   string
+	Name string
+}
+
+func testStoreLoad() {
+	sess := mustGetSession()
+	v := &Foo{
+		Name: "PyRavenDB",
+	}
+	err := sess.Store(v, "", "")
+	must(err)
+	err = sess.SaveChanges()
+	must(err)
+}
+
 func main() {
 	allTests := true
 
@@ -316,8 +333,9 @@ func main() {
 		testGetStatisticsCommand()
 		testGetStatisticsCommandBadDb()
 		testPutGetDeleteDocument()
+		testHiLoKeyGenerator()
 	}
 
-	testHiLoKeyGenerator()
+	testStoreLoad()
 	//testDeleteDatabaseOp()
 }
