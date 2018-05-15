@@ -68,7 +68,8 @@ var (
 
 func init() {
 	// cache compiled regular expressions
-	for _, r := range plurals {
+	for i := range plurals {
+		r := &plurals[i]
 		s := "(?i)" + r.pattern
 		r.rx = regexp.MustCompile(s)
 	}

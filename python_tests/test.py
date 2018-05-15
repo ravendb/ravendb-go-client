@@ -177,8 +177,11 @@ def testStoreLoad():
         session.save_changes()
 
 
-all_tests = False
+
+
 def main():
+    all_tests = False
+
     deleteTestDatabases()
     testCreateDatabaseOp()
 
@@ -191,8 +194,9 @@ def main():
         testGetStatisticsBadDb()
 
         testPutGetDeleteDocument()
+        testHiLoKeyGenerator()
 
-    testHiLoKeyGenerator()
+    testStoreLoad()
 
     #testDeleteDatabaseOp()
 
