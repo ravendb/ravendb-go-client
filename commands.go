@@ -727,18 +727,23 @@ func NewBatchCommand(commands []*CommandData) *RavenCommand {
 }
 
 // JSONArrayResult represents result of BatchCommand, which is array of JSON objects
-type JSONArrayResult []map[string]interface{}
+type JSONArrayResult = []map[string]interface{}
+
+// BatchCommandResult describes server's JSON response to batch command
+type BatchCommandResult struct {
+	Results JSONArrayResult `json:"Results"`
+}
 
 // ExecuteBatchCommand executes batch command
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L196
 // TODO: maybe more
 func ExecuteBatchCommand(exec CommandExecutorFunc, cmd *RavenCommand) (JSONArrayResult, error) {
-	var res JSONArrayResult
+	var res BatchCommandResult
 	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	return res.Results, nil
 }
 
 /* Done:
