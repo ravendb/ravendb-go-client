@@ -12,9 +12,10 @@ env:
 # TODO: rename ruby.pem to sth. else
 
 # TODO: run the server, but we don't need that yet
+# TODO: the import rewrite is temporary, only needed for kjk/ravendb-go-client
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libunwind8 wget libicu52 libssl-dev curl unzip gettext libcurl4-openssl-dev zlib1g uuid-dev bzip2 openssl
+  - sudo apt-get install -y libunwind8 wget libicu52 libssl-dev curl unzip gettext libcurl4-openssl-dev zlib1g uuid-dev bzip2 openssl sed
   - mkdir ./certs; cd ./certs
   - openssl genrsa -out ca.key 2048
   - openssl req -new -x509 -key ca.key -out ca.crt -subj "/C=US/ST=Arizona/L=Nevada/O=RavenDB Test CA/OU=RavenDB test CA/CN=localhost/emailAddress=ravendbca@example.com"
@@ -28,6 +29,7 @@ before_install:
   - cd ..
   - wget -O RavenDB.tar.bz2 https://hibernatingrhinos.com/downloads/RavenDB%20for%20Linux%20x64/latest?buildType=nightly
   - tar xvjf RavenDB.tar.bz2
+  - find . -name "*.go" | xargs sed -i 's/github.com\/ravendb\/ravendb-go-client/github.com\/kjk\/ravendb-go-client/'
 
 # TODO: run cmd/test
 script:
