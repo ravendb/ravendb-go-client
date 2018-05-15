@@ -726,8 +726,8 @@ func NewBatchCommand(commands []*CommandData) *RavenCommand {
 	return res
 }
 
-// JSONArrayResult represents result of BatchCommand
-type JSONArrayResult []interface{}
+// JSONArrayResult represents result of BatchCommand, which is array of JSON objects
+type JSONArrayResult []map[string]interface{}
 
 // ExecuteBatchCommand executes batch command
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L196

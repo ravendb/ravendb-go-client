@@ -27,15 +27,17 @@ type DocumentInfo struct {
 	changeVector         string
 	concurrencyCheckMode ConcurrencyCheckMode
 	ignoreChanges        bool
+	originalMetadata     map[string]interface{}
 	metadata             map[string]interface{}
 	document             map[string]interface{}
+	originalValue        map[string]interface{}
 	metadataInstance     map[string]interface{}
 	entity               interface{}
 	newDocuemnt          bool
 	collection           string
 }
 
-// TODO: rename to saveChangesData
+// TODO: rename to saveChangesData, maybe
 type _SaveChangesData struct {
 	commands             []*CommandData
 	entities             []interface{}
@@ -89,50 +91,8 @@ func (s *DocumentSession) Defer(cmd *CommandData, rest ...*CommandData) {
 	}
 }
 
-// Store schedules entity for storing in the database. To actually save the
-// data, call SaveSession.
-// key and changeVector can be ""
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L248
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L601
-func (s *DocumentSession) Store(entity interface{}, key string, changeVector string) error {
-	panicIf(entity == nil, "entity cannot be nil") // TODO: return as error?
-	// TODO: check entity is a struct
-	forceConcurrencyCheck := s.getConcurrencyCheckMode(entity, key, changeVector)
-	if docInfo, ok := s.documentsByEntity[entity]; ok {
-		if changeVector != "" {
-			docInfo.changeVector = changeVector
-		}
-		docInfo.concurrencyCheckMode = forceConcurrencyCheck
-		return nil
-	}
-	entityID := ""
-	if key == "" {
-		entityID, _ = tryGetIDFromInstance(entity)
-	} else {
-		trySetIDOnEntity(entity, key)
-		entityID = key
-	}
-
-	// TODO:
-	// s.assertNoNonUniqueInstance(entity, entityID)
-	if entityID == "" {
-		entityID = s.documentStore.generateID(s.Database, entity)
-		trySetIDOnEntity(entity, entityID)
-	}
-
-	for _, command := range s.deferCommands {
-		if command.key == entityID {
-			return fmt.Errorf("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", entityID)
-		}
-	}
-
-	if _, ok := s.deletedEntities[entity]; ok {
-		err := fmt.Errorf("Can't store object, it was already deleted in this session.  Document id: %s", entityID)
-		return err
-	}
-	metadata := buildDefaultMetadata(entity)
-	s.saveEntity(entityID, entity, nil, metadata, nil, forceConcurrencyCheck)
-	return nil
+func (s *DocumentSession) saveIncludes() {
+	panicIf(true, "NYI")
 }
 
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L665
@@ -161,18 +121,121 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	s.documentsByEntity[entity] = document
 }
 
-// TODO: move to DocumentConventions
-func buildDefaultMetadata(entity interface{}) map[string]interface{} {
-	res := map[string]interface{}{}
-	if entity == nil {
-		return res
+// TODO: _convert_and_save_entity
+// TODO: _multi_load
+// TODO: load
+// TODO: delete_by_entity
+// TODO: delete
+
+func (s *DocumentSession) assertNoNonUniqueInstance(entity interface{}, key string) {
+	// TODO: implement me
+}
+
+// Store schedules entity for storing in the database. To actually save the
+// data, call SaveSession.
+// key and changeVector can be ""
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L248
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L601
+func (s *DocumentSession) Store(entity interface{}, key string, changeVector string) error {
+	panicIf(entity == nil, "entity cannot be nil") // TODO: return as error?
+	// TODO: check entity is a struct
+	forceConcurrencyCheck := s.getConcurrencyCheckMode(entity, key, changeVector)
+	if docInfo, ok := s.documentsByEntity[entity]; ok {
+		if changeVector != "" {
+			docInfo.changeVector = changeVector
+		}
+		docInfo.concurrencyCheckMode = forceConcurrencyCheck
+		return nil
 	}
-	fullTypeName := getTypeName(entity)
-	typeName := getShortTypeName(entity)
-	collectionName := pluralize(typeName)
-	res["@collection"] = collectionName
-	res["Raven-Go-Type"] = fullTypeName
-	return res
+	entityID := ""
+	if key == "" {
+		entityID, _ = tryGetIDFromInstance(entity)
+	} else {
+		trySetIDOnEntity(entity, key)
+		entityID = key
+	}
+
+	s.assertNoNonUniqueInstance(entity, entityID)
+	if entityID == "" {
+		entityID = s.documentStore.generateID(s.Database, entity)
+		trySetIDOnEntity(entity, entityID)
+	}
+
+	for _, command := range s.deferCommands {
+		if command.key == entityID {
+			return fmt.Errorf("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", entityID)
+		}
+	}
+
+	if _, ok := s.deletedEntities[entity]; ok {
+		err := fmt.Errorf("Can't store object, it was already deleted in this session.  Document id: %s", entityID)
+		return err
+	}
+	metadata := buildDefaultMetadata(entity)
+	s.saveEntity(entityID, entity, nil, metadata, nil, forceConcurrencyCheck)
+	return nil
+}
+
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L294
+func (s *DocumentSession) getConcurrencyCheckMode(entity interface{}, key string, changeVector string) ConcurrencyCheckMode {
+	// TODO: port the logic from python
+	return ConcurrencyCheckDisabled
+}
+
+// SaveChanges saves documents to database queued with Store
+func (s *DocumentSession) SaveChanges() error {
+	data := &_SaveChangesData{
+		commands:             s.deferCommands,
+		deferredCommandCount: len(s.deferCommands),
+	}
+	s.deferCommands = nil
+	s.prepareForDeleteCommands(data)
+	s.prepareForPutsCommands(data)
+	if len(data.commands) == 0 {
+		return nil
+	}
+
+	err := s.incrementRequetsCount()
+	if err != nil {
+		return err
+	}
+
+	batchCommand := NewBatchCommand(data.commands)
+	exec := s.RequestsExecutor.GetCommandExecutor(false)
+	batchResult, err := ExecuteBatchCommand(exec, batchCommand)
+	if err != nil {
+		return err
+	}
+	// TODO: batch_result != None
+	s.updateBatchResult(batchResult, data)
+	return nil
+}
+
+func (s *DocumentSession) updateBatchResult(batchResult JSONArrayResult, data *_SaveChangesData) {
+	batchResultLength := len(batchResult)
+	for i := data.deferredCommandCount; i < batchResultLength; i++ {
+		item := batchResult[i]
+		typ := item["Type"]
+		typStr := typ.(string)
+		if typStr != "PUT" {
+			continue
+		}
+		entity := data.entities[i-data.deferredCommandCount]
+		documentInfo, ok := s.documentsByEntity[entity]
+		if !ok {
+			continue
+		}
+		// TODO: add helper getAsString()
+		key := item["@id"]
+		keyStr := key.(string)
+		s.documentsByID[keyStr] = entity
+		// TODO: python code is document_info["change_vector"] = ["change_vector"]
+		// which seems wrong
+		delete(item, "Type")
+		documentInfo.originalMetadata = copyJSONMap(item)
+		documentInfo.metadata = item
+		documentInfo.originalValue = structToJSONMap(entity)
+	}
 }
 
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L338
@@ -212,30 +275,29 @@ func (s *DocumentSession) prepareForDeleteCommands(data *_SaveChangesData) {
 }
 
 func (s *DocumentSession) prepareForPutsCommands(data *_SaveChangesData) {
-	// TODO: implement me
-	panicIf(true, "NYI")
+	for entity, docInfo := range s.documentsByEntity {
+		if !s.hasChange(entity) {
+			continue
+		}
+		key := docInfo.id
+		metadata := docInfo.metadata
+		changeVector := ""
+		// TODO: logic for changeVector
+		document := structToJSONMap(entity)
+		data.entities = append(data.entities, entity)
+		if key != "" {
+			delete(s.documentsByID, key)
+			deleteID(document)
+		}
+		cmd := NewPutCommandData(key, changeVector, document, metadata)
+		data.commands = append(data.commands, cmd)
+	}
 }
 
-// SaveChanges saves documents to database queued with Store
-func (s *DocumentSession) SaveChanges() error {
-	data := &_SaveChangesData{
-		commands:             s.deferCommands,
-		deferredCommandCount: len(s.deferCommands),
-	}
-	s.deferCommands = nil
-	s.prepareForDeleteCommands(data)
-	s.prepareForPutsCommands(data)
-	if len(data.commands) == 0 {
-		return nil
-	}
-
-	err := s.incrementRequetsCount()
-	if err != nil {
-		return err
-	}
-
-	panicIf(true, "NYI")
-	return nil
+// hasChange returns true if entity has changes
+func (s *DocumentSession) hasChange(entity interface{}) bool {
+	// TODO: implement me
+	return true
 }
 
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L380
@@ -247,8 +309,16 @@ func (s *DocumentSession) incrementRequetsCount() error {
 	return nil
 }
 
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L294
-func (s *DocumentSession) getConcurrencyCheckMode(entity interface{}, key string, changeVector string) ConcurrencyCheckMode {
-	// TODO: port the logic from python
-	return ConcurrencyCheckDisabled
+// TODO: move to DocumentConventions
+func buildDefaultMetadata(entity interface{}) map[string]interface{} {
+	res := map[string]interface{}{}
+	if entity == nil {
+		return res
+	}
+	fullTypeName := getTypeName(entity)
+	typeName := getShortTypeName(entity)
+	collectionName := pluralize(typeName)
+	res["@collection"] = collectionName
+	res["Raven-Go-Type"] = fullTypeName
+	return res
 }

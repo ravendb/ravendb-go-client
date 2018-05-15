@@ -1,10 +1,12 @@
 package ravendb
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 )
 
 func must(err error) {
@@ -107,4 +109,37 @@ func removeStringFromArray(pa *[]string, s string) {
 		res = append(res, s2)
 	}
 	*pa = res
+}
+
+// delete "id" key from JSON object
+// TODO: maybe should only
+func deleteID(m map[string]interface{}) {
+	for k := range m {
+		if len(k) == 2 && strings.EqualFold(k, "id") {
+			delete(m, k)
+			return
+		}
+	}
+}
+
+// converts a struct to JSON representations as map of string to value
+// TODO: could be faster
+func structToJSONMap(v interface{}) map[string]interface{} {
+	d, err := json.Marshal(v)
+	must(err)
+	var res map[string]interface{}
+	err = json.Unmarshal(d, &res)
+	must(err)
+	return res
+}
+
+// copyJSONMap makes a deep copy of map[string]interface{}
+// TODO: possibly not the fastest way to do it
+func copyJSONMap(v map[string]interface{}) map[string]interface{} {
+	d, err := json.Marshal(v)
+	must(err)
+	var res map[string]interface{}
+	err = json.Unmarshal(d, &res)
+	must(err)
+	return res
 }
