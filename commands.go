@@ -702,6 +702,45 @@ func ExecuteDeleteDocumentCommand(exec CommandExecutorFunc, cmd *RavenCommand) e
 	return excuteCmdWithEmptyResult(exec, cmd)
 }
 
+// NewBatchCommand creates a new batch command
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L172
+func NewBatchCommand(commands []*CommandData) *RavenCommand {
+	var data []map[string]interface{}
+	for _, command := range commands {
+		if command.typ == "AttachmentPUT" {
+			// TODO: handle AttachmentPUT and set files
+			panicIf(true, "NYI")
+		}
+		data = append(data, command.json)
+	}
+	v := map[string]interface{}{
+		"Commands": data,
+	}
+	js, err := json.Marshal(v)
+	must(err)
+	res := &RavenCommand{
+		Method:      http.MethodPost,
+		URLTemplate: "{url}/databases/{db}/bulk_docs",
+		Data:        js,
+	}
+	return res
+}
+
+// JSONArrayResult represents result of BatchCommand
+type JSONArrayResult []interface{}
+
+// ExecuteBatchCommand executes batch command
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L196
+// TODO: maybe more
+func ExecuteBatchCommand(exec CommandExecutorFunc, cmd *RavenCommand) (JSONArrayResult, error) {
+	var res JSONArrayResult
+	err := excuteCmdAndJSONDecode(exec, cmd, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 /* Done:
 GetDocumentCommand
 DeleteDocumentCommand
@@ -721,6 +760,9 @@ _GetDatabaseNamesCommand
 HiLoReturnCommand
 NextHiLoCommand
 
+// raven_commands.py
+BatchCommand
+
 */
 
 /*
@@ -733,7 +775,6 @@ DeleteAttachmentCommandData
 Commands to implement:
 
 // raven_commands.py
-BatchCommand
 DeleteIndexCommand
 PatchCommand
 QueryCommand

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -31,6 +30,13 @@ type DocumentInfo struct {
 	collection           string
 }
 
+// TODO: rename to saveChangesData
+type _SaveChangesData struct {
+	commands             []*CommandData
+	entities             []interface{}
+	deferredCommandCount int
+}
+
 // DocumentSession is a Unit of Work for accessing RavenDB server
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
@@ -50,9 +56,9 @@ type DocumentSession struct {
 	documentsByEntity map[interface{}]*DocumentInfo
 	deletedEntities   map[interface{}]struct{}
 	// ids of entities that were deleted
-	knownMissingIDs []string
-	// TODO: move rields
-	// documentsByID map[string] ??
+	knownMissingIDs  []string
+	documentsByID    map[string]interface{}
+	deferredCommands []*CommandData
 }
 
 // NewDocumentSession creates a new DocumentSession
@@ -64,6 +70,7 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 		RequestsExecutor:  re,
 		Conventions:       documentStore.Conventions,
 		documentsByEntity: map[interface{}]*DocumentInfo{},
+		documentsByID:     map[string]interface{}{},
 		deletedEntities:   map[interface{}]struct{}{},
 	}
 	return res
@@ -111,13 +118,125 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 	if _, ok := s.deletedEntities[entity]; ok {
 		return fmt.Errorf("Can't store object, it was already deleted in this session.  Document id: %s", entityID)
 	}
+	metadata := buildDefaultMetadata(entity)
+	s.saveEntity(entityID, entity, nil, metadata, nil, forceConcurrencyCheck)
+	return nil
+}
 
-	return errors.New("FYI")
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L665
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L101
+func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMetadata map[string]interface{}, metadata map[string]interface{}, document *DocumentInfo, concurrencyCheckMode ConcurrencyCheckMode) {
+	// TODO: can key here be ever empty?
+	delete(s.deletedEntities, entity)
+	if key != "" {
+		removeStringFromArray(&s.knownMissingIDs, key)
+		if _, ok := s.documentsByID[key]; ok {
+			return
+		}
+	}
+	if key != "" {
+		s.documentsByID[key] = entity
+	}
+	if document == nil {
+		document = &DocumentInfo{}
+	}
+	document.id = key
+	document.metadata = metadata
+	//document.changeVector = ""
+	document.concurrencyCheckMode = concurrencyCheckMode
+	document.entity = entity
+	document.newDocuemnt = true
+	s.documentsByEntity[entity] = document
+}
+
+// TODO: move to DocumentConventions
+func buildDefaultMetadata(entity interface{}) map[string]interface{} {
+	res := map[string]interface{}{}
+	if entity == nil {
+		return res
+	}
+	fullTypeName := getTypeName(entity)
+	typeName := getShortTypeName(entity)
+	collectionName := pluralize(typeName)
+	res["@collection"] = collectionName
+	res["Raven-Go-Type"] = fullTypeName
+	return res
+}
+
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L338
+// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L742
+func (s *DocumentSession) prepareForDeleteCommands(data *_SaveChangesData) {
+	// TODO: we don't need to gather keysToDelete
+	if len(s.deletedEntities) == 0 {
+		return
+	}
+	var keysToDelete []string
+	for _, entity := range s.deletedEntities {
+		docInfo := s.documentsByEntity[entity]
+		key := docInfo.id
+		keysToDelete = append(keysToDelete, key)
+	}
+
+	for _, key := range keysToDelete {
+		existingEntity, ok := s.documentsByID[key]
+		if !ok {
+			continue
+		}
+		var changeVector string
+		if docInfo := s.documentsByEntity[existingEntity]; docInfo != nil {
+			meta := docInfo.metadata
+			// TODO: take optimistic concurrency setting into account
+			if v, ok := meta["@change-vector"]; ok {
+				changeVector = v.(string)
+			}
+			delete(s.documentsByEntity, existingEntity)
+			delete(s.documentsByID, key)
+			data.entities = append(data.entities, existingEntity)
+			cmdData := NewDeleteCommandData(key, changeVector)
+			data.commands = append(data.commands, cmdData)
+		}
+	}
+	s.deletedEntities = nil
+}
+
+func (s *DocumentSession) prepareForPutsCommands(data *_SaveChangesData) {
+	// TODO: implement me
+	panicIf(true, "NYI")
 }
 
 // SaveChanges saves documents to database queued with Store
 func (s *DocumentSession) SaveChanges() error {
+	data := &_SaveChangesData{
+		commands:             s.deferredCommands,
+		deferredCommandCount: len(s.deferredCommands),
+	}
+	s.deferredCommands = nil
+	s.prepareForDeleteCommands(data)
+	s.prepareForPutsCommands(data)
+	if len(data.commands) == 0 {
+		return nil
+	}
+
+	err := s.incrementRequetsCount()
+	if err != nil {
+		return err
+	}
+
 	panicIf(true, "NYI")
+	return nil
+}
+
+const (
+	// TODO: this should be in DocumentConventiosn
+	maxNumberOfRequestPerSession = 32
+)
+
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L380
+func (s *DocumentSession) incrementRequetsCount() error {
+	s.NumberOfRequestsInSession++
+	if s.NumberOfRequestsInSession > maxNumberOfRequestPerSession {
+		return fmt.Errorf("exceeded max number of reqeusts per session of %d", maxNumberOfRequestPerSession)
+	}
 	return nil
 }
 

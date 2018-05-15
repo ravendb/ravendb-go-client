@@ -96,3 +96,15 @@ func getShortTypeName(v interface{}) string {
 	typ := rv.Type()
 	return typ.Name()
 }
+
+// TODO: make it more efficient by modifying the array in-place
+func removeStringFromArray(pa *[]string, s string) {
+	var res []string
+	for _, s2 := range *pa {
+		if s2 == s {
+			continue
+		}
+		res = append(res, s2)
+	}
+	*pa = res
+}
