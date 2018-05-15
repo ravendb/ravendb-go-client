@@ -87,7 +87,7 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 	}
 	entityID := ""
 	if key == "" {
-		entityID = tryGetIDFromInstance(entity)
+		entityID, _ = tryGetIDFromInstance(entity)
 	} else {
 		trySetIDOnEntity(entity, key)
 		entityID = key
