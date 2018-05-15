@@ -4,6 +4,11 @@ import (
 	"fmt"
 )
 
+const (
+	// TODO: this should be in DocumentConventiosn
+	maxNumberOfRequestPerSession = 32
+)
+
 // ConcurrencyCheckMode describes concurrency check
 type ConcurrencyCheckMode int
 
@@ -56,9 +61,9 @@ type DocumentSession struct {
 	documentsByEntity map[interface{}]*DocumentInfo
 	deletedEntities   map[interface{}]struct{}
 	// ids of entities that were deleted
-	knownMissingIDs  []string
-	documentsByID    map[string]interface{}
-	deferredCommands []*CommandData
+	knownMissingIDs []string
+	documentsByID   map[string]interface{}
+	deferCommands   []*CommandData
 }
 
 // NewDocumentSession creates a new DocumentSession
@@ -74,6 +79,14 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 		deletedEntities:   map[interface{}]struct{}{},
 	}
 	return res
+}
+
+// Defer defers commands
+func (s *DocumentSession) Defer(cmd *CommandData, rest ...*CommandData) {
+	s.deferCommands = append(s.deferCommands, cmd)
+	for _, cmd := range rest {
+		s.deferCommands = append(s.deferCommands, cmd)
+	}
 }
 
 // Store schedules entity for storing in the database. To actually save the
@@ -107,16 +120,15 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 		trySetIDOnEntity(entity, entityID)
 	}
 
-	// TODO: implement this
-	/*
-		for command in self._defer_commands:
-			if command.key == entity_id:
-				raise exceptions.InvalidOperationException(
-					"Can't store document, there is a deferred command registered for this document in the session. "
-					"Document id: " + entity_id)
-	*/
+	for _, command := range s.deferCommands {
+		if command.key == entityID {
+			return fmt.Errorf("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", entityID)
+		}
+	}
+
 	if _, ok := s.deletedEntities[entity]; ok {
-		return fmt.Errorf("Can't store object, it was already deleted in this session.  Document id: %s", entityID)
+		err := fmt.Errorf("Can't store object, it was already deleted in this session.  Document id: %s", entityID)
+		return err
 	}
 	metadata := buildDefaultMetadata(entity)
 	s.saveEntity(entityID, entity, nil, metadata, nil, forceConcurrencyCheck)
@@ -207,10 +219,10 @@ func (s *DocumentSession) prepareForPutsCommands(data *_SaveChangesData) {
 // SaveChanges saves documents to database queued with Store
 func (s *DocumentSession) SaveChanges() error {
 	data := &_SaveChangesData{
-		commands:             s.deferredCommands,
-		deferredCommandCount: len(s.deferredCommands),
+		commands:             s.deferCommands,
+		deferredCommandCount: len(s.deferCommands),
 	}
-	s.deferredCommands = nil
+	s.deferCommands = nil
 	s.prepareForDeleteCommands(data)
 	s.prepareForPutsCommands(data)
 	if len(data.commands) == 0 {
@@ -225,11 +237,6 @@ func (s *DocumentSession) SaveChanges() error {
 	panicIf(true, "NYI")
 	return nil
 }
-
-const (
-	// TODO: this should be in DocumentConventiosn
-	maxNumberOfRequestPerSession = 32
-)
 
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L380
 func (s *DocumentSession) incrementRequetsCount() error {
