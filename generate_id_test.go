@@ -25,8 +25,15 @@ type NoID struct {
 	B bool
 }
 
+type WithIntID struct {
+	N  int
+	B  bool
+	ID int
+}
+
 func TestTryGetSetIDFromInstance(t *testing.T) {
 	{
+		// verify can get/set field name ID of type string
 		exp := "hello"
 		s := WithID{ID: exp}
 		got, ok := tryGetIDFromInstance(s)
@@ -50,7 +57,6 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		if ok || s.ID == exp {
 			t.Fatalf("trySetIDOnEntity should not succeed on %#v", s)
 		}
-		exp = "new2"
 		ok = trySetIDOnEntity(&s, exp)
 		if !ok {
 			t.Fatalf("trySetIDOnEntity failed on %#v", s)
@@ -61,6 +67,7 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 	}
 
 	{
+		// verify can get/set field name Id of type string
 		exp := "hello"
 		s := WithId{Id: exp}
 		got, ok := tryGetIDFromInstance(s)
@@ -83,7 +90,6 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		if ok || s.Id == exp {
 			t.Fatalf("trySetIDOnEntity should not succeed on %#v", s)
 		}
-		exp = "new2"
 		ok = trySetIDOnEntity(&s, exp)
 		if !ok {
 			t.Fatalf("trySetIDOnEntity failed on %#v", s)
@@ -109,9 +115,23 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 	}
 
 	{
-		exp := "new"
 		// verify doesn't get/set if there's no ID field
+		exp := "new"
 		s := NoID{}
+		got, ok := tryGetIDFromInstance(s)
+		if ok || got != "" {
+			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
+		}
+		ok = trySetIDOnEntity(s, exp)
+		if ok {
+			t.Fatalf("trySetIDOnEntity should fail on %#v", s)
+		}
+	}
+
+	{
+		// verify doesn't get/set if ID is not string
+		exp := "new"
+		s := WithIntID{ID: 5}
 		got, ok := tryGetIDFromInstance(s)
 		if ok || got != "" {
 			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
