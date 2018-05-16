@@ -314,6 +314,9 @@ func testStoreLoad() {
 	must(err)
 	err = sess.SaveChanges()
 	must(err)
+	id := v.ID
+	exp := "foos/1-A"
+	panicIf(id != exp, "id is '%s', should be '%s'", id, exp)
 }
 
 func main() {

@@ -8,7 +8,7 @@ from builtins import ValueError
 
 testDbName = None
 
-verboseLog = True
+verboseLog = False
 
 # test cration of a database. A pre-requesite for some other tests
 def testCreateDatabaseOp():
@@ -102,14 +102,14 @@ def deleteTestDatabases():
     store.initialize()
     op = GetDatabaseNamesOperation(0, 45)
     names = store.maintenance.server.send(op)
-    print("Database: {0}".format(names))
+    if verboseLog: print("Databases: {0}".format(names))
     for dbName in names:
         if not dbName.startswith("tst_"):
             continue
         print("Deleting database: " + dbName)
         op = DeleteDatabaseOperation(database_name=dbName, hard_delete=True)
         res = store.maintenance.server.send(op)
-        print(res)
+        if verboseLog: print(res)
 
 def testPutGetDeleteDocument():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database=testDbName)
@@ -160,24 +160,31 @@ def testHiLoKeyGenerator():
 
 class Foo(object):
    def __init__(self, name, key = None):
+        self.Id = None # needed so that we can get the id of stored object
         self.name = name
         self.key = key
 
 class FooBar(object):
     def __init__(self, name, foo):
+        self.Id = None # needed so that we can get the id of stored object
         self.name = name
         self.foo = foo
 
 def testStoreLoad():
     store =  document_store.DocumentStore(urls=["http://localhost:9999"], database=testDbName)
     store.initialize()
+    key = None
     with store.open_session() as session:
         foo = Foo("PyRavenDB")
         session.store(foo)
         session.save_changes()
-
-
-
+        key = foo.Id
+    assert key == "foos/1-A"
+    with store.open_session() as session:
+        foo = session.load(key)
+        if verboseLog: print("foo: " + str(foo.__dict__))
+        assert foo.name == "PyRavenDB"
+    print("testStoreLoad ok")
 
 def main():
     all_tests = False
