@@ -90,6 +90,7 @@ func getTypeName(v interface{}) string {
 // getShortTypeName returns a short (not including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo, the type of Foo and *Foo is "Foo"
+// This is equivalent to Python's v.__class__.__name__
 func getShortTypeName(v interface{}) string {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr {
@@ -141,5 +142,29 @@ func copyJSONMap(v map[string]interface{}) map[string]interface{} {
 	var res map[string]interface{}
 	err = json.Unmarshal(d, &res)
 	must(err)
+	return res
+}
+
+func defaultTransformPlural(name string) string {
+	return pluralize(name)
+}
+
+//https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/data/document_conventions.py#L45
+func defaultTransformTypeTagName(name string) string {
+	name = strings.ToLower(name)
+	return defaultTransformPlural(name)
+}
+
+// TODO: move to DocumentConventions
+func buildDefaultMetadata(entity interface{}) map[string]interface{} {
+	res := map[string]interface{}{}
+	if entity == nil {
+		return res
+	}
+	fullTypeName := getTypeName(entity)
+	typeName := getShortTypeName(entity)
+	collectionName := defaultTransformPlural(typeName)
+	res["@collection"] = collectionName
+	res["Raven-Go-Type"] = fullTypeName
 	return res
 }

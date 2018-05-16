@@ -308,17 +308,3 @@ func (s *DocumentSession) incrementRequetsCount() error {
 	}
 	return nil
 }
-
-// TODO: move to DocumentConventions
-func buildDefaultMetadata(entity interface{}) map[string]interface{} {
-	res := map[string]interface{}{}
-	if entity == nil {
-		return res
-	}
-	fullTypeName := getTypeName(entity)
-	typeName := getShortTypeName(entity)
-	collectionName := pluralize(typeName)
-	res["@collection"] = collectionName
-	res["Raven-Go-Type"] = fullTypeName
-	return res
-}

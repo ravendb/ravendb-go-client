@@ -3,7 +3,6 @@ package ravendb
 import (
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/util/Inflector.java#L14
@@ -75,6 +74,7 @@ func init() {
 	}
 }
 
+/*
 func capitalize(s string) string {
 	if len(s) == 0 {
 		return s
@@ -94,6 +94,7 @@ func capitalize(s string) string {
 	}
 	return string(res)
 }
+*/
 
 func tryRules(sl string) (string, bool) {
 	nRules := len(plurals)
@@ -114,7 +115,7 @@ func pluralize(s string) string {
 		return s
 	}
 	if res, ok := irregular[s]; ok {
-		return capitalize(res)
+		return res
 	}
 	res, ok := tryRules(sl)
 	if ok {

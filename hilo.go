@@ -214,7 +214,7 @@ func NewMultiTypeHiLoKeyGenerator(store *DocumentStore, dbName string) *MultiTyp
 // GenerateDocumentKey generates a unique key for entity using its type to
 // partition keys
 func (g *MultiTypeHiLoKeyGenerator) GenerateDocumentKey(entity interface{}) string {
-	tag := getTypeName(entity)
+	tag := defaultTransformTypeTagName(getShortTypeName(entity))
 	g.lock.Lock()
 	generator, ok := g.keyGeneratorsByTag[tag]
 	if !ok {
