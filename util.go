@@ -180,3 +180,31 @@ func buildDefaultMetadata(entity interface{}) map[string]interface{} {
 	res["Raven-Go-Type"] = fullTypeName
 	return res
 }
+
+func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
+	if rv.Type().Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	typ := rv.Type()
+	if typ.Kind() == reflect.Struct {
+		return typ, true
+	}
+	return typ, false
+}
+
+func getStructTypeOfValue(v interface{}) (reflect.Type, bool) {
+	rv := reflect.ValueOf(v)
+	return getStructTypeOfReflectValue(rv)
+}
+
+// given a json represented as map and type of a struct
+func makeStructFromJSONMap(typ reflect.Type, js JSONAsMap) interface{} {
+	panicIf(typ.Kind() != reflect.Struct, "rv should be of type Struct but is %s", typ.String())
+	rvNew := reflect.New(typ)
+	d, err := json.Marshal(js)
+	must(err)
+	v := rvNew.Interface()
+	err = json.Unmarshal(d, v)
+	must(err)
+	return v
+}
