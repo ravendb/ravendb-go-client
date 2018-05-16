@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+// JSONAsMap represents JSON object as a map
+type JSONAsMap = map[string]interface{}
+
+// JSONArrayResult represents result of BatchCommand, which is array of JSON objects
+// it's a type alias so that it doesn't need casting when json marshalling
+type JSONArrayResult = []JSONAsMap
+
 // RavenCommand represents data needed to issue an HTTP command to the server
 type RavenCommand struct {
 	Method        string // GET, PUT etc.
@@ -671,9 +678,9 @@ func NewGetDocumentCommand(keys []string, includes []string, metadataOnly bool) 
 // GetDocumentResult is a result of GetDocument command
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/commands/GetDocumentsResult.java#L6:14
 type GetDocumentResult struct {
-	Includes      json.RawMessage   `json:"Includes"`
-	Results       []json.RawMessage `json:"Results"`
-	NextPageStart int               `json:"NextPageStart"`
+	Includes      map[string]JSONAsMap `json:"Includes"`
+	Results       JSONArrayResult      `json:"Results"`
+	NextPageStart int                  `json:"NextPageStart"`
 }
 
 // ExecuteGetDocumentCommand executes GetDocument command
@@ -725,9 +732,6 @@ func NewBatchCommand(commands []*CommandData) *RavenCommand {
 	}
 	return res
 }
-
-// JSONArrayResult represents result of BatchCommand, which is array of JSON objects
-type JSONArrayResult = []map[string]interface{}
 
 // BatchCommandResult describes server's JSON response to batch command
 type BatchCommandResult struct {

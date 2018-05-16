@@ -102,9 +102,9 @@ func (re *RequestsExecutor) getPreferredNode() *ServerNode {
 
 // Execute sends a command to the server via http and parses a result
 func (re *RequestsExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
-	fmt.Printf("waiting for firstTopologyUpdate() to finish\n")
+	//fmt.Printf("waiting for firstTopologyUpdate() to finish\n")
 	re.waitForFirstTopologyUpdate.Wait()
-	fmt.Printf("firstTopologyUpdate() finished\n")
+	//fmt.Printf("firstTopologyUpdate() finished\n")
 	chosenNode := re.nodeSelector.GetCurrentNode()
 	return re.ExecuteWithNode(chosenNode, ravenCommand, shouldRetry)
 }

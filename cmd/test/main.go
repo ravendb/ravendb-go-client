@@ -51,6 +51,11 @@ func mustGetSession() *ravendb.DocumentSession {
 	return gSession
 }
 
+func mustGetNewSession() *ravendb.DocumentSession {
+	gSession = nil
+	return mustGetSession()
+}
+
 func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
 	node := &ravendb.ServerNode{
 		URL:        serverURL,
@@ -317,10 +322,27 @@ func testStoreLoad() {
 	id := v.ID
 	exp := "foos/1-A"
 	panicIf(id != exp, "id is '%s', should be '%s'", id, exp)
+
+	if false {
+		// TODO: not yet working
+		sess = mustGetNewSession()
+		var res []*Foo
+		ids := []string{id}
+		err = sess.Load(ids, &res, nil)
+		must(err)
+		{
+			if false {
+				// TODO: not yet working
+				got := len(res)
+				exp := 1
+				panicIf(got != exp, "len(res) is %d, should be %d", got, exp)
+			}
+		}
+	}
 }
 
 func main() {
-	allTests := true
+	allTests := false
 
 	deleteTestDatabases()
 	testCreateDatabaseCommand()
@@ -340,5 +362,6 @@ func main() {
 	}
 
 	testStoreLoad()
+
 	//testDeleteDatabaseOp()
 }

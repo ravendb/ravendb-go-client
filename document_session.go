@@ -1,7 +1,9 @@
 package ravendb
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 )
 
 const (
@@ -52,6 +54,8 @@ type DocumentSession struct {
 	Database                  string
 	documentStore             *DocumentStore
 	RequestsExecutor          *RequestsExecutor
+	documentsByID             map[string]interface{}
+	includedDocumentsByID     map[string]JSONAsMap
 	NumberOfRequestsInSession int
 	Conventions               *DocumentConventions
 	// in-flight objects scheduled to Store, before calling SaveChanges
@@ -63,8 +67,7 @@ type DocumentSession struct {
 	documentsByEntity map[interface{}]*DocumentInfo
 	deletedEntities   map[interface{}]struct{}
 	// ids of entities that were deleted
-	knownMissingIDs []string
-	documentsByID   map[string]interface{}
+	knownMissingIDs map[string]struct{}
 	deferCommands   []*CommandData
 }
 
@@ -91,8 +94,12 @@ func (s *DocumentSession) Defer(cmd *CommandData, rest ...*CommandData) {
 	}
 }
 
-func (s *DocumentSession) saveIncludes() {
-	panicIf(true, "NYI")
+func (s *DocumentSession) saveIncludes(includes map[string]JSONAsMap) {
+	for key, value := range includes {
+		if _, ok := s.documentsByID[key]; !ok {
+			s.includedDocumentsByID[key] = value
+		}
+	}
 }
 
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L665
@@ -101,7 +108,7 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	// TODO: can key here be ever empty?
 	delete(s.deletedEntities, entity)
 	if key != "" {
-		removeStringFromArray(&s.knownMissingIDs, key)
+		delete(s.knownMissingIDs, key)
 		if _, ok := s.documentsByID[key]; ok {
 			return
 		}
@@ -121,9 +128,78 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	s.documentsByEntity[entity] = document
 }
 
-// TODO: _convert_and_save_entity
-// TODO: _multi_load
-// TODO: load
+func (s *DocumentSession) convertAndSaveEntity(key string, document JSONAsMap, objectType reflect.Value) {
+	if _, ok := s.documentsByID[key]; ok {
+		return
+	}
+	// TODO: convert_to_entity
+	panicIf(true, "NYI")
+}
+
+func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []string) error {
+	// TODO: get objectType which is reflect.Value of res where res is []*struct
+	idsOfNotExistingObject := stringArrayCopy(keys)
+	if len(includes) == 0 {
+		var idsInIncludes []string
+		for _, key := range idsOfNotExistingObject {
+			if _, ok := s.includedDocumentsByID[key]; ok {
+				idsInIncludes = append(idsInIncludes, key)
+			}
+		}
+		for _, include := range idsInIncludes {
+			panicIf(true, "NYI")
+			//self._convert_and_save_entity(include, self._included_documents_by_id[include], object_type, nested_object_types)
+			delete(s.includedDocumentsByID, include)
+		}
+		var a []string
+		for _, key := range idsOfNotExistingObject {
+			if _, ok := s.documentsByID[key]; !ok {
+				a = append(a, key)
+			}
+		}
+		idsOfNotExistingObject = a
+	}
+
+	var a []string
+	for _, key := range idsOfNotExistingObject {
+		if _, ok := s.knownMissingIDs[key]; !ok {
+			a = append(a, key)
+		}
+	}
+	idsOfNotExistingObject = a
+
+	if len(idsOfNotExistingObject) > 0 {
+		s.incrementRequetsCount()
+		cmd := NewGetDocumentCommand(idsOfNotExistingObject, includes, false)
+		exec := s.documentStore.GetRequestExecutor("").GetCommandExecutor(false)
+		res, err := ExecuteGetDocumentCommand(exec, cmd)
+		if err != nil {
+			return err
+		}
+		results := res.Results
+		for i := 0; i < len(results); i++ {
+			key := idsOfNotExistingObject[i]
+			jsonEntity := results[i]
+			if len(jsonEntity) == 0 {
+				s.knownMissingIDs[key] = struct{}{}
+				continue
+			}
+			var objectType reflect.Value
+			s.convertAndSaveEntity(key, jsonEntity, objectType)
+		}
+		s.saveIncludes(res.Includes)
+	}
+	return nil
+}
+
+// Load loads documents from a database based
+func (s *DocumentSession) Load(keys []string, res interface{}, includes []string) error {
+	if len(keys) == 0 {
+		return errors.New("must provide keys")
+	}
+	return s.multiLoad(keys, res, includes)
+}
+
 // TODO: delete_by_entity
 // TODO: delete
 

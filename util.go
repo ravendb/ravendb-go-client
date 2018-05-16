@@ -112,6 +112,18 @@ func removeStringFromArray(pa *[]string, s string) {
 	*pa = res
 }
 
+func stringArrayCopy(a []string) []string {
+	n := len(a)
+	if n == 0 {
+		return nil
+	}
+	res := make([]string, n, n)
+	for i := 0; i < n; i++ {
+		res[i] = a[i]
+	}
+	return res
+}
+
 // delete "id" key from JSON object
 // TODO: maybe should only
 func deleteID(m map[string]interface{}) {
