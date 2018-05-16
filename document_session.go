@@ -8,10 +8,9 @@ import (
 	"time"
 )
 
-const (
-	// TODO: this should be in DocumentConventiosn
-	maxNumberOfRequestPerSession = 32
-)
+// ObjectNode is an alias for a json document represented as a map
+// Name comes from Java implementation
+type ObjectNode = map[string]interface{}
 
 // ConcurrencyCheckMode describes concurrency check
 type ConcurrencyCheckMode int
@@ -32,8 +31,8 @@ type DocumentInfo struct {
 	concurrencyCheckMode ConcurrencyCheckMode
 	ignoreChanges        bool
 	originalMetadata     map[string]interface{}
-	metadata             map[string]interface{}
-	document             map[string]interface{}
+	metadata             ObjectNode
+	document             ObjectNode
 	originalValue        map[string]interface{}
 	metadataInstance     map[string]interface{}
 	entity               interface{}
@@ -62,6 +61,7 @@ func newClientSessionID() int {
 	return int(newID)
 }
 
+/*
 // BatchOptions describes options for batch operations
 type BatchOptions struct {
 	waitForReplicas                 bool
@@ -75,6 +75,7 @@ type BatchOptions struct {
 	throwOnTimeoutInWaitForIndexes bool
 	waitForSpecificIndexes         []string
 }
+*/
 
 // InMemoryDocumentSessionOperations represents database operations queued
 // in memory
@@ -82,7 +83,6 @@ type BatchOptions struct {
 type InMemoryDocumentSessionOperations struct {
 	clientSessionID  int
 	deletedEntities  map[interface{}]struct{}
-	databaseName     string
 	RequestsExecutor *RequestsExecutor
 	// TODO: OperationExecutor
 	// Note: pendingLazyOperations and onEvaluateLazy not used
@@ -108,28 +108,132 @@ type InMemoryDocumentSessionOperations struct {
 	// TODO: ignore case for keys
 	documentsByID map[string]*DocumentInfo
 
+	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
 	// TODO: value is *DocumentInfo
 	includedDocumentsByID map[string]JSONAsMap
 
+	// hold the data required to manage the data for RavenDB's Unit of Work
+	// TODO: this uses value semantics, so it works as expected for
+	// pointers to structs, but 2 different structs with the same content
+	// will match the same object. Should I disallow storing non-pointer structs?
+	// convert non-pointer structs to structs?
+	documentsByEntity map[interface{}]*DocumentInfo
+
 	documentStore *DocumentStore
+
+	databaseName string
+
+	numberOfRequests int
+
+	Conventions *DocumentConventions
+
+	maxNumberOfRequestsPerSession int
+	useOptimisticConcurrency      bool
 }
+
+// IMetadataDictionary describes metadata for a document
+type IMetadataDictionary = map[string]interface{}
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
 func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestsExecutor) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
 	res := InMemoryDocumentSessionOperations{
-		clientSessionID:             clientSessionID,
-		deletedEntities:             map[interface{}]struct{}{},
-		databaseName:                dbName,
-		RequestsExecutor:            re,
-		generateDocumentKeysOnStore: true,
-		sessionInfo:                 SessionInfo{SessionID: clientSessionID},
-		documentsByID:               map[string]*DocumentInfo{},
-		includedDocumentsByID:       map[string]JSONAsMap{},
-		documentStore:               store,
+		clientSessionID:               clientSessionID,
+		deletedEntities:               map[interface{}]struct{}{},
+		RequestsExecutor:              re,
+		generateDocumentKeysOnStore:   true,
+		sessionInfo:                   SessionInfo{SessionID: clientSessionID},
+		documentsByID:                 map[string]*DocumentInfo{},
+		includedDocumentsByID:         map[string]JSONAsMap{},
+		documentsByEntity:             map[interface{}]*DocumentInfo{},
+		documentStore:                 store,
+		databaseName:                  dbName,
+		maxNumberOfRequestsPerSession: re.Conventions.MaxNumberOfRequestsPerSession,
+		useOptimisticConcurrency:      re.Conventions.UseOptimisticConcurrency,
 	}
 	return &res
+}
+
+// GetNumberOfEntitiesInUnitOfWork returns number of entinties
+func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() int {
+	return len(s.documentsByEntity)
+}
+
+func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConventions {
+	return s.RequestsExecutor.Conventions
+}
+
+// GetMetadataFor returns metadata for a given instance
+func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) IMetadataDictionary {
+	panicIf(true, "NYI")
+	return nil
+}
+
+// GetChangeVectorFor returns metadata for a given instance
+// empty string means there is not change vector
+func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) string {
+	panicIf(true, "NYI")
+	return ""
+}
+
+// GetLastModifiedFor retursn last modified time for a given instance
+func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interface{}) (time.Time, bool) {
+	panicIf(true, "NYI")
+	var res time.Time
+	return res, false
+}
+
+// GetDocumentInfo returns DocumentInfo for a given instance
+// Returns nil if not found
+func (s *InMemoryDocumentSessionOperations) GetDocumentInfo(instance interface{}) (*DocumentInfo, error) {
+	documentInfo := s.documentsByEntity[instance]
+	if documentInfo != nil {
+		return documentInfo, nil
+	}
+	// TODO: id check, assertNoNonUniqueInstance()
+	err := fmt.Errorf("Document %#v doesn't exist in the session", instance)
+	return nil, err
+}
+
+// IsLoaded returns true if document with this id is loaded
+func (s *InMemoryDocumentSessionOperations) IsLoaded(id string) bool {
+	return s.IsLoadedOrDeleted(id)
+}
+
+// IsLoadedOrDeleted returns true if document with this id is loaded
+func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
+	documentInfo := s.documentsByID[id]
+	if documentInfo != nil && documentInfo.document != nil {
+		// is loaded
+		return true
+	}
+	if s.IsDeleted(id) {
+		return true
+	}
+	_, found := s.includedDocumentsByID[id]
+	return found
+}
+
+// IsDeleted returns true if document with this id is deleted in this session
+func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
+	_, ok := s.knownMissingIDs[id]
+	return ok
+}
+
+// GetDocumentID returns id of a given instance
+func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) string {
+	panicIf(true, "NYI")
+	return ""
+}
+
+// IncrementRequetsCount increments requests count
+func (s *InMemoryDocumentSessionOperations) IncrementRequetsCount() error {
+	s.numberOfRequests++
+	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
+		return fmt.Errorf("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
+	}
+	return nil
 }
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
@@ -140,16 +244,7 @@ type DocumentSession struct {
 
 	SessionID string
 
-	NumberOfRequestsInSession int
-	Conventions               *DocumentConventions
-	// in-flight objects scheduled to Store, before calling SaveChanges
-	// key is name of the type
-	// TODO: this uses value semantics, so it works as expected for
-	// pointers to structs, but 2 different structs with the same content
-	// will match the same object. Should I disallow storing non-pointer structs?
-	// convert non-pointer structs to structs?
-	documentsByEntity map[interface{}]*DocumentInfo
-	deferCommands     []*CommandData
+	deferCommands []*CommandData
 }
 
 // NewDocumentSession creates a new DocumentSession
@@ -157,8 +252,6 @@ func NewDocumentSession(dbName string, store *DocumentStore, id string, re *Requ
 	res := &DocumentSession{
 		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re),
 		SessionID:                         id,
-		Conventions:                       store.Conventions,
-		documentsByEntity:                 map[interface{}]*DocumentInfo{},
 	}
 	return res
 }
@@ -246,7 +339,8 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 	idsOfNotExistingObject = a
 
 	if len(idsOfNotExistingObject) > 0 {
-		s.incrementRequetsCount()
+		// TODO: propagate error
+		s.IncrementRequetsCount()
 		cmd := NewGetDocumentCommand(idsOfNotExistingObject, includes, false)
 		exec := s.documentStore.GetRequestExecutor("").GetCommandExecutor(false)
 		res, err := ExecuteGetDocumentCommand(exec, cmd)
@@ -348,7 +442,7 @@ func (s *DocumentSession) SaveChanges() error {
 		return nil
 	}
 
-	err := s.incrementRequetsCount()
+	err := s.IncrementRequetsCount()
 	if err != nil {
 		return err
 	}
@@ -451,13 +545,4 @@ func (s *DocumentSession) prepareForPutsCommands(data *_SaveChangesData) {
 func (s *DocumentSession) hasChange(entity interface{}) bool {
 	// TODO: implement me
 	return true
-}
-
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L380
-func (s *DocumentSession) incrementRequetsCount() error {
-	s.NumberOfRequestsInSession++
-	if s.NumberOfRequestsInSession > maxNumberOfRequestPerSession {
-		return fmt.Errorf("exceeded max number of reqeusts per session of %d", maxNumberOfRequestPerSession)
-	}
-	return nil
 }
