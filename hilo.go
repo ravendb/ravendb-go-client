@@ -3,7 +3,6 @@ package ravendb
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -149,40 +148,44 @@ func (g *HiLoKeyGenerator) GetDocumentKeyFromID(nextID int) string {
 
 // GenerateDocumentKey returns next key
 func (g *HiLoKeyGenerator) GenerateDocumentKey() string {
+	// TODO: propagate error
+	id, _ := g.nextID()
+	return g.GetDocumentKeyFromID(id)
+}
+
+func (g *HiLoKeyGenerator) nextID() (int, error) {
+	g.lock.Lock()
+	defer g.lock.Unlock()
 	for {
 		// local range is not exhausted yet
 		rangev := g.rangev
-
 		id := rangev.Next()
 		if id <= rangev.Max {
-			return strconv.Itoa(id)
+			return id, nil
 		}
 
 		// local range is exhausted , need to get a new range
-		g.lock.Lock()
-		id = rangev.Curr()
-		if id <= rangev.Max {
-			return strconv.Itoa(id)
+		err := g.getNextRange()
+		if err != nil {
+			return 0, err
 		}
-
-		g.getNextRange()
-		g.lock.Unlock()
 	}
 }
 
-func (g *HiLoKeyGenerator) getNextRange() {
-	exec := g.store.getSimpleExecutor()
+func (g *HiLoKeyGenerator) getNextRange() error {
+	exec := g.store.GetRequestExecutor("").GetCommandExecutor(false)
 	cmd := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
 		g.identityPartsSeparator, g.rangev.Max)
-	// TODO: use store.getRequestsExecutor().Exec()
-	// TODO: propagate the error
 	res, err := ExecuteNewNextHiLoCommand(exec, cmd)
-	must(err)
+	if err != nil {
+		return err
+	}
 	g.prefix = res.Prefix
 	g.serverTag = res.ServerTag
 	g.lastRangeAt = res.GetLastRangeAt()
 	g.lastBatchSize = res.LastSize
 	g.rangev = NewRangeValue(res.Low, res.High)
+	return nil
 }
 
 // ReturnUnusedRange returns unused range
