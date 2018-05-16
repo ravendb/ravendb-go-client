@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync/atomic"
+	"time"
 )
 
 const (
@@ -46,15 +48,90 @@ type _SaveChangesData struct {
 	deferredCommandCount int
 }
 
+// SessionInfo describes a session
+type SessionInfo struct {
+	SessionID int
+}
+
+var (
+	clientSessionIDCounter int32 = 1
+)
+
+func newClientSessionID() int {
+	newID := atomic.AddInt32(&clientSessionIDCounter, 1)
+	return int(newID)
+}
+
+// BatchOptions describes options for batch operations
+type BatchOptions struct {
+	waitForReplicas                 bool
+	numberOfReplicasToWaitFor       int
+	waitForReplicasTimeout          time.Duration
+	majority                        bool
+	throwOnTimeoutInWaitForReplicas bool
+
+	waitForIndexes                 bool
+	waitForIndexesTimeout          time.Duration
+	throwOnTimeoutInWaitForIndexes bool
+	waitForSpecificIndexes         []string
+}
+
+// InMemoryDocumentSessionOperations represents database operations queued
+// in memory
+// TODO: move to own file
+type InMemoryDocumentSessionOperations struct {
+	clientSessionID  int
+	deletedEntities  map[interface{}]struct{}
+	databaseName     string
+	RequestsExecutor *RequestsExecutor
+	// TODO: OperationExecutor
+	// Note: pendingLazyOperations and onEvaluateLazy not used
+	generateDocumentKeysOnStore bool
+	sessionInfo                 SessionInfo
+	saveChangeOptions           BatchOptions
+	isDisposed                  bool
+	ID                          string
+
+	/* TODO:
+	   private final List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = new ArrayList<>();
+	   private final List<EventHandler<AfterSaveChangesEventArgs>> onAfterSaveChanges = new ArrayList<>();
+	   private final List<EventHandler<BeforeDeleteEventArgs>> onBeforeDelete = new ArrayList<>();
+	   private final List<EventHandler<BeforeQueryEventArgs>> onBeforeQuery = new ArrayList<>();
+	*/
+
+	// ids of entities that were deleted
+	knownMissingIDs map[string]struct{}
+
+	// Note: skipping unused externalState
+	// Note: skipping unused getCurrentSessionNode
+	documentsByID map[string]interface{}
+}
+
+// NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
+func NewInMemoryDocumentSessionOperations(dbName string, re *RequestsExecutor) *InMemoryDocumentSessionOperations {
+	res := InMemoryDocumentSessionOperations{
+		clientSessionID:             newClientSessionID(),
+		deletedEntities:             map[interface{}]struct{}{},
+		databaseName:                dbName,
+		RequestsExecutor:            re,
+		generateDocumentKeysOnStore: true,
+		documentsByID:               map[string]interface{}{},
+	}
+	res.sessionInfo = SessionInfo{
+		SessionID: res.clientSessionID,
+	}
+	return &res
+}
+
 // DocumentSession is a Unit of Work for accessing RavenDB server
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
 type DocumentSession struct {
-	SessionID                 string
-	Database                  string
-	documentStore             *DocumentStore
-	RequestsExecutor          *RequestsExecutor
-	documentsByID             map[string]interface{}
+	*InMemoryDocumentSessionOperations
+
+	SessionID     string
+	documentStore *DocumentStore
+
 	includedDocumentsByID     map[string]JSONAsMap
 	NumberOfRequestsInSession int
 	Conventions               *DocumentConventions
@@ -65,29 +142,23 @@ type DocumentSession struct {
 	// will match the same object. Should I disallow storing non-pointer structs?
 	// convert non-pointer structs to structs?
 	documentsByEntity map[interface{}]*DocumentInfo
-	deletedEntities   map[interface{}]struct{}
-	// ids of entities that were deleted
-	knownMissingIDs map[string]struct{}
-	deferCommands   []*CommandData
+	deferCommands     []*CommandData
 }
 
 // NewDocumentSession creates a new DocumentSession
 func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestsExecutor) *DocumentSession {
 	res := &DocumentSession{
-		SessionID:         id,
-		Database:          dbName,
-		documentStore:     documentStore,
-		RequestsExecutor:  re,
-		Conventions:       documentStore.Conventions,
-		documentsByEntity: map[interface{}]*DocumentInfo{},
-		documentsByID:     map[string]interface{}{},
-		deletedEntities:   map[interface{}]struct{}{},
+		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, re),
+		SessionID:                         id,
+		documentStore:                     documentStore,
+		Conventions:                       documentStore.Conventions,
+		documentsByEntity:                 map[interface{}]*DocumentInfo{},
 	}
 	return res
 }
 
-// Defer defers commands
-func (s *DocumentSession) Defer(cmd *CommandData, rest ...*CommandData) {
+//
+func (s *DocumentSession) deferCmd(cmd *CommandData, rest ...*CommandData) {
 	s.deferCommands = append(s.deferCommands, cmd)
 	for _, cmd := range rest {
 		s.deferCommands = append(s.deferCommands, cmd)
@@ -233,7 +304,7 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 
 	s.assertNoNonUniqueInstance(entity, entityID)
 	if entityID == "" {
-		entityID = s.documentStore.generateID(s.Database, entity)
+		entityID = s.documentStore.generateID(s.databaseName, entity)
 		trySetIDOnEntity(entity, entityID)
 	}
 

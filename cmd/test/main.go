@@ -339,6 +339,7 @@ func testStoreLoad() {
 			}
 		}
 	}
+	print("testStoreLoad ok\n")
 }
 
 func main() {
