@@ -88,9 +88,9 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: pendingLazyOperations and onEvaluateLazy not used
 	generateDocumentKeysOnStore bool
 	sessionInfo                 SessionInfo
-	saveChangeOptions           BatchOptions
-	isDisposed                  bool
-	ID                          string
+	// Note: skipping unused saveChangeOptions
+	// Note: skipping unused isDisposed
+	ID string
 
 	/* TODO:
 	   private final List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = new ArrayList<>();
@@ -104,21 +104,30 @@ type InMemoryDocumentSessionOperations struct {
 
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
-	documentsByID map[string]interface{}
+
+	// TODO: ignore case for keys
+	documentsByID map[string]*DocumentInfo
+
+	// TODO: ignore case for keys
+	// TODO: value is *DocumentInfo
+	includedDocumentsByID map[string]JSONAsMap
+
+	documentStore *DocumentStore
 }
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
-func NewInMemoryDocumentSessionOperations(dbName string, re *RequestsExecutor) *InMemoryDocumentSessionOperations {
+func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestsExecutor) *InMemoryDocumentSessionOperations {
+	clientSessionID := newClientSessionID()
 	res := InMemoryDocumentSessionOperations{
-		clientSessionID:             newClientSessionID(),
+		clientSessionID:             clientSessionID,
 		deletedEntities:             map[interface{}]struct{}{},
 		databaseName:                dbName,
 		RequestsExecutor:            re,
 		generateDocumentKeysOnStore: true,
-		documentsByID:               map[string]interface{}{},
-	}
-	res.sessionInfo = SessionInfo{
-		SessionID: res.clientSessionID,
+		sessionInfo:                 SessionInfo{SessionID: clientSessionID},
+		documentsByID:               map[string]*DocumentInfo{},
+		includedDocumentsByID:       map[string]JSONAsMap{},
+		documentStore:               store,
 	}
 	return &res
 }
@@ -129,10 +138,8 @@ func NewInMemoryDocumentSessionOperations(dbName string, re *RequestsExecutor) *
 type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 
-	SessionID     string
-	documentStore *DocumentStore
+	SessionID string
 
-	includedDocumentsByID     map[string]JSONAsMap
 	NumberOfRequestsInSession int
 	Conventions               *DocumentConventions
 	// in-flight objects scheduled to Store, before calling SaveChanges
@@ -146,12 +153,11 @@ type DocumentSession struct {
 }
 
 // NewDocumentSession creates a new DocumentSession
-func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestsExecutor) *DocumentSession {
+func NewDocumentSession(dbName string, store *DocumentStore, id string, re *RequestsExecutor) *DocumentSession {
 	res := &DocumentSession{
-		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, re),
+		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re),
 		SessionID:                         id,
-		documentStore:                     documentStore,
-		Conventions:                       documentStore.Conventions,
+		Conventions:                       store.Conventions,
 		documentsByEntity:                 map[interface{}]*DocumentInfo{},
 	}
 	return res
@@ -185,7 +191,7 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 		}
 	}
 	if key != "" {
-		s.documentsByID[key] = entity
+		s.documentsByID[key] = document
 	}
 	if document == nil {
 		document = &DocumentInfo{}
@@ -375,7 +381,7 @@ func (s *DocumentSession) updateBatchResult(batchResult JSONArrayResult, data *_
 		// TODO: add helper getAsString()
 		key := item["@id"]
 		keyStr := key.(string)
-		s.documentsByID[keyStr] = entity
+		s.documentsByID[keyStr] = documentInfo
 		// TODO: python code is document_info["change_vector"] = ["change_vector"]
 		// which seems wrong
 		delete(item, "Type")
