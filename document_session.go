@@ -81,7 +81,7 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	// TODO: can key here be ever empty?
 	delete(s.deletedEntities, entity)
 	if key != "" {
-		delete(s.knownMissingIDs, key)
+		delete(s._knownMissingIDs, key)
 		if v := s.documentsByID.getValue(key); v == nil {
 			return
 		}
@@ -115,14 +115,14 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 	if len(includes) == 0 {
 		var idsInIncludes []string
 		for _, key := range idsOfNotExistingObject {
-			if _, ok := s.includedDocumentsByID[key]; ok {
+			if _, ok := s.includedDocumentsById[key]; ok {
 				idsInIncludes = append(idsInIncludes, key)
 			}
 		}
 		for _, include := range idsInIncludes {
 			panicIf(true, "NYI")
 			//self._convert_and_save_entity(include, self._included_documents_by_id[include], object_type, nested_object_types)
-			delete(s.includedDocumentsByID, include)
+			delete(s.includedDocumentsById, include)
 		}
 		var a []string
 		for _, key := range idsOfNotExistingObject {
@@ -135,7 +135,7 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 
 	var a []string
 	for _, key := range idsOfNotExistingObject {
-		if _, ok := s.knownMissingIDs[key]; !ok {
+		if _, ok := s._knownMissingIDs[key]; !ok {
 			a = append(a, key)
 		}
 	}
@@ -155,7 +155,7 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 			key := idsOfNotExistingObject[i]
 			jsonEntity := results[i]
 			if len(jsonEntity) == 0 {
-				s.knownMissingIDs[key] = struct{}{}
+				s._knownMissingIDs[key] = struct{}{}
 				continue
 			}
 			var objectType reflect.Value

@@ -30,18 +30,18 @@ type SessionInfo struct {
 }
 
 var (
-	clientSessionIDCounter int32 = 1
+	_clientSessionIDCounter int32 = 1
 )
 
 func newClientSessionID() int {
-	newID := atomic.AddInt32(&clientSessionIDCounter, 1)
+	newID := atomic.AddInt32(&_clientSessionIDCounter, 1)
 	return int(newID)
 }
 
 // InMemoryDocumentSessionOperations represents database operations queued
 // in memory
 type InMemoryDocumentSessionOperations struct {
-	clientSessionID  int
+	_clientSessionID int
 	deletedEntities  map[interface{}]struct{}
 	RequestsExecutor *RequestsExecutor
 	// TODO: OperationExecutor
@@ -60,7 +60,7 @@ type InMemoryDocumentSessionOperations struct {
 	*/
 
 	// ids of entities that were deleted
-	knownMissingIDs map[string]struct{}
+	_knownMissingIDs map[string]struct{}
 
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
@@ -69,7 +69,7 @@ type InMemoryDocumentSessionOperations struct {
 
 	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
-	includedDocumentsByID map[string]*DocumentInfo
+	includedDocumentsById map[string]*DocumentInfo
 
 	// hold the data required to manage the data for RavenDB's Unit of Work
 	// TODO: this uses value semantics, so it works as expected for
@@ -88,19 +88,23 @@ type InMemoryDocumentSessionOperations struct {
 
 	maxNumberOfRequestsPerSession int
 	useOptimisticConcurrency      bool
+
+	deferredCommands []*CommandData
+
+	deferredCommandsMap map[*IdTypeAndName]*CommandData
 }
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
 func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestsExecutor) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
 	res := InMemoryDocumentSessionOperations{
-		clientSessionID:               clientSessionID,
+		_clientSessionID:              clientSessionID,
 		deletedEntities:               map[interface{}]struct{}{},
 		RequestsExecutor:              re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   SessionInfo{SessionID: clientSessionID},
 		documentsByID:                 NewDocumentsById(),
-		includedDocumentsByID:         map[string]*DocumentInfo{},
+		includedDocumentsById:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
 		documentStore:                 store,
 		databaseName:                  dbName,
@@ -166,13 +170,13 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 	if s.IsDeleted(id) {
 		return true
 	}
-	_, found := s.includedDocumentsByID[id]
+	_, found := s.includedDocumentsById[id]
 	return found
 }
 
 // IsDeleted returns true if document with this id is deleted in this session
 func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
-	_, ok := s.knownMissingIDs[id]
+	_, ok := s._knownMissingIDs[id]
 	return ok
 }
 
@@ -212,20 +216,20 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 		}
 
 		if !noTracking {
-			delete(s.includedDocumentsByID, id)
+			delete(s.includedDocumentsById, id)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 		return docInfo.entity, nil
 	}
 
-	docInfo = s.includedDocumentsByID[id]
+	docInfo = s.includedDocumentsById[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
 			docInfo.entity = convertToEntity(entityType, id, document)
 		}
 
 		if !noTracking {
-			delete(s.includedDocumentsByID, id)
+			delete(s.includedDocumentsById, id)
 			s.documentsByID.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
@@ -267,8 +271,8 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 	}
 
 	s.deletedEntities[entity] = struct{}{}
-	delete(s.includedDocumentsByID, value.getId())
-	s.knownMissingIDs[value.getId()] = struct{}{}
+	delete(s.includedDocumentsById, value.getId())
+	s._knownMissingIDs[value.getId()] = struct{}{}
 	return nil
 }
 
@@ -299,7 +303,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 		changeVector = documentInfo.getChangeVector()
 	}
 
-	s.knownMissingIDs[id] = struct{}{}
+	s._knownMissingIDs[id] = struct{}{}
 	if !s.useOptimisticConcurrency {
 		changeVector = ""
 	}
