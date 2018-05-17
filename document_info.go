@@ -35,7 +35,11 @@ func NewDocumentInfo() *DocumentInfo {
 	return &DocumentInfo{}
 }
 
-// TODO: remove those functions
+// TODO: remove those functions. Those are only to make porting faster, initially
+func (d *DocumentInfo) getId() string {
+	return d.id
+}
+
 func (d *DocumentInfo) setDocument(document ObjectNode) {
 	d.document = document
 }

@@ -255,6 +255,23 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 	return entity, nil
 }
 
+// Marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) error {
+	if entity == nil {
+		return NewIllegalArgumentError("Entity cannot be null")
+	}
+
+	value := s.documentsByEntity[entity]
+	if value == nil {
+		return NewIllegalStateError(fmt.Sprintf("%#v is not associated with the session, cannot delete unknown entity instance", entity))
+	}
+
+	s.deletedEntities[entity] = struct{}{}
+	delete(s.includedDocumentsByID, value.getId())
+	s.knownMissingIDs[value.getId()] = struct{}{}
+	return nil
+}
+
 func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
 	panicIf(true, "NYI")
 	//return entityToJson.convertToEntity(clazz, id, document);

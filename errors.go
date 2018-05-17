@@ -17,6 +17,21 @@ func (e *IllegalStateError) Error() string {
 	return e.ErrorStr
 }
 
+type IllegalArgumentError struct {
+	ErrorStr string
+}
+
+func NewIllegalArgumentError(s string) *IllegalArgumentError {
+	return &IllegalArgumentError{
+		ErrorStr: s,
+	}
+}
+
+// Error makes it conform to error interface
+func (e *IllegalArgumentError) Error() string {
+	return e.ErrorStr
+}
+
 // BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {
