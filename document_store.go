@@ -12,7 +12,7 @@ type DocumentStore struct {
 	isInitialized bool
 	mu            sync.Mutex
 	// maps database name to its RequestsExecutor
-	requestsExecutors map[string]*RequestsExecutor
+	requestsExecutors map[string]*RequestExecutor
 	Conventions       *DocumentConventions
 	generator         *MultiDatabaseHiLoKeyGenerator
 }
@@ -23,7 +23,7 @@ func NewDocumentStore(urls []string, db string) *DocumentStore {
 	s := &DocumentStore{
 		urls:              urls,
 		database:          db,
-		requestsExecutors: map[string]*RequestsExecutor{},
+		requestsExecutors: map[string]*RequestExecutor{},
 		Conventions:       NewDocumentConventions(),
 	}
 
@@ -67,7 +67,7 @@ func (s *DocumentStore) assertInitialized() {
 // GetRequestExecutor gets a request executor for a given database
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L84
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/DocumentStore.java#L159
-func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestsExecutor {
+func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestExecutor {
 	s.assertInitialized()
 	if dbName == "" {
 		dbName = s.database

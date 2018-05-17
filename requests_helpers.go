@@ -111,7 +111,7 @@ func (s *NodeSelector) RestoreNodeIndex(nodeIndex int) {
 
 // NodeStatus describes a status of the node
 type NodeStatus struct {
-	requestsExecutor *RequestsExecutor
+	requestsExecutor *RequestExecutor
 	nodeIndex        int
 	node             *ServerNode
 	timerPeriod      time.Duration
@@ -119,7 +119,7 @@ type NodeStatus struct {
 }
 
 // NewNodeStatus creates a new NodeStatus
-func NewNodeStatus(re *RequestsExecutor, nodeIndex int, node *ServerNode) *NodeStatus {
+func NewNodeStatus(re *RequestExecutor, nodeIndex int, node *ServerNode) *NodeStatus {
 	return &NodeStatus{
 		requestsExecutor: re,
 		nodeIndex:        nodeIndex,

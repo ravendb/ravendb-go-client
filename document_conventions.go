@@ -32,3 +32,9 @@ func NewDocumentConventions() *DocumentConventions {
 		RaiseIfQueryPageSizeIsNotSet:  false,
 	}
 }
+
+func (c *DocumentConventions) getCollectionName(entity Object) string {
+	// TODO: implement me
+	panicIf(true, "NYI")
+	return ""
+}

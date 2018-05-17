@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// RequestsExecutor describes executor of HTTP requests
-type RequestsExecutor struct {
+// RequestExecutor describes executor of HTTP requests
+type RequestExecutor struct {
 	databaseName string
 	TopologyEtag int
 
@@ -32,14 +32,14 @@ type RequestsExecutor struct {
 	closed              bool
 }
 
-// NewRequestsExecutor creates a new executor
+// NewRequestExecutor creates a new executor
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L21
 // TODO: certificate
-func NewRequestsExecutor(databaseName string, conventions *DocumentConventions) *RequestsExecutor {
+func NewRequestExecutor(databaseName string, conventions *DocumentConventions) *RequestExecutor {
 	if conventions == nil {
 		conventions = NewDocumentConventions()
 	}
-	res := &RequestsExecutor{
+	res := &RequestExecutor{
 		Conventions:        conventions,
 		headers:            map[string]string{},
 		failedNodesTimers:  map[*ServerNode]*NodeStatus{},
@@ -52,8 +52,8 @@ func NewRequestsExecutor(databaseName string, conventions *DocumentConventions) 
 // CreateRequestsExecutor creates a RequestsExecutor
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L52
 // TODO: certificate, conventions
-func CreateRequestsExecutor(urls []string, dbName string, conventions *DocumentConventions) *RequestsExecutor {
-	re := NewRequestsExecutor(dbName, conventions)
+func CreateRequestsExecutor(urls []string, dbName string, conventions *DocumentConventions) *RequestExecutor {
+	re := NewRequestExecutor(dbName, conventions)
 	re.urls = urls
 	re.startFirstTopologyThread(urls)
 	return re
@@ -61,20 +61,20 @@ func CreateRequestsExecutor(urls []string, dbName string, conventions *DocumentC
 
 // CreateRequestsExecutorForSingleNode creates RequestsExecutor for a single server
 // TODO: certificate
-func CreateRequestsExecutorForSingleNode(url string, dbName string) *RequestsExecutor {
+func CreateRequestsExecutorForSingleNode(url string, dbName string) *RequestExecutor {
 	topology := NewTopology()
 	topology.Etag = -1
 	node := NewServerNode(url, dbName)
 	topology.Nodes = []*ServerNode{node}
 
-	re := NewRequestsExecutor(dbName, nil)
+	re := NewRequestExecutor(dbName, nil)
 	re.nodeSelector = NewNodeSelector(topology)
 	re.disableTopologyUpdates = true
 	return re
 }
 
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L63
-func (re *RequestsExecutor) startFirstTopologyThread(urls []string) {
+func (re *RequestExecutor) startFirstTopologyThread(urls []string) {
 	fmt.Printf("startFirstTopologyThread\n")
 	initialUrls := re.urls
 	re.waitForFirstTopologyUpdate.Add(1)
@@ -84,7 +84,7 @@ func (re *RequestsExecutor) startFirstTopologyThread(urls []string) {
 	}()
 }
 
-func (re *RequestsExecutor) ensureNodeSelector() {
+func (re *RequestExecutor) ensureNodeSelector() {
 	re.waitForFirstTopologyUpdate.Wait()
 	if re.nodeSelector != nil {
 		return
@@ -95,13 +95,13 @@ func (re *RequestsExecutor) ensureNodeSelector() {
 	re.nodeSelector = NewNodeSelector(t)
 }
 
-func (re *RequestsExecutor) getPreferredNode() *ServerNode {
+func (re *RequestExecutor) getPreferredNode() *ServerNode {
 	re.ensureNodeSelector()
 	return re.nodeSelector.GetCurrentNode()
 }
 
 // Execute sends a command to the server via http and parses a result
-func (re *RequestsExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
+func (re *RequestExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
 	//fmt.Printf("waiting for firstTopologyUpdate() to finish\n")
 	re.waitForFirstTopologyUpdate.Wait()
 	//fmt.Printf("firstTopologyUpdate() finished\n")
@@ -110,7 +110,7 @@ func (re *RequestsExecutor) Execute(ravenCommand *RavenCommand, shouldRetry bool
 }
 
 // ExecuteWithNode sends a command to the server via http and parses a result
-func (re *RequestsExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
+func (re *RequestExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
 	for {
 		nodeIndex := 0
 		if re.nodeSelector != nil {
@@ -219,7 +219,7 @@ func (re *RequestsExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand
 }
 
 // GetCommandExecutorWithNode returns command executor for a given node
-func (re *RequestsExecutor) GetCommandExecutorWithNode(node *ServerNode, shouldRetry bool) CommandExecutorFunc {
+func (re *RequestExecutor) GetCommandExecutorWithNode(node *ServerNode, shouldRetry bool) CommandExecutorFunc {
 	f := func(cmd *RavenCommand) (*http.Response, error) {
 		return re.ExecuteWithNode(node, cmd, shouldRetry)
 	}
@@ -227,14 +227,14 @@ func (re *RequestsExecutor) GetCommandExecutorWithNode(node *ServerNode, shouldR
 }
 
 // GetCommandExecutor returns command executor
-func (re *RequestsExecutor) GetCommandExecutor(shouldRetry bool) CommandExecutorFunc {
+func (re *RequestExecutor) GetCommandExecutor(shouldRetry bool) CommandExecutorFunc {
 	f := func(cmd *RavenCommand) (*http.Response, error) {
 		return re.Execute(cmd, shouldRetry)
 	}
 	return f
 }
 
-func (re *RequestsExecutor) firstTopologyUpdate(initialUrls []string) error {
+func (re *RequestExecutor) firstTopologyUpdate(initialUrls []string) error {
 	var errorList []error
 	for _, url := range initialUrls {
 		panicIf(re.databaseName == "", "re.databaseName is empty")
@@ -267,7 +267,7 @@ func (re *RequestsExecutor) firstTopologyUpdate(initialUrls []string) error {
 }
 
 // TODO: write me. this should be configurable by the user
-func (re *RequestsExecutor) tryLoadFromCache(url string) {
+func (re *RequestExecutor) tryLoadFromCache(url string) {
 	/*
 	   server_hash = hashlib.md5(
 	       "{0}{1}".format(url, self._database_name).encode(
@@ -303,7 +303,7 @@ func writeToCache(topology *Topology, node *ServerNode) {
 	*/
 }
 
-func (re *RequestsExecutor) updateTopology(node *ServerNode, forceUpdate bool) error {
+func (re *RequestExecutor) updateTopology(node *ServerNode, forceUpdate bool) error {
 	panicIf(node.Database == "", "node.Database is empty in %#v", node)
 	fmt.Printf("updateTopology\n")
 	if re.closed {
@@ -328,7 +328,7 @@ func (re *RequestsExecutor) updateTopology(node *ServerNode, forceUpdate bool) e
 	return nil
 }
 
-func (re *RequestsExecutor) handleServerDown(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, err error) bool {
+func (re *RequestExecutor) handleServerDown(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, err error) bool {
 	command.addFailedNode(chosenNode)
 	nodeSelector := re.nodeSelector
 
@@ -354,14 +354,14 @@ func (re *RequestsExecutor) handleServerDown(chosenNode *ServerNode, nodeIndex i
 	return command.isFailedWithNode(currentNode)
 }
 
-func (re *RequestsExecutor) cancelAllFailedNodesTimers() {
+func (re *RequestExecutor) cancelAllFailedNodesTimers() {
 	for k, t := range re.failedNodesTimers {
 		t.Cancel()
 		delete(re.failedNodesTimers, k)
 	}
 }
 
-func (re *RequestsExecutor) checkNodeStatus(nodeStatus *NodeStatus) {
+func (re *RequestExecutor) checkNodeStatus(nodeStatus *NodeStatus) {
 	if re.nodeSelector == nil {
 		return
 	}
@@ -375,7 +375,7 @@ func (re *RequestsExecutor) checkNodeStatus(nodeStatus *NodeStatus) {
 	}
 }
 
-func (re *RequestsExecutor) performHealthCheck(node *ServerNode, nodeStatus *NodeStatus) {
+func (re *RequestExecutor) performHealthCheck(node *ServerNode, nodeStatus *NodeStatus) {
 	command := NewGetStatisticsCommand("failure=check")
 	exec := re.GetCommandExecutorWithNode(node, false)
 	_, err := ExecuteGetStatisticsCommand(exec, command)
@@ -395,7 +395,7 @@ func (re *RequestsExecutor) performHealthCheck(node *ServerNode, nodeStatus *Nod
 	re.nodeSelector.RestoreNodeIndex(nodeStatus.nodeIndex)
 }
 
-func (re *RequestsExecutor) updateTopologyCallback() {
+func (re *RequestExecutor) updateTopologyCallback() {
 	now := time.Now()
 	if now.Sub(re.lastReturnResponse) < time.Minute*5 {
 		return
@@ -404,7 +404,7 @@ func (re *RequestsExecutor) updateTopologyCallback() {
 }
 
 // Close should be called when deleting executor
-func (re *RequestsExecutor) Close() {
+func (re *RequestExecutor) Close() {
 	if re.closed {
 		return
 	}
@@ -413,4 +413,8 @@ func (re *RequestsExecutor) Close() {
 	if re.updateTopologyTimer != nil {
 		re.updateTopologyTimer.Stop()
 	}
+}
+
+func (re *RequestExecutor) getConventions() *DocumentConventions {
+	return re.Conventions
 }

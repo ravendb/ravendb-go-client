@@ -2,13 +2,15 @@ package ravendb
 
 import "fmt"
 
+// IllegalStateError corresponds to Java's IllegalStateException
 type IllegalStateError struct {
 	ErrorStr string
 }
 
-func NewIllegalStateError(s string) *IllegalStateError {
+// NewIllegalStateError creates a new IllegalStateError
+func NewIllegalStateError(format string, args ...interface{}) *IllegalStateError {
 	return &IllegalStateError{
-		ErrorStr: s,
+		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
@@ -17,18 +19,37 @@ func (e *IllegalStateError) Error() string {
 	return e.ErrorStr
 }
 
+// IllegalArgumentError corresponds to Java's IllegalArgumentException
 type IllegalArgumentError struct {
 	ErrorStr string
 }
 
-func NewIllegalArgumentError(s string) *IllegalArgumentError {
+// NewIllegalArgumentError creates new IllegalArgumentError
+func NewIllegalArgumentError(format string, args ...interface{}) *IllegalArgumentError {
 	return &IllegalArgumentError{
-		ErrorStr: s,
+		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
 // Error makes it conform to error interface
 func (e *IllegalArgumentError) Error() string {
+	return e.ErrorStr
+}
+
+// NonUniqueObjectError corresponds to Java's NonUniqueObjectException
+type NonUniqueObjectError struct {
+	ErrorStr string
+}
+
+// NewNonUniqueObjectError creates new NonUniqueObjectError
+func NewNonUniqueObjectError(format string, args ...interface{}) *NonUniqueObjectError {
+	return &NonUniqueObjectError{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *NonUniqueObjectError) Error() string {
 	return e.ErrorStr
 }
 

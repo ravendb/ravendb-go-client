@@ -43,7 +43,7 @@ func newClientSessionID() int {
 type InMemoryDocumentSessionOperations struct {
 	_clientSessionID int
 	deletedEntities  map[interface{}]struct{}
-	RequestsExecutor *RequestsExecutor
+	RequestExecutor  *RequestExecutor
 	// TODO: OperationExecutor
 	// Note: pendingLazyOperations and onEvaluateLazy not used
 	generateDocumentKeysOnStore bool
@@ -60,12 +60,12 @@ type InMemoryDocumentSessionOperations struct {
 	*/
 
 	// ids of entities that were deleted
-	_knownMissingIDs map[string]struct{}
+	_knownMissingIds map[string]struct{}
 
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
 
-	documentsByID *DocumentsById
+	documentsById *DocumentsById
 
 	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
@@ -91,19 +91,20 @@ type InMemoryDocumentSessionOperations struct {
 
 	deferredCommands []*CommandData
 
-	deferredCommandsMap map[*IdTypeAndName]*CommandData
+	// Note: using value type so that lookups are based on value
+	deferredCommandsMap map[IdTypeAndName]*CommandData
 }
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
-func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestsExecutor) *InMemoryDocumentSessionOperations {
+func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
 	res := InMemoryDocumentSessionOperations{
 		_clientSessionID:              clientSessionID,
 		deletedEntities:               map[interface{}]struct{}{},
-		RequestsExecutor:              re,
+		RequestExecutor:               re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   SessionInfo{SessionID: clientSessionID},
-		documentsByID:                 NewDocumentsById(),
+		documentsById:                 NewDocumentsById(),
 		includedDocumentsById:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
 		documentStore:                 store,
@@ -120,7 +121,7 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() in
 }
 
 func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConventions {
-	return s.RequestsExecutor.Conventions
+	return s.RequestExecutor.Conventions
 }
 
 // GetMetadataFor returns metadata for a given instance
@@ -150,7 +151,18 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentInfo(instance interface{}
 	if documentInfo != nil {
 		return documentInfo, nil
 	}
-	// TODO: id check, assertNoNonUniqueInstance()
+
+	/* TODO: port this
+	Reference<String> idRef = new Reference<>();
+	if (!generateEntityIdOnTheClient.tryGetIdFromInstance(instance, idRef)) {
+		throw new IllegalStateException("Could not find the document id for " + instance);
+	}
+
+	if err := s.assertNoNonUniqueInstance(instance, id); err != nil {
+		return nil, err
+	}
+	*/
+
 	err := fmt.Errorf("Document %#v doesn't exist in the session", instance)
 	return nil, err
 }
@@ -162,7 +174,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoaded(id string) bool {
 
 // IsLoadedOrDeleted returns true if document with this id is loaded
 func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
-	documentInfo := s.documentsByID.getValue(id)
+	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil && documentInfo.document != nil {
 		// is loaded
 		return true
@@ -176,7 +188,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 
 // IsDeleted returns true if document with this id is deleted in this session
 func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
-	_, ok := s._knownMissingIDs[id]
+	_, ok := s._knownMissingIds[id]
 	return ok
 }
 
@@ -230,7 +242,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 
 		if !noTracking {
 			delete(s.includedDocumentsById, id)
-			s.documentsByID.add(docInfo)
+			s.documentsById.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 
@@ -241,7 +253,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 
 	changeVector := jsonGetAsText(metadata, MetadataCHANGE_VECTOR)
 	if changeVector == "" {
-		return nil, NewIllegalStateError(fmt.Sprintf("Document %s must have Change Vector", id))
+		return nil, NewIllegalStateError("Document %s must have Change Vector", id)
 	}
 
 	if !noTracking {
@@ -252,7 +264,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 		newDocumentInfo.setEntity(entity)
 		newDocumentInfo.setChangeVector(changeVector)
 
-		s.documentsByID.add(newDocumentInfo)
+		s.documentsById.add(newDocumentInfo)
 		s.documentsByEntity[entity] = newDocumentInfo
 	}
 
@@ -267,12 +279,12 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 
 	value := s.documentsByEntity[entity]
 	if value == nil {
-		return NewIllegalStateError(fmt.Sprintf("%#v is not associated with the session, cannot delete unknown entity instance", entity))
+		return NewIllegalStateError("%#v is not associated with the session, cannot delete unknown entity instance", entity)
 	}
 
 	s.deletedEntities[entity] = struct{}{}
 	delete(s.includedDocumentsById, value.getId())
-	s._knownMissingIDs[value.getId()] = struct{}{}
+	s._knownMissingIds[value.getId()] = struct{}{}
 	return nil
 }
 
@@ -284,11 +296,11 @@ func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
 
 func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector string) error {
 	if id == "" {
-		return NewIllegalArgumentError("Id cannot be null")
+		return NewIllegalArgumentError("Id cannot be empty")
 	}
 
 	changeVector := ""
-	documentInfo := s.documentsByID.getValue(id)
+	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil {
 		newObj := convertEntityToJson(documentInfo.getEntity(), documentInfo)
 		if documentInfo.getEntity() != nil && s.entityChanged(newObj, documentInfo, nil) {
@@ -299,11 +311,11 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 			delete(s.documentsByEntity, documentInfo.getEntity())
 		}
 
-		s.documentsByID.remove(id)
+		s.documentsById.remove(id)
 		changeVector = documentInfo.getChangeVector()
 	}
 
-	s._knownMissingIDs[id] = struct{}{}
+	s._knownMissingIds[id] = struct{}{}
 	if !s.useOptimisticConcurrency {
 		changeVector = ""
 	}
@@ -324,7 +336,7 @@ func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
 
 /// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id String) error {
-	return s.StoreInternal(entity, "", id, ConcurrencyCheckAuto)
+	return s.storeInternal(entity, "", id, ConcurrencyCheckAuto)
 }
 
 // Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
@@ -334,10 +346,10 @@ func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector St
 		concurr = ConcurrencyCheckForced
 	}
 
-	return s.StoreInternal(entity, changeVector, id, concurr)
+	return s.storeInternal(entity, changeVector, id, concurr)
 }
 
-func (s *InMemoryDocumentSessionOperations) StoreInternal(entity Object, changeVector String, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
+func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector String, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
 		return NewIllegalArgumentError("Entity cannot be null")
 	}
@@ -363,23 +375,26 @@ func (s *InMemoryDocumentSessionOperations) StoreInternal(entity Object, changeV
 		//generateEntityIdOnTheClient.trySetIdentity(entity, id);
 	}
 
+	tmp := NewIdTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
+	if _, ok := s.deferredCommandsMap[tmp]; ok {
+		return NewIllegalStateError("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", id)
+	}
+
+	if _, ok := s.deletedEntities[entity]; ok {
+		return NewIllegalStateError("Can't store object, it was already deleted in this session.  Document id: %s", id)
+	}
+
+	// we make the check here even if we just generated the ID
+	// users can override the ID generation behavior, and we need
+	// to detect if they generate duplicates.
+
+	if err := s.assertNoNonUniqueInstance(entity, id); err != nil {
+		return err
+	}
+
+	// collectionName := s.RequestExecutor.getConventions().getCollectionName(entity)
+
 	/*
-		if (deferredCommandsMap.containsKey(IdTypeAndName.create(id, CommandType.CLIENT_ANY_COMMAND, null))) {
-			throw new IllegalStateException("Can't store document, there is a deferred command registered for this document in the session. Document id: " + id);
-		}
-
-		if (deletedEntities.contains(entity)) {
-			throw new IllegalStateException("Can't store object, it was already deleted in this session.  Document id: " + id);
-		}
-
-
-		// we make the check here even if we just generated the ID
-		// users can override the ID generation behavior, and we need
-		// to detect if they generate duplicates.
-		assertNoNonUniqueInstance(entity, id);
-
-		String collectionName = _requestExecutor.getConventions().getCollectionName(entity);
-
 		ObjectMapper mapper = JsonExtensions.getDefaultMapper();
 		ObjectNode metadata = mapper.createObjectNode();
 
@@ -399,6 +414,19 @@ func (s *InMemoryDocumentSessionOperations) StoreInternal(entity Object, changeV
 		storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck);
 	*/
 	return nil
+}
+
+func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Object, id String) error {
+	nLastChar := len(id) - 1
+	if len(id) == 0 || id[nLastChar] == '|' || id[nLastChar] == '/' {
+		return nil
+	}
+	info := s.documentsById.getValue(id)
+	if info == nil || info.getEntity() == entity {
+		return nil
+	}
+
+	return NewNonUniqueObjectError("Attempted to associate a different object with id '" + id + "'.")
 }
 
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {

@@ -69,7 +69,7 @@ func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
 // error code
 func testInvalidCommand() {
 	sess := mustGetSession()
-	exec := sess.RequestsExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor(false)
 	cmd := &ravendb.RavenCommand{
 		Method:        http.MethodGet,
 		IsReadRequest: true,
@@ -84,7 +84,7 @@ func testInvalidCommand() {
 
 func testGetClusterTopologyCommand() {
 	sess := mustGetSession()
-	exec := sess.RequestsExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor(false)
 	cmd := ravendb.NewGetClusterTopologyCommand()
 	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd)
 	must(err)
@@ -151,7 +151,7 @@ func testGetTopologyCommandBadDb() {
 
 func testGetDatabaseNamesCommand() {
 	sess := mustGetSession()
-	exec := sess.RequestsExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor(false)
 	cmd := ravendb.NewGetDatabaseNamesCommand(0, 32)
 	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd)
 	must(err)
@@ -241,7 +241,7 @@ func testCreateAndDeleteDatabaseCommand() {
 
 func testPutGetDeleteDocument() {
 	sess := mustGetSession()
-	exec := sess.RequestsExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor(false)
 	key := "testing/1"
 	meta := map[string]interface{}{
 		"@collection": "Testings",

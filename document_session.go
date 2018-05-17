@@ -53,7 +53,7 @@ type DocumentSession struct {
 }
 
 // NewDocumentSession creates a new DocumentSession
-func NewDocumentSession(dbName string, store *DocumentStore, id string, re *RequestsExecutor) *DocumentSession {
+func NewDocumentSession(dbName string, store *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
 	res := &DocumentSession{
 		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re),
 		SessionID:                         id,
@@ -81,13 +81,13 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	// TODO: can key here be ever empty?
 	delete(s.deletedEntities, entity)
 	if key != "" {
-		delete(s._knownMissingIDs, key)
-		if v := s.documentsByID.getValue(key); v == nil {
+		delete(s._knownMissingIds, key)
+		if v := s.documentsById.getValue(key); v == nil {
 			return
 		}
 	}
 	if key != "" {
-		s.documentsByID.add(document)
+		s.documentsById.add(document)
 	}
 	if document == nil {
 		document = &DocumentInfo{}
@@ -102,7 +102,7 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 }
 
 func (s *DocumentSession) convertAndSaveEntity(key string, document ObjectNode, objectType reflect.Value) {
-	if v := s.documentsByID.getValue(key); v == nil {
+	if v := s.documentsById.getValue(key); v == nil {
 		return
 	}
 	// TODO: convert_to_entity
@@ -126,7 +126,7 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 		}
 		var a []string
 		for _, key := range idsOfNotExistingObject {
-			if v := s.documentsByID.getValue(key); v == nil {
+			if v := s.documentsById.getValue(key); v == nil {
 				a = append(a, key)
 			}
 		}
@@ -135,7 +135,7 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 
 	var a []string
 	for _, key := range idsOfNotExistingObject {
-		if _, ok := s._knownMissingIDs[key]; !ok {
+		if _, ok := s._knownMissingIds[key]; !ok {
 			a = append(a, key)
 		}
 	}
@@ -155,7 +155,7 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 			key := idsOfNotExistingObject[i]
 			jsonEntity := results[i]
 			if len(jsonEntity) == 0 {
-				s._knownMissingIDs[key] = struct{}{}
+				s._knownMissingIds[key] = struct{}{}
 				continue
 			}
 			var objectType reflect.Value
@@ -251,7 +251,7 @@ func (s *DocumentSession) SaveChanges() error {
 	}
 
 	batchCommand := NewBatchCommand(data.commands)
-	exec := s.RequestsExecutor.GetCommandExecutor(false)
+	exec := s.RequestExecutor.GetCommandExecutor(false)
 	batchResult, err := ExecuteBatchCommand(exec, batchCommand)
 	if err != nil {
 		return err
@@ -277,7 +277,7 @@ func (s *DocumentSession) updateBatchResult(batchResult JSONArrayResult, data *_
 		}
 		// TODO: add helper getAsString()
 		//key := jsonGetAsText(item, MetadataID)
-		s.documentsByID.add(documentInfo)
+		s.documentsById.add(documentInfo)
 		delete(item, "Type")
 		documentInfo.originalMetadata = copyJSONMap(item)
 		documentInfo.metadata = item
@@ -300,7 +300,7 @@ func (s *DocumentSession) prepareForDeleteCommands(data *_SaveChangesData) {
 	}
 
 	for _, key := range keysToDelete {
-		existingEntity := s.documentsByID.getValue(key)
+		existingEntity := s.documentsById.getValue(key)
 		if existingEntity == nil {
 			continue
 		}
@@ -312,7 +312,7 @@ func (s *DocumentSession) prepareForDeleteCommands(data *_SaveChangesData) {
 				changeVector = v.(string)
 			}
 			delete(s.documentsByEntity, existingEntity)
-			s.documentsByID.remove(key)
+			s.documentsById.remove(key)
 			data.entities = append(data.entities, existingEntity)
 			cmdData := NewDeleteCommandData(key, changeVector)
 			data.commands = append(data.commands, cmdData)
@@ -333,7 +333,7 @@ func (s *DocumentSession) prepareForPutsCommands(data *_SaveChangesData) {
 		document := structToJSONMap(entity)
 		data.entities = append(data.entities, entity)
 		if key != "" {
-			s.documentsByID.remove(key)
+			s.documentsById.remove(key)
 			deleteID(document)
 		}
 		cmd := NewPutCommandData(key, changeVector, document, metadata)

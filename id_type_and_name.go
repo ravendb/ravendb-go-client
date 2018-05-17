@@ -6,8 +6,8 @@ type IdTypeAndName struct {
 	name String
 }
 
-func NewIdTypeAndName(id String, typ CommandType, name String) *IdTypeAndName {
-	return &IdTypeAndName{
+func NewIdTypeAndName(id String, typ CommandType, name String) IdTypeAndName {
+	return IdTypeAndName{
 		id:   id,
 		typ:  typ,
 		name: name,
@@ -38,16 +38,3 @@ func (t *IdTypeAndName) getName() String {
 func (t *IdTypeAndName) setName(name String) {
 	t.name = name
 }
-
-/*
-public boolean equals(Object o) {
-	if (this == o) return true;
-	if (o == null || getClass() != o.getClass()) return false;
-
-	IdTypeAndName that = (IdTypeAndName) o;
-
-	if (id != null ? !id.equals(that.id) : that.id != null) return false;
-	if (type != that.type) return false;
-	return name != null ? name.equals(that.name) : that.name == null;
-}
-*/
