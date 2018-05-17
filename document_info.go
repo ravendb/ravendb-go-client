@@ -30,3 +30,24 @@ type DocumentInfo struct {
 	newDocuemnt          bool
 	collection           string
 }
+
+func NewDocumentInfo() *DocumentInfo {
+	return &DocumentInfo{}
+}
+
+// TODO: remove those functions
+func (d *DocumentInfo) setDocument(document ObjectNode) {
+	d.document = document
+}
+
+func (d *DocumentInfo) setMetadata(metadata ObjectNode) {
+	d.metadata = metadata
+}
+
+func (d *DocumentInfo) setEntity(entity interface{}) {
+	d.entity = entity
+}
+
+func (d *DocumentInfo) setChangeVector(changeVector string) {
+	d.changeVector = changeVector
+}

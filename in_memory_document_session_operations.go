@@ -2,8 +2,26 @@ package ravendb
 
 import (
 	"fmt"
+	"reflect"
 	"sync/atomic"
 	"time"
+)
+
+const (
+	// TODO: fix names
+	MetadataCOLLECTION    = "@collection"
+	MetadataPROJECTION    = "@projection"
+	MetadataKEY           = "@metadata"
+	MetadataID            = "@id"
+	MetadataCONFLICT      = "@conflict"
+	MetadataID_PROPERTY   = "Id"
+	MetadataFLAGS         = "@flags"
+	MetadataATTACHMENTS   = "@attachments"
+	MetadataINDEX_SCORE   = "@index-score"
+	MetadataLAST_MODIFIED = "@last-modified"
+	MetadataRAVEN_GO_TYPE = "Raven-Go-Type"
+	MetadataCHANGE_VECTOR = "@change-vector"
+	MetadataEXPIRES       = "@expires"
 )
 
 // SessionInfo describes a session
@@ -47,13 +65,11 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
 
-	// TODO: ignore case for keys
-	documentsByID map[string]*DocumentInfo
+	documentsByID *DocumentsById
 
 	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
-	// TODO: value is *DocumentInfo
-	includedDocumentsByID map[string]JSONAsMap
+	includedDocumentsByID map[string]*DocumentInfo
 
 	// hold the data required to manage the data for RavenDB's Unit of Work
 	// TODO: this uses value semantics, so it works as expected for
@@ -83,8 +99,8 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		RequestsExecutor:              re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   SessionInfo{SessionID: clientSessionID},
-		documentsByID:                 map[string]*DocumentInfo{},
-		includedDocumentsByID:         map[string]JSONAsMap{},
+		documentsByID:                 NewDocumentsById(),
+		includedDocumentsByID:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
 		documentStore:                 store,
 		databaseName:                  dbName,
@@ -142,7 +158,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoaded(id string) bool {
 
 // IsLoadedOrDeleted returns true if document with this id is loaded
 func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
-	documentInfo := s.documentsByID[id]
+	documentInfo := s.documentsByID.getValue(id)
 	if documentInfo != nil && documentInfo.document != nil {
 		// is loaded
 		return true
@@ -172,5 +188,75 @@ func (s *InMemoryDocumentSessionOperations) IncrementRequetsCount() error {
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
 		return fmt.Errorf("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
 	}
+	return nil
+}
+
+// TrackEntityInDocumentInfo tracks entity in DocumentInfo
+func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(clazz reflect.Type, documentFound *DocumentInfo) (interface{}, error) {
+	return s.TrackEntity(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
+}
+
+// TrackEntity tracks entity
+func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
+	if id == "" {
+		return s.deserializeFromTransformer(entityType, "", document), nil
+	}
+
+	docInfo := s.documentsByEntity[id]
+	if docInfo != nil {
+		// the local instance may have been changed, we adhere to the current Unit of Work
+		// instance, and return that, ignoring anything new.
+
+		if docInfo.entity == nil {
+			docInfo.entity = convertToEntity(entityType, id, document)
+		}
+
+		if !noTracking {
+			delete(s.includedDocumentsByID, id)
+			s.documentsByEntity[docInfo.entity] = docInfo
+		}
+		return docInfo.entity, nil
+	}
+
+	docInfo = s.includedDocumentsByID[id]
+	if docInfo != nil {
+		if docInfo.entity == nil {
+			docInfo.entity = convertToEntity(entityType, id, document)
+		}
+
+		if !noTracking {
+			delete(s.includedDocumentsByID, id)
+			s.documentsByID.add(docInfo)
+			s.documentsByEntity[docInfo.entity] = docInfo
+		}
+
+		return docInfo.entity, nil
+	}
+
+	entity := convertToEntity(entityType, id, document)
+
+	changeVector := jsonGetAsText(metadata, MetadataCHANGE_VECTOR)
+	if changeVector == "" {
+		return nil, NewIllegalStateError(fmt.Sprintf("Document %s must have Change Vector", id))
+	}
+
+	if !noTracking {
+		newDocumentInfo := NewDocumentInfo()
+		newDocumentInfo.id = id
+		newDocumentInfo.setDocument(document)
+		newDocumentInfo.setMetadata(metadata)
+		newDocumentInfo.setEntity(entity)
+		newDocumentInfo.setChangeVector(changeVector)
+
+		s.documentsByID.add(newDocumentInfo)
+		s.documentsByEntity[entity] = newDocumentInfo
+	}
+
+	return entity, nil
+}
+
+func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
+	panicIf(true, "NYI")
+	//return entityToJson.convertToEntity(clazz, id, document);
 	return nil
 }

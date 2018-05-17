@@ -61,11 +61,9 @@ func (s *DocumentSession) deferCmd(cmd *CommandData, rest ...*CommandData) {
 	}
 }
 
-func (s *DocumentSession) saveIncludes(includes map[string]JSONAsMap) {
-	for key, value := range includes {
-		if _, ok := s.documentsByID[key]; !ok {
-			s.includedDocumentsByID[key] = value
-		}
+func (s *DocumentSession) saveIncludes(includes map[string]ObjectNode) {
+	for range includes {
+		panicIf(true, "NYI")
 	}
 }
 
@@ -76,12 +74,12 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	delete(s.deletedEntities, entity)
 	if key != "" {
 		delete(s.knownMissingIDs, key)
-		if _, ok := s.documentsByID[key]; ok {
+		if v := s.documentsByID.getValue(key); v == nil {
 			return
 		}
 	}
 	if key != "" {
-		s.documentsByID[key] = document
+		s.documentsByID.add(document)
 	}
 	if document == nil {
 		document = &DocumentInfo{}
@@ -95,8 +93,8 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	s.documentsByEntity[entity] = document
 }
 
-func (s *DocumentSession) convertAndSaveEntity(key string, document JSONAsMap, objectType reflect.Value) {
-	if _, ok := s.documentsByID[key]; ok {
+func (s *DocumentSession) convertAndSaveEntity(key string, document ObjectNode, objectType reflect.Value) {
+	if v := s.documentsByID.getValue(key); v == nil {
 		return
 	}
 	// TODO: convert_to_entity
@@ -120,7 +118,7 @@ func (s *DocumentSession) multiLoad(keys []string, res interface{}, includes []s
 		}
 		var a []string
 		for _, key := range idsOfNotExistingObject {
-			if _, ok := s.documentsByID[key]; !ok {
+			if v := s.documentsByID.getValue(key); v == nil {
 				a = append(a, key)
 			}
 		}
@@ -270,11 +268,8 @@ func (s *DocumentSession) updateBatchResult(batchResult JSONArrayResult, data *_
 			continue
 		}
 		// TODO: add helper getAsString()
-		key := item["@id"]
-		keyStr := key.(string)
-		s.documentsByID[keyStr] = documentInfo
-		// TODO: python code is document_info["change_vector"] = ["change_vector"]
-		// which seems wrong
+		//key := jsonGetAsText(item, MetadataID)
+		s.documentsByID.add(documentInfo)
 		delete(item, "Type")
 		documentInfo.originalMetadata = copyJSONMap(item)
 		documentInfo.metadata = item
@@ -297,8 +292,8 @@ func (s *DocumentSession) prepareForDeleteCommands(data *_SaveChangesData) {
 	}
 
 	for _, key := range keysToDelete {
-		existingEntity, ok := s.documentsByID[key]
-		if !ok {
+		existingEntity := s.documentsByID.getValue(key)
+		if existingEntity == nil {
 			continue
 		}
 		var changeVector string
@@ -309,7 +304,7 @@ func (s *DocumentSession) prepareForDeleteCommands(data *_SaveChangesData) {
 				changeVector = v.(string)
 			}
 			delete(s.documentsByEntity, existingEntity)
-			delete(s.documentsByID, key)
+			s.documentsByID.remove(key)
 			data.entities = append(data.entities, existingEntity)
 			cmdData := NewDeleteCommandData(key, changeVector)
 			data.commands = append(data.commands, cmdData)
@@ -330,7 +325,7 @@ func (s *DocumentSession) prepareForPutsCommands(data *_SaveChangesData) {
 		document := structToJSONMap(entity)
 		data.entities = append(data.entities, entity)
 		if key != "" {
-			delete(s.documentsByID, key)
+			s.documentsByID.remove(key)
 			deleteID(document)
 		}
 		cmd := NewPutCommandData(key, changeVector, document, metadata)

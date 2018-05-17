@@ -198,7 +198,7 @@ func getStructTypeOfValue(v interface{}) (reflect.Type, bool) {
 }
 
 // given a json represented as map and type of a struct
-func makeStructFromJSONMap(typ reflect.Type, js JSONAsMap) interface{} {
+func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
 	panicIf(typ.Kind() != reflect.Struct, "rv should be of type Struct but is %s", typ.String())
 	rvNew := reflect.New(typ)
 	d, err := json.Marshal(js)
@@ -207,4 +207,22 @@ func makeStructFromJSONMap(typ reflect.Type, js JSONAsMap) interface{} {
 	err = json.Unmarshal(d, v)
 	must(err)
 	return v
+}
+
+func convertToEntity(entityType reflect.Type, id string, document ObjectNode) interface{} {
+	res := makeStructFromJSONMap(entityType, document)
+	// TODO: set id on res
+	return res
+}
+
+func jsonGetAsText(doc ObjectNode, key string) string {
+	v, ok := doc[key]
+	if !ok {
+		return ""
+	}
+	s, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return s
 }
