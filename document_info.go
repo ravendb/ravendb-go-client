@@ -40,6 +40,14 @@ func (d *DocumentInfo) getId() string {
 	return d.id
 }
 
+func (d *DocumentInfo) getEntity() interface{} {
+	return d.entity
+}
+
+func (d *DocumentInfo) getChangeVector() string {
+	return d.changeVector
+}
+
 func (d *DocumentInfo) setDocument(document ObjectNode) {
 	d.document = document
 }

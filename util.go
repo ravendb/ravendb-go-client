@@ -215,6 +215,11 @@ func convertToEntity(entityType reflect.Type, id string, document ObjectNode) in
 	return res
 }
 
+func convertEntityToJson(entity interface{}, documentInfo *DocumentInfo) ObjectNode {
+	panicIf(true, "NYI")
+	return nil
+}
+
 func jsonGetAsText(doc ObjectNode, key string) string {
 	v, ok := doc[key]
 	if !ok {

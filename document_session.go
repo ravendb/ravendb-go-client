@@ -10,6 +10,8 @@ import (
 // Name comes from Java implementation
 type ObjectNode = map[string]interface{}
 
+type JsonNodeType = interface{}
+
 // TODO: rename to saveChangesData, maybe
 type _SaveChangesData struct {
 	commands             []*CommandData

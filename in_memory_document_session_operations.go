@@ -272,6 +272,48 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 	return nil
 }
 
+// Marks the specified entity for deletion. The entity will be deleted when IDocumentSession.SaveChanges is called.
+// WARNING: This method will not call beforeDelete listener!
+func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
+	return s.DeleteWithChangeVector(id, "")
+}
+
+func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector string) error {
+	if id == "" {
+		return NewIllegalArgumentError("Id cannot be null")
+	}
+
+	changeVector := ""
+	documentInfo := s.documentsByID.getValue(id)
+	if documentInfo != nil {
+		newObj := convertEntityToJson(documentInfo.getEntity(), documentInfo)
+		if documentInfo.getEntity() != nil && s.entityChanged(newObj, documentInfo, nil) {
+			return NewIllegalStateError("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
+		}
+
+		if documentInfo.getEntity() != nil {
+			delete(s.documentsByEntity, documentInfo.getEntity())
+		}
+
+		s.documentsByID.remove(id)
+		changeVector = documentInfo.getChangeVector()
+	}
+
+	s.knownMissingIDs[id] = struct{}{}
+	if !s.useOptimisticConcurrency {
+		changeVector = ""
+	}
+	// TODO: remove
+	fmt.Printf("%s\n", changeVector)
+	//defer(new DeleteCommandData(id, ObjectUtils.firstNonNull(expectedChangeVector, changeVector)));
+	return nil
+}
+
+func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
+	//return JsonOperation.entityChanged(newObj, documentInfo, changes);
+	return false
+}
+
 func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
 	panicIf(true, "NYI")
 	//return entityToJson.convertToEntity(clazz, id, document);
