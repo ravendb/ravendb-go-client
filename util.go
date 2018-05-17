@@ -231,3 +231,10 @@ func jsonGetAsText(doc ObjectNode, key string) string {
 	}
 	return s
 }
+
+func firstNonEmptyString(s1, s2 string) string {
+	if s1 != "" {
+		return s1
+	}
+	return s2
+}

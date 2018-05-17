@@ -309,6 +309,94 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	return nil
 }
 
+// Stores the specified entity in the session. The entity will be saved when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
+	panicIf(true, "NYI")
+	return nil
+	// TODO: implememnt
+	//_, hasId := tryGetIdFromInstance(entity);
+	//s.storeInternal(entity, null, null, !hasId ? ConcurrencyCheckMode.FORCED : ConcurrencyCheckMode.AUTO);
+}
+
+/// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id String) error {
+	return s.StoreInternal(entity, "", id, ConcurrencyCheckAuto)
+}
+
+// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector String, id String) error {
+	concurr := ConcurrencyCheckDisabled
+	if changeVector != "" {
+		concurr = ConcurrencyCheckForced
+	}
+
+	return s.StoreInternal(entity, changeVector, id, concurr)
+}
+
+func (s *InMemoryDocumentSessionOperations) StoreInternal(entity Object, changeVector String, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
+	if nil == entity {
+		return NewIllegalArgumentError("Entity cannot be null")
+	}
+
+	value := s.documentsByEntity[entity]
+	if value != nil {
+		value.setChangeVector(firstNonEmptyString(changeVector, value.getChangeVector()))
+		value.setConcurrencyCheckMode(forceConcurrencyCheck)
+		return nil
+	}
+
+	if id == "" {
+		if s.generateDocumentKeysOnStore {
+			// TODO:: fix me
+			//id = generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity);
+		} else {
+			//TODO: fix me
+			//rememberEntityForDocumentIdGeneration(entity);
+		}
+	} else {
+		// Store it back into the Id field so the client has access to it
+		// TODO: fix me
+		//generateEntityIdOnTheClient.trySetIdentity(entity, id);
+	}
+
+	/*
+		if (deferredCommandsMap.containsKey(IdTypeAndName.create(id, CommandType.CLIENT_ANY_COMMAND, null))) {
+			throw new IllegalStateException("Can't store document, there is a deferred command registered for this document in the session. Document id: " + id);
+		}
+
+		if (deletedEntities.contains(entity)) {
+			throw new IllegalStateException("Can't store object, it was already deleted in this session.  Document id: " + id);
+		}
+
+
+		// we make the check here even if we just generated the ID
+		// users can override the ID generation behavior, and we need
+		// to detect if they generate duplicates.
+		assertNoNonUniqueInstance(entity, id);
+
+		String collectionName = _requestExecutor.getConventions().getCollectionName(entity);
+
+		ObjectMapper mapper = JsonExtensions.getDefaultMapper();
+		ObjectNode metadata = mapper.createObjectNode();
+
+		if (collectionName != null) {
+			metadata.set(Constants.Documents.Metadata.COLLECTION, mapper.convertValue(collectionName, JsonNode.class));
+		}
+
+		String javaType = _requestExecutor.getConventions().getJavaClassName(entity.getClass());
+		if (javaType != null) {
+			metadata.set(Constants.Documents.Metadata.RAVEN_JAVA_TYPE, mapper.convertValue(javaType, TextNode.class));
+		}
+
+		if (id != null) {
+			_knownMissingIds.remove(id);
+		}
+
+		storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck);
+	*/
+	return nil
+}
+
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	//return JsonOperation.entityChanged(newObj, documentInfo, changes);
 	return false

@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+func tryGetIdFromInstance(entity interface{}) (string, bool) {
+	return tryGetIDFromInstance(entity)
+}
+
 // tryGetIDFromInstance returns value of ID field on struct if it's of type
 // string. Returns empty string if there's no ID field or it's not string
 func tryGetIDFromInstance(entity interface{}) (string, bool) {

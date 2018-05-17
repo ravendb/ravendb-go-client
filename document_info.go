@@ -63,3 +63,7 @@ func (d *DocumentInfo) setEntity(entity interface{}) {
 func (d *DocumentInfo) setChangeVector(changeVector string) {
 	d.changeVector = changeVector
 }
+
+func (d *DocumentInfo) setConcurrencyCheckMode(m ConcurrencyCheckMode) {
+	d.concurrencyCheckMode = m
+}

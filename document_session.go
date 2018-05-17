@@ -12,6 +12,12 @@ type ObjectNode = map[string]interface{}
 
 type JsonNodeType = interface{}
 
+// TODO: remove it, it only exists to make initial porting faster
+type Object = interface{}
+
+// TODO: remove it, it only exists to make initial porting faster
+type String = string
+
 // TODO: rename to saveChangesData, maybe
 type _SaveChangesData struct {
 	commands             []*CommandData
