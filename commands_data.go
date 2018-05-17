@@ -2,7 +2,7 @@ package ravendb
 
 // CommandData describes data for a command
 type CommandData struct {
-	key          string
+	id           string
 	typ          string
 	name         string
 	changeVector string
@@ -10,45 +10,45 @@ type CommandData struct {
 	json         map[string]interface{}
 }
 
-// NewPutCommandData creates CommandData for Put command
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/commands_data.py#L22
-//
-func NewPutCommandData(key string, changeVector string, document map[string]interface{}, metadata map[string]interface{}) *CommandData {
-	panicIf(document == nil, "document can't be nil")
-	res := &CommandData{
-		key:          key,
-		typ:          "PUT",
-		changeVector: changeVector,
-		document:     document,
+func (d *CommandData) baseJSON() ObjectNode {
+	res := ObjectNode{
+		"Id":   d.id,
+		"Type": d.typ,
 	}
-	if metadata != nil {
-		document["@metadata"] = metadata
-	}
-	res.json = map[string]interface{}{
-		"Type":     res.typ,
-		"Id":       res.key,
-		"Document": document,
-	}
-	if changeVector != "" {
-		res.json["ChangeVector"] = changeVector
+	// TODO: send null whnn empty?
+	if d.changeVector != "" {
+		res["ChangeVector"] = d.changeVector
 	}
 	return res
 }
 
-// NewDeleteCommandData creates CommandData for Delete command
-func NewDeleteCommandData(key string, changeVector string) *CommandData {
+// NewPutCommandData creates CommandData for Put command
+// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/commands_data.py#L22
+//
+func NewPutCommandData(id string, changeVector string, document map[string]interface{}, metadata map[string]interface{}) *CommandData {
+	panicIf(document == nil, "document can't be nil")
 	res := &CommandData{
-		key:          key,
-		typ:          "DELETE",
+		id:           id,
+		typ:          CommandType_PUT,
+		changeVector: changeVector,
+		document:     document,
+	}
+	res.json = res.baseJSON()
+	if metadata != nil {
+		document["@metadata"] = metadata
+	}
+	res.json["Document"] = document
+	return res
+}
+
+// NewDeleteCommandData creates CommandData for Delete command
+func NewDeleteCommandData(id string, changeVector string) *CommandData {
+	res := &CommandData{
+		id:           id,
+		typ:          CommandType_DELETE,
 		changeVector: changeVector,
 	}
-	res.json = map[string]interface{}{
-		"Type": res.typ,
-		"Id":   res.key,
-	}
-	if changeVector != "" {
-		res.json["ChangeVector"] = changeVector
-	}
+	res.json = res.baseJSON()
 	return res
 }
 

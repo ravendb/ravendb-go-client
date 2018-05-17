@@ -212,7 +212,7 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 	}
 
 	for _, command := range s.deferCommands {
-		if command.key == entityID {
+		if command.id == entityID {
 			return fmt.Errorf("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", entityID)
 		}
 	}
