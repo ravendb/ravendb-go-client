@@ -392,28 +392,41 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		return err
 	}
 
-	// collectionName := s.RequestExecutor.getConventions().getCollectionName(entity)
+	collectionName := s.RequestExecutor.getConventions().getCollectionName(entity)
+	metadata := ObjectNode{}
+	if collectionName != "" {
+		metadata[Constants_Documents_Metadata_COLLECTION] = collectionName
+	}
+	goType := s.RequestExecutor.getConventions().getGoTypeName(entity)
+	if goType != "" {
+		metadata[Constants_Documents_Metadata_RAVEN_GO_TYPE] = goType
+	}
+	if id != "" {
+		delete(s._knownMissingIds, id)
+	}
 
-	/*
-		ObjectMapper mapper = JsonExtensions.getDefaultMapper();
-		ObjectNode metadata = mapper.createObjectNode();
-
-		if (collectionName != null) {
-			metadata.set(Constants.Documents.Metadata.COLLECTION, mapper.convertValue(collectionName, JsonNode.class));
-		}
-
-		String javaType = _requestExecutor.getConventions().getJavaClassName(entity.getClass());
-		if (javaType != null) {
-			metadata.set(Constants.Documents.Metadata.RAVEN_JAVA_TYPE, mapper.convertValue(javaType, TextNode.class));
-		}
-
-		if (id != null) {
-			_knownMissingIds.remove(id);
-		}
-
-		storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck);
-	*/
+	s.storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
 	return nil
+}
+
+func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id String, entity Object, changeVector String, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+	delete(s.deletedEntities, entity)
+	if id != "" {
+		delete(s._knownMissingIds, id)
+	}
+	documentInfo := NewDocumentInfo()
+	documentInfo.setId(id)
+	documentInfo.setMetadata(metadata)
+	documentInfo.setChangeVector(changeVector)
+	documentInfo.setConcurrencyCheckMode(forceConcurrencyCheck)
+	documentInfo.setEntity(entity)
+	documentInfo.setNewDocument(true)
+	documentInfo.setDocument(nil)
+
+	s.documentsByEntity[entity] = documentInfo
+	if id != "" {
+		s.documentsById.add(documentInfo)
+	}
 }
 
 func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Object, id String) error {

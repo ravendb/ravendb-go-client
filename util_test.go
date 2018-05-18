@@ -15,11 +15,11 @@ type FooStruct struct {
 
 func TestTypeName(t *testing.T) {
 	v := FooStruct{}
-	name := getTypeName(v)
+	name := getFullTypeName(v)
 	if name != "ravendb.FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "ravendb.FooStruct", name)
 	}
-	name = getTypeName(&v)
+	name = getFullTypeName(&v)
 	if name != "ravendb.FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "ravendb.FooStruct", name)
 	}

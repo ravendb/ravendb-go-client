@@ -21,14 +21,16 @@ type DocumentInfo struct {
 	changeVector         string
 	concurrencyCheckMode ConcurrencyCheckMode
 	ignoreChanges        bool
-	originalMetadata     map[string]interface{}
 	metadata             ObjectNode
 	document             ObjectNode
-	originalValue        map[string]interface{}
 	metadataInstance     IMetadataDictionary
 	entity               interface{}
-	newDocuemnt          bool
+	newDocument          bool
 	collection           string
+
+	// TODO: remove those, from python code, not Java
+	originalMetadata map[string]interface{}
+	originalValue    map[string]interface{}
 }
 
 func NewDocumentInfo() *DocumentInfo {
@@ -46,6 +48,14 @@ func (d *DocumentInfo) getEntity() interface{} {
 
 func (d *DocumentInfo) getChangeVector() string {
 	return d.changeVector
+}
+
+func (d *DocumentInfo) setId(id string) {
+	d.id = id
+}
+
+func (d *DocumentInfo) setNewDocument(isNew bool) {
+	d.newDocument = isNew
 }
 
 func (d *DocumentInfo) setDocument(document ObjectNode) {

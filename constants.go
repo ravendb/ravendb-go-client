@@ -1,19 +1,19 @@
 package ravendb
 
 const (
-	Constants_Documents_Metadata_COLLECTION      = "@collection"
-	Constants_Documents_Metadata_PROJECTION      = "@projection"
-	Constants_Documents_Metadata_KEY             = "@metadata"
-	Constants_Documents_Metadata_ID              = "@id"
-	Constants_Documents_Metadata_CONFLICT        = "@conflict"
-	Constants_Documents_Metadata_ID_PROPERTY     = "Id"
-	Constants_Documents_Metadata_FLAGS           = "@flags"
-	Constants_Documents_Metadata_ATTACHMENTS     = "@attachments"
-	Constants_Documents_Metadata_INDEX_SCORE     = "@index-score"
-	Constants_Documents_Metadata_LAST_MODIFIED   = "@last-modified"
-	Constants_Documents_Metadata_RAVEN_JAVA_TYPE = "Raven-Java-Type"
-	Constants_Documents_Metadata_CHANGE_VECTOR   = "@change-vector"
-	Constants_Documents_Metadata_EXPIRES         = "@expires"
+	Constants_Documents_Metadata_COLLECTION    = "@collection"
+	Constants_Documents_Metadata_PROJECTION    = "@projection"
+	Constants_Documents_Metadata_KEY           = "@metadata"
+	Constants_Documents_Metadata_ID            = "@id"
+	Constants_Documents_Metadata_CONFLICT      = "@conflict"
+	Constants_Documents_Metadata_ID_PROPERTY   = "Id"
+	Constants_Documents_Metadata_FLAGS         = "@flags"
+	Constants_Documents_Metadata_ATTACHMENTS   = "@attachments"
+	Constants_Documents_Metadata_INDEX_SCORE   = "@index-score"
+	Constants_Documents_Metadata_LAST_MODIFIED = "@last-modified"
+	Constants_Documents_Metadata_RAVEN_GO_TYPE = "Raven-Go-Type"
+	Constants_Documents_Metadata_CHANGE_VECTOR = "@change-vector"
+	Constants_Documents_Metadata_EXPIRES       = "@expires"
 
 	Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX = "ReplacementOf/"
 

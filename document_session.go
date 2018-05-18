@@ -97,7 +97,7 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	//document.changeVector = ""
 	document.concurrencyCheckMode = concurrencyCheckMode
 	document.entity = entity
-	document.newDocuemnt = true
+	document.newDocument = true
 	s.documentsByEntity[entity] = document
 }
 

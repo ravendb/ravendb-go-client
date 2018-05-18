@@ -34,7 +34,17 @@ func NewDocumentConventions() *DocumentConventions {
 }
 
 func (c *DocumentConventions) getCollectionName(entity Object) string {
-	// TODO: implement me
-	panicIf(true, "NYI")
-	return ""
+	return defaultGetCollectionName(entity)
+}
+
+// TODO: tests
+func defaultGetCollectionName(entity interface{}) string {
+	// TODO: caching
+	typ := getShortTypeName(entity)
+	result := pluralize(typ)
+	return result
+}
+
+func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
+	return getFullTypeName(entity)
 }

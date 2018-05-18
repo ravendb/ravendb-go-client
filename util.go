@@ -74,11 +74,10 @@ func quoteKeyWithSlash(s string) string {
 	return quoteKey2(s, true)
 }
 
-// getTypeName returns fully qualified (including package) name of the type,
+// getFullTypeName returns fully qualified (including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo
-// TODO: test
-func getTypeName(v interface{}) string {
+func getFullTypeName(v interface{}) string {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
@@ -173,7 +172,7 @@ func buildDefaultMetadata(entity interface{}) map[string]interface{} {
 	if entity == nil {
 		return res
 	}
-	fullTypeName := getTypeName(entity)
+	fullTypeName := getFullTypeName(entity)
 	typeName := getShortTypeName(entity)
 	collectionName := defaultTransformPlural(typeName)
 	res["@collection"] = collectionName
