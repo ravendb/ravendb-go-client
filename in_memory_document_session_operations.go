@@ -51,7 +51,7 @@ type InMemoryDocumentSessionOperations struct {
 	_saveChangesOptions         *BatchOptions
 
 	// Note: skipping unused isDisposed
-	ID string
+	id string
 
 	/* TODO:
 	   private final List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = new ArrayList<>();
@@ -94,12 +94,15 @@ type InMemoryDocumentSessionOperations struct {
 
 	// Note: using value type so that lookups are based on value
 	deferredCommandsMap map[IdTypeAndName]*CommandData
+
+	generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
 }
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
-func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor) *InMemoryDocumentSessionOperations {
+func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
 	res := InMemoryDocumentSessionOperations{
+		id:                            id,
 		_clientSessionID:              clientSessionID,
 		deletedEntities:               map[interface{}]struct{}{},
 		RequestExecutor:               re,
@@ -113,7 +116,15 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		maxNumberOfRequestsPerSession: re.Conventions.MaxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.Conventions.UseOptimisticConcurrency,
 	}
+	genIDFunc := func(entity Object) String {
+		return res.generateId(entity)
+	}
+	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.Conventions, genIDFunc)
 	return &res
+}
+
+func (s *InMemoryDocumentSessionOperations) getGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
+	return s.generateEntityIdOnTheClient
 }
 
 // GetNumberOfEntitiesInUnitOfWork returns number of entinties
@@ -123,6 +134,14 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() in
 
 func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConventions {
 	return s.RequestExecutor.Conventions
+}
+
+func (s *InMemoryDocumentSessionOperations) getDatabaseName() string {
+	return s.databaseName
+}
+
+func (s *InMemoryDocumentSessionOperations) generateId(entity Object) String {
+	return s.getConventions().generateDocumentId(s.getDatabaseName(), entity)
 }
 
 // GetMetadataFor gets the metadata for the specified entity.
@@ -176,16 +195,14 @@ func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}
 		return documentInfo, nil
 	}
 
-	/* TODO: port this
-	Reference<String> idRef = new Reference<>();
-	if (!generateEntityIdOnTheClient.tryGetIdFromInstance(instance, idRef)) {
-		throw new IllegalStateException("Could not find the document id for " + instance);
+	id, ok := s.generateEntityIdOnTheClient.tryGetIdFromInstance(instance)
+	if !ok {
+		return nil, NewIllegalStateError("Could not find the document id for %s", instance)
 	}
 
 	if err := s.assertNoNonUniqueInstance(instance, id); err != nil {
 		return nil, err
 	}
-	*/
 
 	err := fmt.Errorf("Document %#v doesn't exist in the session", instance)
 	return nil, err
@@ -373,6 +390,12 @@ func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector St
 	return s.storeInternal(entity, changeVector, id, concurr)
 }
 
+// TODO: should this return an error?
+func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneration(entity Object) {
+	err := NewNotImplementedError("You cannot set GenerateDocumentIdsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
+	must(err)
+}
+
 func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector String, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
 		return NewIllegalArgumentError("Entity cannot be null")
@@ -387,16 +410,13 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 
 	if id == "" {
 		if s.generateDocumentKeysOnStore {
-			// TODO:: fix me
-			//id = generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity);
+			id = s.generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity)
 		} else {
-			//TODO: fix me
-			//rememberEntityForDocumentIdGeneration(entity);
+			s.rememberEntityForDocumentIdGeneration(entity)
 		}
 	} else {
 		// Store it back into the Id field so the client has access to it
-		// TODO: fix me
-		//generateEntityIdOnTheClient.trySetIdentity(entity, id);
+		s.generateEntityIdOnTheClient.trySetIdentity(entity, id)
 	}
 
 	tmp := NewIdTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")

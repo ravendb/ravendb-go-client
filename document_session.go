@@ -38,7 +38,7 @@ type DocumentSession struct {
 // NewDocumentSession creates a new DocumentSession
 func NewDocumentSession(dbName string, store *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
 	res := &DocumentSession{
-		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re),
+		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re, id),
 		SessionID:                         id,
 	}
 	return res

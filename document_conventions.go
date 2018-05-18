@@ -48,3 +48,9 @@ func defaultGetCollectionName(entity interface{}) string {
 func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
 	return getFullTypeName(entity)
 }
+
+// Generates the document id.
+func (c *DocumentConventions) generateDocumentId(databaseName String, entity Object) String {
+	panicIf(true, "NYI")
+	return ""
+}

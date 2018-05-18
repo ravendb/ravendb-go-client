@@ -36,6 +36,23 @@ func (e *IllegalArgumentError) Error() string {
 	return e.ErrorStr
 }
 
+// NotImplementedError corresponds to Java's NotImplementedException
+type NotImplementedError struct {
+	ErrorStr string
+}
+
+// NewNotImplementedError creates new NotImplementedError
+func NewNotImplementedError(format string, args ...interface{}) *NotImplementedError {
+	return &NotImplementedError{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *NotImplementedError) Error() string {
+	return e.ErrorStr
+}
+
 // NonUniqueObjectError corresponds to Java's NonUniqueObjectException
 type NonUniqueObjectError struct {
 	ErrorStr string
