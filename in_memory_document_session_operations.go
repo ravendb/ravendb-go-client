@@ -48,7 +48,8 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: pendingLazyOperations and onEvaluateLazy not used
 	generateDocumentKeysOnStore bool
 	sessionInfo                 SessionInfo
-	// Note: skipping unused saveChangeOptions
+	_saveChangesOptions         *BatchOptions
+
 	// Note: skipping unused isDisposed
 	ID string
 
@@ -442,6 +443,28 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Obj
 	return NewNonUniqueObjectError("Attempted to associate a different object with id '" + id + "'.")
 }
 
+func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChangesData {
+	result := NewSaveChangesData(s)
+
+	s.deferredCommands = nil
+	s.deferredCommandsMap = nil
+
+	//TODO: prepareForEntitiesDeletion(result, null)
+	//TODO: prepareForEntitiesPuts(result)
+
+	if len(s.deferredCommands) > 0 {
+		// this allow OnBeforeStore to call Defer during the call to include
+		// additional values during the same SaveChanges call
+		result.deferredCommands = append(result.deferredCommands, s.deferredCommands...)
+		for k, v := range s.deferredCommandsMap {
+			result.deferredCommandsMap[k] = v
+		}
+		s.deferredCommands = nil
+		s.deferredCommandsMap = nil
+	}
+	return result
+}
+
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	//return JsonOperation.entityChanged(newObj, documentInfo, changes);
 	return false
@@ -451,4 +474,57 @@ func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz ref
 	panicIf(true, "NYI")
 	//return entityToJson.convertToEntity(clazz, id, document);
 	return nil
+}
+
+type SaveChangesData struct {
+	deferredCommands    []*CommandData
+	deferredCommandsMap map[IdTypeAndName]*CommandData
+	sessionCommands     []*CommandData
+	entities            []Object
+	options             *BatchOptions
+}
+
+// TODO: make faster
+func copyDeferredCommands(in []*CommandData) []*CommandData {
+	res := []*CommandData{}
+	for _, d := range in {
+		res = append(res, d)
+	}
+	return res
+}
+
+func copyDeferredCommandsMap(in map[IdTypeAndName]*CommandData) map[IdTypeAndName]*CommandData {
+	res := map[IdTypeAndName]*CommandData{}
+	for k, v := range in {
+		res[k] = v
+	}
+	return res
+}
+
+func NewSaveChangesData(session *InMemoryDocumentSessionOperations) *SaveChangesData {
+	return &SaveChangesData{
+		deferredCommands:    copyDeferredCommands(session.deferredCommands),
+		deferredCommandsMap: copyDeferredCommandsMap(session.deferredCommandsMap),
+		options:             session._saveChangesOptions,
+	}
+}
+
+func (d *SaveChangesData) getDeferredCommands() []*CommandData {
+	return d.deferredCommands
+}
+
+func (d *SaveChangesData) getSessionCommands() []*CommandData {
+	return d.sessionCommands
+}
+
+func (d *SaveChangesData) getEntities() []Object {
+	return d.entities
+}
+
+func (d *SaveChangesData) getOptions() *BatchOptions {
+	return d.options
+}
+
+func (d *SaveChangesData) getDeferredCommandsMap() map[IdTypeAndName]*CommandData {
+	return d.deferredCommandsMap
 }

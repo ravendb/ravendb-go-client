@@ -18,28 +18,11 @@ type Object = interface{}
 // TODO: remove it, it only exists to make initial porting faster
 type String = string
 
-// TODO: rename to saveChangesData, maybe
 type _SaveChangesData struct {
 	commands             []*CommandData
 	entities             []interface{}
 	deferredCommandCount int
 }
-
-/*
-// BatchOptions describes options for batch operations
-type BatchOptions struct {
-	waitForReplicas                 bool
-	numberOfReplicasToWaitFor       int
-	waitForReplicasTimeout          time.Duration
-	majority                        bool
-	throwOnTimeoutInWaitForReplicas bool
-
-	waitForIndexes                 bool
-	waitForIndexesTimeout          time.Duration
-	throwOnTimeoutInWaitForIndexes bool
-	waitForSpecificIndexes         []string
-}
-*/
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
