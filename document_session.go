@@ -212,7 +212,7 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L294
 func (s *DocumentSession) getConcurrencyCheckMode(entity interface{}, key string, changeVector string) ConcurrencyCheckMode {
 	// TODO: port the logic from python
-	return ConcurrencyCheckDisabled
+	return ConcurrencyCheck_DISABLED
 }
 
 // SaveChanges saves documents to database queued with Store

@@ -5,11 +5,11 @@ type ConcurrencyCheckMode int
 
 const (
 	// ConcurrencyCheckAuto is automatic optimistic concurrency check depending on UseOptimisticConcurrency setting or provided Change Vector
-	ConcurrencyCheckAuto ConcurrencyCheckMode = iota
+	ConcurrencyCheck_AUTO ConcurrencyCheckMode = iota
 	// ConcurrencyCheckForced forces optimistic concurrency check even if UseOptimisticConcurrency is not set
-	ConcurrencyCheckForced
+	ConcurrencyCheck_FORCED
 	// ConcurrencyCheckDisabled disables optimistic concurrency check even if UseOptimisticConcurrency is set
-	ConcurrencyCheckDisabled
+	ConcurrencyCheck_DISABLED
 )
 
 // DocumentInfo stores information about entity in a session
@@ -43,6 +43,10 @@ func (d *DocumentInfo) getEntity() interface{} {
 	return d.entity
 }
 
+func (d *DocumentInfo) isIgnoreChanges() bool {
+	return d.ignoreChanges
+}
+
 func (d *DocumentInfo) getChangeVector() string {
 	return d.changeVector
 }
@@ -53,6 +57,10 @@ func (d *DocumentInfo) getMetadata() ObjectNode {
 
 func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
 	return d.metadataInstance
+}
+
+func (d *DocumentInfo) getConcurrencyCheckMode() ConcurrencyCheckMode {
+	return d.concurrencyCheckMode
 }
 
 func (d *DocumentInfo) setMetadataInstance(metadataInstance *IMetadataDictionary) {

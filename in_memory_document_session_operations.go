@@ -96,12 +96,13 @@ type InMemoryDocumentSessionOperations struct {
 	deferredCommandsMap map[IdTypeAndName]*CommandData
 
 	generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
+	entityToJson                *EntityToJson
 }
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
 func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
-	res := InMemoryDocumentSessionOperations{
+	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
 		_clientSessionID:              clientSessionID,
 		deletedEntities:               map[interface{}]struct{}{},
@@ -120,11 +121,16 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		return res.generateId(entity)
 	}
 	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.Conventions, genIDFunc)
-	return &res
+	res.entityToJson = NewEntityToJson(res)
+	return res
 }
 
 func (s *InMemoryDocumentSessionOperations) getGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
 	return s.generateEntityIdOnTheClient
+}
+
+func (s *InMemoryDocumentSessionOperations) getEntityToJson() *EntityToJson {
+	return s.entityToJson
 }
 
 // GetNumberOfEntitiesInUnitOfWork returns number of entinties
@@ -343,7 +349,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	changeVector := ""
 	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil {
-		newObj := convertEntityToJson(documentInfo.getEntity(), documentInfo)
+		newObj := s.entityToJson.convertEntityToJson(documentInfo.getEntity(), documentInfo)
 		if documentInfo.getEntity() != nil && s.entityChanged(newObj, documentInfo, nil) {
 			return NewIllegalStateError("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
@@ -377,14 +383,14 @@ func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
 
 /// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id String) error {
-	return s.storeInternal(entity, "", id, ConcurrencyCheckAuto)
+	return s.storeInternal(entity, "", id, ConcurrencyCheck_AUTO)
 }
 
 // Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector String, id String) error {
-	concurr := ConcurrencyCheckDisabled
+	concurr := ConcurrencyCheck_DISABLED
 	if changeVector != "" {
-		concurr = ConcurrencyCheckForced
+		concurr = ConcurrencyCheck_FORCED
 	}
 
 	return s.storeInternal(entity, changeVector, id, concurr)
@@ -568,6 +574,63 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 	}
 }
 
+// TODO: return an error
+func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveChangesData) {
+	for entityKey, entityValue := range s.documentsByEntity {
+		dirtyMetadata := s.updateMetadataModifications(entityValue)
+		document := s.entityToJson.convertEntityToJson(entityKey, entityValue)
+		if entityValue.isIgnoreChanges() || (!s.entityChanged(document, entityValue, nil)) && !dirtyMetadata {
+			continue
+		}
+
+		idType := NewIdTypeAndName(entityValue.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+		command := result.deferredCommandsMap[idType]
+		if command != nil {
+			s.throwInvalidModifiedDocumentWithDeferredCommand(command)
+		}
+
+		/* TODO:
+		List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = this.onBeforeStore;
+		if (onBeforeStore != null && !onBeforeStore.isEmpty()) {
+			BeforeStoreEventArgs beforeStoreEventArgs = new BeforeStoreEventArgs(this, entity.getValue().getId(), entity.getKey());
+			EventHelper.invoke(onBeforeStore, this, beforeStoreEventArgs);
+
+			if (beforeStoreEventArgs.isMetadataAccessed()) {
+				updateMetadataModifications(entity.getValue());
+			}
+
+			if (beforeStoreEventArgs.isMetadataAccessed() || entityChanged(document, entity.getValue(), null)) {
+				document = entityToJson.convertEntityToJson(entity.getKey(), entity.getValue());
+			}
+		}
+		*/
+		entityValue.setNewDocument(false)
+		result.addEntity(entityKey)
+
+		if entityValue.getId() != "" {
+			s.documentsById.remove(entityValue.getId())
+		}
+
+		entityValue.setDocument(document)
+
+		changeVector := ""
+		if s.useOptimisticConcurrency {
+			if entityValue.getConcurrencyCheckMode() != ConcurrencyCheck_DISABLED {
+				// if the user didn't provide a change vector, we'll test for an empty one
+				changeVector = firstNonEmptyString(entityValue.getChangeVector(), "")
+			} else {
+				changeVector = "" // TODO: not needed
+			}
+		} else if entityValue.getConcurrencyCheckMode() == ConcurrencyCheck_FORCED {
+			changeVector = entityValue.getChangeVector()
+		} else {
+			changeVector = "" // TODO: not needed
+		}
+		cmdData := NewPutCommandDataWithJson(entityValue.getId(), changeVector, document)
+		result.addSessionCommandData(cmdData)
+	}
+}
+
 // TODO: should return an error and be propagated
 func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand *CommandData) {
 	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
@@ -581,6 +644,8 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 }
 
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
+	panicIf(true, "NYI")
+	// TODO: implement me
 	//return JsonOperation.entityChanged(newObj, documentInfo, changes);
 	return false
 }

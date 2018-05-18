@@ -49,6 +49,10 @@ func NewPutCommandData(id string, changeVector string, document map[string]inter
 	return res
 }
 
+func NewPutCommandDataWithJson(id string, changeVector string, document ObjectNode) *CommandData {
+	return NewPutCommandData(id, changeVector, document, nil)
+}
+
 // NewDeleteCommandData creates CommandData for Delete command
 func NewDeleteCommandData(id string, changeVector string) *CommandData {
 	res := &CommandData{
