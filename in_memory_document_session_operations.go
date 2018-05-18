@@ -571,6 +571,22 @@ func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz ref
 	return nil
 }
 
+func (s *InMemoryDocumentSessionOperations) Clear() {
+	s.documentsByEntity = nil
+	s.deletedEntities = nil
+	s.documentsById = nil
+	s._knownMissingIds = nil
+	s.includedDocumentsById = nil
+}
+
+func (s *InMemoryDocumentSessionOperations) RegisterMissing(id String) {
+	s._knownMissingIds[id] = struct{}{}
+}
+
+func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id String) {
+	delete(s._knownMissingIds, id)
+}
+
 type SaveChangesData struct {
 	deferredCommands    []*CommandData
 	deferredCommandsMap map[IdTypeAndName]*CommandData
