@@ -98,3 +98,28 @@ func (d *DocumentInfo) setConcurrencyCheckMode(m ConcurrencyCheckMode) {
 func (d *DocumentInfo) setIgnoreChanges(ignoreChanges bool) {
 	d.ignoreChanges = ignoreChanges
 }
+
+func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
+	metadataV, ok := document[Constants_Documents_Metadata_KEY]
+	panicIf(!ok, "Document must have a metadata")
+	metadata, ok := metadataV.(ObjectNode)
+	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
+
+	// TODO: return an error?
+
+	id := jsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+	panicIf(id == "", "Document must have an id")
+	// TODO: return an error?
+
+	changeVector := jsonGetAsText(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	panicIf(id == "", "Document must have a Change Vector")
+	// TODO: return an error?
+
+	newDocumentInfo := NewDocumentInfo()
+	newDocumentInfo.setId(id)
+	newDocumentInfo.setDocument(document)
+	newDocumentInfo.setMetadata(metadata)
+	newDocumentInfo.setEntity(nil)
+	newDocumentInfo.setChangeVector(changeVector)
+	return newDocumentInfo
+}

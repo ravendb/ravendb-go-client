@@ -764,6 +764,27 @@ func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id String) {
 	delete(s._knownMissingIds, id)
 }
 
+func (s *InMemoryDocumentSessionOperations) registerIncludes(includes ObjectNode) {
+	if includes == nil {
+		return
+	}
+
+	for _, fieldValue := range includes {
+		// TODO: this needs to check if value inside is nil
+		if fieldValue == nil {
+			continue
+		}
+		json, ok := fieldValue.(ObjectNode)
+		panicIf(!ok, "fieldValue of unsupported type %T", fieldValue)
+		newDocumentInfo := DocumentInfo_getNewDocumentInfo(json)
+		if JsonExtensions_tryGetConflict(newDocumentInfo.getMetadata()) {
+			continue
+		}
+
+		s.includedDocumentsById[newDocumentInfo.getId()] = newDocumentInfo
+	}
+}
+
 type SaveChangesData struct {
 	deferredCommands    []*CommandData
 	deferredCommandsMap map[IdTypeAndName]*CommandData
