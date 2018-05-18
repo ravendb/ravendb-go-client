@@ -129,7 +129,6 @@ func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConvention
 func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
 	if instance == nil {
 		return nil, NewIllegalArgumentError("Instance cannot be null")
-
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -148,14 +147,23 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 
 // GetChangeVectorFor returns metadata for a given instance
 // empty string means there is not change vector
-func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) string {
-	panicIf(true, "NYI")
-	return ""
+func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (string, error) {
+	if instance == nil {
+		return "", NewIllegalArgumentError("Instance cannot be null")
+	}
+
+	documentInfo, err := s.getDocumentInfo(instance)
+	if err != nil {
+		return "", err
+	}
+	changeVector := jsonGetAsText(documentInfo.getMetadata(), Constants_Documents_Metadata_CHANGE_VECTOR)
+	return changeVector, nil
 }
 
 // GetLastModifiedFor retursn last modified time for a given instance
 func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interface{}) (time.Time, bool) {
 	panicIf(true, "NYI")
+
 	var res time.Time
 	return res, false
 }
