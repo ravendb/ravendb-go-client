@@ -10,6 +10,14 @@ type CommandData struct {
 	json         map[string]interface{}
 }
 
+func (d *CommandData) getId() string {
+	return d.id
+}
+
+func (d *CommandData) getType() string {
+	return d.typ
+}
+
 func (d *CommandData) baseJSON() ObjectNode {
 	res := ObjectNode{
 		"Id":   d.id,

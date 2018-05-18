@@ -488,40 +488,77 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 	return result
 }
 
-/*
-func isPropValueDirty(propValue interface{}) bool {
-	if propValue == nil {
-		return true
-	}
-	// TODO: use reflection to check for propValue is a struct whose value is nil pointer?
-
-	if v, ok := propValue.(MetadataAsDictionary); ok {
-		if v.isDirty() {
-			return true
-		}
-	}
+func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
+	panicIf(true, "NYI")
 	return false
 }
 
-func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
-	dirty := false
-	//ObjectMapper mapper = JsonExtensions.getDefaultMapper();
-	if documentInfo.getMetadataInstance() != nil {
-		if documentInfo.getMetadataInstance().isDirty() {
-			dirty = true
+// TODO: return an error
+func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) {
+	for deletedEntity := range s.deletedEntities {
+		documentInfo := s.documentsByEntity[deletedEntity]
+		if documentInfo == nil {
+			continue
 		}
-		keys := getMetadataDictionaryKeys(documentInfo.getMetadataInstance())
-		for _, prop := range keys {
-			propValue := documentInfo.getMetadataInstance()[prop]
-			if isPropValueDirty(propValue) {
-				dirty = true
+		if len(changes) > 0 {
+			docChanges := []*DocumentsChanges{}
+			change := NewDocumentsChanges()
+			change.setFieldNewValue("")
+			change.setFieldOldValue("")
+			change.setChange(DocumentsChanges_ChangeType_DOCUMENT_DELETED)
+
+			docChanges = append(docChanges, change)
+			changes[documentInfo.getId()] = docChanges
+		} else {
+			idType := NewIdTypeAndName(documentInfo.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+			command := result.getDeferredCommandsMap()[idType]
+			if command != nil {
+				s.throwInvalidDeletedDocumentWithDeferredCommand(command)
 			}
-			documentInfo.getMetadata()[prop] = propValue
+
+			changeVector := ""
+			documentInfo = s.documentsById.getValue(documentInfo.getId())
+
+			if documentInfo != nil {
+				changeVector = documentInfo.getChangeVector()
+
+				if documentInfo.getEntity() != nil {
+					delete(s.documentsByEntity, documentInfo.getEntity())
+					result.addEntity(documentInfo.getEntity())
+				}
+
+				s.documentsById.remove(documentInfo.getId())
+			}
+
+			if !s.useOptimisticConcurrency {
+				changeVector = ""
+			}
+
+			// TODO:
+			//BeforeDeleteEventArgs beforeDeleteEventArgs = new BeforeDeleteEventArgs(this, documentInfo.getId(), documentInfo.getEntity());
+			//EventHelper.invoke(onBeforeDelete, this, beforeDeleteEventArgs);
+
+			cmdData := NewDeleteCommandData(documentInfo.getId(), changeVector)
+			result.addSessionCommandData(cmdData)
+		}
+
+		if len(changes) == 0 {
+			s.deletedEntities = nil
 		}
 	}
-	return dirty
 }
-*/
+
+// TODO: should return an error and be propagated
+func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand *CommandData) {
+	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
+	must(err)
+}
+
+// TODO: should return an error and be propagated
+func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand *CommandData) {
+	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
+	must(err)
+}
 
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	//return JsonOperation.entityChanged(newObj, documentInfo, changes);
@@ -540,23 +577,6 @@ type SaveChangesData struct {
 	sessionCommands     []*CommandData
 	entities            []Object
 	options             *BatchOptions
-}
-
-// TODO: make faster
-func copyDeferredCommands(in []*CommandData) []*CommandData {
-	res := []*CommandData{}
-	for _, d := range in {
-		res = append(res, d)
-	}
-	return res
-}
-
-func copyDeferredCommandsMap(in map[IdTypeAndName]*CommandData) map[IdTypeAndName]*CommandData {
-	res := map[IdTypeAndName]*CommandData{}
-	for k, v := range in {
-		res[k] = v
-	}
-	return res
 }
 
 func NewSaveChangesData(session *InMemoryDocumentSessionOperations) *SaveChangesData {
@@ -585,4 +605,29 @@ func (d *SaveChangesData) getOptions() *BatchOptions {
 
 func (d *SaveChangesData) getDeferredCommandsMap() map[IdTypeAndName]*CommandData {
 	return d.deferredCommandsMap
+}
+
+func (d *SaveChangesData) addSessionCommandData(cmd *CommandData) {
+	d.sessionCommands = append(d.sessionCommands, cmd)
+}
+
+func (d *SaveChangesData) addEntity(entity Object) {
+	d.entities = append(d.entities, entity)
+}
+
+// TODO: make faster
+func copyDeferredCommands(in []*CommandData) []*CommandData {
+	res := []*CommandData{}
+	for _, d := range in {
+		res = append(res, d)
+	}
+	return res
+}
+
+func copyDeferredCommandsMap(in map[IdTypeAndName]*CommandData) map[IdTypeAndName]*CommandData {
+	res := map[IdTypeAndName]*CommandData{}
+	for k, v := range in {
+		res[k] = v
+	}
+	return res
 }

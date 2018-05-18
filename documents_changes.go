@@ -3,16 +3,16 @@ package ravendb
 type ChangeType int
 
 const (
-	DOCUMENT_DELETED ChangeType = iota
-	DOCUMENT_ADDED
-	FIELD_CHANGED
-	NEW_FIELD
-	REMOVED_FIELD
-	ARRAY_VALUE_CHANGED
-	ARRAY_VALUE_ADDED
-	ARRAY_VALUE_REMOVED
-	FIELD_TYPE_CHANGED
-	ENTITY_TYPE_CHANGED
+	DocumentsChanges_ChangeType_DOCUMENT_DELETED ChangeType = iota
+	DocumentsChanges_ChangeType_DOCUMENT_ADDED
+	DocumentsChanges_ChangeType_FIELD_CHANGED
+	DocumentsChanges_ChangeType_NEW_FIELD
+	DocumentsChanges_ChangeType_REMOVED_FIELD
+	DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED
+	DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED
+	DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED
+	DocumentsChanges_ChangeType_FIELD_TYPE_CHANGED
+	DocumentsChanges_ChangeType_ENTITY_TYPE_CHANGED
 )
 
 type DocumentsChanges struct {
@@ -27,6 +27,10 @@ type DocumentsChanges struct {
 	change ChangeType
 
 	fieldName string
+}
+
+func NewDocumentsChanges() *DocumentsChanges {
+	return &DocumentsChanges{}
 }
 
 func (c *DocumentsChanges) getFieldOldValue() interface{} {
