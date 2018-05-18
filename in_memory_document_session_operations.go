@@ -126,7 +126,7 @@ func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConvention
 }
 
 // GetMetadataFor returns metadata for a given instance
-func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) IMetadataDictionary {
+func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) *IMetadataDictionary {
 	panicIf(true, "NYI")
 	return nil
 }
@@ -464,6 +464,41 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 	}
 	return result
 }
+
+/*
+func isPropValueDirty(propValue interface{}) bool {
+	if propValue == nil {
+		return true
+	}
+	// TODO: use reflection to check for propValue is a struct whose value is nil pointer?
+
+	if v, ok := propValue.(MetadataAsDictionary); ok {
+		if v.isDirty() {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
+	dirty := false
+	//ObjectMapper mapper = JsonExtensions.getDefaultMapper();
+	if documentInfo.getMetadataInstance() != nil {
+		if documentInfo.getMetadataInstance().isDirty() {
+			dirty = true
+		}
+		keys := getMetadataDictionaryKeys(documentInfo.getMetadataInstance())
+		for _, prop := range keys {
+			propValue := documentInfo.getMetadataInstance()[prop]
+			if isPropValueDirty(propValue) {
+				dirty = true
+			}
+			documentInfo.getMetadata()[prop] = propValue
+		}
+	}
+	return dirty
+}
+*/
 
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	//return JsonOperation.entityChanged(newObj, documentInfo, changes);

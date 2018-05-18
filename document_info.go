@@ -1,8 +1,5 @@
 package ravendb
 
-// IMetadataDictionary describes metadata for a document
-type IMetadataDictionary = map[string]interface{}
-
 // ConcurrencyCheckMode describes concurrency check
 type ConcurrencyCheckMode int
 
@@ -23,7 +20,7 @@ type DocumentInfo struct {
 	ignoreChanges        bool
 	metadata             ObjectNode
 	document             ObjectNode
-	metadataInstance     IMetadataDictionary
+	metadataInstance     *IMetadataDictionary
 	entity               interface{}
 	newDocument          bool
 	collection           string
@@ -48,6 +45,14 @@ func (d *DocumentInfo) getEntity() interface{} {
 
 func (d *DocumentInfo) getChangeVector() string {
 	return d.changeVector
+}
+
+func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
+	return d.metadataInstance
+}
+
+func (d *DocumentInfo) setMetadataInstance(metadataInstance *IMetadataDictionary) {
+	d.metadataInstance = metadataInstance
 }
 
 func (d *DocumentInfo) setId(id string) {
