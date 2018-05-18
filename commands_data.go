@@ -18,6 +18,10 @@ func (d *CommandData) getType() string {
 	return d.typ
 }
 
+func (d *CommandData) getName() string {
+	return d.name
+}
+
 func (d *CommandData) baseJSON() ObjectNode {
 	res := ObjectNode{
 		"Id":   d.id,

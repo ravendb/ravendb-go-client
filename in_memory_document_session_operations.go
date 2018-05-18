@@ -366,9 +366,8 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	if !s.useOptimisticConcurrency {
 		changeVector = ""
 	}
-	// TODO: remove
-	fmt.Printf("%s\n", changeVector)
-	//defer(new DeleteCommandData(id, ObjectUtils.firstNonNull(expectedChangeVector, changeVector)));
+	cmdData := NewDeleteCommandData(id, firstNonEmptyString(expectedChangeVector, changeVector))
+	s.Defer(cmdData)
 	return nil
 }
 
@@ -656,12 +655,105 @@ func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz ref
 	return nil
 }
 
+func (s *InMemoryDocumentSessionOperations) WhatChanged() map[string][]*DocumentsChanges {
+	changes := map[string][]*DocumentsChanges{}
+	s.prepareForEntitiesDeletion(nil, changes)
+	panicIf(true, "NYI")
+	/*
+		getAllEntitiesChanges(changes);
+	*/
+	return changes
+}
+
+// Gets a value indicating whether any of the entities tracked by the session has changes.
+func (s *InMemoryDocumentSessionOperations) hasChanges() bool {
+	panicIf(true, "NYI")
+	/*
+		for (Map.Entry<Object, DocumentInfo> entity : documentsByEntity.entrySet()) {
+			ObjectNode document = entityToJson.convertEntityToJson(entity.getKey(), entity.getValue());
+			if (entityChanged(document, entity.getValue(), null)) {
+				return true;
+			}
+		}
+
+		return !deletedEntities.isEmpty();
+	*/
+	return false
+}
+
+// Determines whether the specified entity has changed.
+func (s *InMemoryDocumentSessionOperations) hasChanged(entity Object) bool {
+	documentInfo := s.documentsByEntity[entity]
+
+	if documentInfo == nil {
+		return false
+	}
+
+	document := s.entityToJson.convertEntityToJson(entity, documentInfo)
+	return s.entityChanged(document, documentInfo, nil)
+}
+
+func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
+	for _, pairValue := range s.documentsById.inner {
+		s.updateMetadataModifications(pairValue)
+		newObj := s.entityToJson.convertEntityToJson(pairValue.getEntity(), pairValue)
+		s.entityChanged(newObj, pairValue, changes)
+	}
+}
+
+// Mark the entity as one that should be ignore for change tracking purposes,
+// it still takes part in the session, but is ignored for SaveChanges.
+func (s *InMemoryDocumentSessionOperations) ignoreChangesFor(entity Object) {
+	docInfo, _ := s.getDocumentInfo(entity)
+	docInfo.setIgnoreChanges(true)
+}
+
+// Evicts the specified entity from the session.
+// Remove the entity from the delete queue and stops tracking changes for this entity.
+func (s *InMemoryDocumentSessionOperations) evict(entity Object) {
+	documentInfo := s.documentsByEntity[entity]
+	if documentInfo != nil {
+		delete(s.documentsByEntity, entity)
+		s.documentsById.remove(documentInfo.getId())
+	}
+
+	delete(s.deletedEntities, entity)
+}
+
 func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.documentsByEntity = nil
 	s.deletedEntities = nil
 	s.documentsById = nil
 	s._knownMissingIds = nil
 	s.includedDocumentsById = nil
+}
+
+// Defer commands to be executed on saveChanges()
+func (s *InMemoryDocumentSessionOperations) Defer(command *CommandData) {
+	a := []*CommandData{command}
+	s.DeferMany(a)
+}
+
+// Defer commands to be executed on saveChanges()
+func (s *InMemoryDocumentSessionOperations) DeferMany(commands []*CommandData) {
+	for _, cmd := range commands {
+		s.deferredCommands = append(s.deferredCommands, cmd)
+		s.deferInternal(cmd)
+	}
+}
+
+func (s *InMemoryDocumentSessionOperations) deferInternal(command *CommandData) {
+	idType := NewIdTypeAndName(command.getId(), command.getType(), command.getName())
+	s.deferredCommandsMap[idType] = command
+	idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+	s.deferredCommandsMap[idType] = command
+
+	cmdType := command.getType()
+	isAttachmentCmd := (cmdType == CommandType_ATTACHMENT_PUT) || (cmdType == CommandType_ATTACHMENT_DELETE)
+	if !isAttachmentCmd {
+		idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
+		s.deferredCommandsMap[idType] = command
+	}
 }
 
 func (s *InMemoryDocumentSessionOperations) RegisterMissing(id String) {

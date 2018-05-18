@@ -94,3 +94,7 @@ func (d *DocumentInfo) setChangeVector(changeVector string) {
 func (d *DocumentInfo) setConcurrencyCheckMode(m ConcurrencyCheckMode) {
 	d.concurrencyCheckMode = m
 }
+
+func (d *DocumentInfo) setIgnoreChanges(ignoreChanges bool) {
+	d.ignoreChanges = ignoreChanges
+}
