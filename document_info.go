@@ -47,6 +47,10 @@ func (d *DocumentInfo) getChangeVector() string {
 	return d.changeVector
 }
 
+func (d *DocumentInfo) getMetadata() ObjectNode {
+	return d.metadata
+}
+
 func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
 	return d.metadataInstance
 }

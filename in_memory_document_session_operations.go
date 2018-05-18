@@ -125,10 +125,25 @@ func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConvention
 	return s.RequestExecutor.Conventions
 }
 
-// GetMetadataFor returns metadata for a given instance
-func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) *IMetadataDictionary {
-	panicIf(true, "NYI")
-	return nil
+// GetMetadataFor gets the metadata for the specified entity.
+func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
+	if instance == nil {
+		return nil, NewIllegalArgumentError("Instance cannot be null")
+
+	}
+
+	documentInfo, err := s.getDocumentInfo(instance)
+	if err != nil {
+		return nil, err
+	}
+	if documentInfo.getMetadataInstance() != nil {
+		return documentInfo.getMetadataInstance(), nil
+	}
+
+	metadataAsJson := documentInfo.getMetadata()
+	metadata := NewMetadataAsDictionaryWithSource(metadataAsJson)
+	documentInfo.setMetadataInstance(metadata)
+	return metadata, nil
 }
 
 // GetChangeVectorFor returns metadata for a given instance
@@ -147,7 +162,7 @@ func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interfac
 
 // GetDocumentInfo returns DocumentInfo for a given instance
 // Returns nil if not found
-func (s *InMemoryDocumentSessionOperations) GetDocumentInfo(instance interface{}) (*DocumentInfo, error) {
+func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}) (*DocumentInfo, error) {
 	documentInfo := s.documentsByEntity[instance]
 	if documentInfo != nil {
 		return documentInfo, nil
