@@ -154,6 +154,7 @@ func (g *HiLoKeyGenerator) GenerateDocumentKey() string {
 }
 
 func (g *HiLoKeyGenerator) nextID() (int, error) {
+	// TODO: make Next() atomic and reduce lock scope
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	for {

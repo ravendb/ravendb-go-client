@@ -18,9 +18,8 @@ var (
 
 func getExecutor() ravendb.CommandExecutorFunc {
 	node := &ravendb.ServerNode{
-		URL:        serverURL,
-		Database:   testDbName,
-		ClusterTag: "0",
+		URL:      serverURL,
+		Database: testDbName,
 	}
 	return ravendb.MakeSimpleExecutor(node)
 }
@@ -90,8 +89,6 @@ func testGetClusterTopologyCommand() {
 	must(err)
 	nServers := len(clusterTopology.Topology.Members)
 	panicIf(nServers < 1, "returned no Members server, expected at least 1")
-	// Note: not sure if the name will always be "A", that's what happens when
-	// I run agains my local setup
 	panicIf(clusterTopology.Leader != "A", "clusterTopology.Leader is '%s', expected 'A'", clusterTopology.Leader)
 	if verboseLog {
 		fmt.Printf("  %#v\n", clusterTopology)
@@ -224,8 +221,6 @@ func testCreateAndDeleteDatabaseCommand() {
 	if true || verboseLog {
 		fmt.Printf("res: %#v\n", res)
 	}
-
-	// TODO: do I need to wait?
 
 	cmd2 := ravendb.NewDeleteDatabaseCommand(dbName, false, "")
 	res2, err := ravendb.ExecuteDeleteDatabaseCommand(exec, cmd2)

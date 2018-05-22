@@ -7,7 +7,6 @@ import "time"
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/conventions/DocumentConventions.java#L31
 type DocumentConventions struct {
 	MaxNumberOfRequestsPerSession int
-	MaxIdsToCatch                 int
 	// timeout for wait to server
 	Timeout                  time.Duration
 	UseOptimisticConcurrency bool
@@ -24,8 +23,6 @@ type DocumentConventions struct {
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
 		MaxNumberOfRequestsPerSession: 32,
-		MaxIdsToCatch:                 32,
-		Timeout:                       time.Second * 30,
 		MaxLengthOfQueryUsingGetURL:   1024 + 512,
 		IdentityPartsSeparator:        "/",
 		DisableTopologyUpdate:         false,

@@ -61,7 +61,7 @@ func (s *DocumentSession) saveIncludes(includes map[string]ObjectNode) {
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L665
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L101
 func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMetadata map[string]interface{}, metadata map[string]interface{}, document *DocumentInfo, concurrencyCheckMode ConcurrencyCheckMode) {
-	// TODO: can key here be ever empty?
+	// Note: key can be empty
 	delete(s.deletedEntities, entity)
 	if key != "" {
 		delete(s._knownMissingIds, key)
@@ -77,7 +77,7 @@ func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMet
 	}
 	document.id = key
 	document.metadata = metadata
-	//document.changeVector = ""
+	document.changeVector = ""
 	document.concurrencyCheckMode = concurrencyCheckMode
 	document.entity = entity
 	document.newDocument = true
@@ -182,6 +182,7 @@ func (s *DocumentSession) Store(entity interface{}, key string, changeVector str
 	}
 	entityID := ""
 	if key == "" {
+		// TODO: return an error
 		entityID, _ = tryGetIDFromInstance(entity)
 	} else {
 		trySetIDOnEntity(entity, key)

@@ -3,6 +3,7 @@ package ravendb
 // IMetadataDictionary describes metadata for a document
 // Note: in Java there's only one subclass of IMetadataDictionary, so for
 // easy porting we alias its name to the implementation
+// TODO: remove the alias when porting is done
 type IMetadataDictionary = MetadataAsDictionary
 
 type MetadataAsDictionary struct {

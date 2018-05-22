@@ -6,7 +6,7 @@ type CommandData struct {
 	typ          string
 	name         string
 	changeVector string
-	document     map[string]interface{}
+	document     ObjectNode
 	json         map[string]interface{}
 }
 
@@ -27,7 +27,6 @@ func (d *CommandData) baseJSON() ObjectNode {
 		"Id":   d.id,
 		"Type": d.typ,
 	}
-	// TODO: send null whnn empty?
 	if d.changeVector != "" {
 		res["ChangeVector"] = d.changeVector
 	}

@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"reflect"
-	"strings"
 )
 
 func tryGetIdFromInstance(entity interface{}) (string, bool) {
@@ -25,20 +24,9 @@ func tryGetIDFromInstance(entity interface{}) (string, bool) {
 	for i := 0; i < nFields; i++ {
 		structField := structType.Field(i)
 		name := structField.Name
-		if len(name) != 2 {
-			// perf micro-optimization
+		if name != "ID" {
 			continue
 		}
-		// TODO: maybe only allow ID?
-		if !strings.EqualFold(name, "id") {
-			continue
-		}
-		// don't read unexported (starting with lowercase) fields
-		// TODO: there's probably a better way
-		if name[0] == 'i' {
-			continue
-		}
-		// TODO: allow int type for id?
 		if structField.Type.Kind() != reflect.String {
 			continue
 		}
@@ -63,15 +51,9 @@ func trySetIDOnEntity(entity interface{}, id string) bool {
 	for i := 0; i < nFields; i++ {
 		structField := structType.Field(i)
 		name := structField.Name
-		if len(name) != 2 {
-			// perf micro-optimization
+		if name != "ID" {
 			continue
 		}
-		// TODO: maybe only allow ID?
-		if !strings.EqualFold(name, "id") {
-			continue
-		}
-		// TODO: allow int type for id?
 		if structField.Type.Kind() != reflect.String {
 			continue
 		}

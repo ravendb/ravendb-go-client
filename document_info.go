@@ -101,6 +101,7 @@ func (d *DocumentInfo) setIgnoreChanges(ignoreChanges bool) {
 
 func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 	metadataV, ok := document[Constants_Documents_Metadata_KEY]
+	// TODO: maybe convert to errors
 	panicIf(!ok, "Document must have a metadata")
 	metadata, ok := metadataV.(ObjectNode)
 	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
