@@ -67,22 +67,16 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 	}
 
 	{
-		// verify can get/set field name Id of type string
+		// verify can't get/set field name Id of type string
 		exp := "hello"
 		s := WithId{Id: exp}
 		got, ok := tryGetIDFromInstance(s)
-		if !ok {
-			t.Fatalf("tryGetIDFromInstance on %#v failed", s)
-		}
-		if got != exp {
-			t.Fatalf("got %v expected %v", got, exp)
+		if ok || got != "" {
+			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
 		got, ok = tryGetIDFromInstance(&s)
-		if !ok {
-			t.Fatalf("tryGetIDFromInstance on %#v failed", &s)
-		}
-		if got != exp {
-			t.Fatalf("got %v expected %v", got, exp)
+		if ok || got != "" {
+			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
 		exp = "new"
 		ok = trySetIDOnEntity(s, exp)
@@ -91,11 +85,8 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 			t.Fatalf("trySetIDOnEntity should not succeed on %#v", s)
 		}
 		ok = trySetIDOnEntity(&s, exp)
-		if !ok {
-			t.Fatalf("trySetIDOnEntity failed on %#v", s)
-		}
-		if s.Id != exp {
-			t.Fatalf("trySetIDOnEntity didn't set ID field to %v on %#v", exp, s)
+		if ok {
+			t.Fatalf("trySetIDOnEntity should fail on %#v", s)
 		}
 	}
 
