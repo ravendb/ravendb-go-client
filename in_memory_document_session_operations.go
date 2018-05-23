@@ -662,10 +662,7 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 }
 
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
-	panicIf(true, "NYI")
-	// TODO: implement me
-	//return JsonOperation.entityChanged(newObj, documentInfo, changes);
-	return false
+	return JsonOperation_entityChanged(newObj, documentInfo, changes)
 }
 
 func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {

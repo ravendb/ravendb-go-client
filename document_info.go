@@ -71,6 +71,10 @@ func (d *DocumentInfo) setMetadataInstance(metadataInstance *IMetadataDictionary
 	d.metadataInstance = metadataInstance
 }
 
+func (d *DocumentInfo) isNewDocument() bool {
+	return d.newDocument
+}
+
 func (d *DocumentInfo) setId(id string) {
 	d.id = id
 }

@@ -232,3 +232,37 @@ func firstNonEmptyString(s1, s2 string) string {
 	}
 	return s2
 }
+
+func fieldNames(js ObjectNode) []string {
+	var res []string
+	for k := range js {
+		res = append(res, k)
+	}
+	return res
+}
+
+// return a1 - a2
+func stringArraySubtract(a1, a2 []string) []string {
+	if len(a2) == 0 {
+		return a1
+	}
+	if len(a1) == 0 {
+		return nil
+	}
+	diff := make(map[string]struct{})
+	for _, k := range a1 {
+		diff[k] = struct{}{}
+	}
+	for _, k := range a2 {
+		delete(diff, k)
+	}
+	if len(diff) == 0 {
+		return nil
+	}
+	// TODO: pre-allocate
+	var res []string
+	for k := range diff {
+		res = append(res, k)
+	}
+	return res
+}
