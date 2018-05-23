@@ -1,5 +1,7 @@
 package ravendb
 
+import "encoding/json"
+
 type EntityToJson struct {
 	_session           *InMemoryDocumentSessionOperations
 	_missingDictionary map[Object]map[string]Object
@@ -22,20 +24,14 @@ func (e *EntityToJson) convertEntityToJson(entity Object, documentInfo *Document
 	if v, ok := entity.(ObjectNode); ok {
 		return v
 	}
-	panicIf(true, "entity: %#v", entity)
-	/*
-		ObjectMapper mapper = _session.getConventions().getEntityMapper();
-
-		ObjectNode jsonNode = mapper.valueToTree(entity);
-
-		writeMetadata(mapper, jsonNode, documentInfo);
-
-		Class<?> clazz = entity.getClass();
-		tryRemoveIdentityProperty(jsonNode, clazz, _session.getConventions());
-		//TBD: TrySimplifyJson(reader);
-		return jsonNode;
-	*/
-	return nil
+	// TODO: could be faster
+	d, err := json.Marshal(entity)
+	must(err)
+	var jsonNode ObjectNode
+	err = json.Unmarshal(d, &jsonNode)
+	must(err)
+	tryRemoveIdentityProperty(jsonNode)
+	return jsonNode
 }
 
 func convertEntityToJson(entity Object, conventions *DocumentConventions) ObjectNode {
@@ -124,16 +120,10 @@ func convertEntityToJsonWithDocumentInfo(entity Object, conventions *DocumentCon
 
     //TBD public static object ConvertToEntity(Type entityType, string id, BlittableJsonReaderObject document, DocumentConventions conventions)
 
-    private static boolean tryRemoveIdentityProperty(ObjectNode document, Class entityType, DocumentConventions conventions) {
-        Field identityProperty = conventions.getIdentityProperty(entityType);
-
-        if (identityProperty == null) {
-            return false;
-        }
-
-        document.remove(identityProperty.getName());
-
-        return true;
-    }
 }
 */
+
+func tryRemoveIdentityProperty(document ObjectNode) bool {
+	delete(document, IdentityProperty)
+	return true
+}
