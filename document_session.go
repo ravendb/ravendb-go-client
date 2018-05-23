@@ -1,9 +1,5 @@
 package ravendb
 
-import (
-	"reflect"
-)
-
 // ObjectNode is an alias for a json document represented as a map
 // Name comes from Java implementation
 type ObjectNode = map[string]interface{}
@@ -38,8 +34,8 @@ func NewDocumentSession(dbName string, store *DocumentStore, id string, re *Requ
 		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re, id),
 	}
 
-	//res._attachments: NewDocumentSessionAttachments(res)
-	//res._revisions = NewDocumentSessionRevisions(res)
+	//TODO: res._attachments: NewDocumentSessionAttachments(res)
+	//TODO: res._revisions = NewDocumentSessionRevisions(res)
 
 	return res
 }
@@ -58,38 +54,4 @@ func (s *DocumentSession) SaveChanges() error {
 	}
 	saveChangeOperation.setResult(result)
 	return nil
-}
-
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/session/InMemoryDocumentSessionOperations.java#L665
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_session.py#L101
-func (s *DocumentSession) saveEntity(key string, entity interface{}, originalMetadata map[string]interface{}, metadata map[string]interface{}, document *DocumentInfo, concurrencyCheckMode ConcurrencyCheckMode) {
-	// Note: key can be empty
-	delete(s.deletedEntities, entity)
-	if key != "" {
-		delete(s._knownMissingIds, key)
-		if v := s.documentsById.getValue(key); v == nil {
-			return
-		}
-	}
-	if key != "" {
-		s.documentsById.add(document)
-	}
-	if document == nil {
-		document = &DocumentInfo{}
-	}
-	document.id = key
-	document.metadata = metadata
-	document.changeVector = ""
-	document.concurrencyCheckMode = concurrencyCheckMode
-	document.entity = entity
-	document.newDocument = true
-	s.documentsByEntity[entity] = document
-}
-
-func (s *DocumentSession) convertAndSaveEntity(key string, document ObjectNode, objectType reflect.Value) {
-	if v := s.documentsById.getValue(key); v == nil {
-		return
-	}
-	// TODO: convert_to_entity
-	panicIf(true, "NYI")
 }

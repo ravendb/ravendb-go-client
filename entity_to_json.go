@@ -22,7 +22,7 @@ func (e *EntityToJson) convertEntityToJson(entity Object, documentInfo *Document
 	if v, ok := entity.(ObjectNode); ok {
 		return v
 	}
-	panicIf(true, "NYI")
+	panicIf(true, "entity: %#v", entity)
 	/*
 		ObjectMapper mapper = _session.getConventions().getEntityMapper();
 

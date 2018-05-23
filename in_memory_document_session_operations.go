@@ -515,8 +515,26 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 }
 
 func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
-	panicIf(true, "NYI")
-	return false
+	dirty := false
+	if documentInfo.getMetadataInstance() != nil {
+		if documentInfo.getMetadataInstance().isDirty() {
+			dirty = true
+		}
+		for _, prop := range documentInfo.getMetadataInstance().keySet() {
+			propValue, ok := documentInfo.getMetadataInstance().get(prop)
+			if !ok {
+				dirty = true
+				continue
+			}
+			if d, ok := propValue.(*MetadataAsDictionary); ok {
+				if d.isDirty() {
+					dirty = true
+				}
+			}
+			documentInfo.getMetadata()[prop] = propValue
+		}
+	}
+	return dirty
 }
 
 // TODO: return an error
