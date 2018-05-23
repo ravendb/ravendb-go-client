@@ -166,20 +166,6 @@ func defaultTransformTypeTagName(name string) string {
 	return defaultTransformPlural(name)
 }
 
-// TODO: move to DocumentConventions
-func buildDefaultMetadata(entity interface{}) map[string]interface{} {
-	res := map[string]interface{}{}
-	if entity == nil {
-		return res
-	}
-	fullTypeName := getFullTypeName(entity)
-	typeName := getShortTypeName(entity)
-	collectionName := defaultTransformPlural(typeName)
-	res["@collection"] = collectionName
-	res["Raven-Go-Type"] = fullTypeName
-	return res
-}
-
 func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
 	if rv.Type().Kind() == reflect.Ptr {
 		rv = rv.Elem()
@@ -208,6 +194,7 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
 	return v
 }
 
+// TODO: use EntityToJson.convertEntityToJson instead?
 func convertToEntity(entityType reflect.Type, id string, document ObjectNode) interface{} {
 	res := makeStructFromJSONMap(entityType, document)
 	// TODO: set id on res

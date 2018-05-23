@@ -271,7 +271,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			docInfo.entity = convertToEntity(entityType, id, document)
+			docInfo.entity = s.entityToJson.convertToEntity(entityType, id, document)
 		}
 
 		if !noTracking {
@@ -284,7 +284,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 	docInfo = s.includedDocumentsById[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
-			docInfo.entity = convertToEntity(entityType, id, document)
+			docInfo.entity = s.entityToJson.convertToEntity(entityType, id, document)
 		}
 
 		if !noTracking {
@@ -296,7 +296,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 		return docInfo.entity, nil
 	}
 
-	entity := convertToEntity(entityType, id, document)
+	entity := s.entityToJson.convertToEntity(entityType, id, document)
 
 	changeVector := jsonGetAsText(metadata, MetadataCHANGE_VECTOR)
 	if changeVector == "" {
