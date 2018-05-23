@@ -55,6 +55,10 @@ func (d *DocumentInfo) getMetadata() ObjectNode {
 	return d.metadata
 }
 
+func (d *DocumentInfo) getDocument() ObjectNode {
+	return d.document
+}
+
 func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
 	return d.metadataInstance
 }

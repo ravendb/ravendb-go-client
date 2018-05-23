@@ -246,7 +246,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 }
 
 // IncrementRequetsCount increments requests count
-func (s *InMemoryDocumentSessionOperations) IncrementRequetsCount() error {
+func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
 		return fmt.Errorf("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)

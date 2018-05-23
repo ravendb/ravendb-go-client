@@ -318,22 +318,24 @@ func testStoreLoad() {
 	exp := "foos/1-A"
 	panicIf(id != exp, "id is '%s', should be '%s'", id, exp)
 
-	if false {
-		// TODO: not yet working
-		sess = mustGetNewSession()
-		var res []*Foo
-		ids := []string{id}
-		err = sess.Load(ids, &res, nil)
-		must(err)
-		{
-			if false {
-				// TODO: not yet working
-				got := len(res)
-				exp := 1
-				panicIf(got != exp, "len(res) is %d, should be %d", got, exp)
+	/*
+		if false {
+			// TODO: not yet working
+			sess = mustGetNewSession()
+			var res []*Foo
+			ids := []string{id}
+			err = sess.Load(ids, &res, nil)
+			must(err)
+			{
+				if false {
+					// TODO: not yet working
+					got := len(res)
+					exp := 1
+					panicIf(got != exp, "len(res) is %d, should be %d", got, exp)
+				}
 			}
 		}
-	}
+	*/
 	print("testStoreLoad ok\n")
 }
 
