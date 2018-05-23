@@ -42,13 +42,6 @@ func NewDocumentSession(dbName string, store *DocumentStore, id string, re *Requ
 }
 
 //
-func (s *DocumentSession) deferCmd(cmd *CommandData, rest ...*CommandData) {
-	s.deferCommands = append(s.deferCommands, cmd)
-	for _, cmd := range rest {
-		s.deferCommands = append(s.deferCommands, cmd)
-	}
-}
-
 func (s *DocumentSession) saveIncludes(includes map[string]ObjectNode) {
 	for range includes {
 		panicIf(true, "NYI")
@@ -156,10 +149,6 @@ func (s *DocumentSession) Load(keys []string, res interface{}, includes []string
 
 // TODO: delete_by_entity
 // TODO: delete
-
-func (s *DocumentSession) assertNoNonUniqueInstance(entity interface{}, key string) {
-	// TODO: implement me
-}
 
 // Store schedules entity for storing in the database. To actually save the
 // data, call SaveSession.

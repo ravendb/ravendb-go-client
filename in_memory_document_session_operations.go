@@ -498,8 +498,8 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 	s.deferredCommands = nil
 	s.deferredCommandsMap = nil
 
-	//TODO: prepareForEntitiesDeletion(result, null)
-	//TODO: prepareForEntitiesPuts(result)
+	s.prepareForEntitiesDeletion(result, nil)
+	s.prepareForEntitiesPuts(result)
 
 	if len(s.deferredCommands) > 0 {
 		// this allow OnBeforeStore to call Defer during the call to include
