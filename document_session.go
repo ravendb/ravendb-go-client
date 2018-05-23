@@ -30,8 +30,6 @@ type _SaveChangesData struct {
 type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 
-	SessionID string
-
 	deferCommands []*CommandData
 }
 
@@ -39,7 +37,6 @@ type DocumentSession struct {
 func NewDocumentSession(dbName string, store *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
 	res := &DocumentSession{
 		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, store, re, id),
-		SessionID:                         id,
 	}
 	return res
 }

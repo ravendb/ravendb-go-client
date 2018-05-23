@@ -373,11 +373,12 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 
 // Stores the specified entity in the session. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
-	panicIf(true, "NYI")
-	return nil
-	// TODO: implememnt
-	//_, hasId := tryGetIdFromInstance(entity);
-	//s.storeInternal(entity, null, null, !hasId ? ConcurrencyCheckMode.FORCED : ConcurrencyCheckMode.AUTO);
+	_, hasID := s.generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
+	concu := ConcurrencyCheck_AUTO
+	if !hasID {
+		concu = ConcurrencyCheck_FORCED
+	}
+	return s.storeInternal(entity, "", "", concu)
 }
 
 /// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
