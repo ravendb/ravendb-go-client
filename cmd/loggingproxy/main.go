@@ -3,6 +3,7 @@ package main
 // based on https://raw.githubusercontent.com/elazarl/goproxy/master/examples/goproxy-httpdump/httpdump.go
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -23,10 +24,12 @@ import (
 type FileStream struct {
 	path string
 	f    *os.File
+	// data to write before any other write
+	prefix *bytes.Buffer
 }
 
-func NewFileStream(path string) *FileStream {
-	return &FileStream{path, nil}
+func NewFileStream(path string, prefix *bytes.Buffer) *FileStream {
+	return &FileStream{path, nil, prefix}
 }
 
 func (fs *FileStream) Write(b []byte) (nr int, err error) {
@@ -35,6 +38,13 @@ func (fs *FileStream) Write(b []byte) (nr int, err error) {
 		fs.f, err = os.OpenFile(fs.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
 			return 0, err
+		}
+	}
+	if fs.prefix != nil {
+		n, err := fs.f.Write(fs.prefix.Bytes())
+		fs.prefix = nil
+		if err != nil {
+			return n, err
 		}
 	}
 	return fs.f.Write(b)
@@ -50,6 +60,7 @@ func (fs *FileStream) Close() error {
 }
 
 type Meta struct {
+	w        *FileStream // per request/response logger
 	req      *http.Request
 	resp     *http.Response
 	err      error
@@ -135,17 +146,27 @@ func NewLogger(basepath string) (*HttpLogger, error) {
 }
 
 func (logger *HttpLogger) LogResp(resp *http.Response, ctx *goproxy.ProxyCtx) {
-	path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
 	from := ""
 	if ctx.UserData != nil {
 		from = ctx.UserData.(*transport.RoundTripDetails).TCPAddr.String()
 	}
+	var w *FileStream
 	if resp == nil {
 		resp = emptyResp
 	} else {
-		resp.Body = NewTeeReadCloser(resp.Body, NewFileStream(path))
+		prefix := &bytes.Buffer{}
+		prefix.WriteString("\nRESPONSE:\n")
+		buf, err := httputil.DumpResponse(resp, false)
+		if err == nil {
+			prefix.Write(buf)
+		}
+
+		path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
+		w = NewFileStream(path, prefix)
+		resp.Body = NewTeeReadCloser(resp.Body, w)
 	}
 	logger.LogMeta(&Meta{
+		w:    w,
 		resp: resp,
 		err:  ctx.Error,
 		t:    time.Now(),
@@ -157,13 +178,22 @@ var emptyResp = &http.Response{}
 var emptyReq = &http.Request{}
 
 func (logger *HttpLogger) LogReq(req *http.Request, ctx *goproxy.ProxyCtx) {
-	path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
+	var w *FileStream
 	if req == nil {
 		req = emptyReq
 	} else {
-		req.Body = NewTeeReadCloser(req.Body, NewFileStream(path))
+		prefix := &bytes.Buffer{}
+		prefix.WriteString("REQUEST:\n")
+		buf, err := httputil.DumpRequest(req, false)
+		if err == nil {
+			prefix.Write(buf)
+		}
+		path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
+		w = NewFileStream(path, prefix)
+		req.Body = NewTeeReadCloser(req.Body, w)
 	}
 	logger.LogMeta(&Meta{
+		w:    w,
 		req:  req,
 		err:  ctx.Error,
 		t:    time.Now(),
