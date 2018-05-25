@@ -40,33 +40,9 @@ func NewNextHiLoCommand(tag string, lastBatchSize int, lastRangeAt time.Time, id
 	return res
 }
 
-// NextHiLoResult is a result of NextHiLoResult command
-type NextHiLoResult struct {
-	Prefix      string `json:"Prefix"`
-	Low         int    `json:"Low"`
-	High        int    `json:"High"`
-	LastSize    int    `json:"LastSize"`
-	ServerTag   string `json:"ServerTag"`
-	LastRangeAt string `json:"LastRangeAt"`
-}
-
-const (
-	// time format returned by the server
-	// 2018-05-08T05:20:31.5233900Z
-	serverTimeFormat = "2006-01-02T15:04:05.999999999Z"
-)
-
-// GetLastRangeAt parses LastRangeAt which is in a format:
-// 2018-05-08T05:20:31.5233900Z
-func (r *NextHiLoResult) GetLastRangeAt() time.Time {
-	t, err := time.Parse(serverTimeFormat, r.LastRangeAt)
-	must(err) // TODO: should silently fail? return an error?
-	return t
-}
-
 // ExecuteNewNextHiLoCommand executes NextHiLoResult command
-func ExecuteNewNextHiLoCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*NextHiLoResult, error) {
-	var res NextHiLoResult
+func ExecuteNewNextHiLoCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*HiLoResult, error) {
+	var res HiLoResult
 	err := excuteCmdAndJSONDecode(exec, cmd, &res)
 	if err != nil {
 		return nil, err
