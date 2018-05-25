@@ -18,3 +18,4 @@ responses.log
 .vscode/
 main
 cmd/test/debug
+cmd/loggingproxy/db
