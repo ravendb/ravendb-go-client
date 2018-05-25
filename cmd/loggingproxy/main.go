@@ -4,210 +4,33 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"os/signal"
-	"path"
 	"sync"
-	"time"
 
 	"github.com/elazarl/goproxy"
 	"github.com/elazarl/goproxy/transport"
 )
 
-type FileStream struct {
-	path string
-	f    *os.File
-	// data to write before any other write
-	prefix *bytes.Buffer
-}
+var (
+	tr    = transport.Transport{Proxy: transport.ProxyFromEnvironment}
+	muLog sync.Mutex
+)
 
-func NewFileStream(path string, prefix *bytes.Buffer) *FileStream {
-	return &FileStream{path, nil, prefix}
-}
-
-func (fs *FileStream) Write(b []byte) (nr int, err error) {
-	if fs.f == nil {
-		//fs.f, err = os.Create(fs.path)
-		fs.f, err = os.OpenFile(fs.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-		if err != nil {
-			return 0, err
-		}
+func panicIf(cond bool, format string, args ...interface{}) {
+	if cond {
+		s := fmt.Sprintf(format, args...)
+		panic(s)
 	}
-	if fs.prefix != nil {
-		n, err := fs.f.Write(fs.prefix.Bytes())
-		fs.prefix = nil
-		if err != nil {
-			return n, err
-		}
-	}
-	return fs.f.Write(b)
-}
-
-func (fs *FileStream) Close() error {
-	fmt.Println("Close", fs.path)
-	if fs.f == nil {
-		//return errors.New("FileStream was never written into")
-		return nil
-	}
-	return fs.f.Close()
-}
-
-type Meta struct {
-	w        *FileStream // per request/response logger
-	req      *http.Request
-	resp     *http.Response
-	err      error
-	t        time.Time
-	sess     int64
-	bodyPath string
-	from     string
-}
-
-func fprintf(nr *int64, err *error, w io.Writer, pat string, a ...interface{}) {
-	if *err != nil {
-		return
-	}
-	var n int
-	n, *err = fmt.Fprintf(w, pat, a...)
-	*nr += int64(n)
-}
-
-func write(nr *int64, err *error, w io.Writer, b []byte) {
-	if *err != nil {
-		return
-	}
-	var n int
-	n, *err = w.Write(b)
-	*nr += int64(n)
-}
-
-func (m *Meta) WriteTo(w io.Writer) (nr int64, err error) {
-	if m.req != nil {
-		fprintf(&nr, &err, w, "Type: request\r\n")
-	} else if m.resp != nil {
-		fprintf(&nr, &err, w, "Type: response\r\n")
-	}
-	fprintf(&nr, &err, w, "ReceivedAt: %v\r\n", m.t)
-	fprintf(&nr, &err, w, "Session: %d\r\n", m.sess)
-	fprintf(&nr, &err, w, "From: %v\r\n", m.from)
-	if m.err != nil {
-		// note the empty response
-		fprintf(&nr, &err, w, "Error: %v\r\n\r\n\r\n\r\n", m.err)
-	} else if m.req != nil {
-		fprintf(&nr, &err, w, "\r\n")
-		buf, err2 := httputil.DumpRequest(m.req, false)
-		if err2 != nil {
-			return nr, err2
-		}
-		write(&nr, &err, w, buf)
-	} else if m.resp != nil {
-		fprintf(&nr, &err, w, "\r\n")
-		buf, err2 := httputil.DumpResponse(m.resp, false)
-		if err2 != nil {
-			return nr, err2
-		}
-		write(&nr, &err, w, buf)
-	}
-	return
-}
-
-// HttpLogger is an asynchronous HTTP request/response logger. It traces
-// requests and responses headers in a "log" file in logger directory and dumps
-// their bodies in files prefixed with the session identifiers.
-// Close it to ensure pending items are correctly logged.
-type HttpLogger struct {
-	path  string
-	c     chan *Meta
-	errch chan error
-}
-
-func NewLogger(basepath string) (*HttpLogger, error) {
-	f, err := os.Create(path.Join(basepath, "log"))
-	if err != nil {
-		return nil, err
-	}
-	logger := &HttpLogger{basepath, make(chan *Meta), make(chan error)}
-	go func() {
-		for m := range logger.c {
-			if _, err := m.WriteTo(f); err != nil {
-				log.Println("Can't write meta", err)
-			}
-		}
-		logger.errch <- f.Close()
-	}()
-	return logger, nil
-}
-
-func (logger *HttpLogger) LogResp(resp *http.Response, ctx *goproxy.ProxyCtx) {
-	from := ""
-	if ctx.UserData != nil {
-		from = ctx.UserData.(*transport.RoundTripDetails).TCPAddr.String()
-	}
-	var w *FileStream
-	if resp == nil {
-		resp = emptyResp
-	} else {
-		prefix := &bytes.Buffer{}
-		prefix.WriteString("\nRESPONSE:\n")
-		buf, err := httputil.DumpResponse(resp, false)
-		if err == nil {
-			prefix.Write(buf)
-		}
-
-		path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
-		w = NewFileStream(path, prefix)
-		resp.Body = NewTeeReadCloser(resp.Body, w)
-	}
-	logger.LogMeta(&Meta{
-		w:    w,
-		resp: resp,
-		err:  ctx.Error,
-		t:    time.Now(),
-		sess: ctx.Session,
-		from: from})
-}
-
-var emptyResp = &http.Response{}
-var emptyReq = &http.Request{}
-
-func (logger *HttpLogger) LogReq(req *http.Request, ctx *goproxy.ProxyCtx) {
-	var w *FileStream
-	if req == nil {
-		req = emptyReq
-	} else {
-		prefix := &bytes.Buffer{}
-		prefix.WriteString("REQUEST:\n")
-		buf, err := httputil.DumpRequest(req, false)
-		if err == nil {
-			prefix.Write(buf)
-		}
-		path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
-		w = NewFileStream(path, prefix)
-		req.Body = NewTeeReadCloser(req.Body, w)
-	}
-	logger.LogMeta(&Meta{
-		w:    w,
-		req:  req,
-		err:  ctx.Error,
-		t:    time.Now(),
-		sess: ctx.Session,
-		from: req.RemoteAddr})
-}
-
-func (logger *HttpLogger) LogMeta(m *Meta) {
-	logger.c <- m
-}
-
-func (logger *HttpLogger) Close() error {
-	close(logger.c)
-	return <-logger.errch
 }
 
 // TeeReadCloser extends io.TeeReader by allowing reader and writer to be
@@ -219,10 +42,14 @@ type TeeReadCloser struct {
 }
 
 func NewTeeReadCloser(r io.ReadCloser, w io.WriteCloser) io.ReadCloser {
+	panicIf(r == nil, "r == nil")
+	panicIf(w == nil, "w == nil")
 	return &TeeReadCloser{io.TeeReader(r, w), w, r}
 }
 
 func (t *TeeReadCloser) Read(b []byte) (int, error) {
+	panicIf(t == nil, "t == nil")
+	panicIf(t.r == nil, "t.r == nil, t: %#v", t)
 	return t.r.Read(b)
 }
 
@@ -267,6 +94,116 @@ func (sc *stoppableConn) Close() error {
 	return sc.Conn.Close()
 }
 
+type BufferCloser struct {
+	*bytes.Buffer
+}
+
+func NewBufferCloser(buf *bytes.Buffer) *BufferCloser {
+	if buf == nil {
+		buf = &bytes.Buffer{}
+	}
+	return &BufferCloser{
+		Buffer: buf,
+	}
+}
+
+func (b *BufferCloser) Close() error {
+	// nothing to do
+	return nil
+}
+
+// SessionData has info about
+type SessionData struct {
+	roundTripDetails *transport.RoundTripDetails
+	reqBody          *BufferCloser
+	respBody         *BufferCloser
+}
+
+func NewSessionData() *SessionData {
+	return &SessionData{}
+}
+
+func handleOnRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+	panicIf(req == nil, "req == nil")
+	sd := NewSessionData()
+	ctx.UserData = sd
+
+	ctx.RoundTripper = goproxy.RoundTripperFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (resp *http.Response, err error) {
+		sd.roundTripDetails, resp, err = tr.DetailedRoundTrip(req)
+		return
+	})
+
+	if req.Body != nil {
+		sd.reqBody = NewBufferCloser(nil)
+		req.Body = NewTeeReadCloser(req.Body, sd.reqBody)
+	}
+	return req, nil
+}
+
+// if d is a valid json, pretty-print it
+func prettyPrintMaybeJSON(d []byte) []byte {
+	var m map[string]interface{}
+	err := json.Unmarshal(d, &m)
+	if err != nil {
+		return d
+	}
+	d2, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return d
+	}
+	return d2
+}
+
+func lg(d []byte) {
+	muLog.Lock()
+	os.Stdout.Write(d)
+	muLog.Unlock()
+}
+
+func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+	panicIf(resp == nil, "resp == nil")
+	sd := ctx.UserData.(*SessionData)
+
+	var buf bytes.Buffer
+	s := fmt.Sprintf("=========== %d:\n", ctx.Session)
+	buf.WriteString(s)
+	d, err := httputil.DumpRequest(ctx.Req, false)
+	if err == nil {
+		buf.Write(d)
+	}
+
+	if sd.reqBody != nil {
+		d = sd.reqBody.Bytes()
+		d = prettyPrintMaybeJSON(d)
+		buf.Write(d)
+	}
+
+	s = "\n--------\n"
+	buf.WriteString(s)
+	d, err = httputil.DumpResponse(resp, false)
+	if err == nil {
+		buf.Write(d)
+	}
+
+	if true {
+		d, err := ioutil.ReadAll(resp.Body)
+		panicIf(err != nil, "err: %v", err)
+		resp.Body = NewBufferCloser(bytes.NewBuffer(d))
+		d = prettyPrintMaybeJSON(d)
+		buf.Write(d)
+		buf.WriteString("\n")
+	} else {
+		if resp.Body != nil {
+			sd.respBody = NewBufferCloser(nil)
+			resp.Body = NewTeeReadCloser(resp.Body, sd.respBody)
+		}
+	}
+
+	lg(buf.Bytes())
+
+	return resp
+}
+
 func main() {
 	verbose := flag.Bool("v", false, "should every proxy request be logged to stdout")
 	addr := flag.String("l", ":8888", "on which address should the proxy listen")
@@ -276,26 +213,9 @@ func main() {
 	if err := os.MkdirAll("db", 0755); err != nil {
 		log.Fatal("Can't create dir", err)
 	}
-	logger, err := NewLogger("db")
-	if err != nil {
-		log.Fatal("can't open log file", err)
-	}
-	tr := transport.Transport{Proxy: transport.ProxyFromEnvironment}
-	// For every incoming request, override the RoundTripper to extract
-	// connection information. Store it is session context log it after
-	// handling the response.
-	proxy.OnRequest().DoFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
-		ctx.RoundTripper = goproxy.RoundTripperFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (resp *http.Response, err error) {
-			ctx.UserData, resp, err = tr.DetailedRoundTrip(req)
-			return
-		})
-		logger.LogReq(req, ctx)
-		return req, nil
-	})
-	proxy.OnResponse().DoFunc(func(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
-		logger.LogResp(resp, ctx)
-		return resp
-	})
+
+	proxy.OnRequest().DoFunc(handleOnRequest)
+	proxy.OnResponse().DoFunc(handleOnResponse)
 	l, err := net.Listen("tcp", *addr)
 	if err != nil {
 		log.Fatal("listen:", err)
@@ -308,7 +228,7 @@ func main() {
 		log.Println("Got SIGINT exiting")
 		sl.Add(1)
 		sl.Close()
-		logger.Close()
+		//logger.Close()
 		sl.Done()
 	}()
 	log.Println("Starting Proxy")
