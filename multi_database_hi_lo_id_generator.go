@@ -3,14 +3,14 @@ package ravendb
 // MultiDatabaseHiLoIDGenerator manages per-database HiLoKeyGenerotr
 type MultiDatabaseHiLoIDGenerator struct {
 	store      *DocumentStore
-	generators map[string]*MultiTypeHiLoKeyGenerator
+	generators map[string]*MultiTypeHiLoIDGenerator
 }
 
 // NewMultiDatabaseHiLoIDGenerator creates new MultiDatabaseHiLoKeyGenerator
 func NewMultiDatabaseHiLoIDGenerator(store *DocumentStore) *MultiDatabaseHiLoIDGenerator {
 	return &MultiDatabaseHiLoIDGenerator{
 		store:      store,
-		generators: map[string]*MultiTypeHiLoKeyGenerator{},
+		generators: map[string]*MultiTypeHiLoIDGenerator{},
 	}
 }
 
@@ -22,10 +22,10 @@ func (g *MultiDatabaseHiLoIDGenerator) GenerateDocumentID(dbName string, entity 
 	panicIf(dbName == "", "expected non-empty dbName")
 	generator, ok := g.generators[dbName]
 	if !ok {
-		generator = NewMultiTypeHiLoKeyGenerator(g.store, dbName)
+		generator = NewMultiTypeHiLoIDGenerator(g.store, dbName)
 		g.generators[dbName] = generator
 	}
-	return generator.GenerateDocumentKey(entity)
+	return generator.GenerateDocumentID(entity)
 }
 
 // ReturnUnusedRange returns unused range for all generators
