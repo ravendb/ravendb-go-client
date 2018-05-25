@@ -14,7 +14,7 @@ type DocumentStore struct {
 	// maps database name to its RequestsExecutor
 	requestsExecutors map[string]*RequestExecutor
 	Conventions       *DocumentConventions
-	_multiDbHiLo      *MultiDatabaseHiLoKeyGenerator
+	_multiDbHiLo      *MultiDatabaseHiLoIDGenerator
 }
 
 // NewDocumentStore creates a DocumentStore
@@ -57,10 +57,10 @@ func (s *DocumentStore) Initialize() error {
 	}
 	conventions := s.Conventions
 	if conventions.getDocumentIdGenerator() == nil {
-		generator := NewMultiDatabaseHiLoKeyGenerator(s)
+		generator := NewMultiDatabaseHiLoIDGenerator(s)
 		s._multiDbHiLo = generator
 		genID := func(dbName string, entity Object) string {
-			return generator.GenerateDocumentKey(dbName, entity)
+			return generator.GenerateDocumentID(dbName, entity)
 		}
 		conventions.setDocumentIdGenerator(genID)
 	}

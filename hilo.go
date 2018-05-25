@@ -235,38 +235,3 @@ func (g *MultiTypeHiLoKeyGenerator) ReturnUnusedRange() {
 		generator.ReturnUnusedRange()
 	}
 }
-
-// MultiDatabaseHiLoKeyGenerator manages per-database HiLoKeyGenerotr
-type MultiDatabaseHiLoKeyGenerator struct {
-	store      *DocumentStore
-	generators map[string]*MultiTypeHiLoKeyGenerator
-}
-
-// NewMultiDatabaseHiLoKeyGenerator creates new MultiDatabaseHiLoKeyGenerator
-func NewMultiDatabaseHiLoKeyGenerator(store *DocumentStore) *MultiDatabaseHiLoKeyGenerator {
-	return &MultiDatabaseHiLoKeyGenerator{
-		store:      store,
-		generators: map[string]*MultiTypeHiLoKeyGenerator{},
-	}
-}
-
-// GenerateDocumentKey generates
-func (g *MultiDatabaseHiLoKeyGenerator) GenerateDocumentKey(dbName string, entity interface{}) string {
-	if dbName == "" {
-		dbName = g.store.database
-	}
-	panicIf(dbName == "", "expected non-empty dbName")
-	generator, ok := g.generators[dbName]
-	if !ok {
-		generator = NewMultiTypeHiLoKeyGenerator(g.store, dbName)
-		g.generators[dbName] = generator
-	}
-	return generator.GenerateDocumentKey(entity)
-}
-
-// ReturnUnusedRange returns unused range for all generators
-func (g *MultiDatabaseHiLoKeyGenerator) ReturnUnusedRange() {
-	for _, generator := range g.generators {
-		generator.ReturnUnusedRange()
-	}
-}
