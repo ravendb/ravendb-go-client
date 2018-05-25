@@ -17,3 +17,4 @@
 responses.log
 .vscode/
 main
+cmd/test/debug

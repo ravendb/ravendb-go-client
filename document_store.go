@@ -14,7 +14,7 @@ type DocumentStore struct {
 	// maps database name to its RequestsExecutor
 	requestsExecutors map[string]*RequestExecutor
 	Conventions       *DocumentConventions
-	generator         *MultiDatabaseHiLoKeyGenerator
+	_multiDbHiLo      *MultiDatabaseHiLoKeyGenerator
 }
 
 // NewDocumentStore creates a DocumentStore
@@ -55,7 +55,16 @@ func (s *DocumentStore) Initialize() error {
 	if s.database == "" {
 		return fmt.Errorf("Must provide database name to NewDocumentStore")
 	}
-	s.generator = NewMultiDatabaseHiLoKeyGenerator(s)
+	conventions := s.Conventions
+	if conventions.getDocumentIdGenerator() == nil {
+		generator := NewMultiDatabaseHiLoKeyGenerator(s)
+		s._multiDbHiLo = generator
+		genID := func(dbName string, entity Object) string {
+			return generator.GenerateDocumentKey(dbName, entity)
+		}
+		conventions.setDocumentIdGenerator(genID)
+	}
+
 	s.isInitialized = true
 	return nil
 }
@@ -105,15 +114,8 @@ func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 
 // Close closes the store
 func (s *DocumentStore) Close() {
-	if s.generator != nil {
-		s.generator.ReturnUnusedRange()
+	if s._multiDbHiLo != nil {
+		s._multiDbHiLo.ReturnUnusedRange()
 	}
 	// TODO: more
-}
-
-func (s *DocumentStore) generateID(dbName string, entity interface{}) string {
-	// s.generator is created in Initialize so should always be available
-	id := s.generator.GenerateDocumentKey(dbName, entity)
-	panicIf(id == "", "id should not be empty string")
-	return id
 }
