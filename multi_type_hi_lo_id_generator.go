@@ -7,7 +7,7 @@ type MultiTypeHiLoIDGenerator struct {
 	store  *DocumentStore
 	dbName string
 	// maps type name to its generator
-	_idGeneratorsByTag map[string]*HiLoKeyGenerator
+	_idGeneratorsByTag map[string]*HiLoIDGenerator
 	lock               sync.Mutex // protects _idGeneratorsByTag
 	// TODO: conventions
 }
@@ -17,7 +17,7 @@ func NewMultiTypeHiLoIDGenerator(store *DocumentStore, dbName string) *MultiType
 	return &MultiTypeHiLoIDGenerator{
 		store:              store,
 		dbName:             dbName,
-		_idGeneratorsByTag: map[string]*HiLoKeyGenerator{},
+		_idGeneratorsByTag: map[string]*HiLoIDGenerator{},
 	}
 }
 
@@ -28,11 +28,11 @@ func (g *MultiTypeHiLoIDGenerator) GenerateDocumentID(entity interface{}) string
 	g.lock.Lock()
 	generator, ok := g._idGeneratorsByTag[tag]
 	if !ok {
-		generator = NewHiLoKeyGenerator(tag, g.store, g.dbName)
+		generator = NewHiLoIDGenerator(tag, g.store, g.dbName)
 		g._idGeneratorsByTag[tag] = generator
 	}
 	g.lock.Unlock()
-	return generator.GenerateDocumentKey()
+	return generator.GenerateDocumentID()
 }
 
 // ReturnUnusedRange returns unused range for all generators

@@ -3,38 +3,8 @@ package ravendb
 import (
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 )
-
-// RangeValue represents an inclusive integer range min to max
-type RangeValue struct {
-	Min     int
-	Max     int
-	Current int
-}
-
-// NewRangeValue creates a new RangeValue
-func NewRangeValue(min int, max int) *RangeValue {
-	return &RangeValue{
-		Min:     min,
-		Max:     max,
-		Current: min - 1,
-	}
-}
-
-// Next returns next id
-func (r *RangeValue) Next() int {
-	// TODO: make this atomic
-	r.Current++
-	return r.Current
-}
-
-// Curr returns current id
-func (r *RangeValue) Curr() int {
-	// TODO: make this atomic
-	return r.Current
-}
 
 // NewHiLoReturnCommand creates a HiLoReturn command
 func NewHiLoReturnCommand(tag string, last, end int) *RavenCommand {
@@ -102,97 +72,4 @@ func ExecuteNewNextHiLoCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*Ne
 		return nil, err
 	}
 	return &res, nil
-}
-
-// HiLoKeyGenerator generates keys server side
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/hilo/hilo_generator.py#L63
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/identity/HiLoIdGenerator.java#L14
-type HiLoKeyGenerator struct {
-	tag                    string
-	store                  *DocumentStore
-	dbName                 string
-	lastRangeAt            time.Time
-	lastBatchSize          int
-	rangev                 *RangeValue
-	prefix                 string
-	serverTag              string
-	convetions             *DocumentConventions
-	identityPartsSeparator string
-	lock                   sync.Mutex
-}
-
-// NewHiLoKeyGenerator creates a HiLoKeyGenerator
-func NewHiLoKeyGenerator(tag string, store *DocumentStore, dbName string) *HiLoKeyGenerator {
-	if dbName == "" {
-		dbName = store.database
-	}
-	res := &HiLoKeyGenerator{
-		tag:           tag,
-		store:         store,
-		dbName:        dbName,
-		lastRangeAt:   time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC),
-		lastBatchSize: 0,
-		rangev:        NewRangeValue(1, 0),
-		prefix:        "",
-		serverTag:     "",
-		convetions:    store.Conventions,
-	}
-	res.identityPartsSeparator = res.convetions.IdentityPartsSeparator
-	return res
-}
-
-// GetDocumentKeyFromID creates key from id
-func (g *HiLoKeyGenerator) GetDocumentKeyFromID(nextID int) string {
-	return fmt.Sprintf("%s%d-%s", g.prefix, nextID, g.serverTag)
-}
-
-// GenerateDocumentKey returns next key
-func (g *HiLoKeyGenerator) GenerateDocumentKey() string {
-	// TODO: propagate error
-	id, _ := g.nextID()
-	return g.GetDocumentKeyFromID(id)
-}
-
-func (g *HiLoKeyGenerator) nextID() (int, error) {
-	// TODO: make Next() atomic and reduce lock scope
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	for {
-		// local range is not exhausted yet
-		rangev := g.rangev
-		id := rangev.Next()
-		if id <= rangev.Max {
-			return id, nil
-		}
-
-		// local range is exhausted , need to get a new range
-		err := g.getNextRange()
-		if err != nil {
-			return 0, err
-		}
-	}
-}
-
-func (g *HiLoKeyGenerator) getNextRange() error {
-	exec := g.store.GetRequestExecutor("").GetCommandExecutor(false)
-	cmd := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
-		g.identityPartsSeparator, g.rangev.Max)
-	res, err := ExecuteNewNextHiLoCommand(exec, cmd)
-	if err != nil {
-		return err
-	}
-	g.prefix = res.Prefix
-	g.serverTag = res.ServerTag
-	g.lastRangeAt = res.GetLastRangeAt()
-	g.lastBatchSize = res.LastSize
-	g.rangev = NewRangeValue(res.Low, res.High)
-	return nil
-}
-
-// ReturnUnusedRange returns unused range
-func (g *HiLoKeyGenerator) ReturnUnusedRange() error {
-	cmd := NewHiLoReturnCommand(g.tag, g.rangev.Curr(), g.rangev.Max)
-	// TODO: use store.getRequestsExecutor().Exec()
-	exec := g.store.getSimpleExecutor()
-	return ExecuteHiLoReturnCommand(exec, cmd)
 }

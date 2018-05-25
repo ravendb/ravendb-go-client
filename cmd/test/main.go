@@ -288,9 +288,9 @@ func testPutGetDeleteDocument() {
 func testHiLoKeyGenerator() {
 	store := getStore()
 	tag := "my_tag"
-	generator := ravendb.NewHiLoKeyGenerator(tag, store, testDbName)
+	generator := ravendb.NewHiLoIDGenerator(tag, store, testDbName)
 	fmt.Printf("generator: %#v\n", generator)
-	res := generator.GenerateDocumentKey()
+	res := generator.GenerateDocumentID()
 	if verboseLog {
 		fmt.Printf("%#v\n", res)
 	}
