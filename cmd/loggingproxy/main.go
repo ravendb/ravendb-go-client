@@ -114,9 +114,8 @@ func (b *BufferCloser) Close() error {
 
 // SessionData has info about
 type SessionData struct {
-	roundTripDetails *transport.RoundTripDetails
-	reqBody          *BufferCloser
-	respBody         *BufferCloser
+	reqBody  *BufferCloser
+	respBody *BufferCloser
 }
 
 func NewSessionData() *SessionData {
@@ -127,11 +126,6 @@ func handleOnRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *
 	panicIf(req == nil, "req == nil")
 	sd := NewSessionData()
 	ctx.UserData = sd
-
-	ctx.RoundTripper = goproxy.RoundTripperFunc(func(req *http.Request, ctx *goproxy.ProxyCtx) (resp *http.Response, err error) {
-		sd.roundTripDetails, resp, err = tr.DetailedRoundTrip(req)
-		return
-	})
 
 	if req.Body != nil {
 		sd.reqBody = NewBufferCloser(nil)
@@ -160,9 +154,9 @@ func lg(d []byte) {
 	muLog.Unlock()
 }
 
-func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
-	panicIf(resp == nil, "resp == nil")
-	sd := ctx.UserData.(*SessionData)
+func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
+	reqBody = prettyPrintMaybeJSON(reqBody)
+	respBody = prettyPrintMaybeJSON(respBody)
 
 	var buf bytes.Buffer
 	s := fmt.Sprintf("=========== %d:\n", ctx.Session)
@@ -171,35 +165,35 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 	if err == nil {
 		buf.Write(d)
 	}
-
-	if sd.reqBody != nil {
-		d = sd.reqBody.Bytes()
-		d = prettyPrintMaybeJSON(d)
-		buf.Write(d)
-	}
+	buf.Write(reqBody)
 
 	s = "\n--------\n"
 	buf.WriteString(s)
-	d, err = httputil.DumpResponse(resp, false)
+	d, err = httputil.DumpResponse(ctx.Resp, false)
 	if err == nil {
 		buf.Write(d)
 	}
-
-	if true {
-		d, err := ioutil.ReadAll(resp.Body)
-		panicIf(err != nil, "err: %v", err)
-		resp.Body = NewBufferCloser(bytes.NewBuffer(d))
-		d = prettyPrintMaybeJSON(d)
-		buf.Write(d)
-		buf.WriteString("\n")
-	} else {
-		if resp.Body != nil {
-			sd.respBody = NewBufferCloser(nil)
-			resp.Body = NewTeeReadCloser(resp.Body, sd.respBody)
-		}
-	}
+	buf.Write(respBody)
+	buf.WriteString("\n")
 
 	lg(buf.Bytes())
+}
+
+func slurpResponseBody(resp *http.Response) []byte {
+	d, err := ioutil.ReadAll(resp.Body)
+	panicIf(err != nil, "err: %v", err)
+	resp.Body = NewBufferCloser(bytes.NewBuffer(d))
+	return d
+}
+
+func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
+	panicIf(resp == nil, "resp == nil")
+	panicIf(resp != ctx.Resp, "resp != ctx.Resp")
+
+	sd := ctx.UserData.(*SessionData)
+	reqBody := sd.reqBody.Bytes()
+	respBody := slurpResponseBody(resp)
+	lgReq(ctx, reqBody, respBody)
 
 	return resp
 }
