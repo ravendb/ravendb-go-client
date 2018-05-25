@@ -3,7 +3,6 @@ package main
 // based on https://raw.githubusercontent.com/elazarl/goproxy/master/examples/goproxy-httpdump/httpdump.go
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -32,7 +31,8 @@ func NewFileStream(path string) *FileStream {
 
 func (fs *FileStream) Write(b []byte) (nr int, err error) {
 	if fs.f == nil {
-		fs.f, err = os.Create(fs.path)
+		//fs.f, err = os.Create(fs.path)
+		fs.f, err = os.OpenFile(fs.path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
 			return 0, err
 		}
@@ -43,7 +43,8 @@ func (fs *FileStream) Write(b []byte) (nr int, err error) {
 func (fs *FileStream) Close() error {
 	fmt.Println("Close", fs.path)
 	if fs.f == nil {
-		return errors.New("FileStream was never written into")
+		//return errors.New("FileStream was never written into")
+		return nil
 	}
 	return fs.f.Close()
 }
@@ -134,7 +135,7 @@ func NewLogger(basepath string) (*HttpLogger, error) {
 }
 
 func (logger *HttpLogger) LogResp(resp *http.Response, ctx *goproxy.ProxyCtx) {
-	body := path.Join(logger.path, fmt.Sprintf("%d_resp", ctx.Session))
+	path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
 	from := ""
 	if ctx.UserData != nil {
 		from = ctx.UserData.(*transport.RoundTripDetails).TCPAddr.String()
@@ -142,7 +143,7 @@ func (logger *HttpLogger) LogResp(resp *http.Response, ctx *goproxy.ProxyCtx) {
 	if resp == nil {
 		resp = emptyResp
 	} else {
-		resp.Body = NewTeeReadCloser(resp.Body, NewFileStream(body))
+		resp.Body = NewTeeReadCloser(resp.Body, NewFileStream(path))
 	}
 	logger.LogMeta(&Meta{
 		resp: resp,
@@ -156,11 +157,11 @@ var emptyResp = &http.Response{}
 var emptyReq = &http.Request{}
 
 func (logger *HttpLogger) LogReq(req *http.Request, ctx *goproxy.ProxyCtx) {
-	body := path.Join(logger.path, fmt.Sprintf("%d_req", ctx.Session))
+	path := path.Join(logger.path, fmt.Sprintf("%d_req_resp", ctx.Session))
 	if req == nil {
 		req = emptyReq
 	} else {
-		req.Body = NewTeeReadCloser(req.Body, NewFileStream(body))
+		req.Body = NewTeeReadCloser(req.Body, NewFileStream(path))
 	}
 	logger.LogMeta(&Meta{
 		req:  req,
