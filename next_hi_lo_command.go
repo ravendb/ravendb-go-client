@@ -6,22 +6,6 @@ import (
 	"time"
 )
 
-// NewHiLoReturnCommand creates a HiLoReturn command
-func NewHiLoReturnCommand(tag string, last, end int) *RavenCommand {
-	path := fmt.Sprintf("hilo/return?tag=%s&end=%d&last=%d", tag, end, last)
-	url := "{url}/databases/{db}/" + path
-	res := &RavenCommand{
-		Method:      http.MethodPut,
-		URLTemplate: url,
-	}
-	return res
-}
-
-// ExecuteHiLoReturnCommand executes HiLoReturnCommand
-func ExecuteHiLoReturnCommand(exec CommandExecutorFunc, cmd *RavenCommand) error {
-	return excuteCmdWithEmptyResult(exec, cmd)
-}
-
 const (
 	// Python does "0001-01-01 00:00:00"
 	// Java sends more complicated format https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/primitives/NetISO8601Utils.java#L8
