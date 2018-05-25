@@ -169,17 +169,22 @@ func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
 
 	s = "\n--------\n"
 	buf.WriteString(s)
-	d, err = httputil.DumpResponse(ctx.Resp, false)
-	if err == nil {
-		buf.Write(d)
+	if ctx.Resp != nil {
+		d, err = httputil.DumpResponse(ctx.Resp, false)
+		if err == nil {
+			buf.Write(d)
+		}
+		buf.Write(respBody)
+		buf.WriteString("\n")
 	}
-	buf.Write(respBody)
-	buf.WriteString("\n")
 
 	lg(buf.Bytes())
 }
 
 func slurpResponseBody(resp *http.Response) []byte {
+	if resp == nil {
+		return nil
+	}
 	d, err := ioutil.ReadAll(resp.Body)
 	panicIf(err != nil, "err: %v", err)
 	resp.Body = NewBufferCloser(bytes.NewBuffer(d))
@@ -187,7 +192,6 @@ func slurpResponseBody(resp *http.Response) []byte {
 }
 
 func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
-	panicIf(resp == nil, "resp == nil")
 	panicIf(resp != ctx.Resp, "resp != ctx.Resp")
 
 	sd := ctx.UserData.(*SessionData)
