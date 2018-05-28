@@ -1,11 +1,10 @@
-package main
+package proxy
 
 // based on https://raw.githubusercontent.com/elazarl/goproxy/master/examples/goproxy-httpdump/httpdump.go
 
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,22 +14,87 @@ import (
 	"net/http/httputil"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 
 	"github.com/elazarl/goproxy"
 	"github.com/elazarl/goproxy/transport"
 )
 
-var (
-	tr    = transport.Transport{Proxy: transport.ProxyFromEnvironment}
-	muLog sync.Mutex
+const (
+	logDir = "logs"
 )
+
+var (
+	tr           = transport.Transport{Proxy: transport.ProxyFromEnvironment}
+	proxyLogFile *os.File
+	muLog        sync.Mutex
+)
+
+func must(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
 
 func panicIf(cond bool, format string, args ...interface{}) {
 	if cond {
 		s := fmt.Sprintf(format, args...)
 		panic(s)
 	}
+}
+
+func valueOrDefault(value, def string) string {
+	if value != "" {
+		return value
+	}
+	return def
+}
+
+func openLogFile(logFile string) {
+	err := os.MkdirAll(logDir, 0755)
+	must(err)
+	logPath := filepath.Join(logDir, logFile)
+	f, err := os.Create(logPath)
+	must(err)
+	proxyLogFile = f
+	fmt.Printf("Logging to %s\n", logPath)
+}
+
+// CloseLogFile closes the log file
+func CloseLogFile() {
+	muLog.Lock()
+	defer muLog.Unlock()
+
+	if proxyLogFile != nil {
+		proxyLogFile.Close()
+		proxyLogFile = nil
+	}
+}
+
+// ChangeLogFile changes name of log file
+func ChangeLogFile(logFile string) {
+	muLog.Lock()
+	defer muLog.Unlock()
+
+	CloseLogFile()
+	openLogFile(logFile)
+}
+
+func lg(d []byte) {
+	muLog.Lock()
+	defer muLog.Unlock()
+	if proxyLogFile != nil {
+		proxyLogFile.Write(d)
+		proxyLogFile.Sync()
+	}
+}
+
+func lgShort(s string) {
+	muLog.Lock()
+	defer muLog.Unlock()
+
+	os.Stdout.WriteString(s)
 }
 
 // TeeReadCloser extends io.TeeReader by allowing reader and writer to be
@@ -148,13 +212,19 @@ func prettyPrintMaybeJSON(d []byte) []byte {
 	return d2
 }
 
-func lg(d []byte) {
-	muLog.Lock()
-	os.Stdout.Write(d)
-	muLog.Unlock()
+func getRequestSummary(req *http.Request) string {
+	reqURI := req.RequestURI
+	if reqURI == "" {
+		reqURI = req.URL.RequestURI()
+	}
+	return fmt.Sprintf("%s %s HTTP/%d.%d\r\n", valueOrDefault(req.Method, "GET"),
+		reqURI, req.ProtoMajor, req.ProtoMinor)
 }
 
 func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
+	reqSummary := getRequestSummary(ctx.Req)
+	lgShort(reqSummary)
+
 	reqBody = prettyPrintMaybeJSON(reqBody)
 	respBody = prettyPrintMaybeJSON(respBody)
 
@@ -202,22 +272,21 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 	return resp
 }
 
-func main() {
-	verbose := flag.Bool("v", false, "should every proxy request be logged to stdout")
-	addr := flag.String("l", ":8888", "on which address should the proxy listen")
-	flag.Parse()
+// Run starts a proxy
+func Run(logFile string) {
+	openLogFile(logFile)
+
+	addr := ":8888"
 	proxy := goproxy.NewProxyHttpServer()
-	proxy.Verbose = *verbose
-	if err := os.MkdirAll("db", 0755); err != nil {
-		log.Fatal("Can't create dir", err)
-	}
+	proxy.Verbose = false
 
 	proxy.OnRequest().DoFunc(handleOnRequest)
 	proxy.OnResponse().DoFunc(handleOnResponse)
-	l, err := net.Listen("tcp", *addr)
+	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatal("listen:", err)
 	}
+
 	sl := newStoppableListener(l)
 	ch := make(chan os.Signal)
 	signal.Notify(ch, os.Interrupt)

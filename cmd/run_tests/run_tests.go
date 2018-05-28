@@ -5,6 +5,12 @@ import (
 	"os"
 	"os/exec"
 	"path"
+
+	"github.com/ravendb/ravendb-go-client/pkg/proxy"
+)
+
+const (
+	proxyURL = "http://localhost:8888"
 )
 
 func must(err error) {
@@ -13,19 +19,10 @@ func must(err error) {
 	}
 }
 
-func runProxyProcess() *exec.Cmd {
-	cmd := exec.Command("go", "run", "cmd/loggingproxy/main.go")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Start()
-	must(err)
-	return cmd
-}
-
 func runJava() {
 	logFileTmpl := "trace_hilo_java.txt"
-	go runProxy(logFileTmpl)
-	defer closeProxyLogFile()
+	go proxy.Run(logFileTmpl)
+	defer proxy.CloseLogFile()
 
 	//cmdProxy := runProxy()
 	//defer cmdProxy.Process.Kill()
@@ -43,10 +40,16 @@ func runJava() {
 }
 
 func runGo() {
-	cmdProxy := runProxyProcess()
-	defer cmdProxy.Process.Kill()
+	logFileTmpl := "trace_hilo_go.txt"
+	go proxy.Run(logFileTmpl)
+	defer proxy.CloseLogFile()
 
 	cmd := exec.Command("go", "test", "-race")
+	// this tells http client to use a proxy
+	// https://stackoverflow.com/questions/14661511/setting-up-proxy-for-http-client
+	proxyEnv := "HTTP_PROXY=" + proxyURL
+	cmd.Env = append(os.Environ(), proxyEnv)
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Start()
