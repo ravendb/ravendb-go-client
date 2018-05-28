@@ -12,9 +12,18 @@ type DocumentStore struct {
 	isInitialized bool
 	mu            sync.Mutex
 	// maps database name to its RequestsExecutor
-	requestsExecutors map[string]*RequestExecutor
-	Conventions       *DocumentConventions
-	_multiDbHiLo      *MultiDatabaseHiLoIDGenerator
+	requestsExecutors            map[string]*RequestExecutor
+	Conventions                  *DocumentConventions
+	_multiDbHiLo                 *MultiDatabaseHiLoIDGenerator
+	maintenanceOperationExecutor MaintenanceOperationExecutor
+}
+
+func (s *DocumentStore) getConventions() *DocumentConventions {
+	return s.Conventions
+}
+
+func (s *DocumentStore) getURLS() []string {
+	return s.urls
 }
 
 // NewDocumentStore creates a DocumentStore
@@ -118,4 +127,8 @@ func (s *DocumentStore) Close() {
 		s._multiDbHiLo.ReturnUnusedRange()
 	}
 	// TODO: more
+}
+
+func (s *DocumentStore) getDatabase() string {
+	return s.database
 }

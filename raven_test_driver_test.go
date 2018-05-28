@@ -54,6 +54,7 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	documentStore = getGlobalServer(secured)
 	databaseRecord := NewDatabaseRecord()
 	databaseRecord.DatabaseName = name
+
 	// TODO: databaseRecord
 
 	return nil, errors.New("NYI")
