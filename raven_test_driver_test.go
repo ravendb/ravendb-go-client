@@ -2,8 +2,10 @@ package ravendb
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -39,8 +41,8 @@ func runServer(secured bool) error {
 }
 
 func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
-	//n := atomic.AddInt32(&dbIndex, 1)
-	//name := fmt.Sprintf("%s_%d", dbName, n)
+	n := atomic.AddInt32(&dbIndex, 1)
+	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := getGlobalServer(secured)
 	if documentStore == nil {
 		err := runServer(secured)
@@ -50,6 +52,8 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	}
 
 	documentStore = getGlobalServer(secured)
+	databaseRecord := NewDatabaseRecord()
+	databaseRecord.DatabaseName = name
 	// TODO: databaseRecord
 
 	return nil, errors.New("NYI")

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -252,4 +253,12 @@ func stringArraySubtract(a1, a2 []string) []string {
 		res = append(res, k)
 	}
 	return res
+}
+
+func fileExists(path string) bool {
+	st, err := os.Lstat(path)
+	if err != nil {
+		return false
+	}
+	return !st.IsDir()
 }

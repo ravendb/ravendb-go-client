@@ -162,7 +162,10 @@ func testGetDatabaseNamesCommand() {
 func testCreateDatabaseCommand() {
 	testDbName = "tst_" + ravendb.NewUUID().Hex()
 	exec := getExecutor()
-	cmd := ravendb.NewCreateDatabaseCommand(testDbName, 1)
+	dbRecord := &ravendb.DatabaseRecord{
+		DatabaseName: testDbName,
+	}
+	cmd := ravendb.NewCreateDatabaseOperation(dbRecord)
 	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd)
 	must(err)
 	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
