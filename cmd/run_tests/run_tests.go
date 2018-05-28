@@ -13,7 +13,7 @@ func must(err error) {
 	}
 }
 
-func runProxy() *exec.Cmd {
+func runProxyProcess() *exec.Cmd {
 	cmd := exec.Command("go", "run", "cmd/loggingproxy/main.go")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -22,12 +22,13 @@ func runProxy() *exec.Cmd {
 	return cmd
 }
 
-func runJavaTests() {
-}
-
 func runJava() {
-	cmdProxy := runProxy()
-	defer cmdProxy.Process.Kill()
+	logFileTmpl := "trace_hilo_java.txt"
+	go runProxy(logFileTmpl)
+	defer closeProxyLogFile()
+
+	//cmdProxy := runProxy()
+	//defer cmdProxy.Process.Kill()
 
 	// Running just one maven test: https://stackoverflow.com/a/18136440/2898
 	// mvn -Dtest=HiLoTest test
@@ -42,7 +43,7 @@ func runJava() {
 }
 
 func runGo() {
-	cmdProxy := runProxy()
+	cmdProxy := runProxyProcess()
 	defer cmdProxy.Process.Kill()
 
 	cmd := exec.Command("go", "test", "-race")

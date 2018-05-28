@@ -19,3 +19,4 @@ responses.log
 main
 cmd/test/debug
 cmd/loggingproxy/db
+logs/
