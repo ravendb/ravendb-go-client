@@ -34,12 +34,6 @@ func getGlobalServer(secured bool) *DocumentStore {
 	return globalServer
 }
 
-func runServer(secured bool) error {
-	panicIf(true, "NYI")
-	// TODO: implement me
-	return nil
-}
-
 func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
 	n := atomic.AddInt32(&dbIndex, 1)
 	name := fmt.Sprintf("%s_%d", dbName, n)
@@ -55,9 +49,50 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	databaseRecord := NewDatabaseRecord()
 	databaseRecord.DatabaseName = name
 
-	// TODO: databaseRecord
+	createDatabaseOperation := NewCreateDatabaseOperation(databaseRecord)
+	exec := documentStore.maintenance().requestExecutor.GetCommandExecutor(false)
+	_, err := ExecuteCreateDatabaseCommand(exec, createDatabaseOperation)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, errors.New("NYI")
+	urls := documentStore.getURLS()
+	store := NewDocumentStore(urls, name)
+
+	if false && secured {
+		// TODO: store.setCertificate(getTestClientCertificate());
+	}
+
+	// TODO: is over-written by CustomSerializationTest
+	// customizeStore(store);
+	// TODO:         hookLeakedConnectionCheck(store);
+
+	// TODO:         setupDatabase(store);
+	err = store.Initialize()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO:         store.addAfterCloseListener(((sender, event) -> {
+
+	if waitForIndexingTimeout > 0 {
+		waitForIndexing(store, name, waitForIndexingTimeout)
+	}
+
+	// TODO:    documentStores.add(store);
+
+	return store, errors.New("NYI")
+}
+
+func waitForIndexing(store *DocumentStore, database String, timeout time.Duration) {
+	// TODO: implement me
+	panicIf(true, "NYI")
+}
+
+func runServer(secured bool) error {
+	panicIf(true, "NYI")
+	// TODO: implement me
+	return nil
 }
 
 func shutdownTests() {

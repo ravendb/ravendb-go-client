@@ -15,7 +15,7 @@ type DocumentStore struct {
 	requestsExecutors            map[string]*RequestExecutor
 	Conventions                  *DocumentConventions
 	_multiDbHiLo                 *MultiDatabaseHiLoIDGenerator
-	maintenanceOperationExecutor MaintenanceOperationExecutor
+	maintenanceOperationExecutor *MaintenanceOperationExecutor
 }
 
 func (s *DocumentStore) getConventions() *DocumentConventions {
@@ -131,4 +131,14 @@ func (s *DocumentStore) Close() {
 
 func (s *DocumentStore) getDatabase() string {
 	return s.database
+}
+
+func (s *DocumentStore) maintenance() *MaintenanceOperationExecutor {
+	s.assertInitialized()
+
+	if s.maintenanceOperationExecutor == nil {
+		s.maintenanceOperationExecutor = NewMaintenanceOperationExecutor(s)
+	}
+
+	return s.maintenanceOperationExecutor
 }
