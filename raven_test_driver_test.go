@@ -18,6 +18,13 @@ var (
 	globalSecuredServer *DocumentStore
 )
 
+func getGlobalServer(secured bool) *DocumentStore {
+	if secured {
+		return globalSecuredServer
+	}
+	return globalServer
+}
+
 func getDocumentStore() (*DocumentStore, error) {
 	return getDocumentStoreWithName("test_db")
 }
@@ -27,14 +34,14 @@ func getDocumentStoreWithName(dbName string) (*DocumentStore, error) {
 
 }
 
-func getGlobalServer(secured bool) *DocumentStore {
-	if secured {
-		return globalSecuredServer
-	}
-	return globalServer
-}
-
 func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
+
+	// when db tests are disabled we return nil DocumentStore which is a signal
+	// to the caller to skip the db tests
+	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
+		return nil, nil
+	}
+
 	n := atomic.AddInt32(&dbIndex, 1)
 	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := getGlobalServer(secured)

@@ -16,6 +16,8 @@ type Product struct {
 
 func TestHiloCanNotGoDown(t *testing.T) {
 	store, err := getDocumentStore()
+	if store == nil {
+		return
+	}
 	assert.Nil(t, err)
-	assert.Nil(t, store)
 }
