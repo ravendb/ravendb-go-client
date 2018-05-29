@@ -128,8 +128,10 @@ func (re *RequestExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand 
 			Timeout: time.Second * 5,
 		}
 		rsp, err := client.Do(req)
+
 		// this is for network-level errors when we don't get response
 		if err != nil {
+			fmt.Printf("ExecuteWithNode: client.Do() failed with %s\n", err)
 			// if asked, retry network-level errors
 			if shouldRetry == false {
 				return nil, err
@@ -141,6 +143,9 @@ func (re *RequestExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand 
 			chosenNode = re.nodeSelector.GetCurrentNode()
 			continue
 		}
+
+		body, _ := getCopyOfResponseBody(rsp)
+		dumpHTTPResponse(rsp, body)
 
 		code := rsp.StatusCode
 

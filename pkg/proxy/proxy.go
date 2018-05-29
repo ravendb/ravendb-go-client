@@ -161,10 +161,13 @@ func (sc *stoppableConn) Close() error {
 	return sc.Conn.Close()
 }
 
+// BufferCloser is a wrapper around bytes.Buffer that adds io.Close method
+// to make it io.ReadCloser
 type BufferCloser struct {
 	*bytes.Buffer
 }
 
+// NewBufferCloser creates new BufferClose
 func NewBufferCloser(buf *bytes.Buffer) *BufferCloser {
 	if buf == nil {
 		buf = &bytes.Buffer{}
@@ -174,6 +177,7 @@ func NewBufferCloser(buf *bytes.Buffer) *BufferCloser {
 	}
 }
 
+// Close implements io.Close interface
 func (b *BufferCloser) Close() error {
 	// nothing to do
 	return nil
@@ -254,14 +258,17 @@ func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
 	lg(buf.Bytes())
 }
 
-func slurpResponseBody(resp *http.Response) []byte {
+// retruns copy of resp.Body but also makes it available for subsequent reads
+func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 	if resp == nil {
-		return nil
+		return nil, nil
 	}
 	d, err := ioutil.ReadAll(resp.Body)
-	panicIf(err != nil, "err: %v", err)
+	if err != nil {
+		return nil, err
+	}
 	resp.Body = NewBufferCloser(bytes.NewBuffer(d))
-	return d
+	return d, nil
 }
 
 func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response {
@@ -269,7 +276,7 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 
 	sd := ctx.UserData.(*SessionData)
 	reqBody := sd.reqBody.Bytes()
-	respBody := slurpResponseBody(resp)
+	respBody, _ := getCopyOfResponseBody(resp)
 	lgReq(ctx, reqBody, respBody)
 
 	return resp

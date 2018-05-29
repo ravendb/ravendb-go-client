@@ -5,11 +5,73 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"time"
 )
+
+// BufferCloser is a wrapper around bytes.Buffer that adds io.Close method
+// to make it io.ReadCloser
+type BufferCloser struct {
+	*bytes.Buffer
+}
+
+// NewBufferCloser creates new BufferClose
+func NewBufferCloser(buf *bytes.Buffer) *BufferCloser {
+	if buf == nil {
+		buf = &bytes.Buffer{}
+	}
+	return &BufferCloser{
+		Buffer: buf,
+	}
+}
+
+// Close implements io.Close interface
+func (b *BufferCloser) Close() error {
+	// nothing to do
+	return nil
+}
+
+// retruns copy of resp.Body but also makes it available for subsequent reads
+func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
+	if resp == nil {
+		return nil, nil
+	}
+	d, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	resp.Body = NewBufferCloser(bytes.NewBuffer(d))
+	return d, nil
+}
+
+// if d is a valid json, pretty-print it
+func prettyPrintMaybeJSON(d []byte) []byte {
+	var m map[string]interface{}
+	err := json.Unmarshal(d, &m)
+	if err != nil {
+		return d
+	}
+	d2, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return d
+	}
+	return d2
+}
+
+func dumpHTTPResponse(resp *http.Response, body []byte) {
+	d, err := httputil.DumpResponse(resp, false)
+	if err != nil {
+		return
+	}
+	os.Stdout.Write(d)
+	if len(body) > 0 {
+		os.Stdout.Write(prettyPrintMaybeJSON(body))
+		os.Stdout.WriteString("\n")
+	}
+}
 
 func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
 	url := cmd.BuildFullURL(n)
@@ -59,9 +121,13 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	rsp, err := client.Do(req)
 	// this is for network-level errors when we don't get response
 	if err != nil {
+		fmt.Printf("client.Do() failed with %s\n", err)
 		return nil, err
 	}
 	// we have response but it could be one of the error server response
+
+	body, _ := getCopyOfResponseBody(rsp)
+	dumpHTTPResponse(rsp, body)
 
 	// convert 400 Bad Request response to BadReqeustError
 	if rsp.StatusCode == http.StatusBadRequest {
@@ -122,12 +188,4 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	panicIf(!isStatusOk, "unhandled status code %d", rsp.StatusCode)
 
 	return rsp, nil
-}
-
-func dumpHTTPResponse(resp *http.Response) {
-	d, err := httputil.DumpResponse(resp, false)
-	if err != nil {
-		return
-	}
-	os.Stdout.Write(d)
 }
