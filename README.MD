@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/kjk/ravendb-go-client.svg?branch=v4.0)](https://travis-ci.org/kjk/ravendb-go-client)
+
+[![codecov](https://codecov.io/gh/kjk/ravendb-go-client/branch/v4.0/graph/badge.svg)](https://codecov.io/gh/kjk/ravendb-go-client)
+
 # How to install and run
 
 Before this code is marged into github.com/ravendb/ravendb-go-client, the way to
