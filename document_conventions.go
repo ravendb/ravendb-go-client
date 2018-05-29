@@ -54,6 +54,10 @@ func (c *DocumentConventions) getDocumentIdGenerator() DocumentIDGeneratorFunc {
 	return c._documentIdGenerator
 }
 
+func (c *DocumentConventions) getDisableTopologyUpdates() bool {
+	return c.DisableTopologyUpdate
+}
+
 func (c *DocumentConventions) setDocumentIdGenerator(documentIdGenerator DocumentIDGeneratorFunc) {
 	c._documentIdGenerator = documentIdGenerator
 }
@@ -61,4 +65,8 @@ func (c *DocumentConventions) setDocumentIdGenerator(documentIdGenerator Documen
 // Generates the document id.
 func (c *DocumentConventions) generateDocumentId(databaseName String, entity Object) String {
 	return c._documentIdGenerator(databaseName, entity)
+}
+
+func (c *DocumentConventions) setDisableTopologyUpdates(disable bool) {
+	c.DisableTopologyUpdate = disable
 }

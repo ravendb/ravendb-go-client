@@ -1,19 +1,21 @@
 package ravendb
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 )
 
 var (
-	dbIndex             int32
-	globalServer        *DocumentStore
-	globalServerProcess *exec.Cmd
+	dbIndex                    int32
+	globalServer               *DocumentStore
+	globalServerProcess        *Process
+	globalSecuredServerProcess *Process
 
 	globalSecuredServer *DocumentStore
 )
@@ -23,6 +25,14 @@ func getGlobalServer(secured bool) *DocumentStore {
 		return globalSecuredServer
 	}
 	return globalServer
+}
+
+func setGlobalServerProcess(secured bool, p *Process) {
+	if secured {
+		globalSecuredServerProcess = p
+	} else {
+		globalServerProcess = p
+	}
 }
 
 func getDocumentStore() (*DocumentStore, error) {
@@ -35,10 +45,11 @@ func getDocumentStoreWithName(dbName string) (*DocumentStore, error) {
 }
 
 func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
-
+	fmt.Printf("getDocumentStore2\n")
 	// when db tests are disabled we return nil DocumentStore which is a signal
 	// to the caller to skip the db tests
 	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
+		fmt.Printf("DB tests are disabled\n")
 		return nil, nil
 	}
 
@@ -97,16 +108,92 @@ func waitForIndexing(store *DocumentStore, database String, timeout time.Duratio
 }
 
 func runServer(secured bool) error {
-	panicIf(true, "NYI")
-	// TODO: implement me
-	return nil
+	fmt.Printf("runServer\n")
+	var locator *RavenServerLocator
+	var err error
+	if secured {
+		locator, err = NewSecuredServiceLocator()
+	} else {
+		locator, err = NewTestServiceLocator()
+	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("About to call RavenServerRunner_run\n")
+	proc, err := RavenServerRunner_run(locator)
+	if err != nil {
+		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
+		return err
+	}
+	setGlobalServerProcess(secured, proc)
+	fmt.Printf("Starting global server\n")
+
+	// parse stdout of the server to extract server listening port from line:
+	// Server available on: http://127.0.0.1:50386
+	wantedPrefix := "Server available on: "
+	scanner := bufio.NewScanner(proc.stdoutReader)
+	timeStart := time.Now()
+	url := ""
+	for scanner.Scan() {
+		dur := time.Since(timeStart)
+		if dur > time.Minute {
+			break
+		}
+		s := scanner.Text()
+		// fmt.Printf("line: '%s'\n", s)
+		if !strings.HasPrefix(s, wantedPrefix) {
+			continue
+		}
+		s = strings.TrimPrefix(s, wantedPrefix)
+		url = strings.TrimSpace(s)
+		break
+	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
+	if url == "" {
+		return fmt.Errorf("Unable to start server")
+	}
+	fmt.Printf("Server started on: '%s'\n", url)
+
+	urls := []string{url}
+	store := NewDocumentStore(urls, "test.manager")
+	//store.setUrls([]string{url})
+	//store.setDatabase("test.manager")
+	store.getConventions().setDisableTopologyUpdates(true)
+
+	if secured {
+		panicIf(true, "NYI")
+		globalSecuredServer = store
+		//TODO: KeyStore clientCert = getTestClientCertificate();
+		//TODO: store.setCertificate(clientCert);
+	} else {
+		globalServer = store
+	}
+	return store.Initialize()
+}
+
+func killGlobalServerProcess(secured bool) {
+	if secured {
+		if globalSecuredServerProcess != nil {
+			globalSecuredServerProcess.cmd.Process.Kill()
+			globalSecuredServerProcess = nil
+		}
+	} else {
+		if globalServerProcess != nil {
+			globalServerProcess.cmd.Process.Kill()
+			globalServerProcess = nil
+		}
+	}
 }
 
 func shutdownTests() {
-	// TODO: kill server process
+	killGlobalServerProcess(true)
+	killGlobalServerProcess(false)
 }
 
 func TestMain(m *testing.M) {
+	fmt.Printf("TestMain\n")
 	code := m.Run()
 	shutdownTests()
 	os.Exit(code)

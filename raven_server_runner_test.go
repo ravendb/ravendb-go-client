@@ -2,22 +2,36 @@ package ravendb
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strconv"
 )
 
-func RavenServerRunner_run(locator *RavenServerLocator) (*exec.Cmd, error) {
+type Process struct {
+	cmd          *exec.Cmd
+	stdoutReader io.ReadCloser
+}
+
+func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
 	processStartInfo, err := getProcessStartInfo(locator)
 	if err != nil {
 		return nil, err
 	}
 	cmd := exec.Command(processStartInfo.command, processStartInfo.arguments...)
-	err = cmd.Start()
+	stdoutReader, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	return cmd, nil
+	err = cmd.Start()
+	if err != nil {
+		fmt.Printf("exec.Command(%s, %v) failed with %s\n", processStartInfo.command, processStartInfo.arguments, err)
+		return nil, err
+	}
+	return &Process{
+		cmd:          cmd,
+		stdoutReader: stdoutReader,
+	}, nil
 }
 
 func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error) {

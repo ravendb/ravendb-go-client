@@ -22,5 +22,6 @@ func NewRavenServerLocator() (*RavenServerLocator, error) {
 	}
 	return &RavenServerLocator{
 		serverPath: path,
+		command:    path,
 	}, nil
 }
