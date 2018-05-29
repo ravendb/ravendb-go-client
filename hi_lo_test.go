@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
@@ -15,7 +16,8 @@ type Product struct {
 	ProductName string
 }
 
-func TestHiloCanNotGoDown(t *testing.T) {
+func TestHiLoCanNotGoDown(t *testing.T) {
+	fmt.Printf("TestHiLoCanNotGoDown started\n")
 	if useProxy() {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}

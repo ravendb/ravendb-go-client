@@ -120,6 +120,7 @@ func runServer(secured bool) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("runServer: starting server\n")
 	proc, err := RavenServerRunner_run(locator)
 	if err != nil {
 		fmt.Printf("RavenServerRunner_run failed with %s\n", err)

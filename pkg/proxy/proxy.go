@@ -61,15 +61,18 @@ func openLogFile(logFile string) {
 	fmt.Printf("Logging to %s\n", logPath)
 }
 
-// CloseLogFile closes the log file
-func CloseLogFile() {
-	muLog.Lock()
-	defer muLog.Unlock()
-
+func closeLogFile() {
 	if proxyLogFile != nil {
 		proxyLogFile.Close()
 		proxyLogFile = nil
 	}
+}
+
+// CloseLogFile closes the log file
+func CloseLogFile() {
+	muLog.Lock()
+	defer muLog.Unlock()
+	closeLogFile()
 }
 
 // ChangeLogFile changes name of log file
@@ -77,7 +80,7 @@ func ChangeLogFile(logFile string) {
 	muLog.Lock()
 	defer muLog.Unlock()
 
-	CloseLogFile()
+	closeLogFile()
 	openLogFile(logFile)
 }
 
@@ -298,7 +301,7 @@ func Run(logFile string) {
 		//logger.Close()
 		sl.Done()
 	}()
-	log.Println("Starting Proxy")
+	fmt.Printf("Starting proxy on %s\n", addr)
 	http.Serve(sl, proxy)
 	sl.Wait()
 	log.Println("All connections closed - exit")
