@@ -9,6 +9,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 )
 
 var (
@@ -108,7 +110,6 @@ func waitForIndexing(store *DocumentStore, database String, timeout time.Duratio
 }
 
 func runServer(secured bool) error {
-	fmt.Printf("runServer\n")
 	var locator *RavenServerLocator
 	var err error
 	if secured {
@@ -119,14 +120,12 @@ func runServer(secured bool) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("About to call RavenServerRunner_run\n")
 	proc, err := RavenServerRunner_run(locator)
 	if err != nil {
 		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
 		return err
 	}
 	setGlobalServerProcess(secured, proc)
-	fmt.Printf("Starting global server\n")
 
 	// parse stdout of the server to extract server listening port from line:
 	// Server available on: http://127.0.0.1:50386
@@ -192,9 +191,37 @@ func shutdownTests() {
 	killGlobalServerProcess(false)
 }
 
+var (
+	useProxyCached *bool
+)
+
+func useProxy() bool {
+	if useProxyCached != nil {
+		return *useProxyCached
+	}
+	var b bool
+	if os.Getenv("HTTP_PROXY") != "" {
+		fmt.Printf("Using http proxy\n")
+		b = true
+	} else {
+		fmt.Printf("Not using http proxy\n")
+	}
+	useProxyCached = &b
+	return b
+}
+
 func TestMain(m *testing.M) {
 	fmt.Printf("TestMain\n")
+	if useProxy() {
+		logFileTmpl := "trace_0_start_go.txt"
+		go proxy.Run(logFileTmpl)
+	}
 	code := m.Run()
 	shutdownTests()
+
+	if useProxy() {
+		proxy.CloseLogFile()
+		fmt.Printf("Closed proxy log file\n")
+	}
 	os.Exit(code)
 }
