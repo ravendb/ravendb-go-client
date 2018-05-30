@@ -4,49 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 // JSONArrayResult represents result of BatchCommand, which is array of JSON objects
 // it's a type alias so that it doesn't need casting when json marshalling
 type JSONArrayResult = []ObjectNode
 
-// RavenCommand represents data needed to issue an HTTP command to the server
-type RavenCommand struct {
-	Method        string // GET, PUT etc.
-	IsReadRequest bool
-	// to create a full url, replace {url} and {db} with ServerNode.URL and
-	// ServerNode.Database
-	URLTemplate string
-	// additional HTTP request headers
-	Headers map[string]string
-	Data    []byte
-
-	failedNodes []*ServerNode
-}
-
-func (c *RavenCommand) isReadRequest() bool {
-	return c.IsReadRequest
-}
-
-func (c *RavenCommand) addFailedNode(node *ServerNode) {
-	c.failedNodes = append(c.failedNodes, node)
-}
-
-func (c *RavenCommand) isFailedWithNode(node *ServerNode) bool {
-	for _, n := range c.failedNodes {
-		if n == node {
-			return true
-		}
-	}
-	return false
-}
-
-// BuildFullURL creates a full url by filling in server address and database name
+/*
 func (c *RavenCommand) BuildFullURL(n *ServerNode) string {
 	url := strings.Replace(c.URLTemplate, "{url}", n.URL, -1)
 	return strings.Replace(url, "{db}", n.Database, -1)
 }
+*/
 
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
 // returns raw HTTP response
@@ -95,66 +64,6 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v inter
 	}
 
 	return nil
-}
-
-// ClusterTopology is a part of ClusterTopologyResponse
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/http/ClusterTopology.java#L6
-type ClusterTopology struct {
-	LastNodeID string `json:"LastNodeId"`
-	TopologyID string `json:"TopologyId"`
-
-	// Those map name like A to server url like http://localhost:9999
-	Members     map[string]string
-	Promotables map[string]string
-	Watchers    map[string]string
-}
-
-// GetAllNodes returns all nodes
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/http/ClusterTopology.java#L46
-func (t *ClusterTopology) GetAllNodes() map[string]string {
-	res := map[string]string{}
-	for name, uri := range t.Members {
-		res[name] = uri
-	}
-	for name, uri := range t.Promotables {
-		res[name] = uri
-	}
-	for name, uri := range t.Watchers {
-		res[name] = uri
-	}
-	return res
-}
-
-// ClusterTopologyResponse is a response of GetClusterTopologyCommand
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/http/ClusterTopologyResponse.java#L3
-// Sample response:
-// {"Topology":{"TopologyId":"8bf47de1-601e-4fff-b300-2e2c07ab6822","AllNodes":{"A":"http://localhost:9999"},"Members":{"A":"http://localhost:9999"},"Promotables":{},"Watchers":{},"LastNodeId":"A"},"Leader":"A","LeaderShipDuration":61407928,"CurrentState":"Leader","NodeTag":"A","CurrentTerm":4,"NodeLicenseDetails":{"A":{"UtilizedCores":3,"NumberOfCores":8,"InstalledMemoryInGb":16.0,"UsableMemoryInGb":16.0}},"LastStateChangeReason":"Leader, I'm the only one in thecluster, so I'm the leader (at 5/2/18 7:49:23 AM)","Status":{}}
-type ClusterTopologyResponse struct {
-	Topology *ClusterTopology `json:"Topology"`
-	Leader   string           `json:"Leader"`
-	NodeTag  string           `json:"NodeTag"`
-	// note: the response returns more info
-	// see https://app.quicktype.io?share=pzquGxXJcXyMncfA9JPa for fuller definition
-}
-
-// NewGetClusterTopologyCommand creates a new GetClusterTopologyCommand
-func NewGetClusterTopologyCommand() *RavenCommand {
-	res := &RavenCommand{
-		Method:        http.MethodGet,
-		IsReadRequest: true,
-		URLTemplate:   "{url}/cluster/topology",
-	}
-	return res
-}
-
-// ExecuteGetClusterTopologyCommand executes GetClusterTopologyCommand
-func ExecuteGetClusterTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*ClusterTopologyResponse, error) {
-	var res ClusterTopologyResponse
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
 }
 
 // DatabaseStatistics describes a result of GetStatisticsCommand

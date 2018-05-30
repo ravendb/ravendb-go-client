@@ -2,6 +2,21 @@ package ravendb
 
 import "fmt"
 
+type UnsupportedOperationException struct {
+	ErrorStr string
+}
+
+func NewUnsupportedOperationException(format string, args ...interface{}) *UnsupportedOperationException {
+	return &UnsupportedOperationException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *UnsupportedOperationException) Error() string {
+	return e.ErrorStr
+}
+
 // IllegalStateError corresponds to Java's IllegalStateException
 type IllegalStateError struct {
 	ErrorStr string
