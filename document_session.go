@@ -47,7 +47,7 @@ func (s *DocumentSession) SaveChanges() error {
 	if command == nil {
 		return nil
 	}
-	exec := s.RequestExecutor.GetCommandExecutor(false)
+	exec := s.RequestExecutor.GetCommandExecutor()
 	result, err := ExecuteBatchCommand(exec, command)
 	if err != nil {
 		return err

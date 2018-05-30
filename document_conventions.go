@@ -21,6 +21,17 @@ type DocumentConventions struct {
 	RaiseIfQueryPageSizeIsNotSet bool // TODO: rename to ErrorIfQueryPageSizeIsNotSet
 
 	_documentIdGenerator DocumentIDGeneratorFunc
+
+	_readBalanceBehavior ReadBalanceBehavior
+}
+
+func (c *DocumentConventions) getReadBalanceBehavior() ReadBalanceBehavior {
+	return c._readBalanceBehavior
+}
+
+func (c *DocumentConventions) clone() *DocumentConventions {
+	res := *c
+	return &res
 }
 
 // NewDocumentConventions creates DocumentConventions with default values

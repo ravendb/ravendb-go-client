@@ -96,7 +96,7 @@ func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestExecutor {
 		return re
 	}
 	// TODO: certificate
-	re := CreateRequestsExecutor(s.urls, dbName, s.Conventions)
+	re := RequestExecutor_create(s.urls, dbName, nil, s.Conventions)
 	s.requestsExecutors[dbName] = re
 	return re
 }

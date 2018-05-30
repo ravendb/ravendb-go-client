@@ -11,10 +11,10 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	conv := store.getConventions()
 	if conv.DisableTopologyUpdate {
 		// TODO: ClusterRequestExecutor_createForSingleNode()
-		res.requestExecutor = CreateRequestsExecutorForSingleNode(urls[0], dbName)
+		res.requestExecutor = RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(urls[0], dbName, nil, conv)
 	} else {
 		// TODO: ClusterRequestExecutor_create()
-		res.requestExecutor = CreateRequestsExecutor(urls, dbName, conv)
+		res.requestExecutor = RequestExecutor_create(urls, dbName, nil, conv)
 	}
 	return res
 }

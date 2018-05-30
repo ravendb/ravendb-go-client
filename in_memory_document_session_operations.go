@@ -24,11 +24,6 @@ const (
 	MetadataEXPIRES       = "@expires"
 )
 
-// SessionInfo describes a session
-type SessionInfo struct {
-	SessionID int
-}
-
 var (
 	_clientSessionIDCounter int32 = 1
 )

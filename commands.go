@@ -25,6 +25,10 @@ type RavenCommand struct {
 	failedNodes []*ServerNode
 }
 
+func (c *RavenCommand) isReadRequest() bool {
+	return c.IsReadRequest
+}
+
 func (c *RavenCommand) addFailedNode(node *ServerNode) {
 	c.failedNodes = append(c.failedNodes, node)
 }

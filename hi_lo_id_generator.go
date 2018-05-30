@@ -104,7 +104,7 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 }
 
 func (g *HiLoIDGenerator) getNextRange() error {
-	exec := g.store.GetRequestExecutor("").GetCommandExecutor(false)
+	exec := g.store.GetRequestExecutor("").GetCommandExecutor()
 	cmd := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
 		g.identityPartsSeparator, g.rangev.Max)
 	res, err := ExecuteNewNextHiLoCommand(exec, cmd)
