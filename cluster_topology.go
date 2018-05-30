@@ -13,7 +13,7 @@ type ClusterTopology struct {
 
 func (t *ClusterTopology) contains(node String) bool {
 	if t.Members != nil {
-		if _, ok := t.members[node]; ok {
+		if _, ok := t.Members[node]; ok {
 			return true
 		}
 	}
