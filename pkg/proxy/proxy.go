@@ -284,7 +284,9 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 
 // Run starts a proxy
 func Run(logFile string) {
+	muLog.Lock()
 	openLogFile(logFile)
+	muLog.Unlock()
 
 	addr := ":8888"
 	proxy := goproxy.NewProxyHttpServer()
