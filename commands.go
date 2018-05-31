@@ -10,13 +10,6 @@ import (
 // it's a type alias so that it doesn't need casting when json marshalling
 type JSONArrayResult = []ObjectNode
 
-/*
-func (c *RavenCommand) BuildFullURL(n *ServerNode) string {
-	url := strings.Replace(c.URLTemplate, "{url}", n.URL, -1)
-	return strings.Replace(url, "{db}", n.Database, -1)
-}
-*/
-
 // CommandExecutorFunc takes RavenCommand, sends it over HTTP to the server and
 // returns raw HTTP response
 type CommandExecutorFunc func(cmd *RavenCommand) (*http.Response, error)
@@ -66,41 +59,7 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v inter
 	return nil
 }
 
-// GetOperationStateCommandResult describes a result of GetOperationsState
-type GetOperationStateCommandResult struct {
-	ErrorStr string `json:"Error"`
-	Status   string `json:"Status"`
-}
-
-// NewGetOperationStateCommand creates GetOperationsState command
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/commands/raven_commands.py#L371
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client/-/blob/src/main/java/net/ravendb/client/documents/operations/GetOperationStateOperation.java#L14
-// TODO: add isServerStoreOp bool? Is in Python, not in Java
-func NewGetOperationStateCommand(opID string) *RavenCommand {
-	res := &RavenCommand{
-		Method:      http.MethodGet,
-		URLTemplate: "{url}/operations/state?id=" + opID,
-	}
-	return res
-}
-
-// ExecuteGetOperationStateCommand executes GetOperationsState command
-func ExecuteGetOperationStateCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*GetOperationStateCommandResult, error) {
-	var res GetOperationStateCommandResult
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
-// PutResult describes result of PutDocumentCommand
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/commands/batches/PutResult.java#L6
-type PutResult struct {
-	ID           string `json:"Id"`
-	ChangeVector string `json:"ChangeVector"`
-}
-
+/*
 func addChangeVectorIfNotEmpty(cmd *RavenCommand, changeVector string) {
 	if changeVector != "" {
 		if cmd.Headers == nil {
@@ -109,36 +68,7 @@ func addChangeVectorIfNotEmpty(cmd *RavenCommand, changeVector string) {
 		cmd.Headers["If-Match"] = fmt.Sprintf(`"%s"`, changeVector)
 	}
 }
-
-// NewPutDocumentJSONCommand creates a command for PutDocument operation
-// TODO: should I validatte js is a valid json?
-func NewPutDocumentJSONCommand(key string, js []byte, changeVector string) *RavenCommand {
-	panicIf(key == "", "key can't be empty string")
-	res := &RavenCommand{
-		Method:      http.MethodPut,
-		URLTemplate: "{url}/databases/{db}/docs?id=" + quoteKey(key),
-	}
-	addChangeVectorIfNotEmpty(res, changeVector)
-	res.Data = js
-	return res
-}
-
-// NewPutDocumentRawCommand creates a command for PutDocument operation
-func NewPutDocumentRawCommand(key string, doc map[string]interface{}, changeVector string) *RavenCommand {
-	js, err := json.Marshal(doc)
-	must(err) // TODO: return an error
-	return NewPutDocumentJSONCommand(key, js, changeVector)
-}
-
-// ExecutePutDocumentRawCommand executes PutDocument command
-func ExecutePutDocumentRawCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*PutResult, error) {
-	var res PutResult
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
+*/
 
 func isGetDocumentPost(keys []string) bool {
 	maxKeySize := 1024
@@ -208,7 +138,7 @@ func NewDeleteDocumentCommand(key string, changeVector string) *RavenCommand {
 		Method:      http.MethodDelete,
 		URLTemplate: url,
 	}
-	addChangeVectorIfNotEmpty(res, changeVector)
+	//addChangeVectorIfNotEmpty(res, changeVector)
 	return res
 }
 
