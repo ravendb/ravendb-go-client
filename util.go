@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -264,8 +265,17 @@ func fileExists(path string) bool {
 	return !st.IsDir()
 }
 
-func NewHttpGet() *http.Request {
-	req, err := http.NewRequest(http.MethodGet, "", nil)
+func NewHttpGet(uri string) *http.Request {
+	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	return req
+}
+
+func NewHttpDelete(uri, data string) *http.Request {
+	body := bytes.NewBufferString(data)
+	req, err := http.NewRequest(http.MethodDelete, uri, body)
+	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	// TODO: double-check
+	req.Header.Add("Content-Type", "application/json")
 	return req
 }

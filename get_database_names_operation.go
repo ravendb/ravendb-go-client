@@ -31,11 +31,11 @@ func GetDatabaseNamesCommand_createRequest(cmd *RavenCommand, node *ServerNode) 
 	data := cmd.data.(*GetDatabaseNamesCommandData)
 	url := node.getUrl() + "/databases?start=" + strconv.Itoa(data._start) + "&pageSize=" + strconv.Itoa(data._pageSize) + "&namesOnly=true"
 
-	return NewHttpGet(), url
+	return NewHttpGet(url), url
 }
 
-// GetDatabaseNamesResponse describes response of GetDatabaseNames command
-type GetDatabaseNamesResponse struct {
+// GetDatabaseNamesResult describes response of GetDatabaseNames command
+type GetDatabaseNamesResult struct {
 	Databases []string `json:"Databases"`
 }
 
@@ -44,7 +44,7 @@ func GetDatabaseNamesCommand_setResponse(cmd *RavenCommand, response String, fro
 		return throwInvalidResponse()
 	}
 
-	var res GetDatabaseNamesResponse
+	var res GetDatabaseNamesResult
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {
 		return err

@@ -7,7 +7,7 @@ import (
 
 func GetClusterTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
 	url := node.getUrl() + "/cluster/topology"
-	return NewHttpGet(), url
+	return NewHttpGet(url), url
 }
 
 func GetClusterTopologyCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

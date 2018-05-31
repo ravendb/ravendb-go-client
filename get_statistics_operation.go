@@ -34,7 +34,7 @@ func GetStatisticsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*h
 		url += "?" + data.debugTag
 	}
 
-	return NewHttpGet(), url
+	return NewHttpGet(url), url
 }
 
 func GetStatisticsCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
