@@ -1,19 +1,24 @@
 package ravendb
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 func HttpExtensions_getEtagHeader(response *http.Response) *string {
 	hdr := response.Header.Get(Constants_Headers_ETAG)
 	if hdr == "" {
 		return nil
 	}
-	return &HttpExtensions_etagHeaderToChangeVector(hdr)
+	res := HttpExtensions_etagHeaderToChangeVector(hdr)
+	return &res
 }
 
+// TODO: add test
 func HttpExtensions_etagHeaderToChangeVector(responseHeader String) String {
 	panicIf(responseHeader == "", "Response did't had an ETag header")
 
-	if responseHeader.HasPrefix(`"`) {
+	if strings.HasPrefix(responseHeader, `"`) {
 		return responseHeader[1 : len(responseHeader)-1]
 	}
 

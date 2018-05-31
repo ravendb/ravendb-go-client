@@ -24,6 +24,12 @@ type RavenCommand struct {
 	createRequestFunc  func(c *RavenCommand, node *ServerNode) (*http.Request, string)
 	setResponseFunc    func(c *RavenCommand, response string, fromCache bool) error
 	setResponseRawFunc func(c *RavenCommand, response *http.Response) error
+
+	// TODO: old compat, remove
+	Method      string
+	URLTemplate string
+	Data        []byte
+	Headers     map[string]string
 }
 
 // this is virtual in Java, we set IsReadRequest instead when creating
@@ -86,6 +92,7 @@ func (c *RavenCommand) setResponse(response String, fromCache bool) error {
 
 func defaultSetResponseRaw(c *RavenCommand, response *http.Response) error {
 	panicIf(true, "When "+c.responseType+" is set to Raw then please override this method to handle the response. ")
+	return nil
 }
 
 func (c *RavenCommand) setResponseRaw(response *http.Response) error {
@@ -141,12 +148,12 @@ func (c *RavenCommand) processResponse(cache *HttpCache, response *http.Response
 	}
 
 	statusCode := response.StatusCode
-	if responseType == RavenCommandResponseType_EMPTY || statusCode == http.StatusNoContent {
+	if c.responseType == RavenCommandResponseType_EMPTY || statusCode == http.StatusNoContent {
 		return ResponseDisposeHandling_AUTOMATIC, nil
 	}
 
 	if c.responseType == RavenCommandResponseType_OBJECT {
-		contentLength := response.ContentLength()
+		contentLength := response.ContentLength
 		if contentLength == 0 {
 			return ResponseDisposeHandling_AUTOMATIC, nil
 		}
@@ -157,13 +164,13 @@ func (c *RavenCommand) processResponse(cache *HttpCache, response *http.Response
 		if err != nil {
 			return ResponseDisposeHandling_AUTOMATIC, err
 		}
-		if c._cache != nil {
-			c.cacheResponse(cache, url, response, js)
+		if cache != nil {
+			c.cacheResponse(cache, url, response, string(js))
 		}
-		c.setResponse(js, false)
-		return ResponseDisposeHandling.AUTOMATIC, nil
+		err = c.setResponse(string(js), false)
+		return ResponseDisposeHandling_AUTOMATIC, err
 	} else {
-		c.setResponseRaw(response, entity.getContent())
+		c.setResponseRaw(response)
 	}
 
 	return ResponseDisposeHandling_AUTOMATIC, nil

@@ -66,30 +66,6 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v inter
 	return nil
 }
 
-// DatabaseStatistics describes a result of GetStatisticsCommand
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/operations/DatabaseStatistics.java#L8:14
-type DatabaseStatistics struct {
-	LastDocEtag               int64 `json:"LastDocEtag"`
-	CountOfIndexes            int64 `json:"CountOfIndexes"`
-	CountOfDocuments          int64 `json:"CountOfDocuments"`
-	CountOfRevisionDocuments  int64 `json:"CountOfRevisionDocuments"` // TODO: present in Java, not seen in JSON
-	CountOfDocumentsConflicts int64 `json:"CountOfDocumentsConflicts"`
-	CountOfTombstones         int64 `json:"CountOfTombstones"`
-	CountOfConflicts          int64 `json:"CountOfConflicts"`
-	CountOfAttachments        int64 `json:"CountOfAttachments"`
-	CountOfUniqueAttachments  int64 `json:"CountOfUniqueAttachments"`
-
-	Indexes []interface{} `json:"Indexes"` // TODO: this is []IndexInformation
-
-	DatabaseChangeVector                     string      `json:"DatabaseChangeVector"`
-	DatabaseID                               string      `json:"DatabaseId"`
-	Is64Bit                                  bool        `json:"Is64Bit"`
-	Pager                                    string      `json:"Pager"`
-	LastIndexingTime                         interface{} `json:"LastIndexingTime"` // TODO: this is time, can be null so must be a pointer
-	SizeOnDisk                               SizeOnDisk  `json:"SizeOnDisk"`
-	NumberOfTransactionMergerQueueOperations int64       `json:"NumberOfTransactionMergerQueueOperations"`
-}
-
 // SizeOnDisk describes size of entity on disk
 type SizeOnDisk struct {
 	HumaneSize  string `json:"HumaneSize"`
@@ -97,32 +73,6 @@ type SizeOnDisk struct {
 }
 
 // TODO: add IndexInformation
-
-// NewGetStatisticsCommand creates a new GetStatisticsCommand
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L322
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/operations/GetStatisticsOperation.java#L12
-func NewGetStatisticsCommand(debugTag string) *RavenCommand {
-	url := "{url}/databases/{db}/stats"
-	if debugTag != "" {
-		url += "?" + debugTag
-	}
-
-	res := &RavenCommand{
-		Method:      http.MethodGet,
-		URLTemplate: url,
-	}
-	return res
-}
-
-// ExecuteGetStatisticsCommand executes GetStatisticsCommand
-func ExecuteGetStatisticsCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*DatabaseStatistics, error) {
-	var res DatabaseStatistics
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
 
 // NewGetTopologyCommand creates a new GetClusterTopologyCommand
 func NewGetTopologyCommand() *RavenCommand {

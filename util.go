@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"reflect"
@@ -261,4 +262,10 @@ func fileExists(path string) bool {
 		return false
 	}
 	return !st.IsDir()
+}
+
+func NewHttpGet() *http.Request {
+	req, err := http.NewRequest(http.MethodGet, "", nil)
+	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	return req
 }

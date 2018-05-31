@@ -1,4 +1,5 @@
 #!/bin/bash
 
-go build -race cmd/test/*.go
+# TODO: re-do cmd/test after finishing RequestExecutor rewrite
+# go build -race cmd/test/*.go
 go test -c

@@ -27,6 +27,10 @@ func (n *ServerNode) getUrl() string {
 	return n.URL
 }
 
+func (n *ServerNode) getDatabase() string {
+	return n.Database
+}
+
 func (n *ServerNode) getServerRole() string {
 	return n.ServerRole
 }

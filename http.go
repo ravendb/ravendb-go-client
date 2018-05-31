@@ -74,7 +74,8 @@ func dumpHTTPResponse(resp *http.Response, body []byte) {
 }
 
 func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
-	url := cmd.BuildFullURL(n)
+	//url := cmd.BuildFullURL(n)
+	url := cmd.URLTemplate
 	var body io.Reader
 	if cmd.Method == http.MethodPut || cmd.Method == http.MethodPost || cmd.Method == http.MethodDelete {
 		// TODO: should this be mandatory?
