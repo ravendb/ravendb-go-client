@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -272,7 +273,10 @@ func NewHttpGet(uri string) *http.Request {
 }
 
 func NewHttpDelete(uri, data string) *http.Request {
-	body := bytes.NewBufferString(data)
+	var body io.Reader
+	if data != "" {
+		body = bytes.NewBufferString(data)
+	}
 	req, err := http.NewRequest(http.MethodDelete, uri, body)
 	panicIf(err != nil, "http.NewRequest failed with %s", err)
 	// TODO: double-check

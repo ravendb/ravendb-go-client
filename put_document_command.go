@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
 type PutDocumentCommandData struct {
@@ -28,10 +27,6 @@ func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) 
 	cmd.createRequestFunc = PutDocumentCommand_createRequest
 	cmd.setResponseFunc = PutDocumentCommand_setResponse
 	return cmd
-}
-
-func urlEncode(s string) string {
-	return url.PathEscape(s)
 }
 
 func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {

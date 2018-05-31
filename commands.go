@@ -131,22 +131,6 @@ func ExecuteGetDocumentCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*Ge
 	return &res, nil
 }
 
-// NewDeleteDocumentCommand creates DeleteDocument command
-func NewDeleteDocumentCommand(key string, changeVector string) *RavenCommand {
-	url := fmt.Sprintf("{url}/databases/{db}/docs?id=%s", quoteKey(key))
-	res := &RavenCommand{
-		Method:      http.MethodDelete,
-		URLTemplate: url,
-	}
-	//addChangeVectorIfNotEmpty(res, changeVector)
-	return res
-}
-
-// ExecuteDeleteDocumentCommand executes DeleteDocument command
-func ExecuteDeleteDocumentCommand(exec CommandExecutorFunc, cmd *RavenCommand) error {
-	return excuteCmdWithEmptyResult(exec, cmd)
-}
-
 // NewBatchCommand creates a new batch command
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/commands/raven_commands.py#L172
 func NewBatchCommand(commands []*CommandData) *RavenCommand {
@@ -187,74 +171,3 @@ func ExecuteBatchCommand(exec CommandExecutorFunc, cmd *RavenCommand) (JSONArray
 	}
 	return res.Results, nil
 }
-
-/* Done:
-GetDocumentCommand
-DeleteDocumentCommand
-PutDocumentCommand
-
-GetStatisticsCommand
-GetTopologyCommand
-GetClusterTopologyCommand
-GetOperationStateCommand
-
-// server_operations.py
-_CreateDatabaseCommand
-_DeleteDatabaseCommand
-_GetDatabaseNamesCommand
-
-// hilo_generator.py
-HiLoReturnCommand
-NextHiLoCommand
-
-// raven_commands.py
-BatchCommand
-
-*/
-
-/*
-PutCommandData
-DeleteCommandData
-PatchCommandData
-PutAttachmentCommandData
-DeleteAttachmentCommandData
-
-Commands to implement:
-
-// raven_commands.py
-DeleteIndexCommand
-PatchCommand
-QueryCommand
-PutAttachmentCommand
-GetFacetsCommand
-MultiGetCommand
-GetDatabaseRecordCommand
-WaitForRaftIndexCommand - maybe not, only in python client
-GetTcpInfoCommand
-QueryStreamCommand
-
-CreateSubscriptionCommand
-DeleteSubscriptionCommand
-DropSubscriptionConnectionCommand
-GetSubscriptionsCommand
-GetSubscriptionStateCommand
-
-// maintenance_operations.py
-_DeleteIndexCommand
-_GetIndexCommand
-_GetIndexNamesCommand
-_PutIndexesCommand
-
-// operations.py
-_DeleteAttachmentCommand
-_PatchByQueryCommand
-_DeleteByQueryCommand
-_GetAttachmentCommand
-_GetMultiFacetsCommand
-
-// server_operations.py
-_GetCertificateCommand
-_CreateClientCertificateCommand
-_PutClientCertificateCommand
-_DeleteCertificateCommand
-*/

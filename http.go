@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"os"
 	"time"
 )
@@ -189,4 +190,8 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	panicIf(!isStatusOk, "unhandled status code %d", rsp.StatusCode)
 
 	return rsp, nil
+}
+
+func urlEncode(s string) string {
+	return url.PathEscape(s)
 }
