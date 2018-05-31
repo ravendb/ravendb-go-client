@@ -20,7 +20,7 @@ type DatabaseStatistics struct {
 	Is64Bit                                  bool        `json:"Is64Bit"`
 	Pager                                    string      `json:"Pager"`
 	LastIndexingTime                         interface{} `json:"LastIndexingTime"` // TODO: this is time, can be null so must be a pointer
-	SizeOnDisk                               SizeOnDisk  `json:"SizeOnDisk"`
+	SizeOnDisk                               *Size       `json:"SizeOnDisk"`
 	NumberOfTransactionMergerQueueOperations int64       `json:"NumberOfTransactionMergerQueueOperations"`
 }
 

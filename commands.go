@@ -66,60 +66,6 @@ func excuteCmdAndJSONDecode(exec CommandExecutorFunc, cmd *RavenCommand, v inter
 	return nil
 }
 
-// SizeOnDisk describes size of entity on disk
-type SizeOnDisk struct {
-	HumaneSize  string `json:"HumaneSize"`
-	SizeInBytes int64  `json:"SizeInBytes"`
-}
-
-// TODO: add IndexInformation
-
-// NewGetTopologyCommand creates a new GetClusterTopologyCommand
-func NewGetTopologyCommand() *RavenCommand {
-	res := &RavenCommand{
-		Method:        http.MethodGet,
-		IsReadRequest: true,
-		URLTemplate:   "{url}/topology?name={db}",
-	}
-	return res
-}
-
-// ExecuteGetTopologyCommand executes GetClusterTopologyCommand
-func ExecuteGetTopologyCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*Topology, error) {
-	var res Topology
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
-// GetDatabaseNamesResponse describes response of GetDatabaseNames command
-type GetDatabaseNamesResponse struct {
-	Databases []string `json:"Databases"`
-}
-
-// NewGetDatabaseNamesCommand creates a new GetClusterTopologyCommand
-func NewGetDatabaseNamesCommand(start, pageSize int) *RavenCommand {
-	url := fmt.Sprintf("{url}/databases?start=%d&pageSize=%d&namesOnly=true", start, pageSize)
-	res := &RavenCommand{
-		Method:        http.MethodGet,
-		IsReadRequest: true,
-		URLTemplate:   url,
-	}
-	return res
-}
-
-// ExecuteGetDatabaseNamesCommand executes GetClusterTopologyCommand
-func ExecuteGetDatabaseNamesCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*GetDatabaseNamesResponse, error) {
-	var res GetDatabaseNamesResponse
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
-
 // DeleteDatabaseResult represents result of Delete Database command
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/serverwide/operations/DeleteDatabaseResult.java#L3
 type DeleteDatabaseResult struct {
