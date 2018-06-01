@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-type GetDocumentsCommandData struct {
+type _GetDocumentsCommand struct {
 	_id String
 
 	_ids      []String
@@ -22,8 +22,8 @@ type GetDocumentsCommandData struct {
 	_startAfter String
 }
 
-func NewGetDocumentCommand(ids []string, includes []string, metadataOnly bool) *RavenCommand {
-	d := &GetDocumentsCommandData{
+func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *RavenCommand {
+	d := &_GetDocumentsCommand{
 		_includes:     includes,
 		_metadataOnly: metadataOnly,
 	}
@@ -36,7 +36,7 @@ func NewGetDocumentCommand(ids []string, includes []string, metadataOnly bool) *
 	return NewGetDocumentsCommandWithData(d)
 }
 
-func NewGetDocumentsCommandWithData(data *GetDocumentsCommandData) *RavenCommand {
+func NewGetDocumentsCommandWithData(data *_GetDocumentsCommand) *RavenCommand {
 	cmd := NewRavenCommand()
 	cmd.data = data
 	cmd.IsReadRequest = true
@@ -46,7 +46,7 @@ func NewGetDocumentsCommandWithData(data *GetDocumentsCommandData) *RavenCommand
 }
 
 func GetDocumentsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
-	data := cmd.data.(*GetDocumentsCommandData)
+	data := cmd.data.(*_GetDocumentsCommand)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?"
 	// TODO: is _start == 0 valid?
 	if data._start != 0 {

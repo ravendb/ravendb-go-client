@@ -2,44 +2,62 @@ package ravendb
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
 )
-
-// ExecuteCreateDatabaseCommand executes CreateDatabaseCommand
-func ExecuteCreateDatabaseCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*DatabasePutResult, error) {
-	var res DatabasePutResult
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
-	}
-	return &res, nil
-}
 
 func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *RavenCommand {
 	return NewCreateDatabaseOperationWithReplicationFactor(databaseRecord, 1)
 }
 
 func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *RavenCommand {
-	return NewCreateDatabaseCommand(databaseRecord, replicationFactor)
+	// TODO: convention is passed at getCommand() time
+	return NewCreateDatabaseCommand(nil, databaseRecord, replicationFactor)
 }
 
-// NewCreateDatabaseCommand creates a new CreateDatabaseCommand
-// TODO: Settings, SecureSettings
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/raven_operations/server_operations.py#L24
-func NewCreateDatabaseCommand(databaseRecord *DatabaseRecord, replicationFactor int) *RavenCommand {
-	panicIf(databaseRecord.DatabaseName == "", "DatabaseName empty in %#v", databaseRecord)
-	databaseName := databaseRecord.DatabaseName
-	if replicationFactor < 1 {
-		replicationFactor = 1
+type _CreateDatabaseCommand struct {
+	conventions       *DocumentConventions
+	databaseRecord    *DatabaseRecord
+	replicationFactor int
+	databaseName      String
+}
+
+func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) *RavenCommand {
+	panicIf(databaseRecord.DatabaseName == "", "databaseRecord.DatabaseName cannot be empty")
+	data := &_CreateDatabaseCommand{
+		conventions:       conventions,
+		databaseRecord:    databaseRecord,
+		replicationFactor: replicationFactor,
+		databaseName:      databaseRecord.DatabaseName,
 	}
-	url := fmt.Sprintf("{url}/admin/databases?name=%s&replication-factor=%d", databaseName, replicationFactor)
-	data, err := json.Marshal(databaseRecord)
+
+	cmd := NewRavenCommand()
+	cmd.data = data
+	cmd.createRequestFunc = CreateDatabaseCommand_createRequest
+	cmd.setResponseFunc = CreateDatabaseCommand_setResponse
+	return cmd
+}
+
+func CreateDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+	data := cmd.data.(*_CreateDatabaseCommand)
+	url := node.getUrl() + "/admin/databases?name=" + data.databaseName
+	url += "&replicationFactor=" + strconv.Itoa(data.replicationFactor)
+
+	js, err := json.Marshal(data.databaseRecord)
 	must(err)
-	res := &RavenCommand{
-		Method:      http.MethodPut,
-		URLTemplate: url,
-		Data:        data,
+	request := NewHttpPut(url, string(js))
+	return request, url
+}
+
+func CreateDatabaseCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+	if response == "" {
+		return throwInvalidResponse()
 	}
-	return res
+	var res DatabasePutResult
+	err := json.Unmarshal([]byte(response), &res)
+	if err != nil {
+		return err
+	}
+	cmd.result = &res
+	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type BatchCommandData struct {
+type _BatchCommand struct {
 	_conventions       *DocumentConventions
 	_commands          []ICommandData
 	_attachmentStreams []io.Reader
@@ -18,7 +18,7 @@ func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData) 
 }
 
 func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) *RavenCommand {
-	data := &BatchCommandData{
+	data := &_BatchCommand{
 		_commands:    commands,
 		_options:     options,
 		_conventions: conventions,
@@ -47,7 +47,7 @@ func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICo
 }
 
 func BatchCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
-	data := cmd.data.(*BatchCommandData)
+	data := cmd.data.(*_BatchCommand)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_docs"
 	// TODO: appendOptions(sb)
 	var a []interface{}

@@ -22,13 +22,26 @@ func (o *GetDatabaseNamesOperation) getCommand(conventions *DocumentConventions)
 	return NewGetDatabaseNamesCommand(o._start, o._pageSize)
 }
 
-type GetDatabaseNamesCommandData struct {
+type _GetDatabaseNamesCommand struct {
 	_start    int
 	_pageSize int
 }
 
+func NewGetDatabaseNamesCommand(_start int, _pageSize int) *RavenCommand {
+	data := &_GetDatabaseNamesCommand{
+		_start:    _start,
+		_pageSize: _pageSize,
+	}
+	cmd := NewRavenCommand()
+	cmd.data = data
+	cmd.IsReadRequest = true
+	cmd.createRequestFunc = GetDatabaseNamesCommand_createRequest
+	cmd.setResponseFunc = GetDatabaseNamesCommand_setResponse
+	return cmd
+}
+
 func GetDatabaseNamesCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
-	data := cmd.data.(*GetDatabaseNamesCommandData)
+	data := cmd.data.(*_GetDatabaseNamesCommand)
 	url := node.getUrl() + "/databases?start=" + strconv.Itoa(data._start) + "&pageSize=" + strconv.Itoa(data._pageSize) + "&namesOnly=true"
 
 	return NewHttpGet(url), url
@@ -69,17 +82,4 @@ func GetDatabaseNamesCommand_setResponse(cmd *RavenCommand, response String, fro
 
 	cmd.result = res.Databases
 	return nil
-}
-
-func NewGetDatabaseNamesCommand(_start int, _pageSize int) *RavenCommand {
-	data := &GetDatabaseNamesCommandData{
-		_start:    _start,
-		_pageSize: _pageSize,
-	}
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.IsReadRequest = true
-	cmd.createRequestFunc = GetDatabaseNamesCommand_createRequest
-	cmd.setResponseFunc = GetDatabaseNamesCommand_setResponse
-	return cmd
 }

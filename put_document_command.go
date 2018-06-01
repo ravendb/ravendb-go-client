@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type PutDocumentCommandData struct {
+type _PutDocumentCommand struct {
 	_id           String
 	_changeVector String
 	_document     ObjectNode
@@ -17,7 +17,7 @@ func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) 
 	panicIf(id == "", "Id cannot be null")
 	panicIf(document == nil, "document cannot be nil")
 
-	data := &PutDocumentCommandData{
+	data := &_PutDocumentCommand{
 		_id:           id,
 		_changeVector: changeVector,
 		_document:     document,
@@ -30,7 +30,7 @@ func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) 
 }
 
 func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
-	data := cmd.data.(*PutDocumentCommandData)
+	data := cmd.data.(*_PutDocumentCommand)
 
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(data._id)
 
@@ -45,12 +45,6 @@ func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*htt
 	return request, url
 }
 
-func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
-	if changeVector != "" {
-		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, changeVector))
-	}
-}
-
 func PutDocumentCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
 	var res PutResult
 	err := json.Unmarshal([]byte(response), &res)
@@ -59,4 +53,10 @@ func PutDocumentCommand_setResponse(cmd *RavenCommand, response String, fromCach
 	}
 	cmd.result = &res
 	return nil
+}
+
+func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
+	if changeVector != "" {
+		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, changeVector))
+	}
 }

@@ -57,11 +57,12 @@ func NewHiLoIDGenerator(tag string, store *DocumentStore, dbName string) *HiLoID
 	if dbName == "" {
 		dbName = store.database
 	}
+	t := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
 	res := &HiLoIDGenerator{
 		tag:           tag,
 		store:         store,
 		dbName:        dbName,
-		lastRangeAt:   time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC),
+		lastRangeAt:   t,
 		lastBatchSize: 0,
 		rangev:        NewRangeValue(1, 0),
 		prefix:        "",
@@ -104,7 +105,7 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 }
 
 func (g *HiLoIDGenerator) getNextRange() error {
-	hiloCommand := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
+	hiloCommand := NewNextHiLoCommand(g.tag, g.lastBatchSize, &g.lastRangeAt,
 		g.identityPartsSeparator, g.rangev.Max)
 	re := g.store.GetRequestExecutor()
 	err := re.executeCommand(hiloCommand)
@@ -114,7 +115,7 @@ func (g *HiLoIDGenerator) getNextRange() error {
 	result := hiloCommand.result.(*HiLoResult)
 	g.prefix = result.Prefix
 	g.serverTag = result.ServerTag
-	g.lastRangeAt = result.GetLastRangeAt()
+	g.lastRangeAt = time.Time(*result.LastRangeAt)
 	g.lastBatchSize = result.LastSize
 	g.rangev = NewRangeValue(result.Low, result.High)
 	return nil

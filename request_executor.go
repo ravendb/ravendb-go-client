@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -166,9 +167,31 @@ func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *C
 }
 
 func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *CompletableFuture {
-	// TODO: implement me
-	panicIf(true, "NYI")
-	return nil
+	// TODO: handle _disposed
+	// TODO: locking with _updateDatabaseTopologySemaphore
+	future := NewCompletableFuture()
+	f := func() {
+		command := NewGetDatabaseTopologyCommand()
+		err := re.execute(node, 0, command, false, nil)
+		if err != nil {
+			future.markAsDoneWithError(err)
+			return
+		}
+		result := command.result.(*Topology)
+		if re._nodeSelector == nil {
+			re._nodeSelector = NewNodeSelector(result)
+			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+				re._nodeSelector.scheduleSpeedTest()
+			}
+		} else if re._nodeSelector.onUpdateTopology(result, forceUpdate) {
+			re.disposeAllFailedNodesTimers()
+			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+				re._nodeSelector.scheduleSpeedTest()
+			}
+		}
+	}
+	go f()
+	return future
 }
 
 func (re *RequestExecutor) disposeAllFailedNodesTimers() {
@@ -372,6 +395,8 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 }
 
 func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
+	fmt.Printf("cmd: %#v\n", command)
+	panicIf(true, "NYI")
 	return nil
 	// TODO: implement me
 }

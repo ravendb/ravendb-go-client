@@ -20,7 +20,6 @@ func (s *NodeSelector) getTopology() *Topology {
 	return s._state.topology
 }
 
-// OnFailedRequest is called when node fails
 func (s *NodeSelector) onFailedRequest(nodeIndex int) {
 	state := s._state
 	if nodeIndex < 0 || nodeIndex >= len(state.failures) {
@@ -29,18 +28,6 @@ func (s *NodeSelector) onFailedRequest(nodeIndex int) {
 
 	state.failures[nodeIndex].incrementAndGet()
 }
-
-/*
-func (s *NodeSelector) OnFailedRequestOld(nodeIndex int) {
-	topologyNodesLen := len(s.Topology.Nodes)
-	panicIf(topologyNodesLen == 0, "Empty database topology, this shouldn't happen.")
-	nextNodeIndex := 0
-	if nodeIndex < topologyNodesLen-1 {
-		nextNodeIndex = nodeIndex + 1
-	}
-	s.CurrentNodeIndex = nextNodeIndex
-}
-*/
 
 func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bool {
 	if topology == nil {
@@ -57,66 +44,6 @@ func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bo
 	s._state = NewNodeSelectorState(0, topology)
 
 	return true
-}
-
-/*
-// OnUpdateTopology is called when topology changes
-func (s *NodeSelector) OnUpdateTopology(topology *Topology, forceUpdate bool) bool {
-	if topology == nil {
-		return false
-	}
-	oldTopology := s.Topology
-	for {
-		if oldTopology.Etag >= s.Topology.Etag && !forceUpdate {
-			return false
-		}
-		s.lock.Lock()
-		if !forceUpdate {
-			s.CurrentNodeIndex = 0
-		}
-
-		if oldTopology == s.Topology {
-			s.Topology = topology
-			s.lock.Unlock()
-			return true
-		}
-		s.lock.Unlock()
-		oldTopology = s.Topology
-	}
-}
-*/
-
-/*
-// GetCurrentNode returns current node
-func (s *NodeSelector) GetCurrentNode() *ServerNode {
-	panicIf(len(s.Topology.Nodes) == 0, "There are no nodes in the topology at all")
-	return s.Topology.Nodes[s.CurrentNodeIndex]
-}
-*/
-
-/*
-// RestoreNodeIndex restores a node
-func (s *NodeSelector) RestoreNodeIndex(nodeIndex int) {
-	currentNodeIndex := s.CurrentNodeIndex
-	if currentNodeIndex > nodeIndex {
-		s.lock.Lock()
-		if currentNodeIndex == s.CurrentNodeIndex {
-			s.CurrentNodeIndex = nodeIndex
-		}
-		s.lock.Unlock()
-	}
-}
-*/
-
-func min(i1, i2 int) int {
-	if i1 < i2 {
-		return i1
-	}
-	return i2
-}
-
-func StringUtils_isNotEmpty(s string) bool {
-	return s != ""
 }
 
 func (s *NodeSelector) getPreferredNode() *CurrentIndexAndNode {

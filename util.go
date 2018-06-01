@@ -78,6 +78,10 @@ func quoteKeyWithSlash(s string) string {
 	return quoteKey2(s, true)
 }
 
+func StringUtils_isNotEmpty(s string) bool {
+	return s != ""
+}
+
 // getFullTypeName returns fully qualified (including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo
@@ -198,6 +202,13 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
 	return v
 }
 
+func min(i1, i2 int) int {
+	if i1 < i2 {
+		return i1
+	}
+	return i2
+}
+
 // TODO: use EntityToJson.convertEntityToJson instead?
 func convertToEntity(entityType reflect.Type, id string, document ObjectNode) interface{} {
 	res := makeStructFromJSONMap(entityType, document)
@@ -272,6 +283,16 @@ func NewHttpPost(uri string, data string) *http.Request {
 		body = bytes.NewBufferString(data)
 	}
 	req, err := http.NewRequest(http.MethodPost, uri, body)
+	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	return req
+}
+
+func NewHttpPut(uri string, data string) *http.Request {
+	var body io.Reader
+	if data != "" {
+		body = bytes.NewBufferString(data)
+	}
+	req, err := http.NewRequest(http.MethodPut, uri, body)
 	panicIf(err != nil, "http.NewRequest failed with %s", err)
 	return req
 }

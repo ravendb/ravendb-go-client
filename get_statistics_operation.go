@@ -23,13 +23,29 @@ func (s *GetStatisticsOperation) getCommand(conventions *DocumentConventions) *R
 	return NewGetStatisticsCommandWithDebugTag(s._debugTag)
 }
 
-type GetStatisticsCommandData struct {
+type _GetStatisticsCommand struct {
 	debugTag String
+}
+
+func NewGetStatisticsCommand() *RavenCommand {
+	return NewGetStatisticsCommandWithDebugTag("")
+}
+
+func NewGetStatisticsCommandWithDebugTag(debugTag string) *RavenCommand {
+	data := &_GetStatisticsCommand{
+		debugTag: debugTag,
+	}
+	cmd := NewRavenCommand()
+	cmd.data = data
+	cmd.IsReadRequest = true
+	cmd.createRequestFunc = GetStatisticsCommand_createRequest
+	cmd.setResponseFunc = GetStatisticsCommand_setResponse
+	return cmd
 }
 
 func GetStatisticsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/stats"
-	data := cmd.data.(*GetStatisticsCommandData)
+	data := cmd.data.(*_GetStatisticsCommand)
 	if data.debugTag != "" {
 		url += "?" + data.debugTag
 	}
@@ -48,20 +64,4 @@ func GetStatisticsCommand_setResponse(cmd *RavenCommand, response String, fromCa
 	}
 	cmd.result = &res
 	return nil
-}
-
-func NewGetStatisticsCommand() *RavenCommand {
-	return NewGetStatisticsCommandWithDebugTag("")
-}
-
-func NewGetStatisticsCommandWithDebugTag(debugTag string) *RavenCommand {
-	data := &GetStatisticsCommandData{
-		debugTag: debugTag,
-	}
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.IsReadRequest = true
-	cmd.createRequestFunc = GetStatisticsCommand_createRequest
-	cmd.setResponseFunc = GetStatisticsCommand_setResponse
-	return cmd
 }

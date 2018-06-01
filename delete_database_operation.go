@@ -45,7 +45,7 @@ func (o *DeleteDatabasesOperation) getCommand(conventions *DocumentConventions) 
 	return NewDeleteDatabaseCommand(conventions, o.parameters)
 }
 
-type DeleteDatabaseCommandData struct {
+type _DeleteDatabaseCommand struct {
 	parameters string
 }
 
@@ -53,7 +53,7 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 	d, err := json.Marshal(parameters)
 	must(err)
 
-	data := &DeleteDatabaseCommandData{
+	data := &_DeleteDatabaseCommand{
 		parameters: string(d),
 	}
 	cmd := NewRavenCommand()
@@ -64,7 +64,7 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 }
 
 func DeleteDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
-	data := cmd.data.(*DeleteDatabaseCommandData)
+	data := cmd.data.(*_DeleteDatabaseCommand)
 	url := node.getUrl() + "/admin/databases"
 	return NewHttpDelete(url, data.parameters), url
 }

@@ -1,35 +1,58 @@
 package ravendb
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 )
 
-const (
-	// Python does "0001-01-01 00:00:00"
-	// Java sends more complicated format https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/primitives/NetISO8601Utils.java#L8
-	timeFormat = "2006-02-01 15:04:05"
-)
-
-// NewNextHiLoCommand creates a NextHiLoCommand
-func NewNextHiLoCommand(tag string, lastBatchSize int, lastRangeAt time.Time, identityPartsSeparator string, lastRangeMax int) *RavenCommand {
-	lastRangeAtStr := quoteKey(lastRangeAt.Format(timeFormat))
-	path := fmt.Sprintf("hilo/next?tag=%s&lastBatchSize=%d&lastRangeAt=%s&identityPartsSeparator=%s&lastMax=%d", tag, lastBatchSize, lastRangeAtStr, identityPartsSeparator, lastRangeMax)
-	url := "{url}/databases/{db}/" + path
-	res := &RavenCommand{
-		Method:      http.MethodGet,
-		URLTemplate: url,
-	}
-	return res
+type _NextHiLoCommand struct {
+	_tag                    String
+	_lastBatchSize          int
+	_lastRangeAt            *time.Time
+	_identityPartsSeparator String
+	_lastRangeMax           int
 }
 
-// ExecuteNewNextHiLoCommand executes NextHiLoResult command
-func ExecuteNewNextHiLoCommand(exec CommandExecutorFunc, cmd *RavenCommand) (*HiLoResult, error) {
-	var res HiLoResult
-	err := excuteCmdAndJSONDecode(exec, cmd, &res)
-	if err != nil {
-		return nil, err
+func NewNextHiLoCommand(tag String, lastBatchSize int, lastRangeAt *time.Time, identityPartsSeparator String, lastRangeMax int) *RavenCommand {
+	panicIf(tag == "", "tag cannot be empty")
+	panicIf(identityPartsSeparator == "", "identityPartsSeparator cannot be empty")
+	data := &_NextHiLoCommand{
+		_tag:                    tag,
+		_lastBatchSize:          lastBatchSize,
+		_lastRangeAt:            lastRangeAt,
+		_identityPartsSeparator: identityPartsSeparator,
+		_lastRangeMax:           lastRangeMax,
 	}
-	return &res, nil
+
+	cmd := NewRavenCommand()
+	cmd.IsReadRequest = true
+	cmd.data = data
+	cmd.setResponseFunc = NextHiLoCommand_setResponse
+	cmd.createRequestFunc = NextHiLoCommand_createRequest
+
+	return cmd
+}
+
+func NextHiLoCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+
+	data := cmd.data.(*_NextHiLoCommand)
+	date := ""
+	if data._lastRangeAt != nil {
+		date = (*data._lastRangeAt).Format(serverTimeFormat)
+	}
+	path := "/hilo/next?tag=" + data._tag + "&lastBatchSize=" + strconv.Itoa(data._lastBatchSize) + "&lastRangeAt=" + date + "&identityPartsSeparator=" + data._identityPartsSeparator + "&lastMax=" + strconv.Itoa(data._lastRangeMax)
+	url := node.getUrl() + "/databases/" + node.getDatabase() + path
+	return NewHttpGet(url), url
+}
+
+func NextHiLoCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+	var res HiLoResult
+	err := json.Unmarshal([]byte(response), &res)
+	if err != nil {
+		return err
+	}
+	cmd.result = &res
+	return nil
 }
