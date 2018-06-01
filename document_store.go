@@ -82,10 +82,12 @@ func (s *DocumentStore) assertInitialized() {
 	panicIf(!s.isInitialized, "DocumentStore must be initialized")
 }
 
-// GetRequestExecutor gets a request executor for a given database
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L84
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/DocumentStore.java#L159
-func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestExecutor {
+func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {
+	return s.GetRequestExecutorWithDatabase("")
+}
+
+// GetRequestExecutorWithDatabase gets a request executor for a given database
+func (s *DocumentStore) GetRequestExecutorWithDatabase(dbName string) *RequestExecutor {
 	s.assertInitialized()
 	if dbName == "" {
 		dbName = s.database
@@ -117,7 +119,7 @@ func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 	s.assertInitialized()
 
 	sessionID := NewUUID().String()
-	re := s.GetRequestExecutor(s.database)
+	re := s.GetRequestExecutorWithDatabase(s.database)
 	return NewDocumentSession(s.database, s, sessionID, re), nil
 }
 

@@ -25,11 +25,10 @@ func (b *BatchOperation) createRequest() *RavenCommand {
 
 	b._entities = result.getEntities()
 
-	//TODO: return NewBatchCommand(_session.getConventions(), result.getSessionCommands(), result.getOptions())
-	return NewBatchCommand(result.getSessionCommands())
+	return NewBatchCommandWithOptions(b._session.getConventions(), result.getSessionCommands(), result.getOptions())
 }
 
-func (b *BatchOperation) setResult(result JSONArrayResult) {
+func (b *BatchOperation) setResult(result ArrayNode) {
 	if len(result) == 0 {
 		// TODO: throwOnNullResults()
 		return

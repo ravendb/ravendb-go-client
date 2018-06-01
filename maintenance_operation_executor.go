@@ -20,7 +20,7 @@ func NewMaintenanceOperationExecutorWithDatabase(store *DocumentStore, databaseN
 		databaseName: firstNonEmptyString(databaseName, store.getDatabase()),
 	}
 	if res.databaseName != "" {
-		res.requestExecutor = store.GetRequestExecutor(res.databaseName)
+		res.requestExecutor = store.GetRequestExecutorWithDatabase(res.databaseName)
 	}
 	return res
 }
@@ -39,5 +39,9 @@ func (e *MaintenanceOperationExecutor) forDatabase(databaseName string) *Mainten
 	return NewMaintenanceOperationExecutorWithDatabase(e.store, databaseName)
 }
 
-// NOTE: send() can't be done without generics. Instead use:
-// Execute*Command(server().GetRequestExecutor())
+// TODO: make the argument IMaintenanceOperation
+func (e *MaintenanceOperationExecutor) send(command *RavenCommand) (interface{}, error) {
+	// TODO: e.assertDatabaseNameSet()
+	err := e.requestExecutor.executeCommand(command)
+	return command.getResult(), err
+}

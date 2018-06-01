@@ -266,6 +266,16 @@ func fileExists(path string) bool {
 	return !st.IsDir()
 }
 
+func NewHttpPost(uri string, data string) *http.Request {
+	var body io.Reader
+	if data != "" {
+		body = bytes.NewBufferString(data)
+	}
+	req, err := http.NewRequest(http.MethodPost, uri, body)
+	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	return req
+}
+
 func NewHttpGet(uri string) *http.Request {
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	panicIf(err != nil, "http.NewRequest failed with %s", err)

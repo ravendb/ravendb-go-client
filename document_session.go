@@ -47,11 +47,11 @@ func (s *DocumentSession) SaveChanges() error {
 	if command == nil {
 		return nil
 	}
-	exec := s.RequestExecutor.GetCommandExecutor()
-	result, err := ExecuteBatchCommand(exec, command)
+	err := s.RequestExecutor.executeCommandWithSessionInfo(command, &s.sessionInfo)
 	if err != nil {
 		return err
 	}
+	result := command.result.(ArrayNode)
 	saveChangeOperation.setResult(result)
 	return nil
 }

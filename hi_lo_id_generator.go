@@ -104,25 +104,25 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 }
 
 func (g *HiLoIDGenerator) getNextRange() error {
-	exec := g.store.GetRequestExecutor("").GetCommandExecutor()
-	cmd := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
+	hiloCommand := NewNextHiLoCommand(g.tag, g.lastBatchSize, g.lastRangeAt,
 		g.identityPartsSeparator, g.rangev.Max)
-	res, err := ExecuteNewNextHiLoCommand(exec, cmd)
+	re := g.store.GetRequestExecutor()
+	err := re.executeCommand(hiloCommand)
 	if err != nil {
 		return err
 	}
-	g.prefix = res.Prefix
-	g.serverTag = res.ServerTag
-	g.lastRangeAt = res.GetLastRangeAt()
-	g.lastBatchSize = res.LastSize
-	g.rangev = NewRangeValue(res.Low, res.High)
+	result := hiloCommand.result.(*HiLoResult)
+	g.prefix = result.Prefix
+	g.serverTag = result.ServerTag
+	g.lastRangeAt = result.GetLastRangeAt()
+	g.lastBatchSize = result.LastSize
+	g.rangev = NewRangeValue(result.Low, result.High)
 	return nil
 }
 
 // ReturnUnusedRange returns unused range
 func (g *HiLoIDGenerator) ReturnUnusedRange() error {
-	cmd := NewHiLoReturnCommand(g.tag, g.rangev.Curr(), g.rangev.Max)
-	// TODO: use store.getRequestsExecutor().Exec()
-	exec := g.store.getSimpleExecutor()
-	return ExecuteHiLoReturnCommand(exec, cmd)
+	returnCommand := NewHiLoReturnCommand(g.tag, g.rangev.Curr(), g.rangev.Max)
+	re := g.store.GetRequestExecutor()
+	return re.executeCommand(returnCommand)
 }

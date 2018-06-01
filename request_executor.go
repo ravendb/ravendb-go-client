@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"math"
-	"net/http"
 	"sync"
 	"time"
 )
@@ -177,25 +176,20 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 	panicIf(true, "NYI")
 }
 
-func (re *RequestExecutor) GetCommandExecutor() CommandExecutorFunc {
-	return re.GetCommandExecutorWithSessionInfo(nil)
+// execute(command) in java
+func (re *RequestExecutor) executeCommand(command *RavenCommand) error {
+	return re.executeCommandWithSessionInfo(command, nil)
 }
 
-func (re *RequestExecutor) GetCommandExecutorWithSessionInfo(sessionInfo *SessionInfo) CommandExecutorFunc {
-	f := func(command *RavenCommand) (*http.Response, error) {
-		topologyUpdate := re._firstTopologyUpdate
-		if topologyUpdate != nil && topologyUpdate.isDone() || re._disableTopologyUpdates {
-			currentIndexAndNode := re.chooseNodeForRequest(command, sessionInfo)
-			re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
-			// TODO: must return real result
-			return nil, nil
-		} else {
-			re.unlikelyExecute(command, topologyUpdate, sessionInfo)
-			// TODO: must return real result
-			return nil, nil
-		}
+// execute(command, session) in java
+func (re *RequestExecutor) executeCommandWithSessionInfo(command *RavenCommand, sessionInfo *SessionInfo) error {
+	topologyUpdate := re._firstTopologyUpdate
+	if (topologyUpdate != nil && topologyUpdate.isDone()) || re._disableTopologyUpdates {
+		currentIndexAndNode := re.chooseNodeForRequest(command, sessionInfo)
+		return re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
+	} else {
+		return re.unlikelyExecute(command, topologyUpdate, sessionInfo)
 	}
-	return f
 }
 
 func (re *RequestExecutor) chooseNodeForRequest(cmd *RavenCommand, sessionInfo *SessionInfo) *CurrentIndexAndNode {
@@ -227,7 +221,7 @@ func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyU
 		defer re.mu.Unlock()
 		if re._firstTopologyUpdate == nil {
 			if len(re._lastKnownUrls) == 0 {
-				return NewIllegalStateError("No known topology and no previously known one, cannot proceed, likely a bug")
+				return NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
 			re._firstTopologyUpdate = re.firstTopologyUpdate(re._lastKnownUrls)
@@ -352,7 +346,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 
 // TODO: return an error
 func (re *RequestExecutor) throwExceptions(details String) {
-	err := NewIllegalStateError("Failed to retrieve database topology from all known nodes \n" + details)
+	err := NewIllegalStateException("Failed to retrieve database topology from all known nodes \n" + details)
 	panicIf(true, "%s", err.Error())
 }
 
@@ -377,7 +371,8 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 	re._updateTopologyTimer = time.AfterFunc(time.Minute, f)
 }
 
-func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) {
+func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
+	return nil
 	// TODO: implement me
 }
 

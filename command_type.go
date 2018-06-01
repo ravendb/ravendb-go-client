@@ -7,6 +7,7 @@ type CommandType = string
 // Note: this is enum in Java but those are serialized to json as strings so
 // making them strings is better in Go
 const (
+	CommandType_NONE              = "NONE"
 	CommandType_PUT               = "PUT"
 	CommandType_PATCH             = "PATCH"
 	CommandType_DELETE            = "DELETE"

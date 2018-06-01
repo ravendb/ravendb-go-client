@@ -70,8 +70,7 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	databaseRecord.DatabaseName = name
 
 	createDatabaseOperation := NewCreateDatabaseOperation(databaseRecord)
-	exec := documentStore.maintenance().requestExecutor.GetCommandExecutor()
-	_, err := ExecuteCreateDatabaseCommand(exec, createDatabaseOperation)
+	_, err := documentStore.maintenance().server().send(createDatabaseOperation)
 	if err != nil {
 		return nil, err
 	}

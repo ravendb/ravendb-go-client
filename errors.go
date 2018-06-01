@@ -17,20 +17,20 @@ func (e *UnsupportedOperationException) Error() string {
 	return e.ErrorStr
 }
 
-// IllegalStateError corresponds to Java's IllegalStateException
-type IllegalStateError struct {
+// IllegalStateException corresponds to Java's IllegalStateException
+type IllegalStateException struct {
 	ErrorStr string
 }
 
-// NewIllegalStateError creates a new IllegalStateError
-func NewIllegalStateError(format string, args ...interface{}) *IllegalStateError {
-	return &IllegalStateError{
+// NewIllegalStateException creates a new IllegalStateError
+func NewIllegalStateException(format string, args ...interface{}) *IllegalStateException {
+	return &IllegalStateException{
 		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
 // Error makes it conform to error interface
-func (e *IllegalStateError) Error() string {
+func (e *IllegalStateException) Error() string {
 	return e.ErrorStr
 }
 

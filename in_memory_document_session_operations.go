@@ -85,10 +85,10 @@ type InMemoryDocumentSessionOperations struct {
 	maxNumberOfRequestsPerSession int
 	useOptimisticConcurrency      bool
 
-	deferredCommands []*CommandData
+	deferredCommands []ICommandData
 
 	// Note: using value type so that lookups are based on value
-	deferredCommandsMap map[IdTypeAndName]*CommandData
+	deferredCommandsMap map[IdTypeAndName]ICommandData
 
 	generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
 	entityToJson                *EntityToJson
@@ -198,7 +198,7 @@ func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}
 
 	id, ok := s.generateEntityIdOnTheClient.tryGetIdFromInstance(instance)
 	if !ok {
-		return nil, NewIllegalStateError("Could not find the document id for %s", instance)
+		return nil, NewIllegalStateException("Could not find the document id for %s", instance)
 	}
 
 	if err := s.assertNoNonUniqueInstance(instance, id); err != nil {
@@ -295,7 +295,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 
 	changeVector := jsonGetAsText(metadata, MetadataCHANGE_VECTOR)
 	if changeVector == "" {
-		return nil, NewIllegalStateError("Document %s must have Change Vector", id)
+		return nil, NewIllegalStateException("Document %s must have Change Vector", id)
 	}
 
 	if !noTracking {
@@ -321,7 +321,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 
 	value := s.documentsByEntity[entity]
 	if value == nil {
-		return NewIllegalStateError("%#v is not associated with the session, cannot delete unknown entity instance", entity)
+		return NewIllegalStateException("%#v is not associated with the session, cannot delete unknown entity instance", entity)
 	}
 
 	s.deletedEntities[entity] = struct{}{}
@@ -346,7 +346,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	if documentInfo != nil {
 		newObj := s.entityToJson.convertEntityToJson(documentInfo.getEntity(), documentInfo)
 		if documentInfo.getEntity() != nil && s.entityChanged(newObj, documentInfo, nil) {
-			return NewIllegalStateError("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
+			return NewIllegalStateException("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
 
 		if documentInfo.getEntity() != nil {
@@ -422,11 +422,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 
 	tmp := NewIdTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
 	if _, ok := s.deferredCommandsMap[tmp]; ok {
-		return NewIllegalStateError("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", id)
+		return NewIllegalStateException("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
 
 	if _, ok := s.deletedEntities[entity]; ok {
-		return NewIllegalStateError("Can't store object, it was already deleted in this session.  Document id: %s", id)
+		return NewIllegalStateException("Can't store object, it was already deleted in this session.  Document id: %s", id)
 	}
 
 	// we make the check here even if we just generated the ID
@@ -645,13 +645,13 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 }
 
 // TODO: should return an error and be propagated
-func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand *CommandData) {
+func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand ICommandData) {
 	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
 	must(err)
 }
 
 // TODO: should return an error and be propagated
-func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand *CommandData) {
+func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand ICommandData) {
 	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
 	must(err)
 }
@@ -740,20 +740,20 @@ func (s *InMemoryDocumentSessionOperations) Clear() {
 }
 
 // Defer commands to be executed on saveChanges()
-func (s *InMemoryDocumentSessionOperations) Defer(command *CommandData) {
-	a := []*CommandData{command}
+func (s *InMemoryDocumentSessionOperations) Defer(command ICommandData) {
+	a := []ICommandData{command}
 	s.DeferMany(a)
 }
 
 // Defer commands to be executed on saveChanges()
-func (s *InMemoryDocumentSessionOperations) DeferMany(commands []*CommandData) {
+func (s *InMemoryDocumentSessionOperations) DeferMany(commands []ICommandData) {
 	for _, cmd := range commands {
 		s.deferredCommands = append(s.deferredCommands, cmd)
 		s.deferInternal(cmd)
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) deferInternal(command *CommandData) {
+func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) {
 	idType := NewIdTypeAndName(command.getId(), command.getType(), command.getName())
 	s.deferredCommandsMap[idType] = command
 	idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
@@ -797,9 +797,9 @@ func (s *InMemoryDocumentSessionOperations) registerIncludes(includes ObjectNode
 }
 
 type SaveChangesData struct {
-	deferredCommands    []*CommandData
-	deferredCommandsMap map[IdTypeAndName]*CommandData
-	sessionCommands     []*CommandData
+	deferredCommands    []ICommandData
+	deferredCommandsMap map[IdTypeAndName]ICommandData
+	sessionCommands     []ICommandData
 	entities            []Object
 	options             *BatchOptions
 }
@@ -812,11 +812,11 @@ func NewSaveChangesData(session *InMemoryDocumentSessionOperations) *SaveChanges
 	}
 }
 
-func (d *SaveChangesData) getDeferredCommands() []*CommandData {
+func (d *SaveChangesData) getDeferredCommands() []ICommandData {
 	return d.deferredCommands
 }
 
-func (d *SaveChangesData) getSessionCommands() []*CommandData {
+func (d *SaveChangesData) getSessionCommands() []ICommandData {
 	return d.sessionCommands
 }
 
@@ -828,11 +828,11 @@ func (d *SaveChangesData) getOptions() *BatchOptions {
 	return d.options
 }
 
-func (d *SaveChangesData) getDeferredCommandsMap() map[IdTypeAndName]*CommandData {
+func (d *SaveChangesData) getDeferredCommandsMap() map[IdTypeAndName]ICommandData {
 	return d.deferredCommandsMap
 }
 
-func (d *SaveChangesData) addSessionCommandData(cmd *CommandData) {
+func (d *SaveChangesData) addSessionCommandData(cmd ICommandData) {
 	d.sessionCommands = append(d.sessionCommands, cmd)
 }
 
@@ -841,16 +841,16 @@ func (d *SaveChangesData) addEntity(entity Object) {
 }
 
 // TODO: make faster
-func copyDeferredCommands(in []*CommandData) []*CommandData {
-	res := []*CommandData{}
+func copyDeferredCommands(in []ICommandData) []ICommandData {
+	res := []ICommandData{}
 	for _, d := range in {
 		res = append(res, d)
 	}
 	return res
 }
 
-func copyDeferredCommandsMap(in map[IdTypeAndName]*CommandData) map[IdTypeAndName]*CommandData {
-	res := map[IdTypeAndName]*CommandData{}
+func copyDeferredCommandsMap(in map[IdTypeAndName]ICommandData) map[IdTypeAndName]ICommandData {
+	res := map[IdTypeAndName]ICommandData{}
 	for k, v := range in {
 		res[k] = v
 	}
