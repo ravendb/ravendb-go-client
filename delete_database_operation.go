@@ -63,10 +63,10 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 	return cmd
 }
 
-func DeleteDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func DeleteDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_DeleteDatabaseCommand)
 	url := node.getUrl() + "/admin/databases"
-	return NewHttpDelete(url, data.parameters), url
+	return NewHttpDelete(url, data.parameters)
 }
 
 func DeleteDatabaseCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

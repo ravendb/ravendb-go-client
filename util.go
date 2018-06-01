@@ -277,40 +277,36 @@ func fileExists(path string) bool {
 	return !st.IsDir()
 }
 
-func NewHttpPost(uri string, data string) *http.Request {
+func NewHttpPost(uri string, data string) (*http.Request, error) {
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
 	}
-	req, err := http.NewRequest(http.MethodPost, uri, body)
-	panicIf(err != nil, "http.NewRequest failed with %s", err)
-	return req
+	return http.NewRequest(http.MethodPost, uri, body)
 }
 
-func NewHttpPut(uri string, data string) *http.Request {
+func NewHttpPut(uri string, data string) (*http.Request, error) {
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
 	}
-	req, err := http.NewRequest(http.MethodPut, uri, body)
-	panicIf(err != nil, "http.NewRequest failed with %s", err)
-	return req
+	return http.NewRequest(http.MethodPut, uri, body)
 }
 
-func NewHttpGet(uri string) *http.Request {
-	req, err := http.NewRequest(http.MethodGet, uri, nil)
-	panicIf(err != nil, "http.NewRequest failed with %s", err)
-	return req
+func NewHttpGet(uri string) (*http.Request, error) {
+	return http.NewRequest(http.MethodGet, uri, nil)
 }
 
-func NewHttpDelete(uri, data string) *http.Request {
+func NewHttpDelete(uri, data string) (*http.Request, error) {
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
 	}
 	req, err := http.NewRequest(http.MethodDelete, uri, body)
-	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	if err != nil {
+		return nil, err
+	}
 	// TODO: double-check
 	req.Header.Add("Content-Type", "application/json")
-	return req
+	return req, nil
 }

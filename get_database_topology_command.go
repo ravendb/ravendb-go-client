@@ -14,7 +14,7 @@ func NewGetDatabaseTopologyCommand() *RavenCommand {
 	return cmd
 }
 
-func GetDatabaseTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func GetDatabaseTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 
 	url := node.getUrl() + "/topology?name=" + node.getDatabase()
 	if strings.Contains(strings.ToLower(node.getUrl()), ".fiddler") {
@@ -22,7 +22,7 @@ func GetDatabaseTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNod
 		// so we are going to ask the server to respect it
 		url += "&localUrl=" + UrlUtils_escapeDataString(node.getUrl())
 	}
-	return NewHttpGet(url), url
+	return NewHttpGet(url)
 }
 
 func GetDatabaseTopologyCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

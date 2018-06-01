@@ -35,7 +35,7 @@ func NewNextHiLoCommand(tag String, lastBatchSize int, lastRangeAt *time.Time, i
 	return cmd
 }
 
-func NextHiLoCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func NextHiLoCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 
 	data := cmd.data.(*_NextHiLoCommand)
 	date := ""
@@ -44,7 +44,7 @@ func NextHiLoCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.R
 	}
 	path := "/hilo/next?tag=" + data._tag + "&lastBatchSize=" + strconv.Itoa(data._lastBatchSize) + "&lastRangeAt=" + date + "&identityPartsSeparator=" + data._identityPartsSeparator + "&lastMax=" + strconv.Itoa(data._lastRangeMax)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + path
-	return NewHttpGet(url), url
+	return NewHttpGet(url)
 }
 
 func NextHiLoCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

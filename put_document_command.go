@@ -3,7 +3,6 @@ package ravendb
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -29,7 +28,7 @@ func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) 
 	return cmd
 }
 
-func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_PutDocumentCommand)
 
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(data._id)
@@ -38,11 +37,12 @@ func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*htt
 	must(err)
 	body := bytes.NewBuffer(d)
 	request, err := http.NewRequest(http.MethodPut, url, body)
-	panicIf(err != nil, "http.NewRequest failed with %s", err)
+	if err != nil {
+		return nil, err
+	}
 	// TODO: set Content-Type to application/json?
-
 	addChangeVectorIfNotNull(data._changeVector, request)
-	return request, url
+	return request, nil
 }
 
 func PutDocumentCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
@@ -53,10 +53,4 @@ func PutDocumentCommand_setResponse(cmd *RavenCommand, response String, fromCach
 	}
 	cmd.result = &res
 	return nil
-}
-
-func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
-	if changeVector != "" {
-		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, changeVector))
-	}
 }

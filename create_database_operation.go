@@ -38,15 +38,16 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 	return cmd
 }
 
-func CreateDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func CreateDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_CreateDatabaseCommand)
 	url := node.getUrl() + "/admin/databases?name=" + data.databaseName
 	url += "&replicationFactor=" + strconv.Itoa(data.replicationFactor)
 
 	js, err := json.Marshal(data.databaseRecord)
-	must(err)
-	request := NewHttpPut(url, string(js))
-	return request, url
+	if err != nil {
+		return nil, err
+	}
+	return NewHttpPut(url, string(js))
 }
 
 func CreateDatabaseCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

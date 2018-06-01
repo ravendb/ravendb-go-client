@@ -43,14 +43,14 @@ func NewGetStatisticsCommandWithDebugTag(debugTag string) *RavenCommand {
 	return cmd
 }
 
-func GetStatisticsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func GetStatisticsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/stats"
 	data := cmd.data.(*_GetStatisticsCommand)
 	if data.debugTag != "" {
 		url += "?" + data.debugTag
 	}
 
-	return NewHttpGet(url), url
+	return NewHttpGet(url)
 }
 
 func GetStatisticsCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

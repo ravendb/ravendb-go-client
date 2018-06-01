@@ -10,7 +10,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"time"
 )
 
 // BufferCloser is a wrapper around bytes.Buffer that adds io.Close method
@@ -74,6 +73,7 @@ func dumpHTTPResponse(resp *http.Response, body []byte) {
 	}
 }
 
+/*
 func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
 	//url := cmd.BuildFullURL(n)
 	url := cmd.URLTemplate
@@ -84,10 +84,6 @@ func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
 			body = bytes.NewBuffer(cmd.Data)
 		}
 	}
-	/* TODO:
-	   if raven_command.files:
-	      data = {"data": data}
-	*/
 	req, err := http.NewRequest(cmd.Method, url, body)
 	if err != nil {
 		return nil, err
@@ -104,13 +100,13 @@ func makeHTTPRequest(n *ServerNode, cmd *RavenCommand) (*http.Request, error) {
 
 	return req, nil
 }
+*/
 
 func decodeJSONFromReader(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
 }
 
-// TODO: do I need to explicitly enable compression or does the client does
-// it by default? It seems to send Accept-Encoding: gzip by default
+/*
 func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 	req, err := makeHTTPRequest(n, cmd)
 	if err != nil {
@@ -191,7 +187,14 @@ func simpleExecutor(n *ServerNode, cmd *RavenCommand) (*http.Response, error) {
 
 	return rsp, nil
 }
+*/
 
 func urlEncode(s string) string {
 	return url.PathEscape(s)
+}
+
+func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
+	if changeVector != "" {
+		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, changeVector))
+	}
 }

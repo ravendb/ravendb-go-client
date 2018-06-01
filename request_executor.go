@@ -1,8 +1,11 @@
 package ravendb
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -39,6 +42,8 @@ type RequestExecutor struct {
 	_lastKnownUrls []string
 
 	mu sync.Mutex
+
+	_disposed bool
 	// old stuff
 
 	urls               []string // TODO: temporary
@@ -47,11 +52,6 @@ type RequestExecutor struct {
 	updateTopologyLock sync.Mutex
 	updateTimerLock    sync.Mutex
 	lock               sync.Mutex
-
-	waitForFirstTopologyUpdate sync.WaitGroup
-
-	topologyNodes []*ServerNode
-	closed        bool
 }
 
 func (re *RequestExecutor) getTopology() *Topology {
@@ -395,10 +395,77 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 }
 
 func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
-	fmt.Printf("cmd: %#v\n", command)
+	fmt.Printf("RequestExecutor.execute cmd: %#v\n", command)
+	request, err := re.createRequest(chosenNode, command)
+	if err != nil {
+		return err
+	}
+	// TODO: caching
+
+	if !re._disableClientConfigurationUpdates {
+		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
+		request.Header.Set(Constants_Headers_CLIENT_CONFIGURATION_ETAG, etag)
+	}
+
+	if !re._disableTopologyUpdates {
+		etag := `"` + strconv.Itoa(re.topologyEtag) + `"`
+		request.Header.Set(Constants_Headers_TOPOLOGY_ETAG, etag)
+	}
+
+	httpClient := &http.Client{
+		Timeout: time.Second * 5,
+	}
+
+	//sp := time.Now()
+	//responseDispose := ResponseDisposeHandling_AUTOMATIC
+	var response *http.Response
+	re.numberOfServerRequests.incrementAndGet()
+	if re.shouldExecuteOnAll(chosenNode, command) {
+		//response, err =
+	} else {
+		response, err = command.send(httpClient, request)
+	}
+	if err != nil {
+		if !shouldRetry {
+			return err
+		}
+		urlRef := request.RequestURI
+		if !re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo) {
+			return re.throwFailedToContactAllNodes(command, request, err, nil)
+		}
+		return nil
+	}
+
+	command.statusCode = response.StatusCode
+
+	//refreshTopology := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_TOPOLOGY)
+	//refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_CLIENT_CONFIGURATION)
+
 	panicIf(true, "NYI")
 	return nil
+	// TODO: implement meinSpeedTestPhase
+}
+
+func (re *RequestExecutor) throwFailedToContactAllNodes(command *RavenCommand, request *http.Request, e error, timeoutException error) error {
 	// TODO: implement me
+	panicIf(true, "NYI")
+	return errors.New("throwFailedToContactAllNodes")
+}
+
+func (re *RequestExecutor) inSpeedTestPhase() bool {
+	return (re._nodeSelector != nil) && re._nodeSelector.inSpeedTestPhase()
+}
+
+func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command *RavenCommand) bool {
+	multipleNodes := (re._nodeSelector != nil) && (len(re._nodeSelector.getTopology().getNodes()) > 1)
+
+	return re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE &&
+		re._nodeSelector != nil &&
+		re._nodeSelector.inSpeedTestPhase() &&
+		multipleNodes &&
+		command.isReadRequest() &&
+		command.getResponseType() == RavenCommandResponseType_OBJECT &&
+		chosenNode != nil
 }
 
 /*
@@ -517,6 +584,73 @@ func (re *RequestExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand 
 }
 */
 
+func (re *RequestExecutor) createRequest(node *ServerNode, command *RavenCommand) (*http.Request, error) {
+	request, err := command.createRequest(node)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Raven-Client-Version", goClientVersion)
+	return request, err
+}
+
+// private <TResult> boolean handleUnsuccessfulResponse(ServerNode chosenNode, Integer nodeIndex, RavenCommand<TResult> command, HttpRequestBase request, CloseableHttpResponse response, String url, SessionInfo sessionInfo, boolean shouldRetry) {
+
+func RequestExecutor_handleConflict(response *http.Response) error {
+	// ExceptionDispatcher.throwException(response);
+	return errors.New("ExceptionDispatcher")
+}
+
+//     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
+
+func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, nodeIndex int, command *RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) bool {
+	if command.getFailedNodes() == nil {
+		command.setFailedNodes(make(map[*ServerNode]error))
+	}
+
+	re.addFailedResponseToCommand(chosenNode, command, request, response, e)
+
+	// TODO: -1 ?
+	if nodeIndex == 0 {
+		//We executed request over a node not in the topology. This means no failover...
+		return false
+	}
+
+	re.spawnHealthChecks(chosenNode, nodeIndex)
+
+	if re._nodeSelector == nil {
+		return false
+	}
+
+	re._nodeSelector.onFailedRequest(nodeIndex)
+
+	currentIndexAndNode := re._nodeSelector.getPreferredNode()
+	if _, ok := command.getFailedNodes()[currentIndexAndNode.currentNode]; ok {
+		return false //we tried all the nodes...nothing left to do
+	}
+
+	re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
+
+	return true
+}
+
+func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex int) {
+	panicIf(true, "NYI")
+}
+
+func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
+	panicIf(true, "NYI")
+}
+
+func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex int) error {
+	panicIf(true, "NYI")
+	//execute(serverNode, nodeIndex, failureCheckOperation.getCommand(conventions), false, null);
+	return nil
+}
+
+func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command *RavenCommand, request *http.Request, response *http.Response, e error) {
+	panicIf(true, "NYI")
+}
+
 // TODO: write me. this should be configurable by the user
 func (re *RequestExecutor) tryLoadFromCache(url string) {
 }
@@ -529,4 +663,54 @@ func writeToCache(topology *Topology, node *ServerNode) {
 func (re *RequestExecutor) Close() {
 	// TODO: implement me
 	panicIf(true, "NYI")
+}
+
+type NodeStatus struct {
+	_timerPeriod     time.Duration
+	_requestExecutor *RequestExecutor
+	nodeIndex        int
+	node             *ServerNode
+	_timer           *time.Timer
+}
+
+func NewNodeStatus(requestExecutor *RequestExecutor, nodeIndex int, node *ServerNode) *NodeStatus {
+	return &NodeStatus{
+		_requestExecutor: requestExecutor,
+		nodeIndex:        nodeIndex,
+		node:             node,
+		_timerPeriod:     time.Millisecond * 100,
+	}
+}
+
+func (s *NodeStatus) nextTimerPeriod() time.Duration {
+	if s._timerPeriod > time.Second*5 {
+		return time.Second * 5
+	}
+	s._timerPeriod = s._timerPeriod + (time.Millisecond * 100)
+	return s._timerPeriod
+}
+
+func (s *NodeStatus) startTimer() {
+	f := func() {
+		s.timerCallback()
+	}
+	s._timer = time.AfterFunc(s._timerPeriod, f)
+}
+
+func (s *NodeStatus) updateTimer() {
+	// TODO: not sure if Reset
+	s._timer.Reset(s.nextTimerPeriod())
+}
+
+func (s *NodeStatus) timerCallback() {
+	if !s._requestExecutor._disposed {
+		s._requestExecutor.checkNodeStatusCallback(s)
+	}
+}
+
+func (s *NodeStatus) close() {
+	if s._timer != nil {
+		s._timer.Stop()
+		s._timer = nil
+	}
 }

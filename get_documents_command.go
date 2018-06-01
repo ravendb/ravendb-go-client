@@ -45,7 +45,7 @@ func NewGetDocumentsCommandWithData(data *_GetDocumentsCommand) *RavenCommand {
 	return cmd
 }
 
-func GetDocumentsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func GetDocumentsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_GetDocumentsCommand)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?"
 	// TODO: is _start == 0 valid?
@@ -63,7 +63,7 @@ func GetDocumentsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*ht
 
 	// TODO: more
 
-	return NewHttpGet(url), url
+	return NewHttpGet(url)
 }
 
 func GetDocumentsCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

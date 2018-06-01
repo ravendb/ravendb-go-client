@@ -40,11 +40,11 @@ func NewGetDatabaseNamesCommand(_start int, _pageSize int) *RavenCommand {
 	return cmd
 }
 
-func GetDatabaseNamesCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func GetDatabaseNamesCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_GetDatabaseNamesCommand)
 	url := node.getUrl() + "/databases?start=" + strconv.Itoa(data._start) + "&pageSize=" + strconv.Itoa(data._pageSize) + "&namesOnly=true"
 
-	return NewHttpGet(url), url
+	return NewHttpGet(url)
 }
 
 // GetDatabaseNamesResult describes response of GetDatabaseNames command

@@ -30,9 +30,9 @@ func NewHiLoReturnCommand(tag String, last int, end int) *RavenCommand {
 	return cmd
 }
 
-func HiLoReturnCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func HiLoReturnCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_HiLoReturnCommand)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/hilo/return?tag=" + data._tag + "&end=" + strconv.Itoa(data._end) + "&last=" + strconv.Itoa(data._last)
 
-	return NewHttpPut(url, ""), url
+	return NewHttpPut(url, "")
 }

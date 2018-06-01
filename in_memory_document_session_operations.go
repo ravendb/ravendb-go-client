@@ -148,7 +148,7 @@ func (s *InMemoryDocumentSessionOperations) generateId(entity Object) String {
 // GetMetadataFor gets the metadata for the specified entity.
 func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
 	if instance == nil {
-		return nil, NewIllegalArgumentError("Instance cannot be null")
+		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -169,7 +169,7 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 // empty string means there is not change vector
 func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (string, error) {
 	if instance == nil {
-		return "", NewIllegalArgumentError("Instance cannot be null")
+		return "", NewIllegalArgumentException("Instance cannot be null")
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -316,7 +316,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 // Marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) error {
 	if entity == nil {
-		return NewIllegalArgumentError("Entity cannot be null")
+		return NewIllegalArgumentException("Entity cannot be null")
 	}
 
 	value := s.documentsByEntity[entity]
@@ -338,7 +338,7 @@ func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
 
 func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector string) error {
 	if id == "" {
-		return NewIllegalArgumentError("Id cannot be empty")
+		return NewIllegalArgumentException("Id cannot be empty")
 	}
 
 	changeVector := ""
@@ -393,13 +393,13 @@ func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector St
 
 // TODO: should this return an error?
 func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneration(entity Object) {
-	err := NewNotImplementedError("You cannot set GenerateDocumentIdsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
+	err := NewNotImplementedException("You cannot set GenerateDocumentIdsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
 	must(err)
 }
 
 func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector String, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
-		return NewIllegalArgumentError("Entity cannot be null")
+		return NewIllegalArgumentException("Entity cannot be null")
 	}
 
 	value := s.documentsByEntity[entity]
@@ -484,7 +484,7 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Obj
 		return nil
 	}
 
-	return NewNonUniqueObjectError("Attempted to associate a different object with id '" + id + "'.")
+	return NewNonUniqueObjectException("Attempted to associate a different object with id '" + id + "'.")
 }
 
 func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChangesData {

@@ -15,16 +15,18 @@ func NewDeleteDocumentCommand(id String, changeVector String) *RavenCommand {
 	cmd := NewRavenCommand()
 	cmd.data = data
 	cmd.createRequestFunc = DeleteDocumentCommand_createRequest
-	//cmd.setResponseFunc = DeleteDocumentCommand_setResponse
 	return cmd
 }
 
-func DeleteDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func DeleteDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_DeleteDocumentCommand)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(data._id)
 
-	request := NewHttpDelete(url, "")
+	request, err := NewHttpDelete(url, "")
+	if err != nil {
+		return nil, err
+	}
 	addChangeVectorIfNotNull(data._changeVector, request)
-	return request, url
+	return request, nil
 
 }

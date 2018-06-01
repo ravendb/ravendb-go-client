@@ -21,15 +21,9 @@ type RavenCommand struct {
 	failedNodes map[*ServerNode]error
 
 	// those simulate Java inheritance in Go
-	createRequestFunc  func(c *RavenCommand, node *ServerNode) (*http.Request, string)
+	createRequestFunc  func(c *RavenCommand, node *ServerNode) (*http.Request, error)
 	setResponseFunc    func(c *RavenCommand, response string, fromCache bool) error
 	setResponseRawFunc func(c *RavenCommand, response *http.Response) error
-
-	// TODO: old compat, remove
-	Method      string
-	URLTemplate string
-	Data        []byte
-	Headers     map[string]string
 }
 
 // this is virtual in Java, we set IsReadRequest instead when creating
@@ -99,12 +93,12 @@ func (c *RavenCommand) setResponseRaw(response *http.Response) error {
 	return c.setResponseRawFunc(c, response)
 }
 
-func defaultCreateRequest(c *RavenCommand, node *ServerNode) (*http.Request, string) {
+func defaultCreateRequest(c *RavenCommand, node *ServerNode) (*http.Request, error) {
 	panicIf(true, "must over-write createRequestFunc")
-	return nil, ""
+	return nil, nil
 }
 
-func (c *RavenCommand) createRequest(node *ServerNode) (*http.Request, string) {
+func (c *RavenCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return c.createRequestFunc(c, node)
 }
 
@@ -125,8 +119,7 @@ func (c *RavenCommand) setFailedNodes(failedNodes map[*ServerNode]error) {
 }
 
 func (c *RavenCommand) urlEncode(value String) string {
-	panicIf(true, "value: '%s'", value)
-	return value
+	return urlEncode(value)
 }
 
 // TODO: return error?

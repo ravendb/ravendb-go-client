@@ -46,22 +46,26 @@ func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICo
 	return cmd
 }
 
-func BatchCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, string) {
+func BatchCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
 	data := cmd.data.(*_BatchCommand)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_docs"
 	// TODO: appendOptions(sb)
 	var a []interface{}
 	for _, cmd := range data._commands {
 		el, err := cmd.serialize(data._conventions)
-		must(err) // TODO: return
+		if err != nil {
+			return nil, err
+		}
 		a = append(a, el)
 	}
 	v := map[string]interface{}{
 		"Commands": a,
 	}
 	js, err := json.Marshal(v)
-	must(err)
-	return NewHttpPost(url, string(js)), url
+	if err != nil {
+		return nil, err
+	}
+	return NewHttpPost(url, string(js))
 }
 
 func BatchCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
