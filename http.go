@@ -224,10 +224,23 @@ func addCommonHeaders(req *http.Request) {
 	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 }
 
+func NewHttpGet(uri string) (*http.Request, error) {
+	fmt.Printf("GET %s\n", uri)
+	req, err := http.NewRequest(http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
 func NewHttpPost(uri string, data string) (*http.Request, error) {
+	fmt.Printf("POST %s\n", uri)
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
+		d := prettyPrintMaybeJSON([]byte(data))
+		fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPost, uri, body)
 	if err != nil {
@@ -238,9 +251,12 @@ func NewHttpPost(uri string, data string) (*http.Request, error) {
 }
 
 func NewHttpPut(uri string, data string) (*http.Request, error) {
+	fmt.Printf("PUT %s\n", uri)
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
+		d := prettyPrintMaybeJSON([]byte(data))
+		fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPut, uri, body)
 	if err != nil {
@@ -250,19 +266,13 @@ func NewHttpPut(uri string, data string) (*http.Request, error) {
 	return req, err
 }
 
-func NewHttpGet(uri string) (*http.Request, error) {
-	req, err := http.NewRequest(http.MethodGet, uri, nil)
-	if err != nil {
-		return nil, err
-	}
-	addCommonHeaders(req)
-	return req, err
-}
-
 func NewHttpDelete(uri, data string) (*http.Request, error) {
+	fmt.Printf("DELETE %s\n", uri)
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
+		d := prettyPrintMaybeJSON([]byte(data))
+		fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodDelete, uri, body)
 	if err != nil {

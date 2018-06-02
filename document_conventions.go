@@ -15,7 +15,7 @@ type DocumentConventions struct {
 	// JsonDdefaultMethod = DocumentConventions.json_default
 	MaxLengthOfQueryUsingGetURL int
 	IdentityPartsSeparator      string
-	DisableTopologyUpdate       bool
+	_disableTopologyUpdates     bool
 	// If set to 'true' then it will return an error when any query is performed (in session)
 	// without explicit page size set
 	RaiseIfQueryPageSizeIsNotSet bool // TODO: rename to ErrorIfQueryPageSizeIsNotSet
@@ -40,7 +40,7 @@ func NewDocumentConventions() *DocumentConventions {
 		MaxNumberOfRequestsPerSession: 32,
 		MaxLengthOfQueryUsingGetURL:   1024 + 512,
 		IdentityPartsSeparator:        "/",
-		DisableTopologyUpdate:         false,
+		_disableTopologyUpdates:       false,
 		RaiseIfQueryPageSizeIsNotSet:  false,
 	}
 }
@@ -65,10 +65,6 @@ func (c *DocumentConventions) getDocumentIdGenerator() DocumentIDGeneratorFunc {
 	return c._documentIdGenerator
 }
 
-func (c *DocumentConventions) getDisableTopologyUpdates() bool {
-	return c.DisableTopologyUpdate
-}
-
 func (c *DocumentConventions) setDocumentIdGenerator(documentIdGenerator DocumentIDGeneratorFunc) {
 	c._documentIdGenerator = documentIdGenerator
 }
@@ -78,6 +74,10 @@ func (c *DocumentConventions) generateDocumentId(databaseName String, entity Obj
 	return c._documentIdGenerator(databaseName, entity)
 }
 
+func (c *DocumentConventions) isDisableTopologyUpdates() bool {
+	return c._disableTopologyUpdates
+}
+
 func (c *DocumentConventions) setDisableTopologyUpdates(disable bool) {
-	c.DisableTopologyUpdate = disable
+	c._disableTopologyUpdates = disable
 }

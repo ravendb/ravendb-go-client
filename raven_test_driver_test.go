@@ -77,8 +77,8 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 		return nil, err
 	}
 
-	urls := documentStore.getURLS()
-	store := NewDocumentStore(urls, name)
+	urls := documentStore.getUrls()
+	store := NewDocumentStoreWithUrlsAndDatabase(urls, name)
 
 	if false && secured {
 		// TODO: store.setCertificate(getTestClientCertificate());
@@ -89,7 +89,7 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	// TODO:         hookLeakedConnectionCheck(store);
 
 	// TODO:         setupDatabase(store);
-	err = store.Initialize()
+	_, err = store.Initialize()
 	if err != nil {
 		return nil, err
 	}
@@ -170,10 +170,9 @@ func runServer(secured bool) error {
 
 	time.Sleep(time.Second) // TODO: probably not necessary
 
-	urls := []string{url}
-	store := NewDocumentStore(urls, "test.manager")
-	//store.setUrls([]string{url})
-	//store.setDatabase("test.manager")
+	store := NewDocumentStore()
+	store.setUrls([]string{url})
+	store.setDatabase("test.manager")
 	store.getConventions().setDisableTopologyUpdates(true)
 
 	if secured {
@@ -184,7 +183,8 @@ func runServer(secured bool) error {
 	} else {
 		globalServer = store
 	}
-	return store.Initialize()
+	_, err = store.Initialize()
+	return err
 }
 
 func killGlobalServerProcess(secured bool) {

@@ -67,7 +67,7 @@ func NewHiLoIDGenerator(tag string, store *DocumentStore, dbName string) *HiLoID
 		rangev:        NewRangeValue(1, 0),
 		prefix:        "",
 		serverTag:     "",
-		convetions:    store.Conventions,
+		convetions:    store.getConventions(),
 	}
 	res.identityPartsSeparator = res.convetions.IdentityPartsSeparator
 	return res

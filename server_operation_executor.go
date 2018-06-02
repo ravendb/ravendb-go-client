@@ -6,10 +6,10 @@ type ServerOperationExecutor struct {
 
 func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	res := &ServerOperationExecutor{}
-	urls := store.getURLS()
+	urls := store.getUrls()
 	dbName := store.getDatabase()
 	conv := store.getConventions()
-	if conv.DisableTopologyUpdate {
+	if conv.isDisableTopologyUpdates() {
 		// TODO: ClusterRequestExecutor_createForSingleNode()
 		res.requestExecutor = RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(urls[0], dbName, nil, conv)
 	} else {
