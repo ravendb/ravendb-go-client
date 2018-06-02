@@ -22,8 +22,8 @@ func TestHiLoCanNotGoDown(t *testing.T) {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}
 	store, err := getDocumentStore()
+	assert.Nil(t, err)
 	if store == nil {
 		return
 	}
-	assert.Nil(t, err)
 }

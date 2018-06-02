@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -61,6 +62,7 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	if documentStore == nil {
 		err := runServer(secured)
 		if err != nil {
+			fmt.Printf("runServer failed with %s\n", err)
 			return nil, err
 		}
 	}
@@ -139,7 +141,9 @@ func runServer(secured bool) error {
 			break
 		}
 		s := scanner.Text()
-		// fmt.Printf("line: '%s'\n", s)
+		if RavenServerVerbose {
+			fmt.Printf("%s\n", s)
+		}
 		if !strings.HasPrefix(s, wantedPrefix) {
 			continue
 		}
@@ -154,6 +158,17 @@ func runServer(secured bool) error {
 		return fmt.Errorf("Unable to start server")
 	}
 	fmt.Printf("Server started on: '%s'\n", url)
+
+	if RavenServerVerbose {
+		go func() {
+			_, err := io.Copy(os.Stdout, proc.stdoutReader)
+			if !(err == nil || err == io.EOF) {
+				fmt.Printf("io.Copy() failed with %s\n", err)
+			}
+		}()
+	}
+
+	time.Sleep(time.Second) // TODO: probably not necessary
 
 	urls := []string{url}
 	store := NewDocumentStore(urls, "test.manager")
@@ -212,6 +227,7 @@ func useProxy() bool {
 
 func TestMain(m *testing.M) {
 	fmt.Printf("TestMain\n")
+	RavenServerVerbose = true
 	if useProxy() {
 		logFileTmpl := "trace_0_start_go.txt"
 		go proxy.Run(logFileTmpl)

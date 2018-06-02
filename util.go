@@ -1,12 +1,9 @@
 package ravendb
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"reflect"
@@ -275,38 +272,4 @@ func fileExists(path string) bool {
 		return false
 	}
 	return !st.IsDir()
-}
-
-func NewHttpPost(uri string, data string) (*http.Request, error) {
-	var body io.Reader
-	if data != "" {
-		body = bytes.NewBufferString(data)
-	}
-	return http.NewRequest(http.MethodPost, uri, body)
-}
-
-func NewHttpPut(uri string, data string) (*http.Request, error) {
-	var body io.Reader
-	if data != "" {
-		body = bytes.NewBufferString(data)
-	}
-	return http.NewRequest(http.MethodPut, uri, body)
-}
-
-func NewHttpGet(uri string) (*http.Request, error) {
-	return http.NewRequest(http.MethodGet, uri, nil)
-}
-
-func NewHttpDelete(uri, data string) (*http.Request, error) {
-	var body io.Reader
-	if data != "" {
-		body = bytes.NewBufferString(data)
-	}
-	req, err := http.NewRequest(http.MethodDelete, uri, body)
-	if err != nil {
-		return nil, err
-	}
-	// TODO: double-check
-	req.Header.Add("Content-Type", "application/json")
-	return req, nil
 }

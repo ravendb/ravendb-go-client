@@ -65,21 +65,30 @@ func prettyPrintMaybeJSON(d []byte) []byte {
 func dumpHTTPRequest(req *http.Request) {
 	d, err := httputil.DumpRequest(req, false)
 	if err != nil {
+		fmt.Printf("httputil.DumpRequest failed with %s\n", err)
 		return
 	}
+	io.WriteString(os.Stdout, "HTTP REQUEST:\n")
 	os.Stdout.Write(d)
 }
 
 func dumpHTTPResponse(resp *http.Response, body []byte) {
 	d, err := httputil.DumpResponse(resp, false)
 	if err != nil {
+		fmt.Printf("httputil.DumpResponse failed with %s\n", err)
 		return
 	}
+	io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
 	os.Stdout.Write(d)
 	if len(body) > 0 {
 		os.Stdout.Write(prettyPrintMaybeJSON(body))
 		os.Stdout.WriteString("\n")
 	}
+}
+
+func dumpHTTPRequestAndResponse(req *http.Request, resp *http.Response) {
+	dumpHTTPRequest(req)
+	dumpHTTPResponse(resp, nil)
 }
 
 /*
@@ -206,4 +215,59 @@ func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
 	if changeVector != "" {
 		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, changeVector))
 	}
+}
+
+func addCommonHeaders(req *http.Request) {
+	req.Header.Add("User-Agent", "ravendb-go-client/1.0")
+	req.Header.Add("Raven-Client-Version", goClientVersion)
+	//req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
+}
+
+func NewHttpPost(uri string, data string) (*http.Request, error) {
+	var body io.Reader
+	if data != "" {
+		body = bytes.NewBufferString(data)
+	}
+	req, err := http.NewRequest(http.MethodPost, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
+func NewHttpPut(uri string, data string) (*http.Request, error) {
+	var body io.Reader
+	if data != "" {
+		body = bytes.NewBufferString(data)
+	}
+	req, err := http.NewRequest(http.MethodPut, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
+func NewHttpGet(uri string) (*http.Request, error) {
+	req, err := http.NewRequest(http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
+func NewHttpDelete(uri, data string) (*http.Request, error) {
+	var body io.Reader
+	if data != "" {
+		body = bytes.NewBufferString(data)
+	}
+	req, err := http.NewRequest(http.MethodDelete, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, nil
 }

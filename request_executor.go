@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -389,13 +388,12 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 }
 
 func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
-	fmt.Printf("RequestExecutor.execute cmd: %#v\n", command)
+	//fmt.Printf("RequestExecutor.execute cmd: %#v\n", command)
 	request, err := re.createRequest(chosenNode, command)
 	if err != nil {
 		return err
 	}
 	// TODO: caching
-	dumpHTTPRequest(request)
 
 	urlRef := request.RequestURI // TODO: double-check
 
@@ -418,6 +416,9 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	} else {
 		response, err = command.send(re.httpClient, request)
 	}
+
+	dumpHTTPRequestAndResponse(request, response)
+
 	if err != nil {
 		if !shouldRetry {
 			return err
@@ -437,7 +438,6 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	// TODO: handle not modified
 
 	if response.StatusCode >= 400 {
-		dumpHTTPResponse(response, nil)
 		if !re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry) {
 			dbMissingHeader := response.Header.Get("Database-Missing")
 			if dbMissingHeader != "" {
