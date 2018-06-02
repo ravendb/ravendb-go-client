@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -226,7 +227,14 @@ func useProxy() bool {
 
 func TestMain(m *testing.M) {
 	fmt.Printf("TestMain\n")
-	RavenServerVerbose = true
+	os.Setenv("NO_PROXY", "true")
+	home := os.Getenv("HOME")
+	path := filepath.Join(home, "Documents", "RavenDB", "Server", "Raven.Server")
+	_, err := os.Stat(path)
+	must(err)
+	os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+
+	//RavenServerVerbose = true
 	if useProxy() {
 		logFileTmpl := "trace_0_start_go.txt"
 		go proxy.Run(logFileTmpl)

@@ -51,7 +51,7 @@ func (s *DocumentSession) SaveChanges() error {
 	if err != nil {
 		return err
 	}
-	result := command.result.(ArrayNode)
-	saveChangeOperation.setResult(result)
+	result := command.result.(*JSONArrayResult)
+	saveChangeOperation.setResult(result.Results)
 	return nil
 }

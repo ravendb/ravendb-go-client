@@ -12,8 +12,24 @@ type HiLoDoc struct {
 	Max int `json:"Max"`
 }
 
+func (d *HiLoDoc) getMax() int {
+	return d.Max
+}
+
+func (d *HiLoDoc) setMax(max int) {
+	d.Max = max
+}
+
 type Product struct {
-	ProductName string
+	ProductName string `json:"ProductName"`
+}
+
+func (p *Product) getProductName() String {
+	return p.ProductName
+}
+
+func (p *Product) setProductName(productName String) {
+	p.ProductName = productName
 }
 
 func TestHiLoCanNotGoDown(t *testing.T) {
@@ -24,6 +40,16 @@ func TestHiLoCanNotGoDown(t *testing.T) {
 	store, err := getDocumentStore()
 	assert.Nil(t, err)
 	if store == nil {
-		return
+		return // if db tests are disabled
 	}
+
+	session, err := store.OpenSession()
+	assert.Nil(t, err)
+	assert.NotNil(t, session)
+	hiloDoc := &HiLoDoc{}
+	hiloDoc.setMax(32)
+
+	session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+	err = session.SaveChanges()
+	assert.Nil(t, err)
 }

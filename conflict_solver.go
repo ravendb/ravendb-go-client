@@ -1,8 +1,8 @@
 package ravendb
 
 type ConflictSolver struct {
-	resolveByCollection map[string]*ScriptResolver
-	resolveToLatest     bool
+	ResolveByCollection map[string]*ScriptResolver `json:"ResolveByCollection"`
+	ResolveToLatest     bool                       `json:"ResolveToLatest"`
 }
 
 func NewConflictSolver() *ConflictSolver {
@@ -10,17 +10,17 @@ func NewConflictSolver() *ConflictSolver {
 }
 
 func (s *ConflictSolver) getResolveByCollection() map[string]*ScriptResolver {
-	return s.resolveByCollection
+	return s.ResolveByCollection
 }
 
 func (s *ConflictSolver) setResolveByCollection(resolveByCollection map[string]*ScriptResolver) {
-	s.resolveByCollection = resolveByCollection
+	s.ResolveByCollection = resolveByCollection
 }
 
 func (s *ConflictSolver) isResolveToLatest() bool {
-	return s.resolveToLatest
+	return s.ResolveToLatest
 }
 
 func (s *ConflictSolver) setResolveToLatest(resolveToLatest bool) {
-	s.resolveToLatest = resolveToLatest
+	s.ResolveToLatest = resolveToLatest
 }

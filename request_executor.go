@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -162,12 +163,21 @@ func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *C
 func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *CompletableFuture {
 	// TODO: handle _disposed
 	// TODO: locking with _updateDatabaseTopologySemaphore
+	fmt.Printf("updateTopologyAsyncWithForceUpdate\n")
 	future := NewCompletableFuture()
 	f := func() {
+		var err error
+		defer func() {
+			if err != nil {
+				future.markAsDoneWithError(err)
+			} else {
+				future.markAsDone(nil)
+			}
+		}()
+
 		command := NewGetDatabaseTopologyCommand()
-		err := re.execute(node, 0, command, false, nil)
+		err = re.execute(node, 0, command, false, nil)
 		if err != nil {
-			future.markAsDoneWithError(err)
 			return
 		}
 		result := command.result.(*Topology)
@@ -289,22 +299,31 @@ type Tuple_String_Error struct {
 func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableFuture {
 	initialUrls := RequestExecutor_validateUrls(inputUrls, re.certificate)
 
-	res := NewCompletableFuture()
+	fmt.Printf("firstTopologyUpdate\n")
+	future := NewCompletableFuture()
 	//var list []*Tuple_String_Error
 	f := func() {
+		var err error
+		defer func() {
+			if err != nil {
+				future.markAsDoneWithError(err)
+			} else {
+				future.markAsDone(nil)
+			}
+		}()
+
 		for _, url := range initialUrls {
-			var err error
 			serverNode := NewServerNode()
 			serverNode.setUrl(url)
 			serverNode.setDatabase(re._databaseName)
 
-			re.updateTopologyAsync(serverNode, math.MaxInt32).get()
-
+			res := re.updateTopologyAsync(serverNode, math.MaxInt32)
+			res.get()
+			err = res.err
 			re.initializeUpdateTopologyTimer()
 
 			re._topologyTakenFromNode = serverNode
 			if err == nil {
-				res.markAsDone(nil)
 				return
 			}
 		}
@@ -357,7 +376,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		*/
 	}
 	go f()
-	return res
+	return future
 }
 
 // TODO: return an error

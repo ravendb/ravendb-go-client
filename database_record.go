@@ -5,7 +5,7 @@ type DatabaseRecord struct {
 	Disabled             bool              `json:"Disabled"`
 	DataDirectory        *string           `json:"DataDirectory"`
 	Settings             map[string]string `json:"Settings"`
-	conflictSolverConfig *ConflictSolver   `json:"ConflictSolverConfig"`
+	ConflictSolverConfig *ConflictSolver   `json:"ConflictSolverConfig"`
 }
 
 func NewDatabaseRecord() *DatabaseRecord {
