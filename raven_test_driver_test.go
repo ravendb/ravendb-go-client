@@ -247,7 +247,7 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	RavenServerVerbose = true
+	//RavenServerVerbose = true
 	if useProxy() {
 		go proxy.Run("")
 	}
