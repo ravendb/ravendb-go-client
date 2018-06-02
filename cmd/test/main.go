@@ -1,10 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"strings"
-
 	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
@@ -16,6 +12,7 @@ var (
 	verboseLog = true
 )
 
+/*
 func getExecutor() ravendb.CommandExecutorFunc {
 	node := &ravendb.ServerNode{
 		URL:      serverURL,
@@ -23,12 +20,14 @@ func getExecutor() ravendb.CommandExecutorFunc {
 	}
 	return ravendb.MakeSimpleExecutor(node)
 }
+*/
 
 var (
 	gStore   *ravendb.DocumentStore
 	gSession *ravendb.DocumentSession
 )
 
+/*
 func getStore() *ravendb.DocumentStore {
 	if gStore != nil {
 		return gStore
@@ -38,7 +37,9 @@ func getStore() *ravendb.DocumentStore {
 	store.Initialize()
 	return store
 }
+*/
 
+/*
 func mustGetSession() *ravendb.DocumentSession {
 	if gSession != nil {
 		return gSession
@@ -49,12 +50,16 @@ func mustGetSession() *ravendb.DocumentSession {
 	must(err)
 	return gSession
 }
+*/
 
+/*
 func mustGetNewSession() *ravendb.DocumentSession {
 	gSession = nil
 	return mustGetSession()
 }
+*/
 
+/*
 func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
 	node := &ravendb.ServerNode{
 		URL:        serverURL,
@@ -63,12 +68,14 @@ func getInvalidDbExecutor() ravendb.CommandExecutorFunc {
 	}
 	return ravendb.MakeSimpleExecutor(node)
 }
+*/
 
 // test that when we send invalid command to the server, we get the right
 // error code
+/*
 func testInvalidCommand() {
 	sess := mustGetSession()
-	exec := sess.RequestExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor()
 	cmd := &ravendb.RavenCommand{
 		Method:        http.MethodGet,
 		IsReadRequest: true,
@@ -80,10 +87,12 @@ func testInvalidCommand() {
 	panicIf(re.URL != "/cluster/invalid", "unexpected re.URL. is '%s', should be '/cluster/invalid'", re.URL)
 	fmt.Printf("testInvalidCommand ok\n")
 }
+*/
 
+/*
 func testGetClusterTopologyCommand() {
 	sess := mustGetSession()
-	exec := sess.RequestExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor()
 	cmd := ravendb.NewGetClusterTopologyCommand()
 	clusterTopology, err := ravendb.ExecuteGetClusterTopologyCommand(exec, cmd)
 	must(err)
@@ -96,7 +105,9 @@ func testGetClusterTopologyCommand() {
 	}
 	fmt.Printf("testGetClusterTopologyCommand ok\n")
 }
+*/
 
+/*
 func testGetStatisticsCommand() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetStatisticsCommand("")
@@ -107,7 +118,9 @@ func testGetStatisticsCommand() {
 	}
 	fmt.Printf("testGetStatisticsCommand ok\n")
 }
+*/
 
+/*
 func testGetStatisticsCommandBadDb() {
 	exec := getInvalidDbExecutor()
 	cmd := ravendb.NewGetStatisticsCommand("")
@@ -121,7 +134,9 @@ func testGetStatisticsCommandBadDb() {
 	}
 	fmt.Printf("testGetStatisticsCommandBadDb ok\n")
 }
+*/
 
+/*
 func testGetTopologyCommand() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetTopologyCommand()
@@ -132,7 +147,9 @@ func testGetTopologyCommand() {
 	}
 	fmt.Printf("testGetTopologyCommand ok\n")
 }
+*/
 
+/*
 func testGetTopologyCommandBadDb() {
 	exec := getInvalidDbExecutor()
 	cmd := ravendb.NewGetTopologyCommand()
@@ -145,10 +162,12 @@ func testGetTopologyCommandBadDb() {
 	}
 	fmt.Printf("testGetTopologyCommandBadDb ok\n")
 }
+*/
 
+/*
 func testGetDatabaseNamesCommand() {
 	sess := mustGetSession()
-	exec := sess.RequestExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor()
 	cmd := ravendb.NewGetDatabaseNamesCommand(0, 32)
 	res, err := ravendb.ExecuteGetDatabaseNamesCommand(exec, cmd)
 	must(err)
@@ -158,11 +177,16 @@ func testGetDatabaseNamesCommand() {
 	panicIf(!stringInArray(res.Databases, testDbName), "%s not in %v", testDbName, res.Databases)
 	fmt.Printf("testGetDatabaseNamesCommand ok\n")
 }
+*/
 
+/*
 func testCreateDatabaseCommand() {
 	testDbName = "tst_" + ravendb.NewUUID().Hex()
 	exec := getExecutor()
-	cmd := ravendb.NewCreateDatabaseCommand(testDbName, 1)
+	dbRecord := &ravendb.DatabaseRecord{
+		DatabaseName: testDbName,
+	}
+	cmd := ravendb.NewCreateDatabaseOperation(dbRecord)
 	res, err := ravendb.ExecuteCreateDatabaseCommand(exec, cmd)
 	must(err)
 	panicIf(res.RaftCommandIndex == 0, "res.RaftCommandIndex is 0")
@@ -172,7 +196,9 @@ func testCreateDatabaseCommand() {
 	}
 	fmt.Printf("testCreateDatabaseCommand ok\n")
 }
+*/
 
+/*
 func deleteTestDatabases() {
 	exec := getExecutor()
 	cmd := ravendb.NewGetDatabaseNamesCommand(0, 32)
@@ -195,7 +221,9 @@ func deleteTestDatabases() {
 		}
 	}
 }
+*/
 
+/*
 func testDeleteDatabaseOp() {
 	exec := getExecutor()
 	cmd := ravendb.NewDeleteDatabaseCommand(testDbName, true, "")
@@ -208,6 +236,7 @@ func testDeleteDatabaseOp() {
 
 	fmt.Printf("testDeleteDatabaseCommand ok\n")
 }
+*/
 
 /*
 func testCreateAndDeleteDatabaseCommand() {
@@ -234,9 +263,10 @@ func testCreateAndDeleteDatabaseCommand() {
 }
 */
 
+/*
 func testPutGetDeleteDocument() {
 	sess := mustGetSession()
-	exec := sess.RequestExecutor.GetCommandExecutor(false)
+	exec := sess.RequestExecutor.GetCommandExecutor()
 	key := "testing/1"
 	meta := map[string]interface{}{
 		"@collection": "Testings",
@@ -284,13 +314,15 @@ func testPutGetDeleteDocument() {
 	// TODO: test changeVector
 	fmt.Printf("testPutGetDeleteDocument ok\n")
 }
+*/
 
+/*
 func testHiLoKeyGenerator() {
 	store := getStore()
 	tag := "my_tag"
-	generator := ravendb.NewHiLoKeyGenerator(tag, store, testDbName)
+	generator := ravendb.NewHiLoIDGenerator(tag, store, testDbName)
 	fmt.Printf("generator: %#v\n", generator)
-	res := generator.GenerateDocumentKey()
+	res := generator.GenerateDocumentID()
 	if verboseLog {
 		fmt.Printf("%#v\n", res)
 	}
@@ -298,13 +330,17 @@ func testHiLoKeyGenerator() {
 	must(err)
 	print("testHiLoKeyGenerator ok\n")
 }
+*/
 
+/*
 // Foo is just a test object
 type Foo struct {
 	ID   string
 	Name string
 }
+*/
 
+/*
 func testStoreLoad() {
 	sess := mustGetSession()
 	v := &Foo{
@@ -317,7 +353,9 @@ func testStoreLoad() {
 	id := v.ID
 	exp := "foos/1-A"
 	panicIf(id != exp, "id is '%s', should be '%s'", id, exp)
+*/
 
+/*
 	if false {
 		// TODO: not yet working
 		sess = mustGetNewSession()
@@ -334,30 +372,34 @@ func testStoreLoad() {
 			}
 		}
 	}
+*/
+/*
 	print("testStoreLoad ok\n")
 }
+*/
 
 func main() {
-	allTests := false
 
-	deleteTestDatabases()
-	testCreateDatabaseCommand()
+	/*
+		allTests := false
+		deleteTestDatabases()
+		testCreateDatabaseCommand()
 
-	if allTests {
-		testInvalidCommand()
+		if allTests {
+			testInvalidCommand()
 
-		testGetDatabaseNamesCommand()
-		testGetTopologyCommand()
-		testGetTopologyCommandBadDb()
+			testGetDatabaseNamesCommand()
+			testGetTopologyCommand()
+			testGetTopologyCommandBadDb()
 
-		testGetClusterTopologyCommand()
-		testGetStatisticsCommand()
-		testGetStatisticsCommandBadDb()
-		testPutGetDeleteDocument()
-		testHiLoKeyGenerator()
-	}
+			testGetClusterTopologyCommand()
+			testGetStatisticsCommand()
+			testGetStatisticsCommandBadDb()
+			testPutGetDeleteDocument()
+			testHiLoKeyGenerator()
+		}
 
-	testStoreLoad()
-
+		testStoreLoad()
+	*/
 	//testDeleteDatabaseOp()
 }

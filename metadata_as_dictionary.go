@@ -90,6 +90,7 @@ func (d *MetadataAsDictionary) convertValue(key string, value Object) Object {
 	case ObjectNode:
 		return NewMetadataAsDictionary(v, d, key)
 	case []interface{}:
+		panicIf(true, "value is interface{}")
 		// TODO: not sure this will work
 		// TODO: pre-allocate result
 		var res []interface{}
@@ -113,6 +114,18 @@ func (d *MetadataAsDictionary) clear() {
 
 	d._metadata = map[string]Object{} // TODO: can it be nil?
 }
+func (d *MetadataAsDictionary) get(key string) (interface{}, bool) {
+	if d._metadata != nil {
+		v, ok := d._metadata[key]
+		return v, ok
+	}
+
+	v, ok := d._source[key]
+	if !ok {
+		return v, ok
+	}
+	return d.convertValue(key, v), ok
+}
 
 /*
     @Override
@@ -124,14 +137,6 @@ func (d *MetadataAsDictionary) clear() {
         return _source.size();
     }
 
-    @Override
-    public Object get(Object key) {
-        if (_metadata != null) {
-            return _metadata.get(key);
-        }
-
-        return convertValue((String) key, _source.get((String) key));
-    }
 
     @Override
     public boolean isEmpty() {

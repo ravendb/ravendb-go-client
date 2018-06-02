@@ -1,5 +1,7 @@
 package ravendb
 
+import "reflect"
+
 type EntityToJson struct {
 	_session           *InMemoryDocumentSessionOperations
 	_missingDictionary map[Object]map[string]Object
@@ -22,44 +24,49 @@ func (e *EntityToJson) convertEntityToJson(entity Object, documentInfo *Document
 	if v, ok := entity.(ObjectNode); ok {
 		return v
 	}
+	jsonNode := structToJSONMap(entity)
+	tryRemoveIdentityProperty(jsonNode)
+	return jsonNode
+}
+
+// TODO: verify is correct, write a test
+func isTypeObjectNode(entityType reflect.Type) bool {
+	var v ObjectNode
+	typ := reflect.ValueOf(v).Type()
+	return typ.String() == entityType.String()
+}
+
+// Converts a json object to an entity.
+func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, document ObjectNode) Object {
+	if isTypeObjectNode(entityType) {
+		return document
+	}
 	panicIf(true, "NYI")
 	/*
-		ObjectMapper mapper = _session.getConventions().getEntityMapper();
+		try {
+			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
+			Object entity = defaultValue;
 
-		ObjectNode jsonNode = mapper.valueToTree(entity);
+			String documentType =_session.getConventions().getJavaClass(id, document);
+			if (documentType != null) {
+				Class type = Class.forName(documentType);
+				if (entityType.isAssignableFrom(type)) {
+					entity = _session.getConventions().getEntityMapper().treeToValue(document, type);
+				}
+			}
 
-		writeMetadata(mapper, jsonNode, documentInfo);
+			if (entity == defaultValue) {
+				entity = _session.getConventions().getEntityMapper().treeToValue(document, entityType);
+			}
 
-		Class<?> clazz = entity.getClass();
-		tryRemoveIdentityProperty(jsonNode, clazz, _session.getConventions());
-		//TBD: TrySimplifyJson(reader);
-		return jsonNode;
-	*/
-	return nil
-}
+			if (id != null) {
+				_session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id);
+			}
 
-func convertEntityToJson(entity Object, conventions *DocumentConventions) ObjectNode {
-	return convertEntityToJsonWithDocumentInfo(entity, conventions, nil)
-}
-
-func convertEntityToJsonWithDocumentInfo(entity Object, conventions *DocumentConventions, documentInfo *DocumentInfo) ObjectNode {
-	// maybe we don't need to do anything?
-	if v, ok := entity.(ObjectNode); ok {
-		return v
-	}
-
-	/*
-		ObjectMapper mapper = JsonExtensions.getDefaultMapper();
-
-		ObjectNode jsonNode = mapper.valueToTree(entity);
-
-		writeMetadata(mapper, jsonNode, documentInfo);
-
-		Class<?> clazz = entity.getClass();
-		tryRemoveIdentityProperty(jsonNode, clazz, conventions);
-		//TBD: TrySimplifyJson(reader);
-
-		return jsonNode;
+			return entity;
+		} catch (Exception e) {
+			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.getName(), e);
+		}
 	*/
 	return nil
 }
@@ -90,50 +97,13 @@ func convertEntityToJsonWithDocumentInfo(entity Object, conventions *DocumentCon
         }
     }
 
-     // Converts a json object to an entity.
-    public Object convertToEntity(Class entityType, String id, ObjectNode document) {
-        try {
-            if (ObjectNode.class.equals(entityType)) {
-                return document;
-            }
-
-            Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
-            Object entity = defaultValue;
-
-            String documentType =_session.getConventions().getJavaClass(id, document);
-            if (documentType != null) {
-                Class type = Class.forName(documentType);
-                if (entityType.isAssignableFrom(type)) {
-                    entity = _session.getConventions().getEntityMapper().treeToValue(document, type);
-                }
-            }
-
-            if (entity == defaultValue) {
-                entity = _session.getConventions().getEntityMapper().treeToValue(document, entityType);
-            }
-
-            if (id != null) {
-                _session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id);
-            }
-
-            return entity;
-        } catch (Exception e) {
-            throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.getName(), e);
-        }
-    }
 
     //TBD public static object ConvertToEntity(Type entityType, string id, BlittableJsonReaderObject document, DocumentConventions conventions)
 
-    private static boolean tryRemoveIdentityProperty(ObjectNode document, Class entityType, DocumentConventions conventions) {
-        Field identityProperty = conventions.getIdentityProperty(entityType);
-
-        if (identityProperty == null) {
-            return false;
-        }
-
-        document.remove(identityProperty.getName());
-
-        return true;
-    }
 }
 */
+
+func tryRemoveIdentityProperty(document ObjectNode) bool {
+	delete(document, IdentityProperty)
+	return true
+}

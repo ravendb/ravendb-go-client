@@ -55,6 +55,10 @@ func (d *DocumentInfo) getMetadata() ObjectNode {
 	return d.metadata
 }
 
+func (d *DocumentInfo) getDocument() ObjectNode {
+	return d.document
+}
+
 func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
 	return d.metadataInstance
 }
@@ -65,6 +69,10 @@ func (d *DocumentInfo) getConcurrencyCheckMode() ConcurrencyCheckMode {
 
 func (d *DocumentInfo) setMetadataInstance(metadataInstance *IMetadataDictionary) {
 	d.metadataInstance = metadataInstance
+}
+
+func (d *DocumentInfo) isNewDocument() bool {
+	return d.newDocument
 }
 
 func (d *DocumentInfo) setId(id string) {

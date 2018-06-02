@@ -2,118 +2,316 @@ package ravendb
 
 import (
 	"fmt"
+	"strings"
 	"sync"
+	"time"
 )
 
 // DocumentStore represents a database
 type DocumentStore struct {
-	urls          []string // urls for HTTP endopoints of server nodes
-	database      string   // name of the database
-	isInitialized bool
-	mu            sync.Mutex
+	// from DocumentStoreBase
+	//List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = new ArrayList<>();
+	//List<EventHandler<AfterSaveChangesEventArgs>> onAfterSaveChanges = new ArrayList<>();
+	//List<EventHandler<BeforeDeleteEventArgs>> onBeforeDelete = new ArrayList<>();
+	//List<EventHandler<BeforeQueryEventArgs>> onBeforeQuery = new ArrayList<>();
+	//List<EventHandler<SessionCreatedEventArgs>> onSessionCreated = new ArrayList<>();
+	disposed     bool
+	conventions  *DocumentConventions
+	urls         []string // urls for HTTP endopoints of server nodes
+	initialized  bool
+	_certificate *KeyStore
+	database     string // name of the database
+
+	// TODO: _databaseChanges
+	// TODO: _aggressiveCacheChanges
 	// maps database name to its RequestsExecutor
-	requestsExecutors map[string]*RequestExecutor
-	Conventions       *DocumentConventions
-	generator         *MultiDatabaseHiLoKeyGenerator
+	requestsExecutors            map[string]*RequestExecutor
+	_multiDbHiLo                 *MultiDatabaseHiLoIDGenerator
+	maintenanceOperationExecutor *MaintenanceOperationExecutor
+	operationExecutor            *OperationExecutor
+	identifier                   string
+	_aggressiveCachingUsed       bool
+
+	//private final List<EventHandler<VoidArgs>> afterClose = new ArrayList<>();
+	//private final List<EventHandler<VoidArgs>> beforeClose = new ArrayList<>();
+
+	// old
+	mu sync.Mutex
 }
 
-// NewDocumentStore creates a DocumentStore
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L13
-func NewDocumentStore(urls []string, db string) *DocumentStore {
-	s := &DocumentStore{
-		urls:              urls,
-		database:          db,
-		requestsExecutors: map[string]*RequestExecutor{},
-		Conventions:       NewDocumentConventions(),
+// from DocumentStoreBase
+func (s *DocumentStore) getConventions() *DocumentConventions {
+	if s.conventions == nil {
+		s.conventions = NewDocumentConventions()
 	}
+	return s.conventions
+}
 
-	// TODO: this belongs also to NewDocumentStore
-	if len(s.urls) == 0 {
-		err := fmt.Errorf("Must provide urls to NewDocumentStore")
-		must(err)
+func (s *DocumentStore) setConventions(conventions *DocumentConventions) {
+	s.conventions = conventions
+}
+
+func (s *DocumentStore) getUrls() []string {
+	return s.urls
+}
+
+func (s *DocumentStore) setUrls(value []string) {
+	panicIf(len(value) == 0, "value is empty")
+	for i, s := range value {
+		value[i] = strings.TrimSuffix(s, "/")
 	}
-	// TODO: for some operations (like listing databases) you don't need database name
-	if s.database == "" {
-		err := fmt.Errorf("Must provide database name to NewDocumentStore")
-		must(err)
+	s.urls = value
+}
+
+func (s *DocumentStore) ensureNotClosed() {
+	// TODO: implement me
+}
+
+/*
+public void addBeforeStoreListener(EventHandler<BeforeStoreEventArgs> handler) {
+	this.onBeforeStore.add(handler);
+
+}
+public void removeBeforeStoreListener(EventHandler<BeforeStoreEventArgs> handler) {
+	this.onBeforeStore.remove(handler);
+}
+
+public void addAfterSaveChangesListener(EventHandler<AfterSaveChangesEventArgs> handler) {
+	this.onAfterSaveChanges.add(handler);
+}
+
+public void removeAfterSaveChangesListener(EventHandler<AfterSaveChangesEventArgs> handler) {
+	this.onAfterSaveChanges.remove(handler);
+}
+
+public void addBeforeDeleteListener(EventHandler<BeforeDeleteEventArgs> handler) {
+	this.onBeforeDelete.add(handler);
+}
+public void removeBeforeDeleteListener(EventHandler<BeforeDeleteEventArgs> handler) {
+	this.onBeforeDelete.remove(handler);
+}
+
+public void addBeforeQueryListener(EventHandler<BeforeQueryEventArgs> handler) {
+	this.onBeforeQuery.add(handler);
+}
+public void removeBeforeQueryListener(EventHandler<BeforeQueryEventArgs> handler) {
+	this.onBeforeQuery.remove(handler);
+}
+*/
+
+func (s *DocumentStore) assertInitialized() {
+	panicIf(!s.initialized, "DocumentStore must be initialized")
+}
+
+func (s *DocumentStore) getDatabase() string {
+	return s.database
+}
+
+func (s *DocumentStore) setDatabase(database string) {
+	panicIf(s.initialized, "is already initialized")
+	s.database = database
+}
+
+func (s *DocumentStore) getCertificate() *KeyStore {
+	return s._certificate
+}
+
+func (s *DocumentStore) setCertificate(certificate *KeyStore) {
+	panicIf(s.initialized, "is already initialized")
+	s._certificate = certificate
+}
+
+func (s *DocumentStore) aggressivelyCache() {
+	s.aggressivelyCacheWithDatabase("")
+}
+
+func (s *DocumentStore) aggressivelyCacheWithDatabase(database String) {
+	s.aggressivelyCacheForDatabase(time.Hour*24, database)
+}
+
+//    protected void registerEvents(InMemoryDocumentSessionOperations session) {
+
+// NewDocumentStore creates a DocumentStore
+func NewDocumentStore() *DocumentStore {
+	s := &DocumentStore{
+		requestsExecutors: map[string]*RequestExecutor{},
+		conventions:       NewDocumentConventions(),
 	}
 	return s
 }
 
-// Initialize initializes document store,
-// Must be called before executing any operation.
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L96
-func (s *DocumentStore) Initialize() error {
-	if s.isInitialized {
-		return nil
+func NewDocumentStoreWithUrlAndDatabase(url string, database string) *DocumentStore {
+	res := NewDocumentStore()
+	res.setUrls([]string{url})
+	res.setDatabase(database)
+	return res
+}
+
+func NewDocumentStoreWithUrlsAndDatabase(urls []string, database string) *DocumentStore {
+	res := NewDocumentStore()
+	res.setUrls(urls)
+	res.setDatabase(database)
+	return res
+}
+
+func (s *DocumentStore) getIdentifier() string {
+	if s.identifier != "" {
+		return s.identifier
 	}
-	// TODO: this belongs also to NewDocumentStore
+
 	if len(s.urls) == 0 {
-		return fmt.Errorf("Must provide urls to NewDocumentStore")
+		return ""
 	}
-	// TODO: for some operations (like listing databases) you don't need database name
-	if s.database == "" {
-		return fmt.Errorf("Must provide database name to NewDocumentStore")
+
+	if s.database != "" {
+		return strings.Join(s.urls, ",") + " (DB: " + s.database + ")"
 	}
-	s.generator = NewMultiDatabaseHiLoKeyGenerator(s)
-	s.isInitialized = true
-	return nil
+
+	return strings.Join(s.urls, ",")
 }
 
-func (s *DocumentStore) assertInitialized() {
-	panicIf(!s.isInitialized, "DocumentStore must be initialized")
-}
-
-// GetRequestExecutor gets a request executor for a given database
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L84
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/DocumentStore.java#L159
-func (s *DocumentStore) GetRequestExecutor(dbName string) *RequestExecutor {
-	s.assertInitialized()
-	if dbName == "" {
-		dbName = s.database
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if re, ok := s.requestsExecutors[dbName]; ok {
-		return re
-	}
-	// TODO: certificate
-	re := CreateRequestsExecutor(s.urls, dbName, s.Conventions)
-	s.requestsExecutors[dbName] = re
-	return re
-}
-
-// TODO: this is temporary, should be on RequestsExecutor
-func (s *DocumentStore) getSimpleExecutor() CommandExecutorFunc {
-	node := &ServerNode{
-		URL:        s.urls[0],
-		Database:   s.database,
-		ClusterTag: "0",
-	}
-	return MakeSimpleExecutor(node)
-}
-
-// OpenSession opens a new session to document store.
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/store/document_store.py#L112
-func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
-	s.assertInitialized()
-
-	sessionID := NewUUID().String()
-	re := s.GetRequestExecutor(s.database)
-	return NewDocumentSession(s.database, s, sessionID, re), nil
+func (s *DocumentStore) setIdentifier(identifier String) {
+	s.identifier = identifier
 }
 
 // Close closes the store
 func (s *DocumentStore) Close() {
-	if s.generator != nil {
-		s.generator.ReturnUnusedRange()
+	if s._multiDbHiLo != nil {
+		s._multiDbHiLo.ReturnUnusedRange()
 	}
 	// TODO: more
 }
 
-func (s *DocumentStore) generateID(dbName string, entity interface{}) string {
-	// s.generator is created in Initialize so should always be available
-	id := s.generator.GenerateDocumentKey(dbName, entity)
-	panicIf(id == "", "id should not be empty string")
-	return id
+// OpenSession opens a new session to document store.
+func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
+	return s.OpenSessionWithOptions(NewSessionOptions())
 }
+
+func (s *DocumentStore) OpenSessionWithDatabase(database string) (*DocumentSession, error) {
+	sessionOptions := NewSessionOptions()
+	sessionOptions.setDatabase(database)
+	return s.OpenSessionWithOptions(sessionOptions)
+}
+
+func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*DocumentSession, error) {
+	s.assertInitialized()
+	s.ensureNotClosed()
+
+	sessionID := NewUUID().String()
+	databaseName := firstNonEmptyString(options.getDatabase(), s.getDatabase())
+	requestExecutor := options.getRequestExecutor()
+	if requestExecutor == nil {
+		requestExecutor = s.GetRequestExecutorWithDatabase(databaseName)
+	}
+	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
+	//s.registerEvents(session);
+	//s.afterSessionCreated(session);
+	return session, nil
+}
+
+func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {
+	return s.GetRequestExecutorWithDatabase("")
+}
+
+// GetRequestExecutorWithDatabase gets a request executor for a given database
+func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *RequestExecutor {
+	s.assertInitialized()
+	if database == "" {
+		database = s.getDatabase()
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	executor, ok := s.requestsExecutors[database]
+	if ok {
+		return executor
+	}
+
+	if !s.getConventions().isDisableTopologyUpdates() {
+		executor = RequestExecutor_create(s.getUrls(), s.getDatabase(), s.getCertificate(), s.getConventions())
+	} else {
+		executor = RequestExecutor_createForSingleNodeWithConfigurationUpdates(s.getUrls()[0], s.getDatabase(), s.getCertificate(), s.getConventions())
+	}
+	s.requestsExecutors[database] = executor
+	return executor
+}
+
+// Initialize initializes document store,
+// Must be called before executing any operation.
+func (s *DocumentStore) Initialize() (*DocumentStore, error) {
+	if s.initialized {
+		return s, nil
+	}
+	err := s.assertValidConfiguration()
+	if err != nil {
+		return nil, err
+	}
+
+	conventions := s.conventions
+	if conventions.getDocumentIdGenerator() == nil {
+		generator := NewMultiDatabaseHiLoIDGenerator(s)
+		s._multiDbHiLo = generator
+		genID := func(dbName string, entity Object) string {
+			return generator.GenerateDocumentID(dbName, entity)
+		}
+		conventions.setDocumentIdGenerator(genID)
+	}
+	s.initialized = true
+	return s, nil
+}
+
+func (s *DocumentStore) assertValidConfiguration() error {
+	if len(s.urls) == 0 {
+		return fmt.Errorf("Must provide urls to NewDocumentStore")
+	}
+	return nil
+}
+
+func (s *DocumentStore) disableAggressiveCaching() {
+	s.disableAggressiveCachingWithDatabase("")
+}
+
+func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string) {
+	// TODO: implement me
+}
+
+//    public IDatabaseChanges changes() {
+//    public IDatabaseChanges changes(String database) {
+//    protected IDatabaseChanges createDatabaseChanges(String database) {
+//     public Exception getLastDatabaseChangesStateException() {
+//    public Exception getLastDatabaseChangesStateException(String database) {
+
+func (s *DocumentStore) aggressivelyCacheFor(cacheDuration time.Duration) {
+	// TODO: implement me
+}
+
+func (s *DocumentStore) aggressivelyCacheForDatabase(cacheDuration time.Duration, database string) {
+	// TODO: implement me
+}
+
+//    private void listenToChangesAndUpdateTheCache(String database) {
+//    public void addBeforeCloseListener(EventHandler<VoidArgs> event) {
+//   public void removeBeforeCloseListener(EventHandler<VoidArgs> event) {
+//    public void addAfterCloseListener(EventHandler<VoidArgs> event) {
+//    public void removeAfterCloseListener(EventHandler<VoidArgs> event) {
+
+func (s *DocumentStore) maintenance() *MaintenanceOperationExecutor {
+	s.assertInitialized()
+
+	if s.maintenanceOperationExecutor == nil {
+		s.maintenanceOperationExecutor = NewMaintenanceOperationExecutor(s)
+	}
+
+	return s.maintenanceOperationExecutor
+}
+
+func (s *DocumentStore) operations() *OperationExecutor {
+	if s.operationExecutor == nil {
+		s.operationExecutor = NewOperationExecutor(s)
+	}
+
+	return s.operationExecutor
+}
+
+//    public BulkInsertOperation bulkInsert() {
+//    public BulkInsertOperation bulkInsert(String database) {

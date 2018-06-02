@@ -2,71 +2,120 @@ package ravendb
 
 import "fmt"
 
-// IllegalStateError corresponds to Java's IllegalStateException
-type IllegalStateError struct {
+type UnsupportedOperationException struct {
 	ErrorStr string
 }
 
-// NewIllegalStateError creates a new IllegalStateError
-func NewIllegalStateError(format string, args ...interface{}) *IllegalStateError {
-	return &IllegalStateError{
+func NewUnsupportedOperationException(format string, args ...interface{}) *UnsupportedOperationException {
+	return &UnsupportedOperationException{
 		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
 // Error makes it conform to error interface
-func (e *IllegalStateError) Error() string {
+func (e *UnsupportedOperationException) Error() string {
 	return e.ErrorStr
 }
 
-// IllegalArgumentError corresponds to Java's IllegalArgumentException
-type IllegalArgumentError struct {
+// IllegalStateException corresponds to Java's IllegalStateException
+type IllegalStateException struct {
 	ErrorStr string
 }
 
-// NewIllegalArgumentError creates new IllegalArgumentError
-func NewIllegalArgumentError(format string, args ...interface{}) *IllegalArgumentError {
-	return &IllegalArgumentError{
+// NewIllegalStateException creates a new IllegalStateError
+func NewIllegalStateException(format string, args ...interface{}) *IllegalStateException {
+	return &IllegalStateException{
 		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
 // Error makes it conform to error interface
-func (e *IllegalArgumentError) Error() string {
+func (e *IllegalStateException) Error() string {
 	return e.ErrorStr
 }
 
-// NotImplementedError corresponds to Java's NotImplementedException
-type NotImplementedError struct {
+// IllegalArgumentException corresponds to Java's IllegalArgumentException
+type IllegalArgumentException struct {
 	ErrorStr string
 }
 
-// NewNotImplementedError creates new NotImplementedError
-func NewNotImplementedError(format string, args ...interface{}) *NotImplementedError {
-	return &NotImplementedError{
+// NewIllegalArgumentException creates new IllegalArgumentError
+func NewIllegalArgumentException(format string, args ...interface{}) *IllegalArgumentException {
+	return &IllegalArgumentException{
 		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
 // Error makes it conform to error interface
-func (e *NotImplementedError) Error() string {
+func (e *IllegalArgumentException) Error() string {
 	return e.ErrorStr
 }
 
-// NonUniqueObjectError corresponds to Java's NonUniqueObjectException
-type NonUniqueObjectError struct {
+// NotImplementedException corresponds to Java's NotImplementedException
+type NotImplementedException struct {
 	ErrorStr string
 }
 
-// NewNonUniqueObjectError creates new NonUniqueObjectError
-func NewNonUniqueObjectError(format string, args ...interface{}) *NonUniqueObjectError {
-	return &NonUniqueObjectError{
+// NewNotImplementedException creates new NotImplementedError
+func NewNotImplementedException(format string, args ...interface{}) *NotImplementedException {
+	return &NotImplementedException{
 		ErrorStr: fmt.Sprintf(format, args...),
 	}
 }
 
 // Error makes it conform to error interface
-func (e *NonUniqueObjectError) Error() string {
+func (e *NotImplementedException) Error() string {
+	return e.ErrorStr
+}
+
+// NonUniqueObjectException corresponds to Java's NonUniqueObjectException
+type NonUniqueObjectException struct {
+	ErrorStr string
+}
+
+// NewNonUniqueObjectException creates new NonUniqueObjectError
+func NewNonUniqueObjectException(format string, args ...interface{}) *NonUniqueObjectException {
+	return &NonUniqueObjectException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *NonUniqueObjectException) Error() string {
+	return e.ErrorStr
+}
+
+// DatabaseDoesNotExistException corresponds to Java's DatabaseDoesNotExistException
+type DatabaseDoesNotExistException struct {
+	ErrorStr string
+}
+
+// NewDatabaseDoesNotExistException creates new NonUniqueObjectError
+func NewDatabaseDoesNotExistException(format string, args ...interface{}) *DatabaseDoesNotExistException {
+	return &DatabaseDoesNotExistException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *DatabaseDoesNotExistException) Error() string {
+	return e.ErrorStr
+}
+
+// AllTopologyNodesDownException corresponds to Java's AllTopologyNodesDownException
+type AllTopologyNodesDownException struct {
+	ErrorStr string
+}
+
+// NewAllTopologyNodesDownException creates new AllTopologyNodesDownException
+func NewAllTopologyNodesDownException(format string, args ...interface{}) *AllTopologyNodesDownException {
+	return &AllTopologyNodesDownException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *AllTopologyNodesDownException) Error() string {
 	return e.ErrorStr
 }
 

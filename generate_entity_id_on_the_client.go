@@ -23,7 +23,7 @@ func (g *GenerateEntityIdOnTheClient) tryGetIdFromInstance(entity Object) (strin
 // Tries to get the identity.
 func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity Object) String {
 	id, ok := g.tryGetIdFromInstance(entity)
-	if !ok {
+	if !ok || id == "" {
 		id = g._generateId(entity)
 	}
 

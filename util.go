@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -72,6 +73,10 @@ func quoteKey(s string) string {
 
 func quoteKeyWithSlash(s string) string {
 	return quoteKey2(s, true)
+}
+
+func StringUtils_isNotEmpty(s string) bool {
+	return s != ""
 }
 
 // getFullTypeName returns fully qualified (including package) name of the type,
@@ -166,20 +171,6 @@ func defaultTransformTypeTagName(name string) string {
 	return defaultTransformPlural(name)
 }
 
-// TODO: move to DocumentConventions
-func buildDefaultMetadata(entity interface{}) map[string]interface{} {
-	res := map[string]interface{}{}
-	if entity == nil {
-		return res
-	}
-	fullTypeName := getFullTypeName(entity)
-	typeName := getShortTypeName(entity)
-	collectionName := defaultTransformPlural(typeName)
-	res["@collection"] = collectionName
-	res["Raven-Go-Type"] = fullTypeName
-	return res
-}
-
 func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
 	if rv.Type().Kind() == reflect.Ptr {
 		rv = rv.Elem()
@@ -208,6 +199,14 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
 	return v
 }
 
+func min(i1, i2 int) int {
+	if i1 < i2 {
+		return i1
+	}
+	return i2
+}
+
+// TODO: use EntityToJson.convertEntityToJson instead?
 func convertToEntity(entityType reflect.Type, id string, document ObjectNode) interface{} {
 	res := makeStructFromJSONMap(entityType, document)
 	// TODO: set id on res
@@ -231,4 +230,46 @@ func firstNonEmptyString(s1, s2 string) string {
 		return s1
 	}
 	return s2
+}
+
+func fieldNames(js ObjectNode) []string {
+	var res []string
+	for k := range js {
+		res = append(res, k)
+	}
+	return res
+}
+
+// return a1 - a2
+func stringArraySubtract(a1, a2 []string) []string {
+	if len(a2) == 0 {
+		return a1
+	}
+	if len(a1) == 0 {
+		return nil
+	}
+	diff := make(map[string]struct{})
+	for _, k := range a1 {
+		diff[k] = struct{}{}
+	}
+	for _, k := range a2 {
+		delete(diff, k)
+	}
+	if len(diff) == 0 {
+		return nil
+	}
+	// TODO: pre-allocate
+	var res []string
+	for k := range diff {
+		res = append(res, k)
+	}
+	return res
+}
+
+func fileExists(path string) bool {
+	st, err := os.Lstat(path)
+	if err != nil {
+		return false
+	}
+	return !st.IsDir()
 }
