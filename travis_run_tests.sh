@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Disable database tests
-export RAVEN_GO_NO_DB_TESTS=yes
 go test -race -covermode=atomic -coverprofile=coverage.txt
+tar xvjf RavenDB.tar.bz2
+rm -rf RavenDB.tar.bz2
 

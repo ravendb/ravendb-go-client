@@ -20,3 +20,5 @@ main
 cmd/test/debug
 cmd/loggingproxy/db
 logs/
+RavenDB/
+coverage.txt
