@@ -137,17 +137,6 @@ func NewDocumentStore() *DocumentStore {
 		requestsExecutors: map[string]*RequestExecutor{},
 		conventions:       NewDocumentConventions(),
 	}
-
-	// TODO: this belongs also to NewDocumentStore
-	if len(s.urls) == 0 {
-		err := fmt.Errorf("Must provide urls to NewDocumentStore")
-		must(err)
-	}
-	// TODO: for some operations (like listing databases) you don't need database name
-	if s.database == "" {
-		err := fmt.Errorf("Must provide database name to NewDocumentStore")
-		must(err)
-	}
 	return s
 }
 
