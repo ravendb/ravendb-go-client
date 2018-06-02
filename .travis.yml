@@ -30,6 +30,7 @@ before_install:
   - wget -O RavenDB.tar.bz2 https://hibernatingrhinos.com/downloads/RavenDB%20for%20Linux%20x64/latest?buildType=nightly
   - tar xvjf RavenDB.tar.bz2
   - rm RavenDB.tar.bz2
+  - ls -lah RavenDB
   - find . -name "*.go" | xargs sed -i 's/github.com\/ravendb\/ravendb-go-client/github.com\/kjk\/ravendb-go-client/'
   - go get -d -t -v ./...
 

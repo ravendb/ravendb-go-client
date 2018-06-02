@@ -18,7 +18,7 @@ type RavenServerLocator struct {
 func NewRavenServerLocator() (*RavenServerLocator, error) {
 	path := os.Getenv(envServerPath)
 	if path == "" {
-		return nil, fmt.Errorf("Unable to find RavenDB server path. Please make sure %s environment variable is set and is valid (current value = %v)", envServerPath, path)
+		return nil, fmt.Errorf("Unable to find RavenDB server path. Please make sure %s environment variable is set and is valid. Current value: '%s')", envServerPath, path)
 	}
 	return &RavenServerLocator{
 		serverPath: path,

@@ -227,7 +227,7 @@ func useProxy() bool {
 
 func TestMain(m *testing.M) {
 	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
-	if noDb != "" {
+	if noDb == "" {
 		// this helps running tests from withing Visual Studio Code,
 		// where env variables are not set
 		serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
@@ -236,15 +236,18 @@ func TestMain(m *testing.M) {
 			path := filepath.Join(home, "Documents", "RavenDB", "Server", "Raven.Server")
 			_, err := os.Stat(path)
 			if err != nil {
-				path = filepath.Join("RavenDB", "Server", "Raven.Server")
+				cwd, err := os.Getwd()
+				must(err)
+				path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
 				_, err = os.Stat(path)
 				must(err)
 			}
 			os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+			fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
 		}
 	}
 
-	//RavenServerVerbose = true
+	RavenServerVerbose = true
 	if useProxy() {
 		go proxy.Run("")
 	}
