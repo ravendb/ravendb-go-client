@@ -228,9 +228,11 @@ func useProxy() bool {
 func TestMain(m *testing.M) {
 	fmt.Printf("TestMain\n")
 	// this helps running tests from withing Visual Studio Code,
-	v := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
-	if v == "" {
+	serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
+	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
+	if noDb != "" && serverPath == "" {
 		// TODO: also try RavenDB/Server/Raven.Server path
+		// TODO: use serverPath ?
 		home := os.Getenv("HOME")
 		path := filepath.Join(home, "Documents", "RavenDB", "Server", "Raven.Server")
 		_, err := os.Stat(path)
