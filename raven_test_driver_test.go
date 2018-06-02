@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -102,7 +101,7 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 
 	// TODO:    documentStores.add(store);
 
-	return store, errors.New("NYI")
+	return store, nil
 }
 
 func waitForIndexing(store *DocumentStore, database String, timeout time.Duration) {
