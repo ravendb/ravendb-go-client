@@ -19,6 +19,12 @@ func NewCompletableFuture() *CompletableFuture {
 	}
 }
 
+func NewCompletableFutureAlreadyCompleted(result interface{}) *CompletableFuture {
+	res := NewCompletableFuture()
+	res.markAsDone(result)
+	return res
+}
+
 func (f *CompletableFuture) isDone() bool {
 	return f.done.get() > 0
 }

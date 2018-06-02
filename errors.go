@@ -85,6 +85,40 @@ func (e *NonUniqueObjectException) Error() string {
 	return e.ErrorStr
 }
 
+// DatabaseDoesNotExistException corresponds to Java's DatabaseDoesNotExistException
+type DatabaseDoesNotExistException struct {
+	ErrorStr string
+}
+
+// NewDatabaseDoesNotExistException creates new NonUniqueObjectError
+func NewDatabaseDoesNotExistException(format string, args ...interface{}) *DatabaseDoesNotExistException {
+	return &DatabaseDoesNotExistException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *DatabaseDoesNotExistException) Error() string {
+	return e.ErrorStr
+}
+
+// AllTopologyNodesDownException corresponds to Java's AllTopologyNodesDownException
+type AllTopologyNodesDownException struct {
+	ErrorStr string
+}
+
+// NewAllTopologyNodesDownException creates new AllTopologyNodesDownException
+func NewAllTopologyNodesDownException(format string, args ...interface{}) *AllTopologyNodesDownException {
+	return &AllTopologyNodesDownException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *AllTopologyNodesDownException) Error() string {
+	return e.ErrorStr
+}
+
 // BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {

@@ -61,6 +61,15 @@ func prettyPrintMaybeJSON(d []byte) []byte {
 	return d2
 }
 
+// TODO: also dump body
+func dumpHTTPRequest(req *http.Request) {
+	d, err := httputil.DumpRequest(req, false)
+	if err != nil {
+		return
+	}
+	os.Stdout.Write(d)
+}
+
 func dumpHTTPResponse(resp *http.Response, body []byte) {
 	d, err := httputil.DumpResponse(resp, false)
 	if err != nil {

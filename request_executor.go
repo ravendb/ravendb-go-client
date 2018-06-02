@@ -37,6 +37,8 @@ type RequestExecutor struct {
 	_firstTopologyUpdate *CompletableFuture
 
 	_readBalanceBehavior   ReadBalanceBehavior
+	cache                  *HttpCache
+	httpClient             *http.Client
 	_topologyTakenFromNode *ServerNode
 
 	_lastKnownUrls []string
@@ -44,14 +46,6 @@ type RequestExecutor struct {
 	mu sync.Mutex
 
 	_disposed bool
-	// old stuff
-
-	urls               []string // TODO: temporary
-	lastKnownUrls      []string
-	headers            map[string]string
-	updateTopologyLock sync.Mutex
-	updateTimerLock    sync.Mutex
-	lock               sync.Mutex
 }
 
 func (re *RequestExecutor) getTopology() *Topology {
@@ -114,9 +108,9 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		certificate:           certificate,
 		_lastReturnedResponse: time.Now(),
 		Conventions:           conventions.clone(),
-
-		headers: map[string]string{},
+		cache:                 NewHttpCache(),
 	}
+	res.httpClient = res.createClient()
 	return res
 }
 
@@ -401,6 +395,9 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		return err
 	}
 	// TODO: caching
+	dumpHTTPRequest(request)
+
+	urlRef := request.RequestURI // TODO: double-check
 
 	if !re._disableClientConfigurationUpdates {
 		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
@@ -412,18 +409,14 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		request.Header.Set(Constants_Headers_TOPOLOGY_ETAG, etag)
 	}
 
-	httpClient := &http.Client{
-		Timeout: time.Second * 5,
-	}
-
 	//sp := time.Now()
-	//responseDispose := ResponseDisposeHandling_AUTOMATIC
+	responseDispose := ResponseDisposeHandling_AUTOMATIC
 	var response *http.Response
 	re.numberOfServerRequests.incrementAndGet()
 	if re.shouldExecuteOnAll(chosenNode, command) {
-		//response, err =
+		response, err = re.executeOnAllToFigureOutTheFastest(chosenNode, command)
 	} else {
-		response, err = command.send(httpClient, request)
+		response, err = command.send(re.httpClient, request)
 	}
 	if err != nil {
 		if !shouldRetry {
@@ -438,12 +431,77 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 
 	command.statusCode = response.StatusCode
 
-	//refreshTopology := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_TOPOLOGY)
-	//refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_CLIENT_CONFIGURATION)
+	refreshTopology := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_TOPOLOGY)
+	refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_CLIENT_CONFIGURATION)
 
-	panicIf(true, "NYI")
+	// TODO: handle not modified
+
+	if response.StatusCode >= 400 {
+		dumpHTTPResponse(response, nil)
+		if !re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry) {
+			dbMissingHeader := response.Header.Get("Database-Missing")
+			if dbMissingHeader != "" {
+				return NewDatabaseDoesNotExistException(dbMissingHeader)
+			}
+
+			if len(command.getFailedNodes()) == 0 {
+				return NewIllegalStateException("Received unsuccessful response and couldn't recover from it. Also, no record of exceptions per failed nodes. This is weird and should not happen.")
+			}
+
+			if len(command.getFailedNodes()) == 1 {
+				// return first error
+				failedNodes := command.getFailedNodes()
+				for _, err := range failedNodes {
+					panicIf(err == nil, "err is nil")
+					return err
+				}
+			}
+
+			return NewAllTopologyNodesDownException("Received unsuccessful response from all servers and couldn't recover from it.")
+		}
+		return nil // we either handled this already in the unsuccessful response or we are throwing
+	}
+
+	responseDispose, err = command.processResponse(re.cache, response, urlRef)
+	re._lastReturnedResponse = time.Now()
+	if err != nil {
+		return err
+	}
+
+	if responseDispose == ResponseDisposeHandling_AUTOMATIC {
+		// TODO: not sure if it translates
+		response.Body.Close()
+		//IOUtils.closeQuietly(response)
+	}
+
+	if refreshTopology || refreshClientConfiguration {
+
+		serverNode := NewServerNode()
+		serverNode.setUrl(chosenNode.getUrl())
+		serverNode.setDatabase(re._databaseName)
+
+		var topologyTask *CompletableFuture
+		if refreshTopology {
+			topologyTask = re.updateTopologyAsync(serverNode, 0)
+		} else {
+			topologyTask = NewCompletableFutureAlreadyCompleted(false)
+		}
+		var clientConfiguration *CompletableFuture
+		if refreshClientConfiguration {
+			clientConfiguration = re.updateClientConfigurationAsync()
+		} else {
+			clientConfiguration = NewCompletableFutureAlreadyCompleted(nil)
+		}
+		topologyTask.get()
+		clientConfiguration.get()
+		if topologyTask.err != nil {
+			return topologyTask.err
+		}
+		if clientConfiguration.err != nil {
+			return clientConfiguration.err
+		}
+	}
 	return nil
-	// TODO: implement meinSpeedTestPhase
 }
 
 func (re *RequestExecutor) throwFailedToContactAllNodes(command *RavenCommand, request *http.Request, e error, timeoutException error) error {
@@ -466,6 +524,16 @@ func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command *R
 		command.isReadRequest() &&
 		command.getResponseType() == RavenCommandResponseType_OBJECT &&
 		chosenNode != nil
+}
+
+func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerNode, command *RavenCommand) (*http.Response, error) {
+	panicIf(true, "NYI")
+	return nil, nil
+}
+
+func (re *RequestExecutor) getFromCache(command *RavenCommand, url String, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
+	panicIf(true, "NYI")
+	return nil
 }
 
 /*
@@ -593,7 +661,10 @@ func (re *RequestExecutor) createRequest(node *ServerNode, command *RavenCommand
 	return request, err
 }
 
-// private <TResult> boolean handleUnsuccessfulResponse(ServerNode chosenNode, Integer nodeIndex, RavenCommand<TResult> command, HttpRequestBase request, CloseableHttpResponse response, String url, SessionInfo sessionInfo, boolean shouldRetry) {
+func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, request *http.Request, response *http.Response, url String, sessionInfo *SessionInfo, shouldRetry bool) bool {
+	panicIf(true, "NYI")
+	return true
+}
 
 func RequestExecutor_handleConflict(response *http.Response) error {
 	// ExceptionDispatcher.throwException(response);
@@ -660,9 +731,26 @@ func writeToCache(topology *Topology, node *ServerNode) {
 }
 
 // Close should be called when deleting executor
-func (re *RequestExecutor) Close() {
-	// TODO: implement me
-	panicIf(true, "NYI")
+func (re *RequestExecutor) close() {
+	if re._disposed {
+		return
+	}
+	re._disposed = true
+	//re.cache.close()
+
+	if re._updateTopologyTimer != nil {
+		re._updateTopologyTimer.Stop()
+		re._updateTopologyTimer = nil
+	}
+	re.disposeAllFailedNodesTimers()
+}
+
+func (re *RequestExecutor) createClient() *http.Client {
+	// TODO: certificate, make sure respects HTTP_PROXY etc.
+	httpClient := &http.Client{
+		Timeout: time.Second * 5,
+	}
+	return httpClient
 }
 
 type NodeStatus struct {
