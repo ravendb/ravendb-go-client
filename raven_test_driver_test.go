@@ -48,7 +48,7 @@ func getDocumentStoreWithName(dbName string) (*DocumentStore, error) {
 }
 
 func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
-	fmt.Printf("getDocumentStore2\n")
+	//fmt.Printf("getDocumentStore2\n")
 	// when db tests are disabled we return nil DocumentStore which is a signal
 	// to the caller to skip the db tests
 	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
@@ -227,17 +227,20 @@ func useProxy() bool {
 
 func TestMain(m *testing.M) {
 	fmt.Printf("TestMain\n")
-	os.Setenv("NO_PROXY", "true")
-	home := os.Getenv("HOME")
-	path := filepath.Join(home, "Documents", "RavenDB", "Server", "Raven.Server")
-	_, err := os.Stat(path)
-	must(err)
-	os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+	// this helps running tests from withing Visual Studio Code,
+	v := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
+	if v == "" {
+		// TODO: also try RavenDB/Server/Raven.Server path
+		home := os.Getenv("HOME")
+		path := filepath.Join(home, "Documents", "RavenDB", "Server", "Raven.Server")
+		_, err := os.Stat(path)
+		must(err)
+		os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+	}
 
 	//RavenServerVerbose = true
 	if useProxy() {
-		logFileTmpl := "trace_0_start_go.txt"
-		go proxy.Run(logFileTmpl)
+		go proxy.Run("")
 	}
 	code := m.Run()
 	shutdownTests()

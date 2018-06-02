@@ -61,28 +61,36 @@ func prettyPrintMaybeJSON(d []byte) []byte {
 	return d2
 }
 
+var (
+	dumpHTTP bool
+)
+
 // TODO: also dump body
 func dumpHTTPRequest(req *http.Request) {
-	d, err := httputil.DumpRequest(req, false)
-	if err != nil {
-		fmt.Printf("httputil.DumpRequest failed with %s\n", err)
-		return
+	if dumpHTTP {
+		d, err := httputil.DumpRequest(req, false)
+		if err != nil {
+			fmt.Printf("httputil.DumpRequest failed with %s\n", err)
+			return
+		}
+		io.WriteString(os.Stdout, "HTTP REQUEST:\n")
+		os.Stdout.Write(d)
 	}
-	io.WriteString(os.Stdout, "HTTP REQUEST:\n")
-	os.Stdout.Write(d)
 }
 
 func dumpHTTPResponse(resp *http.Response, body []byte) {
-	d, err := httputil.DumpResponse(resp, false)
-	if err != nil {
-		fmt.Printf("httputil.DumpResponse failed with %s\n", err)
-		return
-	}
-	io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
-	os.Stdout.Write(d)
-	if len(body) > 0 {
-		os.Stdout.Write(prettyPrintMaybeJSON(body))
-		os.Stdout.WriteString("\n")
+	if dumpHTTP {
+		d, err := httputil.DumpResponse(resp, false)
+		if err != nil {
+			fmt.Printf("httputil.DumpResponse failed with %s\n", err)
+			return
+		}
+		io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
+		os.Stdout.Write(d)
+		if len(body) > 0 {
+			os.Stdout.Write(prettyPrintMaybeJSON(body))
+			os.Stdout.WriteString("\n")
+		}
 	}
 }
 
@@ -225,7 +233,7 @@ func addCommonHeaders(req *http.Request) {
 }
 
 func NewHttpGet(uri string) (*http.Request, error) {
-	fmt.Printf("GET %s\n", uri)
+	//fmt.Printf("GET %s\n", uri)
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
@@ -235,12 +243,12 @@ func NewHttpGet(uri string) (*http.Request, error) {
 }
 
 func NewHttpPost(uri string, data string) (*http.Request, error) {
-	fmt.Printf("POST %s\n", uri)
+	//fmt.Printf("POST %s\n", uri)
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
-		d := prettyPrintMaybeJSON([]byte(data))
-		fmt.Printf("%s\n", string(d))
+		//d := prettyPrintMaybeJSON([]byte(data))
+		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPost, uri, body)
 	if err != nil {
@@ -251,12 +259,12 @@ func NewHttpPost(uri string, data string) (*http.Request, error) {
 }
 
 func NewHttpPut(uri string, data string) (*http.Request, error) {
-	fmt.Printf("PUT %s\n", uri)
+	//fmt.Printf("PUT %s\n", uri)
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
-		d := prettyPrintMaybeJSON([]byte(data))
-		fmt.Printf("%s\n", string(d))
+		//d := prettyPrintMaybeJSON([]byte(data))
+		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPut, uri, body)
 	if err != nil {
@@ -267,12 +275,12 @@ func NewHttpPut(uri string, data string) (*http.Request, error) {
 }
 
 func NewHttpDelete(uri, data string) (*http.Request, error) {
-	fmt.Printf("DELETE %s\n", uri)
+	//fmt.Printf("DELETE %s\n", uri)
 	var body io.Reader
 	if data != "" {
 		body = bytes.NewBufferString(data)
-		d := prettyPrintMaybeJSON([]byte(data))
-		fmt.Printf("%s\n", string(d))
+		//d := prettyPrintMaybeJSON([]byte(data))
+		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodDelete, uri, body)
 	if err != nil {

@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -163,7 +166,7 @@ func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *C
 func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *CompletableFuture {
 	// TODO: handle _disposed
 	// TODO: locking with _updateDatabaseTopologySemaphore
-	fmt.Printf("updateTopologyAsyncWithForceUpdate\n")
+	//fmt.Printf("updateTopologyAsyncWithForceUpdate\n")
 	future := NewCompletableFuture()
 	f := func() {
 		var err error
@@ -299,7 +302,7 @@ type Tuple_String_Error struct {
 func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableFuture {
 	initialUrls := RequestExecutor_validateUrls(inputUrls, re.certificate)
 
-	fmt.Printf("firstTopologyUpdate\n")
+	//fmt.Printf("firstTopologyUpdate\n")
 	future := NewCompletableFuture()
 	//var list []*Tuple_String_Error
 	f := func() {
@@ -764,12 +767,56 @@ func (re *RequestExecutor) close() {
 	re.disposeAllFailedNodesTimers()
 }
 
+var (
+	envProxyURL string
+)
+
+func buildProxyURL(req *http.Request) (*url.URL, error) {
+	proxy := envProxyURL
+	proxyURL, err := url.Parse(proxy)
+	if err != nil ||
+		(proxyURL.Scheme != "http" &&
+			proxyURL.Scheme != "https" &&
+			proxyURL.Scheme != "socks5") {
+		// proxy was bogus. Try prepending "http://" to it and
+		// see if that parses correctly. If not, we fall
+		// through and complain about the original one.
+		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
+			return proxyURL, nil
+		}
+
+	}
+	if err != nil {
+		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
+	}
+	return proxyURL, nil
+}
+
+var proxyTransport http.RoundTripper = &http.Transport{
+	Proxy: buildProxyURL,
+	DialContext: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}).DialContext,
+	MaxIdleConns:          100,
+	IdleConnTimeout:       90 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ExpectContinueTimeout: 1 * time.Second,
+}
+
 func (re *RequestExecutor) createClient() *http.Client {
 	// TODO: certificate, make sure respects HTTP_PROXY etc.
-	httpClient := &http.Client{
+	client := &http.Client{
 		Timeout: time.Second * 5,
 	}
-	return httpClient
+	// TODO: figure out why http.DefaultTransport doesn't go via proxy
+	proxyURL := os.Getenv("HTTP_PROXY")
+	if proxyURL != "" {
+		envProxyURL = proxyURL
+		client.Transport = proxyTransport
+	}
+	return client
 }
 
 type NodeStatus struct {

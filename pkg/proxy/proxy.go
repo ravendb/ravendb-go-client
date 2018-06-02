@@ -52,6 +52,9 @@ func valueOrDefault(value, def string) string {
 }
 
 func openLogFile(logFile string) {
+	if logFile == "" {
+		return
+	}
 	err := os.MkdirAll(logDir, 0755)
 	must(err)
 	logPath := filepath.Join(logDir, logFile)
@@ -224,7 +227,7 @@ func getRequestSummary(req *http.Request) string {
 	if reqURI == "" {
 		reqURI = req.URL.RequestURI()
 	}
-	return fmt.Sprintf("%s %s HTTP/%d.%d\r\n", valueOrDefault(req.Method, "GET"),
+	return fmt.Sprintf("PROXY %s %s HTTP/%d.%d\r\n", valueOrDefault(req.Method, "GET"),
 		reqURI, req.ProtoMajor, req.ProtoMinor)
 }
 
@@ -284,9 +287,7 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 
 // Run starts a proxy
 func Run(logFile string) {
-	muLog.Lock()
-	openLogFile(logFile)
-	muLog.Unlock()
+	ChangeLogFile(logFile)
 
 	addr := ":8888"
 	proxy := goproxy.NewProxyHttpServer()
