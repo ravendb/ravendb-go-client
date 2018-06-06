@@ -37,39 +37,39 @@ func (r *RangeValue) Curr() int {
 	return r.Current
 }
 
-// HiLoIDGenerator generates keys server side
+// HiLoIDGenerator generates document ids server side
 type HiLoIDGenerator struct {
-	tag                    string
-	store                  *DocumentStore
-	dbName                 string
-	lastRangeAt            time.Time
-	lastBatchSize          int
-	rangev                 *RangeValue
-	prefix                 string
-	serverTag              string
-	convetions             *DocumentConventions
-	identityPartsSeparator string
-	lock                   sync.Mutex
+	tag                     string
+	store                   *DocumentStore
+	dbName                  string
+	lastRangeAt             time.Time
+	lastBatchSize           int
+	rangev                  *RangeValue
+	prefix                  string
+	serverTag               string
+	convetions              *DocumentConventions
+	_identityPartsSeparator string
+	lock                    sync.Mutex
 }
 
-// NewHiLoIDGenerator creates a HiLoKeyGenerator
-func NewHiLoIDGenerator(tag string, store *DocumentStore, dbName string) *HiLoIDGenerator {
+// NewHiLoIdGenerator creates a HiLoIDGenerator
+func NewHiLoIdGenerator(tag string, store *DocumentStore, dbName string, identityPartsSeparator string) *HiLoIDGenerator {
 	if dbName == "" {
 		dbName = store.database
 	}
 	t := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
 	res := &HiLoIDGenerator{
-		tag:           tag,
-		store:         store,
-		dbName:        dbName,
-		lastRangeAt:   t,
-		lastBatchSize: 0,
-		rangev:        NewRangeValue(1, 0),
-		prefix:        "",
-		serverTag:     "",
-		convetions:    store.getConventions(),
+		store:                   store,
+		tag:                     tag,
+		dbName:                  dbName,
+		lastRangeAt:             t,
+		lastBatchSize:           0,
+		rangev:                  NewRangeValue(1, 0),
+		prefix:                  "",
+		serverTag:               "",
+		convetions:              store.getConventions(),
+		_identityPartsSeparator: identityPartsSeparator,
 	}
-	res.identityPartsSeparator = res.convetions.IdentityPartsSeparator
 	return res
 }
 
@@ -78,7 +78,7 @@ func (g *HiLoIDGenerator) getDocumentIDFromID(nextID int) string {
 }
 
 // GenerateDocumentID returns next key
-func (g *HiLoIDGenerator) GenerateDocumentID() string {
+func (g *HiLoIDGenerator) GenerateDocumentID(entity Object) string {
 	// TODO: propagate error
 	id, _ := g.nextID()
 	return g.getDocumentIDFromID(id)
@@ -106,7 +106,7 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 
 func (g *HiLoIDGenerator) getNextRange() error {
 	hiloCommand := NewNextHiLoCommand(g.tag, g.lastBatchSize, &g.lastRangeAt,
-		g.identityPartsSeparator, g.rangev.Max)
+		g._identityPartsSeparator, g.rangev.Max)
 	re := g.store.GetRequestExecutor()
 	err := re.executeCommand(hiloCommand)
 	if err != nil {

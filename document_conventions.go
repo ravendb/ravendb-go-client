@@ -1,6 +1,10 @@
 package ravendb
 
-import "time"
+import (
+	"strings"
+	"time"
+	"unicode"
+)
 
 type DocumentIDGeneratorFunc func(dbName string, entity Object) string
 
@@ -22,7 +26,8 @@ type DocumentConventions struct {
 
 	_documentIdGenerator DocumentIDGeneratorFunc
 
-	_readBalanceBehavior ReadBalanceBehavior
+	_readBalanceBehavior                            ReadBalanceBehavior
+	_transformClassCollectionNameToDocumentIdPrefix func(string) string
 }
 
 func (c *DocumentConventions) getReadBalanceBehavior() ReadBalanceBehavior {
@@ -37,11 +42,12 @@ func (c *DocumentConventions) clone() *DocumentConventions {
 // NewDocumentConventions creates DocumentConventions with default values
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
-		MaxNumberOfRequestsPerSession: 32,
-		MaxLengthOfQueryUsingGetURL:   1024 + 512,
-		IdentityPartsSeparator:        "/",
-		_disableTopologyUpdates:       false,
-		RaiseIfQueryPageSizeIsNotSet:  false,
+		MaxNumberOfRequestsPerSession:                   32,
+		MaxLengthOfQueryUsingGetURL:                     1024 + 512,
+		IdentityPartsSeparator:                          "/",
+		_disableTopologyUpdates:                         false,
+		RaiseIfQueryPageSizeIsNotSet:                    false,
+		_transformClassCollectionNameToDocumentIdPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
 	}
 }
 
@@ -55,6 +61,25 @@ func defaultGetCollectionName(entity interface{}) string {
 	typ := getShortTypeName(entity)
 	result := pluralize(typ)
 	return result
+}
+
+func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName String) String {
+	upperCount := 0
+	for _, c := range collectionName {
+		if unicode.IsUpper(c) {
+			upperCount++
+
+			// multiple capital letters, so probably something that we want to preserve caps on.
+			if upperCount > 1 {
+				return collectionName
+			}
+		}
+	}
+	if upperCount == 1 {
+		return strings.ToLower(collectionName)
+	}
+	// upperCount must be 0
+	return collectionName
 }
 
 func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
@@ -80,4 +105,12 @@ func (c *DocumentConventions) isDisableTopologyUpdates() bool {
 
 func (c *DocumentConventions) setDisableTopologyUpdates(disable bool) {
 	c._disableTopologyUpdates = disable
+}
+
+func (c *DocumentConventions) getIdentityPartsSeparator() string {
+	return c.IdentityPartsSeparator
+}
+
+func (c *DocumentConventions) getTransformClassCollectionNameToDocumentIdPrefix() func(string) string {
+	return c._transformClassCollectionNameToDocumentIdPrefix
 }

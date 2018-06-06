@@ -4,19 +4,20 @@ import "sync"
 
 // MultiTypeHiLoIDGenerator manages per-type HiLoKeyGenerator
 type MultiTypeHiLoIDGenerator struct {
-	store  *DocumentStore
-	dbName string
+	_generatorLock sync.Mutex // protects _idGeneratorsByTag
 	// maps type name to its generator
 	_idGeneratorsByTag map[string]*HiLoIDGenerator
-	lock               sync.Mutex // protects _idGeneratorsByTag
-	// TODO: conventions
+	store              *DocumentStore
+	dbName             string
+	conventions        *DocumentConventions
 }
 
 // NewMultiTypeHiLoIDGenerator creates MultiTypeHiLoKeyGenerator
-func NewMultiTypeHiLoIDGenerator(store *DocumentStore, dbName string) *MultiTypeHiLoIDGenerator {
+func NewMultiTypeHiLoIDGenerator(store *DocumentStore, dbName string, conventions *DocumentConventions) *MultiTypeHiLoIDGenerator {
 	return &MultiTypeHiLoIDGenerator{
 		store:              store,
 		dbName:             dbName,
+		conventions:        conventions,
 		_idGeneratorsByTag: map[string]*HiLoIDGenerator{},
 	}
 }
@@ -24,15 +25,21 @@ func NewMultiTypeHiLoIDGenerator(store *DocumentStore, dbName string) *MultiType
 // GenerateDocumentID generates a unique key for entity using its type to
 // partition keys
 func (g *MultiTypeHiLoIDGenerator) GenerateDocumentID(entity interface{}) string {
-	tag := defaultTransformTypeTagName(getShortTypeName(entity))
-	g.lock.Lock()
-	generator, ok := g._idGeneratorsByTag[tag]
-	if !ok {
-		generator = NewHiLoIDGenerator(tag, g.store, g.dbName)
-		g._idGeneratorsByTag[tag] = generator
+	typeTagName := g.conventions.getCollectionName(entity)
+	if typeTagName == "" {
+		return ""
 	}
-	g.lock.Unlock()
-	return generator.GenerateDocumentID()
+
+	tag := g.conventions.getTransformClassCollectionNameToDocumentIdPrefix()(typeTagName)
+
+	g._generatorLock.Lock()
+	value, ok := g._idGeneratorsByTag[tag]
+	if !ok {
+		value = NewHiLoIdGenerator(tag, g.store, g.dbName, g.conventions.getIdentityPartsSeparator())
+		g._idGeneratorsByTag[tag] = value
+	}
+	g._generatorLock.Unlock()
+	return value.GenerateDocumentID(entity)
 }
 
 // ReturnUnusedRange returns unused range for all generators

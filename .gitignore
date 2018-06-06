@@ -22,3 +22,4 @@ cmd/loggingproxy/db
 logs/
 RavenDB/
 coverage.txt
+RavenDB.tar.bz2

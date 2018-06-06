@@ -26,9 +26,10 @@ const (
 )
 
 var (
-	tr           = transport.Transport{Proxy: transport.ProxyFromEnvironment}
-	proxyLogFile *os.File
-	muLog        sync.Mutex
+	tr               = transport.Transport{Proxy: transport.ProxyFromEnvironment}
+	proxyLogFileName string
+	proxyLogFile     *os.File
+	muLog            sync.Mutex
 )
 
 func must(err error) {
@@ -61,6 +62,7 @@ func openLogFile(logFile string) {
 	f, err := os.Create(logPath)
 	must(err)
 	proxyLogFile = f
+	proxyLogFileName = logFile
 	fmt.Printf("Logging to %s\n", logPath)
 }
 
@@ -83,6 +85,9 @@ func ChangeLogFile(logFile string) {
 	muLog.Lock()
 	defer muLog.Unlock()
 
+	if proxyLogFileName == logFile {
+		return
+	}
 	closeLogFile()
 	openLogFile(logFile)
 }
