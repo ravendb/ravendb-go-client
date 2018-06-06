@@ -30,18 +30,10 @@ type DocumentConventions struct {
 	_transformClassCollectionNameToDocumentIdPrefix func(string) string
 }
 
-func (c *DocumentConventions) getReadBalanceBehavior() ReadBalanceBehavior {
-	return c._readBalanceBehavior
-}
-
-func (c *DocumentConventions) clone() *DocumentConventions {
-	res := *c
-	return &res
-}
-
 // NewDocumentConventions creates DocumentConventions with default values
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
+		_readBalanceBehavior:                            ReadBalanceBehavior_NONE,
 		MaxNumberOfRequestsPerSession:                   32,
 		MaxLengthOfQueryUsingGetURL:                     1024 + 512,
 		IdentityPartsSeparator:                          "/",
@@ -80,6 +72,15 @@ func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collec
 	}
 	// upperCount must be 0
 	return collectionName
+}
+
+func (c *DocumentConventions) getReadBalanceBehavior() ReadBalanceBehavior {
+	return c._readBalanceBehavior
+}
+
+func (c *DocumentConventions) clone() *DocumentConventions {
+	res := *c
+	return &res
 }
 
 func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
