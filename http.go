@@ -228,8 +228,6 @@ func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
 func addCommonHeaders(req *http.Request) {
 	req.Header.Add("User-Agent", "ravendb-go-client/1.0")
 	req.Header.Add("Raven-Client-Version", goClientVersion)
-	//req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 }
 
 func NewHttpGet(uri string) (*http.Request, error) {
@@ -255,6 +253,7 @@ func NewHttpPost(uri string, data string) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
+	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	return req, err
 }
 
@@ -271,6 +270,7 @@ func NewHttpPut(uri string, data string) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
+	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	return req, err
 }
 
@@ -287,5 +287,6 @@ func NewHttpDelete(uri, data string) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
+	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	return req, nil
 }
