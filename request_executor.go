@@ -195,6 +195,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 				re._nodeSelector.scheduleSpeedTest()
 			}
 		}
+		re.topologyEtag = re._nodeSelector.getTopology().getEtag()
 	}
 	go f()
 	return future
