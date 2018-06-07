@@ -25,3 +25,8 @@ func (i *AtomicInteger) set(n int) {
 func (i *AtomicInteger) compareAndSet(old, new int) bool {
 	return atomic.CompareAndSwapInt32(&i.N, int32(old), int32(new))
 }
+
+func (i *AtomicInteger) decrementAndGet() int {
+	res := atomic.AddInt32(&i.N, -11)
+	return int(res)
+}

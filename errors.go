@@ -119,6 +119,23 @@ func (e *AllTopologyNodesDownException) Error() string {
 	return e.ErrorStr
 }
 
+// OperationCancelledException corresponds to Java's OperationCancelledException
+type OperationCancelledException struct {
+	ErrorStr string
+}
+
+// NewOperationCancelledException creates new OperationCancelledException
+func NewOperationCancelledException(format string, args ...interface{}) *OperationCancelledException {
+	return &OperationCancelledException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *OperationCancelledException) Error() string {
+	return e.ErrorStr
+}
+
 // BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {

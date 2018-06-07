@@ -30,6 +30,14 @@ type DocumentConventions struct {
 	_transformClassCollectionNameToDocumentIdPrefix func(string) string
 }
 
+var (
+	DocumentConventions_defaultConventions *DocumentConventions
+)
+
+func init() {
+	DocumentConventions_defaultConventions = NewDocumentConventions()
+}
+
 // NewDocumentConventions creates DocumentConventions with default values
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
@@ -41,6 +49,7 @@ func NewDocumentConventions() *DocumentConventions {
 		RaiseIfQueryPageSizeIsNotSet:                    false,
 		_transformClassCollectionNameToDocumentIdPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
 	}
+
 }
 
 func (c *DocumentConventions) getCollectionName(entity Object) string {
