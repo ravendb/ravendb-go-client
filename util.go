@@ -213,6 +213,19 @@ func convertToEntity(entityType reflect.Type, id string, document ObjectNode) in
 	return res
 }
 
+func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
+	v, ok := doc[key]
+	if !ok {
+		return nil
+	}
+	// TODO: only allow *string ?
+	if s, ok := v.(*string); ok {
+		return s
+	}
+	s := v.(string)
+	return &s
+}
+
 func jsonGetAsText(doc ObjectNode, key string) string {
 	v, ok := doc[key]
 	if !ok {
@@ -223,6 +236,13 @@ func jsonGetAsText(doc ObjectNode, key string) string {
 		return ""
 	}
 	return s
+}
+
+func firstNonNilString(s1, s2 *string) *string {
+	if s1 != nil {
+		return s1
+	}
+	return s2
 }
 
 func firstNonEmptyString(s1, s2 string) string {

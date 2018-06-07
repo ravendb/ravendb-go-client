@@ -33,7 +33,7 @@ func (p *Product) setProductName(productName String) {
 }
 
 func TestCapacityShouldDouble(t *testing.T) {
-	fmt.Printf("TestHiLoCanNotGoDown started\n")
+	fmt.Printf("TestCapacityShouldDouble started\n")
 	if useProxy() {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}

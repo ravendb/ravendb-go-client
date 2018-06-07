@@ -293,8 +293,8 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 
 	entity := s.entityToJson.convertToEntity(entityType, id, document)
 
-	changeVector := jsonGetAsText(metadata, MetadataCHANGE_VECTOR)
-	if changeVector == "" {
+	changeVector := jsonGetAsTextPointer(metadata, MetadataCHANGE_VECTOR)
+	if changeVector == nil {
 		return nil, NewIllegalStateException("Document %s must have Change Vector", id)
 	}
 
@@ -333,15 +333,15 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 // Marks the specified entity for deletion. The entity will be deleted when IDocumentSession.SaveChanges is called.
 // WARNING: This method will not call beforeDelete listener!
 func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
-	return s.DeleteWithChangeVector(id, "")
+	return s.DeleteWithChangeVector(id, nil)
 }
 
-func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector string) error {
+func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector *string) error {
 	if id == "" {
 		return NewIllegalArgumentException("Id cannot be empty")
 	}
 
-	changeVector := ""
+	var changeVector *string
 	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil {
 		newObj := s.entityToJson.convertEntityToJson(documentInfo.getEntity(), documentInfo)
@@ -359,9 +359,9 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 
 	s._knownMissingIds[id] = struct{}{}
 	if !s.useOptimisticConcurrency {
-		changeVector = ""
+		changeVector = nil
 	}
-	cmdData := NewDeleteCommandData(id, firstNonEmptyString(expectedChangeVector, changeVector))
+	cmdData := NewDeleteCommandData(id, firstNonNilString(expectedChangeVector, changeVector))
 	s.Defer(cmdData)
 	return nil
 }
@@ -373,18 +373,18 @@ func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
 	if !hasID {
 		concu = ConcurrencyCheck_FORCED
 	}
-	return s.storeInternal(entity, "", "", concu)
+	return s.storeInternal(entity, nil, "", concu)
 }
 
 /// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id String) error {
-	return s.storeInternal(entity, "", id, ConcurrencyCheck_AUTO)
+	return s.storeInternal(entity, nil, id, ConcurrencyCheck_AUTO)
 }
 
 // Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector String, id String) error {
+func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector *string, id String) error {
 	concurr := ConcurrencyCheck_DISABLED
-	if changeVector != "" {
+	if changeVector != nil {
 		concurr = ConcurrencyCheck_FORCED
 	}
 
@@ -397,14 +397,14 @@ func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneratio
 	must(err)
 }
 
-func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector String, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
+func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector *string, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
 		return NewIllegalArgumentException("Entity cannot be null")
 	}
 
 	value := s.documentsByEntity[entity]
 	if value != nil {
-		value.setChangeVector(firstNonEmptyString(changeVector, value.getChangeVector()))
+		value.setChangeVector(firstNonNilString(changeVector, value.getChangeVector()))
 		value.setConcurrencyCheckMode(forceConcurrencyCheck)
 		return nil
 	}
@@ -454,7 +454,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id String, entity Object, changeVector String, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id String, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	delete(s.deletedEntities, entity)
 	if id != "" {
 		delete(s._knownMissingIds, id)
@@ -555,7 +555,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 				s.throwInvalidDeletedDocumentWithDeferredCommand(command)
 			}
 
-			changeVector := ""
+			var changeVector *string
 			documentInfo = s.documentsById.getValue(documentInfo.getId())
 
 			if documentInfo != nil {
@@ -570,7 +570,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			}
 
 			if !s.useOptimisticConcurrency {
-				changeVector = ""
+				changeVector = nil
 			}
 
 			// TODO:
@@ -626,18 +626,19 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 
 		entityValue.setDocument(document)
 
-		changeVector := ""
+		var changeVector *string
 		if s.useOptimisticConcurrency {
 			if entityValue.getConcurrencyCheckMode() != ConcurrencyCheck_DISABLED {
 				// if the user didn't provide a change vector, we'll test for an empty one
-				changeVector = firstNonEmptyString(entityValue.getChangeVector(), "")
+				tmp := ""
+				changeVector = firstNonNilString(entityValue.getChangeVector(), &tmp)
 			} else {
-				changeVector = "" // TODO: not needed
+				changeVector = nil // TODO: not needed
 			}
 		} else if entityValue.getConcurrencyCheckMode() == ConcurrencyCheck_FORCED {
 			changeVector = entityValue.getChangeVector()
 		} else {
-			changeVector = "" // TODO: not needed
+			changeVector = nil // TODO: not needed
 		}
 		cmdData := NewPutCommandDataWithJson(entityValue.getId(), changeVector, document)
 		result.addSessionCommandData(cmdData)

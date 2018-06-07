@@ -10,7 +10,7 @@ type PutAttachmentCommandData struct {
 
 var _ ICommandData = &PutAttachmentCommandData{} // verify interface match
 
-func NewPutAttachmentCommandData(documentId String, name String, stream io.Reader, contentType String, changeVector String) *PutAttachmentCommandData {
+func NewPutAttachmentCommandData(documentId string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommandData {
 	panicIf(documentId == "", "DocumentId cannot be empty")
 	panicIf(name == "", "Name cannot be empty")
 

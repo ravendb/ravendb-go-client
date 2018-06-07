@@ -15,7 +15,7 @@ const (
 // DocumentInfo stores information about entity in a session
 type DocumentInfo struct {
 	id                   string
-	changeVector         string
+	changeVector         *string
 	concurrencyCheckMode ConcurrencyCheckMode
 	ignoreChanges        bool
 	metadata             ObjectNode
@@ -47,7 +47,7 @@ func (d *DocumentInfo) isIgnoreChanges() bool {
 	return d.ignoreChanges
 }
 
-func (d *DocumentInfo) getChangeVector() string {
+func (d *DocumentInfo) getChangeVector() *string {
 	return d.changeVector
 }
 
@@ -95,7 +95,7 @@ func (d *DocumentInfo) setEntity(entity interface{}) {
 	d.entity = entity
 }
 
-func (d *DocumentInfo) setChangeVector(changeVector string) {
+func (d *DocumentInfo) setChangeVector(changeVector *string) {
 	d.changeVector = changeVector
 }
 
@@ -120,9 +120,9 @@ func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 	panicIf(id == "", "Document must have an id")
 	// TODO: return an error?
 
-	changeVector := jsonGetAsText(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
-	panicIf(id == "", "Document must have a Change Vector")
+	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	// TODO: return an error?
+	panicIf(changeVector != nil, "Document must have a Change Vector")
 
 	newDocumentInfo := NewDocumentInfo()
 	newDocumentInfo.setId(id)

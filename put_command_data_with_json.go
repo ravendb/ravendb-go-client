@@ -7,7 +7,7 @@ type PutCommandDataWithJson struct {
 
 var _ ICommandData = &PutCommandDataWithJson{} // verify interface match
 
-func NewPutCommandDataWithJson(id string, changeVector string, document ObjectNode) *PutCommandDataWithJson {
+func NewPutCommandDataWithJson(id string, changeVector *string, document ObjectNode) *PutCommandDataWithJson {
 	panicIf(document == nil, "Document cannot be nil")
 
 	res := &PutCommandDataWithJson{
