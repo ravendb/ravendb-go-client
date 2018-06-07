@@ -22,6 +22,11 @@ const (
 
 // RequestExecutor describes executor of HTTP requests
 type RequestExecutor struct {
+	_updateDatabaseTopologySemaphore    *Semaphore
+	_updateClientConfigurationSemaphore *Semaphore
+
+	_failedNodesTimers sync.Map // *ServerNode => *NodeStatus
+
 	certificate           *KeyStore
 	_databaseName         string
 	_lastReturnedResponse time.Time
@@ -32,7 +37,7 @@ type RequestExecutor struct {
 	numberOfServerRequests  AtomicInteger
 	topologyEtag            int
 	clientConfigurationEtag int
-	Conventions             *DocumentConventions
+	conventions             *DocumentConventions
 
 	_disableTopologyUpdates            bool
 	_disableClientConfigurationUpdates bool
@@ -91,7 +96,7 @@ func (re *RequestExecutor) getClientConfigurationEtag() int {
 }
 
 func (re *RequestExecutor) getConventions() *DocumentConventions {
-	return re.Conventions
+	return re.conventions
 }
 
 func (re *RequestExecutor) getCertificate() *KeyStore {
@@ -106,12 +111,14 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		conventions = NewDocumentConventions()
 	}
 	res := &RequestExecutor{
-		_readBalanceBehavior:  conventions.getReadBalanceBehavior(),
-		_databaseName:         databaseName,
-		certificate:           certificate,
-		_lastReturnedResponse: time.Now(),
-		Conventions:           conventions.clone(),
-		cache:                 NewHttpCache(),
+		_updateDatabaseTopologySemaphore:    NewSemaphore(1),
+		_updateClientConfigurationSemaphore: NewSemaphore(1),
+		_readBalanceBehavior:                conventions.getReadBalanceBehavior(),
+		_databaseName:                       databaseName,
+		certificate:                         certificate,
+		_lastReturnedResponse:               time.Now(),
+		conventions:                         conventions.clone(),
+		cache:                               NewHttpCache(),
 	}
 	res.httpClient = res.createClient()
 	return res
@@ -154,9 +161,53 @@ func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, 
 }
 
 func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
-	// TODO: implement me
-	panicIf(true, "NYI")
-	return nil
+	if re._disposed {
+		return NewCompletableFutureAlreadyCompleted(nil)
+	}
+
+	future := NewCompletableFuture()
+	f := func() {
+		var err error
+
+		defer func() {
+			if err != nil {
+				future.markAsDoneWithError(err)
+			} else {
+				future.markAsDone(nil)
+			}
+		}()
+
+		re._updateClientConfigurationSemaphore.acquire()
+		defer re._updateClientConfigurationSemaphore.release()
+
+		oldDisableClientConfigurationUpdates := re._disableClientConfigurationUpdates
+		re._disableClientConfigurationUpdates = true
+
+		defer func() {
+			re._disableClientConfigurationUpdates = oldDisableClientConfigurationUpdates
+		}()
+
+		command := NewGetClientConfigurationCommand()
+		currentIndexAndNode := re.chooseNodeForRequest(command, nil)
+		err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, nil)
+		if err != nil {
+			return
+		}
+
+		result := command.getResult().(*GetClientConfigurationCommandResult)
+		if result == nil {
+			return
+		}
+
+		re.conventions.updateFrom(result.getConfiguration())
+		re.clientConfigurationEtag = result.getEtag()
+
+		if re._disposed {
+			return
+		}
+	}
+	go f()
+	return future
 }
 
 func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *CompletableFuture {

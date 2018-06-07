@@ -109,13 +109,13 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
 		documentStore:                 store,
 		databaseName:                  dbName,
-		maxNumberOfRequestsPerSession: re.Conventions.MaxNumberOfRequestsPerSession,
-		useOptimisticConcurrency:      re.Conventions.UseOptimisticConcurrency,
+		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
+		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
 	}
 	genIDFunc := func(entity Object) String {
 		return res.generateId(entity)
 	}
-	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.Conventions, genIDFunc)
+	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.conventions, genIDFunc)
 	res.entityToJson = NewEntityToJson(res)
 	return res
 }
@@ -134,7 +134,7 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() in
 }
 
 func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConventions {
-	return s.RequestExecutor.Conventions
+	return s.RequestExecutor.conventions
 }
 
 func (s *InMemoryDocumentSessionOperations) getDatabaseName() string {

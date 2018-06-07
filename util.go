@@ -252,6 +252,13 @@ func firstNonEmptyString(s1, s2 string) string {
 	return s2
 }
 
+func firstNonZero(i1, i2 int) int {
+	if i1 != 0 {
+		return i1
+	}
+	return i2
+}
+
 func fieldNames(js ObjectNode) []string {
 	var res []string
 	for k := range js {

@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 )
@@ -12,7 +13,10 @@ type DocumentIDGeneratorFunc func(dbName string, entity Object) string
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/data/document_conventions.py#L9
 // https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/conventions/DocumentConventions.java#L31
 type DocumentConventions struct {
-	MaxNumberOfRequestsPerSession int
+	_frozen                bool
+	_originalConfiguration *ClientConfiguration
+
+	_maxNumberOfRequestsPerSession int
 	// timeout for wait to server
 	Timeout                  time.Duration
 	UseOptimisticConcurrency bool
@@ -28,6 +32,7 @@ type DocumentConventions struct {
 
 	_readBalanceBehavior                            ReadBalanceBehavior
 	_transformClassCollectionNameToDocumentIdPrefix func(string) string
+	mu                                              sync.Mutex
 }
 
 var (
@@ -36,13 +41,14 @@ var (
 
 func init() {
 	DocumentConventions_defaultConventions = NewDocumentConventions()
+	DocumentConventions_defaultConventions.freeze()
 }
 
 // NewDocumentConventions creates DocumentConventions with default values
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
 		_readBalanceBehavior:                            ReadBalanceBehavior_NONE,
-		MaxNumberOfRequestsPerSession:                   32,
+		_maxNumberOfRequestsPerSession:                  32,
 		MaxLengthOfQueryUsingGetURL:                     1024 + 512,
 		IdentityPartsSeparator:                          "/",
 		_disableTopologyUpdates:                         false,
@@ -50,6 +56,10 @@ func NewDocumentConventions() *DocumentConventions {
 		_transformClassCollectionNameToDocumentIdPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
 	}
 
+}
+
+func (c *DocumentConventions) freeze() {
+	c._frozen = true
 }
 
 func (c *DocumentConventions) getCollectionName(entity Object) string {
@@ -62,6 +72,40 @@ func defaultGetCollectionName(entity interface{}) string {
 	typ := getShortTypeName(entity)
 	result := pluralize(typ)
 	return result
+}
+
+func (c *DocumentConventions) updateFrom(configuration *ClientConfiguration) {
+	if configuration == nil {
+		return
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if configuration.isDisabled() && c._originalConfiguration == nil {
+		// nothing to do
+		return
+	}
+
+	if configuration.isDisabled() && c._originalConfiguration != nil {
+		// need to revert to original values
+		c._maxNumberOfRequestsPerSession = c._originalConfiguration.getMaxNumberOfRequestsPerSession()
+		c._readBalanceBehavior = c._originalConfiguration.getReadBalanceBehavior()
+
+		c._originalConfiguration = nil
+		return
+	}
+
+	if c._originalConfiguration == nil {
+		c._originalConfiguration = NewClientConfiguration()
+		c._originalConfiguration.setEtag(-1)
+		c._originalConfiguration.setMaxNumberOfRequestsPerSession(c._maxNumberOfRequestsPerSession)
+		c._originalConfiguration.setReadBalanceBehavior(c._readBalanceBehavior)
+	}
+
+	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.getMaxNumberOfRequestsPerSession(), c._originalConfiguration.getMaxNumberOfRequestsPerSession())
+
+	c._readBalanceBehavior = firstNonEmptyString(configuration.getReadBalanceBehavior(), c._originalConfiguration.getReadBalanceBehavior())
 }
 
 func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName String) String {

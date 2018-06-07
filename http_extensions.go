@@ -26,6 +26,6 @@ func HttpExtensions_etagHeaderToChangeVector(responseHeader String) String {
 }
 
 func HttpExtensions_getBooleanHeader(response *http.Response, header string) bool {
-	hdr := response.Header.Get("header")
+	hdr := response.Header.Get(header)
 	return strings.EqualFold(hdr, "true")
 }
