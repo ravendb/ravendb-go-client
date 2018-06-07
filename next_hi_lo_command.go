@@ -29,8 +29,8 @@ func NewNextHiLoCommand(tag String, lastBatchSize int, lastRangeAt *time.Time, i
 	cmd := NewRavenCommand()
 	cmd.IsReadRequest = true
 	cmd.data = data
-	cmd.setResponseFunc = NextHiLoCommand_setResponse
 	cmd.createRequestFunc = NextHiLoCommand_createRequest
+	cmd.setResponseFunc = NextHiLoCommand_setResponse
 
 	return cmd
 }

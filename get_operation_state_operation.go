@@ -28,8 +28,8 @@ func NewGetOperationStateCommand(conventions *DocumentConventions, id int) *Rave
 	cmd := NewRavenCommand()
 	cmd.IsReadRequest = true
 	cmd.data = data
-	cmd.setResponseFunc = GetOperationStateCommand_setResponse
 	cmd.createRequestFunc = GetOperationStateCommand_createRequest
+	cmd.setResponseFunc = GetOperationStateCommand_setResponse
 
 	return cmd
 }

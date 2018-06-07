@@ -9,8 +9,8 @@ import (
 func NewGetDatabaseTopologyCommand() *RavenCommand {
 	cmd := NewRavenCommand()
 	cmd.IsReadRequest = true
-	cmd.setResponseFunc = GetDatabaseTopologyCommand_setResponse
 	cmd.createRequestFunc = GetDatabaseTopologyCommand_createRequest
+	cmd.setResponseFunc = GetDatabaseTopologyCommand_setResponse
 	return cmd
 }
 
