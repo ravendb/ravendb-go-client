@@ -19,13 +19,17 @@ func (e *EntityToJson) getMissingDictionary() map[Object]map[string]Object {
 	return e._missingDictionary
 }
 
-func (e *EntityToJson) convertEntityToJson(entity Object, documentInfo *DocumentInfo) ObjectNode {
+func EntityToJson_convertEntityToJson(entity Object, documentInfo *DocumentInfo) ObjectNode {
 	// maybe we don't need to do anything?
 	if v, ok := entity.(ObjectNode); ok {
 		return v
 	}
 	jsonNode := structToJSONMap(entity)
+
+	EntityToJson_writeMetadata(jsonNode, documentInfo)
+
 	tryRemoveIdentityProperty(jsonNode)
+
 	return jsonNode
 }
 
@@ -71,33 +75,42 @@ func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, docum
 	return nil
 }
 
+func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo) {
+	if documentInfo == nil {
+		return
+	}
+
+	setMetadata := false
+	metadataNode := ObjectNode{}
+
+	metadata := documentInfo.getMetadata()
+	metadataInstance := documentInfo.getMetadataInstance()
+	if len(metadata) > 0 {
+		setMetadata = true
+		for property, v := range metadata {
+			v = deepCopy(v)
+			metadataNode[property] = v
+		}
+	} else if metadataInstance != nil {
+		setMetadata = true
+		for key, value := range metadataInstance.entrySet() {
+			metadataNode[key] = value
+		}
+	}
+
+	collection := documentInfo.getCollection()
+	if collection != "" {
+		setMetadata = true
+
+		metadataNode[Constants_Documents_Metadata_COLLECTION] = collection
+	}
+
+	if setMetadata {
+		jsonNode[Constants_Documents_Metadata_KEY] = metadataNode
+	}
+}
+
 /*
-    private static void writeMetadata(ObjectMapper mapper, ObjectNode jsonNode, DocumentInfo documentInfo) {
-        if (documentInfo == null) {
-            return;
-        }
-        boolean setMetadata = false;
-        ObjectNode metadataNode = mapper.createObjectNode();
-
-        if (documentInfo.getMetadata() != null && documentInfo.getMetadata().size() > 0) {
-            setMetadata = true;
-            documentInfo.getMetadata().fieldNames().forEachRemaining(property -> {
-                metadataNode.set(property, documentInfo.getMetadata().get(property).deepCopy());
-            });
-        }
-
-        if (documentInfo.getCollection() != null) {
-            setMetadata = true;
-
-            metadataNode.set(Constants.Documents.Metadata.COLLECTION, mapper.valueToTree(documentInfo.getCollection()));
-        }
-
-        if (setMetadata) {
-            jsonNode.set(Constants.Documents.Metadata.KEY, metadataNode);
-        }
-    }
-
-
     //TBD public static object ConvertToEntity(Type entityType, string id, BlittableJsonReaderObject document, DocumentConventions conventions)
 
 }

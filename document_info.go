@@ -24,10 +24,6 @@ type DocumentInfo struct {
 	entity               interface{}
 	newDocument          bool
 	collection           string
-
-	// TODO: remove those, from python code, not Java
-	originalMetadata map[string]interface{}
-	originalValue    map[string]interface{}
 }
 
 func NewDocumentInfo() *DocumentInfo {
@@ -57,6 +53,10 @@ func (d *DocumentInfo) getMetadata() ObjectNode {
 
 func (d *DocumentInfo) getDocument() ObjectNode {
 	return d.document
+}
+
+func (d *DocumentInfo) getCollection() string {
+	return d.collection
 }
 
 func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
@@ -117,8 +117,8 @@ func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 	// TODO: return an error?
 
 	id := jsonGetAsText(metadata, Constants_Documents_Metadata_ID)
-	panicIf(id == "", "Document must have an id")
 	// TODO: return an error?
+	panicIf(id == "", "Document must have an id")
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	// TODO: return an error?

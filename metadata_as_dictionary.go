@@ -114,6 +114,7 @@ func (d *MetadataAsDictionary) clear() {
 
 	d._metadata = map[string]Object{} // TODO: can it be nil?
 }
+
 func (d *MetadataAsDictionary) get(key string) (interface{}, bool) {
 	if d._metadata != nil {
 		v, ok := d._metadata[key]
@@ -125,6 +126,14 @@ func (d *MetadataAsDictionary) get(key string) (interface{}, bool) {
 		return v, ok
 	}
 	return d.convertValue(key, v), ok
+}
+
+func (d *MetadataAsDictionary) entrySet() map[string]Object {
+	if d._metadata == nil {
+		d.init()
+	}
+
+	return d._metadata
 }
 
 /*
@@ -162,15 +171,6 @@ func (d *MetadataAsDictionary) get(key string) (interface{}, bool) {
         }
 
         return _source.has((String)key);
-    }
-
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
-        if (_metadata == null) {
-            init();
-        }
-
-        return _metadata.entrySet();
     }
 
     @Override

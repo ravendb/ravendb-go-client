@@ -344,7 +344,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	var changeVector *string
 	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil {
-		newObj := s.entityToJson.convertEntityToJson(documentInfo.getEntity(), documentInfo)
+		newObj := EntityToJson_convertEntityToJson(documentInfo.getEntity(), documentInfo)
 		if documentInfo.getEntity() != nil && s.entityChanged(newObj, documentInfo, nil) {
 			return NewIllegalStateException("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
@@ -511,12 +511,15 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 
 func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
 	dirty := false
-	if documentInfo.getMetadataInstance() != nil {
-		if documentInfo.getMetadataInstance().isDirty() {
+	metadataInstance := documentInfo.getMetadataInstance()
+	metadata := documentInfo.getMetadata()
+	if metadataInstance != nil {
+		if metadataInstance.isDirty() {
 			dirty = true
 		}
-		for _, prop := range documentInfo.getMetadataInstance().keySet() {
-			propValue, ok := documentInfo.getMetadataInstance().get(prop)
+		props := metadataInstance.keySet()
+		for _, prop := range props {
+			propValue, ok := metadataInstance.get(prop)
 			if !ok {
 				dirty = true
 				continue
@@ -526,7 +529,7 @@ func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(document
 					dirty = true
 				}
 			}
-			documentInfo.getMetadata()[prop] = propValue
+			metadata[prop] = propValue
 		}
 	}
 	return dirty
@@ -590,13 +593,19 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 // TODO: return an error
 func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveChangesData) {
 	for entityKey, entityValue := range s.documentsByEntity {
-		dirtyMetadata := s.updateMetadataModifications(entityValue)
-		document := s.entityToJson.convertEntityToJson(entityKey, entityValue)
-		if entityValue.isIgnoreChanges() || (!s.entityChanged(document, entityValue, nil)) && !dirtyMetadata {
+		if entityValue.isIgnoreChanges() {
 			continue
 		}
 
-		idType := NewIdTypeAndName(entityValue.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+		dirtyMetadata := s.updateMetadataModifications(entityValue)
+
+		document := EntityToJson_convertEntityToJson(entityKey, entityValue)
+
+		if !s.entityChanged(document, entityValue, nil) && !dirtyMetadata {
+			continue
+		}
+
+		idType := NewIdTypeAndName(entityValue.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
 		command := result.deferredCommandsMap[idType]
 		if command != nil {
 			s.throwInvalidModifiedDocumentWithDeferredCommand(command)
@@ -617,6 +626,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			}
 		}
 		*/
+
 		entityValue.setNewDocument(false)
 		result.addEntity(entityKey)
 
@@ -633,12 +643,12 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 				tmp := ""
 				changeVector = firstNonNilString(entityValue.getChangeVector(), &tmp)
 			} else {
-				changeVector = nil // TODO: not needed
+				changeVector = nil // TODO: redundant
 			}
 		} else if entityValue.getConcurrencyCheckMode() == ConcurrencyCheck_FORCED {
 			changeVector = entityValue.getChangeVector()
 		} else {
-			changeVector = nil // TODO: not needed
+			changeVector = nil // TODO: redundant
 		}
 		cmdData := NewPutCommandDataWithJson(entityValue.getId(), changeVector, document)
 		result.addSessionCommandData(cmdData)
@@ -701,14 +711,14 @@ func (s *InMemoryDocumentSessionOperations) hasChanged(entity Object) bool {
 		return false
 	}
 
-	document := s.entityToJson.convertEntityToJson(entity, documentInfo)
+	document := EntityToJson_convertEntityToJson(entity, documentInfo)
 	return s.entityChanged(document, documentInfo, nil)
 }
 
 func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
 	for _, pairValue := range s.documentsById.inner {
 		s.updateMetadataModifications(pairValue)
-		newObj := s.entityToJson.convertEntityToJson(pairValue.getEntity(), pairValue)
+		newObj := EntityToJson_convertEntityToJson(pairValue.getEntity(), pairValue)
 		s.entityChanged(newObj, pairValue, changes)
 	}
 }

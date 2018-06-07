@@ -293,3 +293,8 @@ func fileExists(path string) bool {
 	}
 	return !st.IsDir()
 }
+
+func deepCopy(v interface{}) interface{} {
+	// TOOD: implement me
+	return v
+}
