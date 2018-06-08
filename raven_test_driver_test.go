@@ -49,12 +49,6 @@ func getDocumentStoreWithName(dbName string) (*DocumentStore, error) {
 
 func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
 	//fmt.Printf("getDocumentStore2\n")
-	// when db tests are disabled we return nil DocumentStore which is a signal
-	// to the caller to skip the db tests
-	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
-		fmt.Printf("DB tests are disabled\n")
-		return nil, nil
-	}
 
 	n := atomic.AddInt32(&dbIndex, 1)
 	name := fmt.Sprintf("%s_%d", dbName, n)
