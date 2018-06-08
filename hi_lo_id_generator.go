@@ -6,71 +6,46 @@ import (
 	"time"
 )
 
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/identity/HiLoIdGenerator.java
-
 // RangeValue represents an inclusive integer range min to max
 type RangeValue struct {
 	Min     int
 	Max     int
-	Current int // TODO: make atomic
+	Current AtomicInteger
 }
 
 // NewRangeValue creates a new RangeValue
 func NewRangeValue(min int, max int) *RangeValue {
-	return &RangeValue{
-		Min:     min,
-		Max:     max,
-		Current: min - 1,
+	res := &RangeValue{
+		Min: min,
+		Max: max,
 	}
-}
-
-// Next returns next id
-func (r *RangeValue) Next() int {
-	// TODO: make this atomic
-	r.Current++
-	return r.Current
-}
-
-// Curr returns current id
-func (r *RangeValue) Curr() int {
-	// TODO: make this atomic
-	return r.Current
+	res.Current.set(min - 1)
+	return res
 }
 
 // HiLoIDGenerator generates document ids server side
 type HiLoIDGenerator struct {
-	tag                     string
-	store                   *DocumentStore
-	dbName                  string
-	lastRangeAt             time.Time
-	lastBatchSize           int
-	rangev                  *RangeValue
+	generatorLock           sync.Mutex
+	_store                  *DocumentStore
+	_tag                    string
 	prefix                  string
-	serverTag               string
-	convetions              *DocumentConventions
+	_lastBatchSize          int
+	_lastRangeDate          time.Time
+	_dbName                 string
 	_identityPartsSeparator string
-	lock                    sync.Mutex
+	_range                  *RangeValue
+	serverTag               string
 }
 
 // NewHiLoIdGenerator creates a HiLoIDGenerator
 func NewHiLoIdGenerator(tag string, store *DocumentStore, dbName string, identityPartsSeparator string) *HiLoIDGenerator {
-	if dbName == "" {
-		dbName = store.database
-	}
-	t := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
-	res := &HiLoIDGenerator{
-		store:                   store,
-		tag:                     tag,
-		dbName:                  dbName,
-		lastRangeAt:             t,
-		lastBatchSize:           0,
-		rangev:                  NewRangeValue(1, 0),
-		prefix:                  "",
-		serverTag:               "",
-		convetions:              store.getConventions(),
+	return &HiLoIDGenerator{
+		_store:                  store,
+		_tag:                    tag,
+		_dbName:                 dbName,
 		_identityPartsSeparator: identityPartsSeparator,
+		_range:                  NewRangeValue(1, 0),
 	}
-	return res
 }
 
 func (g *HiLoIDGenerator) getDocumentIDFromID(nextID int) string {
@@ -85,18 +60,22 @@ func (g *HiLoIDGenerator) GenerateDocumentID(entity Object) string {
 }
 
 func (g *HiLoIDGenerator) nextID() (int, error) {
-	// TODO: make Next() atomic and reduce lock scope
-	g.lock.Lock()
-	defer g.lock.Unlock()
 	for {
 		// local range is not exhausted yet
-		rangev := g.rangev
-		id := rangev.Next()
+		rangev := g._range
+		id := rangev.Current.incrementAndGet()
 		if id <= rangev.Max {
 			return id, nil
 		}
 
 		// local range is exhausted , need to get a new range
+		g.generatorLock.Lock()
+		defer g.generatorLock.Unlock()
+
+		id = rangev.Current.get()
+		if id <= rangev.Max {
+			return id, nil
+		}
 		err := g.getNextRange()
 		if err != nil {
 			return 0, err
@@ -105,9 +84,9 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 }
 
 func (g *HiLoIDGenerator) getNextRange() error {
-	hiloCommand := NewNextHiLoCommand(g.tag, g.lastBatchSize, &g.lastRangeAt,
-		g._identityPartsSeparator, g.rangev.Max)
-	re := g.store.GetRequestExecutor()
+	hiloCommand := NewNextHiLoCommand(g._tag, g._lastBatchSize, &g._lastRangeDate,
+		g._identityPartsSeparator, g._range.Max)
+	re := g._store.GetRequestExecutor()
 	err := re.executeCommand(hiloCommand)
 	if err != nil {
 		return err
@@ -115,15 +94,15 @@ func (g *HiLoIDGenerator) getNextRange() error {
 	result := hiloCommand.result.(*HiLoResult)
 	g.prefix = result.Prefix
 	g.serverTag = result.ServerTag
-	g.lastRangeAt = time.Time(*result.LastRangeAt)
-	g.lastBatchSize = result.LastSize
-	g.rangev = NewRangeValue(result.Low, result.High)
+	g._lastRangeDate = time.Time(*result.LastRangeAt)
+	g._lastBatchSize = result.LastSize
+	g._range = NewRangeValue(result.Low, result.High)
 	return nil
 }
 
-// ReturnUnusedRange returns unused range
+// ReturnUnusedRange returns unused range to the server
 func (g *HiLoIDGenerator) ReturnUnusedRange() error {
-	returnCommand := NewHiLoReturnCommand(g.tag, g.rangev.Curr(), g.rangev.Max)
-	re := g.store.GetRequestExecutor()
+	returnCommand := NewHiLoReturnCommand(g._tag, g._range.Current.get(), g._range.Max)
+	re := g._store.GetRequestExecutorWithDatabase(g._dbName)
 	return re.executeCommand(returnCommand)
 }

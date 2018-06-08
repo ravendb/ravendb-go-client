@@ -1,11 +1,14 @@
 package ravendb
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 const (
 	// time format returned by the server which looks like:
 	// 2018-05-08T05:20:31.5233900Z
-	serverTimeFormat = "2006-01-02T15:04:05.999999999Z"
+	serverTimeFormat = "2006-01-02T15:04:05.9999999Z"
 )
 
 type ServerTime time.Time
@@ -16,8 +19,13 @@ func (t ServerTime) MarshalJSON() ([]byte, error) {
 }
 
 func (t *ServerTime) UnmarshalJSON(d []byte) error {
-	tt, err := time.Parse(serverTimeFormat, string(d))
+	s := string(d)
+	s = strings.TrimLeft(s, `"`)
+	s = strings.TrimRight(s, `"`)
+	tt, err := time.Parse(serverTimeFormat, s)
 	if err != nil {
+		// TODO: for now make it a fatal error to catch bugs early
+		must(err)
 		return err
 	}
 	*t = ServerTime(tt)
