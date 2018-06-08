@@ -122,7 +122,7 @@ func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	// TODO: return an error?
-	panicIf(changeVector != nil, "Document must have a Change Vector")
+	panicIf(changeVector == nil, "Document must have a Change Vector")
 
 	newDocumentInfo := NewDocumentInfo()
 	newDocumentInfo.setId(id)

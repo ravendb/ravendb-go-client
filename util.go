@@ -10,6 +10,30 @@ import (
 	"strings"
 )
 
+// TODO: remove it, it only exists to make initial porting faster
+type Object = interface{}
+
+// TODO: remove it, it only exists to make initial porting faster
+type String = string
+
+// JsonNode represents JSON value
+// equivalent of com.fasterxml.jackson.databind.JsonNode
+type JsonNode = interface{}
+
+// JsonNodeType represents a type of JSON value e.g. object, array.
+// Equivalent of com.fasterxml.jackson.databind.node.JsonNodeType
+// TODO: change to reflect.Type
+type JsonNodeType = interface{}
+
+// ObjectNode represents parsed JSON document in memory
+// equivalent of com.fasterxml.jackson.databind.node.ObjectNode
+type ObjectNode = map[string]interface{}
+
+// ArrayNode represents result of BatchCommand, which is array of JSON objects
+// it's a type alias so that it doesn't need casting when json marshalling
+// equivalent of com.fasterxml.jackson.databind.node.ArrayNode
+type ArrayNode = []ObjectNode
+
 func must(err error) {
 	if err != nil {
 		panic(err.Error())

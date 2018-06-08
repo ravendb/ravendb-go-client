@@ -76,9 +76,12 @@ func testCapacityShouldDouble(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, session)
 
-		var hiloDoc HiLoDoc
-		err = session.load(&hiloDoc, "Raven/Hilo/users")
-		assert.Nil(t, err)
+		//var hiloDoc HiLoDoc
+		//err = session.load(&hiloDoc, "Raven/Hilo/users")
+		//assert.Nil(t, err)
+
+		result := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.getMax()
 		assert.Equal(t, max, 96)
 
@@ -90,10 +93,12 @@ func testCapacityShouldDouble(t *testing.T) {
 	if false {
 		session, err := store.OpenSession()
 		assert.Nil(t, err)
-		var hiloDoc HiLoDoc
-		err = session.load(&hiloDoc, "Raven/Hilo/users")
-		max := hiloDoc.getMax()
-		assert.Equal(t, max, 160)
+		assert.NotNil(t, session)
+
+		//var hiloDoc HiLoDoc
+		//err = session.load(&hiloDoc, "Raven/Hilo/users")
+		//max := hiloDoc.getMax()
+		//assert.Equal(t, max, 160)
 	}
 }
 

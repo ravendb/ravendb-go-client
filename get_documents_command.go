@@ -2,24 +2,25 @@ package ravendb
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 )
 
 type _GetDocumentsCommand struct {
-	_id String
+	_id string
 
-	_ids      []String
-	_includes []String
+	_ids      []string
+	_includes []string
 
 	_metadataOnly bool
 
-	_startWith  String
-	_matches    String
+	_startWith  string
+	_matches    string
 	_start      int
 	_pageSize   int
-	_exclude    String
-	_startAfter String
+	_exclude    string
+	_startAfter string
 }
 
 func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *RavenCommand {
@@ -61,9 +62,45 @@ func GetDocumentsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*ht
 		url += "&metadataOnly=true"
 	}
 
-	// TODO: more
+	if data._startWith != "" {
+		url += "&startsWith="
+		url += UrlUtils_escapeDataString(data._startWith)
 
-	return NewHttpGet(url)
+		if data._matches != "" {
+			url += "&matches="
+			url += data._matches
+		}
+
+		if data._exclude != "" {
+			url += "&exclude="
+			url += data._exclude
+		}
+
+		if data._startAfter != "" {
+			url += "&startAfter="
+			url += data._startAfter
+		}
+	}
+
+	for _, include := range data._includes {
+		url += "&include="
+		url += include
+	}
+
+	if data._id != "" {
+		url += "&id="
+		url += UrlUtils_escapeDataString(data._id)
+		return NewHttpGet(url)
+	}
+
+	panicIf(len(data._ids) == 0, "must provide _id or _ids")
+
+	return GetDocumentsCommand_prepareRequestWithMultipleIds(url, data._ids)
+}
+
+func GetDocumentsCommand_prepareRequestWithMultipleIds(url string, ids []string) (*http.Request, error) {
+	panicIf(true, "NYI")
+	return nil, errors.New("NYI")
 }
 
 func GetDocumentsCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {

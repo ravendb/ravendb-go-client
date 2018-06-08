@@ -7,23 +7,6 @@ import (
 	"time"
 )
 
-const (
-	// TODO: fix names
-	MetadataCOLLECTION    = "@collection"
-	MetadataPROJECTION    = "@projection"
-	MetadataKEY           = "@metadata"
-	MetadataID            = "@id"
-	MetadataCONFLICT      = "@conflict"
-	MetadataID_PROPERTY   = "Id"
-	MetadataFLAGS         = "@flags"
-	MetadataATTACHMENTS   = "@attachments"
-	MetadataINDEX_SCORE   = "@index-score"
-	MetadataLAST_MODIFIED = "@last-modified"
-	MetadataRAVEN_GO_TYPE = "Raven-Go-Type"
-	MetadataCHANGE_VECTOR = "@change-vector"
-	MetadataEXPIRES       = "@expires"
-)
-
 var (
 	_clientSessionIDCounter int32 = 1
 )
@@ -42,7 +25,7 @@ type InMemoryDocumentSessionOperations struct {
 	// TODO: OperationExecutor
 	// Note: pendingLazyOperations and onEvaluateLazy not used
 	generateDocumentKeysOnStore bool
-	sessionInfo                 SessionInfo
+	sessionInfo                 *SessionInfo
 	_saveChangesOptions         *BatchOptions
 
 	// Note: skipping unused isDisposed
@@ -103,7 +86,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		deletedEntities:               map[interface{}]struct{}{},
 		RequestExecutor:               re,
 		generateDocumentKeysOnStore:   true,
-		sessionInfo:                   SessionInfo{SessionID: clientSessionID},
+		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsById:                 NewDocumentsById(),
 		includedDocumentsById:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
@@ -241,7 +224,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 }
 
 // IncrementRequetsCount increments requests count
-func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
+func (s *InMemoryDocumentSessionOperations) incrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
 		return fmt.Errorf("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
@@ -293,7 +276,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 
 	entity := s.entityToJson.convertToEntity(entityType, id, document)
 
-	changeVector := jsonGetAsTextPointer(metadata, MetadataCHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	if changeVector == nil {
 		return nil, NewIllegalStateException("Document %s must have Change Vector", id)
 	}
@@ -671,12 +654,6 @@ func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, doc
 	return JsonOperation_entityChanged(newObj, documentInfo, changes)
 }
 
-func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
-	panicIf(true, "NYI")
-	//return entityToJson.convertToEntity(clazz, id, document);
-	return nil
-}
-
 func (s *InMemoryDocumentSessionOperations) WhatChanged() map[string][]*DocumentsChanges {
 	changes := map[string][]*DocumentsChanges{}
 	s.prepareForEntitiesDeletion(nil, changes)
@@ -805,6 +782,67 @@ func (s *InMemoryDocumentSessionOperations) registerIncludes(includes ObjectNode
 
 		s.includedDocumentsById[newDocumentInfo.getId()] = newDocumentInfo
 	}
+}
+
+func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results ArrayNode, includes ObjectNode, includePaths []string) {
+	if len(includePaths) == 0 {
+		return
+	}
+	/*
+		for _, result := range results {
+			for _, include := range includePaths {
+				if include == Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME {
+					continue
+				}
+				// TODO: IncludesUtil.include() but it's a no-op in Java code
+			}
+		}
+	*/
+}
+
+func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
+	return s.entityToJson.convertToEntity(clazz, id, document)
+}
+
+func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
+	for _, id := range ids {
+		if _, ok := s._knownMissingIds[id]; ok {
+			continue
+		}
+
+		// Check if document was already loaded, the check if we've received it through include
+		documentInfo := s.documentsById.getValue(id)
+		if documentInfo == nil {
+			documentInfo, _ = s.includedDocumentsById[id]
+			if documentInfo == nil {
+				return false
+			}
+		}
+
+		if documentInfo.getEntity() == nil {
+			return false
+		}
+
+		if len(includes) == 0 {
+			continue
+		}
+
+		/* TODO: this is no-op in java
+		for _, include := range includes {
+			hasAll := true
+
+			IncludesUtil_include(documentInfo.getDocument(), include, s -> {
+				hasAll[0] &= isLoaded(s);
+			})
+
+			if !hasAll {
+				return false
+			}
+		}
+		*/
+	}
+
+	return true
 }
 
 type SaveChangesData struct {

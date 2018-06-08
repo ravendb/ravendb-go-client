@@ -1,18 +1,8 @@
 package ravendb
 
-import "errors"
-
-// ObjectNode is an alias for a json document represented as a map
-// Name comes from Java implementation
-type ObjectNode = map[string]interface{}
-
-type JsonNodeType = interface{}
-
-// TODO: remove it, it only exists to make initial porting faster
-type Object = interface{}
-
-// TODO: remove it, it only exists to make initial porting faster
-type String = string
+import (
+	"reflect"
+)
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
@@ -49,7 +39,7 @@ func (s *DocumentSession) SaveChanges() error {
 	if command == nil {
 		return nil
 	}
-	err := s.RequestExecutor.executeCommandWithSessionInfo(command, &s.sessionInfo)
+	err := s.RequestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -68,8 +58,23 @@ func (s *DocumentSession) SaveChanges() error {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<String, T>> lazyLoadInternal(Class<T> clazz, String[] ids, String[] includes, Consumer<Map<String, T>> onEval)
 
-func (s *DocumentSession) load(v interface{}, id string) error {
-	return errors.New("NYI")
+func (s *DocumentSession) load(clazz reflect.Type, id string) interface{} {
+	if id == "" {
+		return nil
+	}
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+
+	loadOperation.byId(id)
+
+	command := loadOperation.createRequest()
+
+	if command != nil {
+		s.RequestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		result := command.getResult().(*GetDocumentsResult)
+		loadOperation.setResult(result)
+	}
+
+	return loadOperation.getDocument(clazz)
 }
 
-// TODO: much more
+// TODO: more

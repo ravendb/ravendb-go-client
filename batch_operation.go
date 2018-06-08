@@ -21,7 +21,7 @@ func (b *BatchOperation) createRequest() *RavenCommand {
 		return nil
 	}
 
-	b._session.IncrementRequestCount()
+	b._session.incrementRequestCount()
 
 	b._entities = result.getEntities()
 
