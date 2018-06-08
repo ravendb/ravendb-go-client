@@ -39,7 +39,7 @@ func NextHiLoCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.R
 
 	data := cmd.data.(*_NextHiLoCommand)
 	date := ""
-	if data._lastRangeAt != nil {
+	if data._lastRangeAt != nil && !data._lastRangeAt.IsZero() {
 		date = (*data._lastRangeAt).Format(serverTimeFormat)
 	}
 	path := "/hilo/next?tag=" + data._tag + "&lastBatchSize=" + strconv.Itoa(data._lastBatchSize) + "&lastRangeAt=" + date + "&identityPartsSeparator=" + data._identityPartsSeparator + "&lastMax=" + strconv.Itoa(data._lastRangeMax)
