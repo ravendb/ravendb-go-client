@@ -19,42 +19,29 @@ func must(err error) {
 	}
 }
 
-func runJava() {
-	logFileTmpl := "trace_hilo_java.txt"
+func runSingleJavaTest(className string, logFileTmpl string) {
 	go proxy.Run(logFileTmpl)
 	defer proxy.CloseLogFile()
 
-	//cmdProxy := runProxy()
-	//defer cmdProxy.Process.Kill()
-
 	// Running just one maven test: https://stackoverflow.com/a/18136440/2898
 	// mvn -Dtest=HiLoTest test
-	// mvn test
-	cmd := exec.Command("mvn", "-Dtest=HiLoTest", "test")
+	cmd := exec.Command("mvn", fmt.Sprintf("-Dtest=%s", className), "test")
 	cmd.Dir = path.Join("..", "ravendb-jvm-client")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Start()
 	must(err)
-	cmd.Wait()
+	err = cmd.Wait()
+	must(err)
 }
 
-func runGo() {
-	logFileTmpl := "trace_hilo_go.txt"
-	go proxy.Run(logFileTmpl)
-	defer proxy.CloseLogFile()
+func runJava() {
+	// TODO: for some reason when we run more than one in a sequence,
+	// the second one fails. Possibly because the server fails
+	// to start the second time
 
-	cmd := exec.Command("go", "test", "-race")
-	// this tells http client to use a proxy
-	// https://stackoverflow.com/questions/14661511/setting-up-proxy-for-http-client
-	proxyEnv := "HTTP_PROXY=" + proxyURL
-	cmd.Env = append(os.Environ(), proxyEnv)
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Start()
-	must(err)
-	cmd.Wait()
+	//runSingleJavaTest("HiLoTest", "trace_hilo_java.txt")
+	runSingleJavaTest("GetTopologyTest", "trace_get_topology_java.txt")
 }
 
 func main() {
@@ -66,8 +53,6 @@ func main() {
 	switch arg {
 	case "-java":
 		runJava()
-	case "-go":
-		runGo()
 	default:
 		fmt.Printf("Needs to privide an argument -java or -go\n")
 		os.Exit(1)
