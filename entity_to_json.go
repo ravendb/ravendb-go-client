@@ -45,7 +45,8 @@ func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, docum
 	if isTypeObjectNode(entityType) {
 		return document
 	}
-	panicIf(true, "NYI")
+	// TODO: deal with default values
+	return makeStructFromJSONMap(entityType, document)
 	/*
 		try {
 			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
@@ -72,7 +73,6 @@ func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, docum
 			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.getName(), e);
 		}
 	*/
-	return nil
 }
 
 func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo) {

@@ -1,12 +1,10 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"os"
-	"reflect"
 	"strings"
 )
 
@@ -103,36 +101,6 @@ func StringUtils_isNotEmpty(s string) bool {
 	return s != ""
 }
 
-// getFullTypeName returns fully qualified (including package) name of the type,
-// after traversing pointers.
-// e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo
-func getFullTypeName(v interface{}) string {
-	rv := reflect.ValueOf(v)
-	for rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-	typ := rv.Type()
-	return typ.String()
-}
-
-// getShortTypeName returns a short (not including package) name of the type,
-// after traversing pointers.
-// e.g. for struct Foo, the type of Foo and *Foo is "Foo"
-// This is equivalent to Python's v.__class__.__name__
-func getShortTypeName(v interface{}) string {
-	rv := reflect.ValueOf(v)
-	for rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-	typ := rv.Type()
-	return typ.Name()
-}
-
-func getTypeOfValue(v interface{}) reflect.Type {
-	// TODO: validate that v is of valid type (for now pointer to a struct)
-	return reflect.TypeOf(v)
-}
-
 // TODO: make it more efficient by modifying the array in-place
 func removeStringFromArray(pa *[]string, s string) {
 	var res []string
@@ -168,28 +136,6 @@ func deleteID(m map[string]interface{}) {
 	}
 }
 
-// converts a struct to JSON representations as map of string to value
-// TODO: could be faster
-func structToJSONMap(v interface{}) map[string]interface{} {
-	d, err := json.Marshal(v)
-	must(err)
-	var res map[string]interface{}
-	err = json.Unmarshal(d, &res)
-	must(err)
-	return res
-}
-
-// copyJSONMap makes a deep copy of map[string]interface{}
-// TODO: possibly not the fastest way to do it
-func copyJSONMap(v map[string]interface{}) map[string]interface{} {
-	d, err := json.Marshal(v)
-	must(err)
-	var res map[string]interface{}
-	err = json.Unmarshal(d, &res)
-	must(err)
-	return res
-}
-
 func defaultTransformPlural(name string) string {
 	return pluralize(name)
 }
@@ -200,71 +146,11 @@ func defaultTransformTypeTagName(name string) string {
 	return defaultTransformPlural(name)
 }
 
-func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
-	if rv.Type().Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-	typ := rv.Type()
-	if typ.Kind() == reflect.Struct {
-		return typ, true
-	}
-	return typ, false
-}
-
-func getStructTypeOfValue(v interface{}) (reflect.Type, bool) {
-	rv := reflect.ValueOf(v)
-	return getStructTypeOfReflectValue(rv)
-}
-
-// given a json represented as map and type of a struct
-func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
-	panicIf(typ.Kind() != reflect.Struct, "rv should be of type Struct but is %s", typ.String())
-	rvNew := reflect.New(typ)
-	d, err := json.Marshal(js)
-	must(err)
-	v := rvNew.Interface()
-	err = json.Unmarshal(d, v)
-	must(err)
-	return v
-}
-
 func min(i1, i2 int) int {
 	if i1 < i2 {
 		return i1
 	}
 	return i2
-}
-
-// TODO: use EntityToJson.convertEntityToJson instead?
-func convertToEntity(entityType reflect.Type, id string, document ObjectNode) interface{} {
-	res := makeStructFromJSONMap(entityType, document)
-	// TODO: set id on res
-	return res
-}
-
-func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
-	v, ok := doc[key]
-	if !ok {
-		return nil
-	}
-	// TODO: only allow *string ?
-	if s, ok := v.(*string); ok {
-		return s
-	}
-	s := v.(string)
-	return &s
-}
-
-func jsonGetAsText(doc ObjectNode, key string) string {
-	v, ok := doc[key]
-	if !ok {
-		return ""
-	}
-	s, ok := v.(string)
-	if !ok {
-		return ""
-	}
-	return s
 }
 
 func firstNonNilString(s1, s2 *string) *string {
