@@ -48,14 +48,14 @@ func dbTestsDisabled() bool {
 
 func getDocumentStoreMust(t *testing.T) *DocumentStore {
 	store, err := getDocumentStore()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
 }
 
 func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
 	session, err := store.OpenSession()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, session)
 	return session
 }
@@ -70,9 +70,10 @@ func testCapacityShouldDouble(t *testing.T) {
 		hiloDoc := &HiLoDoc{}
 		hiloDoc.setMax(64)
 
-		session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
-		err := session.SaveChanges()
-		assert.Nil(t, err)
+		err := session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		for i := 0; i < 32; i++ {
 			hiLoIdGenerator.GenerateDocumentID(&User{})
@@ -112,6 +113,58 @@ func testCapacityShouldDouble(t *testing.T) {
 		valid := (max == 96+64) || (max == 96+32)
 		assert.True(t, valid)
 	}
+}
+
+func testReturnUnusedRangeOnClose(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	newStore := NewDocumentStore()
+	newStore.setUrls(store.getUrls())
+	newStore.setDatabase(store.getDatabase())
+
+	_, err := newStore.Initialize()
+	assert.NoError(t, err)
+
+	{
+		session, err := newStore.OpenSession()
+		assert.NoError(t, err)
+		assert.NotNil(t, session)
+
+		hiloDoc := &HiLoDoc{}
+		hiloDoc.setMax(32)
+		err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		err = session.StoreEntity(&User{})
+		assert.NoError(t, err)
+		err = session.StoreEntity(&User{})
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	newStore.Close() //on document store close, hilo-return should be called
+
+	newStore = NewDocumentStore()
+	newStore.setUrls(store.getUrls())
+	newStore.setDatabase(store.getDatabase())
+
+	_, err = newStore.Initialize()
+	assert.NoError(t, err)
+
+	{
+		session, err := newStore.OpenSession()
+		assert.NoError(t, err)
+		assert.NotNil(t, session)
+
+		hiloDocI := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		hiloDoc := hiloDocI.(*HiLoDoc)
+		max := hiloDoc.getMax()
+		assert.Equal(t, max, 34)
+	}
+
+	newStore.Close() //on document store close, hilo-return should be called
 }
 
 func testHiLoCanNotGoDown(t *testing.T) {
@@ -155,7 +208,7 @@ func TestHiLo(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}
-	//testCapacityShouldDouble(t)
-
+	testCapacityShouldDouble(t)
+	testReturnUnusedRangeOnClose(t)
 	testHiLoCanNotGoDown(t)
 }
