@@ -223,8 +223,6 @@ func testHiLoMultiDb(t *testing.T) {
 	assert.Equal(t, generateDocumentKey, "products/129-A")
 }
 
-// for easy comparison of traces, we want the order of Go tests to be the same as order of Java tests
-// Java has consistent ordering via hashing,  we must order them manually to match Java order
 func TestHiLo(t *testing.T) {
 	if dbTestsDisabled() {
 		return
@@ -232,6 +230,8 @@ func TestHiLo(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}
+
+	// matches order of java tests
 	testCapacityShouldDouble(t)
 	testReturnUnusedRangeOnClose(t)
 	testHiLoCanNotGoDown(t)

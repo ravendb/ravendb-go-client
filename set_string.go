@@ -24,7 +24,7 @@ func String_compareToIgnoreCase(s1, s2 string) bool {
 	return strings.EqualFold(s1, s2)
 }
 
-func (s *Set_String) exist(str string) bool {
+func (s *Set_String) contains(str string) bool {
 	for _, el := range s.strings {
 		if s.cmp(el, str) {
 			return true
@@ -34,8 +34,16 @@ func (s *Set_String) exist(str string) bool {
 }
 
 func (s *Set_String) add(str string) {
-	if s.exist(str) {
+	if s.contains(str) {
 		return
 	}
 	s.strings = append(s.strings, str)
+}
+
+func (s *Set_String) remove(str string) {
+	stringArrayRemoveCustomCompare(&s.strings, str, s.cmp)
+}
+
+func (s *Set_String) clear() {
+	s.strings = nil
 }

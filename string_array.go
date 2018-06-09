@@ -1,15 +1,39 @@
 package ravendb
 
 // TODO: make it more efficient by modifying the array in-place
-func removeStringFromArray(pa *[]string, s string) {
+func stringArrayRemove(pa *[]string, s string) bool {
+	if len(*pa) == 0 {
+		return false
+	}
 	var res []string
+	removed := false
 	for _, s2 := range *pa {
 		if s2 == s {
+			removed = true
 			continue
 		}
 		res = append(res, s2)
 	}
 	*pa = res
+	return removed
+}
+
+// TODO: make it more efficient by modifying the array in-place
+func stringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, string) bool) bool {
+	if len(*pa) == 0 {
+		return false
+	}
+	var res []string
+	removed := false
+	for _, s2 := range *pa {
+		if cmp(s2, s) {
+			removed = true
+			continue
+		}
+		res = append(res, s2)
+	}
+	*pa = res
+	return removed
 }
 
 func stringArrayCopy(a []string) []string {

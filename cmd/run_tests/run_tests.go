@@ -43,7 +43,8 @@ func runJava() {
 	//runSingleJavaTest("HiLoTest", "trace_hilo_java.txt")
 	//runSingleJavaTest("GetTopologyTest", "trace_get_topology_java.txt")
 	//runSingleJavaTest("GetTcpInfoTest", "trace_get_tcp_info_java.txt")
-	runSingleJavaTest("GetClusterTopologyTest", "trace_get_cluster_topology_java.txt")
+	//runSingleJavaTest("GetClusterTopologyTest", "trace_get_cluster_topology_java.txt")
+	runSingleJavaTest("DeleteTest", "trace_delete_java.txt")
 }
 
 func main() {
