@@ -46,23 +46,32 @@ func dbTestsDisabled() bool {
 	return false
 }
 
-func testCapacityShouldDouble(t *testing.T) {
-	fmt.Printf("TestCapacityShouldDouble started\n")
+func getDocumentStoreMust(t *testing.T) *DocumentStore {
 	store, err := getDocumentStore()
 	assert.Nil(t, err)
 	assert.NotNil(t, store)
+	return store
+}
+
+func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
+	session, err := store.OpenSession()
+	assert.Nil(t, err)
+	assert.NotNil(t, session)
+	return session
+}
+
+func testCapacityShouldDouble(t *testing.T) {
+	store := getDocumentStoreMust(t)
 
 	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
 
 	{
-		session, err := store.OpenSession()
-		assert.Nil(t, err)
-		assert.NotNil(t, session)
+		session := openSessionMust(t, store)
 		hiloDoc := &HiLoDoc{}
 		hiloDoc.setMax(64)
 
 		session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
-		err = session.SaveChanges()
+		err := session.SaveChanges()
 		assert.Nil(t, err)
 
 		for i := 0; i < 32; i++ {
@@ -71,9 +80,7 @@ func testCapacityShouldDouble(t *testing.T) {
 	}
 
 	{
-		session, err := store.OpenSession()
-		assert.Nil(t, err)
-		assert.NotNil(t, session)
+		session := openSessionMust(t, store)
 
 		//var hiloDoc HiLoDoc
 		//err = session.load(&hiloDoc, "Raven/Hilo/users")
@@ -89,9 +96,7 @@ func testCapacityShouldDouble(t *testing.T) {
 	}
 
 	{
-		session, err := store.OpenSession()
-		assert.Nil(t, err)
-		assert.NotNil(t, session)
+		session := openSessionMust(t, store)
 
 		result := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
 		hiloDoc := result.(*HiLoDoc)
@@ -109,29 +114,40 @@ func testCapacityShouldDouble(t *testing.T) {
 	}
 }
 
-/*
 func testHiLoCanNotGoDown(t *testing.T) {
-	fmt.Printf("TestHiLoCanNotGoDown started\n")
-	if useProxy() {
-		proxy.ChangeLogFile("trace_hilo_go.txt")
-	}
-	store, err := getDocumentStore()
-	assert.Nil(t, err)
-	if store == nil {
-		return // if db tests are disabled
-	}
+	store := getDocumentStoreMust(t)
 
-	session, err := store.OpenSession()
-	assert.Nil(t, err)
-	assert.NotNil(t, session)
+	session := openSessionMust(t, store)
+
 	hiloDoc := &HiLoDoc{}
 	hiloDoc.setMax(32)
 
 	session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
-	err = session.SaveChanges()
+	err := session.SaveChanges()
 	assert.Nil(t, err)
+
+	// TODO: not yet working
+	if false {
+		hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
+
+		nextID, err := hiLoKeyGenerator.nextID()
+		assert.Nil(t, err)
+		ids := []int{nextID}
+
+		hiloDoc.setMax(12)
+		session.StoreEntityWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
+		err = session.SaveChanges()
+		assert.Nil(t, err)
+
+		for i := 0; i < 128; i++ {
+			nextID, err = hiLoKeyGenerator.nextID()
+			contains := intArrayContains(ids, nextID)
+			assert.False(t, contains)
+			ids = append(ids, nextID)
+		}
+		assert.False(t, intArrayHasDuplicates(ids))
+	}
 }
-*/
 
 // for easy comparison of traces, we want the order of Go tests to be the same as order of Java tests
 // Java has consistent ordering via hashing,  we must order them manually to match Java order
@@ -144,5 +160,5 @@ func TestHiLo(t *testing.T) {
 	}
 	testCapacityShouldDouble(t)
 
-	//testHiLoCanNotGoDown(t)
+	testHiLoCanNotGoDown(t)
 }

@@ -109,7 +109,6 @@ var (
 
 func getGlobalHTTPClient() *http.Client {
 	if globalHTTPClient == nil {
-		fmt.Printf("getGlobalHTTPClient\n")
 		// TODO: certificate, make sure respects HTTP_PROXY etc.
 		client := &http.Client{
 			Timeout: time.Second * 5,

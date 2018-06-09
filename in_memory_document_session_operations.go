@@ -365,7 +365,7 @@ func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id 
 }
 
 // Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) Store(entity Object, changeVector *string, id String) error {
+func (s *InMemoryDocumentSessionOperations) StoreEntityWithChangeVectorAndID(entity Object, changeVector *string, id String) error {
 	concurr := ConcurrencyCheck_DISABLED
 	if changeVector != nil {
 		concurr = ConcurrencyCheck_FORCED
