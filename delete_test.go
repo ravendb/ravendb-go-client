@@ -65,7 +65,7 @@ func TestDelete(t *testing.T) {
 		return
 	}
 	if useProxy() {
-		proxy.ChangeLogFile("trace_get_topology_go.txt")
+		proxy.ChangeLogFile("trace_delete_go.txt")
 	}
 
 	// matches order of Java tests

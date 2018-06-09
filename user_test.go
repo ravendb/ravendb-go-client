@@ -2,27 +2,27 @@ package ravendb
 
 // for tests only
 type User struct {
-	ID        String
-	Name      String
-	LastName  String
-	AddressId String
-	Count     int
-	Age       int
+	ID        string
+	Name      *string `json:"name"`
+	LastName  *string `json:"lastName"`
+	AddressId *string `json:"addressId"`
+	Count     int     `json:"count"`
+	Age       int     `json:"age"`
 }
 
-func (u *User) getId() String {
+func (u *User) getId() string {
 	return u.ID
 }
 
-func (u *User) getName() String {
+func (u *User) getName() *string {
 	return u.Name
 }
 
-func (u *User) getLastName() String {
+func (u *User) getLastName() *string {
 	return u.LastName
 }
 
-func (u *User) getAddressId() String {
+func (u *User) getAddressId() *string {
 	return u.AddressId
 }
 
@@ -34,20 +34,20 @@ func (u *User) getAge() int {
 	return u.Age
 }
 
-func (u *User) setId(id String) {
+func (u *User) setId(id string) {
 	u.ID = id
 }
 
-func (u *User) setName(name String) {
-	u.Name = name
+func (u *User) setName(name string) {
+	u.Name = &name
 }
 
-func (u *User) setLastName(lastName String) {
-	u.LastName = lastName
+func (u *User) setLastName(lastName string) {
+	u.LastName = &lastName
 }
 
-func (u *User) setAddressId(addressId String) {
-	u.AddressId = addressId
+func (u *User) setAddressId(addressId string) {
+	u.AddressId = &addressId
 }
 
 func (u *User) setCount(count int) {

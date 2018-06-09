@@ -108,9 +108,19 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 				return true
 			}
 		default:
-			// TODO: array, object, nil
+			if newProp == nil {
+				if oldProp == nil {
+					break
+				}
+				if changes == nil {
+					return true
+				}
+				JsonOperation_newChange(prop, nil, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+				break
+			}
+			// TODO: array, nil
 			// Write tests for all types
-			panicIf(true, "unhandled type %T", newProp)
+			panicIf(true, "unhandled type %T, newProp: '%v', oldProp: '%s'", newProp, newProp, oldProp)
 		}
 	}
 
