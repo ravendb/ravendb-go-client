@@ -7,6 +7,12 @@ import (
 
 // functionality related to reflection
 
+// Go port of com.google.common.base.Defaults to make porting Java easier
+func Defaults_defaultValue(clazz reflect.Type) interface{} {
+	rv := reflect.Zero(clazz)
+	return rv.Interface()
+}
+
 // getFullTypeName returns fully qualified (including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo

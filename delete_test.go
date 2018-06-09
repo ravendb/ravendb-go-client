@@ -69,7 +69,6 @@ func TestDelete(t *testing.T) {
 	}
 
 	// matches order of Java tests
-	//TODO: fix me
-	//DeleteTest_deleteDocumentByEntity(t)
-	//DeleteTest_deleteDocumentById(t)
+	DeleteTest_deleteDocumentByEntity(t)
+	DeleteTest_deleteDocumentById(t)
 }

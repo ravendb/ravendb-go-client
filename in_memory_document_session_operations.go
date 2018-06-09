@@ -477,7 +477,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 	result := NewSaveChangesData(s)
 
 	s.deferredCommands = nil
-	s.deferredCommandsMap = nil
+	s.deferredCommandsMap = make(map[IdTypeAndName]ICommandData)
 
 	s.prepareForEntitiesDeletion(result, nil)
 	s.prepareForEntitiesPuts(result)
