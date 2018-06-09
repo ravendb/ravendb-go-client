@@ -199,6 +199,30 @@ func testHiLoCanNotGoDown(t *testing.T) {
 	assert.False(t, intArrayHasDuplicates(ids))
 }
 
+func testHiLoMultiDb(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	session := openSessionMust(t, store)
+
+	hiloDoc := &HiLoDoc{}
+	hiloDoc.setMax(64)
+	err := session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+	assert.NoError(t, err)
+
+	productsHilo := &HiLoDoc{}
+	productsHilo.setMax(128)
+	err = session.StoreEntityWithID(productsHilo, "Raven/Hilo/products")
+	assert.NoError(t, err)
+
+	err = session.SaveChanges()
+	assert.NoError(t, err)
+
+	multiDbHilo := NewMultiDatabaseHiLoIdGenerator(store, store.getConventions())
+	generateDocumentKey := multiDbHilo.GenerateDocumentID("", &User{})
+	assert.Equal(t, generateDocumentKey, "users/65-A")
+	generateDocumentKey = multiDbHilo.GenerateDocumentID("", &Product{})
+	assert.Equal(t, generateDocumentKey, "products/129-A")
+}
+
 // for easy comparison of traces, we want the order of Go tests to be the same as order of Java tests
 // Java has consistent ordering via hashing,  we must order them manually to match Java order
 func TestHiLo(t *testing.T) {
@@ -211,4 +235,5 @@ func TestHiLo(t *testing.T) {
 	testCapacityShouldDouble(t)
 	testReturnUnusedRangeOnClose(t)
 	testHiLoCanNotGoDown(t)
+	testHiLoMultiDb(t)
 }

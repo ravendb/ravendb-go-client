@@ -249,7 +249,7 @@ func (s *DocumentStore) Initialize() (*DocumentStore, error) {
 
 	conventions := s.conventions
 	if conventions.getDocumentIdGenerator() == nil {
-		generator := NewMultiDatabaseHiLoIDGenerator(s, s.getConventions())
+		generator := NewMultiDatabaseHiLoIdGenerator(s, s.getConventions())
 		s._multiDbHiLo = generator
 		genID := func(dbName string, entity Object) string {
 			return generator.GenerateDocumentID(dbName, entity)
