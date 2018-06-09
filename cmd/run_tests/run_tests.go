@@ -41,7 +41,8 @@ func runJava() {
 	// to start the second time
 
 	//runSingleJavaTest("HiLoTest", "trace_hilo_java.txt")
-	runSingleJavaTest("GetTopologyTest", "trace_get_topology_java.txt")
+	//runSingleJavaTest("GetTopologyTest", "trace_get_topology_java.txt")
+	runSingleJavaTest("GetTcpInfoTest", "trace_get_tcp_info_java.txt")
 }
 
 func main() {
