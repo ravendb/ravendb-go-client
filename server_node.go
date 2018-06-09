@@ -2,10 +2,10 @@ package ravendb
 
 const (
 	// ServerNode.Role
-	ServerNode_Role_NONE       = "none"
-	ServerNode_Role_PROMOTABLE = "promotable"
-	ServerNode_Role_MEMBER     = "member"
-	ServerNode_Role_REHAB      = "rehab"
+	ServerNode_Role_NONE       = "None"
+	ServerNode_Role_PROMOTABLE = "Promotable"
+	ServerNode_Role_MEMBER     = "Member"
+	ServerNode_Role_REHAB      = "Rehab"
 )
 
 // ServerNode describes a single server node
@@ -33,6 +33,10 @@ func (n *ServerNode) getDatabase() string {
 
 func (n *ServerNode) getServerRole() string {
 	return n.ServerRole
+}
+
+func (n *ServerNode) getClusterTag() string {
+	return n.ClusterTag
 }
 
 func (n *ServerNode) setDatabase(database string) {
