@@ -17,7 +17,7 @@ import (
 // public static Consumer<HttpRequestBase> requestPostProcessor = null;
 
 const (
-	goClientVersion = "0.1"
+	goClientVersion = "4.0.0"
 )
 
 // RequestExecutor describes executor of HTTP requests
@@ -103,6 +103,28 @@ func (re *RequestExecutor) getCertificate() *KeyStore {
 	return re.certificate
 }
 
+var (
+	globalHTTPClient *http.Client
+)
+
+func getGlobalHTTPClient() *http.Client {
+	if globalHTTPClient == nil {
+		fmt.Printf("getGlobalHTTPClient\n")
+		// TODO: certificate, make sure respects HTTP_PROXY etc.
+		client := &http.Client{
+			Timeout: time.Second * 5,
+		}
+		// TODO: figure out why http.DefaultTransport doesn't go via proxy
+		proxyURL := os.Getenv("HTTP_PROXY")
+		if proxyURL != "" {
+			envProxyURL = proxyURL
+			client.Transport = proxyTransport
+		}
+		globalHTTPClient = client
+	}
+	return globalHTTPClient
+}
+
 // NewRequestExecutor creates a new executor
 // https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L21
 // TODO: certificate
@@ -120,7 +142,10 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		conventions:                         conventions.clone(),
 		cache:                               NewHttpCache(),
 	}
-	res.httpClient = res.createClient()
+	// TODO: create a different client if settings like compression
+	// or certificate differ
+	//res.httpClient = res.createClient()
+	res.httpClient = getGlobalHTTPClient()
 	return res
 }
 

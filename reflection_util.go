@@ -53,9 +53,23 @@ func getStructTypeOfValue(v interface{}) (reflect.Type, bool) {
 	return getStructTypeOfReflectValue(rv)
 }
 
+func isTypePointerToStruct(typ reflect.Type) bool {
+	if typ.Kind() != reflect.Ptr {
+		return false
+	}
+	typ = typ.Elem()
+	return typ.Kind() == reflect.Struct
+}
+
 // given a json represented as map and type of a struct
 func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
-	panicIf(typ.Kind() != reflect.Struct, "rv should be of type Struct but is %s", typ.String())
+	panicIf(!isTypePointerToStruct(typ), "typ should be pointer to struct but is %s, %s", typ.String(), typ.Kind().String())
+
+	// reflect.New() creates a pointer to type. if typ is already a pointer,
+	// we undo one level
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
 	rvNew := reflect.New(typ)
 	d, err := json.Marshal(js)
 	must(err)
