@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"sort"
 	"strings"
 )
 
@@ -102,30 +101,6 @@ func StringUtils_isNotEmpty(s string) bool {
 	return s != ""
 }
 
-// TODO: make it more efficient by modifying the array in-place
-func removeStringFromArray(pa *[]string, s string) {
-	var res []string
-	for _, s2 := range *pa {
-		if s2 == s {
-			continue
-		}
-		res = append(res, s2)
-	}
-	*pa = res
-}
-
-func stringArrayCopy(a []string) []string {
-	n := len(a)
-	if n == 0 {
-		return nil
-	}
-	res := make([]string, n, n)
-	for i := 0; i < n; i++ {
-		res[i] = a[i]
-	}
-	return res
-}
-
 // delete "id" key from JSON object
 // TODO: maybe should only
 func deleteID(m map[string]interface{}) {
@@ -183,32 +158,6 @@ func fieldNames(js ObjectNode) []string {
 	return res
 }
 
-// return a1 - a2
-func stringArraySubtract(a1, a2 []string) []string {
-	if len(a2) == 0 {
-		return a1
-	}
-	if len(a1) == 0 {
-		return nil
-	}
-	diff := make(map[string]struct{})
-	for _, k := range a1 {
-		diff[k] = struct{}{}
-	}
-	for _, k := range a2 {
-		delete(diff, k)
-	}
-	if len(diff) == 0 {
-		return nil
-	}
-	// TODO: pre-allocate
-	var res []string
-	for k := range diff {
-		res = append(res, k)
-	}
-	return res
-}
-
 func fileExists(path string) bool {
 	st, err := os.Lstat(path)
 	if err != nil {
@@ -220,29 +169,4 @@ func fileExists(path string) bool {
 func deepCopy(v interface{}) interface{} {
 	// TOOD: implement me
 	return v
-}
-
-func intArrayHasDuplicates(a []int) bool {
-	if len(a) == 0 {
-		return false
-	}
-	sort.Ints(a)
-	prev := a[0]
-	a = a[1:]
-	for _, el := range a {
-		if el == prev {
-			return true
-		}
-		prev = el
-	}
-	return false
-}
-
-func intArrayContains(a []int, n int) bool {
-	for _, el := range a {
-		if el == n {
-			return true
-		}
-	}
-	return false
 }

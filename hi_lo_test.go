@@ -126,27 +126,24 @@ func testHiLoCanNotGoDown(t *testing.T) {
 	err := session.SaveChanges()
 	assert.Nil(t, err)
 
-	// TODO: not yet working
-	if false {
-		hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
+	hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
 
-		nextID, err := hiLoKeyGenerator.nextID()
-		assert.Nil(t, err)
-		ids := []int{nextID}
+	nextID, err := hiLoKeyGenerator.nextID()
+	assert.Nil(t, err)
+	ids := []int{nextID}
 
-		hiloDoc.setMax(12)
-		session.StoreEntityWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
-		err = session.SaveChanges()
-		assert.Nil(t, err)
+	hiloDoc.setMax(12)
+	session.StoreEntityWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
+	err = session.SaveChanges()
+	assert.Nil(t, err)
 
-		for i := 0; i < 128; i++ {
-			nextID, err = hiLoKeyGenerator.nextID()
-			contains := intArrayContains(ids, nextID)
-			assert.False(t, contains)
-			ids = append(ids, nextID)
-		}
-		assert.False(t, intArrayHasDuplicates(ids))
+	for i := 0; i < 128; i++ {
+		nextID, err = hiLoKeyGenerator.nextID()
+		contains := intArrayContains(ids, nextID)
+		assert.False(t, contains)
+		ids = append(ids, nextID)
 	}
+	assert.False(t, intArrayHasDuplicates(ids))
 }
 
 // for easy comparison of traces, we want the order of Go tests to be the same as order of Java tests
@@ -158,7 +155,7 @@ func TestHiLo(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}
-	testCapacityShouldDouble(t)
+	//testCapacityShouldDouble(t)
 
 	testHiLoCanNotGoDown(t)
 }
