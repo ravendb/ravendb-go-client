@@ -13,8 +13,8 @@ type DeleteDatabasesOperation struct {
 type DeleteDatabaseParameters struct {
 	DatabaseNames             []string       `json:"DatabaseNames"`
 	HardDelete                bool           `json:"HardDelete"`
-	FromNodes                 *[]string      `json:"FromNodes",omitempty`
-	TimeToWaitForConfirmation *time.Duration `json:"TimeToWaitForConfirmation",omitempty`
+	FromNodes                 []string       `json:"FromNodes"`
+	TimeToWaitForConfirmation *time.Duration `json:"TimeToWaitForConfirmation"`
 }
 
 func NewDeleteDatabasesOperation(databaseName String, hardDelete bool) *DeleteDatabasesOperation {
@@ -30,7 +30,7 @@ func NewDeleteDatabasesOperation2(databaseName String, hardDelete bool, fromNode
 		parameters.TimeToWaitForConfirmation = &timeToWaitForConfirmation
 	}
 	if fromNode != "" {
-		parameters.FromNodes = &[]string{fromNode}
+		parameters.FromNodes = []string{fromNode}
 	}
 	return NewDeleteDatabasesOperationWithParameters(parameters)
 }
