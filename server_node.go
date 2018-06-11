@@ -46,3 +46,7 @@ func (n *ServerNode) setDatabase(database string) {
 func (n *ServerNode) setUrl(url string) {
 	n.URL = url
 }
+
+func (n *ServerNode) setClusterTag(clusterTag string) {
+	n.ClusterTag = clusterTag
+}

@@ -41,11 +41,11 @@ func (f *CompletableFuture) markAsDoneWithError(err error) {
 	f.chDone <- true
 }
 
-func (f *CompletableFuture) get() interface{} {
+func (f *CompletableFuture) get() (interface{}, error) {
 	if f.isDone() {
-		return f.result
+		return f.result, f.err
 	}
 	// wait for the Future to finish
 	<-f.chDone
-	return f.result
+	return f.result, f.err
 }

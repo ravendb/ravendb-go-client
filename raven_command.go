@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -89,7 +90,8 @@ func defaultSetResponseRaw(c *RavenCommand, response *http.Response) error {
 	return nil
 }
 
-func (c *RavenCommand) setResponseRaw(response *http.Response) error {
+// TODO: this is only implemented on MultiGetCommand
+func (c *RavenCommand) setResponseRaw(response *http.Response, stream io.Reader) error {
 	return c.setResponseRawFunc(c, response)
 }
 
@@ -163,7 +165,7 @@ func (c *RavenCommand) processResponse(cache *HttpCache, response *http.Response
 		err = c.setResponse(string(js), false)
 		return ResponseDisposeHandling_AUTOMATIC, err
 	} else {
-		c.setResponseRaw(response)
+		c.setResponseRaw(response, response.Body)
 	}
 
 	return ResponseDisposeHandling_AUTOMATIC, nil

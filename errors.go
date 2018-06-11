@@ -2,6 +2,21 @@ package ravendb
 
 import "fmt"
 
+type RavenException struct {
+	ErrorStr string
+}
+
+func NewRavenException(format string, args ...interface{}) *RavenException {
+	return &RavenException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *RavenException) Error() string {
+	return e.ErrorStr
+}
+
 type UnsupportedOperationException struct {
 	ErrorStr string
 }
@@ -133,6 +148,22 @@ func NewOperationCancelledException(format string, args ...interface{}) *Operati
 
 // Error makes it conform to error interface
 func (e *OperationCancelledException) Error() string {
+	return e.ErrorStr
+}
+
+// AuthorizationException corresponds to Java's AuthorizationException
+type AuthorizationException struct {
+	ErrorStr string
+}
+
+func NewAuthorizationException(format string, args ...interface{}) *AuthorizationException {
+	return &AuthorizationException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *AuthorizationException) Error() string {
 	return e.ErrorStr
 }
 

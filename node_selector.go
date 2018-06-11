@@ -46,54 +46,52 @@ func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bo
 	return true
 }
 
-func (s *NodeSelector) getPreferredNode() *CurrentIndexAndNode {
+func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
 	state := s._state
 	stateFailures := state.failures
 	serverNodes := state.nodes
 	n := min(len(serverNodes), len(stateFailures))
 	for i := 0; i < n; i++ {
 		if stateFailures[i].get() == 0 && StringUtils_isNotEmpty(serverNodes[i].getUrl()) {
-			return NewCurrentIndexAndNode(i, serverNodes[i])
+			return NewCurrentIndexAndNode(i, serverNodes[i]), nil
 		}
 	}
 	return NodeSelector_unlikelyEveryoneFaultedChoice(state)
 }
 
-// TODO: return and propagate error
-func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) *CurrentIndexAndNode {
+func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*CurrentIndexAndNode, error) {
 	// if there are all marked as failed, we'll chose the first
 	// one so the user will get an error (or recover :-) );
 	if len(state.nodes) == 0 {
-		panicIf(true, "There are no nodes in the topology at all")
-		//throw new AllTopologyNodesDownException("There are no nodes in the topology at all");
+		return nil, NewAllTopologyNodesDownException("There are no nodes in the topology at all")
 	}
 
-	return NewCurrentIndexAndNode(0, state.nodes[0])
+	return NewCurrentIndexAndNode(0, state.nodes[0]), nil
 }
 
-func (s *NodeSelector) getNodeBySessionId(sessionId int) *CurrentIndexAndNode {
+func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, error) {
 	state := s._state
 	index := sessionId % len(state.topology.getNodes())
 
 	for i := index; i < len(state.failures); i++ {
 		if state.failures[i].get() == 0 && state.nodes[i].getServerRole() == ServerNode_Role_MEMBER {
-			return NewCurrentIndexAndNode(i, state.nodes[i])
+			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
 
 	for i := 0; i < index; i++ {
 		if state.failures[i].get() == 0 && state.nodes[i].getServerRole() == ServerNode_Role_MEMBER {
-			return NewCurrentIndexAndNode(i, state.nodes[i])
+			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
 
 	return s.getPreferredNode()
 }
 
-func (s *NodeSelector) getFastestNode() *CurrentIndexAndNode {
+func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 	state := s._state
 	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].getServerRole() == ServerNode_Role_MEMBER {
-		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest])
+		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest]), nil
 	}
 
 	// if the fastest node has failures, we'll immediately schedule

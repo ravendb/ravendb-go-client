@@ -63,7 +63,7 @@ func TestRequestExecutor(t *testing.T) {
 		return
 	}
 	if useProxy() {
-		proxy.ChangeLogFile("trace_delete_go.txt")
+		proxy.ChangeLogFile("trace_request_executor_go.txt")
 	}
 
 	// matches order of Java tests

@@ -1,8 +1,9 @@
 package ravendb
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"net"
 	"net/http"
@@ -65,23 +66,24 @@ func (re *RequestExecutor) getTopology() *Topology {
 }
 
 func (re *RequestExecutor) getTopologyNodes() []*ServerNode {
+	if re.getTopology() == nil {
+		return nil
+	}
 	var res []*ServerNode
 	nodes := re.getTopology().getNodes()
 	for _, n := range nodes {
-		// TODO: is this really filtered. I don't quite get Java code
-		if n != nil {
-			res = append(res, n)
-		}
+		res = append(res, n)
 	}
 	return res
 }
 
-func (re *RequestExecutor) getUrl() String {
+func (re *RequestExecutor) getUrl() string {
 	if re._nodeSelector == nil {
 		return ""
 	}
 
-	preferredNode := re._nodeSelector.getPreferredNode()
+	// TODO: propagate error
+	preferredNode, _ := re.getPreferredNode()
 	if preferredNode != nil {
 		return preferredNode.currentNode.getUrl()
 	}
@@ -135,12 +137,14 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 	res := &RequestExecutor{
 		_updateDatabaseTopologySemaphore:    NewSemaphore(1),
 		_updateClientConfigurationSemaphore: NewSemaphore(1),
-		_readBalanceBehavior:                conventions.getReadBalanceBehavior(),
-		_databaseName:                       databaseName,
-		certificate:                         certificate,
-		_lastReturnedResponse:               time.Now(),
-		conventions:                         conventions.clone(),
-		cache:                               NewHttpCache(),
+
+		cache:                NewHttpCache(),
+		_readBalanceBehavior: conventions.getReadBalanceBehavior(),
+		_databaseName:        databaseName,
+		certificate:          certificate,
+
+		_lastReturnedResponse: time.Now(),
+		conventions:           conventions.clone(),
 	}
 	// TODO: create a different client if settings like compression
 	// or certificate differ
@@ -213,7 +217,10 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 		}()
 
 		command := NewGetClientConfigurationCommand()
-		currentIndexAndNode := re.chooseNodeForRequest(command, nil)
+		currentIndexAndNode, err := re.chooseNodeForRequest(command, nil)
+		if err != nil {
+			return
+		}
 		err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, nil)
 		if err != nil {
 			return
@@ -291,53 +298,56 @@ func (re *RequestExecutor) executeCommand(command *RavenCommand) error {
 func (re *RequestExecutor) executeCommandWithSessionInfo(command *RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
 	if (topologyUpdate != nil && topologyUpdate.isDone()) || re._disableTopologyUpdates {
-		currentIndexAndNode := re.chooseNodeForRequest(command, sessionInfo)
+		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
+		if err != nil {
+			return err
+		}
 		return re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
 	} else {
 		return re.unlikelyExecute(command, topologyUpdate, sessionInfo)
 	}
 }
 
-func (re *RequestExecutor) chooseNodeForRequest(cmd *RavenCommand, sessionInfo *SessionInfo) *CurrentIndexAndNode {
+func (re *RequestExecutor) chooseNodeForRequest(cmd *RavenCommand, sessionInfo *SessionInfo) (*CurrentIndexAndNode, error) {
 	if !cmd.isReadRequest() {
-		return re._nodeSelector.getPreferredNode()
+		return re.getPreferredNode()
 	}
 
 	switch re._readBalanceBehavior {
 	case ReadBalanceBehavior_NONE:
-		return re._nodeSelector.getPreferredNode()
+		return re.getPreferredNode()
 	case ReadBalanceBehavior_ROUND_ROBIN:
 		sessionID := 0
 		if sessionInfo != nil {
 			sessionID = sessionInfo.SessionID
 		}
-		return re._nodeSelector.getNodeBySessionId(sessionID)
+		return re.getNodeBySessionId(sessionID)
 	case ReadBalanceBehavior_FASTEST_NODE:
-		return re._nodeSelector.getFastestNode()
+		return re.getFastestNode()
 	default:
 		panicIf(true, "Unknown re._readBalanceBehavior: '%s'", re._readBalanceBehavior)
 	}
-	return nil
+	return nil, nil
 }
 
 func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) error {
 
 	if topologyUpdate == nil {
 		re.mu.Lock()
-		defer re.mu.Unlock()
 		if re._firstTopologyUpdate == nil {
 			if len(re._lastKnownUrls) == 0 {
+				re.mu.Unlock()
 				return NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
 			re._firstTopologyUpdate = re.firstTopologyUpdate(re._lastKnownUrls)
 		}
-
 		topologyUpdate = re._firstTopologyUpdate
+		re.mu.Unlock()
 	}
 
-	topologyUpdate.get()
-	return nil
+	_, err := topologyUpdate.get()
+	return err
 }
 
 func (re *RequestExecutor) unlikelyExecute(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) error {
@@ -351,9 +361,12 @@ func (re *RequestExecutor) unlikelyExecute(command *RavenCommand, topologyUpdate
 		return err
 	}
 
-	currentIndexAndNode := re.chooseNodeForRequest(command, sessionInfo)
-	re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
-	return nil
+	currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
+	if err != nil {
+		return err
+	}
+	err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
+	return err
 }
 
 func (re *RequestExecutor) updateTopologyCallback() {
@@ -365,7 +378,10 @@ func (re *RequestExecutor) updateTopologyCallback() {
 	var serverNode *ServerNode
 
 	// TODO: early exist if getPreferredNode() returns an error
-	preferredNode := re._nodeSelector.getPreferredNode()
+	preferredNode, err := re.getPreferredNode()
+	if err != nil {
+		return
+	}
 	serverNode = preferredNode.currentNode
 
 	re.updateTopologyAsync(serverNode, 0)
@@ -379,9 +395,8 @@ type Tuple_String_Error struct {
 func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableFuture {
 	initialUrls := RequestExecutor_validateUrls(inputUrls, re.certificate)
 
-	//fmt.Printf("firstTopologyUpdate\n")
 	future := NewCompletableFuture()
-	//var list []*Tuple_String_Error
+	var list []*Tuple_String_Error
 	f := func() {
 		var err error
 		defer func() {
@@ -393,76 +408,72 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		}()
 
 		for _, url := range initialUrls {
-			serverNode := NewServerNode()
-			serverNode.setUrl(url)
-			serverNode.setDatabase(re._databaseName)
+			{
+				serverNode := NewServerNode()
+				serverNode.setUrl(url)
+				serverNode.setDatabase(re._databaseName)
 
-			res := re.updateTopologyAsync(serverNode, math.MaxInt32)
-			res.get()
-			err = res.err
-			re.initializeUpdateTopologyTimer()
-
-			re._topologyTakenFromNode = serverNode
-			if err == nil {
+				res := re.updateTopologyAsync(serverNode, math.MaxInt32)
+				_, err = res.get()
+				if err == nil {
+					re.initializeUpdateTopologyTimer()
+					re._topologyTakenFromNode = serverNode
+				}
 				return
 			}
-		}
-		/* TODO:
-		catch (Exception e) {
-			if (e instanceof ExecutionException && e.getCause() instanceof DatabaseDoesNotExistException) {
+
+			if _, ok := (err).(*DatabaseDoesNotExistException); ok {
 				// Will happen on all node in the cluster,
 				// so errors immediately
-				_lastKnownUrls = initialUrls;
-				throw (DatabaseDoesNotExistException) e.getCause();
-			}
-			if (initialUrls.length == 0) {
-				_lastKnownUrls = initialUrls;
-				throw new IllegalStateException("Cannot get topology from server: " + url, e);
+				re._lastKnownUrls = initialUrls
+				return
 			}
 
-			list.add(Tuple.create(url, e));
+			if len(initialUrls) == 0 {
+				re._lastKnownUrls = initialUrls
+				err = NewIllegalStateException("Cannot get topology from server: %s", url)
+				return
+			}
+			list = append(list, &Tuple_String_Error{url, err})
 		}
-		*/
+		topology := NewTopology()
+		topology.setEtag(re.topologyEtag)
+		topologyNodes := re.getTopologyNodes()
+		if len(topologyNodes) == 0 {
+			for _, uri := range initialUrls {
+				serverNode := NewServerNode()
+				serverNode.setUrl(uri)
+				serverNode.setDatabase(re._databaseName)
+				serverNode.setClusterTag("!")
+				topologyNodes = append(topologyNodes, serverNode)
+			}
+		}
+		topology.setNodes(topologyNodes)
+		re._nodeSelector = NewNodeSelector(topology)
+		if len(initialUrls) > 0 {
+			re.initializeUpdateTopologyTimer()
+			return
+		}
+		re._lastKnownUrls = initialUrls
 
-		/* TODO:
-		       Topology topology = new Topology();
-		       topology.setEtag(topologyEtag);
-
-		       List<ServerNode> topologyNodes = getTopologyNodes();
-		       if (topologyNodes == null) {
-		           topologyNodes = Arrays.stream(initialUrls)
-		                   .map(url -> {
-		                       ServerNode serverNode = new ServerNode();
-		                       serverNode.setUrl(url);
-		                       serverNode.setDatabase(_databaseName);
-		                       serverNode.setClusterTag("!");
-		                       return serverNode;
-		                   }).collect(Collectors.toList());
-		       }
-
-		       topology.setNodes(topologyNodes);
-
-		       _nodeSelector = new NodeSelector(topology);
-
-		       if (initialUrls != null && initialUrls.length > 0) {
-		           initializeUpdateTopologyTimer();
-		           return;
-		       }
-
-		       _lastKnownUrls = initialUrls;
-		       String details = list.stream().map(x -> x.first + " -> " + Optional.ofNullable(x.second).map(m -> m.getMessage()).orElse("")).collect(Collectors.joining(", "));
-		       throwExceptions(details);
-		   });
-		*/
+		var a []string
+		for _, el := range list {
+			first := el.S
+			second := el.Err
+			s := first + " -> " + second.Error()
+			a = append(a, s)
+		}
+		details := strings.Join(a, ", ")
+		err = re.throwExceptions(details)
+		return
 	}
 	go f()
 	return future
 }
 
-// TODO: return an error
-func (re *RequestExecutor) throwExceptions(details String) {
+func (re *RequestExecutor) throwExceptions(details String) error {
 	err := NewIllegalStateException("Failed to retrieve database topology from all known nodes \n" + details)
-	panicIf(true, "%s", err.Error())
+	return err
 }
 
 func RequestExecutor_validateUrls(initialUrls []string, certificate *KeyStore) []string {
@@ -537,7 +548,12 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	// TODO: handle not modified
 
 	if response.StatusCode >= 400 {
-		if !re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry) {
+		ok, err := re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
 			dbMissingHeader := response.Header.Get("Database-Missing")
 			if dbMissingHeader != "" {
 				return NewDatabaseDoesNotExistException(dbMissingHeader)
@@ -591,13 +607,13 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		} else {
 			clientConfiguration = NewCompletableFutureAlreadyCompleted(nil)
 		}
-		topologyTask.get()
-		clientConfiguration.get()
-		if topologyTask.err != nil {
-			return topologyTask.err
+		_, err1 := topologyTask.get()
+		_, err2 := clientConfiguration.get()
+		if err1 != nil {
+			return err1
 		}
-		if clientConfiguration.err != nil {
-			return clientConfiguration.err
+		if err2 != nil {
+			return err2
 		}
 	}
 	return nil
@@ -611,9 +627,11 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command *RavenCommand, r
 		"all of them seem to be down or not responding. I've tried to access the following nodes: "
 
 	var urls []string
-	for _, node := range re._nodeSelector.getTopology().getNodes() {
-		url := node.getUrl()
-		urls = append(urls, url)
+	if re._nodeSelector != nil {
+		for _, node := range re._nodeSelector.getTopology().getNodes() {
+			url := node.getUrl()
+			urls = append(urls, url)
+		}
 	}
 	message += strings.Join(urls, ", ")
 
@@ -658,122 +676,6 @@ func (re *RequestExecutor) getFromCache(command *RavenCommand, url String, cache
 	return nil
 }
 
-/*
-// ExecuteWithNode sends a command to the server via http and parses a result
-func (re *RequestExecutor) ExecuteWithNode(chosenNode *ServerNode, ravenCommand *RavenCommand, shouldRetry bool) (*http.Response, error) {
-	for {
-		nodeIndex := 0
-		if re._nodeSelector != nil {
-			nodeIndex = re._nodeSelector.CurrentNodeIndex
-		}
-		req, err := makeHTTPRequest(chosenNode, ravenCommand)
-		if !re.disableTopologyUpdates {
-			etagStr := fmt.Sprintf(`"%d"`, re.TopologyEtag)
-			req.Header.Add("Topology-Etag", etagStr)
-		}
-
-		// TODO: handle an error?
-		must(err)
-		client := &http.Client{
-			Timeout: time.Second * 5,
-		}
-		rsp, err := client.Do(req)
-
-		// this is for network-level errors when we don't get response
-		if err != nil {
-			fmt.Printf("ExecuteWithNode: client.Do() failed with %s\n", err)
-			// if asked, retry network-level errors
-			if shouldRetry == false {
-				return nil, err
-			}
-			if !re.handleServerDown(chosenNode, nodeIndex, ravenCommand, err) {
-				// TODO: wrap in AllTopologyNodesDownError
-				return nil, err
-			}
-			chosenNode = re._nodeSelector.GetCurrentNode()
-			continue
-		}
-
-		body, _ := getCopyOfResponseBody(rsp)
-		dumpHTTPResponse(rsp, body)
-
-		code := rsp.StatusCode
-
-		// convert 404 Not Found to NotFoundError
-		if rsp.StatusCode == http.StatusNotFound {
-			// TODO: does it ever return non-empty response?
-			res := NotFoundError{
-				URL: req.URL.String(),
-			}
-			return nil, &res
-		}
-
-		// 403
-		if code == http.StatusForbidden {
-			// TOOD: if certificate is nil, load certificate and retry
-			panicIf(true, "NYI")
-			return nil, err
-		}
-
-		// 410
-		if code == http.StatusGone {
-			if shouldRetry {
-				re.updateTopology(chosenNode, true)
-				continue
-			} else {
-				// TODO: python code always retries
-				return nil, err
-			}
-		}
-
-		// 408, 502, 503, 504
-		if code == http.StatusRequestTimeout || code == http.StatusBadGateway || code == http.StatusServiceUnavailable || code == http.StatusGatewayTimeout {
-			if len(ravenCommand.failedNodes) == 1 {
-				panicIf(true, "NYI")
-				databaseMissing := rsp.Header.Get("Database-Missing")
-				if databaseMissing != "" {
-					// TODO: return DatabaseDoesNotExistException
-					return nil, err
-				}
-				// TODO: return UnsuccessfulRequestException
-				// node := ravenCommand.failedNodes[0]
-				return nil, err
-			}
-
-			// TODO: e = response.json()["Message"]
-			if re.handleServerDown(chosenNode, nodeIndex, ravenCommand, nil) {
-				chosenNode = re._nodeSelector.GetCurrentNode()
-			}
-			continue
-		}
-
-		// 409
-		if code == http.StatusConflict {
-			// TODO: conflict resolution
-			return nil, err
-		}
-
-		// convert 400 Bad Request response to BadReqeustError
-		// TODO: in python code this only happends for some commands
-		if rsp.StatusCode == http.StatusBadRequest {
-			var res BadRequestError
-			err = decodeJSONFromReader(rsp.Body, &res)
-			if err != nil {
-				return nil, err
-			}
-			return nil, &res
-		}
-
-		if rsp.Header.Get("Refresh-Topology") != "" {
-			node := NewServerNode(chosenNode.URL, re._databaseName)
-			re.updateTopology(node, false)
-		}
-		re._lastReturnedResponse = time.Now()
-		return rsp, nil
-	}
-}
-*/
-
 func (re *RequestExecutor) createRequest(node *ServerNode, command *RavenCommand) (*http.Request, error) {
 	request, err := command.createRequest(node)
 	if err != nil {
@@ -783,14 +685,58 @@ func (re *RequestExecutor) createRequest(node *ServerNode, command *RavenCommand
 	return request, err
 }
 
-func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, request *http.Request, response *http.Response, url String, sessionInfo *SessionInfo, shouldRetry bool) bool {
-	panicIf(true, "NYI")
-	return true
+func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, request *http.Request, response *http.Response, url String, sessionInfo *SessionInfo, shouldRetry bool) (bool, error) {
+	var err error
+	switch response.StatusCode {
+	case http.StatusNotFound:
+		re.cache.setNotFound(url)
+		switch command.getResponseType() {
+		case RavenCommandResponseType_EMPTY:
+			return true, nil
+		case RavenCommandResponseType_OBJECT:
+			command.setResponse("", false)
+			break
+		default:
+			command.setResponseRaw(response, nil)
+			break
+		}
+		return true, nil
+	case http.StatusForbidden:
+		err = NewAuthorizationException("Forbidden access to " + chosenNode.getDatabase() + "@" + chosenNode.getUrl() + ", " + request.Method + " " + request.RequestURI)
+	case http.StatusGone: // request not relevant for the chosen node - the database has been moved to a different one
+		if !shouldRetry {
+			return false, nil
+		}
+
+		updateFuture := re.updateTopologyAsyncWithForceUpdate(chosenNode, int(math.MaxInt32), true)
+		_, err := updateFuture.get()
+		if err != nil {
+			return false, err
+		}
+
+		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
+		if err != nil {
+			return false, err
+		}
+		err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
+		return false, err
+	case http.StatusGatewayTimeout, http.StatusRequestTimeout,
+		http.StatusBadGateway, http.StatusServiceUnavailable:
+		ok := re.handleServerDown(url, chosenNode, nodeIndex, command, request, response, nil, sessionInfo)
+		return ok, nil
+	case http.StatusConflict:
+		err = RequestExecutor_handleConflict(response)
+		break
+	default:
+		command.onResponseFailure(response)
+		err = ExceptionDispatcher_throwException(response)
+		break
+	}
+	return false, err
 }
 
 func RequestExecutor_handleConflict(response *http.Response) error {
-	// ExceptionDispatcher.throwException(response);
-	return errors.New("ExceptionDispatcher")
+	return ExceptionDispatcher_throwException(response)
 }
 
 //     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
@@ -816,7 +762,9 @@ func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, 
 
 	re._nodeSelector.onFailedRequest(nodeIndex)
 
-	currentIndexAndNode := re._nodeSelector.getPreferredNode()
+	// TODO: propagate error
+	currentIndexAndNode, _ := re.getPreferredNode()
+
 	if _, ok := command.getFailedNodes()[currentIndexAndNode.currentNode]; ok {
 		return false //we tried all the nodes...nothing left to do
 	}
@@ -840,8 +788,43 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 	return nil
 }
 
+// TODO: this is static
 func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command *RavenCommand, request *http.Request, response *http.Response, e error) {
-	panicIf(true, "NYI")
+	failedNodes := command.getFailedNodes()
+
+	if response != nil && response.Body != nil {
+		responseJson, err := ioutil.ReadAll(response.Body)
+		if err == nil {
+			var schema ExceptionSchema
+			json.Unmarshal(responseJson, &schema)
+			readException := ExceptionDispatcher_get(&schema, response.StatusCode)
+			failedNodes[chosenNode] = readException
+		} else {
+			exceptionSchema := NewExceptionSchema()
+			exceptionSchema.setUrl(request.RequestURI)
+			exceptionSchema.setMessage("Get unrecognized response from the server")
+			exceptionSchema.setError(string(responseJson))
+			exceptionSchema.setType("Unparsable Server Response")
+			exceptionToUse := ExceptionDispatcher_get(exceptionSchema, response.StatusCode)
+
+			failedNodes[chosenNode] = exceptionToUse
+		}
+	}
+
+	// this would be connections that didn't have response, such as "couldn't connect to remote server"
+	if e == nil {
+		// TODO: not sure if this is needed or a sign of a buf
+		e = NewRavenException("")
+	}
+	exceptionSchema := NewExceptionSchema()
+	exceptionSchema.setUrl(request.RequestURI)
+	exceptionSchema.setMessage(e.Error())
+	exceptionSchema.setError(e.Error())
+	errorType := fmt.Sprintf("%T", e)
+	exceptionSchema.setType(errorType)
+
+	exceptionToUse := ExceptionDispatcher_get(exceptionSchema, http.StatusInternalServerError)
+	failedNodes[chosenNode] = exceptionToUse
 }
 
 // TODO: write me. this should be configurable by the user
@@ -917,6 +900,44 @@ func (re *RequestExecutor) createClient() *http.Client {
 		client.Transport = proxyTransport
 	}
 	return client
+}
+
+func (re *RequestExecutor) getPreferredNode() (*CurrentIndexAndNode, error) {
+	re.ensureNodeSelector()
+
+	return re._nodeSelector.getPreferredNode()
+}
+
+func (re *RequestExecutor) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, error) {
+	re.ensureNodeSelector()
+
+	return re._nodeSelector.getNodeBySessionId(sessionId)
+}
+
+func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
+	re.ensureNodeSelector()
+
+	return re._nodeSelector.getFastestNode()
+}
+
+// TODO: propagate error
+func (re *RequestExecutor) ensureNodeSelector() error {
+	if re._firstTopologyUpdate != nil && !re._firstTopologyUpdate.isDone() {
+		_, err := re._firstTopologyUpdate.get()
+		if err != nil {
+			return err
+		}
+	}
+
+	if re._nodeSelector == nil {
+		topology := NewTopology()
+
+		topology.setNodes(re.getTopologyNodes())
+		topology.setEtag(re.topologyEtag)
+
+		re._nodeSelector = NewNodeSelector(topology)
+	}
+	return nil
 }
 
 type NodeStatus struct {
