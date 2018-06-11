@@ -1,6 +1,8 @@
 package ravendb
 
-import "time"
+import (
+	"time"
+)
 
 // NodeSelector describes node selector
 type NodeSelector struct {

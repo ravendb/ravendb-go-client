@@ -247,20 +247,24 @@ func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *C
 }
 
 func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *CompletableFuture {
-	// TODO: handle _disposed
-	// TODO: locking with _updateDatabaseTopologySemaphore
 	//fmt.Printf("updateTopologyAsyncWithForceUpdate\n")
 	future := NewCompletableFuture()
 	f := func() {
 		var err error
+		var res bool
 		defer func() {
 			if err != nil {
 				future.markAsDoneWithError(err)
 			} else {
-				future.markAsDone(nil)
+				future.markAsDone(res)
 			}
 		}()
-
+		if re._disposed {
+			res = false
+			return
+		}
+		re._updateDatabaseTopologySemaphore.acquire()
+		defer re._updateDatabaseTopologySemaphore.release()
 		command := NewGetDatabaseTopologyCommand()
 		err = re.execute(node, 0, command, false, nil)
 		if err != nil {
@@ -279,6 +283,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 			}
 		}
 		re.topologyEtag = re._nodeSelector.getTopology().getEtag()
+		res = true
 	}
 	go f()
 	return future
@@ -330,14 +335,14 @@ func (re *RequestExecutor) chooseNodeForRequest(cmd *RavenCommand, sessionInfo *
 	return nil, nil
 }
 
-func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) error {
+func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) (*CompletableFuture, error) {
 
 	if topologyUpdate == nil {
 		re.mu.Lock()
 		if re._firstTopologyUpdate == nil {
 			if len(re._lastKnownUrls) == 0 {
 				re.mu.Unlock()
-				return NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
+				return topologyUpdate, NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
 			re._firstTopologyUpdate = re.firstTopologyUpdate(re._lastKnownUrls)
@@ -347,11 +352,12 @@ func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyU
 	}
 
 	_, err := topologyUpdate.get()
-	return err
+	return topologyUpdate, err
 }
 
 func (re *RequestExecutor) unlikelyExecute(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) error {
-	err := re.unlikelyExecuteInner(command, topologyUpdate, sessionInfo)
+	var err error
+	topologyUpdate, err = re.unlikelyExecuteInner(command, topologyUpdate, sessionInfo)
 	if err != nil {
 		re.mu.Lock()
 		if re._firstTopologyUpdate == topologyUpdate {
@@ -418,8 +424,8 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 				if err == nil {
 					re.initializeUpdateTopologyTimer()
 					re._topologyTakenFromNode = serverNode
+					return
 				}
-				return
 			}
 
 			if _, ok := (err).(*DatabaseDoesNotExistException); ok {
@@ -920,7 +926,6 @@ func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
 	return re._nodeSelector.getFastestNode()
 }
 
-// TODO: propagate error
 func (re *RequestExecutor) ensureNodeSelector() error {
 	if re._firstTopologyUpdate != nil && !re._firstTopologyUpdate.isDone() {
 		_, err := re._firstTopologyUpdate.get()

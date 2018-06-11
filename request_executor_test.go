@@ -109,7 +109,9 @@ func TestRequestExecutor(t *testing.T) {
 	RequestExecutorTest_canFetchDatabasesNames(t)
 	RequestExecutorTest_canIssueManyRequests(t)
 	RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t)
-	//TODO: failing RequestExecutorTest_failuresDoesNotBlockConnectionPool(t)
+
+	RequestExecutorTest_failuresDoesNotBlockConnectionPool(t)
+
 	RequestExecutorTest_canCreateSingleNodeRequestExecutor(t)
 	RequestExecutorTest_failsWhenServerIsOffline(t)
 	RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t)
