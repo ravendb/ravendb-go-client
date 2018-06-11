@@ -86,15 +86,48 @@ func RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 }
 
 func RequestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	documentConventions := NewDocumentConventions()
+	store := getDocumentStoreMust(t)
+	{
+		executor := RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(store.getUrls()[0], store.getDatabase(), nil, documentConventions)
+		nodes := executor.getTopologyNodes()
+		assert.Equal(t, 1, len(nodes))
+
+		serverNode := nodes[0]
+		assert.Equal(t, serverNode.getUrl(), store.getUrls()[0])
+		assert.Equal(t, serverNode.getDatabase(), store.getDatabase())
+
+		command := NewGetNextOperationIdCommand()
+		err := executor.executeCommand(command)
+		assert.NoError(t, err)
+		assert.NotNil(t, command.getResult())
+	}
 }
 
 func RequestExecutorTest_canChooseOnlineNode(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	documentConventions := NewDocumentConventions()
+	store := getDocumentStoreMust(t)
+	url := store.getUrls()[0]
+	dbName := store.getDatabase()
+	{
+		executor := RequestExecutor_create([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, documentConventions)
+		command := NewGetNextOperationIdCommand()
+		err := executor.executeCommand(command)
+		assert.NoError(t, err)
+		assert.NotNil(t, command.result)
+		topologyNodes := executor.getTopologyNodes()
+		assert.Equal(t, len(topologyNodes), 1)
+		assert.Equal(t, url, topologyNodes[0].getUrl())
+		assert.Equal(t, url, executor.getUrl())
+	}
 }
 
 func RequestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	documentConventions := NewDocumentConventions()
+	executor := RequestExecutor_create([]string{"http://no_such_host:8081"}, "db1", nil, documentConventions)
+	command := NewGetNextOperationIdCommand()
+	err := executor.executeCommand(command)
+	_ = err.(*AllTopologyNodesDownException)
 }
 
 func TestRequestExecutor(t *testing.T) {
@@ -109,9 +142,7 @@ func TestRequestExecutor(t *testing.T) {
 	RequestExecutorTest_canFetchDatabasesNames(t)
 	RequestExecutorTest_canIssueManyRequests(t)
 	RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t)
-
 	RequestExecutorTest_failuresDoesNotBlockConnectionPool(t)
-
 	RequestExecutorTest_canCreateSingleNodeRequestExecutor(t)
 	RequestExecutorTest_failsWhenServerIsOffline(t)
 	RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t)

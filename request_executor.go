@@ -290,8 +290,13 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 }
 
 func (re *RequestExecutor) disposeAllFailedNodesTimers() {
-	// TODO: implement me
-	panicIf(true, "NYI")
+	f := func(key, val interface{}) bool {
+		status := val.(*NodeStatus)
+		status.close()
+		return true
+	}
+	re._failedNodesTimers.Range(f)
+	re._failedNodesTimers = sync.Map{}
 }
 
 // execute(command) in java
@@ -511,7 +516,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	}
 	// TODO: caching
 
-	urlRef := request.RequestURI // TODO: double-check
+	urlRef := request.URL.String()
 
 	if !re._disableClientConfigurationUpdates {
 		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
@@ -536,10 +541,9 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	dumpHTTPRequestAndResponse(request, response)
 
 	if err != nil {
-		if !shouldRetry {
-			return err
-		}
-		urlRef := request.RequestURI
+		// Note: Java here re-throws if err is IOException and !shouldRetry
+		// but for us that propagates the wrong error to RequestExecutorTest_failsWhenServerIsOffline
+		urlRef := request.URL.String()
 		if !re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo) {
 			return re.throwFailedToContactAllNodes(command, request, err, nil)
 		}
@@ -629,7 +633,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command *RavenCommand, r
 	// TODO: after transition to RavenCommand as interface, this will
 	// be command name via type
 	commandName := "command"
-	message := "Tried to send " + commandName + " request via " + request.Method + " " + request.RequestURI + " to all configured nodes in the topology, " +
+	message := "Tried to send " + commandName + " request via " + request.Method + " " + request.URL.String() + " to all configured nodes in the topology, " +
 		"all of them seem to be down or not responding. I've tried to access the following nodes: "
 
 	var urls []string
@@ -708,7 +712,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		}
 		return true, nil
 	case http.StatusForbidden:
-		err = NewAuthorizationException("Forbidden access to " + chosenNode.getDatabase() + "@" + chosenNode.getUrl() + ", " + request.Method + " " + request.RequestURI)
+		err = NewAuthorizationException("Forbidden access to " + chosenNode.getDatabase() + "@" + chosenNode.getUrl() + ", " + request.Method + " " + request.URL.String())
 	case http.StatusGone: // request not relevant for the chosen node - the database has been moved to a different one
 		if !shouldRetry {
 			return false, nil
@@ -754,8 +758,9 @@ func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, 
 
 	re.addFailedResponseToCommand(chosenNode, command, request, response, e)
 
-	// TODO: -1 ?
-	if nodeIndex == 0 {
+	// TODO: Java checks for nodeIndex != null, don't know how that could happen
+	// TODO: change to false
+	if true && nodeIndex == 0 {
 		//We executed request over a node not in the topology. This means no failover...
 		return false
 	}
@@ -768,20 +773,27 @@ func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, 
 
 	re._nodeSelector.onFailedRequest(nodeIndex)
 
-	// TODO: propagate error
-	currentIndexAndNode, _ := re.getPreferredNode()
+	currentIndexAndNode, err := re.getPreferredNode()
+	if err != nil {
+		return false
+	}
 
 	if _, ok := command.getFailedNodes()[currentIndexAndNode.currentNode]; ok {
 		return false //we tried all the nodes...nothing left to do
 	}
 
+	// TODO: propagate error?
 	re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
 
 	return true
 }
 
 func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex int) {
-	panicIf(true, "NYI")
+	nodeStatus := NewNodeStatus(re, nodeIndex, chosenNode)
+	_, loaded := re._failedNodesTimers.LoadOrStore(chosenNode, nodeStatus)
+	if !loaded {
+		nodeStatus.startTimer()
+	}
 }
 
 func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
@@ -807,7 +819,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 			failedNodes[chosenNode] = readException
 		} else {
 			exceptionSchema := NewExceptionSchema()
-			exceptionSchema.setUrl(request.RequestURI)
+			exceptionSchema.setUrl(request.URL.String())
 			exceptionSchema.setMessage("Get unrecognized response from the server")
 			exceptionSchema.setError(string(responseJson))
 			exceptionSchema.setType("Unparsable Server Response")
@@ -823,7 +835,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 		e = NewRavenException("")
 	}
 	exceptionSchema := NewExceptionSchema()
-	exceptionSchema.setUrl(request.RequestURI)
+	exceptionSchema.setUrl(request.URL.String())
 	exceptionSchema.setMessage(e.Error())
 	exceptionSchema.setError(e.Error())
 	errorType := fmt.Sprintf("%T", e)
