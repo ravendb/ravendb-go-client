@@ -31,7 +31,17 @@ func RequestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 }
 
 func RequestExecutorTest_canIssueManyRequests(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	conventions := NewDocumentConventions()
+	store := getDocumentStoreMust(t)
+	{
+		executor := RequestExecutor_create(store.getUrls(), store.getDatabase(), nil, conventions)
+		for i := 0; i < 50; i++ {
+			databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
+			command := databaseNamesOperation.getCommand(conventions)
+			err := executor.executeCommand(command)
+			assert.Nil(t, err)
+		}
+	}
 }
 
 func RequestExecutorTest_canFetchDatabasesNames(t *testing.T) {
