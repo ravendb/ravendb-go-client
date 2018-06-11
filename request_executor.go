@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -603,9 +604,32 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 }
 
 func (re *RequestExecutor) throwFailedToContactAllNodes(command *RavenCommand, request *http.Request, e error, timeoutException error) error {
-	// TODO: implement me
-	panicIf(true, "NYI")
-	return errors.New("throwFailedToContactAllNodes")
+	// TODO: after transition to RavenCommand as interface, this will
+	// be command name via type
+	commandName := "command"
+	message := "Tried to send " + commandName + " request via " + request.Method + " " + request.RequestURI + " to all configured nodes in the topology, " +
+		"all of them seem to be down or not responding. I've tried to access the following nodes: "
+
+	var urls []string
+	for _, node := range re._nodeSelector.getTopology().getNodes() {
+		url := node.getUrl()
+		urls = append(urls, url)
+	}
+	message += strings.Join(urls, ", ")
+
+	if re._topologyTakenFromNode != nil {
+		nodes := re._nodeSelector.getTopology().getNodes()
+		var a []string
+		for _, n := range nodes {
+			s := "( url: " + n.getUrl() + ", clusterTag: " + n.getClusterTag() + ", serverRole: " + n.getServerRole() + ")"
+			a = append(a, s)
+		}
+		nodesStr := strings.Join(a, ", ")
+
+		message += "\nI was able to fetch " + re._topologyTakenFromNode.getDatabase() + " topology from " + re._topologyTakenFromNode.getUrl() + ".\n" + "Fetched topology: " + nodesStr
+	}
+
+	return NewAllTopologyNodesDownException("%s", message)
 }
 
 func (re *RequestExecutor) inSpeedTestPhase() bool {
