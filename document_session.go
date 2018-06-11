@@ -14,12 +14,6 @@ type DocumentSession struct {
 	// _revisions *IRevisionsSessionOperations
 }
 
-//    public IAdvancedSessionOperations advanced() {
-//    public ILazySessionOperations lazily() {
-//    public IEagerSessionOperations eagerly() {
-//    public IAttachmentsSessionOperations attachments() {
-//    public IRevisionsSessionOperations revisions() {
-
 // NewDocumentSession creates a new DocumentSession
 func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
 	res := &DocumentSession{
@@ -32,6 +26,16 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 	return res
 }
 
+// TODO: consider exposing it as IAdvancedSessionOperations interface, like in Java
+func (s *DocumentSession) advanced() *DocumentSession {
+	return s
+}
+
+//    public ILazySessionOperations lazily() {
+//    public IEagerSessionOperations eagerly() {
+//    public IAttachmentsSessionOperations attachments() {
+//    public IRevisionsSessionOperations revisions() {
+
 func (s *DocumentSession) SaveChanges() error {
 	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)
 
@@ -39,7 +43,7 @@ func (s *DocumentSession) SaveChanges() error {
 	if command == nil {
 		return nil
 	}
-	err := s.RequestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -48,7 +52,25 @@ func (s *DocumentSession) SaveChanges() error {
 	return nil
 }
 
-// TODO:    public boolean exists(String id) {
+func (s *DocumentSession) exists(id string) (bool, error) {
+	if s.documentsById.getValue(id) != nil {
+		return true, nil
+	}
+	return false, nil
+	/*
+
+		command := NewHeadDocumentCommand(id, nil)
+
+		err := s._requestExecutor.executeCommand(command, s.sessionInfo)
+		if err != nil {
+			return false, err
+		}
+
+		ok := command.getResult().(bool)
+		return ok, nil
+	*/
+}
+
 // TODO:    public <T> void refresh(T entity) {
 // TODO:    protected String generateId(Object entity) {
 // TODO:    public ResponseTimeInformation executeAllPendingLazyOperations() {
@@ -69,7 +91,7 @@ func (s *DocumentSession) load(clazz reflect.Type, id string) interface{} {
 	command := loadOperation.createRequest()
 
 	if command != nil {
-		s.RequestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 		result := command.getResult().(*GetDocumentsResult)
 		loadOperation.setResult(result)
 	}

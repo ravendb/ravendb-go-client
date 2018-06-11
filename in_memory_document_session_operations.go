@@ -21,7 +21,7 @@ func newClientSessionID() int {
 type InMemoryDocumentSessionOperations struct {
 	_clientSessionID int
 	deletedEntities  map[interface{}]struct{}
-	RequestExecutor  *RequestExecutor
+	_requestExecutor *RequestExecutor
 	// TODO: OperationExecutor
 	// Note: pendingLazyOperations and onEvaluateLazy not used
 	generateDocumentKeysOnStore bool
@@ -84,7 +84,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		id:                            id,
 		_clientSessionID:              clientSessionID,
 		deletedEntities:               map[interface{}]struct{}{},
-		RequestExecutor:               re,
+		_requestExecutor:              re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsById:                 NewDocumentsById(),
@@ -121,7 +121,7 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() in
 }
 
 func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConventions {
-	return s.RequestExecutor.conventions
+	return s._requestExecutor.conventions
 }
 
 func (s *InMemoryDocumentSessionOperations) getDatabaseName() string {
@@ -423,12 +423,12 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		return err
 	}
 
-	collectionName := s.RequestExecutor.getConventions().getCollectionName(entity)
+	collectionName := s._requestExecutor.getConventions().getCollectionName(entity)
 	metadata := ObjectNode{}
 	if collectionName != "" {
 		metadata[Constants_Documents_Metadata_COLLECTION] = collectionName
 	}
-	goType := s.RequestExecutor.getConventions().getGoTypeName(entity)
+	goType := s._requestExecutor.getConventions().getGoTypeName(entity)
 	if goType != "" {
 		metadata[Constants_Documents_Metadata_RAVEN_GO_TYPE] = goType
 	}

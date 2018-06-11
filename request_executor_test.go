@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func RequestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
+func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -30,7 +30,7 @@ func RequestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 	}
 }
 
-func RequestExecutorTest_canIssueManyRequests(t *testing.T) {
+func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -44,7 +44,7 @@ func RequestExecutorTest_canIssueManyRequests(t *testing.T) {
 	}
 }
 
-func RequestExecutorTest_canFetchDatabasesNames(t *testing.T) {
+func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -60,7 +60,7 @@ func RequestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 	}
 }
 
-func RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T) {
+func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T) {
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -74,7 +74,7 @@ func RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 	}
 }
 
-func RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
+func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -85,7 +85,7 @@ func RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 	}
 }
 
-func RequestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
+func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 	documentConventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -104,7 +104,7 @@ func RequestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 	}
 }
 
-func RequestExecutorTest_canChooseOnlineNode(t *testing.T) {
+func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 	documentConventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	url := store.getUrls()[0]
@@ -122,7 +122,7 @@ func RequestExecutorTest_canChooseOnlineNode(t *testing.T) {
 	}
 }
 
-func RequestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
+func requestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
 	documentConventions := NewDocumentConventions()
 	executor := RequestExecutor_create([]string{"http://no_such_host:8081"}, "db1", nil, documentConventions)
 	command := NewGetNextOperationIdCommand()
@@ -139,12 +139,12 @@ func TestRequestExecutor(t *testing.T) {
 	}
 
 	// matches order of Java tests
-	RequestExecutorTest_canFetchDatabasesNames(t)
-	RequestExecutorTest_canIssueManyRequests(t)
-	RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t)
-	RequestExecutorTest_failuresDoesNotBlockConnectionPool(t)
-	RequestExecutorTest_canCreateSingleNodeRequestExecutor(t)
-	RequestExecutorTest_failsWhenServerIsOffline(t)
-	RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t)
-	RequestExecutorTest_canChooseOnlineNode(t)
+	requestExecutorTest_canFetchDatabasesNames(t)
+	requestExecutorTest_canIssueManyRequests(t)
+	requestExecutorTest_throwsWhenDatabaseDoesNotExist(t)
+	requestExecutorTest_failuresDoesNotBlockConnectionPool(t)
+	requestExecutorTest_canCreateSingleNodeRequestExecutor(t)
+	requestExecutorTest_failsWhenServerIsOffline(t)
+	requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t)
+	requestExecutorTest_canChooseOnlineNode(t)
 }

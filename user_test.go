@@ -10,6 +10,10 @@ type User struct {
 	Age       int     `json:"age"`
 }
 
+func NewUser() *User {
+	return &User{}
+}
+
 func (u *User) getId() string {
 	return u.ID
 }

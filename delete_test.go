@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func DeleteTest_deleteDocumentByEntity(t *testing.T) {
+func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	newSession := openSessionMust(t, store)
 
@@ -34,7 +34,7 @@ func DeleteTest_deleteDocumentByEntity(t *testing.T) {
 	assert.Nil(t, nilUser)
 }
 
-func DeleteTest_deleteDocumentById(t *testing.T) {
+func deleteTest_deleteDocumentById(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	newSession := openSessionMust(t, store)
 
@@ -69,6 +69,6 @@ func TestDelete(t *testing.T) {
 	}
 
 	// matches order of Java tests
-	DeleteTest_deleteDocumentByEntity(t)
-	DeleteTest_deleteDocumentById(t)
+	deleteTest_deleteDocumentByEntity(t)
+	deleteTest_deleteDocumentById(t)
 }

@@ -60,7 +60,7 @@ func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
 	return session
 }
 
-func testCapacityShouldDouble(t *testing.T) {
+func hiloTest_capacityShouldDouble(t *testing.T) {
 	store := getDocumentStoreMust(t)
 
 	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
@@ -115,7 +115,7 @@ func testCapacityShouldDouble(t *testing.T) {
 	}
 }
 
-func testReturnUnusedRangeOnClose(t *testing.T) {
+func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	newStore := NewDocumentStore()
 	newStore.setUrls(store.getUrls())
@@ -167,7 +167,7 @@ func testReturnUnusedRangeOnClose(t *testing.T) {
 	newStore.Close() //on document store close, hilo-return should be called
 }
 
-func testHiLoCanNotGoDown(t *testing.T) {
+func hiloTest_canNotGoDown(t *testing.T) {
 	store := getDocumentStoreMust(t)
 
 	session := openSessionMust(t, store)
@@ -199,7 +199,7 @@ func testHiLoCanNotGoDown(t *testing.T) {
 	assert.False(t, intArrayHasDuplicates(ids))
 }
 
-func testHiLoMultiDb(t *testing.T) {
+func hiloTest_multiDb(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	session := openSessionMust(t, store)
 
@@ -232,8 +232,8 @@ func TestHiLo(t *testing.T) {
 	}
 
 	// matches order of java tests
-	testCapacityShouldDouble(t)
-	testReturnUnusedRangeOnClose(t)
-	testHiLoCanNotGoDown(t)
-	testHiLoMultiDb(t)
+	hiloTest_capacityShouldDouble(t)
+	hiloTest_returnUnusedRangeOnClose(t)
+	hiloTest_canNotGoDown(t)
+	hiloTest_multiDb(t)
 }
