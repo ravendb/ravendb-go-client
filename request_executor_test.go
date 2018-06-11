@@ -39,13 +39,25 @@ func RequestExecutorTest_canIssueManyRequests(t *testing.T) {
 			databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
 			command := databaseNamesOperation.getCommand(conventions)
 			err := executor.executeCommand(command)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		}
 	}
 }
 
 func RequestExecutorTest_canFetchDatabasesNames(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	conventions := NewDocumentConventions()
+	store := getDocumentStoreMust(t)
+	{
+		executor := RequestExecutor_create(store.getUrls(), store.getDatabase(), nil, conventions)
+
+		databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
+		command := databaseNamesOperation.getCommand(conventions)
+		err := executor.executeCommand(command)
+		assert.NoError(t, err)
+
+		dbNames := command.getResult().([]string)
+		assert.True(t, stringArrayContains(dbNames, store.getDatabase()))
+	}
 }
 
 func RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T) {
@@ -80,7 +92,7 @@ func TestRequestExecutor(t *testing.T) {
 	RequestExecutorTest_canFetchDatabasesNames(t)
 	RequestExecutorTest_canIssueManyRequests(t)
 	RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t)
-	//RequestExecutorTest_failuresDoesNotBlockConnectionPool(t)
+	//TODO: failing RequestExecutorTest_failuresDoesNotBlockConnectionPool(t)
 	RequestExecutorTest_canCreateSingleNodeRequestExecutor(t)
 	RequestExecutorTest_failsWhenServerIsOffline(t)
 	RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t)
