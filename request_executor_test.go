@@ -61,7 +61,17 @@ func RequestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 }
 
 func RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	conventions := NewDocumentConventions()
+	store := getDocumentStoreMust(t)
+	{
+		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
+		serverNode := NewServerNode()
+		serverNode.setUrl(store.getUrls()[0])
+		serverNode.setDatabase("no_such")
+		future := executor.updateTopologyAsync(serverNode, 5000)
+		_, err := future.get()
+		_ = err.(*DatabaseDoesNotExistException)
+	}
 }
 
 func RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
