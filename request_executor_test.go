@@ -75,7 +75,14 @@ func RequestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 }
 
 func RequestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
-	//store := getDocumentStoreMust(t)
+	conventions := NewDocumentConventions()
+	store := getDocumentStoreMust(t)
+	{
+		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
+		command := NewGetNextOperationIdCommand()
+		err := executor.executeCommand(command)
+		_ = err.(*DatabaseDoesNotExistException)
+	}
 }
 
 func RequestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
