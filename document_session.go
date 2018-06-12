@@ -56,19 +56,15 @@ func (s *DocumentSession) exists(id string) (bool, error) {
 	if s.documentsById.getValue(id) != nil {
 		return true, nil
 	}
-	return false, nil
-	/*
+	command := NewHeadDocumentCommand(id, nil)
 
-		command := NewHeadDocumentCommand(id, nil)
+	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return false, err
+	}
 
-		err := s._requestExecutor.executeCommand(command, s.sessionInfo)
-		if err != nil {
-			return false, err
-		}
-
-		ok := command.getResult().(bool)
-		return ok, nil
-	*/
+	ok := command.exists()
+	return ok, nil
 }
 
 // TODO:    public <T> void refresh(T entity) {

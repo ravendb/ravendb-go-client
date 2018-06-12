@@ -53,6 +53,5 @@ func TestExists(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_exists_go.txt")
 	}
-	//TODO: re-enable
-	//existsTest_checkIfDocumentExists(t)
+	existsTest_checkIfDocumentExists(t)
 }

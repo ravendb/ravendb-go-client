@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -64,8 +63,12 @@ func (c *HeadDocumentCommand) setResponse(response String, fromCache bool) error
 	if response != "" {
 		return throwInvalidResponse()
 	}
-	// TODO: is this really ever reached?
-	fmt.Printf("HeadDocumentCommand.setResponse: clearing Result\n")
+	// This is called from handleUnsuccessfulResponse() to mark the command
+	// as having empty result
 	c.Result = nil
 	return nil
+}
+
+func (c *HeadDocumentCommand) exists() bool {
+	return c.Result != nil
 }
