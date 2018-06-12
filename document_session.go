@@ -1,6 +1,8 @@
 package ravendb
 
 import (
+	"encoding/json"
+	"io"
 	"reflect"
 )
 
@@ -93,6 +95,49 @@ func (s *DocumentSession) load(clazz reflect.Type, id string) interface{} {
 	}
 
 	return loadOperation.getDocument(clazz)
+}
+
+func (s *DocumentSession) loadMulti(clazz reflect.Type, ids ...string) map[string]interface{} {
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	s.loadInternalWithOperation(ids, loadOperation, nil)
+	return loadOperation.getDocuments(clazz)
+}
+
+func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {
+	operation.byIds(ids)
+
+	command := operation.createRequest()
+	if command != nil {
+		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+
+		if stream != nil {
+			result := command.Result
+			// TODO: serialize directly to stream
+			d, err := json.Marshal(result)
+			panicIf(err != nil, "json.Marshal() failed with %s", err)
+			_, err = stream.Write(d)
+			if err != nil {
+				return err
+			}
+		} else {
+			operation.setResult(command.Result)
+		}
+	}
+	return nil
+}
+
+func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, includes []string) map[string]interface{} {
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	loadOperation.byIds(ids)
+	loadOperation.withIncludes(includes)
+
+	command := loadOperation.createRequest()
+	if command != nil {
+		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		loadOperation.setResult(command.Result)
+	}
+
+	return loadOperation.getDocuments(clazz)
 }
 
 // TODO: more

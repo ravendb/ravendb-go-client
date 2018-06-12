@@ -11,7 +11,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	newSession := openSessionMust(t, store)
 
-	user := &User{}
+	user := NewUser()
 	user.setName("RavenDB")
 
 	err := newSession.StoreEntityWithID(user, "users/1")
@@ -19,7 +19,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result := newSession.load(getTypeOfValue(&User{}), "users/1")
+	result := newSession.load(getTypeOfValue(NewUser()), "users/1")
 	user = result.(*User)
 
 	assert.NotNil(t, user)
@@ -29,7 +29,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result = newSession.load(getTypeOfValue(&User{}), "users/1")
+	result = newSession.load(getTypeOfValue(NewUser()), "users/1")
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)
 }
@@ -38,7 +38,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	newSession := openSessionMust(t, store)
 
-	user := &User{}
+	user := NewUser()
 	user.setName("RavenDB")
 
 	err := newSession.StoreEntityWithID(user, "users/1")
@@ -46,7 +46,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result := newSession.load(getTypeOfValue(&User{}), "users/1")
+	result := newSession.load(getTypeOfValue(NewUser()), "users/1")
 	user = result.(*User)
 	assert.NotNil(t, user)
 
@@ -55,7 +55,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result = newSession.load(getTypeOfValue(&User{}), "users/1")
+	result = newSession.load(getTypeOfValue(NewUser()), "users/1")
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)
 }

@@ -47,7 +47,8 @@ func runJava() {
 	//runSingleJavaTest("DeleteTest", "trace_delete_java.txt")
 	//runSingleJavaTest("RequestExecutorTest", "trace_request_executor_java.txt")
 	//runSingleJavaTest("ExistsTest", "trace_exists_java.txt")
-	runSingleJavaTest("ClientConfigurationTest", "trace_client_configuration_java.txt")
+	//runSingleJavaTest("ClientConfigurationTest", "trace_client_configuration_java.txt")
+	runSingleJavaTest("LoadTest", "trace_load_java.txt")
 }
 
 func main() {
