@@ -1,8 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
@@ -31,33 +29,6 @@ func (p *Product) getProductName() String {
 
 func (p *Product) setProductName(productName String) {
 	p.ProductName = productName
-}
-
-var dbTestsDisabledAlreadyPrinted = false
-
-func dbTestsDisabled() bool {
-	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
-		if !dbTestsDisabledAlreadyPrinted {
-			dbTestsDisabledAlreadyPrinted = true
-			fmt.Printf("DB tests are disabled\n")
-		}
-		return true
-	}
-	return false
-}
-
-func getDocumentStoreMust(t *testing.T) *DocumentStore {
-	store, err := getDocumentStore()
-	assert.NoError(t, err)
-	assert.NotNil(t, store)
-	return store
-}
-
-func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
-	session, err := store.OpenSession()
-	assert.NoError(t, err)
-	assert.NotNil(t, session)
-	return session
 }
 
 func hiloTest_capacityShouldDouble(t *testing.T) {

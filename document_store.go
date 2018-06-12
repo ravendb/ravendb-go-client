@@ -32,8 +32,8 @@ type DocumentStore struct {
 	identifier                   string
 	_aggressiveCachingUsed       bool
 
-	//private final List<EventHandler<VoidArgs>> afterClose = new ArrayList<>();
-	//private final List<EventHandler<VoidArgs>> beforeClose = new ArrayList<>();
+	afterClose  []func(*DocumentStore)
+	beforeClose []func(*DocumentStore)
 
 	// old
 	mu sync.Mutex
@@ -176,10 +176,24 @@ func (s *DocumentStore) setIdentifier(identifier String) {
 
 // Close closes the store
 func (s *DocumentStore) Close() {
+	for _, fn := range s.beforeClose {
+		fn(s)
+	}
+
 	if s._multiDbHiLo != nil {
 		s._multiDbHiLo.ReturnUnusedRange()
 	}
+
 	// TODO: more
+
+	s.disposed = true
+
+	for _, fn := range s.afterClose {
+		fn(s)
+	}
+	for _, re := range s.requestsExecutors {
+		re.close()
+	}
 }
 
 // OpenSession opens a new session to document store.
@@ -290,9 +304,17 @@ func (s *DocumentStore) aggressivelyCacheForDatabase(cacheDuration time.Duration
 }
 
 //    private void listenToChangesAndUpdateTheCache(String database) {
-//    public void addBeforeCloseListener(EventHandler<VoidArgs> event) {
+
+func (s *DocumentStore) addBeforeCloseListener(fn func(*DocumentStore)) {
+	s.beforeClose = append(s.beforeClose, fn)
+}
+
 //   public void removeBeforeCloseListener(EventHandler<VoidArgs> event) {
-//    public void addAfterCloseListener(EventHandler<VoidArgs> event) {
+
+func (s *DocumentStore) addAfterCloseListener(fn func(*DocumentStore)) {
+	s.afterClose = append(s.afterClose, fn)
+}
+
 //    public void removeAfterCloseListener(EventHandler<VoidArgs> event) {
 
 func (s *DocumentStore) maintenance() *MaintenanceOperationExecutor {

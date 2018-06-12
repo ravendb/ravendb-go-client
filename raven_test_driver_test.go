@@ -7,61 +7,71 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
-	dbIndex                    int32
-	globalServer               *DocumentStore
-	globalServerProcess        *Process
-	globalSecuredServerProcess *Process
-
-	globalSecuredServer *DocumentStore
+	gRavenTestDriver *RavenTestDriver
 )
 
-func getGlobalServer(secured bool) *DocumentStore {
-	if secured {
-		return globalSecuredServer
-	}
-	return globalServer
+type RavenTestDriver struct {
+	globalServer               *DocumentStore
+	globalServerProcess        *Process
+	globalSecuredServer        *DocumentStore
+	globalSecuredServerProcess *Process
+
+	documentStores sync.Map // *DocumentStore => bool
+
+	index    AtomicInteger
+	disposed bool
 }
 
-func setGlobalServerProcess(secured bool, p *Process) {
-	if secured {
-		globalSecuredServerProcess = p
-	} else {
-		globalServerProcess = p
-	}
+func NewRavenTestDriver() *RavenTestDriver {
+	return &RavenTestDriver{}
 }
 
-func getDocumentStore() (*DocumentStore, error) {
-	return getDocumentStoreWithName("test_db")
+func (d *RavenTestDriver) getSecuredDocumentStore() (*DocumentStore, error) {
+	return d.getDocumentStore2("test_db", true, 0)
 }
 
-func getDocumentStoreWithName(dbName string) (*DocumentStore, error) {
-	return getDocumentStore2(dbName, false, 0)
-
+// func (d *RavenTestDriver)
+func (d *RavenTestDriver) getTestClientCertificate() *KeyStore {
+	// TODO: implement me
+	return nil
 }
 
-func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
+func (d *RavenTestDriver) getDocumentStore() (*DocumentStore, error) {
+	return d.getDocumentStoreWithName("test_db")
+}
+
+func (d *RavenTestDriver) getSecuredDocumentStoreWithName(database string) (*DocumentStore, error) {
+	return d.getDocumentStore2(database, true, 0)
+}
+
+func (d *RavenTestDriver) getDocumentStoreWithName(dbName string) (*DocumentStore, error) {
+	return d.getDocumentStore2(dbName, false, 0)
+}
+
+func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
 	//fmt.Printf("getDocumentStore2\n")
 
-	n := atomic.AddInt32(&dbIndex, 1)
+	n := d.index.incrementAndGet()
 	name := fmt.Sprintf("%s_%d", dbName, n)
-	documentStore := getGlobalServer(secured)
+	documentStore := d.getGlobalServer(secured)
 	if documentStore == nil {
-		err := runServer(secured)
+		err := d.runServer(secured)
 		if err != nil {
 			fmt.Printf("runServer failed with %s\n", err)
 			return nil, err
 		}
 	}
 
-	documentStore = getGlobalServer(secured)
+	documentStore = d.getGlobalServer(secured)
 	databaseRecord := NewDatabaseRecord()
 	databaseRecord.DatabaseName = name
 
@@ -74,37 +84,55 @@ func getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.
 	urls := documentStore.getUrls()
 	store := NewDocumentStoreWithUrlsAndDatabase(urls, name)
 
-	if false && secured {
-		// TODO: store.setCertificate(getTestClientCertificate());
+	if secured {
+		store.setCertificate(d.getTestClientCertificate())
 	}
 
 	// TODO: is over-written by CustomSerializationTest
 	// customizeStore(store);
-	// TODO:         hookLeakedConnectionCheck(store);
+	d.hookLeakedConnectionCheck(store)
 
-	// TODO:         setupDatabase(store);
+	d.setupDatabase(store)
 	_, err = store.Initialize()
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO:         store.addAfterCloseListener(((sender, event) -> {
+	fn := func(store *DocumentStore) {
+		_, ok := d.documentStores.Load(store)
+		if !ok {
+			// TODO: shouldn't happen?
+			return
+		}
 
-	if waitForIndexingTimeout > 0 {
-		waitForIndexing(store, name, waitForIndexingTimeout)
+		operation := NewDeleteDatabasesOperation(store.getDatabase(), true)
+		command := operation.getCommand(store.getConventions())
+		store.maintenance().server().send(command)
 	}
 
-	// TODO:    documentStores.add(store);
+	store.addAfterCloseListener(fn)
+
+	if waitForIndexingTimeout > 0 {
+		d.waitForIndexing(store, name, waitForIndexingTimeout)
+	}
+
+	d.documentStores.Store(store, true)
 
 	return store, nil
 }
 
-func waitForIndexing(store *DocumentStore, database String, timeout time.Duration) {
-	// TODO: implement me
-	panicIf(true, "NYI")
+func (d *RavenTestDriver) hookLeakedConnectionCheck(store *DocumentStore) {
+	// TODO: no-op for now. Not sure if I have enough info
+	// to replicate this functionality in Go
 }
 
-func runServer(secured bool) error {
+// Note: it's virtual in Java but there's only one implementation
+// that is a no-op
+func (d *RavenTestDriver) setupDatabase(documentStore *DocumentStore) {
+	// empty by design
+}
+
+func (d *RavenTestDriver) runServer(secured bool) error {
 	var locator *RavenServerLocator
 	var err error
 	if secured {
@@ -121,7 +149,7 @@ func runServer(secured bool) error {
 		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
 		return err
 	}
-	setGlobalServerProcess(secured, proc)
+	d.setGlobalServerProcess(secured, proc)
 
 	// parse stdout of the server to extract server listening port from line:
 	// Server available on: http://127.0.0.1:50386
@@ -171,33 +199,62 @@ func runServer(secured bool) error {
 
 	if secured {
 		panicIf(true, "NYI")
-		globalSecuredServer = store
+		d.globalSecuredServer = store
 		//TODO: KeyStore clientCert = getTestClientCertificate();
 		//TODO: store.setCertificate(clientCert);
 	} else {
-		globalServer = store
+		d.globalServer = store
 	}
 	_, err = store.Initialize()
 	return err
 }
 
-func killGlobalServerProcess(secured bool) {
+func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database String, timeout time.Duration) {
+	// TODO: implement me
+	panicIf(true, "NYI")
+}
+
+func (d *RavenTestDriver) killGlobalServerProcess(secured bool) {
 	if secured {
-		if globalSecuredServerProcess != nil {
-			globalSecuredServerProcess.cmd.Process.Kill()
-			globalSecuredServerProcess = nil
+		if d.globalSecuredServerProcess != nil {
+			d.globalSecuredServerProcess.cmd.Process.Kill()
+			d.globalSecuredServerProcess = nil
 		}
 	} else {
-		if globalServerProcess != nil {
-			globalServerProcess.cmd.Process.Kill()
-			globalServerProcess = nil
+		if d.globalServerProcess != nil {
+			d.globalServerProcess.cmd.Process.Kill()
+			d.globalServerProcess = nil
 		}
 	}
 }
 
-func shutdownTests() {
-	killGlobalServerProcess(true)
-	killGlobalServerProcess(false)
+func (d *RavenTestDriver) getGlobalServer(secured bool) *DocumentStore {
+	if secured {
+		return d.globalSecuredServer
+	}
+	return d.globalServer
+}
+
+func (d *RavenTestDriver) setGlobalServerProcess(secured bool, p *Process) {
+	if secured {
+		d.globalSecuredServerProcess = p
+	} else {
+		d.globalServerProcess = p
+	}
+}
+
+func (d *RavenTestDriver) close() {
+	if d.disposed {
+		return
+	}
+
+	fn := func(key, value interface{}) bool {
+		documentStore := key.(*DocumentStore)
+		documentStore.Close()
+		return true
+	}
+	d.documentStores.Range(fn)
+	d.disposed = true
 }
 
 var (
@@ -217,6 +274,38 @@ func useProxy() bool {
 	}
 	useProxyCached = &b
 	return b
+}
+
+func shutdownTests() {
+	gRavenTestDriver.killGlobalServerProcess(true)
+	gRavenTestDriver.killGlobalServerProcess(false)
+}
+
+var dbTestsDisabledAlreadyPrinted = false
+
+func dbTestsDisabled() bool {
+	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
+		if !dbTestsDisabledAlreadyPrinted {
+			dbTestsDisabledAlreadyPrinted = true
+			fmt.Printf("DB tests are disabled\n")
+		}
+		return true
+	}
+	return false
+}
+
+func getDocumentStoreMust(t *testing.T) *DocumentStore {
+	store, err := gRavenTestDriver.getDocumentStore()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+	return store
+}
+
+func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
+	session, err := store.OpenSession()
+	assert.NoError(t, err)
+	assert.NotNil(t, session)
+	return session
 }
 
 func TestMain(m *testing.M) {
@@ -245,7 +334,11 @@ func TestMain(m *testing.M) {
 	if useProxy() {
 		go proxy.Run("")
 	}
+	gRavenTestDriver = NewRavenTestDriver()
+
 	code := m.Run()
+
+	// TODO: run this even when exception happens
 	shutdownTests()
 
 	if useProxy() {
