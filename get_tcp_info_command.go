@@ -5,44 +5,45 @@ import (
 	"net/http"
 )
 
-type _GetTcpInfoCommand struct {
-	tag           String
-	dbName        String
+var (
+	_ RavenCommand = &GetTcpInfoCommand{}
+)
+
+type GetTcpInfoCommand struct {
+	*RavenCommandBase
+	tag           string
+	dbName        string
 	requestedNode *ServerNode
+
+	Result *TcpConnectionInfo
 }
 
-func NewGetTcpInfoCommand(tag string) *RavenCommand {
+func NewGetTcpInfoCommand(tag string) *GetTcpInfoCommand {
 	return NewGetTcpInfoCommandWithDatbase(tag, "")
 }
 
-func NewGetTcpInfoCommandWithDatbase(tag, dbName string) *RavenCommand {
-	data := &_GetTcpInfoCommand{
-		tag:    tag,
-		dbName: dbName,
+func NewGetTcpInfoCommandWithDatbase(tag, dbName string) *GetTcpInfoCommand {
+	cmd := &GetTcpInfoCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+		tag:              tag,
+		dbName:           dbName,
 	}
-	cmd := NewRavenCommand()
 	cmd.IsReadRequest = true
-	cmd.data = data
-	cmd.createRequestFunc = GetTcpInfoCommand_createRequest
-	cmd.setResponseFunc = GetTcpInfoCommand_setResponse
-
 	return cmd
 }
 
-func GetTcpInfoCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_GetTcpInfoCommand)
-
+func (c *GetTcpInfoCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := ""
-	if data.dbName == "" {
-		url = node.getUrl() + "/info/tcp?tcp=" + data.tag
+	if c.dbName == "" {
+		url = node.getUrl() + "/info/tcp?tcp=" + c.tag
 	} else {
-		url = node.getUrl() + "/databases/" + data.dbName + "/info/tcp?tag=" + data.tag
+		url = node.getUrl() + "/databases/" + c.dbName + "/info/tcp?tag=" + c.tag
 	}
-	data.requestedNode = node
+	c.requestedNode = node
 	return NewHttpGet(url)
 }
 
-func GetTcpInfoCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetTcpInfoCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}
@@ -51,6 +52,6 @@ func GetTcpInfoCommand_setResponse(cmd *RavenCommand, response String, fromCache
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

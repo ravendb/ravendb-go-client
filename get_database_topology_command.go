@@ -6,16 +6,24 @@ import (
 	"strings"
 )
 
-func NewGetDatabaseTopologyCommand() *RavenCommand {
-	cmd := NewRavenCommand()
+var (
+	_ RavenCommand = &GetDatabaseTopologyCommand{}
+)
+
+type GetDatabaseTopologyCommand struct {
+	*RavenCommandBase
+	Result *Topology
+}
+
+func NewGetDatabaseTopologyCommand() *GetDatabaseTopologyCommand {
+	cmd := &GetDatabaseTopologyCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+	}
 	cmd.IsReadRequest = true
-	cmd.createRequestFunc = GetDatabaseTopologyCommand_createRequest
-	cmd.setResponseFunc = GetDatabaseTopologyCommand_setResponse
 	return cmd
 }
 
-func GetDatabaseTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-
+func (c *GetDatabaseTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/topology?name=" + node.getDatabase()
 	if strings.Contains(strings.ToLower(node.getUrl()), ".fiddler") {
 		// we want to keep the '.fiddler' stuff there so we'll keep tracking request
@@ -25,12 +33,12 @@ func GetDatabaseTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNod
 	return NewHttpGet(url)
 }
 
-func GetDatabaseTopologyCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetDatabaseTopologyCommand) setResponse(response String, fromCache bool) error {
 	var res Topology
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

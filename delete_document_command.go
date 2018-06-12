@@ -2,31 +2,34 @@ package ravendb
 
 import "net/http"
 
-type _DeleteDocumentCommand struct {
+var (
+	_ RavenCommand = &DeleteDocumentCommand{}
+)
+
+type DeleteDocumentCommand struct {
+	*RavenCommandBase
 	_id           String
 	_changeVector String
 }
 
-func NewDeleteDocumentCommand(id String, changeVector String) *RavenCommand {
-	data := &_DeleteDocumentCommand{
-		_id:           id,
-		_changeVector: changeVector,
+func NewDeleteDocumentCommand(id String, changeVector String) *DeleteDocumentCommand {
+	cmd := &DeleteDocumentCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+		_id:              id,
+		_changeVector:    changeVector,
 	}
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.createRequestFunc = DeleteDocumentCommand_createRequest
+	cmd.responseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
-func DeleteDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_DeleteDocumentCommand)
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(data._id)
+func (c *DeleteDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(c._id)
 
 	request, err := NewHttpDelete(url, "")
 	if err != nil {
 		return nil, err
 	}
-	addChangeVectorIfNotNull(data._changeVector, request)
+	addChangeVectorIfNotNull(c._changeVector, request)
 	return request, nil
 
 }

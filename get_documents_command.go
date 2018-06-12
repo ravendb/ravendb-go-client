@@ -7,7 +7,13 @@ import (
 	"strconv"
 )
 
-type _GetDocumentsCommand struct {
+var (
+	_ RavenCommand = &GetDocumentsCommand{}
+)
+
+type GetDocumentsCommand struct {
+	*RavenCommandBase
+
 	_id string
 
 	_ids      []string
@@ -21,89 +27,84 @@ type _GetDocumentsCommand struct {
 	_pageSize   int
 	_exclude    string
 	_startAfter string
+
+	Result *GetDocumentsResult
 }
 
-func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *RavenCommand {
-	d := &_GetDocumentsCommand{
-		_includes:     includes,
-		_metadataOnly: metadataOnly,
+func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *GetDocumentsCommand {
+	cmd := &GetDocumentsCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+		_includes:        includes,
+		_metadataOnly:    metadataOnly,
 	}
 
 	if len(ids) == 1 {
-		d._id = ids[0]
+		cmd._id = ids[0]
 	} else {
-		d._ids = ids
+		cmd._ids = ids
 	}
-	return NewGetDocumentsCommandWithData(d)
-}
-
-func NewGetDocumentsCommandWithData(data *_GetDocumentsCommand) *RavenCommand {
-	cmd := NewRavenCommand()
-	cmd.data = data
 	cmd.IsReadRequest = true
-	cmd.createRequestFunc = GetDocumentsCommand_createRequest
-	cmd.setResponseFunc = GetDocumentsCommand_setResponse
 	return cmd
 }
 
-func GetDocumentsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_GetDocumentsCommand)
+func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?"
 	// TODO: is _start == 0 valid?
-	if data._start != 0 {
-		url += "&start=" + strconv.Itoa(data._start)
+	if c._start != 0 {
+		url += "&start=" + strconv.Itoa(c._start)
 	}
 
-	if data._pageSize != 0 {
-		url += "&pageSize=" + strconv.Itoa(data._pageSize)
+	if c._pageSize != 0 {
+		url += "&pageSize=" + strconv.Itoa(c._pageSize)
 	}
 
-	if data._metadataOnly {
+	if c._metadataOnly {
 		url += "&metadataOnly=true"
 	}
 
-	if data._startWith != "" {
+	if c._startWith != "" {
 		url += "&startsWith="
-		url += UrlUtils_escapeDataString(data._startWith)
+		url += UrlUtils_escapeDataString(c._startWith)
 
-		if data._matches != "" {
+		if c._matches != "" {
 			url += "&matches="
-			url += data._matches
+			url += c._matches
 		}
 
-		if data._exclude != "" {
+		if c._exclude != "" {
 			url += "&exclude="
-			url += data._exclude
+			url += c._exclude
 		}
 
-		if data._startAfter != "" {
+		if c._startAfter != "" {
 			url += "&startAfter="
-			url += data._startAfter
+			url += c._startAfter
 		}
 	}
 
-	for _, include := range data._includes {
+	for _, include := range c._includes {
 		url += "&include="
 		url += include
 	}
 
-	if data._id != "" {
+	if c._id != "" {
 		url += "&id="
-		url += UrlUtils_escapeDataString(data._id)
+		url += UrlUtils_escapeDataString(c._id)
 		return NewHttpGet(url)
 	}
 
-	panicIf(len(data._ids) == 0, "must provide _id or _ids")
+	panicIf(len(c._ids) == 0, "must provide _id or _ids")
 
-	return GetDocumentsCommand_prepareRequestWithMultipleIds(url, data._ids)
+	return c.prepareRequestWithMultipleIds(url)
 }
 
-func GetDocumentsCommand_prepareRequestWithMultipleIds(url string, ids []string) (*http.Request, error) {
+func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
+	//ids := c._ids
 	panicIf(true, "NYI")
 	return nil, errors.New("NYI")
 }
 
-func GetDocumentsCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetDocumentsCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return nil
 	}
@@ -113,6 +114,6 @@ func GetDocumentsCommand_setResponse(cmd *RavenCommand, response String, fromCac
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

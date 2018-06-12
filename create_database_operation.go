@@ -6,51 +6,54 @@ import (
 	"strconv"
 )
 
-func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *RavenCommand {
+func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *CreateDatabaseCommand {
 	return NewCreateDatabaseOperationWithReplicationFactor(databaseRecord, 1)
 }
 
-func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *RavenCommand {
+func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseCommand {
 	// TODO: convention is passed at getCommand() time
 	return NewCreateDatabaseCommand(nil, databaseRecord, replicationFactor)
 }
 
-type _CreateDatabaseCommand struct {
+var (
+	_ RavenCommand = &CreateDatabaseCommand{}
+)
+
+type CreateDatabaseCommand struct {
+	*RavenCommandBase
+
 	conventions       *DocumentConventions
 	databaseRecord    *DatabaseRecord
 	replicationFactor int
 	databaseName      String
+
+	Result *DatabasePutResult
 }
 
-func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) *RavenCommand {
+func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseCommand {
 	panicIf(databaseRecord.DatabaseName == "", "databaseRecord.DatabaseName cannot be empty")
-	data := &_CreateDatabaseCommand{
+	cmd := &CreateDatabaseCommand{
+		RavenCommandBase:  NewRavenCommandBase(),
 		conventions:       conventions,
 		databaseRecord:    databaseRecord,
 		replicationFactor: replicationFactor,
 		databaseName:      databaseRecord.DatabaseName,
 	}
-
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.createRequestFunc = CreateDatabaseCommand_createRequest
-	cmd.setResponseFunc = CreateDatabaseCommand_setResponse
 	return cmd
 }
 
-func CreateDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_CreateDatabaseCommand)
-	url := node.getUrl() + "/admin/databases?name=" + data.databaseName
-	url += "&replicationFactor=" + strconv.Itoa(data.replicationFactor)
+func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
+	url := node.getUrl() + "/admin/databases?name=" + c.databaseName
+	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
 
-	js, err := json.Marshal(data.databaseRecord)
+	js, err := json.Marshal(c.databaseRecord)
 	if err != nil {
 		return nil, err
 	}
 	return NewHttpPut(url, string(js))
 }
 
-func CreateDatabaseCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *CreateDatabaseCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}
@@ -59,6 +62,6 @@ func CreateDatabaseCommand_setResponse(cmd *RavenCommand, response String, fromC
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

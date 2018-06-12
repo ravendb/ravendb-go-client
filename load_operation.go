@@ -16,7 +16,7 @@ func NewLoadOperation(_session *InMemoryDocumentSessionOperations) *LoadOperatio
 	}
 }
 
-func (o *LoadOperation) createRequest() *RavenCommand {
+func (o *LoadOperation) createRequest() *GetDocumentsCommand {
 	if len(o._idsToCheckOnServer) == 0 {
 		return nil
 	}

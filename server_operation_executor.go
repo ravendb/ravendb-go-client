@@ -20,7 +20,7 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 }
 
 // TODO: make argument an IServerOperation
-func (e *ServerOperationExecutor) send(command *RavenCommand) (interface{}, error) {
+func (e *ServerOperationExecutor) send(command RavenCommand) error {
 	err := e.requestExecutor.executeCommand(command)
-	return command.getResult(), err
+	return err
 }

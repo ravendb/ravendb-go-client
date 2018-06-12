@@ -55,7 +55,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 		err := executor.executeCommand(command)
 		assert.NoError(t, err)
 
-		dbNames := command.getResult().([]string)
+		dbNames := command.Result
 		assert.True(t, stringArrayContains(dbNames, store.getDatabase()))
 	}
 }
@@ -100,7 +100,7 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 		command := NewGetNextOperationIdCommand()
 		err := executor.executeCommand(command)
 		assert.NoError(t, err)
-		assert.NotNil(t, command.getResult())
+		assert.NotNil(t, command.Result)
 	}
 }
 
@@ -114,7 +114,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 		command := NewGetNextOperationIdCommand()
 		err := executor.executeCommand(command)
 		assert.NoError(t, err)
-		assert.NotNil(t, command.result)
+		assert.NotNil(t, command.Result)
 		topologyNodes := executor.getTopologyNodes()
 		assert.Equal(t, len(topologyNodes), 1)
 		assert.Equal(t, url, topologyNodes[0].getUrl())

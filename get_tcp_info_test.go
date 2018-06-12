@@ -12,7 +12,7 @@ func canGetTcpInfo(t *testing.T) {
 	command := NewGetTcpInfoCommand("test")
 	err := store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
-	result := command.getResult().(*TcpConnectionInfo)
+	result := command.Result
 	assert.NotNil(t, result)
 	assert.Nil(t, result.getCertificate())
 	// Note: in Java this tests for non-nil but Port is not sent

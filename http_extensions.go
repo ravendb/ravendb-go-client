@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+func HttpExtensions_getRequiredEtagHeader(response *http.Response) (*string, error) {
+	hdr := response.Header.Get(Constants_Headers_ETAG)
+	if hdr == "" {
+		return nil, NewIllegalStateException("Response did't had an ETag header")
+	}
+	etag := HttpExtensions_etagHeaderToChangeVector(hdr)
+	return &etag, nil
+}
+
 func HttpExtensions_getEtagHeader(response *http.Response) *string {
 	hdr := response.Header.Get(Constants_Headers_ETAG)
 	if hdr == "" {
