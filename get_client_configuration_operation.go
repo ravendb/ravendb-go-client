@@ -11,18 +11,16 @@ var (
 )
 
 type GetClientConfigurationOperation struct {
+	Command *GetClientConfigurationCommand
 }
 
 func NewGetClientConfigurationOperation() *GetClientConfigurationOperation {
 	return &GetClientConfigurationOperation{}
 }
 
-func (o *GetClientConfigurationOperation) getRealCommand(conventions *DocumentConventions) *GetClientConfigurationCommand {
-	return NewGetClientConfigurationCommand()
-}
-
 func (o *GetClientConfigurationOperation) getCommand(conventions *DocumentConventions) RavenCommand {
-	return NewGetClientConfigurationCommand()
+	o.Command = NewGetClientConfigurationCommand()
+	return o.Command
 }
 
 type GetClientConfigurationCommand struct {

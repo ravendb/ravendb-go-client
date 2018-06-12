@@ -39,9 +39,19 @@ func (e *MaintenanceOperationExecutor) forDatabase(databaseName string) *Mainten
 	return NewMaintenanceOperationExecutorWithDatabase(e.store, databaseName)
 }
 
-// TODO: make the argument IMaintenanceOperation
-func (e *MaintenanceOperationExecutor) send(command RavenCommand) error {
-	// TODO: e.assertDatabaseNameSet()
-	err := e.requestExecutor.executeCommand(command)
+func (e *MaintenanceOperationExecutor) send(operation IMaintenanceOperation) error {
+	err := e.assertDatabaseNameSet()
+	if err != nil {
+		return err
+	}
+	command := operation.getCommand(e.requestExecutor.getConventions())
+	err = e.requestExecutor.executeCommand(command)
 	return err
+}
+
+func (e *MaintenanceOperationExecutor) assertDatabaseNameSet() error {
+	if e.databaseName == "" {
+		return NewIllegalStateException("Cannot use maintenance without a database defined, did you forget to call forDatabase?")
+	}
+	return nil
 }
