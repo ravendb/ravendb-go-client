@@ -12,7 +12,7 @@ func GetTopologyTest_canGetTopology(t *testing.T) {
 	command := NewGetDatabaseTopologyCommand()
 	err := store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
-	result := command.getResult().(*Topology)
+	result := command.Result
 	assert.NotNil(t, result)
 
 	assert.NotEqual(t, result.getEtag(), "")

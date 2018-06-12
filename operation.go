@@ -25,12 +25,10 @@ func NewOperation(requestExecutor *RequestExecutor, changes *IDatabaseChanges, c
 func (o *Operation) fetchOperationsStatus() ObjectNode {
 	command := o.getOperationStateCommand(o._conventions, o._id)
 	o._requestExecutor.executeCommand(command)
-	resi := command.getResult()
-	res := resi.(ObjectNode)
-	return res
+	return command.Result
 }
 
-func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int) *RavenCommand {
+func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int) *GetOperationStateCommand {
 	return NewGetOperationStateCommand(o._conventions, o._id)
 }
 

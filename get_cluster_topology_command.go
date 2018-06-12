@@ -5,20 +5,29 @@ import (
 	"net/http"
 )
 
-func NewGetClusterTopologyCommand() *RavenCommand {
-	res := NewRavenCommand()
-	res.IsReadRequest = true
-	res.createRequestFunc = GetClusterTopologyCommand_createRequest
-	res.setResponseFunc = GetClusterTopologyCommand_setResponse
-	return res
+var (
+	_ RavenCommand = &GetClusterTopologyCommand{}
+)
+
+type GetClusterTopologyCommand struct {
+	*RavenCommandBase
+	Result *ClusterTopologyResponse
 }
 
-func GetClusterTopologyCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
+func NewGetClusterTopologyCommand() *GetClusterTopologyCommand {
+	cmd := &GetClusterTopologyCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+	}
+	cmd.IsReadRequest = true
+	return cmd
+}
+
+func (c *GetClusterTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/cluster/topology"
 	return NewHttpGet(url)
 }
 
-func GetClusterTopologyCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetClusterTopologyCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}
@@ -27,6 +36,6 @@ func GetClusterTopologyCommand_setResponse(cmd *RavenCommand, response String, f
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

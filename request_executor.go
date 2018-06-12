@@ -226,7 +226,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 			return
 		}
 
-		result := command.getResult().(*GetClientConfigurationCommandResult)
+		result := command.Result
 		if result == nil {
 			return
 		}
@@ -270,7 +270,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		if err != nil {
 			return
 		}
-		result := command.result.(*Topology)
+		result := command.Result
 		if re._nodeSelector == nil {
 			re._nodeSelector = NewNodeSelector(result)
 			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
@@ -300,12 +300,12 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 }
 
 // execute(command) in java
-func (re *RequestExecutor) executeCommand(command *RavenCommand) error {
+func (re *RequestExecutor) executeCommand(command RavenCommand) error {
 	return re.executeCommandWithSessionInfo(command, nil)
 }
 
 // execute(command, session) in java
-func (re *RequestExecutor) executeCommandWithSessionInfo(command *RavenCommand, sessionInfo *SessionInfo) error {
+func (re *RequestExecutor) executeCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
 	if (topologyUpdate != nil && topologyUpdate.isDone()) || re._disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
@@ -318,8 +318,8 @@ func (re *RequestExecutor) executeCommandWithSessionInfo(command *RavenCommand, 
 	}
 }
 
-func (re *RequestExecutor) chooseNodeForRequest(cmd *RavenCommand, sessionInfo *SessionInfo) (*CurrentIndexAndNode, error) {
-	if !cmd.isReadRequest() {
+func (re *RequestExecutor) chooseNodeForRequest(cmd RavenCommand, sessionInfo *SessionInfo) (*CurrentIndexAndNode, error) {
+	if !cmd.getBase().isReadRequest() {
 		return re.getPreferredNode()
 	}
 
@@ -340,7 +340,7 @@ func (re *RequestExecutor) chooseNodeForRequest(cmd *RavenCommand, sessionInfo *
 	return nil, nil
 }
 
-func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) (*CompletableFuture, error) {
+func (re *RequestExecutor) unlikelyExecuteInner(command RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) (*CompletableFuture, error) {
 
 	if topologyUpdate == nil {
 		re.mu.Lock()
@@ -360,7 +360,7 @@ func (re *RequestExecutor) unlikelyExecuteInner(command *RavenCommand, topologyU
 	return topologyUpdate, err
 }
 
-func (re *RequestExecutor) unlikelyExecute(command *RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) error {
+func (re *RequestExecutor) unlikelyExecute(command RavenCommand, topologyUpdate *CompletableFuture, sessionInfo *SessionInfo) error {
 	var err error
 	topologyUpdate, err = re.unlikelyExecuteInner(command, topologyUpdate, sessionInfo)
 	if err != nil {
@@ -508,7 +508,7 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 	re._updateTopologyTimer = time.AfterFunc(time.Minute, f)
 }
 
-func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
+func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
 	//fmt.Printf("RequestExecutor.execute cmd: %#v\n", command)
 	request, err := re.createRequest(chosenNode, command)
 	if err != nil {
@@ -535,7 +535,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	if re.shouldExecuteOnAll(chosenNode, command) {
 		response, err = re.executeOnAllToFigureOutTheFastest(chosenNode, command)
 	} else {
-		response, err = command.send(re.httpClient, request)
+		response, err = command.getBase().send(re.httpClient, request)
 	}
 
 	dumpHTTPRequestAndResponse(request, response)
@@ -550,7 +550,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		return nil
 	}
 
-	command.statusCode = response.StatusCode
+	command.getBase().statusCode = response.StatusCode
 
 	refreshTopology := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_TOPOLOGY)
 	refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_CLIENT_CONFIGURATION)
@@ -569,13 +569,13 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 				return NewDatabaseDoesNotExistException(dbMissingHeader)
 			}
 
-			if len(command.getFailedNodes()) == 0 {
+			if len(command.getBase().getFailedNodes()) == 0 {
 				return NewIllegalStateException("Received unsuccessful response and couldn't recover from it. Also, no record of exceptions per failed nodes. This is weird and should not happen.")
 			}
 
-			if len(command.getFailedNodes()) == 1 {
+			if len(command.getBase().getFailedNodes()) == 1 {
 				// return first error
-				failedNodes := command.getFailedNodes()
+				failedNodes := command.getBase().getFailedNodes()
 				for _, err := range failedNodes {
 					panicIf(err == nil, "err is nil")
 					return err
@@ -587,7 +587,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		return nil // we either handled this already in the unsuccessful response or we are throwing
 	}
 
-	responseDispose, err = command.processResponse(re.cache, response, urlRef)
+	responseDispose, err = processCommandResponse(command, re.cache, response, urlRef)
 	re._lastReturnedResponse = time.Now()
 	if err != nil {
 		return err
@@ -629,7 +629,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	return nil
 }
 
-func (re *RequestExecutor) throwFailedToContactAllNodes(command *RavenCommand, request *http.Request, e error, timeoutException error) error {
+func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, request *http.Request, e error, timeoutException error) error {
 	// TODO: after transition to RavenCommand as interface, this will
 	// be command name via type
 	commandName := "command"
@@ -664,29 +664,29 @@ func (re *RequestExecutor) inSpeedTestPhase() bool {
 	return (re._nodeSelector != nil) && re._nodeSelector.inSpeedTestPhase()
 }
 
-func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command *RavenCommand) bool {
+func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command RavenCommand) bool {
 	multipleNodes := (re._nodeSelector != nil) && (len(re._nodeSelector.getTopology().getNodes()) > 1)
 
 	return re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE &&
 		re._nodeSelector != nil &&
 		re._nodeSelector.inSpeedTestPhase() &&
 		multipleNodes &&
-		command.isReadRequest() &&
-		command.getResponseType() == RavenCommandResponseType_OBJECT &&
+		command.getBase().isReadRequest() &&
+		command.getBase().getResponseType() == RavenCommandResponseType_OBJECT &&
 		chosenNode != nil
 }
 
-func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerNode, command *RavenCommand) (*http.Response, error) {
+func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerNode, command RavenCommand) (*http.Response, error) {
 	panicIf(true, "NYI")
 	return nil, nil
 }
 
-func (re *RequestExecutor) getFromCache(command *RavenCommand, url String, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
+func (re *RequestExecutor) getFromCache(command RavenCommand, url String, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
 	panicIf(true, "NYI")
 	return nil
 }
 
-func (re *RequestExecutor) createRequest(node *ServerNode, command *RavenCommand) (*http.Request, error) {
+func (re *RequestExecutor) createRequest(node *ServerNode, command RavenCommand) (*http.Request, error) {
 	request, err := command.createRequest(node)
 	if err != nil {
 		return nil, err
@@ -695,12 +695,12 @@ func (re *RequestExecutor) createRequest(node *ServerNode, command *RavenCommand
 	return request, err
 }
 
-func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command *RavenCommand, request *http.Request, response *http.Response, url String, sessionInfo *SessionInfo, shouldRetry bool) (bool, error) {
+func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, url String, sessionInfo *SessionInfo, shouldRetry bool) (bool, error) {
 	var err error
 	switch response.StatusCode {
 	case http.StatusNotFound:
 		re.cache.setNotFound(url)
-		switch command.getResponseType() {
+		switch command.getBase().getResponseType() {
 		case RavenCommandResponseType_EMPTY:
 			return true, nil
 		case RavenCommandResponseType_OBJECT:
@@ -738,7 +738,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		err = RequestExecutor_handleConflict(response)
 		break
 	default:
-		command.onResponseFailure(response)
+		command.getBase().onResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)
 		break
 	}
@@ -751,9 +751,9 @@ func RequestExecutor_handleConflict(response *http.Response) error {
 
 //     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
 
-func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, nodeIndex int, command *RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) bool {
-	if command.getFailedNodes() == nil {
-		command.setFailedNodes(make(map[*ServerNode]error))
+func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) bool {
+	if command.getBase().getFailedNodes() == nil {
+		command.getBase().setFailedNodes(make(map[*ServerNode]error))
 	}
 
 	re.addFailedResponseToCommand(chosenNode, command, request, response, e)
@@ -778,7 +778,7 @@ func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, 
 		return false
 	}
 
-	if _, ok := command.getFailedNodes()[currentIndexAndNode.currentNode]; ok {
+	if _, ok := command.getBase().getFailedNodes()[currentIndexAndNode.currentNode]; ok {
 		return false //we tried all the nodes...nothing left to do
 	}
 
@@ -807,8 +807,8 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 }
 
 // TODO: this is static
-func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command *RavenCommand, request *http.Request, response *http.Response, e error) {
-	failedNodes := command.getFailedNodes()
+func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command RavenCommand, request *http.Request, response *http.Response, e error) {
+	failedNodes := command.getBase().getFailedNodes()
 
 	if response != nil && response.Body != nil {
 		responseJson, err := ioutil.ReadAll(response.Body)

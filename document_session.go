@@ -47,7 +47,7 @@ func (s *DocumentSession) SaveChanges() error {
 	if err != nil {
 		return err
 	}
-	result := command.result.(*JSONArrayResult)
+	result := command.Result
 	saveChangeOperation.setResult(result.Results)
 	return nil
 }
@@ -92,7 +92,7 @@ func (s *DocumentSession) load(clazz reflect.Type, id string) interface{} {
 
 	if command != nil {
 		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
-		result := command.getResult().(*GetDocumentsResult)
+		result := command.Result
 		loadOperation.setResult(result)
 	}
 

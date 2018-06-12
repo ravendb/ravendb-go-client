@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+var (
+	_ IMaintenanceOperation = &DeleteDatabasesOperation{}
+)
+
 type DeleteDatabasesOperation struct {
 	parameters *DeleteDatabaseParameters
 }
@@ -41,40 +45,45 @@ func NewDeleteDatabasesOperationWithParameters(parameters *DeleteDatabaseParamet
 	}
 }
 
-func (o *DeleteDatabasesOperation) getCommand(conventions *DocumentConventions) *RavenCommand {
+func (o *DeleteDatabasesOperation) getRealCommand(conventions *DocumentConventions) *DeleteDatabaseCommand {
 	return NewDeleteDatabaseCommand(conventions, o.parameters)
 }
 
-type _DeleteDatabaseCommand struct {
-	parameters string
+func (o *DeleteDatabasesOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+	return NewDeleteDatabaseCommand(conventions, o.parameters)
 }
 
-func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *DeleteDatabaseParameters) *RavenCommand {
+var _ RavenCommand = &DeleteDatabaseCommand{}
+
+type DeleteDatabaseCommand struct {
+	*RavenCommandBase
+
+	parameters string
+
+	Result *DeleteDatabaseResult
+}
+
+func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *DeleteDatabaseParameters) *DeleteDatabaseCommand {
 	d, err := json.Marshal(parameters)
 	must(err)
 
-	data := &_DeleteDatabaseCommand{
+	cmd := &DeleteDatabaseCommand{
 		parameters: string(d),
 	}
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.createRequestFunc = DeleteDatabaseCommand_createRequest
-	cmd.setResponseFunc = DeleteDatabaseCommand_setResponse
 	return cmd
 }
 
-func DeleteDatabaseCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_DeleteDatabaseCommand)
+func (c *DeleteDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/admin/databases"
-	return NewHttpDelete(url, data.parameters)
+	return NewHttpDelete(url, c.parameters)
 }
 
-func DeleteDatabaseCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *DeleteDatabaseCommand) setResponse(response String, fromCache bool) error {
 	var res DeleteDatabaseResult
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

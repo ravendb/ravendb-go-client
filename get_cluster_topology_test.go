@@ -12,7 +12,7 @@ func GetClusterTopology_canGetTopology(t *testing.T) {
 	command := NewGetClusterTopologyCommand()
 	err := store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
-	result := command.getResult().(*ClusterTopologyResponse)
+	result := command.Result
 	assert.NotNil(t, result)
 
 	assert.NotEmpty(t, result.getLeader())

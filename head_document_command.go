@@ -1,53 +1,71 @@
 package ravendb
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-type _HeadDocumentCommand struct {
+var (
+	_ RavenCommand = &HeadDocumentCommand{}
+)
+
+type HeadDocumentCommand struct {
+	*RavenCommandBase
 	_id           string
 	_changeVector *string
+
+	Result *string // change vector
 }
 
-func NewHeadDocumentCommand(id string, changeVector *string) *RavenCommand {
+func NewHeadDocumentCommand(id string, changeVector *string) *HeadDocumentCommand {
 	panicIf(id == "", "id cannot be empty")
-	data := &_HeadDocumentCommand{
-		_id:           id,
-		_changeVector: changeVector,
+	cmd := &HeadDocumentCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+		_id:              id,
+		_changeVector:    changeVector,
 	}
-
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.createRequestFunc = HeadDocumentCommand_createRequest
-	cmd.setResponseFunc = HeadDocumentCommand_setResponse
 
 	return cmd
 }
 
-func HeadDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_HeadDocumentCommand)
-
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + UrlUtils_escapeDataString(data._id)
+func (c *HeadDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + UrlUtils_escapeDataString(c._id)
 
 	request, err := NewHttpHead(url)
 	if err != nil {
 		return nil, err
 	}
 
-	if data._changeVector != nil {
-		request.Header.Set("If-None-Match", *data._changeVector)
+	if c._changeVector != nil {
+		request.Header.Set("If-None-Match", *c._changeVector)
 	}
 
 	return request, nil
 }
 
-func HeadDocumentCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
-	var res HiLoResult
-	err := json.Unmarshal([]byte(response), &res)
-	if err != nil {
-		return err
+func (c *HeadDocumentCommand) processResponse(cache *HttpCache, response *http.Response, url String) (ResponseDisposeHandling, error) {
+	statusCode := response.StatusCode
+	if statusCode == http.StatusNotModified {
+		c.Result = c._changeVector
+		return ResponseDisposeHandling_AUTOMATIC, nil
 	}
-	cmd.result = &res
+
+	if statusCode == http.StatusNotFound {
+		c.Result = nil
+		return ResponseDisposeHandling_AUTOMATIC, nil
+	}
+
+	var err error
+	c.Result, err = HttpExtensions_getRequiredEtagHeader(response)
+	return ResponseDisposeHandling_AUTOMATIC, err
+}
+
+func (c *HeadDocumentCommand) setResponse(response String, fromCache bool) error {
+	if response != "" {
+		return throwInvalidResponse()
+	}
+	// TODO: is this really ever reached?
+	fmt.Printf("HeadDocumentCommand.setResponse: clearing Result\n")
+	c.Result = nil
 	return nil
 }

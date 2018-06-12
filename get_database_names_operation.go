@@ -18,31 +18,36 @@ func NewGetDatabaseNamesOperation(_start int, _pageSize int) *GetDatabaseNamesOp
 	}
 }
 
-func (o *GetDatabaseNamesOperation) getCommand(conventions *DocumentConventions) *RavenCommand {
+func (o *GetDatabaseNamesOperation) getCommand(conventions *DocumentConventions) *GetDatabaseNamesCommand {
 	return NewGetDatabaseNamesCommand(o._start, o._pageSize)
 }
 
-type _GetDatabaseNamesCommand struct {
+var (
+	_ RavenCommand = &GetDatabaseNamesCommand{}
+)
+
+type GetDatabaseNamesCommand struct {
+	*RavenCommandBase
+
 	_start    int
 	_pageSize int
+
+	Result []string
 }
 
-func NewGetDatabaseNamesCommand(_start int, _pageSize int) *RavenCommand {
-	data := &_GetDatabaseNamesCommand{
+func NewGetDatabaseNamesCommand(_start int, _pageSize int) *GetDatabaseNamesCommand {
+	cmd := &GetDatabaseNamesCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
 		_start:    _start,
 		_pageSize: _pageSize,
 	}
-	cmd := NewRavenCommand()
-	cmd.data = data
 	cmd.IsReadRequest = true
-	cmd.createRequestFunc = GetDatabaseNamesCommand_createRequest
-	cmd.setResponseFunc = GetDatabaseNamesCommand_setResponse
 	return cmd
 }
 
-func GetDatabaseNamesCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_GetDatabaseNamesCommand)
-	url := node.getUrl() + "/databases?start=" + strconv.Itoa(data._start) + "&pageSize=" + strconv.Itoa(data._pageSize) + "&namesOnly=true"
+func (c *GetDatabaseNamesCommand) createRequest(node *ServerNode) (*http.Request, error) {
+	url := node.getUrl() + "/databases?start=" + strconv.Itoa(c._start) + "&pageSize=" + strconv.Itoa(c._pageSize) + "&namesOnly=true"
 
 	return NewHttpGet(url)
 }
@@ -52,7 +57,7 @@ type GetDatabaseNamesResult struct {
 	Databases []string `json:"Databases"`
 }
 
-func GetDatabaseNamesCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetDatabaseNamesCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}
@@ -80,6 +85,6 @@ func GetDatabaseNamesCommand_setResponse(cmd *RavenCommand, response String, fro
 		}
 	*/
 
-	cmd.result = res.Databases
+	c.Result = res.Databases
 	return nil
 }

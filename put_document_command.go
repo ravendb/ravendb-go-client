@@ -6,51 +6,54 @@ import (
 	"net/http"
 )
 
-type _PutDocumentCommand struct {
+var (
+	_ RavenCommand = &PutDocumentCommand{}
+)
+
+type PutDocumentCommand struct {
+	*RavenCommandBase
 	_id           String
 	_changeVector String
 	_document     ObjectNode
+
+	Result *PutResult
 }
 
-func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) *RavenCommand {
+func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) *PutDocumentCommand {
 	panicIf(id == "", "Id cannot be null")
 	panicIf(document == nil, "document cannot be nil")
 
-	data := &_PutDocumentCommand{
-		_id:           id,
-		_changeVector: changeVector,
-		_document:     document,
+	cmd := &PutDocumentCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+		_id:              id,
+		_changeVector:    changeVector,
+		_document:        document,
 	}
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.createRequestFunc = PutDocumentCommand_createRequest
-	cmd.setResponseFunc = PutDocumentCommand_setResponse
 	return cmd
 }
 
-func PutDocumentCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_PutDocumentCommand)
+func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(c._id)
 
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(data._id)
-
-	d, err := json.Marshal(data._document)
+	d, err := json.Marshal(c._document)
 	must(err)
 	body := bytes.NewBuffer(d)
+	// TODO: use NewPutRequest?
 	request, err := http.NewRequest(http.MethodPut, url, body)
 	if err != nil {
 		return nil, err
 	}
 	// TODO: set Content-Type to application/json?
-	addChangeVectorIfNotNull(data._changeVector, request)
+	addChangeVectorIfNotNull(c._changeVector, request)
 	return request, nil
 }
 
-func PutDocumentCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *PutDocumentCommand) setResponse(response String, fromCache bool) error {
 	var res PutResult
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

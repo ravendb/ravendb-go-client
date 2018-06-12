@@ -91,7 +91,7 @@ func (g *HiLoIDGenerator) getNextRange() error {
 	if err != nil {
 		return err
 	}
-	result := hiloCommand.result.(*HiLoResult)
+	result := hiloCommand.Result
 	g.prefix = result.Prefix
 	g.serverTag = result.ServerTag
 	g._lastRangeDate = time.Time(*result.LastRangeAt)

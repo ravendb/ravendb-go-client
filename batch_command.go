@@ -6,25 +6,35 @@ import (
 	"net/http"
 )
 
-type _BatchCommand struct {
+var (
+	_ RavenCommand = &BatchCommand{}
+)
+
+type BatchCommand struct {
+	*RavenCommandBase
+
 	_conventions       *DocumentConventions
 	_commands          []ICommandData
 	_attachmentStreams []io.Reader
 	_options           *BatchOptions
+
+	Result *JSONArrayResult
 }
 
-func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData) *RavenCommand {
+func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData) *BatchCommand {
 	return NewBatchCommandWithOptions(conventions, commands, nil)
 }
 
-func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) *RavenCommand {
-	data := &_BatchCommand{
-		_commands:    commands,
-		_options:     options,
-		_conventions: conventions,
-	}
+func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) *BatchCommand {
 	panicIf(conventions == nil, "conventions cannot be nil")
 	panicIf(len(commands) == 0, "commands cannot be empty")
+
+	cmd := &BatchCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+		_commands:        commands,
+		_options:         options,
+		_conventions:     conventions,
+	}
 
 	for i := 0; i < len(commands); i++ {
 		command := commands[i]
@@ -35,24 +45,19 @@ func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICo
 			//			if !_attachmentStreams.add(stream) {
 			//	PutAttachmentCommandHelper.throwStreamAlready()
 			//}
-			data._attachmentStreams = append(data._attachmentStreams, stream)
+			cmd._attachmentStreams = append(cmd._attachmentStreams, stream)
 		}
 	}
 
-	cmd := NewRavenCommand()
-	cmd.data = data
-	cmd.createRequestFunc = BatchCommand_createRequest
-	cmd.setResponseFunc = BatchCommand_setResponse
 	return cmd
 }
 
-func BatchCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
-	data := cmd.data.(*_BatchCommand)
+func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_docs"
 	// TODO: appendOptions(sb)
 	var a []interface{}
-	for _, cmd := range data._commands {
-		el, err := cmd.serialize(data._conventions)
+	for _, cmd := range c._commands {
+		el, err := cmd.serialize(c._conventions)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +73,7 @@ func BatchCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Requ
 	return NewHttpPost(url, string(js))
 }
 
-func BatchCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *BatchCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}
@@ -78,6 +83,6 @@ func BatchCommand_setResponse(cmd *RavenCommand, response String, fromCache bool
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

@@ -40,8 +40,8 @@ func (e *MaintenanceOperationExecutor) forDatabase(databaseName string) *Mainten
 }
 
 // TODO: make the argument IMaintenanceOperation
-func (e *MaintenanceOperationExecutor) send(command *RavenCommand) (interface{}, error) {
+func (e *MaintenanceOperationExecutor) send(command RavenCommand) error {
 	// TODO: e.assertDatabaseNameSet()
 	err := e.requestExecutor.executeCommand(command)
-	return command.getResult(), err
+	return err
 }

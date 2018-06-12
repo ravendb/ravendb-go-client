@@ -12,7 +12,7 @@ func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperati
 	}
 }
 
-func (b *BatchOperation) createRequest() *RavenCommand {
+func (b *BatchOperation) createRequest() *BatchCommand {
 	result := b._session.prepareForSaveChanges()
 
 	b._sessionCommandsCount = len(result.getSessionCommands())

@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+var (
+	_ IMaintenanceOperation = &GetStatisticsOperation{}
+)
+
 type GetStatisticsOperation struct {
 	_debugTag String
 }
@@ -19,41 +23,50 @@ func NewGetStatisticsOperationWithDebugTag(debugTag string) *GetStatisticsOperat
 	}
 }
 
-func (s *GetStatisticsOperation) getCommand(conventions *DocumentConventions) *RavenCommand {
+func (s *GetStatisticsOperation) getRealCommand(conventions *DocumentConventions) *GetStatisticsCommand {
 	return NewGetStatisticsCommandWithDebugTag(s._debugTag)
 }
 
-type _GetStatisticsCommand struct {
-	debugTag String
+func (s *GetStatisticsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+	return NewGetStatisticsCommandWithDebugTag(s._debugTag)
 }
 
-func NewGetStatisticsCommand() *RavenCommand {
+var (
+	_ RavenCommand = &GetStatisticsCommand{}
+)
+
+type GetStatisticsCommand struct {
+	*RavenCommandBase
+
+	debugTag String
+
+	Result *DatabaseStatistics
+}
+
+func NewGetStatisticsCommand() *GetStatisticsCommand {
 	return NewGetStatisticsCommandWithDebugTag("")
 }
 
-func NewGetStatisticsCommandWithDebugTag(debugTag string) *RavenCommand {
-	data := &_GetStatisticsCommand{
+func NewGetStatisticsCommandWithDebugTag(debugTag string) *GetStatisticsCommand {
+	cmd := &GetStatisticsCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
 		debugTag: debugTag,
 	}
-	cmd := NewRavenCommand()
-	cmd.data = data
 	cmd.IsReadRequest = true
-	cmd.createRequestFunc = GetStatisticsCommand_createRequest
-	cmd.setResponseFunc = GetStatisticsCommand_setResponse
 	return cmd
 }
 
-func GetStatisticsCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
+func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/stats"
-	data := cmd.data.(*_GetStatisticsCommand)
-	if data.debugTag != "" {
-		url += "?" + data.debugTag
+	if c.debugTag != "" {
+		url += "?" + c.debugTag
 	}
 
 	return NewHttpGet(url)
 }
 
-func GetStatisticsCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetStatisticsCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}
@@ -62,6 +75,6 @@ func GetStatisticsCommand_setResponse(cmd *RavenCommand, response String, fromCa
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }

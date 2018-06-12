@@ -17,26 +17,35 @@ func NewGetClientConfigurationOperation() *GetClientConfigurationOperation {
 	return &GetClientConfigurationOperation{}
 }
 
-func (o *GetClientConfigurationOperation) getCommand(conventions *DocumentConventions) *RavenCommand {
+func (o *GetClientConfigurationOperation) getRealCommand(conventions *DocumentConventions) *GetClientConfigurationCommand {
 	return NewGetClientConfigurationCommand()
 }
 
-func NewGetClientConfigurationCommand() *RavenCommand {
-	cmd := NewRavenCommand()
-	cmd.createRequestFunc = GetClientConfigurationOperation_createRequest
-	cmd.setResponseFunc = GetClientConfigurationOperation_setResponse
+func (o *GetClientConfigurationOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+	return NewGetClientConfigurationCommand()
+}
 
+type GetClientConfigurationCommand struct {
+	*RavenCommandBase
+
+	Result *GetClientConfigurationCommandResult
+}
+
+func NewGetClientConfigurationCommand() *GetClientConfigurationCommand {
+	cmd := &GetClientConfigurationCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+	}
 	return cmd
 }
 
-func GetClientConfigurationOperation_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
+func (c *GetClientConfigurationCommand) createRequest(node *ServerNode) (*http.Request, error) {
 
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/configuration/client"
 
 	return NewHttpGet(url)
 }
 
-func GetClientConfigurationOperation_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetClientConfigurationCommand) setResponse(response String, fromCache bool) error {
 	if response == "" {
 		return nil
 	}
@@ -46,7 +55,7 @@ func GetClientConfigurationOperation_setResponse(cmd *RavenCommand, response Str
 	if err != nil {
 		return err
 	}
-	cmd.result = &res
+	c.Result = &res
 	return nil
 }
 

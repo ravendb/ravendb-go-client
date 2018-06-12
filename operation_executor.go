@@ -34,13 +34,13 @@ func (e *OperationExecutor) forDatabase(databaseName String) *OperationExecutor 
 }
 
 // TODO: make arg IOperation
-func (e *OperationExecutor) send(command *RavenCommand) error {
+func (e *OperationExecutor) send(command RavenCommand) error {
 	return e.sendWithSessionInfo(command, nil)
 }
 
 // TODO: make arg IOperation
 // TODO: java returns a result
-func (e *OperationExecutor) sendWithSessionInfo(command *RavenCommand, sessionInfo *SessionInfo) error {
+func (e *OperationExecutor) sendWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	return e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
 }
 

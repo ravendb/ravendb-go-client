@@ -5,28 +5,38 @@ import (
 	"net/http"
 )
 
+var (
+	_ RavenCommand = &GetNextOperationIdCommand{}
+)
+
 type _GetNextOperationIdCommandResponse struct {
 	ID int `json:"Id"`
 }
 
-func NewGetNextOperationIdCommand() *RavenCommand {
-	cmd := NewRavenCommand()
-	cmd.createRequestFunc = GetNextOperationIdCommand_createRequest
-	cmd.setResponseFunc = GetNextOperationIdCommand_setResponse
+type GetNextOperationIdCommand struct {
+	*RavenCommandBase
+
+	Result int
+}
+
+func NewGetNextOperationIdCommand() *GetNextOperationIdCommand {
+	cmd := &GetNextOperationIdCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+	}
 	return cmd
 }
 
-func GetNextOperationIdCommand_createRequest(cmd *RavenCommand, node *ServerNode) (*http.Request, error) {
+func (c *GetNextOperationIdCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/operations/next-operation-id"
 	return NewHttpGet(url)
 }
 
-func GetNextOperationIdCommand_setResponse(cmd *RavenCommand, response String, fromCache bool) error {
+func (c *GetNextOperationIdCommand) setResponse(response String, fromCache bool) error {
 	var res _GetNextOperationIdCommandResponse
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {
 		return err
 	}
-	cmd.result = res.ID
+	c.Result = res.ID
 	return nil
 }
