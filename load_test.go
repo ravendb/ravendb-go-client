@@ -149,6 +149,46 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 }
 
 func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
+	store := getDocumentStoreMust(t)
+
+	{
+		session := openSessionMust(t, store)
+		geek1 := NewGeekPerson()
+		geek1.setName("Bebop")
+		geek1.setFavoritePrimes([]int{13, 43, 443, 997})
+		geek1.setFavoriteVeryLargePrimes([]int64{5000000029, 5000000039})
+
+		err := session.StoreEntityWithID(geek1, "geeks/1")
+		assert.NoError(t, err)
+
+		geek2 := NewGeekPerson()
+		geek2.setName("Rocksteady")
+		geek2.setFavoritePrimes([]int{2, 3, 5, 7})
+		geek2.setFavoriteVeryLargePrimes([]int64{999999999989})
+
+		err = session.StoreEntityWithID(geek2, "geeks/2")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+		geek1i, err := newSession.load(getTypeOfValue(&GeekPerson{}), "geeks/1")
+		assert.NoError(t, err)
+		geek1 := geek1i.(*GeekPerson)
+
+		geek2i, err := newSession.load(getTypeOfValue(&GeekPerson{}), "geeks/2")
+		assert.NoError(t, err)
+		geek2 := geek2i.(*GeekPerson)
+
+		assert.Equal(t, 43, geek1.getFavoritePrimes()[1])
+		assert.Equal(t, int64(5000000039), geek1.getFavoriteVeryLargePrimes()[1])
+
+		assert.Equal(t, 7, geek2.getFavoritePrimes()[3])
+		assert.Equal(t, int64(999999999989), geek2.getFavoriteVeryLargePrimes()[0])
+
+	}
 }
 
 func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
