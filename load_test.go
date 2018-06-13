@@ -22,14 +22,16 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		result, err := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
 	}
 
 	{
 		newSession := openSessionMust(t, store)
-		result := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		result, err := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
 	}
@@ -50,7 +52,8 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		result, err := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
 		assert.Equal(t, "RavenDB", *user.getName())
@@ -83,7 +86,32 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 }
 
 func loadTest_loadNullShouldReturnNull(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	{
+		session := openSessionMust(t, store)
+		user1 := NewUser()
+		user1.setName("Tony Montana")
+
+		user2 := NewUser()
+		user2.setName("Tony Soprano")
+
+		err := session.StoreEntity(user1)
+		assert.NoError(t, err)
+		err = session.StoreEntity(user2)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+		user1, err := newSession.load(getTypeOfValue(&User{}), "")
+		assert.NoError(t, err)
+		assert.Nil(t, user1)
+	}
 }
+
 func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T) {
 }
 func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {

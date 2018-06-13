@@ -78,10 +78,11 @@ func (s *DocumentSession) exists(id string) (bool, error) {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<String, T>> lazyLoadInternal(Class<T> clazz, String[] ids, String[] includes, Consumer<Map<String, T>> onEval)
 
-func (s *DocumentSession) load(clazz reflect.Type, id string) interface{} {
+func (s *DocumentSession) load(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
-		return nil
+		return Defaults_defaultValue(clazz), nil
 	}
+
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 
 	loadOperation.byId(id)

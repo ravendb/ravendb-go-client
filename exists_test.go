@@ -37,13 +37,12 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		_ = session.load(getTypeOfValue(NewUser()), "users/2")
+		_, err = session.load(getTypeOfValue(NewUser()), "users/2")
 		assert.NoError(t, err)
 		ok, err = session.advanced().exists("users/2")
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	}
-
 }
 
 func TestExists(t *testing.T) {

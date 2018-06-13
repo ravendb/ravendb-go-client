@@ -58,7 +58,8 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		//err = session.load(&hiloDoc, "Raven/Hilo/users")
 		//assert.Nil(t, err)
 
-		result := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		result, err := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		assert.NoError(t, err)
 		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.getMax()
 		assert.Equal(t, max, 96)
@@ -70,7 +71,8 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		result := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		result, err := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		assert.NoError(t, err)
 		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.getMax()
 
@@ -129,7 +131,8 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 
-		hiloDocI := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		hiloDocI, err := session.load(getTypeOfValue(&HiLoDoc{}), "Raven/Hilo/users")
+		assert.NoError(t, err)
 		hiloDoc := hiloDocI.(*HiLoDoc)
 		max := hiloDoc.getMax()
 		assert.Equal(t, max, 34)
