@@ -216,7 +216,7 @@ func (b *BufferCloser) Close() error {
 	return nil
 }
 
-// SessionData has info about
+// SessionData has info about a request/response session
 type SessionData struct {
 	reqBody  *BufferCloser
 	respBody *BufferCloser

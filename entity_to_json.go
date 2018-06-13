@@ -46,7 +46,9 @@ func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, docum
 		return document
 	}
 	// TODO: deal with default values
-	return makeStructFromJSONMap(entityType, document)
+	entity, _ := makeStructFromJSONMap(entityType, document)
+	trySetIDOnEntity(entity, id)
+	return entity
 	/*
 		try {
 			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);

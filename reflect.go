@@ -68,7 +68,7 @@ func isTypePointerToStruct(typ reflect.Type) bool {
 }
 
 // given a json represented as map and type of a struct
-func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
+func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
 	panicIf(!isTypePointerToStruct(typ), "typ should be pointer to struct but is %s, %s", typ.String(), typ.Kind().String())
 
 	// reflect.New() creates a pointer to type. if typ is already a pointer,
@@ -78,9 +78,13 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) interface{} {
 	}
 	rvNew := reflect.New(typ)
 	d, err := json.Marshal(js)
-	must(err)
+	if err != nil {
+		return nil, err
+	}
 	v := rvNew.Interface()
 	err = json.Unmarshal(d, v)
-	must(err)
-	return v
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
 }

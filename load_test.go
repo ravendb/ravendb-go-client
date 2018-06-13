@@ -150,6 +150,8 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 		result := users["users/77"]
 		user := result.(*User)
 		assert.NotNil(t, user)
+		name := *user.Name
+		assert.Equal(t, "Person 77", name)
 		assert.Equal(t, "users/77", user.ID)
 	}
 }
@@ -169,21 +171,12 @@ func TestLoad(t *testing.T) {
 	defer deleteTestDriver()
 
 	// matches order of Java tests
-	if false {
-		loadTest_loadDocumentById(t)
-		loadTest_loadNullShouldReturnNull(t)
-	}
-
-	//TODO: fails for now
-	//loadTest_loadDocumentsByIds(t)
-
-	//TODO: fails for now
-	//loadTest_shouldLoadManyIdsAsPostRequest(t)
-
-	if false {
-		loadTest_loadStartsWith(t)
-		loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
-		loadTest_loadDocumentWithINtArrayAndLongArray(t)
-		loadTest_loadCanUseCache(t)
-	}
+	loadTest_loadDocumentById(t)
+	loadTest_loadNullShouldReturnNull(t)
+	loadTest_loadDocumentsByIds(t)
+	loadTest_shouldLoadManyIdsAsPostRequest(t)
+	loadTest_loadStartsWith(t)
+	loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
+	loadTest_loadDocumentWithINtArrayAndLongArray(t)
+	loadTest_loadCanUseCache(t)
 }

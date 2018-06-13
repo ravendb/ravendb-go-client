@@ -42,9 +42,10 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 	}
 	jsmap := structToJSONMap(s)
 	vd, err := json.Marshal(s)
-	must(err)
+	assert.NoError(t, err)
 	typ := getTypeOfValue(s)
-	v2 := makeStructFromJSONMap(typ, jsmap)
+	v2, err := makeStructFromJSONMap(typ, jsmap)
+	assert.NoError(t, err)
 	vTyp := fmt.Sprintf("%T", s)
 	v2Typ := fmt.Sprintf("%T", v2)
 	if vTyp != v2Typ {
