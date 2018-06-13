@@ -115,6 +115,37 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 }
 
 func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	{
+		session := openSessionMust(t, store)
+		user1 := NewUser()
+		user1.setName("Tony Montana")
+
+		user2 := NewUser()
+		user2.setName("Tony Soprano")
+
+		err := session.StoreEntityWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user2, "users/2")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+	{
+		newSession := openSessionMust(t, store)
+		orderedArrayOfIdsWithNull := []string{"users/1", "", "users/2", ""}
+		users1, err := newSession.loadMulti(getTypeOfValue(&User{}), orderedArrayOfIdsWithNull)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(users1))
+
+		ruser1 := users1["users/1"]
+		user1 := ruser1.(*User)
+		assert.NotNil(t, user1)
+
+		ruser2 := users1["users/2"]
+		user2 := ruser2.(*User)
+		assert.NotNil(t, user2)
+	}
 }
 
 func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
