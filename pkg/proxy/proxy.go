@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/elazarl/goproxy"
@@ -75,6 +76,9 @@ func closeLogFile() {
 
 // CloseLogFile closes the log file
 func CloseLogFile() {
+	// print buffered log
+	lgShort("")
+
 	muLog.Lock()
 	defer muLog.Unlock()
 	closeLogFile()
@@ -101,11 +105,32 @@ func lg(d []byte) {
 	}
 }
 
+var (
+	previousLogLine string
+	logLineCount    int
+)
+
 func lgShort(s string) {
 	muLog.Lock()
 	defer muLog.Unlock()
 
-	os.Stdout.WriteString(s)
+	// some tests create a lot of the same requests so to eliminate the noise we delay
+	// logging and combine subseqent logs that are the same into one
+	if s == previousLogLine {
+		logLineCount++
+		return
+	}
+	if previousLogLine != "" {
+		if logLineCount <= 1 {
+			os.Stdout.WriteString(previousLogLine)
+		} else {
+			s := strings.TrimSpace(previousLogLine)
+			s = fmt.Sprintf("%s x %d\n", s, logLineCount)
+			os.Stdout.WriteString(s)
+		}
+	}
+	previousLogLine = s
+	logLineCount = 1
 }
 
 // TeeReadCloser extends io.TeeReader by allowing reader and writer to be
