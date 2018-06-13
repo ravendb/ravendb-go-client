@@ -100,9 +100,24 @@ func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interf
 	return Defaults_defaultValue(clazz), nil
 }
 
-func (o *LoadOperation) getDocuments(clazz reflect.Type) map[string]interface{} {
-	panicIf(true, "NYI")
-	return nil
+func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}, error) {
+	uniqueIds := NewSet_String()
+	uniqueIds.cmp = String_compareToIgnoreCase
+	for _, id := range o._ids {
+		if id == "" {
+			continue
+		}
+		uniqueIds.add(id)
+	}
+	res := make(map[string]interface{})
+	for _, id := range uniqueIds.strings {
+		v, err := o.getDocumentWithID(clazz, id)
+		if err != nil {
+			return res, err
+		}
+		res[id] = v
+	}
+	return res, nil
 }
 
 func (o *LoadOperation) setResult(result *GetDocumentsResult) {

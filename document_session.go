@@ -98,9 +98,12 @@ func (s *DocumentSession) load(clazz reflect.Type, id string) (interface{}, erro
 	return loadOperation.getDocument(clazz)
 }
 
-func (s *DocumentSession) loadMulti(clazz reflect.Type, ids ...string) map[string]interface{} {
+func (s *DocumentSession) loadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-	s.loadInternalWithOperation(ids, loadOperation, nil)
+	err := s.loadInternalWithOperation(ids, loadOperation, nil)
+	if err != nil {
+		return nil, err
+	}
 	return loadOperation.getDocuments(clazz)
 }
 
@@ -127,14 +130,17 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 	return nil
 }
 
-func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, includes []string) map[string]interface{} {
+func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
 
 	command := loadOperation.createRequest()
 	if command != nil {
-		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		if err != nil {
+			return nil, err
+		}
 		loadOperation.setResult(command.Result)
 	}
 

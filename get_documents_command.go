@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 )
@@ -100,9 +99,33 @@ func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, er
 }
 
 func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
-	//ids := c._ids
-	panicIf(true, "NYI")
-	return nil, errors.New("NYI")
+	ids := c._ids
+	uniqueIds := NewSet_String()
+	for _, id := range ids {
+		uniqueIds.add(id)
+	}
+	totalLen := 0
+	for _, s := range uniqueIds.strings {
+		totalLen += len(s)
+	}
+
+	// if it is too big, we drop to POST (note that means that we can't use the HTTP cache any longer)
+	// we are fine with that, requests to load > 1024 items are going to be rare
+	isGet := totalLen < 1024
+
+	if isGet {
+		for _, s := range uniqueIds.strings {
+			url += "&id=" + UrlUtils_escapeDataString(s)
+		}
+		return NewHttpGet(url)
+	}
+
+	m := map[string]interface{}{
+		"Ids": uniqueIds.strings,
+	}
+	d, err := json.Marshal(m)
+	panicIf(err != nil, "json.Marshal() failed with %s", err)
+	return NewHttpPost(url, string(d))
 }
 
 func (c *GetDocumentsCommand) setResponse(response String, fromCache bool) error {

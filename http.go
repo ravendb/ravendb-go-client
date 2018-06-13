@@ -138,6 +138,7 @@ func NewHttpGet(uri string) (*http.Request, error) {
 	return req, err
 }
 
+// TODO: make data a []byte
 func NewHttpPost(uri string, data string) (*http.Request, error) {
 	//fmt.Printf("POST %s\n", uri)
 	var body io.Reader
@@ -155,6 +156,7 @@ func NewHttpPost(uri string, data string) (*http.Request, error) {
 	return req, err
 }
 
+// TODO: make data a []byte
 func NewHttpPut(uri string, data string) (*http.Request, error) {
 	//fmt.Printf("PUT %s\n", uri)
 	var body io.Reader
@@ -172,6 +174,7 @@ func NewHttpPut(uri string, data string) (*http.Request, error) {
 	return req, err
 }
 
+// TODO: make data a []byte
 func NewHttpDelete(uri, data string) (*http.Request, error) {
 	//fmt.Printf("DELETE %s\n", uri)
 	var body io.Reader
