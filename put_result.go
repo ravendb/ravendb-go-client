@@ -2,22 +2,23 @@ package ravendb
 
 // PutResult describes result of PutDocumentCommand
 type PutResult struct {
-	ID           string `json:"Id"`
-	ChangeVector string `json:"ChangeVector"`
+	ID           string  `json:"Id"`
+	ChangeVector *string `json:"ChangeVector"`
+}
+
+func (r *PutResult) getId() string {
+	return r.ID
+}
+
+func (r *PutResult) getChangeVector() *string {
+	return r.ChangeVector
 }
 
 /*
-public string getId() {
-	return id;
-}
-
 public void setId(string id) {
 	this.id = id;
 }
 
-public string getChangeVector() {
-	return changeVector;
-}
 
 public void setChangeVector(string changeVector) {
 	this.changeVector = changeVector;

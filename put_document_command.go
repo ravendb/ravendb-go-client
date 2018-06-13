@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 )
@@ -14,13 +13,13 @@ type PutDocumentCommand struct {
 	*RavenCommandBase
 
 	_id           string
-	_changeVector string
+	_changeVector *string
 	_document     ObjectNode
 
 	Result *PutResult
 }
 
-func NewPutDocumentCommand(id string, changeVector string, document ObjectNode) *PutDocumentCommand {
+func NewPutDocumentCommand(id string, changeVector *string, document ObjectNode) *PutDocumentCommand {
 	panicIf(id == "", "Id cannot be null")
 	panicIf(document == nil, "document cannot be nil")
 
@@ -38,14 +37,10 @@ func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, err
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(c._id)
 
 	d, err := json.Marshal(c._document)
-	must(err)
-	body := bytes.NewBuffer(d)
-	// TODO: use NewPutRequest?
-	request, err := http.NewRequest(http.MethodPut, url, body)
+	request, err := NewHttpPut(url, string(d))
 	if err != nil {
 		return nil, err
 	}
-	// TODO: set Content-Type to application/json?
 	addChangeVectorIfNotNull(c._changeVector, request)
 	return request, nil
 }

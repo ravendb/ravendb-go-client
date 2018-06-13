@@ -115,9 +115,9 @@ func urlEncode(s string) string {
 	return url.PathEscape(s)
 }
 
-func addChangeVectorIfNotNull(changeVector string, req *http.Request) {
-	if changeVector != "" {
-		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, changeVector))
+func addChangeVectorIfNotNull(changeVector *string, req *http.Request) {
+	if changeVector != nil {
+		req.Header.Add("If-Match", fmt.Sprintf(`"%s"`, *changeVector))
 	}
 }
 

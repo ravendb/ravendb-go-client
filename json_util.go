@@ -38,6 +38,11 @@ func structToJSONMap(v interface{}) map[string]interface{} {
 	return res
 }
 
+// matches a Java naming from EnityMapper
+func valueToTree(v interface{}) ObjectNode {
+	return structToJSONMap(v)
+}
+
 // copyJSONMap makes a deep copy of map[string]interface{}
 // TODO: possibly not the fastest way to do it
 func copyJSONMap(v map[string]interface{}) map[string]interface{} {
