@@ -10,6 +10,32 @@ sometimes it must diverge.
 To make future maintance easier, this documents implementation choices and why
 they were made.
 
+## Java OOP vs. Go
+
+Java has inheritance with ability to make some functions virtual in Base class and over-ride them in Derived classes.
+
+Go only has embedding. A Derived struct can embed Base struct and will "inherit" fields and methods of the Base.
+
+Go has interfaces which allows virtual functions. You can define an interface Foo, implement it by Bar1 and Bar2 structs. Function that takes Foo as an argument can receive Bar1 and Bar2 and will call the right virtual functions on them.
+
+One might think that embedding + interface can be used to implement Java inheritence:
+* define interface Foo
+* have Base struct implement it
+* embed Base in Derived struct
+* over-write some interface (virutal) functions in Derived
+
+There is a subtle but important difference.
+
+if `Base.virt()` is a virtual function over-written by `Derived.virt()`, a function implemented on `Base` class will call `Derived.virt()` if the object is actually `Derived`.
+
+It makes sense within the design. `Base` is embedded in `Derived`. `Derived` has access to `Base` but not the other way around. `Base` has no way to call code in `Derived`.
+
+To put it differently:
+* in Java, a virtual table is part of class and carried by Object itself. Virtual calls can therefore always be resolved
+* in Go, a virtual table is carried as a separate interface type, which combines a value and its type information (including virtual table). We can only resolve virtual calls from interface type. Once virtual method is resolved it operates on a concrete type and only has access to that type
+
+For example, in Java `RavenCommand.processResponse` calls virtual functions of derived classes. That couldn't be done in Go.
+
 ## Comands and RequestExecutor
 
 A RavenCommand encapsulates a unique request/response interaction with
@@ -60,3 +86,29 @@ response from the server.
 The simplest implemention of executor runs the code against a single server.
 
 Another implementation will adapt `RequestsExecutor` logic.
+
+## How I port Java tests
+
+Java runs tests in a fixed but unpredictable order. For easier debugging (e.g. when comparing recorded HTTP traffic) I want Go tests to run in the same order as Java tests.
+
+I instrument Java test with System.out.println() to print name of executed test.
+
+For e.g. `TrackEntityTest.java` I create `track_entity_test.go` (files that end with `_test.go` are only compiled when running tests).
+
+`TracEntityTest` Java class is `TestTrackEntity()`. Each function in the form `Test*(*testing.T)` is a unique test for `go test`.
+
+Each Java class method becomes a function e.g. `TrackEntityTest.deletingEntityThatIsNotTrackedShouldThrow` => `trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow`.
+
+Usually in Go each function would be a separate test function but to have control over test invocation order, they're part of `TestTrackEntity` test function.
+
+To get HTTP logs for Java I add the test to `run_tests.go` to log to `trace_track_entity_java.txt` and call `./run_java_tests.sh`.
+
+I port the tests and run them, also capturing HTTP logs to `trace_track_entity_go.txt`.
+
+## How I debug tests
+
+I use Visual Studio Code as an editor.
+
+It's Go extension has a support for running individual tests (see https://www.notion.so/Debugging-tests-0f731a22d6154a7ba38a8503227b593d) so I set the desired breakpoints to step through the code and use that.
+
+Other editors also support Go but I'm not familiar with them.
