@@ -90,7 +90,10 @@ func (s *DocumentSession) load(clazz reflect.Type, id string) (interface{}, erro
 	command := loadOperation.createRequest()
 
 	if command != nil {
-		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		if err != nil {
+			return nil, err
+		}
 		result := command.Result
 		loadOperation.setResult(result)
 	}
@@ -112,7 +115,10 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 
 	command := operation.createRequest()
 	if command != nil {
-		s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		if err != nil {
+			return err
+		}
 
 		if stream != nil {
 			result := command.Result

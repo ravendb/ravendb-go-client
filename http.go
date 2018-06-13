@@ -62,41 +62,49 @@ func prettyPrintMaybeJSON(d []byte) []byte {
 }
 
 var (
-	dumpHTTP bool
+	dumpHTTP     bool
+	dumpHTTPBody bool
 )
 
 // TODO: also dump body
 func dumpHTTPRequest(req *http.Request) {
-	if dumpHTTP {
-		d, err := httputil.DumpRequest(req, false)
-		if err != nil {
-			fmt.Printf("httputil.DumpRequest failed with %s\n", err)
-			return
-		}
-		io.WriteString(os.Stdout, "HTTP REQUEST:\n")
-		os.Stdout.Write(d)
+	if !dumpHTTP {
+		return
 	}
+	d, err := httputil.DumpRequest(req, false)
+	if err != nil {
+		fmt.Printf("httputil.DumpRequest failed with %s\n", err)
+		return
+	}
+	io.WriteString(os.Stdout, "HTTP REQUEST:\n")
+	os.Stdout.Write(d)
 }
 
-func dumpHTTPResponse(resp *http.Response, body []byte) {
-	if dumpHTTP {
-		d, err := httputil.DumpResponse(resp, false)
-		if err != nil {
-			fmt.Printf("httputil.DumpResponse failed with %s\n", err)
-			return
-		}
-		io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
-		os.Stdout.Write(d)
-		if len(body) > 0 {
-			os.Stdout.Write(prettyPrintMaybeJSON(body))
-			os.Stdout.WriteString("\n")
-		}
+func dumpHTTPResponse(resp *http.Response) {
+	if !dumpHTTP {
+		return
+	}
+	d, err := httputil.DumpResponse(resp, false)
+	if err != nil {
+		fmt.Printf("httputil.DumpResponse failed with %s\n", err)
+		return
+	}
+	io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
+	os.Stdout.Write(d)
+
+	if !dumpHTTPBody {
+		return
+	}
+	body, err := getCopyOfResponseBody(resp)
+	if err != nil {
+		os.Stdout.Write(prettyPrintMaybeJSON(body))
+		os.Stdout.WriteString("\n")
 	}
 }
 
 func dumpHTTPRequestAndResponse(req *http.Request, resp *http.Response) {
 	dumpHTTPRequest(req)
-	dumpHTTPResponse(resp, nil)
+	dumpHTTPResponse(resp)
 }
 
 func decodeJSONFromReader(r io.Reader, v interface{}) error {

@@ -22,10 +22,13 @@ func NewOperation(requestExecutor *RequestExecutor, changes *IDatabaseChanges, c
 	}
 }
 
-func (o *Operation) fetchOperationsStatus() ObjectNode {
+func (o *Operation) fetchOperationsStatus() (ObjectNode, error) {
 	command := o.getOperationStateCommand(o._conventions, o._id)
-	o._requestExecutor.executeCommand(command)
-	return command.Result
+	err := o._requestExecutor.executeCommand(command)
+	if err != nil {
+		return nil, err
+	}
+	return command.Result, nil
 }
 
 func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int) *GetOperationStateCommand {
@@ -34,7 +37,10 @@ func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, i
 
 func (o *Operation) waitForCompletion() error {
 	for {
-		status := o.fetchOperationsStatus()
+		status, err := o.fetchOperationsStatus()
+		if err != nil {
+			return err
+		}
 
 		operationStatus := jsonGetAsText(status, "Status")
 		switch operationStatus {

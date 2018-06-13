@@ -169,7 +169,7 @@ func TestLoad(t *testing.T) {
 	defer deleteTestDriver()
 
 	// matches order of Java tests
-	if true {
+	if false {
 		loadTest_loadDocumentById(t)
 		loadTest_loadNullShouldReturnNull(t)
 	}
@@ -180,7 +180,7 @@ func TestLoad(t *testing.T) {
 	//TODO: fails for now
 	//loadTest_shouldLoadManyIdsAsPostRequest(t)
 
-	if true {
+	if false {
 		loadTest_loadStartsWith(t)
 		loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
 		loadTest_loadDocumentWithINtArrayAndLongArray(t)
