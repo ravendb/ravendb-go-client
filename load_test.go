@@ -192,7 +192,6 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 }
 
 func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
-
 	store := getDocumentStoreMust(t)
 	var ids []string
 
@@ -228,6 +227,47 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 }
 
 func loadTest_loadStartsWith(t *testing.T) {
+	store := getDocumentStoreMust(t)
+
+	{
+		session := openSessionMust(t, store)
+		createUser := func(id string) *User {
+			u := NewUser()
+			u.setId(id)
+			err := session.StoreEntity(u)
+			assert.NoError(t, err)
+			return u
+		}
+
+		createUser("Aaa")
+		createUser("Abc")
+		createUser("Afa")
+		createUser("Ala")
+		createUser("Baa")
+
+		err := session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+		usersi, err := newSession.advanced().loadStartingWith(getTypeOfValue(&User{}), "A")
+		assert.NoError(t, err)
+
+		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
+		for _, useri := range usersi {
+			user := useri.(*User)
+			assert.True(t, stringArrayContains(userIDs, user.ID))
+		}
+
+		usersi, err = newSession.advanced().loadStartingWithFull(getTypeOfValue(&User{}), "A", "", 1, 2, "", "")
+
+		userIDs = []string{"Abc", "Afa"}
+		for _, useri := range usersi {
+			user := useri.(*User)
+			assert.True(t, stringArrayContains(userIDs, user.ID))
+		}
+	}
 }
 
 func TestLoad(t *testing.T) {

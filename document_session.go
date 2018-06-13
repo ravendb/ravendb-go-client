@@ -153,4 +153,46 @@ func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, in
 	return loadOperation.getDocuments(clazz)
 }
 
+func (s *DocumentSession) loadStartingWith(clazz reflect.Type, idPrefix String) ([]interface{}, error) {
+	return s.loadStartingWithFull(clazz, idPrefix, "", 0, 25, "", "")
+}
+
+func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix String, matches String, start int, pageSize int, exclude String, startAfter String) ([]interface{}, error) {
+	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
+	_, err := s.loadStartingWithInternal(idPrefix, loadStartingWithOperation, nil, matches, start, pageSize, exclude, startAfter)
+	if err != nil {
+		return nil, err
+	}
+	return loadStartingWithOperation.getDocuments(clazz)
+}
+
+func (s *DocumentSession) loadStartingWithInternal(idPrefix String, operation *LoadStartingWithOperation, stream io.Writer,
+	matches String, start int, pageSize int, exclude String, startAfter String) (*GetDocumentsCommand, error) {
+
+	operation.withStartWithFull(idPrefix, matches, start, pageSize, exclude, startAfter)
+
+	command := operation.createRequest()
+	if command != nil {
+		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		if stream != nil {
+			panicIf(true, "NYI")
+			/*
+				try {
+					GetDocumentsResult result = command.getResult();
+					JsonExtensions.getDefaultMapper().writeValue(stream, result);
+				} catch (IOException e) {
+					throw new RuntimeException("Unable to serialize returned value into stream" + e.getMessage(), e);
+				}
+			*/
+		} else {
+			operation.setResult(command.Result)
+		}
+	}
+	return command, nil
+}
+
 // TODO: more

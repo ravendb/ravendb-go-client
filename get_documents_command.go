@@ -36,6 +36,8 @@ func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) 
 
 		_includes:     includes,
 		_metadataOnly: metadataOnly,
+		_start:        -1,
+		_pageSize:     -1,
 	}
 
 	if len(ids) == 1 {
@@ -47,14 +49,28 @@ func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) 
 	return cmd
 }
 
+func NewGetDocumentsCommandFull(startWith String, startAfter String, matches String, exclude String, start int, pageSize int, metadataOnly bool) *GetDocumentsCommand {
+	panicIf(startWith == "", "startWith cannot be null")
+	return &GetDocumentsCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
+		_startWith:    startWith,
+		_startAfter:   startAfter,
+		_matches:      matches,
+		_exclude:      exclude,
+		_start:        start,
+		_pageSize:     pageSize,
+		_metadataOnly: metadataOnly,
+	}
+}
+
 func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?"
-	// TODO: is _start == 0 valid?
-	if c._start != 0 {
+	if c._start != -1 {
 		url += "&start=" + strconv.Itoa(c._start)
 	}
 
-	if c._pageSize != 0 {
+	if c._pageSize != -1 {
 		url += "&pageSize=" + strconv.Itoa(c._pageSize)
 	}
 
@@ -90,12 +106,11 @@ func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, er
 	if c._id != "" {
 		url += "&id="
 		url += UrlUtils_escapeDataString(c._id)
-		return NewHttpGet(url)
+	} else if len(c._ids) > 0 {
+		return c.prepareRequestWithMultipleIds(url)
 	}
 
-	panicIf(len(c._ids) == 0, "must provide _id or _ids")
-
-	return c.prepareRequestWithMultipleIds(url)
+	return NewHttpGet(url)
 }
 
 func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
