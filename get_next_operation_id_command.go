@@ -31,7 +31,7 @@ func (c *GetNextOperationIdCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpGet(url)
 }
 
-func (c *GetNextOperationIdCommand) setResponse(response String, fromCache bool) error {
+func (c *GetNextOperationIdCommand) setResponse(response string, fromCache bool) error {
 	var res _GetNextOperationIdCommandResponse
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {

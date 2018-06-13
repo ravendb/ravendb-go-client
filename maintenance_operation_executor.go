@@ -4,7 +4,7 @@ import "strings"
 
 type MaintenanceOperationExecutor struct {
 	store                   *DocumentStore
-	databaseName            String
+	databaseName            string
 	requestExecutor         *RequestExecutor
 	serverOperationExecutor *ServerOperationExecutor
 }

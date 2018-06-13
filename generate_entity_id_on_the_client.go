@@ -21,7 +21,7 @@ func (g *GenerateEntityIdOnTheClient) tryGetIdFromInstance(entity Object) (strin
 }
 
 // Tries to get the identity.
-func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity Object) String {
+func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity Object) string {
 	id, ok := g.tryGetIdFromInstance(entity)
 	if !ok || id == "" {
 		id = g._generateId(entity)
@@ -35,13 +35,13 @@ func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity Object) Str
 	return id
 }
 
-func (g *GenerateEntityIdOnTheClient) generateDocumentKeyForStorage(entity Object) String {
+func (g *GenerateEntityIdOnTheClient) generateDocumentKeyForStorage(entity Object) string {
 	id := g.getOrGenerateDocumentId(entity)
 	g.trySetIdentity(entity, id)
 	return id
 }
 
 // Tries to set the identity property
-func (g *GenerateEntityIdOnTheClient) trySetIdentity(entity Object, id String) {
+func (g *GenerateEntityIdOnTheClient) trySetIdentity(entity Object, id string) {
 	trySetIDOnEntity(entity, id)
 }

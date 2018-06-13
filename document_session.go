@@ -68,13 +68,13 @@ func (s *DocumentSession) exists(id string) (bool, error) {
 }
 
 // TODO:    public <T> void refresh(T entity) {
-// TODO:    protected String generateId(Object entity) {
+// TODO:    protected string generateId(Object entity) {
 // TODO:    public ResponseTimeInformation executeAllPendingLazyOperations() {
 // TODO:    private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
-// TODO:    public ILoaderWithInclude include(String path) {
+// TODO:    public ILoaderWithInclude include(string path) {
 // TODO:    public <T> Lazy<T> addLazyOperation(Class<T> clazz, ILazyOperation operation, Consumer<T> onEval) {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
-// TODO:    public <T> Lazy<Map<String, T>> lazyLoadInternal(Class<T> clazz, String[] ids, String[] includes, Consumer<Map<String, T>> onEval)
+// TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(Class<T> clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)
 
 func (s *DocumentSession) load(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
@@ -151,11 +151,11 @@ func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, in
 	return loadOperation.getDocuments(clazz)
 }
 
-func (s *DocumentSession) loadStartingWith(clazz reflect.Type, idPrefix String) ([]interface{}, error) {
+func (s *DocumentSession) loadStartingWith(clazz reflect.Type, idPrefix string) ([]interface{}, error) {
 	return s.loadStartingWithFull(clazz, idPrefix, "", 0, 25, "", "")
 }
 
-func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix String, matches String, start int, pageSize int, exclude String, startAfter String) ([]interface{}, error) {
+func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix string, matches string, start int, pageSize int, exclude string, startAfter string) ([]interface{}, error) {
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
 	_, err := s.loadStartingWithInternal(idPrefix, loadStartingWithOperation, nil, matches, start, pageSize, exclude, startAfter)
 	if err != nil {
@@ -164,8 +164,8 @@ func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix Stri
 	return loadStartingWithOperation.getDocuments(clazz)
 }
 
-func (s *DocumentSession) loadStartingWithInternal(idPrefix String, operation *LoadStartingWithOperation, stream io.Writer,
-	matches String, start int, pageSize int, exclude String, startAfter String) (*GetDocumentsCommand, error) {
+func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *LoadStartingWithOperation, stream io.Writer,
+	matches string, start int, pageSize int, exclude string, startAfter string) (*GetDocumentsCommand, error) {
 
 	operation.withStartWithFull(idPrefix, matches, start, pageSize, exclude, startAfter)
 

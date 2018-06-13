@@ -210,7 +210,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	return err
 }
 
-func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database String, timeout time.Duration) {
+func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string, timeout time.Duration) {
 	// TODO: implement me
 	panicIf(true, "NYI")
 }

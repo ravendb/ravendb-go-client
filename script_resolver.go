@@ -7,11 +7,11 @@ type ScriptResolver struct {
 	lastModifiedTime time.Time `json:"LastModifiedTime"` // TODO: ServerTime?
 }
 
-func (r *ScriptResolver) getScript() String {
+func (r *ScriptResolver) getScript() string {
 	return r.script
 }
 
-func (r *ScriptResolver) setScript(script String) {
+func (r *ScriptResolver) setScript(script string) {
 	r.script = script
 }
 

@@ -4,7 +4,7 @@ import "strings"
 
 // TODO: write tests
 
-// Set_String is a Go equivalent of Java's Set<String> for easy porting
+// Set_String is a Go equivalent of Java's Set<string> for easy porting
 type Set_String struct {
 	strings []string
 	cmp     func(string, string) bool

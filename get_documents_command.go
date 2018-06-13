@@ -49,7 +49,7 @@ func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) 
 	return cmd
 }
 
-func NewGetDocumentsCommandFull(startWith String, startAfter String, matches String, exclude String, start int, pageSize int, metadataOnly bool) *GetDocumentsCommand {
+func NewGetDocumentsCommandFull(startWith string, startAfter string, matches string, exclude string, start int, pageSize int, metadataOnly bool) *GetDocumentsCommand {
 	panicIf(startWith == "", "startWith cannot be null")
 	return &GetDocumentsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -143,7 +143,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	return NewHttpPost(url, string(d))
 }
 
-func (c *GetDocumentsCommand) setResponse(response String, fromCache bool) error {
+func (c *GetDocumentsCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return nil
 	}

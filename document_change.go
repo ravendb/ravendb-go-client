@@ -3,13 +3,13 @@ package ravendb
 type DocumentChange struct {
 	typ DocumentChangeTypes
 
-	id String
+	id string
 
-	collectionName String
+	collectionName string
 
-	typeName String
+	typeName string
 
-	changeVector *String
+	changeVector *string
 }
 
 /*
@@ -21,35 +21,35 @@ type DocumentChange struct {
         this.type = type;
     }
 
-    public String getId() {
+    public string getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(string id) {
         this.id = id;
     }
 
-    public String getCollectionName() {
+    public string getCollectionName() {
         return collectionName;
     }
 
-    public void setCollectionName(String collectionName) {
+    public void setCollectionName(string collectionName) {
         this.collectionName = collectionName;
     }
 
-    public String getTypeName() {
+    public string getTypeName() {
         return typeName;
     }
 
-    public void setTypeName(String typeName) {
+    public void setTypeName(string typeName) {
         this.typeName = typeName;
     }
 
-    public String getChangeVector() {
+    public string getChangeVector() {
         return changeVector;
     }
 
-    public void setChangeVector(String changeVector) {
+    public void setChangeVector(string changeVector) {
         this.changeVector = changeVector;
     }
 */

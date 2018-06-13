@@ -9,15 +9,15 @@ type IDatabaseChanges interface {
 	addOnError(handler Consumer)
 	removeOnError(handler Consumer)
 
-	//IChangesObservable<IndexChange> forIndex(String indexName);
-	//IChangesObservable<DocumentChange> forDocument(String docId);
+	//IChangesObservable<IndexChange> forIndex(string indexName);
+	//IChangesObservable<DocumentChange> forDocument(string docId);
 	//IChangesObservable<DocumentChange> forAllDocuments();
 	//IChangesObservable<OperationStatusChange> forOperationId(long operationId);
 	forAllOperations() IChangesObservable_OperationStatusChange
 	//IChangesObservable<IndexChange> forAllIndexes();
-	//IChangesObservable<DocumentChange> forDocumentsStartingWith(String docIdPrefix);
-	//IChangesObservable<DocumentChange> forDocumentsInCollection(String collectionName);
+	//IChangesObservable<DocumentChange> forDocumentsStartingWith(string docIdPrefix);
+	//IChangesObservable<DocumentChange> forDocumentsInCollection(string collectionName);
 	//IChangesObservable<DocumentChange> forDocumentsInCollection(Class<?> clazz);
-	//IChangesObservable<DocumentChange> forDocumentsOfType(String typeName);
+	//IChangesObservable<DocumentChange> forDocumentsOfType(string typeName);
 	//IChangesObservable<DocumentChange> forDocumentsOfType(Class<?> clazz);
 }

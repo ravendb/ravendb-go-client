@@ -1,10 +1,10 @@
 package ravendb
 
 type Address struct {
-	ID      String `json:"ID"`
-	Country String `json:"Country"`
-	City    String `json:"City"`
-	Street  String `json:"Street"`
+	ID      string `json:"ID"`
+	Country string `json:"Country"`
+	City    string `json:"City"`
+	Street  string `json:"Street"`
 	ZipCode int    `json:"ZipCode"`
 }
 
@@ -12,35 +12,35 @@ func NewAddress() *Address {
 	return &Address{}
 }
 
-func (a *Address) getId() String {
+func (a *Address) getId() string {
 	return a.ID
 }
 
-func (a *Address) setId(id String) {
+func (a *Address) setId(id string) {
 	a.ID = id
 }
 
-func (a *Address) getCountry() String {
+func (a *Address) getCountry() string {
 	return a.Country
 }
 
-func (a *Address) setCountry(country String) {
+func (a *Address) setCountry(country string) {
 	a.Country = country
 }
 
-func (a *Address) getCity() String {
+func (a *Address) getCity() string {
 	return a.City
 }
 
-func (a *Address) setCity(city String) {
+func (a *Address) setCity(city string) {
 	a.City = city
 }
 
-func (a *Address) getStreet() String {
+func (a *Address) getStreet() string {
 	return a.Street
 }
 
-func (a *Address) setStreet(street String) {
+func (a *Address) setStreet(street string) {
 	a.Street = street
 }
 

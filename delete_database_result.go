@@ -15,11 +15,11 @@ public void setRaftCommandIndex(long raftCommandIndex) {
 	this.raftCommandIndex = raftCommandIndex;
 }
 
-public String[] getPendingDeletes() {
+public string[] getPendingDeletes() {
 	return pendingDeletes;
 }
 
-public void setPendingDeletes(String[] pendingDeletes) {
+public void setPendingDeletes(string[] pendingDeletes) {
 	this.pendingDeletes = pendingDeletes;
 }
 */

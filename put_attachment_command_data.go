@@ -38,7 +38,7 @@ func (d *PutAttachmentCommandData) getStream() io.Reader {
 }
 
 /*
-public String getContentType() {
+public string getContentType() {
 	return contentType;
 }
 

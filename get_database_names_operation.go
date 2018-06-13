@@ -57,7 +57,7 @@ type GetDatabaseNamesResult struct {
 	Databases []string `json:"Databases"`
 }
 
-func (c *GetDatabaseNamesCommand) setResponse(response String, fromCache bool) error {
+func (c *GetDatabaseNamesCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}
@@ -79,7 +79,7 @@ func (c *GetDatabaseNamesCommand) setResponse(response String, fromCache bool) e
 			return throwInvalidResponse();
 		}
 		ArrayNode dbNames = (ArrayNode) databases;
-		String[] databaseNames = new String[dbNames.size()];
+		string[] databaseNames = new string[dbNames.size()];
 		for (int i = 0; i < dbNames.size(); i++) {
 			databaseNames[i] = dbNames.get(i).asText();
 		}

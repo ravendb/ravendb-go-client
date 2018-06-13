@@ -125,7 +125,7 @@ func (s *DocumentStore) aggressivelyCache() {
 	s.aggressivelyCacheWithDatabase("")
 }
 
-func (s *DocumentStore) aggressivelyCacheWithDatabase(database String) {
+func (s *DocumentStore) aggressivelyCacheWithDatabase(database string) {
 	s.aggressivelyCacheForDatabase(time.Hour*24, database)
 }
 
@@ -170,7 +170,7 @@ func (s *DocumentStore) getIdentifier() string {
 	return strings.Join(s.urls, ",")
 }
 
-func (s *DocumentStore) setIdentifier(identifier String) {
+func (s *DocumentStore) setIdentifier(identifier string) {
 	s.identifier = identifier
 }
 
@@ -295,10 +295,10 @@ func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string
 }
 
 //    public IDatabaseChanges changes() {
-//    public IDatabaseChanges changes(String database) {
-//    protected IDatabaseChanges createDatabaseChanges(String database) {
+//    public IDatabaseChanges changes(string database) {
+//    protected IDatabaseChanges createDatabaseChanges(string database) {
 //     public Exception getLastDatabaseChangesStateException() {
-//    public Exception getLastDatabaseChangesStateException(String database) {
+//    public Exception getLastDatabaseChangesStateException(string database) {
 
 func (s *DocumentStore) aggressivelyCacheFor(cacheDuration time.Duration) {
 	// TODO: implement me
@@ -308,7 +308,7 @@ func (s *DocumentStore) aggressivelyCacheForDatabase(cacheDuration time.Duration
 	// TODO: implement me
 }
 
-//    private void listenToChangesAndUpdateTheCache(String database) {
+//    private void listenToChangesAndUpdateTheCache(string database) {
 
 func (s *DocumentStore) addBeforeCloseListener(fn func(*DocumentStore)) {
 	s.beforeClose = append(s.beforeClose, fn)
@@ -341,4 +341,4 @@ func (s *DocumentStore) operations() *OperationExecutor {
 }
 
 //    public BulkInsertOperation bulkInsert() {
-//    public BulkInsertOperation bulkInsert(String database) {
+//    public BulkInsertOperation bulkInsert(string database) {

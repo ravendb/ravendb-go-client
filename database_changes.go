@@ -31,7 +31,7 @@ type DatabaseChanges struct {
 	_immediateConnection AtomicInteger
 }
 
-func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName String, onDispose Runnable) *DatabaseChanges {
+func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *DatabaseChanges {
 	res := &DatabaseChanges{
 		_requestExecutor: requestExecutor,
 		_conventions:     requestExecutor.getConventions(),

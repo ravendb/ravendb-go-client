@@ -5,12 +5,12 @@ import "reflect"
 type LoadStartingWithOperation struct {
 	_session *InMemoryDocumentSessionOperations
 
-	_startWith  String
-	_matches    String
+	_startWith  string
+	_matches    string
 	_start      int
 	_pageSize   int
-	_exclude    String
-	_startAfter String
+	_exclude    string
+	_startAfter string
 
 	_returnedIds []string
 
@@ -30,11 +30,11 @@ func (o *LoadStartingWithOperation) createRequest() *GetDocumentsCommand {
 	return o.Command
 }
 
-func (o *LoadStartingWithOperation) withStartWith(idPrefix String) {
+func (o *LoadStartingWithOperation) withStartWith(idPrefix string) {
 	o.withStartWithFull(idPrefix, "", 0, 0, "", "")
 }
 
-func (o *LoadStartingWithOperation) withStartWithAndMatches(idPrefix String, matches String) {
+func (o *LoadStartingWithOperation) withStartWithAndMatches(idPrefix string, matches string) {
 	o.withStartWithFull(idPrefix, matches, 0, 0, "", "")
 }
 

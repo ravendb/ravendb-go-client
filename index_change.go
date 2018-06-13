@@ -2,7 +2,7 @@ package ravendb
 
 type IndexChange struct {
 	typ  IndexChangeTypes
-	name String
+	name string
 }
 
 /*
@@ -14,11 +14,11 @@ type IndexChange struct {
        this.type = type;
    }
 
-   public String getName() {
+   public string getName() {
        return name;
    }
 
-   public void setName(String name) {
+   public void setName(string name) {
        this.name = name;
    }
 */

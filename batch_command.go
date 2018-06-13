@@ -74,7 +74,7 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return NewHttpPost(url, string(js))
 }
 
-func (c *BatchCommand) setResponse(response String, fromCache bool) error {
+func (c *BatchCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}

@@ -29,7 +29,7 @@ func NewMetadataAsDictionaryWithMetadata(metadata map[string]interface{}) *Metad
 	}
 }
 
-func NewMetadataAsDictionary(metadata ObjectNode, parent *IMetadataDictionary, parentKey String) *MetadataAsDictionary {
+func NewMetadataAsDictionary(metadata ObjectNode, parent *IMetadataDictionary, parentKey string) *MetadataAsDictionary {
 	panicIf(parent == nil, "Parent cannot be null")
 	panicIf(parentKey == "", "ParentKey cannot be empty")
 	return &MetadataAsDictionary{
@@ -69,7 +69,7 @@ func (d *MetadataAsDictionary) init() {
 	}
 }
 
-func (d *MetadataAsDictionary) put(key String, value Object) Object {
+func (d *MetadataAsDictionary) put(key string, value Object) Object {
 	if d._metadata == nil {
 		d.init()
 	}
@@ -153,7 +153,7 @@ func (d *MetadataAsDictionary) entrySet() map[string]Object {
     }
 
     @Override
-    public void putAll(Map<? extends String, ?> m) {
+    public void putAll(Map<? extends string, ?> m) {
         if (_metadata == null) {
             init();
         }
@@ -170,7 +170,7 @@ func (d *MetadataAsDictionary) entrySet() map[string]Object {
             return _metadata.containsKey(key);
         }
 
-        return _source.has((String)key);
+        return _source.has((string)key);
     }
 
     @Override

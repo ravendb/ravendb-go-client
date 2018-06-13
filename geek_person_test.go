@@ -10,11 +10,11 @@ func NewGeekPerson() *GeekPerson {
 	return &GeekPerson{}
 }
 
-func (p *GeekPerson) getName() String {
+func (p *GeekPerson) getName() string {
 	return p.Name
 }
 
-func (p *GeekPerson) setName(name String) {
+func (p *GeekPerson) setName(name string) {
 	p.Name = name
 }
 

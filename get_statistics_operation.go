@@ -10,7 +10,7 @@ var (
 )
 
 type GetStatisticsOperation struct {
-	_debugTag String
+	_debugTag string
 
 	Command *GetStatisticsCommand
 }
@@ -37,7 +37,7 @@ var (
 type GetStatisticsCommand struct {
 	*RavenCommandBase
 
-	debugTag String
+	debugTag string
 
 	Result *DatabaseStatistics
 }
@@ -65,7 +65,7 @@ func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetStatisticsCommand) setResponse(response String, fromCache bool) error {
+func (c *GetStatisticsCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}

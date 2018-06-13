@@ -4,7 +4,7 @@ import "strings"
 
 type OperationExecutor struct {
 	store           *DocumentStore
-	databaseName    String
+	databaseName    string
 	requestExecutor *RequestExecutor
 }
 
@@ -25,7 +25,7 @@ func NewOperationExecutorWithDatabaseName(store *DocumentStore, databaseName str
 	return res
 }
 
-func (e *OperationExecutor) forDatabase(databaseName String) *OperationExecutor {
+func (e *OperationExecutor) forDatabase(databaseName string) *OperationExecutor {
 	if strings.EqualFold(e.databaseName, databaseName) {
 		return e
 	}

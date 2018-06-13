@@ -13,14 +13,14 @@ var (
 type PutDocumentCommand struct {
 	*RavenCommandBase
 
-	_id           String
-	_changeVector String
+	_id           string
+	_changeVector string
 	_document     ObjectNode
 
 	Result *PutResult
 }
 
-func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) *PutDocumentCommand {
+func NewPutDocumentCommand(id string, changeVector string, document ObjectNode) *PutDocumentCommand {
 	panicIf(id == "", "Id cannot be null")
 	panicIf(document == nil, "document cannot be nil")
 
@@ -50,7 +50,7 @@ func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, err
 	return request, nil
 }
 
-func (c *PutDocumentCommand) setResponse(response String, fromCache bool) error {
+func (c *PutDocumentCommand) setResponse(response string, fromCache bool) error {
 	var res PutResult
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {

@@ -11,7 +11,7 @@ type ClusterTopology struct {
 	Watchers    map[string]string `json:"Watchers"`
 }
 
-func (t *ClusterTopology) contains(node String) bool {
+func (t *ClusterTopology) contains(node string) bool {
 	if t.Members != nil {
 		if _, ok := t.Members[node]; ok {
 			return true

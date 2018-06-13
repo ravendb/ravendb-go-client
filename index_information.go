@@ -3,7 +3,7 @@ package ravendb
 import "time"
 
 type IndexInformation struct {
-	Name             String        `json:"Name"`
+	Name             string        `json:"Name"`
 	Stale            bool          `json:"IsStale"`
 	State            IndexState    `json:"State"`
 	LockMode         IndexLockMode `json:"LockMode"`
@@ -13,11 +13,11 @@ type IndexInformation struct {
 }
 
 /*
-    public String getName() {
+    public string getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(string name) {
         this.name = name;
     }
 

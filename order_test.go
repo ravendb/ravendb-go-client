@@ -3,39 +3,39 @@ package ravendb
 import "time"
 
 type Order struct {
-	ID        String
-	Company   String
-	Employee  String
+	ID        string
+	Company   string
+	Employee  string
 	OrderedAt time.Time
 	RequireAt time.Time
 	ShippedAt time.Time
 	ShipTo    *Address
-	ShipVia   String
+	ShipVia   string
 	Freight   float64
 	Lines     []OrderLine
 }
 
-func (o *Order) getId() String {
+func (o *Order) getId() string {
 	return o.ID
 }
 
-func (o *Order) setId(id String) {
+func (o *Order) setId(id string) {
 	o.ID = id
 }
 
-func (o *Order) getCompany() String {
+func (o *Order) getCompany() string {
 	return o.Company
 }
 
-func (o *Order) setCompany(company String) {
+func (o *Order) setCompany(company string) {
 	o.Company = company
 }
 
-func (o *Order) getEmployee() String {
+func (o *Order) getEmployee() string {
 	return o.Employee
 }
 
-func (o *Order) setEmployee(employee String) {
+func (o *Order) setEmployee(employee string) {
 	o.Employee = employee
 }
 
@@ -71,11 +71,11 @@ func (o *Order) setShipTo(shipTo *Address) {
 	o.ShipTo = shipTo
 }
 
-func (o *Order) getShipVia() String {
+func (o *Order) getShipVia() string {
 	return o.ShipVia
 }
 
-func (o *Order) setShipVia(shipVia String) {
+func (o *Order) setShipVia(shipVia string) {
 	o.ShipVia = shipVia
 }
 

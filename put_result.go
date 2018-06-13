@@ -7,19 +7,19 @@ type PutResult struct {
 }
 
 /*
-public String getId() {
+public string getId() {
 	return id;
 }
 
-public void setId(String id) {
+public void setId(string id) {
 	this.id = id;
 }
 
-public String getChangeVector() {
+public string getChangeVector() {
 	return changeVector;
 }
 
-public void setChangeVector(String changeVector) {
+public void setChangeVector(string changeVector) {
 	this.changeVector = changeVector;
 }
 */

@@ -43,7 +43,7 @@ func (c *GetClientConfigurationCommand) createRequest(node *ServerNode) (*http.R
 	return NewHttpGet(url)
 }
 
-func (c *GetClientConfigurationCommand) setResponse(response String, fromCache bool) error {
+func (c *GetClientConfigurationCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return nil
 	}

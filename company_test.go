@@ -2,13 +2,13 @@ package ravendb
 
 type Company struct {
 	AccountsReceivable float64
-	ID                 String
-	Name               String
-	Desc               String
-	Email              String
-	Address1           String
-	Address2           String
-	Address3           String
+	ID                 string
+	Name               string
+	Desc               string
+	Email              string
+	Address1           string
+	Address2           string
+	Address3           string
 	Contacts           []*Contact
 	Phone              int
 	Type               CompanyType
@@ -27,59 +27,59 @@ func (c *Company) setAccountsReceivable(accountsReceivable float64) {
 	c.AccountsReceivable = accountsReceivable
 }
 
-func (c *Company) getId() String {
+func (c *Company) getId() string {
 	return c.ID
 }
 
-func (c *Company) setId(id String) {
+func (c *Company) setId(id string) {
 	c.ID = id
 }
 
-func (c *Company) getName() String {
+func (c *Company) getName() string {
 	return c.Name
 }
 
-func (c *Company) setName(name String) {
+func (c *Company) setName(name string) {
 	c.Name = name
 }
 
-func (c *Company) getDesc() String {
+func (c *Company) getDesc() string {
 	return c.Desc
 }
 
-func (c *Company) setDesc(desc String) {
+func (c *Company) setDesc(desc string) {
 	c.Desc = desc
 }
 
-func (c *Company) getEmail() String {
+func (c *Company) getEmail() string {
 	return c.Email
 }
 
-func (c *Company) setEmail(email String) {
+func (c *Company) setEmail(email string) {
 	c.Email = email
 }
 
-func (c *Company) getAddress1() String {
+func (c *Company) getAddress1() string {
 	return c.Address1
 }
 
-func (c *Company) setAddress1(address1 String) {
+func (c *Company) setAddress1(address1 string) {
 	c.Address1 = address1
 }
 
-func (c *Company) getAddress2() String {
+func (c *Company) getAddress2() string {
 	return c.Address2
 }
 
-func (c *Company) setAddress2(address2 String) {
+func (c *Company) setAddress2(address2 string) {
 	c.Address2 = address2
 }
 
-func (c *Company) getAddress3() String {
+func (c *Company) getAddress3() string {
 	return c.Address3
 }
 
-func (c *Company) setAddress3(address3 String) {
+func (c *Company) setAddress3(address3 string) {
 	c.Address3 = address3
 }
 

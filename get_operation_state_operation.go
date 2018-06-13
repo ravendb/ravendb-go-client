@@ -40,7 +40,7 @@ func (c *GetOperationStateCommand) createRequest(node *ServerNode) (*http.Reques
 	return NewHttpGet(url)
 }
 
-func (c *GetOperationStateCommand) setResponse(response String, fromCache bool) error {
+func (c *GetOperationStateCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return nil
 	}

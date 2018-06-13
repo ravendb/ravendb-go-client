@@ -111,19 +111,19 @@ public void setCountOfUniqueAttachments(long countOfUniqueAttachments) {
 	this.countOfUniqueAttachments = countOfUniqueAttachments;
 }
 
-public String getDatabaseChangeVector() {
+public string getDatabaseChangeVector() {
 	return databaseChangeVector;
 }
 
-public void setDatabaseChangeVector(String databaseChangeVector) {
+public void setDatabaseChangeVector(string databaseChangeVector) {
 	this.databaseChangeVector = databaseChangeVector;
 }
 
-public String getDatabaseId() {
+public string getDatabaseId() {
 	return databaseId;
 }
 
-public void setDatabaseId(String databaseId) {
+public void setDatabaseId(string databaseId) {
 	this.databaseId = databaseId;
 }
 
@@ -135,11 +135,11 @@ public void setIs64Bit(boolean is64Bit) {
 	this.is64Bit = is64Bit;
 }
 
-public String getPager() {
+public string getPager() {
 	return pager;
 }
 
-public void setPager(String pager) {
+public void setPager(string pager) {
 	this.pager = pager;
 }
 

@@ -8,27 +8,27 @@ type OperationExceptionResult struct {
 }
 
 /*
-    public String getType() {
+    public string getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(string type) {
         this.type = type;
     }
 
-    public String getMessage() {
+    public string getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
+    public void setMessage(string message) {
         this.message = message;
     }
 
-    public String getError() {
+    public string getError() {
         return error;
     }
 
-    public void setError(String error) {
+    public void setError(string error) {
         this.error = error;
     }
 

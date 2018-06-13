@@ -31,34 +31,34 @@ func NewExceptionSchema() *ExceptionSchema {
 	return &ExceptionSchema{}
 }
 
-func (e *ExceptionSchema) getUrl() String {
+func (e *ExceptionSchema) getUrl() string {
 	return e.Url
 }
 
-func (e *ExceptionSchema) setUrl(url String) {
+func (e *ExceptionSchema) setUrl(url string) {
 	e.Url = url
 }
 
-func (e *ExceptionSchema) getType() String {
+func (e *ExceptionSchema) getType() string {
 	return e.Type
 }
 
-func (e *ExceptionSchema) setType(typ String) {
+func (e *ExceptionSchema) setType(typ string) {
 	e.Type = typ
 }
 
-func (e *ExceptionSchema) getMessage() String {
+func (e *ExceptionSchema) getMessage() string {
 	return e.Message
 }
 
-func (e *ExceptionSchema) setMessage(message String) {
+func (e *ExceptionSchema) setMessage(message string) {
 	e.Message = message
 }
 
-func (e *ExceptionSchema) getError() String {
+func (e *ExceptionSchema) getError() string {
 	return e.Error
 }
 
-func (e *ExceptionSchema) setError(err String) {
+func (e *ExceptionSchema) setError(err string) {
 	e.Error = err
 }

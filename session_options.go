@@ -1,7 +1,7 @@
 package ravendb
 
 type SessionOptions struct {
-	database        String
+	database        string
 	requestExecutor *RequestExecutor
 }
 
@@ -13,7 +13,7 @@ func (o *SessionOptions) getDatabase() string {
 	return o.database
 }
 
-func (o *SessionOptions) setDatabase(database String) {
+func (o *SessionOptions) setDatabase(database string) {
 	o.database = database
 }
 

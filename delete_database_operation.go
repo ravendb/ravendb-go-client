@@ -23,11 +23,11 @@ type DeleteDatabaseParameters struct {
 	TimeToWaitForConfirmation *time.Duration `json:"TimeToWaitForConfirmation"`
 }
 
-func NewDeleteDatabasesOperation(databaseName String, hardDelete bool) *DeleteDatabasesOperation {
+func NewDeleteDatabasesOperation(databaseName string, hardDelete bool) *DeleteDatabasesOperation {
 	return NewDeleteDatabasesOperation2(databaseName, hardDelete, "", 0)
 }
 
-func NewDeleteDatabasesOperation2(databaseName String, hardDelete bool, fromNode String, timeToWaitForConfirmation time.Duration) *DeleteDatabasesOperation {
+func NewDeleteDatabasesOperation2(databaseName string, hardDelete bool, fromNode string, timeToWaitForConfirmation time.Duration) *DeleteDatabasesOperation {
 	parameters := &DeleteDatabaseParameters{
 		DatabaseNames: []string{databaseName},
 		HardDelete:    hardDelete,
@@ -79,7 +79,7 @@ func (c *DeleteDatabaseCommand) createRequest(node *ServerNode) (*http.Request, 
 	return NewHttpDelete(url, c.parameters)
 }
 
-func (c *DeleteDatabaseCommand) setResponse(response String, fromCache bool) error {
+func (c *DeleteDatabaseCommand) setResponse(response string, fromCache bool) error {
 	var res DeleteDatabaseResult
 	err := json.Unmarshal([]byte(response), &res)
 	if err != nil {

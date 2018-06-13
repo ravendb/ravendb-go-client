@@ -10,7 +10,7 @@ func (i *TcpConnectionInfo) getPort() int {
 	return i.Port
 }
 
-func (i *TcpConnectionInfo) getUrl() String {
+func (i *TcpConnectionInfo) getUrl() string {
 	return i.Url
 }
 
@@ -23,11 +23,11 @@ public void setPort(int port) {
 	this.port = port;
 }
 
-public void setUrl(String url) {
+public void setUrl(string url) {
 	this.url = url;
 }
 
-public void setCertificate(String certificate) {
+public void setCertificate(string certificate) {
 	this.certificate = certificate;
 }
 */

@@ -99,7 +99,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	}
 	res._knownMissingIds.cmp = String_compareToIgnoreCase
 
-	genIDFunc := func(entity Object) String {
+	genIDFunc := func(entity Object) string {
 		return res.generateId(entity)
 	}
 	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.conventions, genIDFunc)
@@ -128,7 +128,7 @@ func (s *InMemoryDocumentSessionOperations) getDatabaseName() string {
 	return s.databaseName
 }
 
-func (s *InMemoryDocumentSessionOperations) generateId(entity Object) String {
+func (s *InMemoryDocumentSessionOperations) generateId(entity Object) string {
 	return s.getConventions().generateDocumentId(s.getDatabaseName(), entity)
 }
 
@@ -363,12 +363,12 @@ func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
 }
 
 /// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id String) error {
+func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id string) error {
 	return s.storeInternal(entity, nil, id, ConcurrencyCheck_AUTO)
 }
 
 // Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreEntityWithChangeVectorAndID(entity Object, changeVector *string, id String) error {
+func (s *InMemoryDocumentSessionOperations) StoreEntityWithChangeVectorAndID(entity Object, changeVector *string, id string) error {
 	concurr := ConcurrencyCheck_DISABLED
 	if changeVector != nil {
 		concurr = ConcurrencyCheck_FORCED
@@ -383,7 +383,7 @@ func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneratio
 	must(err)
 }
 
-func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector *string, id String, forceConcurrencyCheck ConcurrencyCheckMode) error {
+func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
 		return NewIllegalArgumentException("Entity cannot be null")
 	}
@@ -440,7 +440,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id String, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	delete(s.deletedEntities, entity)
 	if id != "" {
 		s._knownMissingIds.remove(id)
@@ -460,7 +460,7 @@ func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id String, e
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Object, id String) error {
+func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Object, id string) error {
 	nLastChar := len(id) - 1
 	if len(id) == 0 || id[nLastChar] == '|' || id[nLastChar] == '/' {
 		return nil
@@ -758,11 +758,11 @@ func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) 
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) RegisterMissing(id String) {
+func (s *InMemoryDocumentSessionOperations) RegisterMissing(id string) {
 	s._knownMissingIds.add(id)
 }
 
-func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id String) {
+func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
 	s._knownMissingIds.remove(id)
 }
 

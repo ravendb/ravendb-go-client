@@ -153,7 +153,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 }
 
 // TODO: only used for http cache?
-//private String extractThumbprintFromCertificate(KeyStore certificate) {
+//private string extractThumbprintFromCertificate(KeyStore certificate) {
 
 func RequestExecutor_create(initialUrls []string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 	re := NewRequestExecutor(databaseName, certificate, conventions, initialUrls)
@@ -481,7 +481,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 	return future
 }
 
-func (re *RequestExecutor) throwExceptions(details String) error {
+func (re *RequestExecutor) throwExceptions(details string) error {
 	err := NewIllegalStateException("Failed to retrieve database topology from all known nodes \n" + details)
 	return err
 }
@@ -681,7 +681,7 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 	return nil, nil
 }
 
-func (re *RequestExecutor) getFromCache(command RavenCommand, url String, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
+func (re *RequestExecutor) getFromCache(command RavenCommand, url string, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
 	panicIf(true, "NYI")
 	return nil
 }
@@ -695,7 +695,7 @@ func (re *RequestExecutor) createRequest(node *ServerNode, command RavenCommand)
 	return request, err
 }
 
-func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, url String, sessionInfo *SessionInfo, shouldRetry bool) (bool, error) {
+func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, url string, sessionInfo *SessionInfo, shouldRetry bool) (bool, error) {
 	var err error
 	switch response.StatusCode {
 	case http.StatusNotFound:
@@ -751,7 +751,7 @@ func RequestExecutor_handleConflict(response *http.Response) error {
 
 //     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
 
-func (re *RequestExecutor) handleServerDown(url String, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) bool {
+func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) bool {
 	if command.getBase().getFailedNodes() == nil {
 		command.getBase().setFailedNodes(make(map[*ServerNode]error))
 	}

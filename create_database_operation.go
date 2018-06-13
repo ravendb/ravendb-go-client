@@ -25,7 +25,7 @@ type CreateDatabaseCommand struct {
 	conventions       *DocumentConventions
 	databaseRecord    *DatabaseRecord
 	replicationFactor int
-	databaseName      String
+	databaseName      string
 
 	Result *DatabasePutResult
 }
@@ -54,7 +54,7 @@ func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, 
 	return NewHttpPut(url, string(js))
 }
 
-func (c *CreateDatabaseCommand) setResponse(response String, fromCache bool) error {
+func (c *CreateDatabaseCommand) setResponse(response string, fromCache bool) error {
 	if response == "" {
 		return throwInvalidResponse()
 	}

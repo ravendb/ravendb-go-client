@@ -9,7 +9,7 @@ func NewHttpCache() *HttpCache {
 	return &HttpCache{}
 }
 
-func (c *HttpCache) set(url String, changeVector String, result String) {
+func (c *HttpCache) set(url string, changeVector string, result string) {
 }
 
 func (c *HttpCache) setNotFound(url string) {

@@ -12,12 +12,12 @@ var (
 type HiLoReturnCommand struct {
 	*RavenCommandBase
 
-	_tag  String
+	_tag  string
 	_last int
 	_end  int
 }
 
-func NewHiLoReturnCommand(tag String, last int, end int) *HiLoReturnCommand {
+func NewHiLoReturnCommand(tag string, last int, end int) *HiLoReturnCommand {
 	panicIf(last < 0, "last is < 0")
 	panicIf(end < 0, "end is < 0")
 	panicIf(tag == "", "tag cannot be empty")

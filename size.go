@@ -15,11 +15,11 @@ public void setSizeInBytes(long sizeInBytes) {
 	this.sizeInBytes = sizeInBytes;
 }
 
-public String getHumaneSize() {
+public string getHumaneSize() {
 	return humaneSize;
 }
 
-public void setHumaneSize(String humaneSize) {
+public void setHumaneSize(string humaneSize) {
 	this.humaneSize = humaneSize;
 }
 */

@@ -3,11 +3,11 @@ package ravendb
 import "time"
 
 type Post struct {
-	ID            String
-	Title         String
-	Desc          String
+	ID            string
+	Title         string
+	Desc          string
 	Comments      []*Post
-	AttachmentIds String
+	AttachmentIds string
 	CreatedAt     time.Time
 }
 
@@ -15,27 +15,27 @@ func NewPost() *Post {
 	return &Post{}
 }
 
-func (p *Post) getId() String {
+func (p *Post) getId() string {
 	return p.ID
 }
 
-func (p *Post) setId(id String) {
+func (p *Post) setId(id string) {
 	p.ID = id
 }
 
-func (p *Post) getTitle() String {
+func (p *Post) getTitle() string {
 	return p.Title
 }
 
-func (p *Post) setTitle(title String) {
+func (p *Post) setTitle(title string) {
 	p.Title = title
 }
 
-func (p *Post) getDesc() String {
+func (p *Post) getDesc() string {
 	return p.Desc
 }
 
-func (p *Post) setDesc(desc String) {
+func (p *Post) setDesc(desc string) {
 	p.Desc = desc
 }
 
@@ -47,11 +47,11 @@ func (p *Post) setComments(comments []*Post) {
 	p.Comments = comments
 }
 
-func (p *Post) getAttachmentIds() String {
+func (p *Post) getAttachmentIds() string {
 	return p.AttachmentIds
 }
 
-func (p *Post) setAttachmentIds(attachmentIds String) {
+func (p *Post) setAttachmentIds(attachmentIds string) {
 	p.AttachmentIds = attachmentIds
 }
 

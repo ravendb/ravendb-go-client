@@ -5,7 +5,7 @@ import "reflect"
 type EntityToJson struct {
 	_session           *InMemoryDocumentSessionOperations
 	_missingDictionary map[Object]map[string]Object
-	//private final Map<Object, Map<String, Object>> _missingDictionary = new TreeMap<>((o1, o2) -> o1 == o2 ? 0 : 1);
+	//private final Map<Object, Map<string, Object>> _missingDictionary = new TreeMap<>((o1, o2) -> o1 == o2 ? 0 : 1);
 }
 
 // All the listeners for this session
@@ -41,7 +41,7 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 }
 
 // Converts a json object to an entity.
-func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, document ObjectNode) Object {
+func (e *EntityToJson) convertToEntity(entityType reflect.Type, id string, document ObjectNode) Object {
 	if isTypeObjectNode(entityType) {
 		return document
 	}
@@ -54,7 +54,7 @@ func (e *EntityToJson) convertToEntity(entityType reflect.Type, id String, docum
 			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
 			Object entity = defaultValue;
 
-			String documentType =_session.getConventions().getJavaClass(id, document);
+			string documentType =_session.getConventions().getJavaClass(id, document);
 			if (documentType != null) {
 				Class type = Class.forName(documentType);
 				if (entityType.isAssignableFrom(type)) {

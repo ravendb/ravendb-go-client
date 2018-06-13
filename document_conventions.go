@@ -106,7 +106,7 @@ func (c *DocumentConventions) updateFrom(configuration *ClientConfiguration) {
 	c._readBalanceBehavior = firstNonEmptyString(configuration.getReadBalanceBehavior(), c._originalConfiguration.getReadBalanceBehavior())
 }
 
-func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName String) String {
+func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName string) string {
 	upperCount := 0
 	for _, c := range collectionName {
 		if unicode.IsUpper(c) {
@@ -147,7 +147,7 @@ func (c *DocumentConventions) setDocumentIdGenerator(documentIdGenerator Documen
 }
 
 // Generates the document id.
-func (c *DocumentConventions) generateDocumentId(databaseName String, entity Object) String {
+func (c *DocumentConventions) generateDocumentId(databaseName string, entity Object) string {
 	return c._documentIdGenerator(databaseName, entity)
 }
 

@@ -1,31 +1,31 @@
 package ravendb
 
 type Person struct {
-	ID        String
-	Name      String
-	AddressId String
+	ID        string
+	Name      string
+	AddressId string
 }
 
-func (p *Person) getId() String {
+func (p *Person) getId() string {
 	return p.ID
 }
 
-func (p *Person) setId(id String) {
+func (p *Person) setId(id string) {
 	p.ID = id
 }
 
-func (p *Person) getName() String {
+func (p *Person) getName() string {
 	return p.Name
 }
 
-func (p *Person) setName(name String) {
+func (p *Person) setName(name string) {
 	p.Name = name
 }
 
-func (p *Person) getAddressId() String {
+func (p *Person) getAddressId() string {
 	return p.AddressId
 }
 
-func (p *Person) setAddressId(addressId String) {
+func (p *Person) setAddressId(addressId string) {
 	p.AddressId = addressId
 }

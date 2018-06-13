@@ -1,44 +1,44 @@
 package ravendb
 
 type Contact struct {
-	ID        String
-	FirstName String
-	Surname   String
-	Email     String
+	ID        string
+	FirstName string
+	Surname   string
+	Email     string
 }
 
 func NewContact() *Contact {
 	return &Contact{}
 }
 
-func (c *Contact) getId() String {
+func (c *Contact) getId() string {
 	return c.ID
 }
 
-func (c *Contact) setId(id String) {
+func (c *Contact) setId(id string) {
 	c.ID = id
 }
 
-func (c *Contact) getFirstName() String {
+func (c *Contact) getFirstName() string {
 	return c.FirstName
 }
 
-func (c *Contact) setFirstName(firstName String) {
+func (c *Contact) setFirstName(firstName string) {
 	c.FirstName = firstName
 }
 
-func (c *Contact) getSurname() String {
+func (c *Contact) getSurname() string {
 	return c.Surname
 }
 
-func (c *Contact) setSurname(surname String) {
+func (c *Contact) setSurname(surname string) {
 	c.Surname = surname
 }
 
-func (c *Contact) getEmail() String {
+func (c *Contact) getEmail() string {
 	return c.Email
 }
 
-func (c *Contact) setEmail(email String) {
+func (c *Contact) setEmail(email string) {
 	c.Email = email
 }

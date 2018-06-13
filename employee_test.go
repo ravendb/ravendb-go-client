@@ -1,35 +1,35 @@
 package ravendb
 
 type Employee struct {
-	ID        String
-	FirstName String
-	LastName  String
+	ID        string
+	FirstName string
+	LastName  string
 }
 
 func NewEmployee() *Employee {
 	return &Employee{}
 }
 
-func (e *Employee) getId() String {
+func (e *Employee) getId() string {
 	return e.ID
 }
 
-func (e *Employee) setId(id String) {
+func (e *Employee) setId(id string) {
 	e.ID = id
 }
 
-func (e *Employee) getFirstName() String {
+func (e *Employee) getFirstName() string {
 	return e.FirstName
 }
 
-func (e *Employee) setFirstName(firstName String) {
+func (e *Employee) setFirstName(firstName string) {
 	e.FirstName = firstName
 }
 
-func (e *Employee) getLastName() String {
+func (e *Employee) getLastName() string {
 	return e.LastName
 }
 
-func (e *Employee) setLastName(lastName String) {
+func (e *Employee) setLastName(lastName string) {
 	e.LastName = lastName
 }

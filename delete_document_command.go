@@ -8,11 +8,11 @@ var (
 
 type DeleteDocumentCommand struct {
 	*RavenCommandBase
-	_id           String
-	_changeVector String
+	_id           string
+	_changeVector string
 }
 
-func NewDeleteDocumentCommand(id String, changeVector String) *DeleteDocumentCommand {
+func NewDeleteDocumentCommand(id string, changeVector string) *DeleteDocumentCommand {
 	cmd := &DeleteDocumentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 

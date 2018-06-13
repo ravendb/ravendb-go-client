@@ -23,11 +23,11 @@ type Product struct {
 	ProductName string `json:"ProductName"`
 }
 
-func (p *Product) getProductName() String {
+func (p *Product) getProductName() string {
 	return p.ProductName
 }
 
-func (p *Product) setProductName(productName String) {
+func (p *Product) setProductName(productName string) {
 	p.ProductName = productName
 }
 

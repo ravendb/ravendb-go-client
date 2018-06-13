@@ -1,26 +1,26 @@
 package ravendb
 
 type OrderLine struct {
-	Product      String
-	ProductName  String
+	Product      string
+	ProductName  string
 	PricePerUnit float64
 	Quantity     int
 	Discount     float64
 }
 
-func (o *OrderLine) getProduct() String {
+func (o *OrderLine) getProduct() string {
 	return o.Product
 }
 
-func (o *OrderLine) setProduct(product String) {
+func (o *OrderLine) setProduct(product string) {
 	o.Product = product
 }
 
-func (o *OrderLine) getProductName() String {
+func (o *OrderLine) getProductName() string {
 	return o.ProductName
 }
 
-func (o *OrderLine) setProductName(productName String) {
+func (o *OrderLine) setProductName(productName string) {
 	o.ProductName = productName
 }
 

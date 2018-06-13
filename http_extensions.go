@@ -24,7 +24,7 @@ func HttpExtensions_getEtagHeader(response *http.Response) *string {
 }
 
 // TODO: add test
-func HttpExtensions_etagHeaderToChangeVector(responseHeader String) String {
+func HttpExtensions_etagHeaderToChangeVector(responseHeader string) string {
 	panicIf(responseHeader == "", "Response did't had an ETag header")
 
 	if strings.HasPrefix(responseHeader, `"`) {

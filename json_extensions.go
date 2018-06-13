@@ -41,22 +41,22 @@ public class JsonExtensions {
     public static class DotNetNamingStrategy extends PropertyNamingStrategy {
 
         @Override
-        public String nameForField(MapperConfig<?> config, AnnotatedField field, String defaultName) {
+        public string nameForField(MapperConfig<?> config, AnnotatedField field, string defaultName) {
             return StringUtils.capitalize(defaultName);
         }
 
         @Override
-        public String nameForGetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName) {
+        public string nameForGetterMethod(MapperConfig<?> config, AnnotatedMethod method, string defaultName) {
             return StringUtils.capitalize(defaultName);
         }
 
         @Override
-        public String nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName) {
+        public string nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method, string defaultName) {
             return StringUtils.capitalize(defaultName);
         }
 
         @Override
-        public String nameForConstructorParameter(MapperConfig<?> config, AnnotatedParameter ctorParam, String defaultName) {
+        public string nameForConstructorParameter(MapperConfig<?> config, AnnotatedParameter ctorParam, string defaultName) {
             return StringUtils.capitalize(defaultName);
         }
     }

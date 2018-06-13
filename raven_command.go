@@ -71,7 +71,7 @@ func (c *RavenCommandBase) canCacheAggressively() bool {
 	return c._canCacheAggressively
 }
 
-func (c *RavenCommandBase) setResponse(response String, fromCache bool) error {
+func (c *RavenCommandBase) setResponse(response string, fromCache bool) error {
 	if c.responseType == RavenCommandResponseType_EMPTY || c.responseType == RavenCommandResponseType_RAW {
 		return throwInvalidResponse()
 	}
@@ -106,12 +106,12 @@ func (c *RavenCommandBase) setFailedNodes(failedNodes map[*ServerNode]error) {
 	c.failedNodes = failedNodes
 }
 
-func (c *RavenCommandBase) urlEncode(value String) string {
+func (c *RavenCommandBase) urlEncode(value string) string {
 	return urlEncode(value)
 }
 
 // TODO: return error?
-func ensureIsNotNullOrString(value String, name String) {
+func ensureIsNotNullOrString(value string, name string) {
 	panicIf(value == "", "%s", name+" cannot be null or empty")
 }
 
@@ -125,7 +125,7 @@ func (c *RavenCommandBase) isFailedWithNode(node *ServerNode) bool {
 
 // Note: in Java this is part of RavenCommand and can be virtual
 // That's imposssible in Go, so we replace with stand-alone function
-func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url String) (ResponseDisposeHandling, error) {
+func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
 	// In Java this is overridden in HeadDocumentCommand, so hack it this way
 	if cmdHead, ok := cmd.(*HeadDocumentCommand); ok {
 		return cmdHead.processResponse(cache, response, url)
@@ -166,7 +166,7 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 	return ResponseDisposeHandling_AUTOMATIC, nil
 }
 
-func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url String, response *http.Response, responseJson String) {
+func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url string, response *http.Response, responseJson string) {
 	if !c.canCache() {
 		return
 	}
@@ -179,7 +179,7 @@ func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url String, response 
 	cache.set(url, *changeVector, responseJson)
 }
 
-func (c *RavenCommandBase) addChangeVectorIfNotNull(changeVector *String, request *http.Request) {
+func (c *RavenCommandBase) addChangeVectorIfNotNull(changeVector *string, request *http.Request) {
 	if changeVector != nil {
 		request.Header.Add("If-Match", `"`+*changeVector+`"`)
 	}

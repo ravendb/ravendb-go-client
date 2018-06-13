@@ -1,12 +1,12 @@
 package ravendb
 
 type IdTypeAndName struct {
-	id   String
+	id   string
 	typ  CommandType
-	name String
+	name string
 }
 
-func NewIdTypeAndName(id String, typ CommandType, name String) IdTypeAndName {
+func NewIdTypeAndName(id string, typ CommandType, name string) IdTypeAndName {
 	return IdTypeAndName{
 		id:   id,
 		typ:  typ,
@@ -15,11 +15,11 @@ func NewIdTypeAndName(id String, typ CommandType, name String) IdTypeAndName {
 }
 
 // TODO: remove setter and getter functions after porting most of the code
-func (t *IdTypeAndName) getId() String {
+func (t *IdTypeAndName) getId() string {
 	return t.id
 }
 
-func (t *IdTypeAndName) setId(id String) {
+func (t *IdTypeAndName) setId(id string) {
 	t.id = id
 }
 
@@ -31,10 +31,10 @@ func (t *IdTypeAndName) setType(typ CommandType) {
 	t.typ = typ
 }
 
-func (t *IdTypeAndName) getName() String {
+func (t *IdTypeAndName) getName() string {
 	return t.name
 }
 
-func (t *IdTypeAndName) setName(name String) {
+func (t *IdTypeAndName) setName(name string) {
 	t.name = name
 }
