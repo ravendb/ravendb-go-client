@@ -13,6 +13,7 @@ var (
 
 type NextHiLoCommand struct {
 	*RavenCommandBase
+
 	_tag                    String
 	_lastBatchSize          int
 	_lastRangeAt            *time.Time
@@ -26,7 +27,8 @@ func NewNextHiLoCommand(tag String, lastBatchSize int, lastRangeAt *time.Time, i
 	panicIf(tag == "", "tag cannot be empty")
 	panicIf(identityPartsSeparator == "", "identityPartsSeparator cannot be empty")
 	cmd := &NextHiLoCommand{
-		RavenCommandBase:        NewRavenCommandBase(),
+		RavenCommandBase: NewRavenCommandBase(),
+
 		_tag:                    tag,
 		_lastBatchSize:          lastBatchSize,
 		_lastRangeAt:            lastRangeAt,

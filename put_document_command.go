@@ -12,6 +12,7 @@ var (
 
 type PutDocumentCommand struct {
 	*RavenCommandBase
+
 	_id           String
 	_changeVector String
 	_document     ObjectNode
@@ -25,9 +26,10 @@ func NewPutDocumentCommand(id String, changeVector String, document ObjectNode) 
 
 	cmd := &PutDocumentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_id:              id,
-		_changeVector:    changeVector,
-		_document:        document,
+
+		_id:           id,
+		_changeVector: changeVector,
+		_document:     document,
 	}
 	return cmd
 }

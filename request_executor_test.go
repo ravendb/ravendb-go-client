@@ -138,6 +138,9 @@ func TestRequestExecutor(t *testing.T) {
 		proxy.ChangeLogFile("trace_request_executor_go.txt")
 	}
 
+	createTestDriver()
+	defer deleteTestDriver()
+
 	// matches order of Java tests
 	requestExecutorTest_canFetchDatabasesNames(t)
 	requestExecutorTest_canIssueManyRequests(t)

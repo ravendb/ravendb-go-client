@@ -11,6 +11,7 @@ var (
 
 type GetTcpInfoCommand struct {
 	*RavenCommandBase
+
 	tag           string
 	dbName        string
 	requestedNode *ServerNode
@@ -25,8 +26,9 @@ func NewGetTcpInfoCommand(tag string) *GetTcpInfoCommand {
 func NewGetTcpInfoCommandWithDatbase(tag, dbName string) *GetTcpInfoCommand {
 	cmd := &GetTcpInfoCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		tag:              tag,
-		dbName:           dbName,
+
+		tag:    tag,
+		dbName: dbName,
 	}
 	cmd.IsReadRequest = true
 	return cmd

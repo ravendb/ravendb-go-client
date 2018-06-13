@@ -202,6 +202,9 @@ func TestHiLo(t *testing.T) {
 		proxy.ChangeLogFile("trace_hilo_go.txt")
 	}
 
+	createTestDriver()
+	defer deleteTestDriver()
+
 	// matches order of java tests
 	hiloTest_capacityShouldDouble(t)
 	hiloTest_returnUnusedRangeOnClose(t)

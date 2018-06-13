@@ -34,8 +34,9 @@ type GetDocumentsCommand struct {
 func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *GetDocumentsCommand {
 	cmd := &GetDocumentsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_includes:        includes,
-		_metadataOnly:    metadataOnly,
+
+		_includes:     includes,
+		_metadataOnly: metadataOnly,
 	}
 
 	if len(ids) == 1 {

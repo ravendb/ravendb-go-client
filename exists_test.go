@@ -53,5 +53,9 @@ func TestExists(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_exists_go.txt")
 	}
+
+	createTestDriver()
+	defer deleteTestDriver()
+
 	existsTest_checkIfDocumentExists(t)
 }

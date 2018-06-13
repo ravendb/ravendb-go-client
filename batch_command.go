@@ -31,9 +31,10 @@ func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICo
 
 	cmd := &BatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_commands:        commands,
-		_options:         options,
-		_conventions:     conventions,
+
+		_commands:    commands,
+		_options:     options,
+		_conventions: conventions,
 	}
 
 	for i := 0; i < len(commands); i++ {

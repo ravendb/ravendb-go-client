@@ -495,6 +495,7 @@ func RequestExecutor_validateUrls(initialUrls []string, certificate *KeyStore) [
 func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 	re.mu.Lock()
 	defer re.mu.Unlock()
+
 	if re._updateTopologyTimer != nil {
 		return
 	}
@@ -860,6 +861,9 @@ func (re *RequestExecutor) close() {
 	}
 	re._disposed = true
 	//re.cache.close()
+
+	re.mu.Lock()
+	defer re.mu.Unlock()
 
 	if re._updateTopologyTimer != nil {
 		re._updateTopologyTimer.Stop()

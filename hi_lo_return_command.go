@@ -11,6 +11,7 @@ var (
 
 type HiLoReturnCommand struct {
 	*RavenCommandBase
+
 	_tag  String
 	_last int
 	_end  int
@@ -23,9 +24,10 @@ func NewHiLoReturnCommand(tag String, last int, end int) *HiLoReturnCommand {
 
 	cmd := &HiLoReturnCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_tag:             tag,
-		_last:            last,
-		_end:             end,
+
+		_tag:  tag,
+		_last: last,
+		_end:  end,
 	}
 	cmd.IsReadRequest = true
 	cmd.responseType = RavenCommandResponseType_EMPTY

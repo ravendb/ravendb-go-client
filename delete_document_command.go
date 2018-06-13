@@ -15,8 +15,9 @@ type DeleteDocumentCommand struct {
 func NewDeleteDocumentCommand(id String, changeVector String) *DeleteDocumentCommand {
 	cmd := &DeleteDocumentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_id:              id,
-		_changeVector:    changeVector,
+
+		_id:           id,
+		_changeVector: changeVector,
 	}
 	cmd.responseType = RavenCommandResponseType_EMPTY
 	return cmd

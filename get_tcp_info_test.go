@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func canGetTcpInfo(t *testing.T) {
+func getTcpInfoTest_canGetTcpInfo(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	command := NewGetTcpInfoCommand("test")
 	err := store.GetRequestExecutor().executeCommand(command)
@@ -29,5 +29,9 @@ func TestGetTcpInfo(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_get_tcp_info_go.txt")
 	}
-	canGetTcpInfo(t)
+
+	createTestDriver()
+	defer deleteTestDriver()
+
+	getTcpInfoTest_canGetTcpInfo(t)
 }

@@ -101,6 +101,9 @@ func TestLoad(t *testing.T) {
 		proxy.ChangeLogFile("trace_load_go.txt")
 	}
 
+	createTestDriver()
+	defer deleteTestDriver()
+
 	// matches order of Java tests
 	loadTest_loadDocumentById(t)
 	loadTest_loadNullShouldReturnNull(t)

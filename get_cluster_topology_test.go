@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func GetClusterTopology_canGetTopology(t *testing.T) {
+func getClusterTopologyTest_canGetTopology(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	command := NewGetClusterTopologyCommand()
 	err := store.GetRequestExecutor().executeCommand(command)
@@ -33,5 +33,9 @@ func TestGetClusterTopology(t *testing.T) {
 	if useProxy() {
 		proxy.ChangeLogFile("trace_get_cluster_topology_go.txt")
 	}
-	GetClusterTopology_canGetTopology(t)
+
+	createTestDriver()
+	defer deleteTestDriver()
+
+	getClusterTopologyTest_canGetTopology(t)
 }

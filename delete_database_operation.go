@@ -12,6 +12,8 @@ var (
 
 type DeleteDatabasesOperation struct {
 	parameters *DeleteDatabaseParameters
+
+	Command *DeleteDatabaseCommand
 }
 
 type DeleteDatabaseParameters struct {
@@ -45,12 +47,9 @@ func NewDeleteDatabasesOperationWithParameters(parameters *DeleteDatabaseParamet
 	}
 }
 
-func (o *DeleteDatabasesOperation) getRealCommand(conventions *DocumentConventions) *DeleteDatabaseCommand {
-	return NewDeleteDatabaseCommand(conventions, o.parameters)
-}
-
 func (o *DeleteDatabasesOperation) getCommand(conventions *DocumentConventions) RavenCommand {
-	return NewDeleteDatabaseCommand(conventions, o.parameters)
+	o.Command = NewDeleteDatabaseCommand(conventions, o.parameters)
+	return o.Command
 }
 
 var _ RavenCommand = &DeleteDatabaseCommand{}
@@ -68,6 +67,8 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 	must(err)
 
 	cmd := &DeleteDatabaseCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
 		parameters: string(d),
 	}
 	return cmd

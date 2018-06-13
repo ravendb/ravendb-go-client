@@ -31,6 +31,7 @@ var (
 
 type PutClientConfigurationCommand struct {
 	*RavenCommandBase
+
 	configuration string
 }
 

@@ -68,6 +68,9 @@ func TestDelete(t *testing.T) {
 		proxy.ChangeLogFile("trace_delete_go.txt")
 	}
 
+	createTestDriver()
+	defer deleteTestDriver()
+
 	// matches order of Java tests
 	deleteTest_deleteDocumentByEntity(t)
 	deleteTest_deleteDocumentById(t)

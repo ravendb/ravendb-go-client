@@ -33,7 +33,8 @@ type CreateDatabaseCommand struct {
 func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseCommand {
 	panicIf(databaseRecord.DatabaseName == "", "databaseRecord.DatabaseName cannot be empty")
 	cmd := &CreateDatabaseCommand{
-		RavenCommandBase:  NewRavenCommandBase(),
+		RavenCommandBase: NewRavenCommandBase(),
+
 		conventions:       conventions,
 		databaseRecord:    databaseRecord,
 		replicationFactor: replicationFactor,

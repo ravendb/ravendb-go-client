@@ -17,17 +17,18 @@ import (
 
 var (
 	gRavenTestDriver *RavenTestDriver
-)
 
-type RavenTestDriver struct {
+	// in Java those are static fields of RavenTestDriver
 	globalServer               *DocumentStore
 	globalServerProcess        *Process
 	globalSecuredServer        *DocumentStore
 	globalSecuredServerProcess *Process
+	index                      AtomicInteger
+)
 
+type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
-	index    AtomicInteger
 	disposed bool
 }
 
@@ -60,7 +61,7 @@ func (d *RavenTestDriver) getDocumentStoreWithName(dbName string) (*DocumentStor
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
 	//fmt.Printf("getDocumentStore2\n")
 
-	n := d.index.incrementAndGet()
+	n := index.incrementAndGet()
 	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := d.getGlobalServer(secured)
 	if documentStore == nil {
@@ -199,11 +200,11 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 
 	if secured {
 		panicIf(true, "NYI")
-		d.globalSecuredServer = store
+		globalSecuredServer = store
 		//TODO: KeyStore clientCert = getTestClientCertificate();
 		//TODO: store.setCertificate(clientCert);
 	} else {
-		d.globalServer = store
+		globalServer = store
 	}
 	_, err = store.Initialize()
 	return err
@@ -216,30 +217,30 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database String,
 
 func (d *RavenTestDriver) killGlobalServerProcess(secured bool) {
 	if secured {
-		if d.globalSecuredServerProcess != nil {
-			d.globalSecuredServerProcess.cmd.Process.Kill()
-			d.globalSecuredServerProcess = nil
+		if globalSecuredServerProcess != nil {
+			globalSecuredServerProcess.cmd.Process.Kill()
+			globalSecuredServerProcess = nil
 		}
 	} else {
-		if d.globalServerProcess != nil {
-			d.globalServerProcess.cmd.Process.Kill()
-			d.globalServerProcess = nil
+		if globalServerProcess != nil {
+			globalServerProcess.cmd.Process.Kill()
+			globalServerProcess = nil
 		}
 	}
 }
 
 func (d *RavenTestDriver) getGlobalServer(secured bool) *DocumentStore {
 	if secured {
-		return d.globalSecuredServer
+		return globalSecuredServer
 	}
-	return d.globalServer
+	return globalServer
 }
 
 func (d *RavenTestDriver) setGlobalServerProcess(secured bool, p *Process) {
 	if secured {
-		d.globalSecuredServerProcess = p
+		globalSecuredServerProcess = p
 	} else {
-		d.globalServerProcess = p
+		globalServerProcess = p
 	}
 }
 
@@ -308,6 +309,22 @@ func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
 	return session
 }
 
+// In Java, RavenTestDriver is created/destroyed for each test
+// In Go we have to do it manually
+
+func createTestDriver() {
+	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
+	gRavenTestDriver = NewRavenTestDriver()
+}
+
+func deleteTestDriver() {
+	if gRavenTestDriver == nil {
+		return
+	}
+	gRavenTestDriver.close()
+	gRavenTestDriver = nil
+}
+
 func TestMain(m *testing.M) {
 	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
 	if noDb == "" {
@@ -334,16 +351,19 @@ func TestMain(m *testing.M) {
 	if useProxy() {
 		go proxy.Run("")
 	}
-	gRavenTestDriver = NewRavenTestDriver()
 
-	code := m.Run()
+	var code int
 
-	// TODO: run this even when exception happens
-	shutdownTests()
+	// make sure it's called even if panic happens
+	defer func() {
+		shutdownTests()
 
-	if useProxy() {
-		proxy.CloseLogFile()
-		fmt.Printf("Closed proxy log file\n")
-	}
-	os.Exit(code)
+		if useProxy() {
+			proxy.CloseLogFile()
+			fmt.Printf("Closed proxy log file\n")
+		}
+		os.Exit(code)
+	}()
+
+	code = m.Run()
 }

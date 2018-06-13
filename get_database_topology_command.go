@@ -12,6 +12,7 @@ var (
 
 type GetDatabaseTopologyCommand struct {
 	*RavenCommandBase
+
 	Result *Topology
 }
 

@@ -10,6 +10,7 @@ var (
 
 type HeadDocumentCommand struct {
 	*RavenCommandBase
+
 	_id           string
 	_changeVector *string
 
@@ -20,8 +21,9 @@ func NewHeadDocumentCommand(id string, changeVector *string) *HeadDocumentComman
 	panicIf(id == "", "id cannot be empty")
 	cmd := &HeadDocumentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_id:              id,
-		_changeVector:    changeVector,
+
+		_id:           id,
+		_changeVector: changeVector,
 	}
 
 	return cmd

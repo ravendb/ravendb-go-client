@@ -50,6 +50,9 @@ func TestClientConfiguration(t *testing.T) {
 		proxy.ChangeLogFile("trace_client_configuration_go.txt")
 	}
 
+	createTestDriver()
+	defer deleteTestDriver()
+
 	// matches order of Java tests
 	clientConfiguration_canHandleNoConfiguration(t)
 	clientConfiguration_canSaveAndReadClientConfiguration(t)

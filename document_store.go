@@ -179,18 +179,23 @@ func (s *DocumentStore) Close() {
 	for _, fn := range s.beforeClose {
 		fn(s)
 	}
+	s.beforeClose = nil
+
+	// TODO: evict _aggressiveCacheChanges
+
+	// TODO: close _databaseChanges
 
 	if s._multiDbHiLo != nil {
 		s._multiDbHiLo.ReturnUnusedRange()
 	}
-
-	// TODO: more
 
 	s.disposed = true
 
 	for _, fn := range s.afterClose {
 		fn(s)
 	}
+	s.afterClose = nil
+
 	for _, re := range s.requestsExecutors {
 		re.close()
 	}
