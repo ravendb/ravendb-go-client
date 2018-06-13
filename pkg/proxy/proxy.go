@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/elazarl/goproxy"
 	"github.com/elazarl/goproxy/transport"
@@ -30,8 +31,18 @@ var (
 	tr               = transport.Transport{Proxy: transport.ProxyFromEnvironment}
 	proxyLogFileName string
 	proxyLogFile     *os.File
+	sessionID        int32
 	muLog            sync.Mutex
 )
+
+func getNextSessionID() int {
+	v := atomic.AddInt32(&sessionID, 1)
+	return int(v)
+}
+
+func clearSessionID() {
+	atomic.StoreInt32(&sessionID, 0)
+}
 
 func must(err error) {
 	if err != nil {
@@ -65,6 +76,7 @@ func openLogFile(logFile string) {
 	proxyLogFile = f
 	proxyLogFileName = logFile
 	fmt.Printf("Logging to %s\n", logPath)
+	clearSessionID()
 }
 
 func closeLogFile() {
@@ -317,7 +329,7 @@ func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
 	respBody = prettyPrintMaybeJSON(respBody)
 
 	var buf bytes.Buffer
-	s := fmt.Sprintf("=========== %d:\n", ctx.Session)
+	s := fmt.Sprintf("=========== %d:\n", getNextSessionID())
 	buf.WriteString(s)
 	d := dumpRequest(ctx.Req)
 	buf.Write(d)
