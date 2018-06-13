@@ -261,6 +261,54 @@ func getRequestSummary(req *http.Request) string {
 		reqURI, req.ProtoMajor, req.ProtoMinor)
 }
 
+var reqWriteExcludeHeaderDump = map[string]bool{
+	"Host":              true, // not in Header map anyway
+	"Transfer-Encoding": true,
+	"Trailer":           true,
+}
+
+// a copy of httputil.DumpRequest that doesn't touch req.Body, which is racy sometimes with
+// system code
+func dumpRequest(req *http.Request) []byte {
+	var b bytes.Buffer
+
+	// By default, print out the unmodified req.RequestURI, which
+	// is always set for incoming server requests. But because we
+	// previously used req.URL.RequestURI and the docs weren't
+	// always so clear about when to use DumpRequest vs
+	// DumpRequestOut, fall back to the old way if the caller
+	// provides a non-server Request.
+	reqURI := req.RequestURI
+	if reqURI == "" {
+		reqURI = req.URL.RequestURI()
+	}
+
+	fmt.Fprintf(&b, "%s %s HTTP/%d.%d\r\n", valueOrDefault(req.Method, "GET"),
+		reqURI, req.ProtoMajor, req.ProtoMinor)
+
+	absRequestURI := strings.HasPrefix(req.RequestURI, "http://") || strings.HasPrefix(req.RequestURI, "https://")
+	if !absRequestURI {
+		host := req.Host
+		if host == "" && req.URL != nil {
+			host = req.URL.Host
+		}
+		if host != "" {
+			fmt.Fprintf(&b, "Host: %s\r\n", host)
+		}
+	}
+
+	if len(req.TransferEncoding) > 0 {
+		fmt.Fprintf(&b, "Transfer-Encoding: %s\r\n", strings.Join(req.TransferEncoding, ","))
+	}
+	if req.Close {
+		fmt.Fprintf(&b, "Connection: close\r\n")
+	}
+
+	req.Header.WriteSubset(&b, reqWriteExcludeHeaderDump)
+	io.WriteString(&b, "\r\n")
+	return b.Bytes()
+}
+
 func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
 	reqSummary := getRequestSummary(ctx.Req)
 	lgShort(reqSummary)
@@ -271,16 +319,14 @@ func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
 	var buf bytes.Buffer
 	s := fmt.Sprintf("=========== %d:\n", ctx.Session)
 	buf.WriteString(s)
-	d, err := httputil.DumpRequest(ctx.Req, false)
-	if err == nil {
-		buf.Write(d)
-	}
+	d := dumpRequest(ctx.Req)
+	buf.Write(d)
 	buf.Write(reqBody)
 
 	s = "\n--------\n"
 	buf.WriteString(s)
 	if ctx.Resp != nil {
-		d, err = httputil.DumpResponse(ctx.Resp, false)
+		d, err := httputil.DumpResponse(ctx.Resp, false)
 		if err == nil {
 			buf.Write(d)
 		}
