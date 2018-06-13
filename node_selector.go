@@ -54,7 +54,7 @@ func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
 	serverNodes := state.nodes
 	n := min(len(serverNodes), len(stateFailures))
 	for i := 0; i < n; i++ {
-		if stateFailures[i].get() == 0 && StringUtils_isNotEmpty(serverNodes[i].getUrl()) {
+		if stateFailures[i].get() == 0 && serverNodes[i].getUrl() != "" {
 			return NewCurrentIndexAndNode(i, serverNodes[i]), nil
 		}
 	}

@@ -1,11 +1,9 @@
 package ravendb
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 )
 
 // TODO: remove it, it only exists to make initial porting faster
@@ -62,27 +60,6 @@ func isValidDbNameChar(c rune) bool {
 	return false
 }
 
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/tools/utils.py#L47
-// returns nil if db name is ok
-func isDatabaseNameValid(dbName string) error {
-	if dbName == "" {
-		return errors.New("database name cannot be empty")
-	}
-	for _, c := range dbName {
-		if !isValidDbNameChar(c) {
-			return fmt.Errorf(`Database name can only contain only A-Z, a-z, _, . or - but was: %s`, dbName)
-		}
-	}
-	return nil
-}
-
-/*
-def quote_key(key, reserved_slash=False):
-	reserved = '%:=&?~#+!$,;\'*[]'
-	if reserved_slash:
-		reserved += '/'
-	return urllib.parse.quote(key, safe=reserved)
-*/
 // TODO: implement me exactly
 func quoteKey2(s string, reservedSlash bool) string {
 	// https://golang.org/src/net/url/url.go?s=7512:7544#L265
@@ -91,35 +68,6 @@ func quoteKey2(s string, reservedSlash bool) string {
 
 func quoteKey(s string) string {
 	return quoteKey2(s, false)
-}
-
-func quoteKeyWithSlash(s string) string {
-	return quoteKey2(s, true)
-}
-
-func StringUtils_isNotEmpty(s string) bool {
-	return s != ""
-}
-
-// delete "id" key from JSON object
-// TODO: maybe should only
-func deleteID(m map[string]interface{}) {
-	for k := range m {
-		if len(k) == 2 && strings.EqualFold(k, "id") {
-			delete(m, k)
-			return
-		}
-	}
-}
-
-func defaultTransformPlural(name string) string {
-	return pluralize(name)
-}
-
-//https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/data/document_conventions.py#L45
-func defaultTransformTypeTagName(name string) string {
-	name = strings.ToLower(name)
-	return defaultTransformPlural(name)
 }
 
 func min(i1, i2 int) int {

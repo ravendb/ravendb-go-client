@@ -7,8 +7,6 @@ import (
 )
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client/-/blob/pyravendb/store/document_session.py#L18
 type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 

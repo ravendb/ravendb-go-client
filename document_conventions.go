@@ -10,8 +10,6 @@ import (
 type DocumentIDGeneratorFunc func(dbName string, entity Object) string
 
 // DocumentConventions describes document conventions
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/data/document_conventions.py#L9
-// https://sourcegraph.com/github.com/ravendb/ravendb-jvm-client@v4.0/-/blob/src/main/java/net/ravendb/client/documents/conventions/DocumentConventions.java#L31
 type DocumentConventions struct {
 	_frozen                bool
 	_originalConfiguration *ClientConfiguration

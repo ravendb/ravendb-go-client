@@ -128,7 +128,6 @@ func getGlobalHTTPClient() *http.Client {
 }
 
 // NewRequestExecutor creates a new executor
-// https://sourcegraph.com/github.com/ravendb/RavenDB-Python-Client@v4.0/-/blob/pyravendb/connection/requests_executor.py#L21
 // TODO: certificate
 func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	if conventions == nil {
