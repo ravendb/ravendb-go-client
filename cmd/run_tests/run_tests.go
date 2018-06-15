@@ -52,7 +52,8 @@ func runJava() {
 	//runSingleJavaTest("TrackEntityTest", "trace_track_entity_java.txt")
 	//runSingleJavaTest("PutDocumentCommandTest", "trace_put_document_command_java.txt")
 	//runSingleJavaTest("GetStatisticsCommandTest", "trace_get_statistics_java.txt")
-	runSingleJavaTest("DeleteDocumentCommandTest", "trace_delete_document_command_java.txt")
+	//runSingleJavaTest("DeleteDocumentCommandTest", "trace_delete_document_command_java.txt")
+	runSingleJavaTest("GetNextOperationIdCommandTest", "trace_get_next_operation_id_java.txt")
 }
 
 func main() {
