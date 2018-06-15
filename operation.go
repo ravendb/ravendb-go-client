@@ -1,12 +1,17 @@
 package ravendb
 
-import "time"
+import (
+	"time"
+)
 
 type Operation struct {
 	_requestExecutor *RequestExecutor
 	//TBD private readonly Func<IDatabaseChanges> _changes;
 	_conventions *DocumentConventions
 	_id          int
+
+	// if true, this represents ServerWideOperation
+	IsServerWide bool
 }
 
 func (o *Operation) getId() int {
@@ -28,10 +33,21 @@ func (o *Operation) fetchOperationsStatus() (ObjectNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	return command.Result, nil
+
+	switch cmd := command.(type) {
+	case *GetOperationStateCommand:
+		return cmd.Result, nil
+	case *GetServerWideOperationStateCommand:
+		return cmd.Result, nil
+	}
+	panicIf(true, "Unexpected command type %T", command)
+	return nil, nil
 }
 
-func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int) *GetOperationStateCommand {
+func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int) RavenCommand {
+	if o.IsServerWide {
+		return NewGetServerWideOperationStateCommand(o._conventions, id)
+	}
 	return NewGetOperationStateCommand(o._conventions, o._id)
 }
 
@@ -49,14 +65,16 @@ func (o *Operation) waitForCompletion() error {
 		case "Cancelled":
 			return NewOperationCancelledException("")
 		case "Faulted":
-			panicIf(true, "NYI")
-			/*
-				result := status["Result"]
-
-				OperationExceptionResult exceptionResult = JsonExtensions.getDefaultMapper().convertValue(result, OperationExceptionResult.class);
-
-				throw ExceptionDispatcher.get(exceptionResult.getMessage(), exceptionResult.getError(), exceptionResult.getType(), exceptionResult.getStatusCode());
-			*/
+			result, ok := status["Result"].(ObjectNode)
+			if !ok {
+				return NewRavenException("status has no 'Result' object. Status: #%v", status)
+			}
+			var exceptionResult OperationExceptionResult
+			err = structFromJSONMap(result, &exceptionResult)
+			if err != nil {
+				return err
+			}
+			return ExceptionDispatcher_get2(exceptionResult.Message, exceptionResult.Error, exceptionResult.Type, exceptionResult.StatusCode)
 		}
 
 		time.Sleep(500 * time.Millisecond)

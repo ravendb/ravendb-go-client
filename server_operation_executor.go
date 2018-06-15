@@ -16,11 +16,31 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 		// TODO: ClusterRequestExecutor_create()
 		res.requestExecutor = RequestExecutor_create(urls, dbName, nil, conv)
 	}
+	fn := func(store *DocumentStore) {
+		res.requestExecutor.close()
+	}
+	store.addAfterCloseListener(fn)
 	return res
 }
 
-// TODO: make argument an IServerOperation
-func (e *ServerOperationExecutor) send(command RavenCommand) error {
+func (e *ServerOperationExecutor) send(operation IServerOperation) error {
+	command := operation.getCommand(e.requestExecutor.getConventions())
 	err := e.requestExecutor.executeCommand(command)
 	return err
+}
+
+func (e *ServerOperationExecutor) sendAsync(operation IServerOperation) (*Operation, error) {
+	requestExecutor := e.requestExecutor
+	command := operation.getCommand(requestExecutor.getConventions())
+	err := requestExecutor.executeCommand(command)
+	if err != nil {
+		return nil, err
+	}
+	result := getCommandOperationIdResult(command)
+	return NewServerWideOperation(requestExecutor, requestExecutor.getConventions(), result.getOperationId()), nil
+}
+
+func (e *ServerOperationExecutor) close() {
+	e.requestExecutor.close()
+	e.requestExecutor = nil
 }

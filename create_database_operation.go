@@ -6,13 +6,24 @@ import (
 	"strconv"
 )
 
-func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *CreateDatabaseCommand {
+type CreateDatabaseOperation struct {
+	databaseRecord    *DatabaseRecord
+	replicationFactor int
+}
+
+func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *CreateDatabaseOperation {
 	return NewCreateDatabaseOperationWithReplicationFactor(databaseRecord, 1)
 }
 
-func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseCommand {
-	// TODO: convention is passed at getCommand() time
-	return NewCreateDatabaseCommand(nil, databaseRecord, replicationFactor)
+func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseOperation {
+	return &CreateDatabaseOperation{
+		databaseRecord:    databaseRecord,
+		replicationFactor: replicationFactor,
+	}
+}
+
+func (o *CreateDatabaseOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+	return NewCreateDatabaseCommand(conventions, o.databaseRecord, o.replicationFactor)
 }
 
 var (

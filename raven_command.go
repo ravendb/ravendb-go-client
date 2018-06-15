@@ -27,6 +27,7 @@ type RavenCommandBase struct {
 	_canCache             bool
 	_canCacheAggressively bool
 
+	// if true, can be cached
 	IsReadRequest bool
 
 	failedNodes map[*ServerNode]error
@@ -188,4 +189,19 @@ func (c *RavenCommandBase) addChangeVectorIfNotNull(changeVector *string, reques
 func (c *RavenCommandBase) onResponseFailure(response *http.Response) {
 	// TODO: it looks like it's meant to be virtual but there are no
 	// over-rides in Java code
+}
+
+// Note: hackish solution due to lack of generics
+// For commands whose result is OperationIdResult, return it
+// When new command returning OperationIdResult are added, we must extend it
+func getCommandOperationIdResult(cmd RavenCommand) *OperationIdResult {
+	switch c := cmd.(type) {
+	case *CompactDatabaseCommand:
+		return c.Result
+	}
+	// TODO:
+	//case *PatchByQueryCommand:
+	//case *DeleteByIndexCommand:
+	panicIf(true, "called on a command that doesn't return OperationIdResult")
+	return nil
 }

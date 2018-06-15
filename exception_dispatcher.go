@@ -8,14 +8,20 @@ import (
 )
 
 func ExceptionDispatcher_get(schema *ExceptionSchema, code int) error {
-	// TODO: Java is more complicated
 	return ExceptionDispatcher_get2(schema.getMessage(), schema.getError(), schema.getType(), code)
 }
 
 func ExceptionDispatcher_get2(message string, err string, typeAsString string, code int) error {
-	//fmt.Printf("ExceptionDispatcher_get2: message='%s', err='%s', typeAsString='%s', code=%d\n", message, err, typeAsString, code)
-	// TODO: Java is more complicated
-	return NewRavenException("ExceptionDispatcher_get: http response exception")
+	if code == http.StatusConflict {
+		if strings.Contains(typeAsString, "DocumentConflictException") {
+			return NewDocumentConflictExceptionFromMessage(message)
+		}
+		return NewConcurrencyException(message)
+	}
+	// fmt.Printf("ExceptionDispatcher_get2: message='%s', err='%s', typeAsString='%s', code=%d\n", message, err, typeAsString, code)
+	// TODO: Java is more complicated, throws exception based on type returned by server.
+	// Not sure we can do it in Go
+	return NewRavenException("%s", err)
 }
 
 func ExceptionDispatcher_throwException(response *http.Response) error {
@@ -39,9 +45,9 @@ func ExceptionDispatcher_throwException(response *http.Response) error {
 		}
 	}
 
-	// TODO: Java is more complicated
 	//fmt.Printf("ExceptionDispatcher_throwException. schema: %#v\n", schema)
-	//panicIf(true, "More stuff to implement")
+	// TODO: Java is more complicated, throws exception based on type returned by server.
+	// Not sure we can do it in Go
 	return NewRavenException("ExceptionDispatcher_get: http response exception")
 }
 

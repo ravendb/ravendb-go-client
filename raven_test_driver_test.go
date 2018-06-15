@@ -107,8 +107,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 		}
 
 		operation := NewDeleteDatabasesOperation(store.getDatabase(), true)
-		command := operation.getCommand(store.getConventions())
-		store.maintenance().server().send(command)
+		store.maintenance().server().send(operation)
 	}
 
 	store.addAfterCloseListener(fn)

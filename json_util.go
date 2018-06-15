@@ -61,6 +61,16 @@ func structToJSONMap(v interface{}) map[string]interface{} {
 	return res
 }
 
+// given a json in the form of map[string]interface{}, de-serialize it to a struct
+// TODO: could be faster
+func structFromJSONMap(js ObjectNode, v interface{}) error {
+	d, err := json.Marshal(js)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(d, v)
+}
+
 // matches a Java naming from EnityMapper
 func valueToTree(v interface{}) ObjectNode {
 	return structToJSONMap(v)
