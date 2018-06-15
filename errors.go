@@ -2,185 +2,139 @@ package ravendb
 
 import "fmt"
 
-type RavenException struct {
+type ExceptionBase struct {
 	ErrorStr string
+}
+
+// Error makes it conform to error interface
+func (e *ExceptionBase) Error() string {
+	return e.ErrorStr
+}
+
+type RavenException struct {
+	ExceptionBase
 }
 
 func NewRavenException(format string, args ...interface{}) *RavenException {
-	return &RavenException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *RavenException) Error() string {
-	return e.ErrorStr
+	res := &RavenException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 type UnsupportedOperationException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 func NewUnsupportedOperationException(format string, args ...interface{}) *UnsupportedOperationException {
-	return &UnsupportedOperationException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *UnsupportedOperationException) Error() string {
-	return e.ErrorStr
+	res := &UnsupportedOperationException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // IllegalStateException corresponds to Java's IllegalStateException
 type IllegalStateException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewIllegalStateException creates a new IllegalStateError
 func NewIllegalStateException(format string, args ...interface{}) *IllegalStateException {
-	return &IllegalStateException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *IllegalStateException) Error() string {
-	return e.ErrorStr
+	res := &IllegalStateException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // IllegalArgumentException corresponds to Java's IllegalArgumentException
 type IllegalArgumentException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewIllegalArgumentException creates new IllegalArgumentError
 func NewIllegalArgumentException(format string, args ...interface{}) *IllegalArgumentException {
-	return &IllegalArgumentException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *IllegalArgumentException) Error() string {
-	return e.ErrorStr
+	res := &IllegalArgumentException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // NotImplementedException corresponds to Java's NotImplementedException
 type NotImplementedException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewNotImplementedException creates new NotImplementedError
 func NewNotImplementedException(format string, args ...interface{}) *NotImplementedException {
-	return &NotImplementedException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *NotImplementedException) Error() string {
-	return e.ErrorStr
+	res := &NotImplementedException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // NonUniqueObjectException corresponds to Java's NonUniqueObjectException
 type NonUniqueObjectException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewNonUniqueObjectException creates new NonUniqueObjectError
 func NewNonUniqueObjectException(format string, args ...interface{}) *NonUniqueObjectException {
-	return &NonUniqueObjectException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *NonUniqueObjectException) Error() string {
-	return e.ErrorStr
+	res := &NonUniqueObjectException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // DatabaseDoesNotExistException corresponds to Java's DatabaseDoesNotExistException
 type DatabaseDoesNotExistException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewDatabaseDoesNotExistException creates new NonUniqueObjectError
 func NewDatabaseDoesNotExistException(format string, args ...interface{}) *DatabaseDoesNotExistException {
-	return &DatabaseDoesNotExistException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *DatabaseDoesNotExistException) Error() string {
-	return e.ErrorStr
+	res := &DatabaseDoesNotExistException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // AllTopologyNodesDownException corresponds to Java's AllTopologyNodesDownException
 type AllTopologyNodesDownException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewAllTopologyNodesDownException creates new AllTopologyNodesDownException
 func NewAllTopologyNodesDownException(format string, args ...interface{}) *AllTopologyNodesDownException {
-	return &AllTopologyNodesDownException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *AllTopologyNodesDownException) Error() string {
-	return e.ErrorStr
+	res := &AllTopologyNodesDownException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // OperationCancelledException corresponds to Java's OperationCancelledException
 type OperationCancelledException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 // NewOperationCancelledException creates new OperationCancelledException
 func NewOperationCancelledException(format string, args ...interface{}) *OperationCancelledException {
-	return &OperationCancelledException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *OperationCancelledException) Error() string {
-	return e.ErrorStr
+	res := &OperationCancelledException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // AuthorizationException corresponds to Java's AuthorizationException
 type AuthorizationException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 func NewAuthorizationException(format string, args ...interface{}) *AuthorizationException {
-	return &AuthorizationException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *AuthorizationException) Error() string {
-	return e.ErrorStr
+	res := &AuthorizationException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // TimeoutException corresponds to Java's TimeoutException
 type TimeoutException struct {
-	ErrorStr string
+	ExceptionBase
 }
 
 func NewTimeoutException(format string, args ...interface{}) *TimeoutException {
-	return &TimeoutException{
-		ErrorStr: fmt.Sprintf(format, args...),
-	}
-}
-
-// Error makes it conform to error interface
-func (e *TimeoutException) Error() string {
-	return e.ErrorStr
+	res := &TimeoutException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
 }
 
 // BadRequestError maps to server's 400 Bad Request response
