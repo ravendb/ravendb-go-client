@@ -10,4 +10,5 @@ export HTTP_PROXY=http://localhost:8888
 # too many goroutines
 
 #go test -race
+
 go test

@@ -21,9 +21,9 @@ func ExceptionDispatcher_throwException(response *http.Response) error {
 }
 
 type ExceptionSchema struct {
-	Url     string `json:"Url"`
+	URL     string `json:"Url"`
 	Type    string `json:"Type"`
-	Message string `json"Message"`
+	Message string `json:"Message"`
 	Error   string `json:"Error"`
 }
 
@@ -32,11 +32,11 @@ func NewExceptionSchema() *ExceptionSchema {
 }
 
 func (e *ExceptionSchema) getUrl() string {
-	return e.Url
+	return e.URL
 }
 
 func (e *ExceptionSchema) setUrl(url string) {
-	e.Url = url
+	e.URL = url
 }
 
 func (e *ExceptionSchema) getType() string {
