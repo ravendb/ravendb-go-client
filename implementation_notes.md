@@ -112,3 +112,13 @@ I use Visual Studio Code as an editor.
 It's Go extension has a support for running individual tests (see https://www.notion.so/Debugging-tests-0f731a22d6154a7ba38a8503227b593d) so I set the desired breakpoints to step through the code and use that.
 
 Other editors also support Go but I'm not familiar with them.
+
+## Why no sub-packages?
+
+Java code is split into multiple packages/sub-directories. Why not mimic that?
+
+Go packages have restrictions: they can't have circular references.
+
+Java code has lots of mutual-references between packages so it's impossible to
+replicate its structure in Go.
+

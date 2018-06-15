@@ -6,4 +6,8 @@
 # make Go http client use proxy
 export HTTP_PROXY=http://localhost:8888
 
-go test -race
+# TODO: for now not running with -race because fails with
+# too many goroutines
+
+#go test -race
+go test

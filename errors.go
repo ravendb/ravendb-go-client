@@ -167,6 +167,22 @@ func (e *AuthorizationException) Error() string {
 	return e.ErrorStr
 }
 
+// TimeoutException corresponds to Java's TimeoutException
+type TimeoutException struct {
+	ErrorStr string
+}
+
+func NewTimeoutException(format string, args ...interface{}) *TimeoutException {
+	return &TimeoutException{
+		ErrorStr: fmt.Sprintf(format, args...),
+	}
+}
+
+// Error makes it conform to error interface
+func (e *TimeoutException) Error() string {
+	return e.ErrorStr
+}
+
 // BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {

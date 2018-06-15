@@ -228,6 +228,11 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	return session, nil
 }
 
+// TODO: for ease of porting, replace with GetRequestExecutor during code cleanup
+func (s *DocumentStore) getRequestExecutor() *RequestExecutor {
+	return s.GetRequestExecutorWithDatabase("")
+}
+
 func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {
 	return s.GetRequestExecutorWithDatabase("")
 }

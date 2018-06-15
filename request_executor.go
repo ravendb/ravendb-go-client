@@ -114,7 +114,7 @@ func getGlobalHTTPClient() *http.Client {
 	if globalHTTPClient == nil {
 		// TODO: certificate, make sure respects HTTP_PROXY etc.
 		client := &http.Client{
-			Timeout: time.Second * 5,
+			Timeout: time.Second * 15,
 		}
 		// TODO: figure out why http.DefaultTransport doesn't go via proxy
 		proxyURL := os.Getenv("HTTP_PROXY")
@@ -508,6 +508,12 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 	re._updateTopologyTimer = time.AfterFunc(time.Minute, f)
 }
 
+func isNetworkTimeoutError(err error) bool {
+	// TODO: implement me
+	// can test it by setting very low timeout in http.Client
+	return false
+}
+
 func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
 	//fmt.Printf("RequestExecutor.execute cmd: %#v\n", command)
 	request, err := re.createRequest(chosenNode, command)
@@ -541,6 +547,9 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	dumpHTTPRequestAndResponse(request, response)
 
 	if err != nil {
+		if !shouldRetry && isNetworkTimeoutError(err) {
+			return err
+		}
 		// Note: Java here re-throws if err is IOException and !shouldRetry
 		// but for us that propagates the wrong error to RequestExecutorTest_failsWhenServerIsOffline
 		urlRef := request.URL.String()

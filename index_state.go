@@ -3,8 +3,8 @@ package ravendb
 type IndexState = string
 
 const (
-	IndexState_NORMAL   = "NORMAL"
-	IndexState_DISABLED = "DISABLED"
-	IndexState_IDLE     = "IDLE"
-	IndexState_ERROR    = "ERROR"
+	IndexState_NORMAL   = "Normal"
+	IndexState_DISABLED = "Disabled"
+	IndexState_IDLE     = "Idle"
+	IndexState_ERROR    = "Error"
 )

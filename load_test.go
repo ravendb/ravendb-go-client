@@ -9,13 +9,14 @@ import (
 )
 
 func loadTest_loadCanUseCache(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err := session.StoreEntityWithID(user, "users/1")
+		err = session.StoreEntityWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -39,13 +40,14 @@ func loadTest_loadCanUseCache(t *testing.T) {
 }
 
 func loadTest_loadDocumentById(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err := session.StoreEntityWithID(user, "users/1")
+		err = session.StoreEntityWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -62,6 +64,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 }
 
 func loadTest_loadDocumentsByIds(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	{
 		session := openSessionMust(t, store)
@@ -71,7 +74,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Hibernating Rhinos")
 
-		err := session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreEntityWithID(user1, "users/1")
 		assert.NoError(t, err)
 		err = session.StoreEntityWithID(user2, "users/2")
 		assert.NoError(t, err)
@@ -88,6 +91,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 }
 
 func loadTest_loadNullShouldReturnNull(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	{
 		session := openSessionMust(t, store)
@@ -97,7 +101,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Tony Soprano")
 
-		err := session.StoreEntity(user1)
+		err = session.StoreEntity(user1)
 		assert.NoError(t, err)
 		err = session.StoreEntity(user2)
 		assert.NoError(t, err)
@@ -115,6 +119,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 }
 
 func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	{
 		session := openSessionMust(t, store)
@@ -124,7 +129,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 		user2 := NewUser()
 		user2.setName("Tony Soprano")
 
-		err := session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreEntityWithID(user1, "users/1")
 		assert.NoError(t, err)
 		err = session.StoreEntityWithID(user2, "users/2")
 		assert.NoError(t, err)
@@ -149,6 +154,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 }
 
 func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 
 	{
@@ -158,7 +164,7 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 		geek1.setFavoritePrimes([]int{13, 43, 443, 997})
 		geek1.setFavoriteVeryLargePrimes([]int64{5000000029, 5000000039})
 
-		err := session.StoreEntityWithID(geek1, "geeks/1")
+		err = session.StoreEntityWithID(geek1, "geeks/1")
 		assert.NoError(t, err)
 
 		geek2 := NewGeekPerson()
@@ -192,6 +198,7 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 }
 
 func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	var ids []string
 
@@ -204,11 +211,11 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 
 			user := NewUser()
 			user.setName("Person " + strconv.Itoa(i))
-			err := session.StoreEntityWithID(user, id)
+			err = session.StoreEntityWithID(user, id)
 			assert.NoError(t, err)
 		}
 
-		err := session.SaveChanges()
+		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
 
@@ -227,6 +234,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 }
 
 func loadTest_loadStartsWith(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 
 	{
@@ -234,7 +242,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 		createUser := func(id string) *User {
 			u := NewUser()
 			u.setId(id)
-			err := session.StoreEntity(u)
+			err = session.StoreEntity(u)
 			assert.NoError(t, err)
 			return u
 		}
@@ -245,7 +253,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 		createUser("Ala")
 		createUser("Baa")
 
-		err := session.SaveChanges()
+		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
 

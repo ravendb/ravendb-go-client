@@ -2,21 +2,21 @@ package ravendb
 
 // Size describes size of entity on disk
 type Size struct {
-	SizeInBytes int64  `json:"SizeInBytes"`
+	SizeInBytes int    `json:"SizeInBytes"`
 	HumaneSize  string `json:"HumaneSize"`
 }
 
-/*
-public long getSizeInBytes() {
-	return sizeInBytes;
+func (s *Size) getSizeInBytes() int {
+	return s.SizeInBytes
 }
 
+func (s *Size) getHumaneSize() string {
+	return s.HumaneSize
+}
+
+/*
 public void setSizeInBytes(long sizeInBytes) {
 	this.sizeInBytes = sizeInBytes;
-}
-
-public string getHumaneSize() {
-	return humaneSize;
 }
 
 public void setHumaneSize(string humaneSize) {

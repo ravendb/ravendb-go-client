@@ -3,7 +3,7 @@ package ravendb
 type IndexLockMode = string
 
 const (
-	IndexLockMode_UNLOCK        = "UNLOCK"
-	IndexLockMode_LOCKED_IGNORE = "LOCKED_IGNORE"
-	IndexLockMode_LOCKED_ERROR  = "LOCKED_ERROR"
+	IndexLockMode_UNLOCK        = "Unlock"
+	IndexLockMode_LOCKED_IGNORE = "LockedIgnore"
+	IndexLockMode_LOCKED_ERROR  = "LockedError"
 )

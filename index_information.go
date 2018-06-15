@@ -9,60 +9,59 @@ type IndexInformation struct {
 	LockMode         IndexLockMode `json:"LockMode"`
 	Priority         IndexPriority `json:"Priority"`
 	Type             IndexType     `json:"Type"`
-	LastIndexingTime time.Time     `json:"LastIndexingTime"` // TODO: custom marshaller
+	LastIndexingTime ServerTime    `json:"LastIndexingTime"`
+}
+
+func (i *IndexInformation) getName() string {
+	return i.Name
+}
+
+func (i *IndexInformation) isStale() bool {
+	return i.Stale
+}
+
+func (i *IndexInformation) getState() IndexState {
+	return i.State
+}
+
+func (i *IndexInformation) getLockMode() IndexLockMode {
+	return i.LockMode
+}
+func (i *IndexInformation) getPriority() IndexPriority {
+	return i.Priority
+}
+
+func (i *IndexInformation) getType() IndexType {
+	return i.Type
+}
+
+func (i *IndexInformation) getLastIndexingTime() time.Time {
+	return time.Time(i.LastIndexingTime)
 }
 
 /*
-    public string getName() {
-        return name;
-    }
-
     public void setName(string name) {
         this.name = name;
-    }
-
-    public boolean isStale() {
-        return stale;
     }
 
     public void setStale(boolean stale) {
         this.stale = stale;
     }
 
-    public IndexState getState() {
-        return state;
-    }
-
     public void setState(IndexState state) {
         this.state = state;
-    }
-
-    public IndexLockMode getLockMode() {
-        return lockMode;
     }
 
     public void setLockMode(IndexLockMode lockMode) {
         this.lockMode = lockMode;
     }
 
-    public IndexPriority getPriority() {
-        return priority;
-    }
-
     public void setPriority(IndexPriority priority) {
         this.priority = priority;
     }
 
-    public IndexType getType() {
-        return type;
-    }
-
     public void setType(IndexType type) {
         this.type = type;
-    }
-
-    public Date getLastIndexingTime() {
-        return lastIndexingTime;
     }
 
     public void setLastIndexingTime(Date lastIndexingTime) {

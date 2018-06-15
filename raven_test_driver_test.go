@@ -210,9 +210,60 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	return err
 }
 
-func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string, timeout time.Duration) {
-	// TODO: implement me
-	panicIf(true, "NYI")
+func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string, timeout time.Duration) error {
+	admin := store.maintenance().forDatabase(database)
+	if timeout == 0 {
+		timeout = time.Minute
+	}
+
+	sp := time.Now()
+	for time.Since(sp) < timeout {
+		op := NewGetStatisticsOperation()
+		err := admin.send(op)
+		if err != nil {
+			return err
+		}
+		databaseStatistics := op.Command.Result
+		isDone := true
+		hasError := false
+		for _, index := range databaseStatistics.Indexes {
+			if index.getState() == IndexState_DISABLED {
+				continue
+			}
+			if index.isStale() || strings.HasPrefix(index.getName(), Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX) {
+				isDone = false
+			}
+			if index.getState() == IndexState_ERROR {
+				hasError = true
+			}
+		}
+		if isDone {
+			return nil
+		}
+		if hasError {
+			break
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
+
+	op := NewGetIndexErrorsOperation(nil)
+	err := admin.send(op)
+	if err != nil {
+		return err
+	}
+	allIndexErrorsText := ""
+	/*
+		// TODO: port this
+		Function<IndexErrors, String> formatIndexErrors = indexErrors -> {
+				String errorsListText = Arrays.stream(indexErrors.getErrors()).map(x -> "-" + x).collect(Collectors.joining(System.lineSeparator()));
+				return "Index " + indexErrors.getName() + " (" + indexErrors.getErrors().length + " errors): "+ System.lineSeparator() + errorsListText;
+			};
+
+			if (errors != null && errors.length > 0) {
+				allIndexErrorsText = Arrays.stream(errors).map(x -> formatIndexErrors.apply(x)).collect(Collectors.joining(System.lineSeparator()));
+			}
+	*/
+	return NewTimeoutException("The indexes stayed stale for more than %s.%s", timeout, allIndexErrorsText)
 }
 
 func (d *RavenTestDriver) killGlobalServerProcess(secured bool) {
