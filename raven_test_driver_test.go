@@ -267,14 +267,21 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 }
 
 func (d *RavenTestDriver) killGlobalServerProcess(secured bool) {
+	var err error
 	if secured {
 		if globalSecuredServerProcess != nil {
-			globalSecuredServerProcess.cmd.Process.Kill()
+			err = globalSecuredServerProcess.cmd.Process.Kill()
+			if err != nil {
+				fmt.Printf(" -- globalSecuredServerProcess.cmd.Process.Kill() failed with '%s'\n", err)
+			}
 			globalSecuredServerProcess = nil
 		}
 	} else {
 		if globalServerProcess != nil {
 			globalServerProcess.cmd.Process.Kill()
+			if err != nil {
+				fmt.Printf(" -- globalServerProcess.cmd.Process.Kill() failed with '%s'\n", err)
+			}
 			globalServerProcess = nil
 		}
 	}

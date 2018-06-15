@@ -152,18 +152,18 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 	return metadata, nil
 }
 
-// GetChangeVectorFor returns metadata for a given instance
+// getChangeVectorFor returns metadata for a given instance
 // empty string means there is not change vector
-func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (string, error) {
+func (s *InMemoryDocumentSessionOperations) getChangeVectorFor(instance interface{}) (*string, error) {
 	if instance == nil {
-		return "", NewIllegalArgumentException("Instance cannot be null")
+		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	changeVector := jsonGetAsText(documentInfo.getMetadata(), Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(documentInfo.getMetadata(), Constants_Documents_Metadata_CHANGE_VECTOR)
 	return changeVector, nil
 }
 

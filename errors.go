@@ -21,6 +21,31 @@ func NewRavenException(format string, args ...interface{}) *RavenException {
 	return res
 }
 
+type ConflictException struct {
+	RavenException
+}
+
+func NewConflictException(format string, args ...interface{}) *ConflictException {
+	res := &ConflictException{}
+	res.RavenException = *NewRavenException(format, args)
+	return res
+}
+
+type ConcurrencyException struct {
+	RavenException
+
+	ExpectedETag         int
+	ActualETag           int
+	ExpectedChangeVector string
+	ActualChangeVector   string
+}
+
+func NewConcurrencyException(format string, args ...interface{}) *ConcurrencyException {
+	res := &ConcurrencyException{}
+	res.RavenException = *NewRavenException(format, args)
+	return res
+}
+
 type UnsupportedOperationException struct {
 	ExceptionBase
 }
@@ -133,6 +158,17 @@ type TimeoutException struct {
 
 func NewTimeoutException(format string, args ...interface{}) *TimeoutException {
 	res := &TimeoutException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
+}
+
+// BadResponseException corresponds to Java's BadResponseException
+type BadResponseException struct {
+	ExceptionBase
+}
+
+func NewBadResponseException(format string, args ...interface{}) *BadResponseException {
+	res := &BadResponseException{}
 	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }

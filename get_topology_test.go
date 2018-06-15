@@ -8,9 +8,10 @@ import (
 )
 
 func getTopologyTest_canGetTopology(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	command := NewGetDatabaseTopologyCommand()
-	err := store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)
