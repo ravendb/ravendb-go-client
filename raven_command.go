@@ -111,9 +111,11 @@ func (c *RavenCommandBase) urlEncode(value string) string {
 	return urlEncode(value)
 }
 
-// TODO: return error?
-func ensureIsNotNullOrString(value string, name string) {
-	panicIf(value == "", "%s", name+" cannot be null or empty")
+func ensureIsNotNullOrString(value string, name string) error {
+	if value == "" {
+		return NewIllegalArgumentException("%s cannot be null or empty", name)
+	}
+	return nil
 }
 
 func (c *RavenCommandBase) isFailedWithNode(node *ServerNode) bool {

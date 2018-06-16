@@ -39,6 +39,10 @@ func jsonGetAsInt(doc ObjectNode, key string) (int, bool) {
 	if !ok {
 		return 0, false
 	}
+	f, ok := v.(float64)
+	if ok {
+		return int(f), true
+	}
 	s, ok := v.(string)
 	if !ok {
 		return 0, false

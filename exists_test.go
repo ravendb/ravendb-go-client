@@ -8,9 +8,10 @@ import (
 )
 
 func existsTest_checkIfDocumentExists(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	{
-		session, err := store.OpenSession()
+		session := openSessionMust(t, store)
 		assert.NoError(t, err)
 		idan := NewUser()
 		idan.setName("Idan")
@@ -27,7 +28,7 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 	}
 
 	{
-		session, err := store.OpenSession()
+		session := openSessionMust(t, store)
 		assert.NoError(t, err)
 		ok, err := session.advanced().exists("users/1")
 		assert.NoError(t, err)
