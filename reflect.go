@@ -3,6 +3,8 @@ package ravendb
 import (
 	"encoding/json"
 	"reflect"
+
+	"github.com/jinzhu/copier"
 )
 
 // functionality related to reflection
@@ -87,4 +89,10 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error)
 		return nil, err
 	}
 	return v, nil
+}
+
+// TODO: temporary name to match Java
+// TODO: include github.com/jinzhu/copier to avoid dependency
+func BeanUtils_copyProperties(dest Object, src Object) error {
+	return copier.Copy(dest, src)
 }

@@ -5,3 +5,7 @@ package ravendb
 type Consumer interface {
 	accept(interface{})
 }
+
+type ConsumerOfIndexQuery func(*IndexQuery)
+type ConsumerOfQueryResult func(*QueryResult)
+type ConsumerOfObjectNode func(ObjectNode)

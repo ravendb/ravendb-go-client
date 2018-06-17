@@ -67,7 +67,23 @@ func (s *DocumentSession) exists(id string) (bool, error) {
 	return ok, nil
 }
 
-// TODO:    public <T> void refresh(T entity) {
+func (s *DocumentSession) refresh(entity Object) error {
+	documentInfo := s.documentsByEntity[entity]
+	if documentInfo == nil {
+		return NewIllegalStateException("Cannot refresh a transient instance")
+	}
+	if err := s.incrementRequestCount(); err != nil {
+		return err
+	}
+
+	command := NewGetDocumentsCommand([]string{documentInfo.getId()}, nil, false)
+	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return err
+	}
+	return s.refreshInternal(entity, command, documentInfo)
+}
+
 // TODO:    protected string generateId(Object entity) {
 // TODO:    public ResponseTimeInformation executeAllPendingLazyOperations() {
 // TODO:    private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {

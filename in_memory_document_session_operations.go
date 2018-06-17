@@ -31,12 +31,11 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: skipping unused isDisposed
 	id string
 
-	/* TODO:
-	   private final List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = new ArrayList<>();
-	   private final List<EventHandler<AfterSaveChangesEventArgs>> onAfterSaveChanges = new ArrayList<>();
-	   private final List<EventHandler<BeforeDeleteEventArgs>> onBeforeDelete = new ArrayList<>();
-	   private final List<EventHandler<BeforeQueryEventArgs>> onBeforeQuery = new ArrayList<>();
-	*/
+	onBeforeStore      []func(interface{}, *BeforeStoreEventArgs)
+	onAfterSaveChanges []func(interface{}, *AfterSaveChangesEventArgs)
+
+	onBeforeDelete []func(interface{}, *BeforeDeleteEventArgs)
+	onBeforeQuery  []func(interface{}, *BeforeQueryEventArgs)
 
 	// ids of entities that were deleted
 	_knownMissingIds *Set_String
@@ -107,6 +106,42 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	return res
 }
 
+func (s *InMemoryDocumentSessionOperations) addBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+	s.onBeforeStore = append(s.onBeforeStore, handler)
+
+}
+func (s *InMemoryDocumentSessionOperations) removeBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onBeforeStore.remove(handler);
+}
+
+func (s *InMemoryDocumentSessionOperations) addAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
+}
+
+func (s *InMemoryDocumentSessionOperations) removeAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onAfterSaveChanges.remove(handler);
+}
+
+func (s *InMemoryDocumentSessionOperations) addBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+	s.onBeforeDelete = append(s.onBeforeDelete, handler)
+}
+
+func (s *InMemoryDocumentSessionOperations) removeBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onBeforeDelete.remove(handler);
+}
+
+func (s *InMemoryDocumentSessionOperations) addBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+	s.onBeforeQuery = append(s.onBeforeQuery, handler)
+}
+
+func (s *InMemoryDocumentSessionOperations) removeBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onBeforeQuery.remove(handler);
+}
+
 func (s *InMemoryDocumentSessionOperations) getGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
 	return s.generateEntityIdOnTheClient
 }
@@ -132,8 +167,8 @@ func (s *InMemoryDocumentSessionOperations) generateId(entity Object) string {
 	return s.getConventions().generateDocumentId(s.getDatabaseName(), entity)
 }
 
-// GetMetadataFor gets the metadata for the specified entity.
-func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
+// getMetadataFor gets the metadata for the specified entity.
+func (s *InMemoryDocumentSessionOperations) getMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
 	if instance == nil {
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
@@ -230,7 +265,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 func (s *InMemoryDocumentSessionOperations) incrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
-		return fmt.Errorf("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
+		return NewIllegalStateException("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
 	}
 	return nil
 }
@@ -562,9 +597,10 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 				changeVector = nil
 			}
 
-			// TODO:
-			//BeforeDeleteEventArgs beforeDeleteEventArgs = new BeforeDeleteEventArgs(this, documentInfo.getId(), documentInfo.getEntity());
-			//EventHelper.invoke(onBeforeDelete, this, beforeDeleteEventArgs);
+			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.getId(), documentInfo.getEntity())
+			for _, handler := range s.onBeforeDelete {
+				handler(s, beforeDeleteEventArgs)
+			}
 
 			cmdData := NewDeleteCommandData(documentInfo.getId(), changeVector)
 			result.addSessionCommandData(cmdData)
@@ -597,21 +633,18 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			s.throwInvalidModifiedDocumentWithDeferredCommand(command)
 		}
 
-		/* TODO:
-		List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = this.onBeforeStore;
-		if (onBeforeStore != null && !onBeforeStore.isEmpty()) {
-			BeforeStoreEventArgs beforeStoreEventArgs = new BeforeStoreEventArgs(this, entity.getValue().getId(), entity.getKey());
-			EventHelper.invoke(onBeforeStore, this, beforeStoreEventArgs);
-
-			if (beforeStoreEventArgs.isMetadataAccessed()) {
-				updateMetadataModifications(entity.getValue());
+		if len(s.onBeforeStore) > 0 {
+			beforeStoreEventArgs := NewBeforeStoreEventArgs(s, entityValue.getId(), entityKey)
+			for _, handler := range s.onBeforeStore {
+				handler(s, beforeStoreEventArgs)
 			}
-
-			if (beforeStoreEventArgs.isMetadataAccessed() || entityChanged(document, entity.getValue(), null)) {
-				document = entityToJson.convertEntityToJson(entity.getKey(), entity.getValue());
+			if beforeStoreEventArgs.isMetadataAccessed() {
+				s.updateMetadataModifications(entityValue)
+			}
+			if beforeStoreEventArgs.isMetadataAccessed() || s.entityChanged(document, entityValue, nil) {
+				document = EntityToJson_convertEntityToJson(entityKey, entityValue)
 			}
 		}
-		*/
 
 		entityValue.setNewDocument(false)
 		result.addEntity(entityKey)
@@ -791,6 +824,7 @@ func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results Arra
 	if len(includePaths) == 0 {
 		return
 	}
+	// TODO: ?? This is a no-op in Java
 	/*
 		for _, result := range results {
 			for _, include := range includePaths {
@@ -847,6 +881,46 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 
 	return true
 }
+
+func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
+	document := cmd.Result.getResults()[0]
+	if document == nil {
+		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.getId())
+	}
+
+	value := document[Constants_Documents_Metadata_KEY]
+	meta := value.(ObjectNode)
+	documentInfo.setMetadata(meta)
+
+	if documentInfo.getMetadata() != nil {
+		changeVector := jsonGetAsTextPointer(meta, Constants_Documents_Metadata_CHANGE_VECTOR)
+		documentInfo.setChangeVector(changeVector)
+	}
+	documentInfo.setDocument(document)
+	documentInfo.setEntity(s.entityToJson.convertToEntity(getTypeOfValue(entity), documentInfo.getId(), document))
+
+	err := BeanUtils_copyProperties(entity, documentInfo.getEntity())
+	if err != nil {
+		return NewRuntimeException("Unable to refresh entity: %s", err)
+	}
+	return nil
+}
+
+//TODO: protected static <T> T getOperationResult(Class<T> clazz, Object result) {
+
+func (s *InMemoryDocumentSessionOperations) onAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
+	for _, handler := range s.onAfterSaveChanges {
+		handler(s, afterSaveChangesEventArgs)
+	}
+}
+
+func (s *InMemoryDocumentSessionOperations) onBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
+	for _, handler := range s.onBeforeQuery {
+		handler(s, beforeQueryEventArgs)
+	}
+}
+
+//TODO: protected Tuple<String, String> processQueryParameters(Class clazz, String indexName, String collectionName,
 
 type SaveChangesData struct {
 	deferredCommands    []ICommandData

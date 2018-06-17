@@ -10,11 +10,13 @@ import (
 // DocumentStore represents a database
 type DocumentStore struct {
 	// from DocumentStoreBase
-	//List<EventHandler<BeforeStoreEventArgs>> onBeforeStore = new ArrayList<>();
-	//List<EventHandler<AfterSaveChangesEventArgs>> onAfterSaveChanges = new ArrayList<>();
-	//List<EventHandler<BeforeDeleteEventArgs>> onBeforeDelete = new ArrayList<>();
-	//List<EventHandler<BeforeQueryEventArgs>> onBeforeQuery = new ArrayList<>();
-	//List<EventHandler<SessionCreatedEventArgs>> onSessionCreated = new ArrayList<>();
+	onBeforeStore      []func(interface{}, *BeforeStoreEventArgs)
+	onAfterSaveChanges []func(interface{}, *AfterSaveChangesEventArgs)
+
+	onBeforeDelete   []func(interface{}, *BeforeDeleteEventArgs)
+	onBeforeQuery    []func(interface{}, *BeforeQueryEventArgs)
+	onSessionCreated []func(interface{}, *SessionCreatedEventArgs)
+
 	disposed     bool
 	conventions  *DocumentConventions
 	urls         []string // urls for HTTP endopoints of server nodes
@@ -67,37 +69,65 @@ func (s *DocumentStore) ensureNotClosed() {
 	// TODO: implement me
 }
 
-/*
-public void addBeforeStoreListener(EventHandler<BeforeStoreEventArgs> handler) {
-	this.onBeforeStore.add(handler);
+func (s *DocumentStore) addBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+	s.onBeforeStore = append(s.onBeforeStore, handler)
 
 }
-public void removeBeforeStoreListener(EventHandler<BeforeStoreEventArgs> handler) {
-	this.onBeforeStore.remove(handler);
+func (s *DocumentStore) removeBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onBeforeStore.remove(handler);
 }
 
-public void addAfterSaveChangesListener(EventHandler<AfterSaveChangesEventArgs> handler) {
-	this.onAfterSaveChanges.add(handler);
+func (s *DocumentStore) addAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 }
 
-public void removeAfterSaveChangesListener(EventHandler<AfterSaveChangesEventArgs> handler) {
-	this.onAfterSaveChanges.remove(handler);
+func (s *DocumentStore) removeAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onAfterSaveChanges.remove(handler);
 }
 
-public void addBeforeDeleteListener(EventHandler<BeforeDeleteEventArgs> handler) {
-	this.onBeforeDelete.add(handler);
-}
-public void removeBeforeDeleteListener(EventHandler<BeforeDeleteEventArgs> handler) {
-	this.onBeforeDelete.remove(handler);
+func (s *DocumentStore) addBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 }
 
-public void addBeforeQueryListener(EventHandler<BeforeQueryEventArgs> handler) {
-	this.onBeforeQuery.add(handler);
+func (s *DocumentStore) removeBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onBeforeDelete.remove(handler);
 }
-public void removeBeforeQueryListener(EventHandler<BeforeQueryEventArgs> handler) {
-	this.onBeforeQuery.remove(handler);
+
+func (s *DocumentStore) addBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 }
-*/
+
+func (s *DocumentStore) removeBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+	panicIf(true, "NYI")
+	//this.onBeforeQuery.remove(handler);
+}
+
+func (s *DocumentStore) registerEvents(session *InMemoryDocumentSessionOperations) {
+	for _, handler := range s.onBeforeStore {
+		session.addBeforeStoreListener(handler)
+	}
+
+	for _, handler := range s.onAfterSaveChanges {
+		session.addAfterSaveChangesListener(handler)
+	}
+
+	for _, handler := range s.onBeforeDelete {
+		session.addBeforeDeleteListener(handler)
+	}
+
+	for _, handler := range s.onBeforeQuery {
+		session.addBeforeQueryListener(handler)
+	}
+}
+
+func (s *DocumentStore) afterSessionCreated(session *InMemoryDocumentSessionOperations) {
+	for _, handler := range s.onSessionCreated {
+		handler(s, NewSessionCreatedEventArgs(session))
+	}
+}
 
 func (s *DocumentStore) assertInitialized() {
 	panicIf(!s.initialized, "DocumentStore must be initialized")
@@ -223,8 +253,8 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 		requestExecutor = s.GetRequestExecutorWithDatabase(databaseName)
 	}
 	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
-	//s.registerEvents(session);
-	//s.afterSessionCreated(session);
+	s.registerEvents(session.InMemoryDocumentSessionOperations)
+	s.afterSessionCreated(session.InMemoryDocumentSessionOperations)
 	return session, nil
 }
 

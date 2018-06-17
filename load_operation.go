@@ -25,6 +25,7 @@ func (o *LoadOperation) createRequest() *GetDocumentsCommand {
 		return nil
 	}
 
+	// TODO: should propagate error
 	o._session.incrementRequestCount()
 
 	return NewGetDocumentsCommand(o._idsToCheckOnServer, o._includes, false)

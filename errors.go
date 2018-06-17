@@ -11,6 +11,16 @@ func (e *ExceptionBase) Error() string {
 	return e.ErrorStr
 }
 
+type RuntimeException struct {
+	ExceptionBase
+}
+
+func NewRuntimeException(format string, args ...interface{}) *RuntimeException {
+	res := &RuntimeException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
+}
+
 type RavenException struct {
 	ExceptionBase
 }

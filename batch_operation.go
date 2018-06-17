@@ -21,6 +21,7 @@ func (b *BatchOperation) createRequest() *BatchCommand {
 		return nil
 	}
 
+	// TODO: should propagate an error
 	b._session.incrementRequestCount()
 
 	b._entities = result.getEntities()
@@ -75,9 +76,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		b._session.documentsById.add(documentInfo)
 		b._session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id)
 
-		//TODO:
-		//AfterSaveChangesEventArgs afterSaveChangesEventArgs = new AfterSaveChangesEventArgs(_session, documentInfo.getId(), documentInfo.getEntity());
-		//_session.onAfterSaveChangesInvoke(afterSaveChangesEventArgs);
-
+		afterSaveChangesEventArgs := NewAfterSaveChangesEventArgs(b._session, documentInfo.getId(), documentInfo.getEntity())
+		b._session.onAfterSaveChangesInvoke(afterSaveChangesEventArgs)
 	}
 }

@@ -32,6 +32,7 @@ func (p *Product) setProductName(productName string) {
 }
 
 func hiloTest_capacityShouldDouble(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 
 	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
@@ -41,7 +42,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		hiloDoc := &HiLoDoc{}
 		hiloDoc.setMax(64)
 
-		err := session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+		err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -89,16 +90,17 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 }
 
 func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	newStore := NewDocumentStore()
 	newStore.setUrls(store.getUrls())
 	newStore.setDatabase(store.getDatabase())
 
-	_, err := newStore.Initialize()
+	_, err = newStore.Initialize()
 	assert.NoError(t, err)
 
 	{
-		session, err := newStore.OpenSession()
+		session := openSessionMust(t, newStore)
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 
@@ -127,7 +129,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		session, err := newStore.OpenSession()
+		session := openSessionMust(t, newStore)
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 
@@ -142,6 +144,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 }
 
 func hiloTest_canNotGoDown(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 
 	session := openSessionMust(t, store)
@@ -149,8 +152,10 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	hiloDoc := &HiLoDoc{}
 	hiloDoc.setMax(32)
 
-	session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
-	err := session.SaveChanges()
+	err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+	assert.NoError(t, err)
+	err = session.SaveChanges()
+	assert.NoError(t, err)
 	assert.Nil(t, err)
 
 	hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
@@ -174,12 +179,13 @@ func hiloTest_canNotGoDown(t *testing.T) {
 }
 
 func hiloTest_multiDb(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	session := openSessionMust(t, store)
 
 	hiloDoc := &HiLoDoc{}
 	hiloDoc.setMax(64)
-	err := session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+	err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
 	assert.NoError(t, err)
 
 	productsHilo := &HiLoDoc{}
