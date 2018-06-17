@@ -2,7 +2,7 @@ package ravendb
 
 type LoadToken struct {
 	argument string
-	alias    GroupByMethod
+	alias    string
 }
 
 func NewLoadToken(argument string, alias string) *LoadToken {
