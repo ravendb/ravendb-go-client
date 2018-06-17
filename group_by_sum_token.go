@@ -1,16 +1,12 @@
 package ravendb
 
 type GroupBySumToken struct {
-	*QueryToken
-
 	_projectedName string
 	_fieldName     string
 }
 
 func NewGroupBySumToken(fieldName string, projectedName string) *GroupBySumToken {
 	return &GroupBySumToken{
-		QueryToken: NewQueryToken(),
-
 		_fieldName:     fieldName,
 		_projectedName: projectedName,
 	}

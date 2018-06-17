@@ -1,13 +1,10 @@
 package ravendb
 
 type TrueToken struct {
-	*QueryToken
 }
 
 func NewTrueToken() *TrueToken {
-	return &TrueToken{
-		QueryToken: NewQueryToken(),
-	}
+	return &TrueToken{}
 }
 
 func (t *TrueToken) writeTo(writer *StringBuilder) {

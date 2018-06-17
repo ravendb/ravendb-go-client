@@ -1,8 +1,6 @@
 package ravendb
 
 type DeclareToken struct {
-	*QueryToken
-
 	name       string
 	parameters string
 	body       string
@@ -10,7 +8,6 @@ type DeclareToken struct {
 
 func NewDeclareToken(name string, body string, parameters string) *DeclareToken {
 	return &DeclareToken{
-		QueryToken: NewQueryToken(),
 		name:       name,
 		body:       body,
 		parameters: parameters,

@@ -1,16 +1,12 @@
 package ravendb
 
 type GroupByToken struct {
-	*QueryToken
-
 	_fieldName string
 	_method    GroupByMethod
 }
 
 func NewGroupByToken(fieldName string, method GroupByMethod) *GroupByToken {
 	return &GroupByToken{
-		QueryToken: NewQueryToken(),
-
 		_fieldName: fieldName,
 		_method:    method,
 	}
@@ -29,7 +25,7 @@ func (t *GroupByToken) writeTo(writer *StringBuilder) {
 	if _method != GroupByMethod_NONE {
 		writer.append("Array(")
 	}
-	t.writeField(writer, t._fieldName)
+	QueryToken_writeField(writer, t._fieldName)
 	if _method != GroupByMethod_NONE {
 		writer.append(")")
 	}

@@ -5,13 +5,10 @@ var (
 )
 
 type DistinctToken struct {
-	*QueryToken
 }
 
 func NewDistinctToken() *DistinctToken {
-	return &DistinctToken{
-		QueryToken: NewQueryToken(),
-	}
+	return &DistinctToken{}
 }
 
 func (t *DistinctToken) writeTo(writer *StringBuilder) {

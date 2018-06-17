@@ -5,13 +5,10 @@ var (
 )
 
 type NegateToken struct {
-	*QueryToken
 }
 
 func NewNegateToken() *NegateToken {
-	return &NegateToken{
-		QueryToken: NewQueryToken(),
-	}
+	return &NegateToken{}
 }
 
 func (t *NegateToken) writeTo(writer *StringBuilder) {

@@ -1,15 +1,11 @@
 package ravendb
 
 type GroupByCountToken struct {
-	*QueryToken
-
 	_fieldName string
 }
 
 func NewGroupByCountToken(fieldName string) *GroupByCountToken {
 	return &GroupByCountToken{
-		QueryToken: NewQueryToken(),
-
 		_fieldName: fieldName,
 	}
 }

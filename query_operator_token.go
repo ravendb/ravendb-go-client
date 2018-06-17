@@ -1,8 +1,6 @@
 package ravendb
 
 type QueryOperatorToken struct {
-	*QueryToken
-
 	_queryOperator QueryOperator
 }
 
@@ -13,8 +11,6 @@ var (
 
 func NewQueryOperatorToken(queryOperator QueryOperator) *QueryOperatorToken {
 	return &QueryOperatorToken{
-		QueryToken: NewQueryToken(),
-
 		_queryOperator: queryOperator,
 	}
 }

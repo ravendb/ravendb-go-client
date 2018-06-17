@@ -1,8 +1,6 @@
 package ravendb
 
 type FieldsToFetchToken struct {
-	*QueryToken
-
 	fieldsToFetch  []string
 	projections    []string
 	customFunction bool
@@ -10,7 +8,6 @@ type FieldsToFetchToken struct {
 
 func NewFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool) *FieldsToFetchToken {
 	return &FieldsToFetchToken{
-		QueryToken:     NewQueryToken(),
 		fieldsToFetch:  fieldsToFetch,
 		projections:    projections,
 		customFunction: customFunction,
@@ -38,7 +35,7 @@ func (t *FieldsToFetchToken) writeTo(writer *StringBuilder) {
 			writer.append(", ")
 		}
 
-		t.writeField(writer, fieldToFetch)
+		QueryToken_writeField(writer, fieldToFetch)
 
 		if t.customFunction {
 			continue

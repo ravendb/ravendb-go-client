@@ -5,13 +5,10 @@ var (
 )
 
 type OpenSubclauseToken struct {
-	*QueryToken
 }
 
 func NewOpenSubclauseToken() *OpenSubclauseToken {
-	return &OpenSubclauseToken{
-		QueryToken: NewQueryToken(),
-	}
+	return &OpenSubclauseToken{}
 }
 
 func (t *OpenSubclauseToken) writeTo(writer *StringBuilder) {

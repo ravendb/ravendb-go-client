@@ -1,14 +1,12 @@
 package ravendb
 
 type ShapeToken struct {
-	*QueryToken
 	_shape string
 }
 
 func NewShapeToken(shape string) *ShapeToken {
 	return &ShapeToken{
-		QueryToken: NewQueryToken(),
-		_shape:     shape,
+		_shape: shape,
 	}
 }
 

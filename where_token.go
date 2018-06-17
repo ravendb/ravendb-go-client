@@ -115,8 +115,6 @@ func (o *WhereOptions) setDistanceErrorPct(distanceErrorPct float64) {
 }
 
 type WhereToken struct {
-	*QueryToken
-
 	fieldName     string
 	whereOperator WhereOperator
 	parameterName string
@@ -124,9 +122,7 @@ type WhereToken struct {
 }
 
 func NewWhereToken() *WhereToken {
-	return &WhereToken{
-		QueryToken: NewQueryToken(),
-	}
+	return &WhereToken{}
 }
 
 func WhereToken_create(op WhereOperator, fieldName string, parameterName string) *WhereToken {
@@ -300,7 +296,7 @@ func (t *WhereToken) writeTo(writer *StringBuilder) {
 
 func (t *WhereToken) writeInnerWhere(writer *StringBuilder) {
 
-	t.writeField(writer, t.fieldName)
+	QueryToken_writeField(writer, t.fieldName)
 
 	switch t.whereOperator {
 	case WhereOperator_EQUALS:
