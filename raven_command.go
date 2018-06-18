@@ -14,7 +14,7 @@ var (
 type RavenCommand interface {
 	// those are meant to be over-written
 	createRequest(node *ServerNode) (*http.Request, error)
-	setResponse(response string, fromCache bool) error
+	setResponse(response []byte, fromCache bool) error
 	setResponseRaw(response *http.Response, body io.Reader) error
 
 	// for all other functions, get access to underlying RavenCommandBase
@@ -72,7 +72,7 @@ func (c *RavenCommandBase) canCacheAggressively() bool {
 	return c._canCacheAggressively
 }
 
-func (c *RavenCommandBase) setResponse(response string, fromCache bool) error {
+func (c *RavenCommandBase) setResponse(response []byte, fromCache bool) error {
 	if c.responseType == RavenCommandResponseType_EMPTY || c.responseType == RavenCommandResponseType_RAW {
 		return throwInvalidResponse()
 	}
@@ -160,7 +160,7 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		if cache != nil {
 			c.cacheResponse(cache, url, response, string(js))
 		}
-		err = cmd.setResponse(string(js), false)
+		err = cmd.setResponse(js, false)
 		return ResponseDisposeHandling_AUTOMATIC, err
 	} else {
 		cmd.setResponseRaw(response, response.Body)

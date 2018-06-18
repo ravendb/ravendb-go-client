@@ -40,13 +40,13 @@ func (c *GetOperationStateCommand) createRequest(node *ServerNode) (*http.Reques
 	return NewHttpGet(url)
 }
 
-func (c *GetOperationStateCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *GetOperationStateCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return nil
 	}
 
 	var res ObjectNode
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

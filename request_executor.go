@@ -713,7 +713,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		case RavenCommandResponseType_EMPTY:
 			return true, nil
 		case RavenCommandResponseType_OBJECT:
-			command.setResponse("", false)
+			command.setResponse(nil, false)
 			break
 		default:
 			command.setResponseRaw(response, nil)

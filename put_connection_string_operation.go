@@ -55,13 +55,13 @@ func (c *PutConnectionStringCommand) createRequest(node *ServerNode) (*http.Requ
 	return NewHttpPut(url, string(d))
 }
 
-func (c *PutConnectionStringCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *PutConnectionStringCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
 
 	var res PutConnectionStringResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

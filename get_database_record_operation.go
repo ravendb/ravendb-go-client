@@ -52,14 +52,14 @@ func (c *GetDatabaseRecordCommand) createRequest(node *ServerNode) (*http.Reques
 	return NewHttpGet(url)
 }
 
-func (c *GetDatabaseRecordCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *GetDatabaseRecordCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		c.Result = nil
 		return nil
 	}
 
 	var res DatabaseRecordWithEtag
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

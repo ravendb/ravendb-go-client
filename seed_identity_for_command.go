@@ -52,13 +52,13 @@ func (c *SeedIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, "")
 }
 
-func (c *SeedIdentityForCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *SeedIdentityForCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
 
 	var jsonNode map[string]interface{}
-	err := json.Unmarshal([]byte(response), &jsonNode)
+	err := json.Unmarshal(response, &jsonNode)
 	if err != nil {
 		return err
 	}

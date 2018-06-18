@@ -74,13 +74,13 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return NewHttpPost(url, string(js))
 }
 
-func (c *BatchCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *BatchCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}
 
 	var res JSONArrayResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

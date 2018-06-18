@@ -55,12 +55,12 @@ func (c *CompactDatabaseCommand) createRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, string(c._compactSettings))
 }
 
-func (c *CompactDatabaseCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *CompactDatabaseCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
 	var res OperationIdResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

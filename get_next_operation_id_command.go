@@ -31,9 +31,9 @@ func (c *GetNextOperationIdCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpGet(url)
 }
 
-func (c *GetNextOperationIdCommand) setResponse(response string, fromCache bool) error {
+func (c *GetNextOperationIdCommand) setResponse(response []byte, fromCache bool) error {
 	var res _GetNextOperationIdCommandResponse
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

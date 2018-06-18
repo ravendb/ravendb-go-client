@@ -43,9 +43,9 @@ func (c *GetIdentitiesCommand) createRequest(node *ServerNode) (*http.Request, e
 
 }
 
-func (c *GetIdentitiesCommand) setResponse(response string, fromCache bool) error {
+func (c *GetIdentitiesCommand) setResponse(response []byte, fromCache bool) error {
 	var res map[string]int
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

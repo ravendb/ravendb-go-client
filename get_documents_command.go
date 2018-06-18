@@ -143,13 +143,13 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	return NewHttpPost(url, string(d))
 }
 
-func (c *GetDocumentsCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *GetDocumentsCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return nil
 	}
 
 	var res GetDocumentsResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

@@ -65,12 +65,12 @@ func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetStatisticsCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *GetStatisticsCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
 	var res DatabaseStatistics
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

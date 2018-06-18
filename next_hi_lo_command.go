@@ -50,9 +50,9 @@ func (c *NextHiLoCommand) createRequest(node *ServerNode) (*http.Request, error)
 	return NewHttpGet(url)
 }
 
-func (c *NextHiLoCommand) setResponse(response string, fromCache bool) error {
+func (c *NextHiLoCommand) setResponse(response []byte, fromCache bool) error {
 	var res HiLoResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

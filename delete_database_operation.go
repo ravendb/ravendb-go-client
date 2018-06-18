@@ -79,9 +79,9 @@ func (c *DeleteDatabaseCommand) createRequest(node *ServerNode) (*http.Request, 
 	return NewHttpDelete(url, c.parameters)
 }
 
-func (c *DeleteDatabaseCommand) setResponse(response string, fromCache bool) error {
+func (c *DeleteDatabaseCommand) setResponse(response []byte, fromCache bool) error {
 	var res DeleteDatabaseResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

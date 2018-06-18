@@ -43,13 +43,13 @@ func (c *GetClientConfigurationCommand) createRequest(node *ServerNode) (*http.R
 	return NewHttpGet(url)
 }
 
-func (c *GetClientConfigurationCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *GetClientConfigurationCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return nil
 	}
 
 	var res GetClientConfigurationCommandResult
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}

@@ -61,8 +61,8 @@ func (c *HeadDocumentCommand) processResponse(cache *HttpCache, response *http.R
 	return ResponseDisposeHandling_AUTOMATIC, err
 }
 
-func (c *HeadDocumentCommand) setResponse(response string, fromCache bool) error {
-	if response != "" {
+func (c *HeadDocumentCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) != 0 {
 		return throwInvalidResponse()
 	}
 	// This is called from handleUnsuccessfulResponse() to mark the command

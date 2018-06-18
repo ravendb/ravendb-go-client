@@ -40,13 +40,13 @@ func (c *GetServerWideOperationStateCommand) createRequest(node *ServerNode) (*h
 	return NewHttpGet(url)
 }
 
-func (c *GetServerWideOperationStateCommand) setResponse(response string, fromCache bool) error {
-	if response == "" {
+func (c *GetServerWideOperationStateCommand) setResponse(response []byte, fromCache bool) error {
+	if len(response) == 0 {
 		return nil
 	}
 
 	var res ObjectNode
-	err := json.Unmarshal([]byte(response), &res)
+	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}
