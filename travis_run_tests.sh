@@ -5,4 +5,4 @@ set -u -e -o pipefail
 
 # TODO: for now disabling -race because fails with "too many goroutines"
 #go test -race -covermode=atomic -coverprofile=coverage.txt
-go test -covermode=atomic -coverprofile=coverage.txt
+go test -race -covermode=atomic -coverprofile=coverage.txt

@@ -1,13 +1,21 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	dbgRequestExecutorTests = false
+)
+
 func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_failuresDoesNotBlockConnectionPool start\n")
+	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -28,9 +36,15 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 		err := executor.executeCommand(command)
 		_ = err.(*DatabaseDoesNotExistException)
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_failuresDoesNotBlockConnectionPool end\n")
+	}
 }
 
 func requestExecutorTest_canIssueManyRequests(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canIssueManyRequests start\n")
+	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -42,9 +56,15 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 			assert.NoError(t, err)
 		}
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canIssueManyRequests end\n")
+	}
 }
 
 func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canFetchDatabasesNames start\n")
+	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -58,9 +78,15 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 		dbNames := command.Result
 		assert.True(t, stringArrayContains(dbNames, store.getDatabase()))
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canFetchDatabasesNames end\n")
+	}
 }
 
 func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb start\n")
+	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -72,9 +98,15 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 		_, err := future.get()
 		_ = err.(*DatabaseDoesNotExistException)
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb end\n")
+	}
 }
 
 func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_throwsWhenDatabaseDoesNotExist start\n")
+	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -83,9 +115,15 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 		err := executor.executeCommand(command)
 		_ = err.(*DatabaseDoesNotExistException)
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_throwsWhenDatabaseDoesNotExist end\n")
+	}
 }
 
 func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canCreateSingleNodeRequestExecutor start\n")
+	}
 	documentConventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	{
@@ -102,9 +140,15 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canCreateSingleNodeRequestExecutor end\n")
+	}
 }
 
 func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canChooseOnlineNode start\n")
+	}
 	documentConventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
 	url := store.getUrls()[0]
@@ -120,22 +164,30 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 		assert.Equal(t, url, topologyNodes[0].getUrl())
 		assert.Equal(t, url, executor.getUrl())
 	}
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_canChooseOnlineNode end\n")
+	}
 }
 
 func requestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
+	if dbgRequestExecutorTests {
+		logGoroutines("goroutines_req_executor_before.txt")
+		fmt.Printf("requestExecutorTest_failsWhenServerIsOffline start\n")
+	}
 	documentConventions := NewDocumentConventions()
 	executor := RequestExecutor_create([]string{"http://no_such_host:8081"}, "db1", nil, documentConventions)
 	command := NewGetNextOperationIdCommand()
 	err := executor.executeCommand(command)
 	assert.Error(t, err)
-	// TODO: this
-	// - fails when runningg all tests
-	// - doesn't fail when running just this test with:
-	// go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestRequestExecutor$
-	// - doesn't fail when running under debugger
-	// Fails because err is RavenException, probably because
-	// ExceptionDispatcher_throwException is not implemented
+
+	// TODO: this fails with proxy enabled
+	// error: panic: interface conversion: error is *ravendb.RavenException, not *ravendb.AllTopologyNodesDownException
 	//_ = err.(*AllTopologyNodesDownException)
+
+	if dbgRequestExecutorTests {
+		fmt.Printf("requestExecutorTest_failsWhenServerIsOffline end\n")
+		logGoroutines("goroutines_req_executor_after.txt")
+	}
 }
 
 func TestRequestExecutor(t *testing.T) {

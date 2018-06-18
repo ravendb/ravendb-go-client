@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
 	"strings"
 	"sync"
 	"testing"
@@ -382,6 +383,31 @@ func deleteTestDriver() {
 	gRavenTestDriver = nil
 }
 
+// This helps debugging leaking gorutines by dumping stack traces
+// of all goroutines to a file
+func logGoroutines(file string) {
+	if file == "" {
+		file = "goroutines.txt"
+	}
+	path := filepath.Join("logs", file)
+	dir := filepath.Dir(path)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return
+	}
+	profile := pprof.Lookup("goroutine")
+	if profile == nil {
+		return
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	profile.WriteTo(f, 2)
+}
+
 func TestMain(m *testing.M) {
 	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
 	if noDb == "" {
@@ -419,6 +445,7 @@ func TestMain(m *testing.M) {
 			proxy.CloseLogFile()
 			fmt.Printf("Closed proxy log file\n")
 		}
+		//logGoroutines()
 		os.Exit(code)
 	}()
 
