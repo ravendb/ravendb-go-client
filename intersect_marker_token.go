@@ -1,16 +1,16 @@
 package ravendb
 
 var (
-	IntersectToken_INSTANCE = NewIntersectToken()
+	IntersectMarkerToken_INSTANCE = NewIntersectMarkerToken()
 )
 
-type IntersectToken struct {
+type IntersectMarkerToken struct {
 }
 
-func NewIntersectToken() *IntersectToken {
-	return &IntersectToken{}
+func NewIntersectMarkerToken() *IntersectMarkerToken {
+	return &IntersectMarkerToken{}
 }
 
-func (t *IntersectToken) writeTo(writer *StringBuilder) {
+func (t *IntersectMarkerToken) writeTo(writer *StringBuilder) {
 	writer.append(",")
 }
