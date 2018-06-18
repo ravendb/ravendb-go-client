@@ -24,7 +24,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		result, err := newSession.load(getTypeOf(NewUser()), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -32,7 +32,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		result, err := newSession.load(getTypeOf(NewUser()), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -55,7 +55,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.load(getTypeOfValue(NewUser()), "users/1")
+		result, err := newSession.load(getTypeOf(NewUser()), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -84,7 +84,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		users, err := newSession.loadMulti(getTypeOfValue(NewUser()), []string{"users/1", "users/2"})
+		users, err := newSession.loadMulti(getTypeOf(NewUser()), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
 	}
@@ -112,7 +112,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user1, err := newSession.load(getTypeOfValue(&User{}), "")
+		user1, err := newSession.load(getTypeOf(&User{}), "")
 		assert.NoError(t, err)
 		assert.Nil(t, user1)
 	}
@@ -139,7 +139,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 	{
 		newSession := openSessionMust(t, store)
 		orderedArrayOfIdsWithNull := []string{"users/1", "", "users/2", ""}
-		users1, err := newSession.loadMulti(getTypeOfValue(&User{}), orderedArrayOfIdsWithNull)
+		users1, err := newSession.loadMulti(getTypeOf(&User{}), orderedArrayOfIdsWithNull)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users1))
 
@@ -180,11 +180,11 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		geek1i, err := newSession.load(getTypeOfValue(&GeekPerson{}), "geeks/1")
+		geek1i, err := newSession.load(getTypeOf(&GeekPerson{}), "geeks/1")
 		assert.NoError(t, err)
 		geek1 := geek1i.(*GeekPerson)
 
-		geek2i, err := newSession.load(getTypeOfValue(&GeekPerson{}), "geeks/2")
+		geek2i, err := newSession.load(getTypeOf(&GeekPerson{}), "geeks/2")
 		assert.NoError(t, err)
 		geek2 := geek2i.(*GeekPerson)
 
@@ -221,7 +221,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		users, err := session.loadMulti(getTypeOfValue(&User{}), ids)
+		users, err := session.loadMulti(getTypeOf(&User{}), ids)
 		assert.NoError(t, err)
 		assert.NotNil(t, users)
 		result := users["users/77"]
@@ -259,7 +259,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		usersi, err := newSession.advanced().loadStartingWith(getTypeOfValue(&User{}), "A")
+		usersi, err := newSession.advanced().loadStartingWith(getTypeOf(&User{}), "A")
 		assert.NoError(t, err)
 
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
@@ -268,7 +268,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 			assert.True(t, stringArrayContains(userIDs, user.ID))
 		}
 
-		usersi, err = newSession.advanced().loadStartingWithFull(getTypeOfValue(&User{}), "A", "", 1, 2, "", "")
+		usersi, err = newSession.advanced().loadStartingWithFull(getTypeOf(&User{}), "A", "", 1, 2, "", "")
 
 		userIDs = []string{"Abc", "Afa"}
 		for _, useri := range usersi {

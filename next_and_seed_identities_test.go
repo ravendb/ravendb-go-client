@@ -38,16 +38,16 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entityWithId1I, err := session.load(getTypeOfValue(&User{}), "users/1")
+		entityWithId1I, err := session.load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		entityWithId1 := entityWithId1I.(*User)
-		entityWithId2I, err := session.load(getTypeOfValue(&User{}), "users/2")
+		entityWithId2I, err := session.load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		entityWithId2 := entityWithId2I.(*User)
-		entityWithId3I, err := session.load(getTypeOfValue(&User{}), "users/3")
+		entityWithId3I, err := session.load(getTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		entityWithId3 := entityWithId3I.(*User)
-		entityWithId4I, err := session.load(getTypeOfValue(&User{}), "users/4")
+		entityWithId4I, err := session.load(getTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		entityWithId4 := entityWithId4I.(*User)
 
@@ -95,23 +95,23 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entityWithId1I, err := session.load(getTypeOfValue(&User{}), "users/1")
+		entityWithId1I, err := session.load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		entityWithId1 := entityWithId1I.(*User)
 
-		entityWithId2I, err := session.load(getTypeOfValue(&User{}), "users/2")
+		entityWithId2I, err := session.load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		entityWithId2 := entityWithId2I.(*User)
 
-		entityWithId1990I, err := session.load(getTypeOfValue(&User{}), "users/1990")
+		entityWithId1990I, err := session.load(getTypeOf(&User{}), "users/1990")
 		assert.NoError(t, err)
 		entityWithId1990 := entityWithId1990I.(*User)
 
-		entityWithId1991I, err := session.load(getTypeOfValue(&User{}), "users/1991")
+		entityWithId1991I, err := session.load(getTypeOf(&User{}), "users/1991")
 		assert.NoError(t, err)
 		entityWithId1991 := entityWithId1991I.(*User)
 
-		entityWithId1992I, err := session.load(getTypeOfValue(&User{}), "users/1992")
+		entityWithId1992I, err := session.load(getTypeOf(&User{}), "users/1992")
 		assert.NoError(t, err)
 		entityWithId1992 := entityWithId1992I.(*User)
 

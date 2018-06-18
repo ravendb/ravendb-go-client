@@ -27,7 +27,7 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.load(getTypeOfValue(&User{}), "users/1")
+		loadedUserI, err := session.load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, "Marcin", *loadedUser.getName())

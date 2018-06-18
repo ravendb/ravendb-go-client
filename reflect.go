@@ -40,7 +40,7 @@ func getShortTypeName(v interface{}) string {
 	return typ.Name()
 }
 
-func getTypeOfValue(v interface{}) reflect.Type {
+func getTypeOf(v interface{}) reflect.Type {
 	// TODO: validate that v is of valid type (for now pointer to a struct)
 	return reflect.TypeOf(v)
 }

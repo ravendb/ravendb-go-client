@@ -897,7 +897,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 		documentInfo.setChangeVector(changeVector)
 	}
 	documentInfo.setDocument(document)
-	documentInfo.setEntity(s.entityToJson.convertToEntity(getTypeOfValue(entity), documentInfo.getId(), document))
+	documentInfo.setEntity(s.entityToJson.convertToEntity(getTypeOf(entity), documentInfo.getId(), document))
 
 	err := BeanUtils_copyProperties(entity, documentInfo.getEntity())
 	if err != nil {

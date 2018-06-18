@@ -52,9 +52,9 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 	}
 	{
 		session := openSessionMust(t, store)
-		_, err = session.load(getTypeOfValue(&User{}), "users/1")
+		_, err = session.load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
-		_, err = session.load(getTypeOfValue(&User{}), "users/2")
+		_, err = session.load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 	}
 }
