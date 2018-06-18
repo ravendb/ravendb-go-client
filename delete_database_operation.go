@@ -57,7 +57,7 @@ var _ RavenCommand = &DeleteDatabaseCommand{}
 type DeleteDatabaseCommand struct {
 	*RavenCommandBase
 
-	parameters string
+	parameters []byte
 
 	Result *DeleteDatabaseResult
 }
@@ -69,7 +69,7 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 	cmd := &DeleteDatabaseCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		parameters: string(d),
+		parameters: d,
 	}
 	return cmd
 }

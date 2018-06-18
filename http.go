@@ -145,12 +145,11 @@ func NewHttpGet(uri string) (*http.Request, error) {
 	return req, err
 }
 
-// TODO: make data a []byte
-func NewHttpPost(uri string, data string) (*http.Request, error) {
+func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	//fmt.Printf("POST %s\n", uri)
 	var body io.Reader
-	if data != "" {
-		body = bytes.NewBufferString(data)
+	if len(data) > 0 {
+		body = bytes.NewBuffer(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
@@ -165,12 +164,11 @@ func NewHttpPost(uri string, data string) (*http.Request, error) {
 	return req, err
 }
 
-// TODO: make data a []byte
-func NewHttpPut(uri string, data string) (*http.Request, error) {
+func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	//fmt.Printf("PUT %s\n", uri)
 	var body io.Reader
-	if data != "" {
-		body = bytes.NewBufferString(data)
+	if len(data) > 0 {
+		body = bytes.NewBuffer(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
@@ -185,12 +183,11 @@ func NewHttpPut(uri string, data string) (*http.Request, error) {
 	return req, err
 }
 
-// TODO: make data a []byte
-func NewHttpDelete(uri, data string) (*http.Request, error) {
+func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
 	//fmt.Printf("DELETE %s\n", uri)
 	var body io.Reader
-	if data != "" {
-		body = bytes.NewBufferString(data)
+	if len(data) > 0 {
+		body = bytes.NewBuffer(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}

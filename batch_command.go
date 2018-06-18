@@ -71,7 +71,7 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPost(url, string(js))
+	return NewHttpPost(url, js)
 }
 
 func (c *BatchCommand) setResponse(response []byte, fromCache bool) error {

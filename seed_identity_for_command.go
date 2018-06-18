@@ -49,7 +49,7 @@ func (c *SeedIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 		url += "&force=true"
 	}
 
-	return NewHttpPost(url, "")
+	return NewHttpPost(url, nil)
 }
 
 func (c *SeedIdentityForCommand) setResponse(response []byte, fromCache bool) error {

@@ -37,5 +37,5 @@ func NewHiLoReturnCommand(tag string, last int, end int) *HiLoReturnCommand {
 func (c *HiLoReturnCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/hilo/return?tag=" + c._tag + "&end=" + strconv.Itoa(c._end) + "&last=" + strconv.Itoa(c._last)
 
-	return NewHttpPut(url, "")
+	return NewHttpPut(url, nil)
 }

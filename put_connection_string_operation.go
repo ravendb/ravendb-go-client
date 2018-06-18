@@ -52,7 +52,7 @@ func (c *PutConnectionStringCommand) createRequest(node *ServerNode) (*http.Requ
 		// TODO: change err into RuntimeException() ?
 		return nil, err
 	}
-	return NewHttpPut(url, string(d))
+	return NewHttpPut(url, d)
 }
 
 func (c *PutConnectionStringCommand) setResponse(response []byte, fromCache bool) error {

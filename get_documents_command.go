@@ -140,7 +140,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	}
 	d, err := json.Marshal(m)
 	panicIf(err != nil, "json.Marshal() failed with %s", err)
-	return NewHttpPost(url, string(d))
+	return NewHttpPost(url, d)
 }
 
 func (c *GetDocumentsCommand) setResponse(response []byte, fromCache bool) error {

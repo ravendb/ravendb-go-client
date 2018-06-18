@@ -32,7 +32,7 @@ var (
 type PutClientConfigurationCommand struct {
 	*RavenCommandBase
 
-	configuration string
+	configuration []byte
 }
 
 func NewPutClientConfigurationCommand(conventions *DocumentConventions, configuration *ClientConfiguration) *PutClientConfigurationCommand {
@@ -44,7 +44,7 @@ func NewPutClientConfigurationCommand(conventions *DocumentConventions, configur
 	cmd := &PutClientConfigurationCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		configuration: string(d),
+		configuration: d,
 	}
 	return cmd
 }

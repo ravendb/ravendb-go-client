@@ -37,7 +37,7 @@ func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, err
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(c._id)
 
 	d, err := json.Marshal(c._document)
-	request, err := NewHttpPut(url, string(d))
+	request, err := NewHttpPut(url, d)
 	if err != nil {
 		return nil, err
 	}
