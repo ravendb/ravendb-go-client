@@ -11,7 +11,7 @@ type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 
 	// _attachments *IAttachmentsSessionOperations
-	// _revisions *IRevisionsSessionOperations
+	_revisions *IRevisionsSessionOperations
 }
 
 // NewDocumentSession creates a new DocumentSession
@@ -21,7 +21,7 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 	}
 
 	//TODO: res._attachments: NewDocumentSessionAttachments(res)
-	//TODO: res._revisions = NewDocumentSessionRevisions(res)
+	res._revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
 
 	return res
 }
@@ -34,7 +34,10 @@ func (s *DocumentSession) advanced() *DocumentSession {
 //    public ILazySessionOperations lazily() {
 //    public IEagerSessionOperations eagerly() {
 //    public IAttachmentsSessionOperations attachments() {
-//    public IRevisionsSessionOperations revisions() {
+
+func (s *DocumentSession) revisions() *IRevisionsSessionOperations {
+	return s._revisions
+}
 
 func (s *DocumentSession) SaveChanges() error {
 	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)

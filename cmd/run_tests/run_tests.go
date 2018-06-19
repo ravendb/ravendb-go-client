@@ -57,7 +57,8 @@ func runJava() {
 	//runSingleJavaTest("CompactTest", "trace_compact_java.txt")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest", "trace_next_and_seed_identities_java.txt")
 	//runSingleJavaTest("StoreTest", "trace_store_java.txt")
-	runSingleJavaTest("ContainsTest", "trace_contains_java.txt")
+	//runSingleJavaTest("ContainsTest", "trace_contains_java.txt")
+	runSingleJavaTest("RevisionsTest", "trace_revisions_java.txt")
 }
 
 func main() {

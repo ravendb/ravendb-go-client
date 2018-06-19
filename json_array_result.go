@@ -4,3 +4,7 @@ package ravendb
 type JSONArrayResult struct {
 	Results ArrayNode `json:"Results"`
 }
+
+func (r *JSONArrayResult) getResults() ArrayNode {
+	return r.Results
+}

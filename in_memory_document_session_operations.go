@@ -20,7 +20,7 @@ func newClientSessionID() int {
 // in memory
 type InMemoryDocumentSessionOperations struct {
 	_clientSessionID int
-	deletedEntities  map[interface{}]struct{}
+	deletedEntities  *ObjectSet
 	_requestExecutor *RequestExecutor
 	// TODO: OperationExecutor
 	// Note: pendingLazyOperations and onEvaluateLazy not used
@@ -56,7 +56,7 @@ type InMemoryDocumentSessionOperations struct {
 	// convert non-pointer structs to structs?
 	documentsByEntity map[interface{}]*DocumentInfo
 
-	documentStore *DocumentStore
+	_documentStore *DocumentStore
 
 	databaseName string
 
@@ -82,14 +82,14 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
 		_clientSessionID:              clientSessionID,
-		deletedEntities:               map[interface{}]struct{}{},
+		deletedEntities:               NewObjectSet(),
 		_requestExecutor:              re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsById:                 NewDocumentsById(),
 		includedDocumentsById:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
-		documentStore:                 store,
+		_documentStore:                store,
 		databaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
@@ -165,6 +165,14 @@ func (s *InMemoryDocumentSessionOperations) getDatabaseName() string {
 
 func (s *InMemoryDocumentSessionOperations) generateId(entity Object) string {
 	return s.getConventions().generateDocumentId(s.getDatabaseName(), entity)
+}
+
+func (s *InMemoryDocumentSessionOperations) getDocumentStore() *IDocumentStore {
+	return s._documentStore
+}
+
+func (s *InMemoryDocumentSessionOperations) getRequestExecutor() *RequestExecutor {
+	return s._requestExecutor
 }
 
 // getMetadataFor gets the metadata for the specified entity.
@@ -345,7 +353,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 		return NewIllegalStateException("%#v is not associated with the session, cannot delete unknown entity instance", entity)
 	}
 
-	s.deletedEntities[entity] = struct{}{}
+	s.deletedEntities.add(entity)
 	delete(s.includedDocumentsById, value.getId())
 	s._knownMissingIds.add(value.getId())
 	return nil
@@ -446,7 +454,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		return NewIllegalStateException("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
 
-	if _, ok := s.deletedEntities[entity]; ok {
+	if s.deletedEntities.contains(entity) {
 		return NewIllegalStateException("Can't store object, it was already deleted in this session.  Document id: %s", id)
 	}
 
@@ -476,7 +484,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 }
 
 func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
-	delete(s.deletedEntities, entity)
+	s.deletedEntities.remove(entity)
 	if id != "" {
 		s._knownMissingIds.remove(id)
 	}
@@ -558,7 +566,7 @@ func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(document
 
 // TODO: return an error
 func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) {
-	for deletedEntity := range s.deletedEntities {
+	for deletedEntity := range s.deletedEntities.items {
 		documentInfo := s.documentsByEntity[deletedEntity]
 		if documentInfo == nil {
 			continue
@@ -607,7 +615,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 		}
 
 		if len(changes) == 0 {
-			s.deletedEntities = nil
+			s.deletedEntities.clear()
 		}
 	}
 }
@@ -752,12 +760,12 @@ func (s *InMemoryDocumentSessionOperations) evict(entity Object) {
 		s.documentsById.remove(documentInfo.getId())
 	}
 
-	delete(s.deletedEntities, entity)
+	s.deletedEntities.remove(entity)
 }
 
 func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.documentsByEntity = nil
-	s.deletedEntities = nil
+	s.deletedEntities.clear()
 	s.documentsById = nil
 	s._knownMissingIds.clear()
 	s.includedDocumentsById = nil

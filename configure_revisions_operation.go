@@ -1,0 +1,79 @@
+package ravendb
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+var (
+	_ IMaintenanceOperation = &ConfigureRevisionsOperation{}
+)
+
+type ConfigureRevisionsOperation struct {
+	_configuration *RevisionsConfiguration
+	Command        *ConfigureRevisionsCommand
+}
+
+func NewConfigureRevisionsOperation(configuration *RevisionsConfiguration) *ConfigureRevisionsOperation {
+	return &ConfigureRevisionsOperation{
+		_configuration: configuration,
+	}
+}
+
+func (o *ConfigureRevisionsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+	o.Command = NewConfigureRevisionsCommand(conventions, o._configuration)
+	return o.Command
+}
+
+var _ RavenCommand = &ConfigureRevisionsCommand{}
+
+type ConfigureRevisionsCommand struct {
+	*RavenCommandBase
+
+	_conventions   *DocumentConventions
+	_configuration *RevisionsConfiguration
+
+	Result *ConfigureRevisionsOperationResult
+}
+
+func NewConfigureRevisionsCommand(conventions *DocumentConventions, configuration *RevisionsConfiguration) *ConfigureRevisionsCommand {
+	cmd := &ConfigureRevisionsCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
+		_conventions:   conventions,
+		_configuration: configuration,
+	}
+	return cmd
+}
+
+func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/revisions/config"
+
+	d, err := json.Marshal(c._configuration)
+	if err != nil {
+		return nil, err
+	}
+	return NewHttpPost(url, d)
+}
+
+func (c *ConfigureRevisionsCommand) setResponse(response []byte, fromCache bool) error {
+	var res ConfigureRevisionsOperationResult
+	err := json.Unmarshal(response, &res)
+	if err != nil {
+		return err
+	}
+	c.Result = &res
+	return nil
+}
+
+type ConfigureRevisionsOperationResult struct {
+	Etag int `json:"ETag"`
+}
+
+func (r *ConfigureRevisionsOperationResult) getEtag() int {
+	return r.Etag
+}
+
+func (r *ConfigureRevisionsOperationResult) setEtag(etag int) {
+	r.Etag = etag
+}

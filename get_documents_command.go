@@ -66,11 +66,11 @@ func NewGetDocumentsCommandFull(startWith string, startAfter string, matches str
 
 func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?"
-	if c._start != -1 {
+	if c._start > 0 {
 		url += "&start=" + strconv.Itoa(c._start)
 	}
 
-	if c._pageSize != -1 {
+	if c._pageSize > 0 {
 		url += "&pageSize=" + strconv.Itoa(c._pageSize)
 	}
 

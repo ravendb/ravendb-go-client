@@ -42,4 +42,20 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 	return locator, nil
 }
 
-// TODO:     protected ConfigureRevisionsOperation.ConfigureRevisionsOperationResult setupRevisions(IDocumentStore store, boolean purgeOnDelete, long minimumRevisionsToKeep) {
+func setupRevisions(store *DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int) (*ConfigureRevisionsOperationResult, error) {
+
+	revisionsConfiguration := NewRevisionsConfiguration()
+	defaultCollection := NewRevisionsCollectionConfiguration()
+	defaultCollection.setPurgeOnDelete(purgeOnDelete)
+	defaultCollection.setMinimumRevisionsToKeep(minimumRevisionsToKeep)
+
+	revisionsConfiguration.setDefaultConfig(defaultCollection)
+	operation := NewConfigureRevisionsOperation(revisionsConfiguration)
+
+	err := store.maintenance().send(operation)
+	if err != nil {
+		return nil, err
+	}
+
+	return operation.Command.Result, nil
+}
