@@ -53,33 +53,36 @@ func revisionsTest_revisions(t *testing.T) {
 		names = collectUserNamesSorted(revisionsSkipFirst)
 		assert.Equal(t, names, []string{"user1", "user2", "user3"})
 
+		revisionsSkipFirstTakeTwo, err := session.advanced().revisions().getForPaged(getTypeOf(&User{}), "users/1", 1, 2)
+		assert.NoError(t, err)
+		assert.Equal(t, len(revisionsSkipFirstTakeTwo), 2)
+		names = collectUserNamesSorted(revisionsSkipFirstTakeTwo)
+		assert.Equal(t, names, []string{"user2", "user3"})
+
+		allMetadata, err := session.advanced().revisions().getMetadataFor("users/1")
+		assert.NoError(t, err)
+		assert.Equal(t, len(allMetadata), 4)
+
+		metadataSkipFirst, err := session.advanced().revisions().getMetadataForStartAt("users/1", 1)
+		assert.NoError(t, err)
+		assert.Equal(t, len(metadataSkipFirst), 3)
+
+		metadataSkipFirstTakeTwo, err := session.advanced().revisions().getMetadataForPaged("users/1", 1, 2)
+		assert.NoError(t, err)
+		assert.Equal(t, len(metadataSkipFirstTakeTwo), 2)
+
+		dict := metadataSkipFirst[0]
+		var changeVector string
+		chvi, ok := dict.get(Constants_Documents_Metadata_CHANGE_VECTOR)
+		if ok {
+			changeVector = chvi.(string)
+		}
+		userI, err := session.advanced().revisions().get(getTypeOf(&User{}), changeVector)
+		assert.NoError(t, err)
+		user := userI.(*User)
+		assert.Equal(t, *user.getName(), "user3")
 	}
 }
-
-/*
-	List<User> revisionsSkipFirstTakeTwo = session.advanced().revisions().getFor(User.class, "users/1", 1, 2);
-	assertThat(revisionsSkipFirstTakeTwo)
-			.hasSize(2);
-	assertThat(revisionsSkipFirstTakeTwo.stream().map(x -> x.getName()).collect(Collectors.toList()))
-			.containsSequence("user3", "user2" );
-
-	List<MetadataAsDictionary> allMetadata = session.advanced().revisions().getMetadataFor("users/1");
-	assertThat(allMetadata)
-			.hasSize(4);
-
-	List<MetadataAsDictionary> metadataSkipFirst = session.advanced().revisions().getMetadataFor("users/1", 1);
-	assertThat(metadataSkipFirst)
-			.hasSize(3);
-
-	List<MetadataAsDictionary> metadataSkipFirstTakeTwo = session.advanced().revisions().getMetadataFor("users/1", 1, 2);
-	assertThat(metadataSkipFirstTakeTwo)
-			.hasSize(2);
-
-
-	User user = session.advanced().revisions().get(User.class, (String) metadataSkipFirst.get(0).get(Constants.Documents.Metadata.CHANGE_VECTOR));
-	assertThat(user.getName())
-			.isEqualTo("user3");
-*/
 
 func TestRevisions(t *testing.T) {
 	if dbTestsDisabled() {

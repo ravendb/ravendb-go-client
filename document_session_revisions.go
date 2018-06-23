@@ -33,31 +33,39 @@ func (r *DocumentSessionRevisions) getForPaged(clazz reflect.Type, id string, st
 	return operation.getRevisionsFor(clazz), nil
 }
 
+func (r *DocumentSessionRevisions) getMetadataFor(id string) ([]*MetadataAsDictionary, error) {
+	return r.getMetadataForPaged(id, 0, 25)
+}
+
+func (r *DocumentSessionRevisions) getMetadataForStartAt(id string, start int) ([]*MetadataAsDictionary, error) {
+	return r.getMetadataForPaged(id, start, 25)
+}
+
+func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
+	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
+	command := operation.createRequest()
+	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+	operation.setResult(command.Result)
+	return operation.getRevisionsMetadataFor(), nil
+}
+
+// TODO: change to take interace{} to return as an argument?
+// TODO: change changeVector to *string?
+func (r *DocumentSessionRevisions) get(clazz reflect.Type, changeVector string) (interface{}, error) {
+	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)
+	command := operation.createRequest()
+	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+	operation.setResult(command.Result)
+	return operation.getRevision(clazz), nil
+}
+
 /*
-   public List<MetadataAsDictionary> getMetadataFor(String id) {
-       return getMetadataFor(id, 0, 25);
-   }
-
-   public List<MetadataAsDictionary> getMetadataFor(String id, int start) {
-       return getMetadataFor(id, start, 25);
-   }
-
-   public List<MetadataAsDictionary> getMetadataFor(String id, int start, int pageSize) {
-       GetRevisionOperation operation = new GetRevisionOperation(session, id, start, pageSize, true);
-       GetRevisionsCommand command = operation.createRequest();
-       requestExecutor.execute(command, sessionInfo);
-       operation.setResult(command.getResult());
-       return operation.getRevisionsMetadataFor();
-   }
-
-   public <T> T get(Class<T> clazz, String changeVector) {
-       GetRevisionOperation operation = new GetRevisionOperation(session, changeVector);
-
-       GetRevisionsCommand command = operation.createRequest();
-       requestExecutor.execute(command, sessionInfo);
-       operation.setResult(command.getResult());
-       return operation.getRevision(clazz);
-   }
 
    public <T> Map<String, T> get(Class<T> clazz, String[] changeVectors) {
        GetRevisionOperation operation = new GetRevisionOperation(session, changeVectors);

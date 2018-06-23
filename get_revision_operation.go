@@ -9,6 +9,13 @@ type GetRevisionOperation struct {
 	_command *GetRevisionsCommand
 }
 
+func NewGetRevisionOperationWithChangeVector(session *InMemoryDocumentSessionOperations, changeVector string) *GetRevisionOperation {
+	return &GetRevisionOperation{
+		_session: session,
+		_command: NewGetRevisionsCommand([]string{changeVector}, false),
+	}
+}
+
 func NewGetRevisionOperationRange(session *InMemoryDocumentSessionOperations, id string, start int, pageSize int, metadataOnly bool) *GetRevisionOperation {
 	panicIf(session == nil, "Session cannot be null")
 	panicIf(id == "", "Id cannot be null")
@@ -26,12 +33,12 @@ func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {
 	o._result = result
 }
 
-func (o *GetRevisionOperation) getRevision(clazz reflect.Type, document ObjectNode) interface{} {
+// Note: in Java it's getRevision
+func (o *GetRevisionOperation) getRevisionWithDocument(clazz reflect.Type, document ObjectNode) interface{} {
 	if document == nil {
 		return Defaults_defaultValue(clazz)
 	}
 
-	// TODO:
 	var metadata ObjectNode
 	id := ""
 	if v, ok := document[Constants_Documents_Metadata_KEY]; ok {
@@ -59,7 +66,7 @@ func (o *GetRevisionOperation) getRevisionsFor(clazz reflect.Type) []interface{}
 	results := make([]interface{}, resultsCount, resultsCount)
 	for i := 0; i < resultsCount; i++ {
 		document := o._result.getResults()[i]
-		results[i] = o.getRevision(clazz, document)
+		results[i] = o.getRevisionWithDocument(clazz, document)
 	}
 
 	return results
@@ -75,18 +82,18 @@ func (o *GetRevisionOperation) getRevisionsMetadataFor() []*MetadataAsDictionary
 		if v, ok := document[Constants_Documents_Metadata_KEY]; ok {
 			metadata = v.(ObjectNode)
 		}
-		results[i] = NewMetadataAsDictionary(metadata, nil, "")
+		results[i] = NewMetadataAsDictionaryWithSource(metadata)
 	}
 	return results
 }
 
-func (o *GetRevisionOperation) getRevision2(clazz reflect.Type) interface{} {
+func (o *GetRevisionOperation) getRevision(clazz reflect.Type) interface{} {
 	if o._result == nil {
 		return Defaults_defaultValue(clazz)
 	}
 
 	document := o._result.getResults()[0]
-	return o.getRevision(clazz, document)
+	return o.getRevisionWithDocument(clazz, document)
 }
 
 func (o *GetRevisionOperation) getRevisions(clazz reflect.Type) map[string]interface{} {
@@ -101,7 +108,7 @@ func (o *GetRevisionOperation) getRevisions(clazz reflect.Type) map[string]inter
 		}
 
 		v := o._result.getResults()[i]
-		rev := o.getRevision(clazz, v)
+		rev := o.getRevisionWithDocument(clazz, v)
 		results[changeVector] = rev
 	}
 
