@@ -4,7 +4,7 @@
 #RAVENDB_JAVA_TEST_SERVER_PATH="./RavenDB/Server/Raven.Server"
 
 # make Go http client use proxy
-#export HTTP_PROXY=http://localhost:8888
+export HTTP_PROXY=http://localhost:8888
 #export HTTP_PROXY=
 
 # TODO: for now not running with -race because fails with:
@@ -16,6 +16,6 @@
 
 #go test -race
 
-#go test
+go test
 
-go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestRequestExecutor$
+#go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestRequestExecutor$

@@ -33,14 +33,15 @@ func (e *OperationExecutor) forDatabase(databaseName string) *OperationExecutor 
 	return NewOperationExecutorWithDatabaseName(e.store, databaseName)
 }
 
-// TODO: make arg IOperation
-func (e *OperationExecutor) send(command RavenCommand) error {
-	return e.sendWithSessionInfo(command, nil)
+func (e *OperationExecutor) send(operation IOperation) error {
+	return e.sendWithSessionInfo(operation, nil)
 }
 
-// TODO: make arg IOperation
-// TODO: java returns a result
-func (e *OperationExecutor) sendWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
+// Note: we don't return a result because we could only return interface{}
+// The caller has access to operation and can access strongly typed
+// command and its result
+func (e *OperationExecutor) sendWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) error {
+	command := operation.getCommand(e.store, e.requestExecutor.getConventions(), e.requestExecutor.getCache())
 	return e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
 }
 

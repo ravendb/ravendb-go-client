@@ -65,6 +65,10 @@ type RequestExecutor struct {
 	clusterTopologySemaphore *Semaphore
 }
 
+func (re *RequestExecutor) getCache() *HttpCache {
+	return re.cache
+}
+
 func (re *RequestExecutor) getTopology() *Topology {
 	if re._nodeSelector != nil {
 		return re._nodeSelector.getTopology()

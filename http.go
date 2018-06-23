@@ -136,7 +136,6 @@ func NewHttpHead(uri string) (*http.Request, error) {
 }
 
 func NewHttpGet(uri string) (*http.Request, error) {
-	//fmt.Printf("GET %s\n", uri)
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
@@ -146,7 +145,6 @@ func NewHttpGet(uri string) (*http.Request, error) {
 }
 
 func NewHttpPost(uri string, data []byte) (*http.Request, error) {
-	//fmt.Printf("POST %s\n", uri)
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewBuffer(data)
@@ -165,7 +163,6 @@ func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 }
 
 func NewHttpPut(uri string, data []byte) (*http.Request, error) {
-	//fmt.Printf("PUT %s\n", uri)
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewBuffer(data)
@@ -183,8 +180,25 @@ func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	return req, err
 }
 
+func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
+	var body io.Reader
+	if len(data) > 0 {
+		body = bytes.NewBuffer(data)
+		//d := prettyPrintMaybeJSON([]byte(data))
+		//fmt.Printf("%s\n", string(d))
+	}
+	req, err := http.NewRequest(http.MethodPatch, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	if len(data) > 0 {
+		req.Header.Add("Content-Type", "application/json; charset=UTF-8")
+	}
+	return req, err
+}
+
 func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
-	//fmt.Printf("DELETE %s\n", uri)
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewBuffer(data)
