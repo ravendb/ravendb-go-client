@@ -160,9 +160,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 
 func NewClusterRequestExecutor(certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	res := NewRequestExecutor("", certificate, conventions, initialUrls)
-
-	res.isCluster = true
-	res.clusterTopologySemaphore = NewSemaphore(1)
+	res.makeCluster()
 
 	return res
 }
@@ -212,6 +210,7 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 		conventions = DocumentConventions_defaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
+	executor.makeCluster()
 
 	serverNode := NewServerNode()
 	serverNode.setUrl(url)
@@ -227,10 +226,12 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 	executor._disableClientConfigurationUpdates = true
 	executor._disableTopologyUpdates = true
 
-	executor.isCluster = true
-	executor.clusterTopologySemaphore = NewSemaphore(1)
-
 	return executor
+}
+
+func (re *RequestExecutor) makeCluster() {
+	re.isCluster = true
+	re.clusterTopologySemaphore = NewSemaphore(1)
 }
 
 func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
@@ -238,12 +239,10 @@ func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, 
 		conventions = DocumentConventions_defaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
+	executor.makeCluster()
 
 	executor._disableClientConfigurationUpdates = true
 	executor._firstTopologyUpdate = executor.firstTopologyUpdate(initialUrls)
-
-	executor.isCluster = true
-	executor.clusterTopologySemaphore = NewSemaphore(1)
 
 	return executor
 }
