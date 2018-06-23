@@ -15,7 +15,10 @@ import (
 	"time"
 )
 
-//     private static final GetStatisticsOperation failureCheckOperation = new GetStatisticsOperation("failure=check");
+var (
+	RequestExecutor_failureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperationWithDebugTag("failure=check")
+)
+
 // public static Consumer<HttpRequestBase> requestPostProcessor = null;
 
 const (
@@ -56,6 +59,10 @@ type RequestExecutor struct {
 	mu sync.Mutex
 
 	_disposed bool
+
+	// those are needed to implement ClusterRequestExecutor logic
+	isCluster                bool
+	clusterTopologySemaphore *Semaphore
 }
 
 func (re *RequestExecutor) getTopology() *Topology {
@@ -128,7 +135,6 @@ func getGlobalHTTPClient() *http.Client {
 }
 
 // NewRequestExecutor creates a new executor
-// TODO: certificate
 func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	if conventions == nil {
 		conventions = NewDocumentConventions()
@@ -149,6 +155,15 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 	// or certificate differ
 	//res.httpClient = res.createClient()
 	res.httpClient = getGlobalHTTPClient()
+	return res
+}
+
+func NewClusterRequestExecutor(certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
+	res := NewRequestExecutor("", certificate, conventions, initialUrls)
+
+	res.isCluster = true
+	res.clusterTopologySemaphore = NewSemaphore(1)
+
 	return res
 }
 
@@ -188,7 +203,62 @@ func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, 
 	return executor
 }
 
+func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+
+	initialUrls := []string{url}
+	url = RequestExecutor_validateUrls(initialUrls, certificate)[0]
+
+	if conventions == nil {
+		conventions = DocumentConventions_defaultConventions()
+	}
+	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
+
+	serverNode := NewServerNode()
+	serverNode.setUrl(url)
+
+	topology := NewTopology()
+	topology.setEtag(-1)
+	topology.setNodes([]*ServerNode{serverNode})
+
+	nodeSelector := NewNodeSelector(topology)
+
+	executor._nodeSelector = nodeSelector
+	executor.topologyEtag = -2
+	executor._disableClientConfigurationUpdates = true
+	executor._disableTopologyUpdates = true
+
+	executor.isCluster = true
+	executor.clusterTopologySemaphore = NewSemaphore(1)
+
+	return executor
+}
+
+func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+	if conventions == nil {
+		conventions = DocumentConventions_defaultConventions()
+	}
+	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
+
+	executor._disableClientConfigurationUpdates = true
+	executor._firstTopologyUpdate = executor.firstTopologyUpdate(initialUrls)
+
+	executor.isCluster = true
+	executor.clusterTopologySemaphore = NewSemaphore(1)
+
+	return executor
+}
+
+func (re *RequestExecutor) clusterUpdateClientConfigurationAsync() *CompletableFuture {
+	panicIf(!re.isCluster, "clusterUpdateClientConfigurationAsync() called on non-cluster RequestExecutor")
+	return NewCompletableFutureAlreadyCompleted(nil)
+}
+
 func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
+	// Note: in Java this is done via virtual functions
+	if re.isCluster {
+		return re.clusterUpdateClientConfigurationAsync()
+	}
+
 	if re._disposed {
 		return NewCompletableFutureAlreadyCompleted(nil)
 	}
@@ -237,6 +307,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 			return
 		}
 	}
+
 	go f()
 	return future
 }
@@ -245,7 +316,73 @@ func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *C
 	return re.updateTopologyAsyncWithForceUpdate(node, timeout, false)
 }
 
+func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *CompletableFuture {
+	panicIf(!re.isCluster, "clusterUpdateTopologyAsyncWithForceUpdate() called on non-cluster RequestExecutor")
+
+	if re._disposed {
+		return NewCompletableFutureAlreadyCompleted(false)
+	}
+
+	future := NewCompletableFuture()
+	f := func() {
+		var err error
+		var res bool
+		defer func() {
+			if err != nil {
+				future.markAsDoneWithError(err)
+			} else {
+				future.markAsDone(res)
+			}
+			re.clusterTopologySemaphore.release()
+		}()
+
+		re.clusterTopologySemaphore.acquire()
+		if re._disposed {
+			res = false
+			return
+		}
+
+		command := NewGetClusterTopologyCommand()
+		err = re.execute(node, -1, command, false, nil)
+		if err != nil {
+			return
+		}
+		results := command.Result
+		members := results.getTopology().Members
+		var nodes []*ServerNode
+		for key, value := range members {
+			serverNode := NewServerNode()
+			serverNode.setUrl(value)
+			serverNode.setClusterTag(key)
+			nodes = append(nodes, serverNode)
+		}
+		newTopology := NewTopology()
+		newTopology.setNodes(nodes)
+
+		if re._nodeSelector == nil {
+			re._nodeSelector = NewNodeSelector(newTopology)
+
+			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+				re._nodeSelector.scheduleSpeedTest()
+			}
+		} else if re._nodeSelector.onUpdateTopology(newTopology, forceUpdate) {
+			re.disposeAllFailedNodesTimers()
+
+			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+				re._nodeSelector.scheduleSpeedTest()
+			}
+		}
+	}
+
+	go f()
+	return future
+}
+
 func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *CompletableFuture {
+	// Note: in Java this is done via virtual functions
+	if re.isCluster {
+		return re.clusterUpdateTopologyAsyncWithForceUpdate(node, timeout, forceUpdate)
+	}
 	//fmt.Printf("updateTopologyAsyncWithForceUpdate\n")
 	future := NewCompletableFuture()
 	f := func() {
@@ -284,6 +421,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		re.topologyEtag = re._nodeSelector.getTopology().getEtag()
 		res = true
 	}
+
 	go f()
 	return future
 }
@@ -809,10 +947,19 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 	panicIf(true, "NYI")
 }
 
+func (re *RequestExecutor) clusterPerformHealthCheck(serverNode *ServerNode, nodeIndex int) error {
+	panicIf(!re.isCluster, "clusterPerformHealthCheck() called on non-cluster RequestExector")
+	command := NewGetTcpInfoCommand("health-check")
+	return re.execute(serverNode, nodeIndex, command, false, nil)
+}
+
 func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex int) error {
-	panicIf(true, "NYI")
-	//execute(serverNode, nodeIndex, failureCheckOperation.getCommand(conventions), false, null);
-	return nil
+	// Note: in Java this is done via virtual functions
+	if re.isCluster {
+		return re.clusterPerformHealthCheck(serverNode, nodeIndex)
+	}
+	command := RequestExecutor_failureCheckOperation.getCommand(re.conventions)
+	return re.execute(serverNode, nodeIndex, command, false, nil)
 }
 
 // TODO: this is static
@@ -867,6 +1014,13 @@ func (re *RequestExecutor) close() {
 	if re._disposed {
 		return
 	}
+
+	if re.isCluster {
+		// make sure that a potentially pending updateTopologyAsync() has
+		// finished
+		re.clusterTopologySemaphore.acquire()
+	}
+
 	re._disposed = true
 	//re.cache.close()
 

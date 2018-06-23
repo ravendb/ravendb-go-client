@@ -1,20 +1,18 @@
 package ravendb
 
 type ServerOperationExecutor struct {
-	requestExecutor *RequestExecutor // TODO: ClusterRequestExecutor
+	requestExecutor *ClusterRequestExecutor
 }
 
 func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	res := &ServerOperationExecutor{}
 	urls := store.getUrls()
-	dbName := store.getDatabase()
+	cert := store.getCertificate()
 	conv := store.getConventions()
 	if conv.isDisableTopologyUpdates() {
-		// TODO: ClusterRequestExecutor_createForSingleNode()
-		res.requestExecutor = RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(urls[0], dbName, nil, conv)
+		res.requestExecutor = ClusterRequestExecutor_createForSingleNode(urls[0], cert, conv)
 	} else {
-		// TODO: ClusterRequestExecutor_create()
-		res.requestExecutor = RequestExecutor_create(urls, dbName, nil, conv)
+		res.requestExecutor = ClusterRequestExecutor_create(urls, cert, conv)
 	}
 	fn := func(store *DocumentStore) {
 		res.requestExecutor.close()

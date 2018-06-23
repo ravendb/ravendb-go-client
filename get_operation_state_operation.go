@@ -11,7 +11,7 @@ type GetOperationStateOperation struct {
 }
 
 func (o *GetOperationStateOperation) getCommand(conventions *DocumentConventions) *GetOperationStateCommand {
-	return NewGetOperationStateCommand(DocumentConventions_defaultConventions, o._id)
+	return NewGetOperationStateCommand(DocumentConventions_defaultConventions(), o._id)
 }
 
 type GetOperationStateCommand struct {

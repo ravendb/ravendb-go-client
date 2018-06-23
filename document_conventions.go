@@ -33,13 +33,12 @@ type DocumentConventions struct {
 	mu                                              sync.Mutex
 }
 
-var (
-	DocumentConventions_defaultConventions *DocumentConventions
-)
-
-func init() {
-	DocumentConventions_defaultConventions = NewDocumentConventions()
-	DocumentConventions_defaultConventions.freeze()
+// Note: Java has it as frozen global variable (possibly for perf) but Go
+// has no notion of frozen objects so for safety we create new object
+// (avoids accidental modification of shared, global state)
+// TODO: replace with direct calls to NewDocumentConventions()
+func DocumentConventions_defaultConventions() *DocumentConventions {
+	return NewDocumentConventions()
 }
 
 // NewDocumentConventions creates DocumentConventions with default values
