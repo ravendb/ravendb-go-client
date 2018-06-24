@@ -59,7 +59,8 @@ func runJava() {
 	//runSingleJavaTest("StoreTest", "trace_store_java.txt")
 	//runSingleJavaTest("ContainsTest", "trace_contains_java.txt")
 	//runSingleJavaTest("RevisionsTest", "trace_revisions_java.txt")
-	runSingleJavaTest("PatchTest", "trace_patch_java.txt")
+	//runSingleJavaTest("PatchTest", "trace_patch_java.txt")
+	runSingleJavaTest("IndexOperationsTest", "trace_index_operations_java.txt")
 }
 
 func main() {

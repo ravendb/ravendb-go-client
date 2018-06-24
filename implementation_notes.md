@@ -122,3 +122,26 @@ Go packages have restrictions: they can't have circular references.
 Java code has lots of mutual-references between packages so it's impossible to
 replicate its structure in Go.
 
+## Enums
+
+Go doesn't have enumes.
+
+Java enums are represented as constants. Those that are `@UseSharpEnum` are typed as string. In other words, this:
+
+```java
+@UseSharpEnum
+public enum FieldStorage {
+    YES,
+    NO
+}
+```
+
+Is turned into this:
+```go
+type FieldStorage = string
+
+const (
+	FieldStorage_YES = "Yes"
+	FieldStorage_NO  = "No"
+)
+```
