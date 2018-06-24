@@ -45,7 +45,26 @@ func (e *OperationExecutor) sendWithSessionInfo(operation IOperation, sessionInf
 	return e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
 }
 
-//     public Operation sendAsync(IOperation<OperationIdResult> operation) {
-//    public Operation sendAsync(IOperation<OperationIdResult> operation, SessionInfo sessionInfo) {
+func (e *OperationExecutor) sendAsync(operation IOperation) (*Operation, error) {
+	return e.sendAsyncWithSessionInfo(operation, nil)
+}
+
+func (e *OperationExecutor) sendAsyncWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) (*Operation, error) {
+	command := operation.getCommand(e.store, e.requestExecutor.getConventions(), e.requestExecutor.getCache())
+
+	err := e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	changes := func() *IDatabaseChanges {
+		return e.store.changes()
+	}
+	result := getCommandOperationIdResult(command)
+
+	return NewOperation(e.requestExecutor, changes, e.requestExecutor.getConventions(), result.getOperationId()), nil
+
+}
+
 //     public PatchStatus send(PatchOperation operation, SessionInfo sessionInfo) {
 //    public <TEntity> PatchOperation.Result<TEntity> send(Class<TEntity> entityClass, PatchOperation operation, SessionInfo sessionInfo) {

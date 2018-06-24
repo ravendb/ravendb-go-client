@@ -1,7 +1,5 @@
 package ravendb
 
-import "encoding/json"
-
 type PatchRequest struct {
 	script string
 	values map[string]Object
@@ -33,12 +31,14 @@ func PatchRequest_forScript(script string) *PatchRequest {
 	}
 }
 
-func (r *PatchRequest) serialize() []byte {
+func (r *PatchRequest) serialize() ObjectNode {
+	values := r.values
+	if values == nil {
+		values = ObjectNode{}
+	}
 	m := map[string]interface{}{
 		"Script": r.script,
-		"Values": r.values,
+		"Values": values,
 	}
-	d, err := json.Marshal(m)
-	panicIf(err != nil, "json.Marshal() failed with %s", err)
-	return d
+	return m
 }

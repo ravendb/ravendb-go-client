@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
@@ -50,6 +51,20 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
+
+	operation := NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
+	op, err := store.operations().sendAsync(operation)
+	assert.NoError(t, err)
+	err = op.waitForCompletion()
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+		loadedUserI, err := session.load(getTypeOf(&User{}), "users/1")
+		assert.NoError(t, err)
+		loadedUser := loadedUserI.(*User)
+		assert.Equal(t, *loadedUser.getName(), "Patched")
+	}
 }
 
 func patchTestthrowsOnInvalidScript(t *testing.T) {
@@ -65,6 +80,17 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
+
+	operation := NewPatchByQueryOperation("from Users update {  throw 5 }")
+
+	op, err := store.operations().sendAsync(operation)
+	assert.NoError(t, err)
+
+	err = op.waitForCompletion()
+	assert.Error(t, err)
+	// TODO: make sure it's an instance of JavaScriptException ? Currently is RavenException
+	assert.True(t, strings.Contains(err.Error(), "Raven.Client.Exceptions.Documents.Patching.JavaScriptException"))
+
 }
 
 func TestPatch(t *testing.T) {
@@ -80,8 +106,6 @@ func TestPatch(t *testing.T) {
 
 	// order matches Java tests
 	patchTestcanPatchManyDocuments(t)
-
-	// TODO: needs PatchByQueryOperation
-	//patchTestthrowsOnInvalidScript(t)
-	//patchTestcanPatchSingleDocument(t)
+	patchTestthrowsOnInvalidScript(t)
+	patchTestcanPatchSingleDocument(t)
 }

@@ -54,17 +54,11 @@ func NewExplainQueryCommand(conventions *DocumentConventions, indexQuery *IndexQ
 
 func (c *ExplainQueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/queries?debug=explain"
-	// TODO:
-	/*
-	   request.setEntity(new ContentProviderHttpEntity(outputStream -> {
-	       try (JsonGenerator generator = mapper.getFactory().createGenerator(outputStream)) {
-	           JsonExtensions.writeIndexQuery(generator, _conventions, _indexQuery);
-	       } catch (IOException e) {
-	           throw new RuntimeException(e);
-	       }
-	   }, ContentType.APPLICATION_JSON));
-	*/
-	return NewHttpPost(url, nil)
+
+	v := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
+	d, err := json.Marshal(v)
+	panicIf(err != nil, "json.Marshal() failed with %s", err)
+	return NewHttpPost(url, d)
 }
 
 func (c *ExplainQueryCommand) setResponse(response []byte, fromCache bool) error {

@@ -329,7 +329,11 @@ func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string
 	// TODO: implement me
 }
 
-//    public IDatabaseChanges changes() {
+func (s *DocumentStore) changes() *IDatabaseChanges {
+	// TODO: implement me
+	return nil
+}
+
 //    public IDatabaseChanges changes(string database) {
 //    protected IDatabaseChanges createDatabaseChanges(string database) {
 //     public Exception getLastDatabaseChangesStateException() {

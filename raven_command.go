@@ -200,9 +200,10 @@ func getCommandOperationIdResult(cmd RavenCommand) *OperationIdResult {
 	switch c := cmd.(type) {
 	case *CompactDatabaseCommand:
 		return c.Result
+	case *PatchByQueryCommand:
+		return c.Result
 	}
 	// TODO:
-	//case *PatchByQueryCommand:
 	//case *DeleteByIndexCommand:
 	panicIf(true, "called on a command that doesn't return OperationIdResult")
 	return nil

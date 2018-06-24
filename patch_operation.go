@@ -32,24 +32,24 @@ func (p *PatchOperationPayload) getPatchIfMissing() *PatchRequest {
 
 // Note: in Java it's Result nested in PatchOperation
 type PatchOperationResult struct {
-	status   PatchStatus
-	document interface{}
+	Status   PatchStatus `json:"Status"`
+	Document interface{} `json:"Document"`
 }
 
 func (r *PatchOperationResult) getStatus() PatchStatus {
-	return r.status
+	return r.Status
 }
 
 func (r *PatchOperationResult) setStatus(status PatchStatus) {
-	r.status = status
+	r.Status = status
 }
 
 func (r *PatchOperationResult) getDocument() interface{} {
-	return r.document
+	return r.Document
 }
 
 func (r *PatchOperationResult) setDocument(document interface{}) {
-	r.document = document
+	r.Document = document
 }
 
 type PatchOperation struct {
@@ -104,21 +104,16 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 
 	cmd := &PatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_id:              id,
-		_changeVector:    changeVector,
-		_patch:           NewPatchOperationPayload(patch, patchIfMissing),
+
+		_id:           id,
+		_changeVector: changeVector,
+		_patch:        NewPatchOperationPayload(patch, patchIfMissing),
 		_skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
 		_returnDebugInformation:          returnDebugInformation,
 		_test: test,
 	}
-	return cmd
-}
 
-func stringAddIf(s string, cond bool, toAdd string) string {
-	if cond {
-		return s + toAdd
-	}
-	return s
+	return cmd
 }
 
 func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
@@ -136,23 +131,19 @@ func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 		url += "&test=true"
 	}
 
-	var patchStr *string
+	patch := ObjectNode{}
 	if c._patch.getPatch() != nil {
-		d := c._patch.getPatch().serialize()
-		s := string(d)
-		patchStr = &s
+		patch = c._patch.getPatch().serialize()
 	}
 
-	var patchIfMissingStr *string
+	var patchIfMissing ObjectNode
 	if c._patch.getPatchIfMissing() != nil {
-		d := c._patch.getPatchIfMissing().serialize()
-		s := string(d)
-		patchIfMissingStr = &s
+		patchIfMissing = c._patch.getPatchIfMissing().serialize()
 	}
 
 	m := map[string]interface{}{
-		"Patch":          patchStr,
-		"PatchIfMissing": patchIfMissingStr,
+		"Patch":          patch,
+		"PatchIfMissing": patchIfMissing,
 	}
 	d, err := json.Marshal(m)
 	panicIf(err != nil, "json.Marshal failed with %s", err)
