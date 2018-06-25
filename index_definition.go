@@ -1,17 +1,17 @@
 package ravendb
 
 type IndexDefinition struct {
-	name              string
-	priority          IndexPriority
-	lockMode          IndexLockMode
-	additionalSources map[string]string
-	maps              *StringSet
-	reduce            string
-	fields            map[string]*IndexFieldOptions
-	configuration     IndexConfiguration
-	indexType         IndexType
+	name              string                        `json:"Name"`
+	priority          IndexPriority                 `json:"Priority"`
+	lockMode          IndexLockMode                 `json:"LockMode"`
+	additionalSources map[string]string             `json:"AdditionalSources"`
+	maps              *StringSet                    `json:"Maps"`
+	reduce            string                        `json:"Reduce"`
+	fields            map[string]*IndexFieldOptions `json:"Fields"`
+	configuration     IndexConfiguration            `json:"Configuration"`
+	indexType         IndexType                     `json:"IndexType"`
 	//TBD 4.1  bool testIndex;
-	outputReduceToCollection string
+	outputReduceToCollection string `json:"OutputReduceToCollection"`
 }
 
 func NewIndexDefinition() *IndexDefinition {
