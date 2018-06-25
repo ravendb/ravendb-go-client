@@ -28,7 +28,9 @@ type StopIndexingCommand struct {
 }
 
 func NewStopIndexingCommand() *StopIndexingCommand {
-	return &StopIndexingCommand{}
+	return &StopIndexingCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+	}
 }
 
 func (c *StopIndexingCommand) createRequest(node *ServerNode) (*http.Request, error) {

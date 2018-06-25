@@ -38,6 +38,8 @@ type ResetIndexCommand struct {
 func NewResetIndexCommand(indexName string) *ResetIndexCommand {
 	panicIf(indexName == "", "indexName cannot be empty")
 	return &ResetIndexCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
 		_indexName: indexName,
 	}
 }

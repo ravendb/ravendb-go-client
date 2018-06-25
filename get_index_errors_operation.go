@@ -38,6 +38,8 @@ type GetIndexErrorsCommand struct {
 
 func NewGetIndexErrorsCommand(indexNames []string) *GetIndexErrorsCommand {
 	res := &GetIndexErrorsCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
 		_indexNames: indexNames,
 	}
 	res.IsReadRequest = true

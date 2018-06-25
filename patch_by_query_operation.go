@@ -47,9 +47,10 @@ func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *Ind
 	}
 	cmd := &PatchByQueryCommand{
 		RavenCommandBase: NewRavenCommandBase(),
-		_conventions:     conventions,
-		_queryToUpdate:   queryToUpdate,
-		_options:         options,
+
+		_conventions:   conventions,
+		_queryToUpdate: queryToUpdate,
+		_options:       options,
 	}
 	return cmd
 }

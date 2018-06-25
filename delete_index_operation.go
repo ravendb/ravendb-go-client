@@ -38,6 +38,8 @@ type DeleteIndexCommand struct {
 func NewDeleteIndexCommand(indexName string) *DeleteIndexCommand {
 	panicIf(indexName == "", "indexName cannot be empty")
 	return &DeleteIndexCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
 		_indexName: indexName,
 	}
 }
