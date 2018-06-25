@@ -139,12 +139,10 @@ func (t *AbstractIndexCreationTask) index(field string, indexing FieldIndexing) 
 	t.indexesStrings[field] = indexing
 }
 
-// TODO: write me
-/*
-   func (t *AbstractIndexCreationTask)     spatial( field string, indexing func(SpatialOptionsFactory, *SpatialOptions) {
-       spatialOptionsStrings.put(field, indexing(new SpatialOptionsFactory()));
-   }
-*/
+func (t *AbstractIndexCreationTask) spatial(field string, indexing func(*SpatialOptionsFactory) *SpatialOptions) {
+	v := indexing(NewSpatialOptionsFactory())
+	t.spatialOptionsStrings[field] = v
+}
 
 func (t *AbstractIndexCreationTask) storeAllFields(storage FieldStorage) {
 	t.storesStrings[Constants_Documents_Indexing_Fields_ALL_FIELDS] = storage
