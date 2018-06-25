@@ -258,6 +258,30 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	return session, nil
 }
 
+func (s *DocumentStore) executeIndex(task *AbstractIndexCreationTask) error {
+	return s.executeIndexWithDatabase(task, "")
+}
+
+func (s *DocumentStore) executeIndexWithDatabase(task *AbstractIndexCreationTask, database string) error {
+	s.assertInitialized()
+	return task.execute2(s, s.conventions, database)
+}
+
+func (s *DocumentStore) executeIndexes(tasks []*AbstractIndexCreationTask) error {
+	return s.executeIndexesWithDatabase(tasks, "")
+}
+
+func (s *DocumentStore) executeIndexesWithDatabase(tasks []*AbstractIndexCreationTask, database string) error {
+	s.assertInitialized()
+	indexesToAdd := IndexCreation_createIndexesToAdd(tasks, s.conventions)
+
+	op := NewPutIndexesOperation(indexesToAdd)
+	if database == "" {
+		database = s.getDatabase()
+	}
+	return s.maintenance().forDatabase(database).send(op)
+}
+
 // TODO: for ease of porting, replace with GetRequestExecutor during code cleanup
 func (s *DocumentStore) getRequestExecutor() *RequestExecutor {
 	return s.GetRequestExecutorWithDatabase("")
