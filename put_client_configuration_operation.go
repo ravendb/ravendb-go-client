@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+var _ IVoidMaintenanceOperation = &PutClientConfigurationOperation{}
+
 type PutClientConfigurationOperation struct {
 	configuration *ClientConfiguration
 	Command       *PutClientConfigurationCommand

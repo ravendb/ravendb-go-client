@@ -145,3 +145,16 @@ const (
 	FieldStorage_NO  = "No"
 )
 ```
+
+## Statically ensuring a type implements an interface
+
+Go implements duck-typing of interfaces i.e. a struct doesn't have to declare
+that it implements an interface. That opens up a possibility of not
+implementing an interface correctly.
+
+A simple trick to ensure that a struct implements interface:
+
+```go
+var _ IVoidMaintenanceOperation = &PutClientConfigurationOperation{}
+```
+

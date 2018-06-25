@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	_ IMaintenanceOperation = &CreateSampleDataOperation{}
+	_ IVoidMaintenanceOperation = &CreateSampleDataOperation{}
 )
 
 type CreateSampleDataOperation struct {

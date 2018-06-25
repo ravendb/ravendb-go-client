@@ -144,6 +144,15 @@ func NewHttpGet(uri string) (*http.Request, error) {
 	return req, err
 }
 
+func NewHttpReset(uri string) (*http.Request, error) {
+	req, err := http.NewRequest("RESET", uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
 func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
