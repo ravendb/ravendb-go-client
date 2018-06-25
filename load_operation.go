@@ -57,8 +57,7 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 	// TODO: should this be a copy?
 	o._ids = ids
 
-	distinct := NewSet_String()
-	distinct.cmp = String_compareToIgnoreCase
+	distinct := NewStringSetNoCase()
 
 	for _, id := range ids {
 		if id != "" {
@@ -102,8 +101,7 @@ func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interf
 }
 
 func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}, error) {
-	uniqueIds := NewSet_String()
-	uniqueIds.cmp = String_compareToIgnoreCase
+	uniqueIds := NewStringSetNoCase()
 	for _, id := range o._ids {
 		if id == "" {
 			continue

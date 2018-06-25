@@ -9,7 +9,7 @@ type IndexDefinitionBuilder struct {
 	storesStrings            map[string]FieldStorage
 	indexesStrings           map[string]FieldIndexing
 	analyzersStrings         map[string]string
-	suggestionsOptions       *Set_String
+	suggestionsOptions       *StringSet
 	termVectorsStrings       map[string]FieldTermVector
 	spatialIndexesStrings    map[string]*SpatialOptions
 	lockMode                 IndexLockMode
@@ -28,7 +28,7 @@ func NewIndexDefinitionBuilder(indexName string) *IndexDefinitionBuilder {
 		_indexName:            indexName,
 		storesStrings:         make(map[string]FieldStorage),
 		indexesStrings:        make(map[string]FieldIndexing),
-		suggestionsOptions:    NewSet_String(),
+		suggestionsOptions:    NewStringSet(),
 		analyzersStrings:      make(map[string]string),
 		termVectorsStrings:    make(map[string]FieldTermVector),
 		spatialIndexesStrings: make(map[string]*SpatialOptions),
@@ -216,11 +216,11 @@ func (d *IndexDefinitionBuilder) setAnalyzersStrings(analyzersStrings map[string
 	d.analyzersStrings = analyzersStrings
 }
 
-func (d *IndexDefinitionBuilder) getSuggestionsOptions() *Set_String {
+func (d *IndexDefinitionBuilder) getSuggestionsOptions() *StringSet {
 	return d.suggestionsOptions
 }
 
-func (d *IndexDefinitionBuilder) setSuggestionsOptions(suggestionsOptions *Set_String) {
+func (d *IndexDefinitionBuilder) setSuggestionsOptions(suggestionsOptions *StringSet) {
 	d.suggestionsOptions = suggestionsOptions
 }
 

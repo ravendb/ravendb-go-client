@@ -38,7 +38,7 @@ type InMemoryDocumentSessionOperations struct {
 	onBeforeQuery  []func(interface{}, *BeforeQueryEventArgs)
 
 	// ids of entities that were deleted
-	_knownMissingIds *Set_String
+	_knownMissingIds *StringSet
 
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
@@ -93,10 +93,9 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		databaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
-		_knownMissingIds:              NewSet_String(),
+		_knownMissingIds:              NewStringSetNoCase(),
 		deferredCommandsMap:           make(map[IdTypeAndName]ICommandData),
 	}
-	res._knownMissingIds.cmp = String_compareToIgnoreCase
 
 	genIDFunc := func(entity Object) string {
 		return res.generateId(entity)

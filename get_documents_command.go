@@ -115,7 +115,7 @@ func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, er
 
 func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
 	ids := c._ids
-	uniqueIds := NewSet_String()
+	uniqueIds := NewStringSet()
 	for _, id := range ids {
 		uniqueIds.add(id)
 	}

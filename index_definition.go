@@ -5,7 +5,7 @@ type IndexDefinition struct {
 	priority          IndexPriority
 	lockMode          IndexLockMode
 	additionalSources map[string]string
-	maps              *Set_String
+	maps              *StringSet
 	reduce            string
 	fields            map[string]*IndexFieldOptions
 	configuration     IndexConfiguration
@@ -55,14 +55,14 @@ func (d *IndexDefinition) setAdditionalSources(additionalSources map[string]stri
 	d.additionalSources = additionalSources
 }
 
-func (d *IndexDefinition) getMaps() *Set_String {
+func (d *IndexDefinition) getMaps() *StringSet {
 	if d.maps == nil {
-		d.maps = NewSet_String()
+		d.maps = NewStringSet()
 	}
 	return d.maps
 }
 
-func (d *IndexDefinition) setMaps(maps *Set_String) {
+func (d *IndexDefinition) setMaps(maps *StringSet) {
 	d.maps = maps
 }
 
