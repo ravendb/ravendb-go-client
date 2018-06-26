@@ -50,11 +50,13 @@ func (c *GetIndexesStatisticsCommand) setResponse(response []byte, fromCache boo
 		return throwInvalidResponse()
 	}
 
-	var res []*IndexStats
+	var res struct {
+		Results []*IndexStats `json:"Results"`
+	}
 	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}
-	c.Result = res
+	c.Result = res.Results
 	return nil
 }

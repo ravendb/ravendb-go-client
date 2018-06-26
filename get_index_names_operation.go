@@ -65,11 +65,13 @@ func (c *GetIndexNamesCommand) setResponse(response []byte, fromCache bool) erro
 		return throwInvalidResponse()
 	}
 
-	var res []string
+	var res struct {
+		Results []string `json:"Results"`
+	}
 	err := json.Unmarshal(response, &res)
 	if err != nil {
 		return err
 	}
-	c.Result = res
+	c.Result = res.Results
 	return nil
 }
