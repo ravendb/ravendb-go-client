@@ -134,6 +134,10 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return cmdHead.processResponse(cache, response, url)
 	}
 
+	if cmdHead, ok := cmd.(*HeadAttachmentCommand); ok {
+		return cmdHead.processResponse(cache, response, url)
+	}
+
 	c := cmd.getBase()
 
 	if response.Body == nil {
