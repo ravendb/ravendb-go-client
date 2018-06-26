@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -82,6 +83,7 @@ func (c *GetTermsCommand) setResponse(response []byte, fromCache bool) error {
 		return throwInvalidResponse()
 	}
 
+	fmt.Printf("\nTermsQueryResult:\n%s\n\n", string(response))
 	var res TermsQueryResult
 	err := json.Unmarshal(response, &res)
 	if err != nil {

@@ -7,11 +7,13 @@ type TermsQueryResult struct {
 }
 
 func (r *TermsQueryResult) getTerms() []string {
+	// TODO: write me
 	panicIf(true, "NYI")
 	//return r.Terms
 	return nil
 }
 
+// TODO: write me
 /*
 	public void setTerms(Set<String> terms) {
         this.terms = terms;
