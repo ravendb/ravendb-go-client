@@ -189,6 +189,15 @@ func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	return req, err
 }
 
+func NewHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(http.MethodPut, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
 func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
