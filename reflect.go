@@ -45,6 +45,22 @@ func getTypeOf(v interface{}) reflect.Type {
 	return reflect.TypeOf(v)
 }
 
+func isTypePrimitive(t reflect.Type) bool {
+	kind := t.Kind()
+	switch kind {
+	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16,
+		reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8,
+		reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64, reflect.String:
+		return true
+	// TODO: not all of those we should support
+	case reflect.Array, reflect.Interface, reflect.Map, reflect.Ptr,
+		reflect.Slice, reflect.Struct:
+		panicIf(true, "NYI")
+	}
+	return false
+}
+
 func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
 	if rv.Type().Kind() == reflect.Ptr {
 		rv = rv.Elem()

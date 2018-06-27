@@ -40,7 +40,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 			return
 			//TODO: throw new IllegalArgumentException();
 		}
-		typ := jsonGetAsText(batchResult, "Type")
+		typ, _ := jsonGetAsText(batchResult, "Type")
 		if typ != "PUT" {
 			continue
 		}
@@ -54,7 +54,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 			return
 			//TODO: throw new IllegalStateException("PUT response is invalid. @change-vector is missing on " + documentInfo.getId());
 		}
-		id := jsonGetAsText(batchResult, Constants_Documents_Metadata_ID)
+		id, _ := jsonGetAsText(batchResult, Constants_Documents_Metadata_ID)
 		if id == "" {
 			return
 			//TODO: throw new IllegalStateException("PUT response is invalid. @id is missing on " + documentInfo.getId());
