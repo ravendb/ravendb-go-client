@@ -2,7 +2,6 @@ package ravendb
 
 import "time"
 
-// TODO: implement me
 type IndexQuery struct {
 
 	// from IndexQueryBase<T>

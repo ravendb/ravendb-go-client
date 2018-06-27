@@ -91,6 +91,15 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error)
 	return v, nil
 }
 
+// corresponds to ObjectMapper.convertValue()
+func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
+	// TODO: implement me
+	// for simple types (int, bool, string) it should be just pass-through
+	// for structs, use makeStructFromJSONMap
+	panicIf(true, "NYI")
+	return nil, NewNotImplementedException("NYI")
+}
+
 // TODO: temporary name to match Java
 // TODO: include github.com/jinzhu/copier to avoid dependency
 func BeanUtils_copyProperties(dest Object, src Object) error {

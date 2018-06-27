@@ -3,6 +3,7 @@ package ravendb
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
@@ -52,6 +53,28 @@ func jsonGetAsInt(doc ObjectNode, key string) (int, bool) {
 		return 0, false
 	}
 	return n, true
+}
+
+func jsonGetAsBool(doc ObjectNode, key string) (bool, bool) {
+	v, ok := doc[key]
+	if !ok {
+		return false, false
+	}
+	b, ok := v.(bool)
+	if ok {
+		return b, true
+	}
+	s, ok := v.(string)
+	if !ok {
+		return false, false
+	}
+	if strings.EqualFold(s, "true") {
+		return true, true
+	}
+	if strings.EqualFold(s, "false") {
+		return false, true
+	}
+	return false, false
 }
 
 // converts a struct to JSON representations as map of string to value
