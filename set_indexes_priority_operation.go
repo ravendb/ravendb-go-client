@@ -59,6 +59,7 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 
 		_parameters: d,
 	}
+	cmd.responseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 

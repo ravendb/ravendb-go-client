@@ -37,11 +37,13 @@ type DeleteIndexCommand struct {
 
 func NewDeleteIndexCommand(indexName string) *DeleteIndexCommand {
 	panicIf(indexName == "", "indexName cannot be empty")
-	return &DeleteIndexCommand{
+	cmd := &DeleteIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
 		_indexName: indexName,
 	}
+	cmd.responseType = RavenCommandResponseType_EMPTY
+	return cmd
 }
 
 func (c *DeleteIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {

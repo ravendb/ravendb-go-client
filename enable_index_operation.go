@@ -37,11 +37,13 @@ type EnableIndexCommand struct {
 func NewEnableIndexCommand(indexName string) *EnableIndexCommand {
 	panicIf(indexName == "", "Index name connot be empty")
 
-	return &EnableIndexCommand{
+	cmd := &EnableIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
 		_indexName: indexName,
 	}
+	cmd.responseType = RavenCommandResponseType_EMPTY
+	return cmd
 }
 
 func (c *EnableIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
