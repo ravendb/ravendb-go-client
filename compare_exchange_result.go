@@ -15,10 +15,9 @@ func NewCompareExchangeResult() *CompareExchangeResult {
 	return &CompareExchangeResult{}
 }
 
-// TODO: probably []byte is better for responseString
-func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString string, conventions *DocumentConventions) (interface{}, error) {
+func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []byte, conventions *DocumentConventions) (*CompareExchangeResult, error) {
 	var response map[string]interface{}
-	err := json.Unmarshal([]byte(responseString), &response)
+	err := json.Unmarshal(responseString, &response)
 	if err != nil {
 		return nil, err
 	}
