@@ -138,6 +138,10 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return cmdHead.processResponse(cache, response, url)
 	}
 
+	if cmdGet, ok := cmd.(*GetAttachmentCommand); ok {
+		return cmdGet.processResponse(cache, response, url)
+	}
+
 	c := cmd.getBase()
 
 	if response.Body == nil {

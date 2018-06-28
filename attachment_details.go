@@ -2,15 +2,19 @@ package ravendb
 
 type AttachmentDetails struct {
 	AttachmentName
-	changeVector string `json:"ChangeVector"`
-	documentId   string `json:"DocumentId"`
+	changeVector *string `json:"ChangeVector"`
+	documentId   string  `json:"DocumentId"`
 }
 
-func (d *AttachmentDetails) getChangeVector() string {
+func NewAttachmentDetails() *AttachmentDetails {
+	return &AttachmentDetails{}
+}
+
+func (d *AttachmentDetails) getChangeVector() *string {
 	return d.changeVector
 }
 
-func (d *AttachmentDetails) setChangeVector(changeVector string) {
+func (d *AttachmentDetails) setChangeVector(changeVector *string) {
 	d.changeVector = changeVector
 }
 
