@@ -23,7 +23,11 @@ type AbstractIndexCreationTask struct {
 	indexName string
 }
 
-func NewAbstractIndexCreationTask() *AbstractIndexCreationTask {
+// Note: in Java we subclass AbstractIndexCreationTask and indexName is derived
+// from derived class name. In Go we don't subclass and must provide index name
+// manually
+func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
+	panicIf(indexName == "", "indexName cannot be empty")
 	return &AbstractIndexCreationTask{
 		storesStrings:         make(map[string]FieldStorage),
 		indexesStrings:        make(map[string]FieldIndexing),
@@ -31,6 +35,8 @@ func NewAbstractIndexCreationTask() *AbstractIndexCreationTask {
 		indexSuggestions:      NewStringSet(),
 		termVectorsStrings:    make(map[string]FieldTermVector),
 		spatialOptionsStrings: make(map[string]*SpatialOptions),
+
+		indexName: indexName,
 	}
 }
 
