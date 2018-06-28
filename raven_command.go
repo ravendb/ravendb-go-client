@@ -142,6 +142,10 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return cmdGet.processResponse(cache, response, url)
 	}
 
+	// TODO:
+	// QueryStreamCommand
+	// StreamCommand
+
 	c := cmd.getBase()
 
 	if response.Body == nil {
