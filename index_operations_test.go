@@ -20,6 +20,27 @@ func NewUsers_Index() *AbstractIndexCreationTask {
 }
 
 func testIndexCanDeleteIndex(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	index := NewUsersIndex()
+	err = index.execute(store)
+	assert.NoError(t, err)
+
+	op := NewGetIndexNamesOperation(0, 10)
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+	indexNames := op.Command.Result
+	assert.True(t, stringArrayContains(indexNames, "UsersIndex"))
+
+	op2 := NewDeleteIndexOperation("UsersIndex")
+	err = store.maintenance().send(op2)
+	assert.NoError(t, err)
+
+	op3 := NewGetIndexNamesOperation(0, 10)
+	err = store.maintenance().send(op3)
+	assert.NoError(t, err)
+	indexNames = op3.Command.Result
+	assert.Equal(t, len(indexNames), 0)
 }
 
 func testIndexCanDisableAndEnableIndex(t *testing.T) {
@@ -31,6 +52,7 @@ func testIndexGetCanIndexesStats(t *testing.T) {
 }
 func testIndexGetTerms(t *testing.T) {
 }
+
 func testIndexHasIndexChanged(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
