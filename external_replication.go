@@ -2,10 +2,10 @@ package ravendb
 
 type ExternalReplication struct {
 	ReplicationNode
-	taskId               int    `json:"TaskId"`
-	name                 string `json:"Name"`
-	connectionstringName string `json:"ConnectionstringName"`
-	mentorName           string `json:"MentorName"`
+	TaskId               int    `json:"TaskId"`
+	Name                 string `json:"Name"`
+	ConnectionstringName string `json:"ConnectionstringName"`
+	MentorName           string `json:"MentorName"`
 }
 
 func NewExternalReplication(database string, connectionstringName string) *ExternalReplication {
@@ -16,33 +16,33 @@ func NewExternalReplication(database string, connectionstringName string) *Exter
 }
 
 func (r *ExternalReplication) getTaskId() int {
-	return r.taskId
+	return r.TaskId
 }
 
 func (r *ExternalReplication) setTaskId(taskId int) {
-	r.taskId = taskId
+	r.TaskId = taskId
 }
 
 func (r *ExternalReplication) getName() string {
-	return r.name
+	return r.Name
 }
 
 func (r *ExternalReplication) setName(name string) {
-	r.name = name
+	r.Name = name
 }
 
 func (r *ExternalReplication) getConnectionstringName() string {
-	return r.connectionstringName
+	return r.ConnectionstringName
 }
 
 func (r *ExternalReplication) setConnectionstringName(connectionstringName string) {
-	r.connectionstringName = connectionstringName
+	r.ConnectionstringName = connectionstringName
 }
 
 func (r *ExternalReplication) getMentorName() string {
-	return r.mentorName
+	return r.MentorName
 }
 
 func (r *ExternalReplication) setMentorName(mentorName string) {
-	r.mentorName = mentorName
+	r.MentorName = mentorName
 }

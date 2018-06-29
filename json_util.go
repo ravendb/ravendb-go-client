@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"bytes"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -130,4 +131,18 @@ func copyJSONMap(v map[string]interface{}) map[string]interface{} {
 	err = json.Unmarshal(d, &res)
 	must(err)
 	return res
+}
+
+// jsonDecodeFirst decode first JSON object from d
+// This is like json.Unmarshal() but allows for d
+// to contain multiple JSON objects
+// This is for compatibility with Java's ObjectMapper.readTree()
+func jsonUnmarshalFirst(d []byte, v interface{}) error {
+	r := bytes.NewBuffer(d)
+	dec := json.NewDecoder(r)
+	err := dec.Decode(v)
+	if err != nil {
+		dbg("jsonDecodeFirst: dec.Decode() of type %T failed with %s. JSON:\n%s\n\n", v, err, string(d))
+	}
+	return err
 }

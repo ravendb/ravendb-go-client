@@ -7,7 +7,7 @@ func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *ID
 	}
 
 	indexesToAdd := IndexCreation_createIndexesToAdd(indexes, conventions)
-	op := NewPutIndexesOperation(indexesToAdd)
+	op := NewPutIndexesOperation(indexesToAdd...)
 	err := store.maintenance().send(op)
 	if err == nil {
 		return nil

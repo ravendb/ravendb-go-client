@@ -3,22 +3,22 @@ package ravendb
 import "time"
 
 type ScriptResolver struct {
-	script           string    `json:"Script"`
-	lastModifiedTime time.Time `json:"LastModifiedTime"` // TODO: ServerTime?
+	Script           string    `json:"Script"`
+	LastModifiedTime time.Time `json:"LastModifiedTime"` // TODO: ServerTime?
 }
 
 func (r *ScriptResolver) getScript() string {
-	return r.script
+	return r.Script
 }
 
 func (r *ScriptResolver) setScript(script string) {
-	r.script = script
+	r.Script = script
 }
 
 func (r *ScriptResolver) getLastModifiedTime() time.Time {
-	return r.lastModifiedTime
+	return r.LastModifiedTime
 }
 
 func (r *ScriptResolver) setLastModifiedTime(lastModifiedTime time.Time) {
-	r.lastModifiedTime = lastModifiedTime
+	r.LastModifiedTime = lastModifiedTime
 }

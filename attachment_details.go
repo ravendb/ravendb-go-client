@@ -2,8 +2,8 @@ package ravendb
 
 type AttachmentDetails struct {
 	AttachmentName
-	changeVector *string `json:"ChangeVector"`
-	documentId   string  `json:"DocumentId"`
+	ChangeVector *string `json:"ChangeVector"`
+	DocumentId   string  `json:"DocumentId"`
 }
 
 func NewAttachmentDetails() *AttachmentDetails {
@@ -11,17 +11,17 @@ func NewAttachmentDetails() *AttachmentDetails {
 }
 
 func (d *AttachmentDetails) getChangeVector() *string {
-	return d.changeVector
+	return d.ChangeVector
 }
 
 func (d *AttachmentDetails) setChangeVector(changeVector *string) {
-	d.changeVector = changeVector
+	d.ChangeVector = changeVector
 }
 
 func (d *AttachmentDetails) getDocumentId() string {
-	return d.documentId
+	return d.DocumentId
 }
 
 func (d *AttachmentDetails) setDocumentId(documentId string) {
-	d.documentId = documentId
+	d.DocumentId = documentId
 }

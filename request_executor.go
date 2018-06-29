@@ -888,6 +888,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		err = RequestExecutor_handleConflict(response)
 		break
 	default:
+		dumpHTTPResponse(response)
 		command.getBase().onResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)
 		break

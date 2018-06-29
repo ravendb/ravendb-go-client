@@ -3,7 +3,7 @@ package ravendb
 type IndexDefinitionBuilder struct {
 	_indexName string
 
-	smap   string
+	smap   string // Note: in Go map is a reserved keyword
 	reduce string
 
 	storesStrings            map[string]FieldStorage

@@ -409,6 +409,10 @@ func logGoroutines(file string) {
 }
 
 func TestMain(m *testing.M) {
+	if os.Getenv("VERBOSE_LOG") != "" {
+		verboseLog = true
+	}
+
 	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
 	if noDb == "" {
 		// this helps running tests from withing Visual Studio Code,

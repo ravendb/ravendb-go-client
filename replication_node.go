@@ -1,31 +1,31 @@
 package ravendb
 
 type ReplicationNode struct {
-	url      string `json:"Url"`
-	database string `json:"Database"`
-	disabled bool   `json:"Disabled"`
+	Url      string `json:"Url"`
+	Database string `json:"Database"`
+	Disabled bool   `json:"Disabled"`
 }
 
 func (n *ReplicationNode) getUrl() string {
-	return n.url
+	return n.Url
 }
 
 func (n *ReplicationNode) setUrl(url string) {
-	n.url = url
+	n.Url = url
 }
 
 func (n *ReplicationNode) getDatabase() string {
-	return n.database
+	return n.Database
 }
 
 func (n *ReplicationNode) setDatabase(database string) {
-	n.database = database
+	n.Database = database
 }
 
 func (n *ReplicationNode) isDisabled() bool {
-	return n.disabled
+	return n.Disabled
 }
 
 func (n *ReplicationNode) setDisabled(disabled bool) {
-	n.disabled = disabled
+	n.Disabled = disabled
 }

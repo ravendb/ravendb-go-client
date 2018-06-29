@@ -15,7 +15,7 @@ type PutIndexesOperation struct {
 	Command *PutIndexesCommand
 }
 
-func NewPutIndexesOperation(indexToAdd []*IndexDefinition) *PutIndexesOperation {
+func NewPutIndexesOperation(indexToAdd ...*IndexDefinition) *PutIndexesOperation {
 	return &PutIndexesOperation{
 		_indexToAdd: indexToAdd,
 	}
@@ -63,15 +63,17 @@ func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, erro
 	if err != nil {
 		return nil, err
 	}
+	//fmt.Printf("\nPutIndexesCommand.createRequest:\n%s\n\n", string(d))
 	return NewHttpPut(url, d)
 }
 
 func (c *PutIndexesCommand) setResponse(response []byte, fromCache bool) error {
-	var res []*PutIndexResult
+	var res PutIndexesResponse
 	err := json.Unmarshal(response, &res)
 	if err != nil {
+		dbg("PutIndexesCommand.setResponse: json.Unmarshal failed with %s. JSON:\n%s\n\n", err, string(response))
 		return err
 	}
-	c.Result = res
+	c.Result = res.Results
 	return nil
 }

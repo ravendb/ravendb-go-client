@@ -1,6 +1,9 @@
 package ravendb
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 // TODO: write tests
 
@@ -24,6 +27,14 @@ func NewStringSet() *StringSet {
 	return &StringSet{
 		cmp: String_defaultCompare,
 	}
+}
+
+func NewStringSetFromStrings(strings ...string) *StringSet {
+	set := NewStringSet()
+	for _, s := range strings {
+		set.add(s)
+	}
+	return set
 }
 
 // NewStringSetNoCase creates a string set which ignores case where comparing strings
@@ -55,4 +66,28 @@ func (s *StringSet) remove(str string) {
 
 func (s *StringSet) clear() {
 	s.strings = nil
+}
+
+// MarshalJSON marshals StringSet as JSON in the form of array
+// of string ["str1", "str2"]
+func (s *StringSet) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.strings)
+}
+
+// UnmarshalJSON decodes JSON as
+func (s *StringSet) UnmarshalJSON(d []byte) error {
+	if len(d) == 0 {
+		s.strings = nil
+		return nil
+	}
+	var strings []string
+	err := json.Unmarshal(d, &strings)
+	if err != nil {
+		return err
+	}
+	if len(strings) == 0 {
+		strings = nil
+	}
+	s.strings = strings
+	return nil
 }

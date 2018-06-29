@@ -60,8 +60,7 @@ func (c *IndexHasChangedCommand) setResponse(response []byte, fromCache bool) er
 	var res struct {
 		Changed bool `json:"Changed"`
 	}
-
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshalFirst(response, &res)
 	if err != nil {
 		return err
 	}

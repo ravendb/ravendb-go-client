@@ -32,10 +32,21 @@ func (t *ServerTime) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func serverTimePtrToTimePtr(t *ServerTime) *time.Time {
+func (t *ServerTime) toTime() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return time.Time(*t)
+}
+
+func (t *ServerTime) toTimePtr() *time.Time {
 	if t == nil {
 		return nil
 	}
 	res := time.Time(*t)
 	return &res
+}
+
+func serverTimePtrToTimePtr(t *ServerTime) *time.Time {
+	return t.toTimePtr()
 }

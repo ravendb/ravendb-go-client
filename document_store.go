@@ -275,7 +275,7 @@ func (s *DocumentStore) executeIndexesWithDatabase(tasks []*AbstractIndexCreatio
 	s.assertInitialized()
 	indexesToAdd := IndexCreation_createIndexesToAdd(tasks, s.conventions)
 
-	op := NewPutIndexesOperation(indexesToAdd)
+	op := NewPutIndexesOperation(indexesToAdd...)
 	if database == "" {
 		database = s.getDatabase()
 	}

@@ -7,6 +7,9 @@
 export HTTP_PROXY=http://localhost:8888
 #export HTTP_PROXY=
 
+# uncomment for more verbose logging
+export VERBOSE_LOG=true
+
 # TODO: for now not running with -race because fails with:
 # "race: limit on 8192 simultaneously alive goroutines is exceeded, dying"
 # in requestExecutorTest_failsWhenServerIsOffline when also running
@@ -16,6 +19,6 @@ export HTTP_PROXY=http://localhost:8888
 
 #go test -race
 
-go test
+#go test
 
-#go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestRequestExecutor$
+go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestIndexOperations$

@@ -12,6 +12,16 @@ type Object = interface{}
 // TODO: remove it, it only exists to make initial porting faster
 type String = string
 
+var (
+	verboseLog = false
+)
+
+func dbg(format string, args ...interface{}) {
+	if verboseLog {
+		fmt.Printf(format, args...)
+	}
+}
+
 func must(err error) {
 	if err != nil {
 		panic(err.Error())

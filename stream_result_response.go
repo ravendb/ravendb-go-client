@@ -6,8 +6,8 @@ import (
 )
 
 type StreamResultResponse struct {
-	response *http.Response `json:"Response"`
-	stream   io.Reader      `json:"Stream"`
+	Response *http.Response `json:"Response"`
+	Stream   io.Reader      `json:"Stream"`
 }
 
 func NewStreamResultResponse() *StreamResultResponse {
@@ -15,17 +15,17 @@ func NewStreamResultResponse() *StreamResultResponse {
 }
 
 func (r *StreamResultResponse) getResponse() *http.Response {
-	return r.response
+	return r.Response
 }
 
 func (r *StreamResultResponse) setResponse(response *http.Response) {
-	r.response = response
+	r.Response = response
 }
 
 func (r *StreamResultResponse) getStream() io.Reader {
-	return r.stream
+	return r.Stream
 }
 
 func (r *StreamResultResponse) setStream(stream io.Reader) {
-	r.stream = stream
+	r.Stream = stream
 }

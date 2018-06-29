@@ -1,7 +1,7 @@
 package ravendb
 
 type AbstractIndexCreationTask struct {
-	smap   string
+	smap   string // Note: in Go map is a reserved keyword
 	reduce string
 
 	conventions       *DocumentConventions
@@ -133,8 +133,7 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 		indexDefinition.setPriority(t.priority)
 	}
 
-	a := []*IndexDefinition{indexDefinition}
-	op := NewPutIndexesOperation(a)
+	op := NewPutIndexesOperation(indexDefinition)
 	if database == "" {
 		database = store.getDatabase()
 	}
