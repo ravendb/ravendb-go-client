@@ -13,6 +13,12 @@ func NewUsersInvalidIndex() *AbstractIndexCreationTask {
 	return res
 }
 
+func NewUsers_Index() *AbstractIndexCreationTask {
+	res := NewAbstractIndexCreationTask("Users_Index")
+	res.smap = "from u in docs.Users select new { u.name }"
+	return res
+}
+
 func testIndexCanDeleteIndex(t *testing.T) {
 }
 
@@ -96,6 +102,20 @@ func testIndexCanListErrors(t *testing.T) {
 }
 
 func testIndexCanGetIndexStatistics(t *testing.T) {
+
+	var err error
+	store := getDocumentStoreMust(t)
+
+	userIndex := NewUsers_Index()
+	err = userIndex.execute(store)
+	assert.NoError(t, err)
+
+	op := NewGetIndexesStatisticsOperation()
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+
+	indexStats := op.Command.Result
+	assert.Equal(t, len(indexStats), 1)
 }
 
 func TestIndexOperations(t *testing.T) {

@@ -11,7 +11,7 @@ type GetIndexesStatisticsOperation struct {
 	Command *GetIndexesStatisticsCommand
 }
 
-func NewGetIndexesStatisticsOperationWithPageSize() *GetIndexesStatisticsOperation {
+func NewGetIndexesStatisticsOperation() *GetIndexesStatisticsOperation {
 	return &GetIndexesStatisticsOperation{}
 }
 

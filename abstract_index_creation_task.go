@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 type AbstractIndexCreationTask struct {
 	smap   string // Note: in Go map is a reserved keyword
 	reduce string
@@ -73,8 +75,8 @@ func (t *AbstractIndexCreationTask) isMapReduce() bool {
 }
 
 func (t *AbstractIndexCreationTask) getIndexName() string {
-	panicIf(t.indexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName() with '_' replaced with '/'")
-	return t.indexName
+	panicIf(t.indexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName()")
+	return strings.Replace(t.indexName, "_", "/", -1)
 }
 
 func (t *AbstractIndexCreationTask) getConventions() *DocumentConventions {

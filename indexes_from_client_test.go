@@ -7,7 +7,7 @@ import (
 )
 
 func NewUsersIndex() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("UserIndex")
+	res := NewAbstractIndexCreationTask("UsersIndex")
 	res.smap = "from user in docs.users select new { user.name }"
 	return res
 }
