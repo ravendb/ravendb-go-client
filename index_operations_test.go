@@ -61,10 +61,45 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 }
 func testIndexCanStopStartIndex(t *testing.T) {
 }
+
 func testIndexCanSetIndexLockMode(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	index := NewUsersIndex()
+	indexDef := index.createIndexDefinition()
+	op := NewPutIndexesOperation(indexDef)
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+
+	op2 := NewSetIndexesLockOperation(indexDef.getName(), IndexLockMode_LOCKED_ERROR)
+	err = store.maintenance().send(op2)
+	assert.NoError(t, err)
+
+	op3 := NewGetIndexOperation(indexDef.getName())
+	err = store.maintenance().send(op3)
+	newIndexDef := op3.Command.Result
+	assert.Equal(t, *newIndexDef.getLockMode(), IndexLockMode_LOCKED_ERROR)
 }
+
 func testIndexCanSetIndexPriority(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	index := NewUsersIndex()
+	indexDef := index.createIndexDefinition()
+	op := NewPutIndexesOperation(indexDef)
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+
+	op2 := NewSetIndexesPriorityOperation(indexDef.getName(), IndexPriority_HIGH)
+	err = store.maintenance().send(op2)
+	assert.NoError(t, err)
+
+	op3 := NewGetIndexOperation(indexDef.getName())
+	err = store.maintenance().send(op3)
+	newIndexDef := op3.Command.Result
+	assert.Equal(t, *newIndexDef.getPriority(), IndexPriority_HIGH)
 }
+
 func testIndexCanListErrors(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
