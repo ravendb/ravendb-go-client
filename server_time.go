@@ -22,6 +22,11 @@ func (t *ServerTime) UnmarshalJSON(d []byte) error {
 	s := string(d)
 	s = strings.TrimLeft(s, `"`)
 	s = strings.TrimRight(s, `"`)
+
+	if s == "null" {
+		return nil
+	}
+
 	tt, err := time.Parse(serverTimeFormat, s)
 	if err != nil {
 		// TODO: for now make it a fatal error to catch bugs early
