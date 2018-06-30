@@ -35,6 +35,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		err = asyncOp.waitForCompletion()
 		assert.NoError(t, err)
+		// TODO: implement me
 		/*
 		   try (IDocumentSession session = store.openSession()) {
 		       Assertions.assertThat(session.query(User.class)
