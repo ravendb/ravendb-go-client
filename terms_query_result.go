@@ -1,24 +1,18 @@
 package ravendb
 
 type TermsQueryResult struct {
-	Terms      interface{} `json:"Terms"` // TODO: Set<String>
-	ResultEtag int         `json:"ResultEtag"`
-	IndexName  string      `json:"IndexName"`
+	Terms      *StringSet `json:"Terms"` // TODO: Set<String>
+	ResultEtag int        `json:"ResultEtag"`
+	IndexName  string     `json:"IndexName"`
 }
 
 func (r *TermsQueryResult) getTerms() []string {
-	// TODO: write me
-	panicIf(true, "NYI")
-	//return r.Terms
-	return nil
+	return r.Terms.strings
 }
 
-// TODO: write me
-/*
-	public void setTerms(Set<String> terms) {
-        this.terms = terms;
-    }
-*/
+func (r *TermsQueryResult) setTerms(terms *StringSet) {
+	r.Terms = terms
+}
 
 func (r *TermsQueryResult) getResultEtag() int {
 	return r.ResultEtag
