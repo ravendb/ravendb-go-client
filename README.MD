@@ -15,17 +15,17 @@ git clone github.com/kjk/ravendb-go-client
 cd ravendb-go-client
 ```
 
-Basically in order to avoid renaming imports between github.com/ravendb/ravendb-go-client
-and github.com/kjk/ravendb-go-client, my repo acts as if it is github.com/ravendb/ravendb-go-client
-which means you can use `go get github.com/kjk/ravendb-go-client` but
-have to place it in `$GOPATH/src/github.com/ravendb/ravendb-go-client` manually.
+In order to avoid renaming imports between `github.com/ravendb/ravendb-go-client`
+and `github.com/kjk/ravendb-go-client`, my repo acts as if it is `github.com/ravendb/ravendb-go-client`.
+
+It means you can't use `go get github.com/kjk/ravendb-go-client`.
+
+You have to manually place it in `$GOPATH/src/github.com/ravendb/ravendb-go-client`.
 
 # Running tests
 
 To run current tests do: `./run_tests.sh`.
 
-It compiles and runs code in `cmd/test`.
+I'm developing (and testing) on Mac. The CI tests are run on Linux.
 
-Unsecured server should be running on http://localhost:9999.
-
-So far this only has been tested on mac.
+Not tested on Windows yet.
