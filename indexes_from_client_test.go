@@ -89,11 +89,107 @@ func indexesFromClientTest_canReset(t *testing.T) {
 }
 
 func indexesFromClientTest_canExecuteManyIndexes(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+
+	indexes := []*AbstractIndexCreationTask{NewUsersIndex()}
+	err = store.executeIndexes(indexes)
+	assert.NoError(t, err)
+
+	indexNamesOperation := NewGetIndexNamesOperation(0, 10)
+	err = store.maintenance().send(indexNamesOperation)
+	assert.NoError(t, err)
+	indexNames := indexNamesOperation.Command.Result
+	assert.Equal(t, len(indexNames), 1)
 }
+
 func indexesFromClientTest_canDelete(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+
+	userIndex := NewUsersIndex()
+	err = store.executeIndex(userIndex)
+	assert.NoError(t, err)
+
+	op := NewDeleteIndexOperation(NewUsersIndex().getIndexName())
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+
+	command := NewGetStatisticsCommand()
+	err = store.getRequestExecutor().executeCommand(command)
+	assert.NoError(t, err)
+	statistics := command.Result
+	assert.Equal(t, len(statistics.getIndexes()), 0)
 }
+
 func indexesFromClientTest_canStopAndStart(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+
+	err = NewUsers_ByName().execute(store)
+	assert.NoError(t, err)
+
+	{
+		op := NewGetIndexingStatusOperation()
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+		status := op.Command.Result
+
+		assert.Equal(t, status.getStatus(), IndexRunningStatus_RUNNING)
+		assert.Equal(t, len(status.getIndexes()), 1)
+		assert.Equal(t, status.getIndexes()[0].getStatus(), IndexRunningStatus_RUNNING)
+	}
+
+	{
+		op := NewStopIndexingOperation()
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+
+		{
+			op := NewGetIndexingStatusOperation()
+			err = store.maintenance().send(op)
+			assert.NoError(t, err)
+			status := op.Command.Result
+			assert.Equal(t, status.getStatus(), IndexRunningStatus_PAUSED)
+			assert.Equal(t, status.getIndexes()[0].getStatus(), IndexRunningStatus_PAUSED)
+		}
+	}
+
+	indexName := ""
+	{
+		op := NewStartIndexingOperation()
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+		{
+			op := NewGetIndexingStatusOperation()
+			err = store.maintenance().send(op)
+			assert.NoError(t, err)
+			status := op.Command.Result
+			indexName = status.getIndexes()[0].getName()
+
+			assert.Equal(t, status.getStatus(), IndexRunningStatus_RUNNING)
+			assert.Equal(t, len(status.getIndexes()), 1)
+			assert.Equal(t, status.getIndexes()[0].getStatus(), IndexRunningStatus_RUNNING)
+		}
+
+	}
+
+	{
+		op := NewStopIndexOperation(indexName)
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+		{
+			op := NewGetIndexingStatusOperation()
+			err = store.maintenance().send(op)
+			assert.NoError(t, err)
+			status := op.Command.Result
+			assert.Equal(t, status.getStatus(), IndexRunningStatus_RUNNING)
+			assert.Equal(t, len(status.getIndexes()), 1)
+			assert.Equal(t, status.getIndexes()[0].getStatus(), IndexRunningStatus_PAUSED)
+		}
+	}
 }
+
 func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 }
 func indexesFromClientTest_getTerms(t *testing.T) {
