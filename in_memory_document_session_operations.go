@@ -105,6 +105,14 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	return res
 }
 
+func (s *InMemoryDocumentSessionOperations) getNumberOfRequests() int {
+	return s.numberOfRequests
+}
+
+func (s *InMemoryDocumentSessionOperations) getNumberOfEntitiesInUnitOfWork() int {
+	return len(s.documentsByEntity)
+}
+
 func (s *InMemoryDocumentSessionOperations) addBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
 
@@ -262,10 +270,16 @@ func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
 	return s._knownMissingIds.contains(id)
 }
 
-// GetDocumentID returns id of a given instance
-func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) string {
-	panicIf(true, "NYI")
-	return ""
+// getDocumentId returns id of a given instance
+func (s *InMemoryDocumentSessionOperations) getDocumentId(instance interface{}) string {
+	if instance == nil {
+		return ""
+	}
+	value := s.documentsByEntity[instance]
+	if value == nil {
+		return ""
+	}
+	return value.getId()
 }
 
 // IncrementRequetsCount increments requests count

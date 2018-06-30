@@ -90,7 +90,11 @@ func (s *DocumentSession) refresh(entity Object) error {
 // TODO:    protected string generateId(Object entity) {
 // TODO:    public ResponseTimeInformation executeAllPendingLazyOperations() {
 // TODO:    private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
-// TODO:    public ILoaderWithInclude include(string path) {
+
+func (s *DocumentSession) include(path string) ILoaderWithInclude {
+	return NewMultiLoaderWithInclude(s).include(path)
+}
+
 // TODO:    public <T> Lazy<T> addLazyOperation(Class<T> clazz, ILazyOperation operation, Consumer<T> onEval) {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(Class<T> clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)

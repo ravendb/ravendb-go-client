@@ -191,14 +191,19 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 }
 
 func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
+	// TODO: requires query
 }
 func indexesFromClientTest_getTerms(t *testing.T) {
+	// TODO: requires query
 }
 func indexesFromClientTest_getIndexNames(t *testing.T) {
+	// TODO: requires query
 }
 func indexesFromClientTest_canExplain(t *testing.T) {
+	// TODO: requires query
 }
 func indexesFromClientTest_moreLikeThis(t *testing.T) {
+	// TODO: requires query
 }
 
 func TestIndexesFromClient(t *testing.T) {
