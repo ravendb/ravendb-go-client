@@ -21,4 +21,4 @@ export VERBOSE_LOG=true
 
 #go test
 
-go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestIndexOperations$
+go test -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestIndexesFromClient$
