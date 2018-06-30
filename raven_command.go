@@ -218,9 +218,10 @@ func getCommandOperationIdResult(cmd RavenCommand) *OperationIdResult {
 		return c.Result
 	case *PatchByQueryCommand:
 		return c.Result
+	case *DeleteByIndexCommand:
+		return c.Result
 	}
-	// TODO:
-	//case *DeleteByIndexCommand:
-	panicIf(true, "called on a command that doesn't return OperationIdResult")
+
+	panicIf(true, "called on a command %T that doesn't return OperationIdResult", cmd)
 	return nil
 }

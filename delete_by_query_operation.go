@@ -12,26 +12,33 @@ var (
 )
 
 type DeleteByQueryOperation struct {
-	Command *DeleteByQueryCommand
+	Command *DeleteByIndexCommand
 
 	_queryToDelete *IndexQuery
 	_options       *QueryOperationOptions
 }
 
-func NewDeleteByQueryOperation(queryToDelete string) *DeleteByQueryOperation {
+func NewDeleteByQueryOperation(queryToDelete *IndexQuery) *DeleteByQueryOperation {
+	return NewDeleteByQueryOperationWithOptions(queryToDelete, nil)
+}
+
+func NewDeleteByQueryOperationWithOptions(queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByQueryOperation {
+
+	// TODO: validate queryToDelete
 	return &DeleteByQueryOperation{
-		_queryToDelete: NewIndexQuery(queryToDelete),
+		_queryToDelete: queryToDelete,
+		_options:       options,
 	}
 }
 
 func (o *DeleteByQueryOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewDeleteByQueryCommand(conventions, o._queryToDelete, o._options)
+	o.Command = NewDeleteByIndexCommand(conventions, o._queryToDelete, o._options)
 	return o.Command
 }
 
-var _ RavenCommand = &DeleteByQueryCommand{}
+var _ RavenCommand = &DeleteByIndexCommand{}
 
-type DeleteByQueryCommand struct {
+type DeleteByIndexCommand struct {
 	*RavenCommandBase
 
 	_conventions   *DocumentConventions
@@ -41,11 +48,11 @@ type DeleteByQueryCommand struct {
 	Result *OperationIdResult
 }
 
-func NewDeleteByQueryCommand(conventions *DocumentConventions, queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByQueryCommand {
+func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByIndexCommand {
 	if options == nil {
 		options = NewQueryOperationOptions()
 	}
-	cmd := &DeleteByQueryCommand{
+	cmd := &DeleteByIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
 		_conventions:   conventions,
@@ -55,7 +62,7 @@ func NewDeleteByQueryCommand(conventions *DocumentConventions, queryToDelete *In
 	return cmd
 }
 
-func (c *DeleteByQueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *DeleteByIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	_options := c._options
 
 	url := node.getUrl() + "/databases/" + node.getDatabase() + fmt.Sprintf("/queries?allowStale=%v", _options.isAllowStale())
@@ -82,7 +89,7 @@ func (c *DeleteByQueryCommand) createRequest(node *ServerNode) (*http.Request, e
 	return request, nil
 }
 
-func (c *DeleteByQueryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *DeleteByIndexCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		throwInvalidResponse()
 	}
