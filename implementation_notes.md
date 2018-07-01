@@ -158,3 +158,8 @@ A simple trick to ensure that a struct implements interface:
 var _ IVoidMaintenanceOperation = &PutClientConfigurationOperation{}
 ```
 
+## toString()
+
+Go has a `fmt.Stringer` interface with `String()` method but basic types (`int`, `float64` etc.) don't implement it (and we can't add methods to existing types).
+
+Instead of `Object.toString` we can use `fmt.Sprintf("%v", object)` which will format known types (including basic types) and use `String()` method for unknown types.
