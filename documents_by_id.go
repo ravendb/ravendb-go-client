@@ -16,9 +16,16 @@ func (d *DocumentsById) getValue(id string) *DocumentInfo {
 }
 
 func (d *DocumentsById) add(info *DocumentInfo) {
-	if _, ok := d.inner[info.id]; ok {
-		return
-	}
+	// TODO: this happens in Java but in Go it breaks change tracking
+	// e.g. crudTest_crudOperationsWithNull
+	// Not sure if should restore this and the bug is caused by some
+	// other code path
+	// see investigation notes in https://www.notion.so/Investigation-crudTest_crudOperationsWithNull-failure-a37969d8118e4eb39635e458a369ab09
+	/*
+		if _, ok := d.inner[info.id]; ok {
+			return
+		}
+	*/
 
 	d.inner[info.id] = info
 }

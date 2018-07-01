@@ -711,13 +711,10 @@ func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, doc
 	return JsonOperation_entityChanged(newObj, documentInfo, changes)
 }
 
-func (s *InMemoryDocumentSessionOperations) WhatChanged() map[string][]*DocumentsChanges {
+func (s *InMemoryDocumentSessionOperations) whatChanged() map[string][]*DocumentsChanges {
 	changes := map[string][]*DocumentsChanges{}
 	s.prepareForEntitiesDeletion(nil, changes)
-	panicIf(true, "NYI")
-	/*
-		getAllEntitiesChanges(changes);
-	*/
+	s.getAllEntitiesChanges(changes)
 	return changes
 }
 
@@ -750,10 +747,11 @@ func (s *InMemoryDocumentSessionOperations) hasChanged(entity Object) bool {
 }
 
 func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
-	for _, pairValue := range s.documentsById.inner {
-		s.updateMetadataModifications(pairValue)
-		newObj := EntityToJson_convertEntityToJson(pairValue.getEntity(), pairValue)
-		s.entityChanged(newObj, pairValue, changes)
+	for _, docInfo := range s.documentsById.inner {
+		s.updateMetadataModifications(docInfo)
+		entity := docInfo.getEntity()
+		newObj := EntityToJson_convertEntityToJson(entity, docInfo)
+		s.entityChanged(newObj, docInfo, changes)
 	}
 }
 
