@@ -1,5 +1,7 @@
 package ravendb
 
+import "fmt"
+
 func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	var docChanges []*DocumentsChanges
 
@@ -93,6 +95,21 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 				return true
 			}
 			JsonOperation_newChange(prop, newProp, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+		case []interface{}:
+			if oldProp == nil || !isInstanceOfArrayOfInterface(oldProp) {
+				if changes == nil {
+					return true
+				}
+
+				JsonOperation_newChange(prop, newProp, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+				break
+			}
+
+			changed := JsonOperation_compareJsonArray(id, oldProp.([]interface{}), newProp.([]interface{}), changes, docChanges, prop)
+			if changes == nil && changed {
+				return true
+			}
+
 		case map[string]interface{}:
 			oldPropVal, ok := oldProp.(map[string]interface{})
 			// TODO: a better check for nil?
@@ -129,6 +146,91 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 	}
 	changes[id] = *docChanges
 	return true
+}
+
+func isInstanceOfArrayOfInterface(v interface{}) bool {
+	_, ok := v.([]interface{})
+	return ok
+}
+
+func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray []interface{}, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges, propName string) bool {
+	// if we don't care about the changes
+	if len(oldArray) != len(newArray) && changes == nil {
+		return true
+	}
+
+	changed := false
+
+	position := 0
+	maxPos := len(oldArray)
+	if maxPos > len(newArray) {
+		maxPos = len(newArray)
+	}
+	for ; position < maxPos; position++ {
+		oldVal := oldArray[position]
+		newVal := newArray[position]
+		switch oldVal.(type) {
+		case ObjectNode:
+			if _, ok := newVal.(ObjectNode); ok {
+				newChanged := JsonOperation_compareJson(id, oldVal.(ObjectNode), newVal.(ObjectNode), changes, docChanges)
+				if newChanged {
+					changed = newChanged
+				}
+			} else {
+				changed = true
+				if changes != nil {
+					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+				}
+			}
+		case []interface{}:
+			if _, ok := newVal.([]interface{}); ok {
+				newChanged := JsonOperation_compareJsonArray(id, oldVal.([]interface{}), newVal.([]interface{}), changes, docChanges, propName)
+				if newChanged {
+					changed = newChanged
+				}
+			} else {
+				changed = true
+				if changes != nil {
+					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+				}
+			}
+		default:
+			// NULL case
+			if oldVal == nil {
+				if newVal != nil {
+					changed = true
+					if changes != nil {
+						JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+					}
+				}
+				break
+			}
+			oldValStr := fmt.Sprintf("%s", oldVal)
+			newValStr := fmt.Sprintf("%s", newVal)
+			if oldValStr != newValStr {
+				if changes != nil {
+					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+				}
+				changed = true
+			}
+
+		}
+	}
+
+	if changes == nil {
+		return changed
+	}
+
+	// if one of the arrays is larger than the other
+	for ; position < len(oldArray); position++ {
+		JsonOperation_newChange(propName, nil, oldArray[position], docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+	}
+
+	for ; position < len(newArray); position++ {
+		JsonOperation_newChange(propName, newArray[position], nil, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+	}
+
+	return changed
 }
 
 func JsonOperation_newChange(name string, newValue Object, oldValue Object, docChanges *[]*DocumentsChanges, change ChangeType) {
