@@ -1,6 +1,9 @@
 package ravendb
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	var docChanges []*DocumentsChanges
@@ -253,5 +256,8 @@ func getObjectNodeFieldNames(o ObjectNode) []string {
 		res[i] = k
 		i++
 	}
+	// Go randomizes order of map tranversal but it's useful to have it
+	// fixed e.g. for tests
+	sort.Strings(res)
 	return res
 }

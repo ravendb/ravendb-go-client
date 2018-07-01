@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
@@ -179,68 +180,65 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		family1Changes := changes["family/1"]
 		assert.Equal(t, len(family1Changes), 4)
 
-		// TODO: Go randomizes traversal order of maps so changes for each object can be either Name/Age or Age/Map
-		// we can fix it either by being smarter about how we test result or fixing the order in json_operation.go
-		// e.g. by makeing getObjectNodeFieldNames() sort results
-		/*
-			{
-				change := family1Changes[0]
-				assert.Equal(t, change.getFieldName(), "Name")
-				assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-				oldVal := change.getFieldOldValue()
-				oldValStr := fmt.Sprintf("%s", oldVal)
-				assert.Equal(t, oldValStr, "Hibernating Rhinos")
+		// Note: order or fields differs from Java. In Java the order seems to be the order
+		// of declaration in a class. In Go it's alphabetical
+		{
+			change := family1Changes[0]
+			assert.Equal(t, change.getFieldName(), "Age")
 
-				newVal := change.getFieldNewValue()
-				newValStr := fmt.Sprintf("%s", newVal)
-				assert.Equal(t, newValStr, "RavenDB")
-			}
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
 
-			{
-				change := family1Changes[1]
-				assert.Equal(t, change1.getFieldName(), "Age")
+			oldVal := change.getFieldOldValue()
+			oldValStr := fmt.Sprintf("%v", oldVal)
+			assert.Equal(t, oldValStr, "8")
 
-				assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			newVal := change.getFieldNewValue()
+			newValStr := fmt.Sprintf("%v", newVal)
+			assert.Equal(t, newValStr, "4")
+		}
 
-				oldVal := change.getFieldOldValue()
-				oldValStr := fmt.Sprintf("%v", oldVal)
-				assert.Equal(t, oldValStr, "8")
+		{
+			change := family1Changes[1]
+			assert.Equal(t, change.getFieldName(), "Name")
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldVal := change.getFieldOldValue()
+			oldValStr := fmt.Sprintf("%s", oldVal)
+			assert.Equal(t, oldValStr, "Hibernating Rhinos")
 
-				newVal := change.getFieldNewValue()
-				newValStr := fmt.Sprintf("%v", newVal)
-				assert.Equal(t, newValStr, "4")
-			}
+			newVal := change.getFieldNewValue()
+			newValStr := fmt.Sprintf("%s", newVal)
+			assert.Equal(t, newValStr, "RavenDB")
+		}
 
-			{
-				change := family1Changes[2]
-				assert.Equal(t, change.getFieldName(), "Name")
+		{
+			change := family1Changes[2]
+			assert.Equal(t, change.getFieldName(), "Age")
 
-				assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
 
-				oldVal := change.getFieldOldValue()
-				oldValStr := fmt.Sprintf("%v", oldVal)
-				assert.Equal(t, oldValStr, "RavenDB")
+			oldVal := change.getFieldOldValue()
+			oldValStr := fmt.Sprintf("%v", oldVal)
+			assert.Equal(t, oldValStr, "4")
 
-				newVal := change.getFieldNewValue()
-				newValStr := fmt.Sprintf("%v", newVal)
-				assert.Equal(t, newValStr, "Hibernating Rhinos")
-			}
+			newVal := change.getFieldNewValue()
+			newValStr := fmt.Sprintf("%v", newVal)
+			assert.Equal(t, newValStr, "8")
+		}
 
-			{
-				change := family1Changes[3]
-				assert.Equal(t, change.getFieldName(), "Age")
+		{
+			change := family1Changes[3]
+			assert.Equal(t, change.getFieldName(), "Name")
 
-				assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
 
-				oldVal := change.getFieldOldValue()
-				oldValStr := fmt.Sprintf("%v", oldVal)
-				assert.Equal(t, oldValStr, "4")
+			oldVal := change.getFieldOldValue()
+			oldValStr := fmt.Sprintf("%v", oldVal)
+			assert.Equal(t, oldValStr, "RavenDB")
 
-				newVal := change.getFieldNewValue()
-				newValStr := fmt.Sprintf("%v", newVal)
-				assert.Equal(t, newValStr, "8")
-			}
-		*/
+			newVal := change.getFieldNewValue()
+			newValStr := fmt.Sprintf("%v", newVal)
+			assert.Equal(t, newValStr, "Hibernating Rhinos")
+		}
 	}
 
 	// TODO: port me
