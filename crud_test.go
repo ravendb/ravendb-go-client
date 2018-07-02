@@ -185,15 +185,10 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		{
 			change := family1Changes[0]
 			assert.Equal(t, change.getFieldName(), "Age")
-
 			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-
-			oldVal := change.getFieldOldValue()
-			oldValStr := fmt.Sprintf("%v", oldVal)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
 			assert.Equal(t, oldValStr, "8")
-
-			newVal := change.getFieldNewValue()
-			newValStr := fmt.Sprintf("%v", newVal)
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
 			assert.Equal(t, newValStr, "4")
 		}
 
@@ -201,108 +196,98 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 			change := family1Changes[1]
 			assert.Equal(t, change.getFieldName(), "Name")
 			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldVal := change.getFieldOldValue()
-			oldValStr := fmt.Sprintf("%s", oldVal)
-			assert.Equal(t, oldValStr, "Hibernating Rhinos")
-
-			newVal := change.getFieldNewValue()
-			newValStr := fmt.Sprintf("%s", newVal)
-			assert.Equal(t, newValStr, "RavenDB")
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, oldValStr, "\"Hibernating Rhinos\"")
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "\"RavenDB\"")
 		}
 
 		{
 			change := family1Changes[2]
 			assert.Equal(t, change.getFieldName(), "Age")
-
 			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-
-			oldVal := change.getFieldOldValue()
-			oldValStr := fmt.Sprintf("%v", oldVal)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
 			assert.Equal(t, oldValStr, "4")
-
-			newVal := change.getFieldNewValue()
-			newValStr := fmt.Sprintf("%v", newVal)
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
 			assert.Equal(t, newValStr, "8")
 		}
 
 		{
 			change := family1Changes[3]
 			assert.Equal(t, change.getFieldName(), "Name")
-
 			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, oldValStr, "\"RavenDB\"")
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "\"Hibernating Rhinos\"")
+		}
 
-			oldVal := change.getFieldOldValue()
-			oldValStr := fmt.Sprintf("%v", oldVal)
-			assert.Equal(t, oldValStr, "RavenDB")
+		member1 = &Member{}
+		member1.setName("Toli")
+		member1.setAge(5)
 
-			newVal := change.getFieldNewValue()
-			newValStr := fmt.Sprintf("%v", newVal)
-			assert.Equal(t, newValStr, "Hibernating Rhinos")
+		member2 = &Member{}
+		member2.setName("Boki")
+		member2.setAge(15)
+
+		newFamily.setMembers([]*Member{member1, member2})
+		changes = newSession.advanced().whatChanged()
+
+		assert.Equal(t, len(changes), 1)
+
+		family1Changes = changes["family/1"]
+		assert.Equal(t, len(family1Changes), 4)
+
+		// Note: the order of fields in Go is different than in Java. In Go it's alphabetic.
+		{
+			change := family1Changes[0]
+			assert.Equal(t, change.getFieldName(), "Age")
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, oldValStr, "8")
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "5")
+		}
+
+		{
+			change := family1Changes[1]
+			assert.Equal(t, change.getFieldName(), "Name")
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, oldValStr, "\"Hibernating Rhinos\"")
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "\"Toli\"")
+		}
+
+		{
+			change := family1Changes[2]
+			assert.Equal(t, change.getFieldName(), "Age")
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, oldValStr, "4")
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "15")
+		}
+
+		{
+			change := family1Changes[3]
+			assert.Equal(t, change.getFieldName(), "Name")
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, oldValStr, "\"RavenDB\"")
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "\"Boki\"")
 		}
 	}
-
-	// TODO: port me
-	/*
-	   member1 = new Member();
-	   member1.setName("Toli");
-	   member1.setAge(5);
-
-	   member2 = new Member();
-	   member2.setName("Boki");
-	   member2.setAge(15);
-
-	   newFamily.setMembers(new Member[]{ member1, member2 });
-
-	   changes = newSession.advanced().whatChanged();
-	   assertThat(changes)
-	           .hasSize(1);
-
-	   assertThat(changes.get("family/1"))
-	           .hasSize(4);
-
-	   assertThat(changes.get("family/1").get(0).getFieldName())
-	           .isEqualTo("name");
-	   assertThat(changes.get("family/1").get(0).getChange())
-	           .isEqualTo(DocumentsChanges.ChangeType.FIELD_CHANGED);
-	   assertThat(changes.get("family/1").get(0).getFieldOldValue().toString())
-	           .isEqualTo("\"Hibernating Rhinos\"");
-	   assertThat(changes.get("family/1").get(0).getFieldNewValue().toString())
-	           .isEqualTo("\"Toli\"");
-
-	   assertThat(changes.get("family/1").get(1).getFieldName())
-	           .isEqualTo("age");
-	   assertThat(changes.get("family/1").get(1).getChange())
-	           .isEqualTo(DocumentsChanges.ChangeType.FIELD_CHANGED);
-	   assertThat(changes.get("family/1").get(1).getFieldOldValue().toString())
-	           .isEqualTo("8");
-	   assertThat(changes.get("family/1").get(1).getFieldNewValue().toString())
-	           .isEqualTo("5");
-
-	   assertThat(changes.get("family/1").get(2).getFieldName())
-	           .isEqualTo("name");
-	   assertThat(changes.get("family/1").get(2).getChange())
-	           .isEqualTo(DocumentsChanges.ChangeType.FIELD_CHANGED);
-	   assertThat(changes.get("family/1").get(2).getFieldOldValue().toString())
-	           .isEqualTo("\"RavenDB\"");
-	   assertThat(changes.get("family/1").get(2).getFieldNewValue().toString())
-	           .isEqualTo("\"Boki\"");
-
-	   assertThat(changes.get("family/1").get(3).getFieldName())
-	           .isEqualTo("age");
-	   assertThat(changes.get("family/1").get(3).getChange())
-	           .isEqualTo(DocumentsChanges.ChangeType.FIELD_CHANGED);
-	   assertThat(changes.get("family/1").get(3).getFieldOldValue().toString())
-	           .isEqualTo("4");
-	   assertThat(changes.get("family/1").get(3).getFieldNewValue().toString())
-	           .isEqualTo("15");
-	*/
 }
+
 func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 }
 func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 }
 func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 }
+
 func TestCrud(t *testing.T) {
 	if dbTestsDisabled() {
 		return

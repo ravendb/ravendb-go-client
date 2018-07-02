@@ -162,4 +162,6 @@ var _ IVoidMaintenanceOperation = &PutClientConfigurationOperation{}
 
 Go has a `fmt.Stringer` interface with `String()` method but basic types (`int`, `float64` etc.) don't implement it (and we can't add methods to existing types).
 
-Instead of `Object.toString` we can use `fmt.Sprintf("%v", object)` which will format known types (including basic types) and use `String()` method for unknown types.
+Instead of `Object.toString` we can use `fmt.Sprintf("%#v", object)` which will use `String()` method if available and will format known types (including basic types) as their Go literal representation (most importantly it quotes strings so string `foo` has literal representation as `"foo"`).
+
+To avoid quoting strings, use `%v` or `%s`.
