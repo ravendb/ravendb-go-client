@@ -584,7 +584,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 		if documentInfo == nil {
 			continue
 		}
-		if len(changes) > 0 {
+		if changes != nil {
 			docChanges := []*DocumentsChanges{}
 			change := NewDocumentsChanges()
 			change.setFieldNewValue("")
