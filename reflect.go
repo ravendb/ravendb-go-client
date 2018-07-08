@@ -53,9 +53,10 @@ func isTypePrimitive(t reflect.Type) bool {
 		reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
 		reflect.Float32, reflect.Float64, reflect.String:
 		return true
+	case reflect.Ptr:
+		return false
 	// TODO: not all of those we should support
-	case reflect.Array, reflect.Interface, reflect.Map, reflect.Ptr,
-		reflect.Slice, reflect.Struct:
+	case reflect.Array, reflect.Interface, reflect.Map, reflect.Slice, reflect.Struct:
 		panicIf(true, "NYI")
 	}
 	return false
@@ -112,7 +113,30 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 	// TODO: implement me
 	// for simple types (int, bool, string) it should be just pass-through
 	// for structs, use makeStructFromJSONMap
-	panicIf(true, "NYI")
+	switch clazz.Kind() {
+	case reflect.String:
+		switch v := val.(type) {
+		case string:
+			return v, nil
+		default:
+			panicIf(true, "converting of type %T to string NYI", val)
+		}
+	case reflect.Ptr:
+		clazz2 := clazz.Elem()
+		switch clazz2.Kind() {
+		case reflect.Struct:
+			valIn, ok := val.(ObjectNode)
+			if !ok {
+				return nil, NewRavenException("can't convert value of type '%s' to a struct", val)
+			}
+			v, err := makeStructFromJSONMap(clazz, valIn)
+			return v, err
+		default:
+			panicIf(true, "converting to pointer of '%s' NYI", clazz.Kind().String())
+		}
+	default:
+		panicIf(true, "converting to %s NYI", clazz.Kind().String())
+	}
 	return nil, NewNotImplementedException("NYI")
 }
 

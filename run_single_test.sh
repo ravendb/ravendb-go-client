@@ -10,4 +10,4 @@ export HTTP_PROXY=http://localhost:8888
 # uncomment for more verbose logging
 #export VERBOSE_LOG=true
 
-go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestCrud$
+go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestUniqueValues$
