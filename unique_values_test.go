@@ -11,15 +11,58 @@ func uniqueValues_canReadNotExistingKey(t *testing.T) {
 }
 
 func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		op := NewGetCompareExchangeValueOperation(getTypeOf(0), "test")
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res := op.Command.Result
+		assert.Nil(t, res)
+	}
+	{
+		op := NewPutCompareExchangeValueOperation("test", 5, 0)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+	}
+	{
+		op := NewGetCompareExchangeValueOperation(getTypeOf(0), "test")
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res := op.Command.Result
+		assert.NotNil(t, res)
+		v := res.getValue().(int)
+		assert.Equal(t, v, 5)
+	}
 }
+
 func uniqueValues_canPutUniqueString(t *testing.T) {
 }
 func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 }
 func uniqueValues_canListCompareExchange(t *testing.T) {
 }
+
 func uniqueValues_canRemoveUnique(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res := op.Command.Result
+		val := res.getValue().(string)
+		assert.Equal(t, val, "Karmel")
+		assert.True(t, res.isSuccessful())
+		{
+			op := NewDeleteCompareExchangeValueOperation(getTypeOf(""), "test", res.getIndex())
+			err = store.operations().send(op)
+			assert.NoError(t, err)
+			assert.True(t, res.isSuccessful())
+		}
+	}
 }
+
 func uniqueValues_removeUniqueFailed(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -95,9 +138,9 @@ func TestUniqueValues(t *testing.T) {
 	// matches order of Java tests
 	uniqueValues_removeUniqueFailed(t)
 	uniqueValues_canGetIndexValue(t)
-
 	uniqueValues_canRemoveUnique(t)
 	uniqueValues_canWorkWithPrimitiveTypes(t)
+
 	uniqueValues_canReadNotExistingKey(t)
 	uniqueValues_canPutMultiDifferentValues(t)
 	uniqueValues_canPutUniqueString(t)

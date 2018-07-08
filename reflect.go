@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 
 	"github.com/jinzhu/copier"
@@ -108,18 +109,38 @@ func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error)
 	return v, nil
 }
 
+func dbglog(format string, args ...interface{}) string {
+	s := fmt.Sprintf(format, args...)
+	fmt.Println(s)
+	return s
+}
+
 // corresponds to ObjectMapper.convertValue()
+// val is coming from JSON, so it can be string, bool, float64, []interface{}
+// or map[string]interface{}
+// TODO: not sure about nil
+// for simple types (int, bool, string) it should be just pass-through
+// for structs decode ObjectNode => struct using makeStructFromJSONMap
 func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
-	// TODO: implement me
-	// for simple types (int, bool, string) it should be just pass-through
-	// for structs, use makeStructFromJSONMap
+	// TODO: implement every possible type. Need more comprehensive tests
+	// to exercise those code paths
 	switch clazz.Kind() {
 	case reflect.String:
 		switch v := val.(type) {
 		case string:
 			return v, nil
 		default:
-			panicIf(true, "converting of type %T to string NYI", val)
+			panicIf(true, "%s", dbglog("converting of type %T to string NYI", val))
+		}
+	case reflect.Int:
+		switch v := val.(type) {
+		case int:
+			return v, nil
+		case float64:
+			res := int(v)
+			return res, nil
+		default:
+			panicIf(true, "%s", dbglog("converting of type %T to reflect.Int NYI", val))
 		}
 	case reflect.Ptr:
 		clazz2 := clazz.Elem()
@@ -132,10 +153,10 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 			v, err := makeStructFromJSONMap(clazz, valIn)
 			return v, err
 		default:
-			panicIf(true, "converting to pointer of '%s' NYI", clazz.Kind().String())
+			panicIf(true, "%s", dbglog("converting to pointer of '%s' NYI", clazz.Kind().String()))
 		}
 	default:
-		panicIf(true, "converting to %s NYI", clazz.Kind().String())
+		panicIf(true, "%s", dbglog("converting to %s NYI", clazz.Kind().String()))
 	}
 	return nil, NewNotImplementedException("NYI")
 }
