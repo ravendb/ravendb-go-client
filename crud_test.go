@@ -299,6 +299,7 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 		assert.NoError(t, err)
 
 		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Toli", "Mitzi", "Boki"})
 		changes := newSession.advanced().whatChanged()
@@ -309,10 +310,79 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 }
 
 func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		newSession := openSessionMust(t, store)
+		family := &Family{}
+		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
+		err = newSession.StoreEntityWithID(family, "family/1")
+		assert.NoError(t, err)
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		assert.NoError(t, err)
+		newFamily := newFamilyI.(*Family)
+		newFamily.setNames([]string{"Hibernating Rhinos", "RavenDB"})
+		changes := newSession.advanced().whatChanged()
+		assert.Equal(t, len(changes), 0)
+
+		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos"})
+		changes = newSession.advanced().whatChanged()
+		assert.Equal(t, len(changes), 1)
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
 }
+
 func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		newSession := openSessionMust(t, store)
+		family := &Family{}
+		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
+		err = newSession.StoreEntityWithID(family, "family/1")
+		assert.NoError(t, err)
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		assert.NoError(t, err)
+		newFamily := newFamilyI.(*Family)
+		newFamily.setNames([]string{"RavenDB"})
+		changes := newSession.advanced().whatChanged()
+		assert.Equal(t, len(changes), 1)
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
 }
+
 func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		newSession := openSessionMust(t, store)
+		family := &Family{}
+		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
+		err = newSession.StoreEntityWithID(family, "family/1")
+		assert.NoError(t, err)
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		assert.NoError(t, err)
+		newFamily := newFamilyI.(*Family)
+		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos", "Toli", "Mitzi", "Boki"})
+		changes := newSession.advanced().whatChanged()
+		assert.Equal(t, len(changes), 1)
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
 }
 
 func crudTest_crudOperationsWithNull(t *testing.T) {
@@ -482,6 +552,109 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 }
 
 func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		newSession := openSessionMust(t, store)
+		a1 := &Arr1{}
+		a1.setStr([]string{"a", "b"})
+
+		a2 := &Arr1{}
+		a2.setStr([]string{"c", "d"})
+
+		arr := &Arr2{}
+		arr.setArr1([]*Arr1{a1, a2})
+
+		newSession.StoreEntityWithID(arr, "arr/1")
+		assert.NoError(t, err)
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		newArrI, err := newSession.load(getTypeOf(&Arr2{}), "arr/1")
+		assert.NoError(t, err)
+		newArr := newArrI.(*Arr2)
+
+		a1 = &Arr1{}
+		a1.setStr([]string{"d", "c"})
+
+		a2 = &Arr1{}
+		a2.setStr([]string{"a", "b"})
+
+		newArr.setArr1([]*Arr1{a1, a2})
+
+		whatChanged := newSession.advanced().whatChanged()
+		assert.Equal(t, 1, len(whatChanged))
+
+		change := whatChanged["arr/1"]
+		assert.Equal(t, len(change), 4)
+
+		{
+			oldValueStr := fmt.Sprintf("%#v", change[0].getFieldOldValue())
+			assert.Equal(t, oldValueStr, "\"a\"")
+			newValueStr := fmt.Sprintf("%#v", change[0].getFieldNewValue())
+			assert.Equal(t, newValueStr, "\"d\"")
+		}
+
+		{
+			oldValueStr := fmt.Sprintf("%#v", change[1].getFieldOldValue())
+			assert.Equal(t, oldValueStr, "\"b\"")
+			newValueStr := fmt.Sprintf("%#v", change[1].getFieldNewValue())
+			assert.Equal(t, newValueStr, "\"c\"")
+		}
+
+		{
+			oldValueStr := fmt.Sprintf("%#v", change[2].getFieldOldValue())
+			assert.Equal(t, oldValueStr, "\"c\"")
+			newValueStr := fmt.Sprintf("%#v", change[2].getFieldNewValue())
+			assert.Equal(t, newValueStr, "\"a\"")
+		}
+
+		{
+			oldValueStr := fmt.Sprintf("%#v", change[3].getFieldOldValue())
+			assert.Equal(t, oldValueStr, "\"d\"")
+			newValueStr := fmt.Sprintf("%#v", change[3].getFieldNewValue())
+			assert.Equal(t, newValueStr, "\"b\"")
+		}
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+		newArrI, err := newSession.load(getTypeOf(&Arr2{}), "arr/1")
+		assert.NoError(t, err)
+		newArr := newArrI.(*Arr2)
+		a1 := &Arr1{}
+		a1.setStr([]string{"q", "w"})
+
+		a2 := &Arr1{}
+		a2.setStr([]string{"a", "b"})
+		newArr.setArr1([]*Arr1{a1, a2})
+
+		whatChanged := newSession.advanced().whatChanged()
+		assert.Equal(t, len(whatChanged), 1)
+
+		change := whatChanged["arr/1"]
+		assert.Equal(t, len(change), 2)
+
+		{
+			oldValueStr := fmt.Sprintf("%#v", change[0].getFieldOldValue())
+			assert.Equal(t, oldValueStr, "\"d\"")
+			newValueStr := fmt.Sprintf("%#v", change[0].getFieldNewValue())
+			assert.Equal(t, newValueStr, "\"q\"")
+		}
+
+		{
+			oldValueStr := fmt.Sprintf("%#v", change[1].getFieldOldValue())
+			assert.Equal(t, oldValueStr, "\"c\"")
+			newValueStr := fmt.Sprintf("%#v", change[1].getFieldNewValue())
+			assert.Equal(t, newValueStr, "\"w\"")
+		}
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
 }
 
 func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
@@ -577,7 +750,6 @@ func TestCrud(t *testing.T) {
 	crudTest_entitiesAreSavedUsingLowerCase(t)
 	crudTest_canCustomizePropertyNamingStrategy(t)
 	crudTest_crudCanUpdatePropertyFromNullToObject(t)
-
 	crudTest_crudOperationsWithArrayInObject2(t)
 	crudTest_crudOperationsWithArrayInObject3(t)
 	crudTest_crudOperationsWithArrayInObject4(t)
