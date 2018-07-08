@@ -97,6 +97,46 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 }
 
 func uniqueValues_canListCompareExchange(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		user1 := NewUser()
+		user1.setName("Karmel")
+		op := NewPutCompareExchangeValueOperation("test", user1, 0)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res1 := op.Command.Result
+		val1 := res1.getValue().(*User)
+
+		user2 := NewUser()
+		user2.setName("Karmel")
+
+		op2 := NewPutCompareExchangeValueOperation("test2", user2, 0)
+		err = store.operations().send(op2)
+		assert.NoError(t, err)
+		res2 := op2.Command.Result
+		val2 := res2.getValue().(*User)
+
+		assert.Equal(t, *val1.getName(), "Karmel")
+		assert.True(t, res1.isSuccessful())
+
+		assert.Equal(t, *val2.getName(), "Karmel")
+		assert.True(t, res2.isSuccessful())
+	}
+	{
+		op := NewGetCompareExchangeValuesOperation(getTypeOf(&User{}), "test", -1, -1)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		values := op.Command.Result
+		assert.Equal(t, len(values), 2)
+
+		v := values["test"].getValue().(*User)
+		assert.Equal(t, *v.getName(), "Karmel")
+
+		v = values["test2"].getValue().(*User)
+		assert.Equal(t, *v.getName(), "Karmel")
+
+	}
 }
 
 func uniqueValues_canRemoveUnique(t *testing.T) {
@@ -149,7 +189,47 @@ func uniqueValues_removeUniqueFailed(t *testing.T) {
 }
 
 func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		user := NewUser()
+		user.setName("Karmel")
+
+		user2 := NewUser()
+		user2.setName("Karmel2")
+
+		op := NewPutCompareExchangeValueOperation("test", user, 0)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res := op.Command.Result
+
+		op2 := NewPutCompareExchangeValueOperation("test", user2, 0)
+		err = store.operations().send(op2)
+		assert.NoError(t, err)
+		res2 := op2.Command.Result
+
+		assert.True(t, res.isSuccessful())
+		assert.False(t, res2.isSuccessful())
+
+		val := res.getValue().(*User)
+		assert.Equal(t, *val.getName(), "Karmel")
+
+		val2 := res2.getValue().(*User)
+		assert.Equal(t, *val2.getName(), "Karmel")
+
+		user3 := NewUser()
+		user3.setName("Karmel2")
+
+		op3 := NewPutCompareExchangeValueOperation("test", user3, res2.getIndex())
+		err = store.operations().send(op3)
+		assert.NoError(t, err)
+		res2 = op3.Command.Result
+		assert.True(t, res2.isSuccessful())
+		val2 = res2.getValue().(*User)
+		assert.Equal(t, *val2.getName(), "Karmel2")
+	}
 }
+
 func uniqueValues_canGetIndexValue(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -199,7 +279,6 @@ func TestUniqueValues(t *testing.T) {
 	uniqueValues_canReadNotExistingKey(t)
 	uniqueValues_canPutMultiDifferentValues(t)
 	uniqueValues_canPutUniqueString(t)
-
 	uniqueValues_canListCompareExchange(t)
 	uniqueValues_returnCurrentValueWhenPuttingConcurrently(t)
 }

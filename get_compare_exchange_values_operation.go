@@ -39,7 +39,7 @@ func NewGetCompareExchangeValuesOperation(clazz reflect.Type, startWith string, 
 
 		_start:     start,
 		_pageSize:  pageSize,
-		_startWith: "",
+		_startWith: startWith,
 	}
 
 }
@@ -91,7 +91,7 @@ func (c *GetCompareExchangeValuesCommand) createRequest(node *ServerNode) (*http
 		}
 	}
 
-	return NewHttpDelete(url, nil)
+	return NewHttpGet(url)
 }
 
 func (c *GetCompareExchangeValuesCommand) setResponse(response []byte, fromCache bool) error {
