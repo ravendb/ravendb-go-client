@@ -8,6 +8,15 @@ import (
 )
 
 func uniqueValues_canReadNotExistingKey(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		op := NewGetCompareExchangeValueOperation(getTypeOf(0), "test")
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res := op.Command.Result
+		assert.Nil(t, res)
+	}
 }
 
 func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
@@ -37,9 +46,56 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
 }
 
 func uniqueValues_canPutUniqueString(t *testing.T) {
+
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		// Note: not sure why Java test opens a session
+		_ = openSessionMust(t, store)
+		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+
+		op2 := NewGetCompareExchangeValueOperation(getTypeOf(""), "test")
+		err = store.operations().send(op2)
+		assert.NoError(t, err)
+
+		res := op2.Command.Result
+		val := res.getValue().(string)
+		assert.Equal(t, val, "Karmel")
+	}
 }
+
 func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		user1 := NewUser()
+		user1.setName("Karmel")
+
+		op := NewPutCompareExchangeValueOperation("test", user1, 0)
+		err = store.operations().send(op)
+		assert.NoError(t, err)
+		res := op.Command.Result
+
+		user2 := NewUser()
+		user2.setName("Karmel")
+
+		op2 := NewPutCompareExchangeValueOperation("test2", user2, 0)
+		err = store.operations().send(op2)
+		assert.NoError(t, err)
+		res2 := op2.Command.Result
+
+		val := res.getValue().(*User)
+		assert.Equal(t, *val.getName(), "Karmel")
+		assert.True(t, res.isSuccessful())
+
+		val2 := res2.getValue().(*User)
+		assert.Equal(t, *val2.getName(), "Karmel")
+		assert.True(t, res.isSuccessful())
+	}
 }
+
 func uniqueValues_canListCompareExchange(t *testing.T) {
 }
 
@@ -140,10 +196,10 @@ func TestUniqueValues(t *testing.T) {
 	uniqueValues_canGetIndexValue(t)
 	uniqueValues_canRemoveUnique(t)
 	uniqueValues_canWorkWithPrimitiveTypes(t)
-
 	uniqueValues_canReadNotExistingKey(t)
 	uniqueValues_canPutMultiDifferentValues(t)
 	uniqueValues_canPutUniqueString(t)
+
 	uniqueValues_canListCompareExchange(t)
 	uniqueValues_returnCurrentValueWhenPuttingConcurrently(t)
 }
