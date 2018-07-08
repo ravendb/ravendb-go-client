@@ -133,7 +133,10 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 }
 
 func crudTest_canCustomizePropertyNamingStrategy(t *testing.T) {
+	// Note: not possible to tweak behavior of JSON serialization
+	// (entity mapper) in Go
 }
+
 func crudTest_crudOperations(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -516,6 +519,41 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 }
 
 func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		{
+			session := openSessionMust(t, store)
+			poc := &Poc{}
+			poc.setName("aviv")
+
+			err = session.StoreEntityWithID(poc, "pocs/1")
+			assert.NoError(t, err)
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+		}
+
+		{
+			session := openSessionMust(t, store)
+			pocI, err := session.load(getTypeOf(&Poc{}), "pocs/1")
+			assert.NoError(t, err)
+			poc := pocI.(*Poc)
+			assert.Nil(t, poc.getObj())
+
+			user := NewUser()
+			poc.setObj(user)
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+		}
+
+		{
+			session := openSessionMust(t, store)
+			pocI, err := session.load(getTypeOf(&Poc{}), "pocs/1")
+			assert.NoError(t, err)
+			poc := pocI.(*Poc)
+			assert.NotNil(t, poc.getObj())
+		}
+	}
 }
 
 func TestCrud(t *testing.T) {
@@ -536,10 +574,10 @@ func TestCrud(t *testing.T) {
 	crudTest_crudOperations(t)
 	crudTest_crudOperationsWithArrayInObject(t)
 	crudTest_crudCanUpdatePropertyToNull(t)
-
 	crudTest_entitiesAreSavedUsingLowerCase(t)
 	crudTest_canCustomizePropertyNamingStrategy(t)
 	crudTest_crudCanUpdatePropertyFromNullToObject(t)
+
 	crudTest_crudOperationsWithArrayInObject2(t)
 	crudTest_crudOperationsWithArrayInObject3(t)
 	crudTest_crudOperationsWithArrayInObject4(t)
