@@ -289,13 +289,14 @@ func TestAttachmentsRevisions(t *testing.T) {
 		proxy.ChangeLogFile("trace_attachments_revisions_go.txt")
 	}
 
+	RavenServerVerbose = true
 	createTestDriver()
 	defer deleteTestDriver()
 
 	// matches order of Java tests
 
 	// TODO: this test is flaky. See bugs.txt
-	// attachmentsRevisions_putAttachments(t)
+	//attachmentsRevisions_putAttachments(t)
 
 	attachmentsRevisions_attachmentRevision(t)
 }

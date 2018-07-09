@@ -102,4 +102,27 @@ Add more logging in ExceptionDispatcher_throwException() including callstack?
 
 Add more logging to networking code to make it easier to figure those out in
 the future?
+
+... after adding some logging
+
+Server returns 500:
+PROXY POST /databases/test_db_1/bulk_docs HTTP/1.1
+handleUnsuccessfulResponse default case
+HTTP RESPONSE:
+HTTP/1.1 500 Internal Server Error
+Content-Length: 4
+Content-Type: text/plain; charset=utf-8
+Date: Mon, 09 Jul 2018 01:24:03 GMT
+X-Content-Type-Options: nosniff
+
+ExceptionDispatcher_throwException. schema: ravendb.ExceptionSchema{URL:"", Type:"", Message:"", Error:""}
+NewGetClusterTopologyCommand()
+NewGetClusterTopologyCommand.createRequest()
+PROXY PUT /databases/test_db_1/attachments?id=users%2F1&name=profile.png&contentType=image%2Fpng HTTP/1.1
+HTTP REQUEST:
+
+GetClusterTopology is a result of this error.
+
+Q: why only happens sometimes? Need also log from the server.
+
 ---------------------------------

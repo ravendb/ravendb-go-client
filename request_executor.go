@@ -888,6 +888,9 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		err = RequestExecutor_handleConflict(response)
 		break
 	default:
+		fmt.Printf("handleUnsuccessfulResponse default case\n")
+		dumpHTTP = true
+		dumpHTTPBody = true
 		dumpHTTPResponse(response)
 		command.getBase().onResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)
@@ -897,6 +900,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 }
 
 func RequestExecutor_handleConflict(response *http.Response) error {
+	fmt.Printf("RequestExecutor_handleConflict\n")
 	return ExceptionDispatcher_throwException(response)
 }
 
