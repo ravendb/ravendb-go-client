@@ -90,17 +90,15 @@ func (d *MetadataAsDictionary) convertValue(key string, value Object) Object {
 	case ObjectNode:
 		return NewMetadataAsDictionary(v, d, key)
 	case []interface{}:
-		panicIf(true, "value is interface{}")
-		// TODO: not sure this will work
-		// TODO: pre-allocate result
-		var res []interface{}
-		for _, el := range v {
+		n := len(v)
+		res := make([]interface{}, n, n)
+		for i, el := range v {
 			newEl := d.convertValue(key, el)
-			res = append(res, newEl)
+			res[i] = newEl
 		}
 		return res
 	default:
-		panicIf(true, "usuppoted type %T", value)
+		panicIf(true, "unsuppoted type %T", value)
 	}
 
 	return nil
@@ -136,6 +134,35 @@ func (d *MetadataAsDictionary) entrySet() map[string]Object {
 	return d._metadata
 }
 
+func (d *MetadataAsDictionary) containsKey(key string) bool {
+	if d._metadata != nil {
+		_, ok := d._metadata[key]
+		return ok
+	}
+
+	_, ok := d._source[key]
+	return ok
+}
+
+// TODO: return an error instead of panicking on cast failures
+func (d *MetadataAsDictionary) getObjects(key string) []*IMetadataDictionary {
+	objI, ok := d.get(key)
+	if !ok || objI == nil {
+		return nil
+	}
+	obj := objI.([]interface{})
+	n := len(obj)
+	if n == 0 {
+		return nil
+	}
+	list := make([]*IMetadataDictionary, n, n)
+	for i := 0; i < n; i++ {
+		v := obj[i].(*IMetadataDictionary)
+		list[i] = v
+	}
+	return list
+}
+
 /*
     @Override
     public int size() {
@@ -160,17 +187,6 @@ func (d *MetadataAsDictionary) entrySet() map[string]Object {
         dirty = true;
 
         _metadata.putAll(m);
-    }
-
-    @Override
-
-    @Override
-    public boolean containsKey(Object key) {
-        if (_metadata != null) {
-            return _metadata.containsKey(key);
-        }
-
-        return _source.has((string)key);
     }
 
     @Override
