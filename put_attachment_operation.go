@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -64,6 +65,8 @@ func NewPutAttachmentCommand(documentId string, name string, stream io.Reader, c
 	return cmd
 }
 
+var noReader = true
+
 func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
@@ -71,7 +74,26 @@ func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 		url += "&contentType=" + UrlUtils_escapeDataString(c._contentType)
 	}
 
-	return NewHttpPutReader(url, c._stream)
+	if noReader {
+		var buf bytes.Buffer
+		_, err := io.Copy(&buf, c._stream)
+		if err != nil {
+			return nil, err
+		}
+		req, err := NewHttpPut(url, buf.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		addChangeVectorIfNotNull(c._changeVector, req)
+		return req, nil
+	}
+
+	req, err := NewHttpPutReader(url, c._stream)
+	if err != nil {
+		return nil, err
+	}
+	addChangeVectorIfNotNull(c._changeVector, req)
+	return req, nil
 
 }
 

@@ -125,4 +125,5 @@ GetClusterTopology is a result of this error.
 
 Q: why only happens sometimes? Need also log from the server.
 
+Q: is it about closing attachment reader?
 ---------------------------------
