@@ -299,4 +299,5 @@ func TestAttachmentsRevisions(t *testing.T) {
 	//attachmentsRevisions_putAttachments(t)
 
 	attachmentsRevisions_attachmentRevision(t)
+	RavenServerVerbose = false
 }
