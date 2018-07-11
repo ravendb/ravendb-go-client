@@ -90,6 +90,7 @@ func firstNonZero(i1, i2 int) int {
 	return i2
 }
 
+// TODO: maybe sort or provide fieldNamesSorted when stable order matters
 func fieldNames(js ObjectNode) []string {
 	var res []string
 	for k := range js {

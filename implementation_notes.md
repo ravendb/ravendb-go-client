@@ -165,3 +165,9 @@ Go has a `fmt.Stringer` interface with `String()` method but basic types (`int`,
 Instead of `Object.toString` we can use `fmt.Sprintf("%#v", object)` which will use `String()` method if available and will format known types (including basic types) as their Go literal representation (most importantly it quotes strings so string `foo` has literal representation as `"foo"`).
 
 To avoid quoting strings, use `%v` or `%s`.
+
+## `id` vs. `ID`
+
+In Java, the name of id property is `id`.
+
+In Go publicly accessible properties have to start with capital letter so it would have to be `Id`. Additionally the Go naming rule for abbreviations is all capitalized i.e. `ID`.

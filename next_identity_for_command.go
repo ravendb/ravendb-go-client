@@ -29,7 +29,7 @@ func NewNextIdentityForCommand(id string) *NextIdentityForCommand {
 }
 
 func (c *NextIdentityForCommand) createRequest(node *ServerNode) (*http.Request, error) {
-	err := ensureIsNotNullOrString(c._id, "id")
+	err := ensureIsNotNullOrString(c._id, "ID")
 	if err != nil {
 		return nil, err
 	}

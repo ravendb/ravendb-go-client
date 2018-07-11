@@ -65,7 +65,8 @@ func runJava() {
 	//runSingleJavaTest("DeleteByQueryTest", "trace_delete_by_query_java.txt")
 	//runSingleJavaTest("CrudTest", "trace_crud_java.txt")
 	//runSingleJavaTest("UniqueValuesTest", "trace_unique_values_java.txt")
-	runSingleJavaTest("AttachmentsRevisionsTest", "trace_attachments_revisions_java.txt")
+	//runSingleJavaTest("AttachmentsRevisionsTest", "trace_attachments_revisions_java.txt")
+	runSingleJavaTest("BasicDocumentsTest", "trace_basic_documents_java.txt")
 }
 
 func main() {
