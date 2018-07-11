@@ -16,7 +16,6 @@ type GetClusterTopologyCommand struct {
 }
 
 func NewGetClusterTopologyCommand() *GetClusterTopologyCommand {
-	fmt.Printf("NewGetClusterTopologyCommand()\n")
 	cmd := &GetClusterTopologyCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 	}
@@ -25,15 +24,12 @@ func NewGetClusterTopologyCommand() *GetClusterTopologyCommand {
 }
 
 func (c *GetClusterTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
-	fmt.Printf("NewGetClusterTopologyCommand.createRequest()\n")
 	url := node.getUrl() + "/cluster/topology"
 	return NewHttpGet(url)
 }
 
 func (c *GetClusterTopologyCommand) setResponse(response []byte, fromCache bool) error {
-	fmt.Printf("NewGetClusterTopologyCommand.setResponse()\n")
 	if len(response) == 0 {
-		fmt.Printf("NewGetClusterTopologyCommand.setResponse(): len(response)==0\n")
 		return throwInvalidResponse()
 	}
 	var res ClusterTopologyResponse
