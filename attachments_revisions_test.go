@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"bytes"
+	"io/ioutil"
 	"sort"
 	"strings"
 	"testing"
@@ -134,7 +135,51 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 }
 
 func attachmentsRevisions_attachmentRevision(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	{
+		_, err = setupRevisions(store, false, 4)
+		assert.NoError(t, err)
 
+		createDocumentWithAttachments(t, store)
+
+		{
+			session := openSessionMust(t, store)
+			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
+			err = session.advanced().attachments().store("users/1", "profile.png", bais, "")
+			assert.NoError(t, err)
+
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+		}
+
+		{
+			session := openSessionMust(t, store)
+			revisionsI, err := session.advanced().revisions().getFor(getTypeOf(&User{}), "users/1")
+			assert.NoError(t, err)
+
+			// TODO: could be done with reflection
+			n := len(revisionsI)
+			revisions := make([]*User, n, n)
+			for i, revI := range revisionsI {
+				revisions[i] = revI.(*User)
+			}
+
+			rev := revisions[1]
+			changeVector, err := session.advanced().getChangeVectorFor(rev)
+			assert.NoError(t, err)
+
+			{
+				revision, err := session.advanced().attachments().getRevision("users/1", "profile.png", changeVector)
+				assert.NoError(t, err)
+				r := revision.getData()
+				bytes, err := ioutil.ReadAll(r)
+				assert.NoError(t, err)
+				assert.Equal(t, len(bytes), 3)
+				assert.Equal(t, bytes, []byte{1, 2, 3})
+			}
+		}
+	}
 }
 
 func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string {
@@ -289,7 +334,7 @@ func TestAttachmentsRevisions(t *testing.T) {
 		proxy.ChangeLogFile("trace_attachments_revisions_go.txt")
 	}
 
-	RavenServerVerbose = true
+	//RavenServerVerbose = true
 	createTestDriver()
 	defer deleteTestDriver()
 
@@ -297,7 +342,6 @@ func TestAttachmentsRevisions(t *testing.T) {
 
 	// TODO: this test is flaky. See bugs.txt
 	//attachmentsRevisions_putAttachments(t)
-
-	attachmentsRevisions_attachmentRevision(t)
+	//attachmentsRevisions_attachmentRevision(t)
 	RavenServerVerbose = false
 }

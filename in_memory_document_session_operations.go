@@ -19,10 +19,10 @@ func newClientSessionID() int {
 // InMemoryDocumentSessionOperations represents database operations queued
 // in memory
 type InMemoryDocumentSessionOperations struct {
-	_clientSessionID int
-	deletedEntities  *ObjectSet
-	_requestExecutor *RequestExecutor
-	// TODO: OperationExecutor
+	_clientSessionID   int
+	deletedEntities    *ObjectSet
+	_requestExecutor   *RequestExecutor
+	_operationExecutor *OperationExecutor
 	// Note: pendingLazyOperations and onEvaluateLazy not used
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
@@ -105,10 +105,6 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	return res
 }
 
-func (s *InMemoryDocumentSessionOperations) getNumberOfRequests() int {
-	return s.numberOfRequests
-}
-
 func (s *InMemoryDocumentSessionOperations) getNumberOfEntitiesInUnitOfWork() int {
 	return len(s.documentsByEntity)
 }
@@ -180,6 +176,18 @@ func (s *InMemoryDocumentSessionOperations) getDocumentStore() *IDocumentStore {
 
 func (s *InMemoryDocumentSessionOperations) getRequestExecutor() *RequestExecutor {
 	return s._requestExecutor
+}
+
+func (s *InMemoryDocumentSessionOperations) getOperations() *OperationExecutor {
+	if s._operationExecutor == nil {
+		dbName := s.getDatabaseName()
+		s._operationExecutor = s.getDocumentStore().operations().forDatabase(dbName)
+	}
+	return s._operationExecutor
+}
+
+func (s *InMemoryDocumentSessionOperations) getNumberOfRequests() int {
+	return s.numberOfRequests
 }
 
 // getMetadataFor gets the metadata for the specified entity.

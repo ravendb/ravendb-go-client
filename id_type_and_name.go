@@ -38,3 +38,12 @@ func (t *IdTypeAndName) getName() string {
 func (t *IdTypeAndName) setName(name string) {
 	t.name = name
 }
+
+// TODO: use NewIdTypeAndName instead
+func IdTypeAndName_create(id string, typ CommandType, name string) IdTypeAndName {
+	idTypeAndName := IdTypeAndName{}
+	idTypeAndName.setId(id)
+	idTypeAndName.setType(typ)
+	idTypeAndName.setName(name)
+	return idTypeAndName
+}

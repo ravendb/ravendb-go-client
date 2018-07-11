@@ -10,8 +10,8 @@ import (
 type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 
-	// _attachments *IAttachmentsSessionOperations
-	_revisions *IRevisionsSessionOperations
+	_attachments *IAttachmentsSessionOperations
+	_revisions   *IRevisionsSessionOperations
 }
 
 // NewDocumentSession creates a new DocumentSession
@@ -33,7 +33,13 @@ func (s *DocumentSession) advanced() *DocumentSession {
 
 //    public ILazySessionOperations lazily() {
 //    public IEagerSessionOperations eagerly() {
-//    public IAttachmentsSessionOperations attachments() {
+
+func (s *DocumentSession) attachments() *IAttachmentsSessionOperations {
+	if s._attachments == nil {
+		s._attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
+	}
+	return s._attachments
+}
 
 func (s *DocumentSession) revisions() *IRevisionsSessionOperations {
 	return s._revisions
