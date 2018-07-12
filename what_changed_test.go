@@ -55,6 +55,46 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 }
 
 func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+
+	{
+		newSession := openSessionMust(t, store)
+		arr := &Arr{}
+		arr.setArray([]Object{"a", 1, "b"})
+		err = newSession.StoreEntityWithID(arr, "arr/1")
+		assert.NoError(t, err)
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+		arrI, err := newSession.load(getTypeOf(&Arr{}), "arr/1")
+		assert.NoError(t, err)
+
+		arr := arrI.(*Arr)
+		arr.setArray([]Object{"a", 1, "b", "c", 2})
+
+		changes := newSession.advanced().whatChanged()
+		assert.Equal(t, len(changes), 1)
+		change := changes["arr/1"]
+		assert.Equal(t, len(change), 2)
+
+		{
+			change := change[0]
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, newValStr, "\"c\"")
+			assert.Nil(t, change.getFieldOldValue())
+		}
+		{
+			change := change[1]
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+			assert.Equal(t, change.getFieldNewValue(), float64(2))
+			assert.Nil(t, change.getFieldOldValue())
+		}
+	}
 }
 
 func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
@@ -205,6 +245,7 @@ func TestWhatChanged(t *testing.T) {
 	whatChanged_what_Changed_Array_Value_Removed(t)
 	whatChanged_whatChangedNewField(t)
 	whatChanged_what_Changed_Array_Value_Added(t)
+
 	whatChanged_whatChangedChangeField(t)
 	whatChanged_whatChangedArrayValueChanged(t)
 	whatChanged_ravenDB_8169(t)
