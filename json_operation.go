@@ -203,16 +203,17 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 				if newVal != nil {
 					changed = true
 					if changes != nil {
-						JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+						JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
 					}
 				}
 				break
 			}
+			// Note: this matches Java but also means that 1 == "1"
 			oldValStr := fmt.Sprintf("%s", oldVal)
 			newValStr := fmt.Sprintf("%s", newVal)
 			if oldValStr != newValStr {
 				if changes != nil {
-					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
 				}
 				changed = true
 			}
