@@ -44,6 +44,7 @@ func Posts_ByTitleAndDesc() *AbstractIndexCreationTask {
 func indexesFromClientTest_canReset(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)
@@ -91,6 +92,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 func indexesFromClientTest_canExecuteManyIndexes(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	indexes := []*AbstractIndexCreationTask{NewUsersIndex()}
 	err = store.executeIndexes(indexes)
@@ -106,6 +108,7 @@ func indexesFromClientTest_canExecuteManyIndexes(t *testing.T) {
 func indexesFromClientTest_canDelete(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	userIndex := NewUsersIndex()
 	err = store.executeIndex(userIndex)
@@ -125,6 +128,7 @@ func indexesFromClientTest_canDelete(t *testing.T) {
 func indexesFromClientTest_canStopAndStart(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	err = NewUsers_ByName().execute(store)
 	assert.NoError(t, err)

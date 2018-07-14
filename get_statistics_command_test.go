@@ -10,6 +10,8 @@ import (
 func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	executor := store.GetRequestExecutor()
 
 	sampleData := NewCreateSampleDataOperation()

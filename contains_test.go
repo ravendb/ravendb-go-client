@@ -44,6 +44,8 @@ func (u *UserWithFavs) setFavourites(favourites []string) {
 func containsTestcontainsTest(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		userCreator := func(name string, favs []string) {

@@ -54,6 +54,7 @@ func (b *Bar) setName(name string) {
 func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	barId := ""
 	{

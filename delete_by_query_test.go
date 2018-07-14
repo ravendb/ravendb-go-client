@@ -10,6 +10,7 @@ import (
 func loadTest_canDeleteByQuery(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)

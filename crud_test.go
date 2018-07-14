@@ -101,6 +101,8 @@ func (p *Poc) setObj(obj *User) {
 func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		user1 := NewUser()
@@ -140,6 +142,8 @@ func crudTest_canCustomizePropertyNamingStrategy(t *testing.T) {
 func crudTest_crudOperations(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 
@@ -206,6 +210,8 @@ func crudTest_crudOperations(t *testing.T) {
 func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 
@@ -289,6 +295,8 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		family := &Family{}
@@ -312,6 +320,8 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		family := &Family{}
@@ -340,6 +350,8 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		family := &Family{}
@@ -364,6 +376,8 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		family := &Family{}
@@ -388,6 +402,8 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 func crudTest_crudOperationsWithNull(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		user := NewUser()
@@ -412,6 +428,8 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 
@@ -554,6 +572,8 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		a1 := &Arr1{}
@@ -660,6 +680,8 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		{
 			newSession := openSessionMust(t, store)
@@ -694,6 +716,8 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		poc := &Poc{}

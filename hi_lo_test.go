@@ -34,6 +34,7 @@ func (p *Product) setProductName(productName string) {
 func hiloTest_capacityShouldDouble(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
 
@@ -92,6 +93,8 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	newStore := NewDocumentStore()
 	newStore.setUrls(store.getUrls())
 	newStore.setDatabase(store.getDatabase())
@@ -146,6 +149,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 func hiloTest_canNotGoDown(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	session := openSessionMust(t, store)
 
@@ -181,6 +185,8 @@ func hiloTest_canNotGoDown(t *testing.T) {
 func hiloTest_multiDb(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	session := openSessionMust(t, store)
 
 	hiloDoc := &HiLoDoc{}

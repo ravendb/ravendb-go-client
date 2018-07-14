@@ -11,6 +11,8 @@ import (
 func compactTest_canCompactDatabase(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		newSession := openSessionMust(t, store)
 		user1 := NewUser()

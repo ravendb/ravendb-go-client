@@ -9,6 +9,8 @@ import (
 
 func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	newSession := openSessionMust(t, store)
 
 	user := NewUser()
@@ -38,6 +40,8 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 
 func deleteTest_deleteDocumentById(t *testing.T) {
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	newSession := openSessionMust(t, store)
 
 	user := NewUser()

@@ -10,6 +10,8 @@ import (
 func existsTest_checkIfDocumentExists(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		assert.NoError(t, err)

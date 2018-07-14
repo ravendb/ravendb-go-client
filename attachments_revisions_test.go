@@ -14,6 +14,8 @@ import (
 func attachmentsRevisions_putAttachments(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		_, err = setupRevisions(store, false, 4)
 		assert.NoError(t, err)
@@ -53,6 +55,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
+			session.Close()
 		}
 
 		{
@@ -75,6 +78,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
+			session.Close()
 		}
 
 		{
@@ -97,6 +101,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
+			session.Close()
 		}
 
 		{
@@ -119,6 +124,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
+			session.Close()
 		}
 
 		{
@@ -137,6 +143,8 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 func attachmentsRevisions_attachmentRevision(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		_, err = setupRevisions(store, false, 4)
 		assert.NoError(t, err)
@@ -151,6 +159,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 
 			err = session.SaveChanges()
 			assert.NoError(t, err)
+			session.Close()
 		}
 
 		{
@@ -178,6 +187,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 				assert.Equal(t, len(bytes), 3)
 				assert.Equal(t, bytes, []byte{1, 2, 3})
 			}
+			session.Close()
 		}
 	}
 }
@@ -194,6 +204,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	names := []string{
@@ -272,6 +283,7 @@ func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assert
 			revisions[i] = v.(*User)
 		}
 		assertAction(t, session, revisions)
+		session.Close()
 	}
 }
 

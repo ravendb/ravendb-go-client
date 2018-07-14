@@ -10,6 +10,8 @@ import (
 func getTopologyTest_canGetTopology(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	command := NewGetDatabaseTopologyCommand()
 	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)

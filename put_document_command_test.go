@@ -10,6 +10,7 @@ import (
 func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	user := NewUser()
 	user.setName("Marcin")

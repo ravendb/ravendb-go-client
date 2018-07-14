@@ -10,6 +10,7 @@ import (
 func storeTestRefreshTest(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)
@@ -39,6 +40,7 @@ func storeTestRefreshTest(t *testing.T) {
 func storeTestStoreDocument(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)
@@ -61,6 +63,7 @@ func storeTestStoreDocument(t *testing.T) {
 func storeTestStoreDocuments(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)
@@ -86,6 +89,7 @@ func storeTestStoreDocuments(t *testing.T) {
 func storeTestNotifyAfterStore(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	storeLevelCallBack := []*IMetadataDictionary{nil}
 	sessionLevelCallback := []*IMetadataDictionary{nil}

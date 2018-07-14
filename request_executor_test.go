@@ -18,6 +18,8 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
 		errorsCount := 0
@@ -47,6 +49,8 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		executor := RequestExecutor_create(store.getUrls(), store.getDatabase(), nil, conventions)
 		for i := 0; i < 50; i++ {
@@ -67,6 +71,8 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		executor := RequestExecutor_create(store.getUrls(), store.getDatabase(), nil, conventions)
 
@@ -89,6 +95,8 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
 		serverNode := NewServerNode()
@@ -109,6 +117,8 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 	}
 	conventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
 		command := NewGetNextOperationIdCommand()
@@ -126,6 +136,8 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 	}
 	documentConventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		executor := RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(store.getUrls()[0], store.getDatabase(), nil, documentConventions)
 		nodes := executor.getTopologyNodes()
@@ -151,6 +163,8 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 	}
 	documentConventions := NewDocumentConventions()
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	url := store.getUrls()[0]
 	dbName := store.getDatabase()
 	{

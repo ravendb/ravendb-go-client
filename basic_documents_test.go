@@ -10,8 +10,9 @@ import (
 func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
-	documentId := "users/1"
+	defer store.Close()
 
+	documentId := "users/1"
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -51,6 +52,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 func basicDocuments_get(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	dummy := valueToTree(NewUser())
 	delete(dummy, "ID")

@@ -11,6 +11,7 @@ import (
 func whatChanged_whatChangedNewField(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -48,6 +49,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 func whatChanged_whatChangedRemovedField(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -87,6 +89,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 func whatChanged_whatChangedChangeField(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -128,6 +131,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -187,6 +191,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -230,6 +235,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -279,6 +285,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		newSession := openSessionMust(t, store)
@@ -321,6 +328,7 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 	//RavenDB-9150
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)

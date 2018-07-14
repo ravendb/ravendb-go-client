@@ -11,6 +11,8 @@ import (
 func patchTestcanPatchSingleDocument(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -41,6 +43,8 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 func patchTestcanPatchManyDocuments(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -70,6 +74,8 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 func patchTestthrowsOnInvalidScript(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()

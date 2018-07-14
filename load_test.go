@@ -11,6 +11,8 @@ import (
 func loadTest_loadCanUseCache(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -42,6 +44,8 @@ func loadTest_loadCanUseCache(t *testing.T) {
 func loadTest_loadDocumentById(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -66,6 +70,8 @@ func loadTest_loadDocumentById(t *testing.T) {
 func loadTest_loadDocumentsByIds(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user1 := NewUser()
@@ -93,6 +99,8 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 func loadTest_loadNullShouldReturnNull(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user1 := NewUser()
@@ -121,6 +129,8 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user1 := NewUser()
@@ -156,6 +166,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)
@@ -200,6 +211,8 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	var ids []string
 
 	{
@@ -236,6 +249,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 func loadTest_loadStartsWith(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)

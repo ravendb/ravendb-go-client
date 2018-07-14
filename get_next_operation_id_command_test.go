@@ -10,6 +10,7 @@ import (
 func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	command := NewGetNextOperationIdCommand()
 	err = store.getRequestExecutor().executeCommand(command)

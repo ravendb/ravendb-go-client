@@ -23,6 +23,8 @@ func revisionsTest_revisions(t *testing.T) {
 
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	_, err = setupRevisions(store, false, 4)
 	assert.NoError(t, err)
 

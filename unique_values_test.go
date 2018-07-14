@@ -10,6 +10,8 @@ import (
 func uniqueValues_canReadNotExistingKey(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		op := NewGetCompareExchangeValueOperation(getTypeOf(0), "test")
 		err = store.operations().send(op)
@@ -22,6 +24,8 @@ func uniqueValues_canReadNotExistingKey(t *testing.T) {
 func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		op := NewGetCompareExchangeValueOperation(getTypeOf(0), "test")
 		err = store.operations().send(op)
@@ -49,6 +53,8 @@ func uniqueValues_canPutUniqueString(t *testing.T) {
 
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		// Note: not sure why Java test opens a session
 		_ = openSessionMust(t, store)
@@ -69,6 +75,8 @@ func uniqueValues_canPutUniqueString(t *testing.T) {
 func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		user1 := NewUser()
 		user1.setName("Karmel")
@@ -99,6 +107,8 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 func uniqueValues_canListCompareExchange(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		user1 := NewUser()
 		user1.setName("Karmel")
@@ -142,6 +152,8 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 func uniqueValues_canRemoveUnique(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
 		err = store.operations().send(op)
@@ -162,6 +174,8 @@ func uniqueValues_canRemoveUnique(t *testing.T) {
 func uniqueValues_removeUniqueFailed(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
 		err = store.operations().send(op)
@@ -191,6 +205,8 @@ func uniqueValues_removeUniqueFailed(t *testing.T) {
 func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		user := NewUser()
 		user.setName("Karmel")
@@ -233,6 +249,8 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 func uniqueValues_canGetIndexValue(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		user := NewUser()
 		user.setName("Karmel")

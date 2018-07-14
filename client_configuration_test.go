@@ -9,6 +9,8 @@ import (
 
 func clientConfiguration_canHandleNoConfiguration(t *testing.T) {
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	operation := NewGetClientConfigurationOperation()
 	err := store.maintenance().send(operation)
 	assert.NoError(t, err)
@@ -19,6 +21,7 @@ func clientConfiguration_canHandleNoConfiguration(t *testing.T) {
 
 func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T) {
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	configurationToSave := NewClientConfiguration()
 	configurationToSave.setEtag(123)

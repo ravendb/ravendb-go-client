@@ -10,6 +10,8 @@ import (
 func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -34,6 +36,8 @@ func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	var changeVector *string
 	{
 		session := openSessionMust(t, store)

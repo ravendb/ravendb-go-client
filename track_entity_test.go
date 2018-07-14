@@ -11,6 +11,8 @@ import (
 func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		err = session.DeleteEntity(NewUser())
@@ -24,6 +26,8 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
 func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user1 := NewUser()
@@ -62,6 +66,8 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()

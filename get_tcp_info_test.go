@@ -9,6 +9,8 @@ import (
 
 func getTcpInfoTest_canGetTcpInfo(t *testing.T) {
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	command := NewGetTcpInfoCommand("test")
 	err := store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)

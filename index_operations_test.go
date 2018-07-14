@@ -22,6 +22,8 @@ func NewUsers_Index() *AbstractIndexCreationTask {
 func testIndexCanDeleteIndex(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersIndex()
 	err = index.execute(store)
 	assert.NoError(t, err)
@@ -46,6 +48,8 @@ func testIndexCanDeleteIndex(t *testing.T) {
 func testIndexCanDisableAndEnableIndex(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersIndex()
 	err = index.execute(store)
 	assert.NoError(t, err)
@@ -84,6 +88,8 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 func testIndexGetCanIndexes(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersIndex()
 	err = index.execute(store)
 	assert.NoError(t, err)
@@ -116,6 +122,8 @@ func testIndexGetCanIndexesStats(t *testing.T) {
 func testIndexGetTerms(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersIndex()
 	err = index.execute(store)
 	assert.NoError(t, err)
@@ -146,6 +154,8 @@ func testIndexGetTerms(t *testing.T) {
 func testIndexHasIndexChanged(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
 	op := NewPutIndexesOperation(indexDef)
@@ -173,6 +183,7 @@ func testIndexHasIndexChanged(t *testing.T) {
 func testIndexCanStopStartIndexing(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
@@ -216,6 +227,7 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 func testIndexCanStopStartIndex(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
@@ -261,6 +273,7 @@ func testIndexCanStopStartIndex(t *testing.T) {
 func testIndexCanSetIndexLockMode(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
@@ -287,6 +300,8 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 func testIndexCanSetIndexPriority(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
 	op := NewPutIndexesOperation(indexDef)
@@ -306,6 +321,8 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 func testIndexCanListErrors(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	index := NewUsersInvalidIndex()
 	indexDef := index.createIndexDefinition()
 	op := NewPutIndexesOperation(indexDef)
@@ -343,6 +360,7 @@ func testIndexCanGetIndexStatistics(t *testing.T) {
 
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
 
 	userIndex := NewUsers_Index()
 	err = userIndex.execute(store)

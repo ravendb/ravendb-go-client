@@ -10,6 +10,8 @@ import (
 func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()
@@ -65,6 +67,8 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
+	defer store.Close()
+
 	{
 		session := openSessionMust(t, store)
 		user := NewUser()

@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -46,7 +45,7 @@ func ExceptionDispatcher_throwException(response *http.Response) error {
 		}
 	}
 
-	fmt.Printf("ExceptionDispatcher_throwException. schema: %#v\n", schema)
+	//fmt.Printf("ExceptionDispatcher_throwException. schema: %#v\n", schema)
 	// TODO: Java is more complicated, throws exception based on type returned by server.
 	// Not sure we can do it in Go
 	return NewRavenException("ExceptionDispatcher_throwException: http response exception")
