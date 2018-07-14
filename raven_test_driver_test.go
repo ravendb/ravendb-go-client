@@ -302,7 +302,7 @@ func (d *RavenTestDriver) setGlobalServerProcess(secured bool, p *Process) {
 	}
 }
 
-func (d *RavenTestDriver) close() {
+func (d *RavenTestDriver) Close() {
 	if d.disposed {
 		return
 	}
@@ -379,7 +379,7 @@ func deleteTestDriver() {
 	if gRavenTestDriver == nil {
 		return
 	}
-	gRavenTestDriver.close()
+	gRavenTestDriver.Close()
 	gRavenTestDriver = nil
 }
 

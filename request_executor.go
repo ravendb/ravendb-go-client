@@ -432,7 +432,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 	f := func(key, val interface{}) bool {
 		status := val.(*NodeStatus)
-		status.close()
+		status.Close()
 		return true
 	}
 	re._failedNodesTimers.Range(f)
@@ -1018,7 +1018,7 @@ func writeToCache(topology *Topology, node *ServerNode) {
 }
 
 // Close should be called when deleting executor
-func (re *RequestExecutor) close() {
+func (re *RequestExecutor) Close() {
 	if re._disposed {
 		return
 	}
@@ -1174,7 +1174,7 @@ func (s *NodeStatus) timerCallback() {
 	}
 }
 
-func (s *NodeStatus) close() {
+func (s *NodeStatus) Close() {
 	if s._timer != nil {
 		s._timer.Stop()
 		s._timer = nil

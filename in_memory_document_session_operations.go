@@ -27,6 +27,7 @@ type InMemoryDocumentSessionOperations struct {
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
 	_saveChangesOptions         *BatchOptions
+	_isDisposed                 bool
 
 	// Note: skipping unused isDisposed
 	id string
@@ -816,6 +817,23 @@ func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) 
 		idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
 		s.deferredCommandsMap[idType] = command
 	}
+}
+
+func (s *InMemoryDocumentSessionOperations) _close(isDisposing bool) {
+	if s._isDisposed {
+		return
+	}
+
+	s._isDisposed = true
+
+	// nothing more to do for now
+}
+
+/**
+ * Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+ */
+func (s *InMemoryDocumentSessionOperations) Close() {
+	s._close(true)
 }
 
 func (s *InMemoryDocumentSessionOperations) RegisterMissing(id string) {

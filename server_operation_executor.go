@@ -15,7 +15,7 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 		res.requestExecutor = ClusterRequestExecutor_create(urls, cert, conv)
 	}
 	fn := func(store *DocumentStore) {
-		res.requestExecutor.close()
+		res.requestExecutor.Close()
 	}
 	store.addAfterCloseListener(fn)
 	return res
@@ -38,7 +38,7 @@ func (e *ServerOperationExecutor) sendAsync(operation IServerOperation) (*Operat
 	return NewServerWideOperation(requestExecutor, requestExecutor.getConventions(), result.getOperationId()), nil
 }
 
-func (e *ServerOperationExecutor) close() {
-	e.requestExecutor.close()
+func (e *ServerOperationExecutor) Close() {
+	e.requestExecutor.Close()
 	e.requestExecutor = nil
 }

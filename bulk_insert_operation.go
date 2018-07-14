@@ -206,19 +206,18 @@ func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedExce
 	return nil
 }
 
+func (o *BulkInsertOperation) waitForId() {
+	if o._operationId != -1 {
+		return
+	}
+
+	bulkInsertGetIdRequest := NewGetNextOperationIdCommand()
+	o._requestExecutor.executeCommand(bulkInsertGetIdRequest)
+	o._operationId = bulkInsertGetIdRequest.Result
+}
+
 /*
  class BulkInsertOperation implements CleanCloseable {
-
-
-      waitForId() {
-        if (_operationId != -1) {
-            return
-        }
-
-        GetNextOperationIdCommand bulkInsertGetIdRequest = new GetNextOperationIdCommand()
-        _requestExecutor.execute(bulkInsertGetIdRequest)
-        _operationId = bulkInsertGetIdRequest.getResult()
-    }
 
       store(Object entity, string id)  {
         store(entity, id, null)
@@ -403,7 +402,7 @@ func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedExce
     }
 
     @Override
-      close() {
+      Close() {
         Exception flushEx = null
 
         if (_stream != null) {

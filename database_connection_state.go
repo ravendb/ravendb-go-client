@@ -45,7 +45,7 @@ func (s *DatabaseConnectionState) error(e error) {
 	//EventHelper.invoke(onError, e);
 }
 
-func (s *DatabaseConnectionState) close() {
+func (s *DatabaseConnectionState) Close() {
 	panicIf(true, "NYI")
 
 	//onDocumentChangeNotification.clear()

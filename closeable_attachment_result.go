@@ -25,7 +25,7 @@ func (r *CloseableAttachmentResult) getDetails() *AttachmentDetails {
 	return r.details
 }
 
-func (r *CloseableAttachmentResult) close() {
+func (r *CloseableAttachmentResult) Close() {
 	if r.response.Body != nil {
 		r.response.Body.Close()
 	}

@@ -227,7 +227,7 @@ func (s *DocumentStore) Close() {
 	s.afterClose = nil
 
 	for _, re := range s.requestsExecutors {
-		re.close()
+		re.Close()
 	}
 }
 

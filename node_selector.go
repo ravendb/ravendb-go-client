@@ -203,7 +203,7 @@ func (s *NodeSelector) scheduleSpeedTest() {
 	s.switchToSpeedTestPhase()
 }
 
-func (s *NodeSelector) close() {
+func (s *NodeSelector) Close() {
 	if s._updateFastestNodeTimer != nil {
 		s._updateFastestNodeTimer.Stop()
 		s._updateFastestNodeTimer = nil

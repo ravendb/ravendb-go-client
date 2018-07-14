@@ -2,7 +2,7 @@ package ravendb
 
 type IChangesConnectionState interface {
 	// from CleanCloseable
-	close()
+	Close()
 
 	// IChangesConnectionState
 	inc()
