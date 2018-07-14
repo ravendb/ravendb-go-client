@@ -46,6 +46,42 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 }
 
 func whatChanged_whatChangedRemovedField(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+
+	{
+		newSession := openSessionMust(t, store)
+		nameAndAge := &NameAndAge{}
+		nameAndAge.setAge(5)
+		nameAndAge.setName("Toli")
+
+		err = newSession.StoreEntityWithID(nameAndAge, "users/1")
+		assert.NoError(t, err)
+
+		changes := newSession.advanced().whatChanged()
+		assert.Equal(t, len(changes), 1)
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+		_, err = newSession.load(getTypeOf(&BasicAge{}), "users/1")
+		assert.NoError(t, err)
+
+		changes := newSession.advanced().whatChanged()
+		change := changes["users/1"]
+		assert.Equal(t, len(change), 1)
+
+		{
+			change := change[0]
+			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
+		}
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+	}
 }
 
 func whatChanged_whatChangedChangeField(t *testing.T) {
@@ -282,6 +318,53 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 }
 
 func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
+	//RavenDB-9150
+	var err error
+	store := getDocumentStoreMust(t)
+
+	{
+		session := openSessionMust(t, store)
+
+		user1 := NewUser()
+		user1.setName("user1")
+
+		user2 := NewUser()
+		user2.setName("user2")
+		user2.setAge(1)
+
+		user3 := NewUser()
+		user3.setName("user3")
+		user3.setAge(1)
+
+		err = session.StoreEntityWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user2, "users/2")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user3, "users/3")
+		assert.NoError(t, err)
+
+		changes := session.advanced().whatChanged()
+		assert.Equal(t, len(changes), 3)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		user1I, err := session.load(getTypeOf(&User{}), "users/1")
+		assert.NoError(t, err)
+		user1 = user1I.(*User)
+
+		user2I, err := session.load(getTypeOf(&User{}), "users/2")
+		assert.NoError(t, err)
+		user2 = user2I.(*User)
+
+		user1.setAge(10)
+		err = session.DeleteEntity(user2)
+
+		changes = session.advanced().whatChanged()
+		assert.Equal(t, len(changes), 2)
+		changes = session.advanced().whatChanged()
+		assert.Equal(t, len(changes), 2)
+	}
 }
 
 type BasicName struct {
@@ -383,7 +466,7 @@ func TestWhatChanged(t *testing.T) {
 	whatChanged_whatChangedChangeField(t)
 	whatChanged_whatChangedArrayValueChanged(t)
 	whatChanged_ravenDB_8169(t)
-
 	whatChanged_whatChangedRemovedField(t)
+
 	whatChanged_whatChanged_should_be_idempotent_operation(t)
 }
