@@ -467,6 +467,5 @@ func TestWhatChanged(t *testing.T) {
 	whatChanged_whatChangedArrayValueChanged(t)
 	whatChanged_ravenDB_8169(t)
 	whatChanged_whatChangedRemovedField(t)
-
 	whatChanged_whatChanged_should_be_idempotent_operation(t)
 }

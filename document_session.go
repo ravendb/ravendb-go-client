@@ -12,18 +12,8 @@ type DocumentSession struct {
 
 	_attachments *IAttachmentsSessionOperations
 	_revisions   *IRevisionsSessionOperations
-}
-
-// NewDocumentSession creates a new DocumentSession
-func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
-	res := &DocumentSession{
-		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, documentStore, re, id),
-	}
-
-	//TODO: res._attachments: NewDocumentSessionAttachments(res)
-	res._revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
-
-	return res
+	_valsCount   int
+	_customCount int
 }
 
 // TODO: consider exposing it as IAdvancedSessionOperations interface, like in Java
@@ -43,6 +33,18 @@ func (s *DocumentSession) attachments() *IAttachmentsSessionOperations {
 
 func (s *DocumentSession) revisions() *IRevisionsSessionOperations {
 	return s._revisions
+}
+
+// NewDocumentSession creates a new DocumentSession
+func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
+	res := &DocumentSession{
+		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, documentStore, re, id),
+	}
+
+	//TODO: res._attachments: NewDocumentSessionAttachments(res)
+	res._revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
+
+	return res
 }
 
 func (s *DocumentSession) SaveChanges() error {
@@ -193,6 +195,13 @@ func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix stri
 	return loadStartingWithOperation.getDocuments(clazz)
 }
 
+// public void loadStartingWithIntoStream(String idPrefix, OutputStream output) {
+// public void loadStartingWithIntoStream(String idPrefix, OutputStream output, String matches) {
+// public void loadStartingWithIntoStream(String idPrefix, OutputStream output, String matches, int start)
+// public void loadStartingWithIntoStream(String idPrefix, OutputStream output, String matches, int start, int pageSize) {
+// public void loadStartingWithIntoStream(String idPrefix, OutputStream output, String matches, int start, int pageSize, String exclude) {
+// public void loadStartingWithIntoStream(String idPrefix, OutputStream output, String matches, int start, int
+
 func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *LoadStartingWithOperation, stream io.Writer,
 	matches string, start int, pageSize int, exclude string, startAfter string) (*GetDocumentsCommand, error) {
 
@@ -222,4 +231,31 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 	return command, nil
 }
 
-// TODO: more
+// public void loadIntoStream(Collection<String> ids, OutputStream output) {
+// public <T, U> void increment(T entity, String path, U valueToAdd) {
+// public <T, U> void increment(String id, String path, U valueToAdd) {
+// public <T, U> void patch(T entity, String path, U value) {
+// public <T, U> void patch(String id, String path, U value) {
+// public <T, U> void patch(T entity, String pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
+// public <T, U> void patch(String id, String pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
+// private boolean tryMergePatches(String id, PatchRequest patchRequest) {
+// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(Class<T> clazz, Class<TIndex> indexClazz) {
+// public <T> IDocumentQuery<T> documentQuery(Class<T> clazz) {
+// public <T> IDocumentQuery<T> documentQuery(Class<T> clazz, String indexName, String collectionName, boolean
+// public <T> IRawDocumentQuery<T> rawQuery(Class<T> clazz, String query) {
+// public <T> IDocumentQuery<T> query(Class<T> clazz) {
+// public <T> IDocumentQuery<T> query(Class<T> clazz, Query collectionOrIndexName) {
+// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> query(Class<T> clazz, Class<TIndex>
+// public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {
+// public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {
+// public <T> CloseableIterator<StreamResult<T>> stream(IRawDocumentQuery<T> query) {
+// public <T> CloseableIterator<StreamResult<T>> stream(IRawDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {
+// private <T> CloseableIterator<StreamResult<T>> yieldResults(AbstractDocumentQuery query, CloseableIterator<ObjectNode> enumerator) {
+// public <T> void streamInto(IRawDocumentQuery<T> query, OutputStream output) {
+// public <T> void streamInto(IDocumentQuery<T> query, OutputStream output) {
+// private <T> StreamResult<T> createStreamResult(Class<T> clazz, ObjectNode json, FieldsToFetchToken fieldsToFetch) throws IOException {
+// public <T> CloseableIterator<StreamResult<T>> stream(Class<T> clazz, String startsWith) {
+// public <T> CloseableIterator<StreamResult<T>> stream(Class<T> clazz, String startsWith, String matches) {
+// public <T> CloseableIterator<StreamResult<T>> stream(Class<T> clazz, String startsWith, String matches, int start) {
+// public <T> CloseableIterator<StreamResult<T>> stream(Class<T> clazz, String startsWith, String matches, int start, int pageSize) {
+// public <T> CloseableIterator<StreamResult<T>> stream(Class<T> clazz, String startsWith, String matches, int start, int pageSize, String startAfter) {
