@@ -250,8 +250,37 @@ func handleOnRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *
 	return req, nil
 }
 
+func isBinaryData(d []byte) bool {
+	for _, b := range d {
+		if b < 32 {
+			return true
+		}
+	}
+	return false
+}
+
+func asHex(d []byte) ([]byte, bool) {
+	if !isBinaryData(d) {
+		return d, false
+	}
+	if len(d) > 32 {
+		d = d[:32]
+	}
+	s := ""
+	for i, b := range d {
+		if i > 0 && i%16 == 0 {
+			s += "\n"
+		}
+		s += fmt.Sprintf("%02d ", b)
+	}
+	return []byte(s), true
+}
+
 // if d is a valid json, pretty-print it
 func prettyPrintMaybeJSON(d []byte) []byte {
+	if d2, ok := asHex(d); ok {
+		return d2
+	}
 	var m map[string]interface{}
 	err := json.Unmarshal(d, &m)
 	if err != nil {
