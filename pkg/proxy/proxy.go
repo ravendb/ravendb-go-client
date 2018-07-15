@@ -271,7 +271,7 @@ func asHex(d []byte) ([]byte, bool) {
 		if i > 0 && i%16 == 0 {
 			s += "\n"
 		}
-		s += fmt.Sprintf("%02d ", b)
+		s += fmt.Sprintf("%02x ", b)
 	}
 	return []byte(s), true
 }
