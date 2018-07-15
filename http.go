@@ -62,8 +62,11 @@ func prettyPrintMaybeJSON(d []byte) []byte {
 }
 
 var (
-	dumpHTTP     bool
-	dumpHTTPBody bool
+	// if true, dumps http requests and responses, without body
+	dumpHTTP bool
+	// if true, also dumps body of response
+	dumpHTTPBody   bool
+	dumpFailedHTTP bool
 )
 
 // TODO: also dump body
@@ -80,19 +83,30 @@ func dumpHTTPRequest(req *http.Request) {
 	os.Stdout.Write(d)
 }
 
-func dumpHTTPResponse(resp *http.Response) {
-	if !dumpHTTP {
-		return
-	}
+func dumpHTTPResponse(resp *http.Response, withBody bool) {
 	d, err := httputil.DumpResponse(resp, false)
 	if err != nil {
 		fmt.Printf("httputil.DumpResponse failed with %s\n", err)
 		return
 	}
 	io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
+	if resp.Request != nil {
+		req := resp.Request
+		reqURI := req.RequestURI
+		if reqURI == "" {
+			reqURI = req.URL.RequestURI()
+		}
+		method := "GET"
+		if req.Method != "" {
+			method = req.Method
+		}
+		fmt.Fprintf(os.Stdout, "%s %s HTTP/%d.%d\r\n", method,
+			reqURI, req.ProtoMajor, req.ProtoMinor)
+
+	}
 	os.Stdout.Write(d)
 
-	if !dumpHTTPBody {
+	if !withBody {
 		return
 	}
 	body, err := getCopyOfResponseBody(resp)
@@ -100,11 +114,6 @@ func dumpHTTPResponse(resp *http.Response) {
 		os.Stdout.Write(prettyPrintMaybeJSON(body))
 		os.Stdout.WriteString("\n")
 	}
-}
-
-func dumpHTTPRequestAndResponse(req *http.Request, resp *http.Response) {
-	dumpHTTPRequest(req)
-	dumpHTTPResponse(resp)
 }
 
 func decodeJSONFromReader(r io.Reader, v interface{}) error {
@@ -156,7 +165,7 @@ func NewHttpReset(uri string) (*http.Request, error) {
 func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
-		body = bytes.NewBuffer(data)
+		body = bytes.NewReader(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
@@ -174,7 +183,7 @@ func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
-		body = bytes.NewBuffer(data)
+		body = bytes.NewReader(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
@@ -201,7 +210,7 @@ func NewHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
 func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
-		body = bytes.NewBuffer(data)
+		body = bytes.NewReader(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
@@ -219,7 +228,7 @@ func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
 func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
-		body = bytes.NewBuffer(data)
+		body = bytes.NewReader(data)
 		//d := prettyPrintMaybeJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}

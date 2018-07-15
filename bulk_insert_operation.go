@@ -161,7 +161,7 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 
 		_currentWriterBacking: bytes.NewBuffer(nil), // new ByteArrayOutputStream()
 		_currentWriter:        bytes.NewBuffer(nil), // = new OutputStreamWriter(_currentWriterBacking)
-		//_backgroundWriterBacking: bytes.NewBUffer(), // = new ByteArrayOutputStream()
+		//_backgroundWriterBacking: bytes.NewReader(), // = new ByteArrayOutputStream()
 		//_backgroundWriter = new OutputStreamWriter(_backgroundWriterBacking)
 		//_streamExposerContent = new StreamExposerContent()
 		_maxSizeInBuffer:             1024 * 1024,

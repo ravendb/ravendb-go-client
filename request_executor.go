@@ -685,7 +685,10 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		response, err = command.getBase().send(re.httpClient, request)
 	}
 
-	dumpHTTPRequestAndResponse(request, response)
+	if dumpHTTP {
+		dumpHTTPRequest(request)
+		dumpHTTPResponse(response, dumpHTTPBody)
+	}
 
 	if err != nil {
 		if !shouldRetry && isNetworkTimeoutError(err) {
@@ -888,12 +891,11 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		err = RequestExecutor_handleConflict(response)
 		break
 	default:
-		if false {
-			fmt.Printf("handleUnsuccessfulResponse default case\n")
-			dumpHTTP = true
-			dumpHTTPBody = true
+		if dumpFailedHTTP {
+			dumpHTTPResponse(response, true)
+		} else if dumpHTTP {
+			dumpHTTPResponse(response, dumpHTTPBody)
 		}
-		dumpHTTPResponse(response)
 		command.getBase().onResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)
 		break
@@ -954,7 +956,36 @@ func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex i
 }
 
 func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
-	panicIf(true, "NYI")
+	copy := re.getTopologyNodes()
+	if nodeStatus.nodeIndex >= len(copy) {
+		return // topology index changed / removed
+	}
+
+	serverNode := copy[nodeStatus.nodeIndex]
+	if serverNode != nodeStatus.node {
+		return // topology changed, nothing to check
+	}
+
+	err := re.performHealthCheck(serverNode, nodeStatus.nodeIndex)
+	if err != nil {
+		// TODO: logging
+		_, ok := re._failedNodesTimers.Load(nodeStatus.node)
+		if !ok {
+			nodeStatus.updateTimer()
+		}
+
+		return // will wait for the next timer call
+	}
+	statusI, ok := re._failedNodesTimers.Load(nodeStatus.node)
+	if ok {
+		status := statusI.(*NodeStatus)
+		re._failedNodesTimers.Delete(nodeStatus.node)
+		status.Close()
+	}
+
+	if re._nodeSelector != nil {
+		re._nodeSelector.restoreNodeIndex(nodeStatus.nodeIndex)
+	}
 }
 
 func (re *RequestExecutor) clusterPerformHealthCheck(serverNode *ServerNode, nodeIndex int) error {

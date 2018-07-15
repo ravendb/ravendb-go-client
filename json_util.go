@@ -138,7 +138,7 @@ func copyJSONMap(v map[string]interface{}) map[string]interface{} {
 // to contain multiple JSON objects
 // This is for compatibility with Java's ObjectMapper.readTree()
 func jsonUnmarshalFirst(d []byte, v interface{}) error {
-	r := bytes.NewBuffer(d)
+	r := bytes.NewReader(d)
 	dec := json.NewDecoder(r)
 	err := dec.Decode(v)
 	if err != nil {

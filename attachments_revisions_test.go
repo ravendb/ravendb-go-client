@@ -153,7 +153,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
+			bais := bytes.NewReader([]byte{5, 4, 3, 2, 1})
 			err = session.advanced().attachments().store("users/1", "profile.png", bais, "")
 			assert.NoError(t, err)
 
@@ -212,7 +212,10 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 		"background-photo.jpg",
 		"fileNAME_#$1^%_בעברית.txt",
 	}
+
 	{
+		// TODO: switching to bytes.NewReader makes it fail, but works
+		// below?
 		profileStream := bytes.NewBuffer([]byte{1, 2, 3})
 		op := NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
 		err = store.operations().send(op)
@@ -226,7 +229,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	}
 
 	{
-		backgroundStream := bytes.NewBuffer([]byte{10, 20, 30, 40, 50})
+		backgroundStream := bytes.NewReader([]byte{10, 20, 30, 40, 50})
 		op := NewPutAttachmentOperation("users/1", names[1], backgroundStream, "ImGgE/jPeG", nil)
 		err = store.operations().send(op)
 		assert.NoError(t, err)
@@ -238,7 +241,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 		assert.Equal(t, result.getContentType(), "ImGgE/jPeG")
 	}
 	{
-		fileStream := bytes.NewBuffer([]byte{1, 2, 3, 4, 5})
+		fileStream := bytes.NewReader([]byte{1, 2, 3, 4, 5})
 		op := NewPutAttachmentOperation("users/1", names[2], fileStream, "", nil)
 		err = store.operations().send(op)
 		assert.NoError(t, err)
@@ -347,12 +350,17 @@ func TestAttachmentsRevisions(t *testing.T) {
 	}
 
 	//RavenServerVerbose = true
+	if true {
+		dumpFailedHTTP = true
+	}
+
 	createTestDriver()
 	defer deleteTestDriver()
 
 	// matches order of Java tests
 
 	// TODO: this test is flaky. See bugs.txt
+	// Note: it also fails in Java on mac pro
 	//attachmentsRevisions_putAttachments(t)
 	//attachmentsRevisions_attachmentRevision(t)
 	RavenServerVerbose = false
