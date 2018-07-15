@@ -84,6 +84,7 @@ func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 		if err != nil {
 			return nil, err
 		}
+		req.Header.Del("Content-Type")
 		addChangeVectorIfNotNull(c._changeVector, req)
 		return req, nil
 	}

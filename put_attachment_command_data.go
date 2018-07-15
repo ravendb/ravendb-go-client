@@ -28,28 +28,18 @@ func NewPutAttachmentCommandData(documentId string, name string, stream io.Reade
 }
 
 func (d *PutAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
-	// TODO: implement me
-	panicIf(true, "NYI")
-	return nil, nil
+	res := d.baseJSON()
+	res["Name"] = d.Name
+	res["ContentType"] = d.contentType
+	res["Type"] = "AttachmentPUT"
+	res["ChangeVector"] = d.ChangeVector
+	return res, nil
 }
 
 func (d *PutAttachmentCommandData) getStream() io.Reader {
 	return d.stream
 }
 
-/*
-public string getContentType() {
-	return contentType;
+func (d *PutAttachmentCommandData) getContentType() string {
+	return d.contentType
 }
-
-@Override
-public void serialize(JsonGenerator generator, DocumentConventions conventions) throws IOException {
-	generator.writeStartObject();
-	generator.writeStringField("Id", id);
-	generator.writeStringField("Name", name);
-	generator.writeStringField("ContentType", contentType);
-	generator.writeStringField("ChangeVector", changeVector);
-	generator.writeStringField("Type", "AttachmentPUT");
-	generator.writeEndObject();
-}
-*/
