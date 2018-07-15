@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
@@ -152,8 +153,9 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 		createDocumentWithAttachments(t, store)
 
 		{
+			// TODO: this always fails
 			session := openSessionMust(t, store)
-			bais := bytes.NewReader([]byte{5, 4, 3, 2, 1})
+			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
 			err = session.advanced().attachments().store("users/1", "profile.png", bais, "")
 			assert.NoError(t, err)
 
@@ -214,12 +216,16 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	}
 
 	{
-		// TODO: switching to bytes.NewReader makes it fail, but works
-		// below?
 		profileStream := bytes.NewBuffer([]byte{1, 2, 3})
 		op := NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
+		// TODO this is flaky. Sometimes it works, sometimes it doesn't
+		// even though the data sent on wire seem to be the same
 		err = store.operations().send(op)
+
+		time.Sleep(time.Millisecond * 500)
+
 		assert.NoError(t, err)
+
 		result := op.Command.Result
 		s := *result.getChangeVector()
 		assert.True(t, strings.Contains(s, "A:3"))
@@ -361,7 +367,7 @@ func TestAttachmentsRevisions(t *testing.T) {
 
 	// TODO: this test is flaky. See bugs.txt
 	// Note: it also fails in Java on mac pro
-	//attachmentsRevisions_putAttachments(t)
-	//attachmentsRevisions_attachmentRevision(t)
+	attachmentsRevisions_putAttachments(t)
+	attachmentsRevisions_attachmentRevision(t)
 	RavenServerVerbose = false
 }

@@ -4,7 +4,7 @@
 # Faster than running all tests
 
 # make Go http client use proxy
-export HTTP_PROXY=http://localhost:8888
+#export HTTP_PROXY=http://localhost:8888
 #export HTTP_PROXY=
 
 # uncomment for more verbose logging

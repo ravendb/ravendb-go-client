@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -56,22 +57,28 @@ func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICo
 func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_docs"
 	// TODO: appendOptions(sb)
-	var a []interface{}
-	for _, cmd := range c._commands {
-		el, err := cmd.serialize(c._conventions)
+
+	if len(c._attachmentStreams) == 0 {
+		var a []interface{}
+		for _, cmd := range c._commands {
+			el, err := cmd.serialize(c._conventions)
+			if err != nil {
+				return nil, err
+			}
+			a = append(a, el)
+		}
+		v := map[string]interface{}{
+			"Commands": a,
+		}
+		js, err := json.Marshal(v)
 		if err != nil {
 			return nil, err
 		}
-		a = append(a, el)
+		return NewHttpPost(url, js)
+	} else {
+		panicIf(true, "NYI")
+		return nil, fmt.Errorf("NYI")
 	}
-	v := map[string]interface{}{
-		"Commands": a,
-	}
-	js, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	return NewHttpPost(url, js)
 }
 
 func (c *BatchCommand) setResponse(response []byte, fromCache bool) error {
