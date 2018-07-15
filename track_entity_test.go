@@ -20,6 +20,7 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
 		_ = err.(*IllegalStateException)
 		msg := err.Error()
 		assert.True(t, strings.HasSuffix(msg, "is not associated with the session, cannot delete unknown entity instance"))
+		session.Close()
 	}
 }
 
@@ -43,6 +44,7 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 		err = session.StoreEntity(user2)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -53,13 +55,16 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
+
 	{
 		session := openSessionMust(t, store)
 		_, err = session.load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		_, err = session.load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
+		session.Close()
 	}
 }
 
@@ -87,6 +92,7 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 		_ = err.(*NonUniqueObjectException)
 		msg := err.Error()
 		assert.True(t, strings.HasPrefix(msg, "Attempted to associate a different object with id 'users/1'"))
+		session.Close()
 	}
 }
 

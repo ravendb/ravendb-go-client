@@ -63,6 +63,7 @@ func containsTestcontainsTest(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	/*

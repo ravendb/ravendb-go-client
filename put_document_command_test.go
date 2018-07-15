@@ -32,6 +32,7 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, "Marcin", *loadedUser.getName())
+		session.Close()
 	}
 }
 

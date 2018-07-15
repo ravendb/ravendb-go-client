@@ -21,6 +21,7 @@ func compactTest_canCompactDatabase(t *testing.T) {
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	compactSettings := NewCompactSettings()

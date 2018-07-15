@@ -74,7 +74,9 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		barId = session.advanced().getDocumentId(bar)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
+
 	{
 		newSession := openSessionMust(t, store)
 		// Note: in Java it's fooId, we must match Go naming with FooId
@@ -97,6 +99,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		assert.Equal(t, fooV.getName(), "Beginning")
 
 		assert.Equal(t, newSession.advanced().getNumberOfRequests(), numOfRequests)
+		newSession.Close()
 	}
 }
 

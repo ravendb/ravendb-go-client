@@ -36,6 +36,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	assert.NoError(t, err)
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)
+	newSession.Close()
 }
 
 func deleteTest_deleteDocumentById(t *testing.T) {
@@ -66,6 +67,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	assert.NoError(t, err)
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)
+	newSession.Close()
 }
 
 func TestDelete(t *testing.T) {

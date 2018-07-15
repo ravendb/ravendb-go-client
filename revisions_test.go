@@ -36,11 +36,11 @@ func revisionsTest_revisions(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
 		session := openSessionMust(t, store)
-		session.advanced()
 
 		allRevisions, err := session.advanced().revisions().getFor(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
@@ -83,6 +83,7 @@ func revisionsTest_revisions(t *testing.T) {
 		assert.NoError(t, err)
 		user := userI.(*User)
 		assert.Equal(t, *user.getName(), "user3")
+		session.Close()
 	}
 }
 

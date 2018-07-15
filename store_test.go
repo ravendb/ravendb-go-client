@@ -34,6 +34,7 @@ func storeTestRefreshTest(t *testing.T) {
 
 		name := *user.getName()
 		assert.Equal(t, name, "RavenDB 4.0")
+		session.Close()
 	}
 }
 
@@ -57,6 +58,7 @@ func storeTestStoreDocument(t *testing.T) {
 		assert.NotNil(t, user)
 		name := *user.getName()
 		assert.Equal(t, name, "RavenDB")
+		session.Close()
 	}
 }
 
@@ -83,6 +85,7 @@ func storeTestStoreDocuments(t *testing.T) {
 		users, err := session.loadMulti(getTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
+		session.Close()
 	}
 }
 
@@ -120,6 +123,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.NotNil(t, changeVEctor)
+		session.Close()
 	}
 
 	assert.NotNil(t, storeLevelCallBack[0])

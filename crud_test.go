@@ -112,6 +112,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	documentsCommand := NewGetDocumentsCommand([]string{"users/1"}, nil, false)
@@ -204,6 +205,7 @@ func crudTest_crudOperations(t *testing.T) {
 		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/1")
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 10)
+		newSession.Close()
 	}
 }
 
@@ -289,6 +291,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 10)
+		newSession.Close()
 	}
 }
 
@@ -314,6 +317,7 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -344,6 +348,7 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -370,6 +375,7 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -396,6 +402,7 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -422,6 +429,7 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 		user2.setAge(3)
 		whatChanged = newSession.advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 1)
+		newSession.Close()
 	}
 }
 
@@ -566,6 +574,7 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
 			assert.Equal(t, newValStr, "\"Boki\"")
 		}
+		newSession.Close()
 	}
 }
 
@@ -638,6 +647,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -674,6 +684,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -691,6 +702,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 			assert.NoError(t, err)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
+			newSession.Close()
 		}
 
 		{
@@ -701,6 +713,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 			user.Name = nil
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
+			newSession.Close()
 		}
 
 		{
@@ -709,6 +722,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 			assert.NoError(t, err)
 			user := userI.(*User)
 			assert.Nil(t, user.Name)
+			newSession.Close()
 		}
 	}
 }
@@ -727,6 +741,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -740,6 +755,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 		poc.setObj(user)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -748,6 +764,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 		assert.NoError(t, err)
 		poc := pocI.(*Poc)
 		assert.NotNil(t, poc.getObj())
+		session.Close()
 	}
 }
 

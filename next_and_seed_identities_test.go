@@ -21,6 +21,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	command := NewNextIdentityForCommand("users")
@@ -36,6 +37,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -60,7 +62,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 
 		assert.Equal(t, *entityWithId1.getLastName(), "Adi")
 		assert.Equal(t, *entityWithId3.getLastName(), "Avivi")
-
+		session.Close()
 	}
 }
 
@@ -78,6 +80,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	command := NewSeedIdentityForCommand("users", 1990)
@@ -95,6 +98,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -128,6 +132,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 
 		assert.Equal(t, *entityWithId1.getLastName(), "Adi")
 		assert.Equal(t, *entityWithId1991.getLastName(), "Avivi")
+		session.Close()
 	}
 
 	command = NewSeedIdentityForCommand("users", 1975)

@@ -22,6 +22,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -30,6 +31,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -37,7 +39,9 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 		userI, err := session.load(getTypeOf(&User{}), documentId)
 		assert.NoError(t, err)
 		assert.Nil(t, userI)
+		session.Close()
 	}
+
 	{
 		session := openSessionMust(t, store)
 		person := &Person{}
@@ -46,6 +50,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 }
 
@@ -72,6 +77,7 @@ func basicDocuments_get(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 	requestExecutor := store.getRequestExecutor()
 	getDocumentsCommand := NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
@@ -102,6 +108,7 @@ func basicDocuments_get(t *testing.T) {
 		user2 := user2I.(*User)
 		assert.Equal(t, *user1.getName(), "Fitzchak")
 		assert.Equal(t, *user2.getName(), "Arek")
+		session.Close()
 	}
 	getDocumentsCommand = NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
 	err = requestExecutor.executeCommand(getDocumentsCommand)

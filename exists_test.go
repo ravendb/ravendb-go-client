@@ -27,6 +27,7 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -45,6 +46,7 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		ok, err = session.advanced().exists("users/2")
 		assert.NoError(t, err)
 		assert.True(t, ok)
+		session.Close()
 	}
 }
 

@@ -26,6 +26,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{

@@ -22,6 +22,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -30,6 +31,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
+		newSession.Close()
 	}
 
 	{
@@ -38,6 +40,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
+		newSession.Close()
 	}
 }
 
@@ -55,6 +58,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -64,6 +68,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 		user := result.(*User)
 		assert.NotNil(t, user)
 		assert.Equal(t, "RavenDB", *user.getName())
+		newSession.Close()
 	}
 }
 
@@ -86,6 +91,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -93,6 +99,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 		users, err := newSession.loadMulti(getTypeOf(NewUser()), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
+		newSession.Close()
 	}
 }
 
@@ -116,6 +123,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -123,6 +131,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 		user1, err := newSession.load(getTypeOf(&User{}), "")
 		assert.NoError(t, err)
 		assert.Nil(t, user1)
+		newSession.Close()
 	}
 }
 
@@ -145,6 +154,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 	{
 		newSession := openSessionMust(t, store)
@@ -160,6 +170,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 		ruser2 := users1["users/2"]
 		user2 := ruser2.(*User)
 		assert.NotNil(t, user2)
+		newSession.Close()
 	}
 }
 
@@ -187,6 +198,7 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -204,7 +216,7 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 
 		assert.Equal(t, 7, geek2.getFavoritePrimes()[3])
 		assert.Equal(t, int64(999999999989), geek2.getFavoriteVeryLargePrimes()[0])
-
+		newSession.Close()
 	}
 }
 
@@ -230,6 +242,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -243,6 +256,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 		name := *user.Name
 		assert.Equal(t, "Person 77", name)
 		assert.Equal(t, "users/77", user.ID)
+		session.Close()
 	}
 }
 
@@ -269,6 +283,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	{
@@ -289,6 +304,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 			user := useri.(*User)
 			assert.True(t, stringArrayContains(userIDs, user.ID))
 		}
+		newSession.Close()
 	}
 }
 

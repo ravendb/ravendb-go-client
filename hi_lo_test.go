@@ -51,6 +51,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		for i := 0; i < 32; i++ {
 			hiLoIdGenerator.GenerateDocumentID(NewUser())
 		}
+		session.Close()
 	}
 
 	{
@@ -68,6 +69,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 
 		//we should be receiving a range of 64 now
 		hiLoIdGenerator.GenerateDocumentID(NewUser())
+		session.Close()
 	}
 
 	{
@@ -87,6 +89,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		// Maybe it's KeepAlive difference?
 		valid := (max == 96+64) || (max == 96+32)
 		assert.True(t, valid)
+		session.Close()
 	}
 }
 
@@ -120,6 +123,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	newStore.Close() //on document store close, hilo-return should be called
@@ -141,6 +145,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		hiloDoc := hiloDocI.(*HiLoDoc)
 		max := hiloDoc.getMax()
 		assert.Equal(t, max, 34)
+		session.Close()
 	}
 
 	newStore.Close() //on document store close, hilo-return should be called
@@ -180,6 +185,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 		ids = append(ids, nextID)
 	}
 	assert.False(t, intArrayHasDuplicates(ids))
+	session.Close()
 }
 
 func hiloTest_multiDb(t *testing.T) {
@@ -207,6 +213,7 @@ func hiloTest_multiDb(t *testing.T) {
 	assert.Equal(t, generateDocumentKey, "users/65-A")
 	generateDocumentKey = multiDbHilo.GenerateDocumentID("", &Product{})
 	assert.Equal(t, generateDocumentKey, "products/129-A")
+	session.Close()
 }
 
 func TestHiLo(t *testing.T) {

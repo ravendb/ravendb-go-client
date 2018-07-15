@@ -22,6 +22,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	patchOperation := NewPatchOperation("users/1", nil,
@@ -37,6 +38,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.getName(), "Patched")
+		session.Close()
 	}
 }
 
@@ -54,6 +56,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	operation := NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
@@ -68,6 +71,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.getName(), "Patched")
+		session.Close()
 	}
 }
 
@@ -85,6 +89,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	operation := NewPatchByQueryOperation("from Users update {  throw 5 }")

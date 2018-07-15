@@ -24,6 +24,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -43,6 +44,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
 		}
+		newSession.Close()
 	}
 }
 
@@ -65,6 +67,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -83,6 +86,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -103,6 +107,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -125,6 +130,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 }
 
@@ -184,7 +190,9 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 				newValueStr := fmt.Sprintf("%#v", change.getFieldNewValue())
 				assert.Equal(t, newValueStr, "\"c\"")
 			}
+			newSession.Close()
 		}
+		newSession.Close()
 	}
 }
 
@@ -201,6 +209,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -229,6 +238,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 			assert.Equal(t, change.getFieldNewValue(), float64(2))
 			assert.Nil(t, change.getFieldOldValue())
 		}
+		newSession.Close()
 	}
 }
 
@@ -245,6 +255,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -275,7 +286,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 			assert.Equal(t, oldValStr, "\"b\"")
 			assert.Nil(t, change.getFieldNewValue())
 		}
-
+		newSession.Close()
 	}
 }
 
@@ -303,6 +314,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
+		newSession.Close()
 	}
 
 	{
@@ -312,6 +324,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 		changes := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 0)
+		newSession.Close()
 	}
 
 	{
@@ -321,6 +334,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 		changes := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 0)
+		newSession.Close()
 	}
 }
 
@@ -372,6 +386,7 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		assert.Equal(t, len(changes), 2)
 		changes = session.advanced().whatChanged()
 		assert.Equal(t, len(changes), 2)
+		session.Close()
 	}
 }
 

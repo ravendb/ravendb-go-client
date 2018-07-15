@@ -54,6 +54,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+		session.Close()
 	}
 
 	userIndex := NewUsersIndex()
