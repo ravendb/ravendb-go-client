@@ -87,3 +87,7 @@ func (c *BatchCommand) setResponse(response []byte, fromCache bool) error {
 	c.Result = &res
 	return nil
 }
+
+func (c *BatchCommand) Close() {
+	// empty
+}

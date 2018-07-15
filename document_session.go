@@ -54,6 +54,7 @@ func (s *DocumentSession) SaveChanges() error {
 	if command == nil {
 		return nil
 	}
+	defer command.Close()
 	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
