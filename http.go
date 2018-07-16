@@ -162,6 +162,15 @@ func NewHttpReset(uri string) (*http.Request, error) {
 	return req, err
 }
 
+func NewHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(http.MethodPost, uri, r)
+	if err != nil {
+		return nil, err
+	}
+	addCommonHeaders(req)
+	return req, err
+}
+
 func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {

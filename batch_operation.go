@@ -12,17 +12,19 @@ func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperati
 	}
 }
 
-func (b *BatchOperation) createRequest() *BatchCommand {
+func (b *BatchOperation) createRequest() (*BatchCommand, error) {
 	result := b._session.prepareForSaveChanges()
 
 	b._sessionCommandsCount = len(result.getSessionCommands())
 	result.sessionCommands = append(result.sessionCommands, result.getDeferredCommands()...)
 	if len(result.getSessionCommands()) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	// TODO: should propagate an error
-	b._session.incrementRequestCount()
+	err := b._session.incrementRequestCount()
+	if err != nil {
+		return nil, err
+	}
 
 	b._entities = result.getEntities()
 

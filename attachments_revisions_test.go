@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
@@ -153,7 +152,6 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 		createDocumentWithAttachments(t, store)
 
 		{
-			// TODO: this always fails
 			session := openSessionMust(t, store)
 			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
 			err = session.advanced().attachments().store("users/1", "profile.png", bais, "")
@@ -218,11 +216,9 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	{
 		profileStream := bytes.NewBuffer([]byte{1, 2, 3})
 		op := NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
-		// TODO this is flaky. Sometimes it works, sometimes it doesn't
+		// TODO this test is flaky. Sometimes it works, sometimes it doesn't
 		// even though the data sent on wire seem to be the same
 		err = store.operations().send(op)
-
-		time.Sleep(time.Millisecond * 500)
 
 		assert.NoError(t, err)
 

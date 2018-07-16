@@ -50,12 +50,15 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 func (s *DocumentSession) SaveChanges() error {
 	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)
 
-	command := saveChangeOperation.createRequest()
+	command, err := saveChangeOperation.createRequest()
+	if err != nil {
+		return err
+	}
 	if command == nil {
 		return nil
 	}
 	defer command.Close()
-	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	err = s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
