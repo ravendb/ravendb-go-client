@@ -2,83 +2,23 @@ package ravendb
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
-type StreamExposerContent struct {
-}
-
-/*
-     static class StreamExposerContent extends AbstractHttpEntity {
-
-         CompletableFuture<OutputStream> outputStream
-          CompletableFuture<Void> _done
-
-         StreamExposerContent() {
-            setContentType(ContentType.APPLICATION_JSON.tostring())
-            outputStream = new CompletableFuture<>()
-            _done = new CompletableFuture()
-        }
-
-        @Override
-         InputStream getContent() throws IOException, UnsupportedOperationException {
-            throw new UnsupportedEncodingException()
-        }
-
-        @Override
-         bool isStreaming() {
-            return false
-        }
-
-
-        @Override
-         bool isChunked() {
-            return true
-        }
-
-        @Override
-         bool isRepeatable() {
-            return false
-        }
-
-        @Override
-         long getContentLength() {
-            return -1
-        }
-
-        @Override
-          writeTo(OutputStream outputStream) {
-            o.outputStream.complete(outputStream)
-            try {
-                _done.get()
-            } catch (Exception e) {
-                throw ExceptionsUtils.unwrapException(e)
-            }
-        }
-
-          done() {
-            _done.complete(null)
-        }
-
-          errorOnProcessingRequest(Exception exception) {
-            _done.completeExceptionally(exception)
-        }
-
-          errorOnRequestStart(Exception exception) {
-            outputStream.completeExceptionally(exception)
-        }
-	}
-}
-*/
+// Note: the implementation details are different from Java
+// We take advantage of a pipe: a read end is passed as io.Reader
+// to the request. A write end is what we use to write to the request.
 
 var _ RavenCommand = &BulkInsertCommand{}
 
 type BulkInsertCommand struct {
 	*RavenCommandBase
 
-	_stream *StreamExposerContent
+	_stream io.Reader
 
 	_id int
 
@@ -87,7 +27,7 @@ type BulkInsertCommand struct {
 	Result *http.Response
 }
 
-func NewUpdateBulkInsertCommand(id int, stream *StreamExposerContent, useCompression bool) *BulkInsertCommand {
+func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkInsertCommand {
 	cmd := &BulkInsertCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -100,9 +40,9 @@ func NewUpdateBulkInsertCommand(id int, stream *StreamExposerContent, useCompres
 
 func (c *BulkInsertCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_insert?id=" + strconv.Itoa(c._id)
-	// TODO: implement compression
+	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)
-	return NewHttpPost(url, nil)
+	return NewHttpPostReader(url, c._stream)
 }
 
 func (c *BulkInsertCommand) setResponse(response []byte, fromCache bool) error {
@@ -124,11 +64,11 @@ func (c *BulkInsertCommand) setResponse(response []byte, fromCache bool) error {
 type BulkInsertOperation struct {
 	_generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
 	_requestExecutor             *RequestExecutor
-	_bulkInsertExecuteTask       *CompletableFuture // <>
-	// objectMapper ObjectMapper
 
-	_stream               io.Writer // OutputStream
-	_streamExposerContent *StreamExposerContent
+	_bulkInsertExecuteTask *CompletableFuture
+
+	_reader        *io.PipeReader
+	_currentWriter *io.PipeWriter
 
 	_first       bool
 	_operationId int
@@ -138,14 +78,9 @@ type BulkInsertOperation struct {
 	_concurrentCheck AtomicInteger
 
 	_conventions *DocumentConventions
+	err          error
 
-	_requestBodyStream       io.Writer          // OutputStream
-	_currentWriterBacking    *bytes.Buffer      // ByteArrayOutputStream
-	_currentWriter           io.Writer          // Writer
-	_backgroundWriterBacking *bytes.Buffer      // ByteArrayOutputStream
-	_backgroundWriter        io.Writer          // Writer
-	_asyncWrite              *CompletableFuture // void
-	_maxSizeInBuffer         int
+	Command *BulkInsertCommand
 }
 
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
@@ -154,19 +89,15 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 		return re.getConventions().generateDocumentId(database, entity)
 	}
 
-	res := &BulkInsertOperation{
-		_conventions:     store.getConventions(),
-		_requestExecutor: re,
-		//objectMapper: store.getConventions().getEntityMapper(),
+	reader, writer := io.Pipe()
 
-		_currentWriterBacking: bytes.NewBuffer(nil), // new ByteArrayOutputStream()
-		_currentWriter:        bytes.NewBuffer(nil), // = new OutputStreamWriter(_currentWriterBacking)
-		//_backgroundWriterBacking: bytes.NewReader(), // = new ByteArrayOutputStream()
-		//_backgroundWriter = new OutputStreamWriter(_backgroundWriterBacking)
-		//_streamExposerContent = new StreamExposerContent()
-		_maxSizeInBuffer:             1024 * 1024,
-		_asyncWrite:                  NewCompletableFutureAlreadyCompleted(nil),
+	res := &BulkInsertOperation{
+		_conventions:                 store.getConventions(),
+		_requestExecutor:             re,
 		_generateEntityIdOnTheClient: NewGenerateEntityIdOnTheClient(re.getConventions(), f),
+		_reader:        reader,
+		_currentWriter: writer,
+		_operationId:   -1,
 	}
 	return res
 }
@@ -191,29 +122,183 @@ func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) err
 }
 
 func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedException {
-	panicIf(true, "NYI")
-	/*
-		GetOperationStateOperation.GetOperationStateCommand stateRequest = new GetOperationStateOperation.GetOperationStateCommand(_requestExecutor.getConventions(), _operationId)
-		_requestExecutor.execute(stateRequest)
+	stateRequest := NewGetOperationStateCommand(o._requestExecutor.getConventions(), o._operationId)
+	err := o._requestExecutor.executeCommand(stateRequest)
+	if err != nil {
+		return nil // TODO: return an error?
+	}
 
-		JsonNode result = stateRequest.getResult().get("Result")
-
-		if (result.get("$type").asText().startsWith("Raven.Client.Documents.Operations.OperationExceptionResult")) {
-			return new BulkInsertAbortedException(result.get("Error").asText())
+	if result, ok := stateRequest.Result["Result"]; ok {
+		if result, ok := result.(ObjectNode); ok {
+			typ, _ := jsonGetAsString(result, "$type")
+			if strings.HasPrefix(typ, "Raven.Client.Documents.Operations.OperationExceptionResult") {
+				errStr, _ := jsonGetAsString(result, "Error")
+				return NewBulkInsertAbortedException(errStr)
+			}
 		}
-
-	*/
+	}
 	return nil
 }
 
-func (o *BulkInsertOperation) waitForId() {
+func (o *BulkInsertOperation) waitForId() error {
 	if o._operationId != -1 {
-		return
+		return nil
 	}
 
 	bulkInsertGetIdRequest := NewGetNextOperationIdCommand()
-	o._requestExecutor.executeCommand(bulkInsertGetIdRequest)
+	o.err = o._requestExecutor.executeCommand(bulkInsertGetIdRequest)
+	if o.err != nil {
+		return o.err
+	}
 	o._operationId = bulkInsertGetIdRequest.Result
+	return nil
+}
+
+func (o *BulkInsertOperation) storeWithID(entity Object, id string, metadata *IMetadataDictionary) error {
+	if !o._concurrentCheck.compareAndSet(0, 1) {
+		return NewIllegalStateException("Bulk Insert store methods cannot be executed concurrently.")
+	}
+	defer o._concurrentCheck.set(0)
+
+	// early exit if we failed previously
+	if o.err != nil {
+		return o.err
+	}
+
+	err := BulkInsertOperation_verifyValidId(id)
+	if err != nil {
+		return err
+	}
+	o.err = o.waitForId()
+	if o.err != nil {
+		return o.err
+	}
+	o.err = o.ensureCommand()
+	if o.err != nil {
+		return o.err
+	}
+
+	if o._bulkInsertExecuteTask.isCompletedExceptionally() {
+		_, err := o._bulkInsertExecuteTask.get()
+		panicIf(err == nil, "err should not be nil")
+		return o.throwBulkInsertAborted(err, nil)
+	}
+
+	if metadata == nil {
+		metadata = &MetadataAsDictionary{}
+	}
+
+	if !metadata.containsKey(Constants_Documents_Metadata_COLLECTION) {
+		collection := o._requestExecutor.getConventions().getCollectionName(entity)
+		if collection != "" {
+			metadata.put(Constants_Documents_Metadata_COLLECTION, collection)
+		}
+	}
+	if !metadata.containsKey(Constants_Documents_Metadata_RAVEN_GO_TYPE) {
+		goType := o._requestExecutor.getConventions().getGoTypeName(entity)
+		if goType != "" {
+			metadata.put(Constants_Documents_Metadata_RAVEN_GO_TYPE, goType)
+		}
+	}
+
+	documentInfo := NewDocumentInfo()
+	documentInfo.setMetadataInstance(metadata)
+	jsNode := EntityToJson_convertEntityToJson(entity, documentInfo)
+
+	var b bytes.Buffer
+	if o._first {
+		b.WriteByte('[')
+		o._first = false
+	} else {
+		b.WriteByte(',')
+	}
+	m := map[string]interface{}{}
+	m["Id"] = id
+	m["Type"] = "PUT"
+	m["Document"] = jsNode
+
+	d, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	b.Write(d)
+	_, o.err = b.WriteTo(o._currentWriter)
+	if o.err != nil {
+		err := o.getExceptionFromOperation()
+		if err != nil {
+			o.err = err
+			return o.err
+		}
+		// TODO:
+		//o.err = throwOnUnavailableStream()
+		return o.err
+	}
+	return o.err
+}
+
+func (o *BulkInsertOperation) ensureCommand() error {
+	if o.Command != nil {
+		return nil
+	}
+	bulkCommand := NewBulkInsertCommand(o._operationId, o._reader, o.useCompression)
+	panicIf(o._bulkInsertExecuteTask != nil, "already started _bulkInsertExecuteTask")
+	o._bulkInsertExecuteTask = NewCompletableFuture()
+	go func() {
+		err := o._requestExecutor.executeCommand(bulkCommand)
+		if err != nil {
+			o._bulkInsertExecuteTask.markAsDoneWithError(err)
+		} else {
+			o._bulkInsertExecuteTask.markAsDone(nil)
+		}
+	}()
+
+	_, err := o._currentWriter.Write([]byte{'['})
+	if err != nil {
+		return NewRavenException("Unable to open bulk insert stream %s", err)
+	}
+	return nil
+}
+
+func (o *BulkInsertOperation) abort() error {
+	if o._operationId == -1 {
+		return nil // nothing was done, nothing to kill
+	}
+
+	err := o.waitForId()
+	if err != nil {
+		return err
+	}
+
+	command := NewKillOperationCommand(strconv.Itoa(o._operationId))
+	err = o._requestExecutor.executeCommand(command)
+	if err != nil {
+		return NewBulkInsertAbortedException("Unable to kill ths bulk insert operation, because it was not found on the server.")
+	}
+	return nil
+}
+
+func (o *BulkInsertOperation) Close() error {
+	if o._operationId == -1 {
+		// closing without calling a single store.
+		return nil
+	}
+
+	d := []byte{']'}
+	_, err := o._currentWriter.Write(d)
+	errClose := o._currentWriter.Close()
+	o._operationId = -1
+	if o._bulkInsertExecuteTask != nil {
+		_, err2 := o._bulkInsertExecuteTask.get()
+		if err2 != nil && err == nil {
+			err = o.throwBulkInsertAborted(err, errClose)
+		}
+	}
+
+	if err != nil {
+		o.err = err
+		return err
+	}
+	return nil
 }
 
 /*
@@ -221,113 +306,6 @@ func (o *BulkInsertOperation) waitForId() {
 
       store(Object entity, string id)  {
         store(entity, id, null)
-    }
-
-      store(Object entity, string id, IMetadataDictionary metadata) {
-        if (!_concurrentCheck.compareAndSet(0, 1)) {
-            throw new IllegalStateException("Bulk Insert store methods cannot be executed concurrently.")
-        }
-
-        try {
-            verifyValidId(id)
-
-            if (_stream == null) {
-                waitForId()
-                ensureStream()
-            }
-
-            if (_bulkInsertExecuteTask.isCompletedExceptionally()) {
-                try {
-                    _bulkInsertExecuteTask.get()
-                } catch (Exception e) {
-                    throwBulkInsertAborted(e, null)
-                }
-            }
-
-            if (metadata == null) {
-                metadata = new MetadataAsDictionary()
-            }
-
-            if (!metadata.containsKey(Constants.Documents.Metadata.COLLECTION)) {
-                string collection = _requestExecutor.getConventions().getCollectionName(entity)
-                if (collection != null) {
-                    metadata.put(Constants.Documents.Metadata.COLLECTION, collection)
-                }
-            }
-
-            if (!metadata.containsKey(Constants.Documents.Metadata.RAVEN_JAVA_TYPE)) {
-                string javaType = _requestExecutor.getConventions().getJavaClassName(entity.getClass())
-                if (javaType != null) {
-                    metadata.put(Constants.Documents.Metadata.RAVEN_JAVA_TYPE, javaType)
-                }
-            }
-
-            try {
-                if (!_first) {
-                    _currentWriter.write(",")
-                }
-
-                _first = false
-
-                _currentWriter.write("{'Id':'")
-                _currentWriter.write(id)
-                _currentWriter.write("','Type':'PUT','Document':")
-
-                DocumentInfo documentInfo = new DocumentInfo()
-                documentInfo.setMetadataInstance(metadata)
-                ObjectNode json = EntityToJson.convertEntityToJson(entity, _conventions, documentInfo)
-
-                _currentWriter.flush()
-
-                try (JsonGenerator generator =
-                        objectMapper.getFactory().createGenerator(_currentWriter)) {
-                    generator.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
-
-                    generator.writeTree(json)
-                }
-
-                _currentWriter.write("}")
-                _currentWriter.flush()
-
-                if (_currentWriterBacking.size() > _maxSizeInBuffer || _asyncWrite.isDone()) {
-
-                    _asyncWrite.get()
-
-                    Writer tmp = _currentWriter
-                    _currentWriter = _backgroundWriter
-                    _backgroundWriter = tmp
-
-                    ByteArrayOutputStream tmpBaos = _currentWriterBacking
-                    _currentWriterBacking = _backgroundWriterBacking
-                    _backgroundWriterBacking = tmpBaos
-
-                    _currentWriterBacking.reset()
-
-                     byte[] buffer = _backgroundWriterBacking.toByteArray()
-                    _asyncWrite = CompletableFuture.supplyAsync(() -> {
-                        try {
-                            _requestBodyStream.write(buffer)
-
-                            // send this chunk
-                            _requestBodyStream.flush()
-                        } catch (IOException e) {
-                            throw new RuntimeException(e)
-                        }
-                        return null
-                    })
-                }
-            } catch (Exception e) {
-                RuntimeException error = getExceptionFromOperation()
-                if (error != null) {
-                    throw error
-                }
-
-                throwOnUnavailableStream(id, e)
-            }
-        } ly {
-            _concurrentCheck.set(0)
-        }
-
     }
 
      string store(Object entity) {
@@ -347,36 +325,6 @@ func (o *BulkInsertOperation) waitForId() {
         return id
     }
 
-     static  verifyValidId(string id) {
-        if (stringUtils.isEmpty(id)) {
-            throw new IllegalStateException("Document id must have a non empty value")
-        }
-
-        if (id.endsWith("|")) {
-            throw new UnsupportedOperationException("Document ids cannot end with '|', but was called with " + id)
-        }
-    }
-
-
-      ensureStream() {
-        try {
-            BulkInsertCommand bulkCommand = new BulkInsertCommand(_operationId, _streamExposerContent, useCompression)
-
-            _bulkInsertExecuteTask = CompletableFuture.supplyAsync(() -> {
-                _requestExecutor.execute(bulkCommand)
-                return null
-            })
-
-            _stream = _streamExposerContent.outputStream.get()
-
-            _requestBodyStream = _stream
-
-            _currentWriter.write('[')
-        } catch (Exception e) {
-            throw new RavenException("Unable to open bulk insert stream ", e)
-        }
-    }
-
       throwOnUnavailableStream(string id, Exception innerEx) {
         _streamExposerContent.errorOnProcessingRequest(new BulkInsertAbortedException("Write to stream failed at document with id " + id, innerEx))
 
@@ -386,56 +334,6 @@ func (o *BulkInsertOperation) waitForId() {
             throw ExceptionsUtils.unwrapException(e)
         }
     }
-
-      abort() {
-        if (_operationId == -1) {
-            return // nothing was done, nothing to kill
-        }
-
-        waitForId()
-
-        try {
-            _requestExecutor.execute(new KillOperationCommand(_operationId))
-        } catch (RavenException e) {
-            throw new BulkInsertAbortedException("Unable to kill ths bulk insert operation, because it was not found on the server.")
-        }
-    }
-
-    @Override
-      Close() {
-        Exception flushEx = null
-
-        if (_stream != null) {
-            try {
-                _currentWriter.write("]")
-                _currentWriter.flush()
-
-                _asyncWrite.get()
-
-                byte[] buffer = _currentWriterBacking.toByteArray()
-                _requestBodyStream.write(buffer)
-                _stream.flush()
-            } catch (Exception e) {
-                flushEx = e
-            }
-        }
-
-        _streamExposerContent.done()
-
-        if (_operationId == -1) {
-            // closing without calling a single store.
-            return
-        }
-
-        if (_bulkInsertExecuteTask != null) {
-            try {
-                _bulkInsertExecuteTask.get()
-            } catch (Exception e) {
-                throwBulkInsertAborted(e, flushEx)
-            }
-        }
-    }
-
 
      string getId(Object entity) {
         Reference<string> idRef = new Reference<>()
@@ -450,3 +348,14 @@ func (o *BulkInsertOperation) waitForId() {
     }
 }
 */
+
+func BulkInsertOperation_verifyValidId(id string) error {
+	if StringUtils_isEmpty(id) {
+		return NewIllegalStateException("Document id must have a non empty value")
+	}
+
+	if strings.HasSuffix(id, "|") {
+		return NewUnsupportedOperationException("Document ids cannot end with '|', but was called with %s", id)
+	}
+	return nil
+}

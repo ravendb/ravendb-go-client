@@ -29,15 +29,30 @@ func (f *CompletableFuture) isDone() bool {
 	return f.done.get() > 0
 }
 
+func (f *CompletableFuture) isCompletedExceptionally() bool {
+	if !(f.done.get() > 0) {
+		return false
+	}
+	return f.err == nil
+}
+
 func (f *CompletableFuture) markAsDone(result interface{}) {
-	f.result = result
+	if f.isDone() {
+		return
+	}
+	// TODO: still racy, needs a mutex
 	f.done.set(1)
+	f.result = result
 	f.chDone <- true
 }
 
 func (f *CompletableFuture) markAsDoneWithError(err error) {
-	f.err = err
+	if f.isDone() {
+		return
+	}
+	// TODO: still racy, needs a mutex
 	f.done.set(1)
+	f.err = err
 	f.chDone <- true
 }
 
