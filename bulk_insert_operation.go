@@ -226,7 +226,7 @@ func (o *BulkInsertOperation) storeWithID(entity Object, id string, metadata *IM
 
 	_, o.err = o._currentWriter.Write(b.Bytes())
 	if o.err != nil {
-		err := o.getExceptionFromOperation()
+		err = o.getExceptionFromOperation()
 		if err != nil {
 			o.err = err
 			return o.err
@@ -274,7 +274,7 @@ func (o *BulkInsertOperation) abort() error {
 	if err != nil {
 		return NewBulkInsertAbortedException("Unable to kill ths bulk insert operation, because it was not found on the server.")
 	}
-
+	o._currentWriter.CloseWithError(NewBulkInsertAbortedException("killed operation"))
 	return nil
 }
 
