@@ -643,7 +643,9 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 	f := func() {
 		re.updateTopologyCallback()
 		// Go doesn't have repeatable timer, so re-trigger ourselves
+		re.mu.Lock()
 		re._updateTopologyTimer = nil
+		re.mu.Unlock()
 		re.initializeUpdateTopologyTimer()
 	}
 	re._updateTopologyTimer = time.AfterFunc(time.Minute, f)
