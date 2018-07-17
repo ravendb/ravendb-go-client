@@ -352,6 +352,10 @@ func TestAttachmentsRevisions(t *testing.T) {
 	}
 
 	//RavenServerVerbose = true
+	oldDumpFailed := dumpFailedHTTP
+	defer func() {
+		dumpFailedHTTP = oldDumpFailed
+	}()
 	if true {
 		dumpFailedHTTP = true
 	}
@@ -366,4 +370,5 @@ func TestAttachmentsRevisions(t *testing.T) {
 	//attachmentsRevisions_putAttachments(t)
 	//attachmentsRevisions_attachmentRevision(t)
 	RavenServerVerbose = false
+
 }
