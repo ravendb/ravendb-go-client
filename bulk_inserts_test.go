@@ -183,6 +183,10 @@ func TestBulkInserts(t *testing.T) {
 	// matches order of Java tests
 	bulkInsertsTest_simpleBulkInsertShouldWork(t)
 	bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t)
+	// TODO: this test is flaky. Sometimes it fails as in https://travis-ci.org/kjk/ravendb-go-client/builds/404729678
+	// it fails oftent if we comment out all other tests here.
+	// Looks like timing issue where the server doesn't yet see the command
+	// that we're trying to kill
 	bulkInsertsTest_killedToEarly(t)
 	bulkInsertsTest_canModifyMetadataWithBulkInsert(t)
 }
