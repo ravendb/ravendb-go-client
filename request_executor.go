@@ -957,16 +957,21 @@ func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex i
 
 func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 	copy := re.getTopologyNodes()
-	if nodeStatus.nodeIndex >= len(copy) {
+	idx := nodeStatus.nodeIndex
+	if idx >= len(copy) {
 		return // topology index changed / removed
 	}
 
-	serverNode := copy[nodeStatus.nodeIndex]
+	// TODO: impossible `index out of range`?
+	// https://travis-ci.org/kjk/ravendb-go-client/builds/404730309
+	// but we checked that nodeStatus.nodeIndex is in range. Did someone
+	// change nodeStatus?
+	serverNode := copy[idx]
 	if serverNode != nodeStatus.node {
 		return // topology changed, nothing to check
 	}
 
-	err := re.performHealthCheck(serverNode, nodeStatus.nodeIndex)
+	err := re.performHealthCheck(serverNode, idx)
 	if err != nil {
 		// TODO: logging
 		_, ok := re._failedNodesTimers.Load(nodeStatus.node)
@@ -984,7 +989,7 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 	}
 
 	if re._nodeSelector != nil {
-		re._nodeSelector.restoreNodeIndex(nodeStatus.nodeIndex)
+		re._nodeSelector.restoreNodeIndex(idx)
 	}
 }
 
