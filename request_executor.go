@@ -958,17 +958,16 @@ func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex i
 }
 
 func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
-	copy := re.getTopologyNodes()
+	nodesCopy := re.getTopologyNodes()
 	idx := nodeStatus.nodeIndex
-	if idx >= len(copy) {
+	// TODO: idx < 0 probably shouldn't happen but it's the only cause of
+	// https://travis-ci.org/kjk/ravendb-go-client/builds/404760557
+	// that I can think of
+	if idx < 0 || idx >= len(nodesCopy) {
 		return // topology index changed / removed
 	}
 
-	// TODO: impossible `index out of range`?
-	// https://travis-ci.org/kjk/ravendb-go-client/builds/404730309
-	// but we checked that nodeStatus.nodeIndex is in range. Did someone
-	// change nodeStatus?
-	serverNode := copy[idx]
+	serverNode := nodesCopy[idx]
 	if serverNode != nodeStatus.node {
 		return // topology changed, nothing to check
 	}
