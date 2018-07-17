@@ -538,14 +538,20 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Obj
 	return NewNonUniqueObjectException("Attempted to associate a different object with id '" + id + "'.")
 }
 
-func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChangesData {
+func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() (*SaveChangesData, error) {
 	result := NewSaveChangesData(s)
 
 	s.deferredCommands = nil
 	s.deferredCommandsMap = make(map[IdTypeAndName]ICommandData)
 
-	s.prepareForEntitiesDeletion(result, nil)
-	s.prepareForEntitiesPuts(result)
+	err := s.prepareForEntitiesDeletion(result, nil)
+	if err != nil {
+		return nil, err
+	}
+	err = s.prepareForEntitiesPuts(result)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(s.deferredCommands) > 0 {
 		// this allow OnBeforeStore to call Defer during the call to include
@@ -557,7 +563,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() *SaveChanges
 		s.deferredCommands = nil
 		s.deferredCommandsMap = nil
 	}
-	return result
+	return result, nil
 }
 
 func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
@@ -586,8 +592,7 @@ func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(document
 	return dirty
 }
 
-// TODO: return an error
-func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) {
+func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) error {
 	for deletedEntity := range s.deletedEntities.items {
 		documentInfo := s.documentsByEntity[deletedEntity]
 		if documentInfo == nil {
@@ -606,7 +611,10 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			idType := NewIdTypeAndName(documentInfo.getId(), CommandType_CLIENT_ANY_COMMAND, "")
 			command := result.getDeferredCommandsMap()[idType]
 			if command != nil {
-				s.throwInvalidDeletedDocumentWithDeferredCommand(command)
+				err := s.throwInvalidDeletedDocumentWithDeferredCommand(command)
+				if err != nil {
+					return err
+				}
 			}
 
 			var changeVector *string
@@ -640,10 +648,10 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			s.deletedEntities.clear()
 		}
 	}
+	return nil
 }
 
-// TODO: return an error
-func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveChangesData) {
+func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveChangesData) error {
 	for entityKey, entityValue := range s.documentsByEntity {
 		if entityValue.isIgnoreChanges() {
 			continue
@@ -660,7 +668,10 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 		idType := NewIdTypeAndName(entityValue.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
 		command := result.deferredCommandsMap[idType]
 		if command != nil {
-			s.throwInvalidModifiedDocumentWithDeferredCommand(command)
+			err := s.throwInvalidModifiedDocumentWithDeferredCommand(command)
+			if err != nil {
+				return err
+			}
 		}
 
 		if len(s.onBeforeStore) > 0 {
@@ -702,29 +713,31 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 		cmdData := NewPutCommandDataWithJson(entityValue.getId(), changeVector, document)
 		result.addSessionCommandData(cmdData)
 	}
+	return nil
 }
 
-// TODO: should return an error and be propagated
-func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand ICommandData) {
-	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
-	must(err)
+func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand ICommandData) error {
+	err := NewIllegalStateException("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
+	return err
 }
 
-// TODO: should return an error and be propagated
-func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand ICommandData) {
-	err := fmt.Errorf("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
-	must(err)
+func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand ICommandData) error {
+	err := NewIllegalStateException("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
+	return err
 }
 
 func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	return JsonOperation_entityChanged(newObj, documentInfo, changes)
 }
 
-func (s *InMemoryDocumentSessionOperations) whatChanged() map[string][]*DocumentsChanges {
+func (s *InMemoryDocumentSessionOperations) whatChanged() (map[string][]*DocumentsChanges, error) {
 	changes := map[string][]*DocumentsChanges{}
-	s.prepareForEntitiesDeletion(nil, changes)
+	err := s.prepareForEntitiesDeletion(nil, changes)
+	if err != nil {
+		return nil, err
+	}
 	s.getAllEntitiesChanges(changes)
-	return changes
+	return changes, nil
 }
 
 // Gets a value indicating whether any of the entities tracked by the session has changes.

@@ -13,7 +13,10 @@ func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperati
 }
 
 func (b *BatchOperation) createRequest() (*BatchCommand, error) {
-	result := b._session.prepareForSaveChanges()
+	result, err := b._session.prepareForSaveChanges()
+	if err != nil {
+		return nil, err
+	}
 
 	b._sessionCommandsCount = len(result.getSessionCommands())
 	result.sessionCommands = append(result.sessionCommands, result.getDeferredCommands()...)
@@ -21,7 +24,7 @@ func (b *BatchOperation) createRequest() (*BatchCommand, error) {
 		return nil, nil
 	}
 
-	err := b._session.incrementRequestCount()
+	err = b._session.incrementRequestCount()
 	if err != nil {
 		return nil, err
 	}

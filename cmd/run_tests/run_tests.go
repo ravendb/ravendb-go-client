@@ -68,7 +68,8 @@ func runJava() {
 	//runSingleJavaTest("AttachmentsRevisionsTest", "trace_attachments_revisions_java.txt")
 	//runSingleJavaTest("BasicDocumentsTest", "trace_basic_documents_java.txt")
 	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
-	runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
+	//runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
+	runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
 }
 
 func main() {

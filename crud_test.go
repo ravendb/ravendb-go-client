@@ -243,7 +243,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		assert.NoError(t, err)
 		user3.setAge(3)
 
-		changes := newSession.advanced().whatChanged()
+		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 4)
 
 		err = newSession.SaveChanges()
@@ -313,7 +313,7 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Toli", "Mitzi", "Boki"})
-		changes := newSession.advanced().whatChanged()
+		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -339,11 +339,11 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		changes := newSession.advanced().whatChanged()
+		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 0)
 
 		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos"})
-		changes = newSession.advanced().whatChanged()
+		changes, _ = newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -370,7 +370,7 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"RavenDB"})
-		changes := newSession.advanced().whatChanged()
+		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -397,7 +397,7 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos", "Toli", "Mitzi", "Boki"})
-		changes := newSession.advanced().whatChanged()
+		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -422,12 +422,12 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 
 		user2I, err := newSession.load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
-		whatChanged := newSession.advanced().whatChanged()
+		whatChanged, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 0)
 
 		user2 := user2I.(*User)
 		user2.setAge(3)
-		whatChanged = newSession.advanced().whatChanged()
+		whatChanged, _ = newSession.advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 1)
 		newSession.Close()
 	}
@@ -470,7 +470,7 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		newFamily := newFamilyI.(*FamilyMembers)
 		newFamily.setMembers([]*Member{member1, member2})
 
-		changes := newSession.advanced().whatChanged()
+		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		family1Changes := changes["family/1"]
@@ -527,7 +527,7 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		member2.setAge(15)
 
 		newFamily.setMembers([]*Member{member1, member2})
-		changes = newSession.advanced().whatChanged()
+		changes, _ = newSession.advanced().whatChanged()
 
 		assert.Equal(t, len(changes), 1)
 
@@ -611,7 +611,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 		newArr.setArr1([]*Arr1{a1, a2})
 
-		whatChanged := newSession.advanced().whatChanged()
+		whatChanged, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, 1, len(whatChanged))
 
 		change := whatChanged["arr/1"]
@@ -662,7 +662,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 		a2.setStr([]string{"a", "b"})
 		newArr.setArr1([]*Arr1{a1, a2})
 
-		whatChanged := newSession.advanced().whatChanged()
+		whatChanged, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 1)
 
 		change := whatChanged["arr/1"]
