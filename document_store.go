@@ -403,5 +403,13 @@ func (s *DocumentStore) operations() *OperationExecutor {
 	return s.operationExecutor
 }
 
-//    public BulkInsertOperation bulkInsert() {
-//    public BulkInsertOperation bulkInsert(string database) {
+func (s *DocumentStore) bulkInsert() *BulkInsertOperation {
+	return s.bulkInsertWithDatabase("")
+}
+
+func (s *DocumentStore) bulkInsertWithDatabase(database string) *BulkInsertOperation {
+	if database == "" {
+		database = s.getDatabase()
+	}
+	return NewBulkInsertOperation(database, s)
+}

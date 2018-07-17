@@ -98,6 +98,7 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 		_reader:        reader,
 		_currentWriter: writer,
 		_operationId:   -1,
+		_first:         true,
 	}
 	return res
 }
@@ -222,7 +223,8 @@ func (o *BulkInsertOperation) storeWithID(entity Object, id string, metadata *IM
 		return err
 	}
 	b.Write(d)
-	_, o.err = b.WriteTo(o._currentWriter)
+
+	_, o.err = o._currentWriter.Write(b.Bytes())
 	if o.err != nil {
 		err := o.getExceptionFromOperation()
 		if err != nil {
@@ -230,7 +232,7 @@ func (o *BulkInsertOperation) storeWithID(entity Object, id string, metadata *IM
 			return o.err
 		}
 		// TODO:
-		//o.err = throwOnUnavailableStream()
+		//o.err = o.throwOnUnavailableStream()
 		return o.err
 	}
 	return o.err
@@ -252,10 +254,7 @@ func (o *BulkInsertOperation) ensureCommand() error {
 		}
 	}()
 
-	_, err := o._currentWriter.Write([]byte{'['})
-	if err != nil {
-		return NewRavenException("Unable to open bulk insert stream %s", err)
-	}
+	o.Command = bulkCommand
 	return nil
 }
 
@@ -271,9 +270,11 @@ func (o *BulkInsertOperation) abort() error {
 
 	command := NewKillOperationCommand(strconv.Itoa(o._operationId))
 	err = o._requestExecutor.executeCommand(command)
+	//o._currentWriter.Close()
 	if err != nil {
 		return NewBulkInsertAbortedException("Unable to kill ths bulk insert operation, because it was not found on the server.")
 	}
+
 	return nil
 }
 
@@ -286,7 +287,6 @@ func (o *BulkInsertOperation) Close() error {
 	d := []byte{']'}
 	_, err := o._currentWriter.Write(d)
 	errClose := o._currentWriter.Close()
-	o._operationId = -1
 	if o._bulkInsertExecuteTask != nil {
 		_, err2 := o._bulkInsertExecuteTask.get()
 		if err2 != nil && err == nil {
@@ -301,53 +301,46 @@ func (o *BulkInsertOperation) Close() error {
 	return nil
 }
 
-/*
- class BulkInsertOperation implements CleanCloseable {
-
-      store(Object entity, string id)  {
-        store(entity, id, null)
-    }
-
-     string store(Object entity) {
-        return store(entity, (IMetadataDictionary) null)
-    }
-
-     string store(Object entity, IMetadataDictionary metadata) {
-        string id
-        if (metadata == null || !metadata.containsKey(Constants.Documents.Metadata.ID)) {
-            id = getId(entity)
-        } else {
-            id = (string) metadata.get(Constants.Documents.Metadata.ID)
-        }
-
-        store(entity, id, metadata)
-
-        return id
-    }
-
-      throwOnUnavailableStream(string id, Exception innerEx) {
-        _streamExposerContent.errorOnProcessingRequest(new BulkInsertAbortedException("Write to stream failed at document with id " + id, innerEx))
-
-        try {
-            _bulkInsertExecuteTask.get()
-        } catch (Exception e) {
-            throw ExceptionsUtils.unwrapException(e)
-        }
-    }
-
-     string getId(Object entity) {
-        Reference<string> idRef = new Reference<>()
-        if (_generateEntityIdOnTheClient.tryGetIdFromInstance(entity, idRef)) {
-            return idRef.value
-        }
-
-        idRef.value = _generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity)
-
-        _generateEntityIdOnTheClient.trySetIdentity(entity, idRef.value) // set id property if it was null
-        return idRef.value
-    }
+func (o *BulkInsertOperation) store(entity Object) (string, error) {
+	return o.storeWithMetadata(entity, nil)
 }
-*/
+
+func (o *BulkInsertOperation) storeWithMetadata(entity Object, metadata *IMetadataDictionary) (string, error) {
+	var id string
+	if metadata == nil || !metadata.containsKey(Constants_Documents_Metadata_ID) {
+		id = o.getId(entity)
+	} else {
+		idVal, ok := metadata.get(Constants_Documents_Metadata_ID)
+		panicIf(!ok, "didn't find %s key in meatadata", Constants_Documents_Metadata_ID)
+		id = idVal.(string)
+	}
+
+	return id, o.storeWithID(entity, id, metadata)
+}
+
+func (o *BulkInsertOperation) getId(entity Object) string {
+	idRef, ok := o._generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
+	if ok {
+		return idRef
+	}
+
+	idRef = o._generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity)
+
+	// set id property if it was null
+	o._generateEntityIdOnTheClient.trySetIdentity(entity, idRef)
+	return idRef
+}
+
+func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error) error {
+	// TODO: not sure how this translates
+	//_streamExposerContent.errorOnProcessingRequest(new BulkInsertAbortedException("Write to stream failed at document with id " + id, innerEx))
+
+	_, err := o._bulkInsertExecuteTask.get()
+	if err != nil {
+		return ExceptionsUtils_unwrapException(err)
+	}
+	return nil
+}
 
 func BulkInsertOperation_verifyValidId(id string) error {
 	if StringUtils_isEmpty(id) {
