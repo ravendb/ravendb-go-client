@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"sort"
+	"strconv"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
@@ -74,6 +75,32 @@ func attachmentsSession_putAttachments(t *testing.T) {
 }
 
 func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		stream := bytes.NewBuffer([]byte{1, 2, 3})
+
+		user := NewUser()
+		user.setName("Fitzchak")
+		err = session.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		err = session.advanced().attachments().storeEntity(user, "profile", stream, "image/png")
+		assert.NoError(t, err)
+		err = session.advanced().attachments().storeEntity(user, "other", stream, "")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.Error(t, err)
+		_, ok := err.(*IllegalStateException)
+		assert.True(t, ok)
+
+		session.Close()
+	}
 }
 
 func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T) {
@@ -224,9 +251,107 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 }
 
 func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user := NewUser()
+		user.setName("Fitzchak")
+		err = session.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
+		stream2 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5, 6})
+
+		err = session.advanced().attachments().storeEntity(user, "file1", stream1, "image/png")
+		assert.NoError(t, err)
+		err = session.advanced().attachments().storeEntity(user, "file2", stream2, "image/png")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	op := NewDeleteAttachmentOperation("users/1", "file2", nil)
+	err = store.operations().send(op)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+
+		userI, err := session.load(getTypeOf(&User{}), "users/1")
+		assert.NoError(t, err)
+
+		metadata, err := session.advanced().getMetadataFor(userI)
+		assert.NoError(t, err)
+
+		v, ok := metadata.get(Constants_Documents_Metadata_FLAGS)
+		assert.True(t, ok)
+		assert.Equal(t, v, "HasAttachments")
+
+		attachmentsI, ok := metadata.get(Constants_Documents_Metadata_ATTACHMENTS)
+		assert.True(t, ok)
+		attachments := attachmentsI.([]Object)
+		assert.Equal(t, len(attachments), 1)
+
+		{
+			result, err := session.advanced().attachments().get("users/1", "file1")
+			assert.NoError(t, err)
+			r := result.getData()
+			file1Bytes, err := ioutil.ReadAll(r)
+			assert.NoError(t, err)
+			assert.Equal(t, len(file1Bytes), 3)
+
+			result.Close()
+		}
+
+		session.Close()
+	}
 }
 
 func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
+	count := 30
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user := NewUser()
+		err = session.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	for i := 0; i < count; i++ {
+		session := openSessionMust(t, store)
+
+		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
+		err = session.advanced().attachments().store("users/1", "file"+strconv.Itoa(i), stream1, "image/png")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	for i := 0; i < count; i++ {
+		session := openSessionMust(t, store)
+		result, err := session.advanced().attachments().get("users/1", "file"+strconv.Itoa(i))
+		assert.NoError(t, err)
+		// don't read data as it marks entity as consumed
+		result.Close()
+		session.Close()
+	}
 }
 
 func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T) {
@@ -416,6 +541,8 @@ func TestAttachmentsSession(t *testing.T) {
 	createTestDriver()
 	defer deleteTestDriver()
 
+	// TODO: those tests are flaky. Not often but they sometimes fail
+
 	// matches order of Java tests
 	attachmentsSession_putAttachments(t)
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t)
@@ -425,7 +552,6 @@ func TestAttachmentsSession(t *testing.T) {
 	attachmentsSession_attachmentExists(t)
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t)
 	attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
-
 	attachmentsSession_throwIfStreamIsUseTwice(t)
 	attachmentsSession_getAttachmentReleasesResources(t)
 	attachmentsSession_deleteAttachmentsUsingCommand(t)
