@@ -6,7 +6,7 @@ type DeleteAttachmentCommandData struct {
 
 // NewDeleteAttachmentCommandData creates CommandData for Delete Attachment command
 // TODO: return a concrete type?
-func NewDeleteAttachmentCommandData(documentId string, name string, changeVector *string) ICommandData {
+func NewDeleteAttachmentCommandData(documentId string, name string, changeVector *string) *DeleteAttachmentCommandData {
 	res := &DeleteAttachmentCommandData{
 		&CommandData{
 			Type:         CommandType_DELETE,
@@ -21,5 +21,6 @@ func NewDeleteAttachmentCommandData(documentId string, name string, changeVector
 func (d *DeleteAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
 	res := d.baseJSON()
 	res["Type"] = "AttachmentDELETE"
+	res["Name"] = d.Name
 	return res, nil
 }
