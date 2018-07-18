@@ -174,7 +174,11 @@ func TestBulkInserts(t *testing.T) {
 	}
 
 	if false {
+		oldDumpFailedHTTP := dumpFailedHTTP
 		dumpFailedHTTP = true
+		defer func() {
+			dumpFailedHTTP = oldDumpFailedHTTP
+		}()
 	}
 
 	createTestDriver()

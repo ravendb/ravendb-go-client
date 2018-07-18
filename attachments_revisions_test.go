@@ -352,12 +352,12 @@ func TestAttachmentsRevisions(t *testing.T) {
 	}
 
 	//RavenServerVerbose = true
-	oldDumpFailed := dumpFailedHTTP
-	defer func() {
-		dumpFailedHTTP = oldDumpFailed
-	}()
 	if true {
+		oldDumpFailedHTTP := dumpFailedHTTP
 		dumpFailedHTTP = true
+		defer func() {
+			dumpFailedHTTP = oldDumpFailedHTTP
+		}()
 	}
 
 	createTestDriver()
