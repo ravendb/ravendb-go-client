@@ -77,6 +77,31 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
 }
 
 func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		stream := bytes.NewBuffer([]byte{1, 2, 3})
+		stream2 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5})
+
+		user := NewUser()
+		user.setName("Fitzchak")
+		err = session.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		err = session.advanced().attachments().storeEntity(user, "profile", stream, "image/png")
+		assert.NoError(t, err)
+
+		err = session.advanced().attachments().storeEntity(user, "profile", stream2, "")
+		assert.Error(t, err)
+		_, ok := err.(*IllegalStateException)
+		assert.True(t, ok)
+
+		session.Close()
+	}
 }
 
 func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T) {
@@ -293,6 +318,46 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 }
 
 func attachmentsSession_attachmentExists(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		stream := bytes.NewBuffer([]byte{1, 2, 3})
+
+		user := NewUser()
+		user.setName("Fitzchak")
+
+		err = session.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		err = session.advanced().attachments().store("users/1", "profile", stream, "image/png")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		ok, err := session.advanced().attachments().exists("users/1", "profile")
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = session.advanced().attachments().exists("users/1", "background-photo")
+		assert.NoError(t, err)
+		assert.False(t, ok)
+
+		ok, err = session.advanced().attachments().exists("users/2", "profile")
+		assert.NoError(t, err)
+		assert.False(t, ok)
+
+		session.Close()
+	}
 }
 
 func TestAttachmentsSession(t *testing.T) {
@@ -316,9 +381,9 @@ func TestAttachmentsSession(t *testing.T) {
 	attachmentsSession_getAttachmentNames(t)
 	attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
 	attachmentsSession_deleteAttachments(t)
-
 	attachmentsSession_attachmentExists(t)
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t)
+
 	attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
 	attachmentsSession_throwIfStreamIsUseTwice(t)
 	attachmentsSession_getAttachmentReleasesResources(t)
