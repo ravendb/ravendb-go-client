@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -34,7 +35,7 @@ type RequestExecutor struct {
 
 	certificate           *KeyStore
 	_databaseName         string
-	_lastReturnedResponse time.Time
+	_lastReturnedResponse atomic.Value // atomic to avoid data races
 
 	_updateTopologyTimer *time.Timer
 	_nodeSelector        *NodeSelector
@@ -152,9 +153,9 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		_databaseName:        databaseName,
 		certificate:          certificate,
 
-		_lastReturnedResponse: time.Now(),
-		conventions:           conventions.clone(),
+		conventions: conventions.clone(),
 	}
+	res._lastReturnedResponse.Store(time.Now())
 	// TODO: create a different client if settings like compression
 	// or certificate differ
 	//res.httpClient = res.createClient()
@@ -521,7 +522,8 @@ func (re *RequestExecutor) unlikelyExecute(command RavenCommand, topologyUpdate 
 }
 
 func (re *RequestExecutor) updateTopologyCallback() {
-	dur := time.Since(re._lastReturnedResponse)
+	last := re._lastReturnedResponse.Load().(time.Time)
+	dur := time.Since(last)
 	if dur < time.Minute {
 		return
 	}
@@ -743,7 +745,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	}
 
 	responseDispose, err = processCommandResponse(command, re.cache, response, urlRef)
-	re._lastReturnedResponse = time.Now()
+	re._lastReturnedResponse.Store(time.Now())
 	if err != nil {
 		return err
 	}
