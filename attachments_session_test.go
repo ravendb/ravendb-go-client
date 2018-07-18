@@ -230,6 +230,47 @@ func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
 }
 
 func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user := NewUser()
+		user.setName("Fitzchak")
+		err = session.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		stream := bytes.NewBuffer([]byte{1, 2, 3})
+
+		err = session.advanced().attachments().storeEntity(user, "file", stream, "image/png")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		userI, err := session.load(getTypeOf(&User{}), "users/1")
+		assert.NoError(t, err)
+
+		err = session.DeleteEntity(userI)
+		assert.NoError(t, err)
+		err = session.advanced().attachments().deleteEntity(userI, "file")
+		assert.NoError(t, err)
+		err = session.advanced().attachments().deleteEntity(userI, "file") // this should be no-op
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
 }
 
 func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T) {
@@ -383,8 +424,8 @@ func TestAttachmentsSession(t *testing.T) {
 	attachmentsSession_deleteAttachments(t)
 	attachmentsSession_attachmentExists(t)
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t)
-
 	attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
+
 	attachmentsSession_throwIfStreamIsUseTwice(t)
 	attachmentsSession_getAttachmentReleasesResources(t)
 	attachmentsSession_deleteAttachmentsUsingCommand(t)
