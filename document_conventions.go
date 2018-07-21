@@ -30,7 +30,10 @@ type DocumentConventions struct {
 
 	_readBalanceBehavior                            ReadBalanceBehavior
 	_transformClassCollectionNameToDocumentIdPrefix func(string) string
-	mu                                              sync.Mutex
+
+	_throwIfQueryPageSizeIsNotSet bool
+
+	mu sync.Mutex
 }
 
 // Note: Java has it as frozen global variable (possibly for perf) but Go
@@ -61,6 +64,10 @@ func (c *DocumentConventions) freeze() {
 
 func (c *DocumentConventions) getCollectionName(entity Object) string {
 	return defaultGetCollectionName(entity)
+}
+
+func (c *DocumentConventions) isThrowIfQueryPageSizeIsNotSet() bool {
+	return c._throwIfQueryPageSizeIsNotSet
 }
 
 // TODO: tests

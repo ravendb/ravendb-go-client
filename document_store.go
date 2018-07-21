@@ -345,12 +345,33 @@ func (s *DocumentStore) assertValidConfiguration() error {
 	return nil
 }
 
-func (s *DocumentStore) disableAggressiveCaching() {
-	s.disableAggressiveCachingWithDatabase("")
+type RestoreCaching struct {
+	re  *RequestExecutor
+	old *AggressiveCacheOptions
 }
 
-func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string) {
-	// TODO: implement me
+func (r *RestoreCaching) Close() {
+	// TODO: in Java it's thread local
+	r.re.aggressiveCaching = r.old
+}
+
+func (s *DocumentStore) disableAggressiveCaching() *RestoreCaching {
+	return s.disableAggressiveCachingWithDatabase("")
+}
+
+func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string) *RestoreCaching {
+	if databaseName == "" {
+		databaseName = s.getDatabase()
+	}
+
+	re := s.GetRequestExecutorWithDatabase(databaseName)
+	old := re.aggressiveCaching // TODO: is thread local
+	re.aggressiveCaching = nil  // TODO: is thread local
+	res := &RestoreCaching{
+		re:  re,
+		old: old,
+	}
+	return res
 }
 
 func (s *DocumentStore) changes() *IDatabaseChanges {

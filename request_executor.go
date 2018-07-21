@@ -64,6 +64,9 @@ type RequestExecutor struct {
 	// those are needed to implement ClusterRequestExecutor logic
 	isCluster                bool
 	clusterTopologySemaphore *Semaphore
+
+	/// TODO: in Java this thread local
+	aggressiveCaching *AggressiveCacheOptions
 }
 
 func (re *RequestExecutor) getCache() *HttpCache {
