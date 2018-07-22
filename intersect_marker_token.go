@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &IntersectMarkerToken{}
+
 var (
 	IntersectMarkerToken_INSTANCE = NewIntersectMarkerToken()
 )

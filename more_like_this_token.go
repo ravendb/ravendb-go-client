@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &MoreLikeThisToken{}
+
 type MoreLikeThisToken struct {
 	documentParameterName string
 	optionsParameterName  string

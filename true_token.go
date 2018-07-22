@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &TrueToken{}
+
 type TrueToken struct {
 }
 

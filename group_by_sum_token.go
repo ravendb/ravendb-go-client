@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &GroupBySumToken{}
+
 type GroupBySumToken struct {
 	_projectedName string
 	_fieldName     string

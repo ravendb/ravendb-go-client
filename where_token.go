@@ -2,6 +2,8 @@ package ravendb
 
 import "math"
 
+var _ QueryToken = &WhereToken{}
+
 type MethodType = string
 
 const (

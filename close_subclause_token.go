@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &CloseSubclauseToken{}
+
 var (
 	CloseSubclauseToken_INSTANCE = NewCloseSubclauseToken()
 )

@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &ShapeToken{}
+
 type ShapeToken struct {
 	_shape string
 }

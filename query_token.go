@@ -17,6 +17,7 @@ var (
 // writeField. We make writeField a stand-alone helper function and make QueryToken
 // an interface
 type QueryToken interface {
+	// TODO: rename to WriteTo
 	writeTo(*StringBuilder)
 }
 

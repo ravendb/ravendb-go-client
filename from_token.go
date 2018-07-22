@@ -2,6 +2,8 @@ package ravendb
 
 import "strings"
 
+var _ QueryToken = &FromToken{}
+
 type FromToken struct {
 	collectionName string
 	indexName      string

@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -53,6 +54,12 @@ type AbstractDocumentQuery struct {
 	disableCaching bool
 
 	_isInMoreLikeThis bool
+
+	beforeQueryExecutedCallback []func(*IndexQuery)
+	afterQueryExecutedCallback  []func(*QueryResult)
+	afterStreamExecutedCallback []func(ObjectNode)
+
+	queryOperation *QueryOperation
 }
 
 func (q *AbstractDocumentQuery) getIndexName() string {
@@ -103,7 +110,10 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 	}
 	res.rootTypes.add(clazz)
 	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
-	//_addAfterQueryExecutedListener(this::updateStatsAndHighlightings);
+	f := func(queryResult *QueryResult) {
+		res.updateStatsAndHighlightings(queryResult)
+	}
+	res._addAfterQueryExecutedListener(f)
 	if session == nil {
 		res._conventions = NewDocumentConventions()
 	} else {
@@ -133,40 +143,38 @@ func (q *AbstractDocumentQuery) _waitForNonStaleResults(waitTimeout time.Duratio
 	q.timeout = waitTimeout
 }
 
-/*
-func (q *AbstractDocumentQuery)  initializeQueryOperation() *QueryOperation {
-	indexQuery := q.getIndexQuery();
+func (q *AbstractDocumentQuery) initializeQueryOperation() *QueryOperation {
+	indexQuery := q.getIndexQuery()
 
-	return new QueryOperation(theSession, indexName, indexQuery, fieldsToFetchToken, disableEntitiesTracking, false, false);
+	return NewQueryOperation(q.theSession, q.indexName, indexQuery, q.fieldsToFetchToken, q.disableEntitiesTracking, false, false)
 }
-*/
+
+func (q *AbstractDocumentQuery) getIndexQuery() *IndexQuery {
+	query := q.String()
+	indexQuery := q.generateIndexQuery(query)
+	q.invokeBeforeQueryExecuted(indexQuery)
+	return indexQuery
+}
 
 /*
-public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQuery<T, TSelf>> implements IAbstractDocumentQuery<T> {
-
-    public IndexQuery getIndexQuery() {
-        String query = toString();
-        IndexQuery indexQuery = generateIndexQuery(query);
-        invokeBeforeQueryExecuted(indexQuery);
-        return indexQuery;
-    }
+ abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQuery<T, TSelf>> implements IAbstractDocumentQuery<T> {
 
     @Override
-    public List<String> getProjectionFields() {
+     List<string> getProjectionFields() {
         return fieldsToFetchToken != null && fieldsToFetchToken.projections != null ? Arrays.asList(fieldsToFetchToken.projections) : Collections.emptyList();
     }
 
     @Override
-    public void _randomOrdering() {
+      _randomOrdering() {
         assertNoRawQuery();
         orderByTokens.add(OrderByToken.random);
     }
 
     @Override
-    public void _randomOrdering(String seed) {
+      _randomOrdering(string seed) {
         assertNoRawQuery();
 
-        if (StringUtils.isBlank(seed)) {
+        if (stringUtils.isBlank(seed)) {
             _randomOrdering();
             return;
         }
@@ -174,1133 +182,1154 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         orderByTokens.add(OrderByToken.createRandom(seed));
     }
 
-    protected void addGroupByAlias(String fieldName, String projectedName) {
+    protected  addGroupByAlias(string fieldName, string projectedName) {
         _aliasToGroupByFieldName.put(projectedName, fieldName);
     }
-
-    private void assertNoRawQuery() {
-        if (queryRaw != null) {
-            throw new IllegalStateException("RawQuery was called, cannot modify this query by calling on operations that would modify the query (such as Where, Select, OrderBy, GroupBy, etc)");
-        }
-    }
-
-    public void _addParameter(String name, Object value) {
-        name = StringUtils.stripStart(name, "$");
-        if (queryParameters.containsKey(name)) {
-            throw new IllegalStateException("The parameter " + name + " was already added");
-        }
-
-        queryParameters.put(name, value);
-    }
-
-    @Override
-    public void _groupBy(String fieldName, String... fieldNames) {
-        GroupBy[] mapping = Arrays.stream(fieldNames)
-                .map(x -> GroupBy.field(x))
-                .toArray(GroupBy[]::new);
-
-        _groupBy(GroupBy.field(fieldName), mapping);
-    }
-
-    @Override
-    public void _groupBy(GroupBy field, GroupBy... fields) {
-        if (!fromToken.isDynamic()) {
-            throw new IllegalStateException("groupBy only works with dynamic queries");
-        }
-
-        assertNoRawQuery();
-        isGroupBy = true;
-
-        String fieldName = ensureValidFieldName(field.getField(), false);
-
-        groupByTokens.add(GroupByToken.create(fieldName, field.getMethod()));
-
-        if (fields == null || fields.length <= 0) {
-            return;
-        }
-
-        for (GroupBy item : fields) {
-            fieldName = ensureValidFieldName(item.getField(), false);
-            groupByTokens.add(GroupByToken.create(fieldName, item.getMethod()));
-        }
-    }
-
-    @Override
-    public void _groupByKey(String fieldName) {
-        _groupByKey(fieldName, null);
-    }
-
-    @Override
-    public void _groupByKey(String fieldName, String projectedName) {
-        assertNoRawQuery();
-        isGroupBy = true;
-
-        if (projectedName != null && _aliasToGroupByFieldName.containsKey(projectedName)) {
-            String aliasedFieldName = _aliasToGroupByFieldName.get(projectedName);
-            if (fieldName == null || fieldName.equalsIgnoreCase(projectedName)) {
-                fieldName = aliasedFieldName;
-            }
-        } else if (fieldName != null && _aliasToGroupByFieldName.containsValue(fieldName)) {
-            String aliasedFieldName = _aliasToGroupByFieldName.get(fieldName);
-            fieldName = aliasedFieldName;
-        }
-
-        selectTokens.add(GroupByKeyToken.create(fieldName, projectedName));
-    }
-
-    @Override
-    public void _groupBySum(String fieldName) {
-        _groupBySum(fieldName, null);
-    }
-
-    @Override
-    public void _groupBySum(String fieldName, String projectedName) {
-        assertNoRawQuery();
-        isGroupBy = true;
-
-        fieldName = ensureValidFieldName(fieldName, false);
-        selectTokens.add(GroupBySumToken.create(fieldName, projectedName));
-    }
-
-    @Override
-    public void _groupByCount() {
-        _groupByCount(null);
-    }
-
-    @Override
-    public void _groupByCount(String projectedName) {
-        assertNoRawQuery();
-        isGroupBy = true;
-
-        selectTokens.add(GroupByCountToken.create(projectedName));
-    }
-
-    @Override
-    public void _whereTrue() {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, null);
-
-        tokens.add(TrueToken.INSTANCE);
-    }
-
-
-    public MoreLikeThisScope _moreLikeThis() {
-        appendOperatorIfNeeded(whereTokens);
-
-        MoreLikeThisToken token = new MoreLikeThisToken();
-        whereTokens.add(token);
-
-        _isInMoreLikeThis = true;
-        return new MoreLikeThisScope(token, this::addQueryParameter, () -> _isInMoreLikeThis = false);
-    }
-
-    @Override
-    public void _include(String path) {
-        includes.add(path);
-    }
-
-    @Override
-    public void _take(int count) {
-        pageSize = count;
-    }
-
-    @Override
-    public void _skip(int count) {
-        start = count;
-    }
-
-    public void _whereLucene(String fieldName, String whereClause, boolean exact) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereToken.WhereOptions options = exact ? new WhereToken.WhereOptions(exact) : null;
-        WhereToken whereToken = WhereToken.create(WhereOperator.LUCENE, fieldName, addQueryParameter(whereClause), options);
-        tokens.add(whereToken);
-    }
-
-    @Override
-    public void _openSubclause() {
-        _currentClauseDepth++;
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, null);
-
-        tokens.add(OpenSubclauseToken.INSTANCE);
-    }
-
-    @Override
-    public void _closeSubclause() {
-        _currentClauseDepth--;
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        tokens.add(CloseSubclauseToken.INSTANCE);
-    }
-
-    @Override
-    public void _whereEquals(String fieldName, Object value) {
-        _whereEquals(fieldName, value, false);
-    }
-
-    @Override
-    public void _whereEquals(String fieldName, Object value, boolean exact) {
-        WhereParams params = new WhereParams();
-        params.setFieldName(fieldName);
-        params.setValue(value);
-        params.setExact(exact);
-        _whereEquals(params);
-    }
-
-    @Override
-    public void _whereEquals(String fieldName, MethodCall method) {
-        _whereEquals(fieldName, method, false);
-    }
-
-    @Override
-    public void _whereEquals(String fieldName, MethodCall method, boolean exact) {
-        _whereEquals(fieldName, (Object) method, exact);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void _whereEquals(WhereParams whereParams) {
-        if (negate) {
-            negate = false;
-            _whereNotEquals(whereParams);
-            return;
-        }
-
-        whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-
-        if (ifValueIsMethod(WhereOperator.EQUALS, whereParams, tokens)) {
-            return;
-        }
-
-        Object transformToEqualValue = transformValue(whereParams);
-        String addQueryParameter = addQueryParameter(transformToEqualValue);
-        WhereToken whereToken = WhereToken.create(WhereOperator.EQUALS, whereParams.getFieldName(), addQueryParameter, new WhereToken.WhereOptions(whereParams.isExact()));
-        tokens.add(whereToken);
-    }
-
-    private boolean ifValueIsMethod(WhereOperator op, WhereParams whereParams, List<QueryToken> tokens) {
-        if (whereParams.getValue() instanceof MethodCall) {
-            MethodCall mc = (MethodCall) whereParams.getValue();
-
-            String[] args = new String[mc.args.length];
-            for (int i = 0; i < mc.args.length; i++) {
-                args[i] = addQueryParameter(mc.args[i]);
-            }
-
-            WhereToken token;
-            Class<? extends MethodCall> type = mc.getClass();
-            if (CmpXchg.class.equals(type)) {
-                token = WhereToken.create(op, whereParams.getFieldName(), null, new WhereToken.WhereOptions(WhereToken.MethodsType.CMP_X_CHG, args, mc.accessPath, whereParams.isExact()));
-            } else {
-                throw new IllegalArgumentException("Unknown method " + type);
-            }
-
-            tokens.add(token);
-            return true;
-        }
-
-        return false;
-    }
-
-    public void _whereNotEquals(String fieldName, Object value) {
-        _whereNotEquals(fieldName, value, false);
-    }
-
-    public void _whereNotEquals(String fieldName, Object value, boolean exact) {
-        WhereParams params = new WhereParams();
-        params.setFieldName(fieldName);
-        params.setValue(value);
-        params.setExact(exact);
-
-        _whereNotEquals(params);
-    }
-
-    @Override
-    public void _whereNotEquals(String fieldName, MethodCall method) {
-        _whereNotEquals(fieldName, (Object) method);
-    }
-
-    @Override
-    public void _whereNotEquals(String fieldName, MethodCall method, boolean exact) {
-        _whereNotEquals(fieldName, (Object) method, exact);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void _whereNotEquals(WhereParams whereParams) {
-        if (negate) {
-            negate = false;
-            _whereEquals(whereParams);
-            return;
-        }
-
-        Object transformToEqualValue = transformValue(whereParams);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-
-        whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
-
-        if (ifValueIsMethod(WhereOperator.NOT_EQUALS, whereParams, tokens)) {
-            return;
-        }
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.NOT_EQUALS, whereParams.getFieldName(), addQueryParameter(transformToEqualValue), new WhereToken.WhereOptions(whereParams.isExact()));
-        tokens.add(whereToken);
-    }
-
-    public void negateNext() {
-        negate = !negate;
-    }
-
-    @Override
-    public void _whereIn(String fieldName, Collection<Object> values) {
-        _whereIn(fieldName, values, false);
-    }
-
-    @Override
-    public void _whereIn(String fieldName, Collection<Object> values, boolean exact) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.IN, fieldName, addQueryParameter(transformCollection(fieldName, unpackCollection(values))));
-        tokens.add(whereToken);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void _whereStartsWith(String fieldName, Object value) {
-        WhereParams whereParams = new WhereParams();
-        whereParams.setFieldName(fieldName);
-        whereParams.setValue(value);
-        whereParams.setAllowWildcards(true);
-
-        Object transformToEqualValue = transformValue(whereParams);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-
-        whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
-        negateIfNeeded(tokens, whereParams.getFieldName());
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.STARTS_WITH, whereParams.getFieldName(), addQueryParameter(transformToEqualValue));
-        tokens.add(whereToken);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void _whereEndsWith(String fieldName, Object value) {
-        WhereParams whereParams = new WhereParams();
-        whereParams.setFieldName(fieldName);
-        whereParams.setValue(value);
-        whereParams.setAllowWildcards(true);
-
-        Object transformToEqualValue = transformValue(whereParams);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-
-        whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
-        negateIfNeeded(tokens, whereParams.getFieldName());
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.ENDS_WITH, whereParams.getFieldName(), addQueryParameter(transformToEqualValue));
-        tokens.add(whereToken);
-    }
-
-    @Override
-    public void _whereBetween(String fieldName, Object start, Object end) {
-        _whereBetween(fieldName, start, end, false);
-    }
-
-    @Override
-    public void _whereBetween(String fieldName, Object start, Object end, boolean exact) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereParams startParams = new WhereParams();
-        startParams.setValue(start);
-        startParams.setFieldName(fieldName);
-
-        WhereParams endParams = new WhereParams();
-        endParams.setValue(end);
-        endParams.setFieldName(fieldName);
-
-        String fromParameterName = addQueryParameter(start == null ? "*" : transformValue(startParams, true));
-        String toParameterName = addQueryParameter(start == null ? "NULL" : transformValue(endParams, true));
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.BETWEEN, fieldName, null, new WhereToken.WhereOptions(exact, fromParameterName, toParameterName));
-        tokens.add(whereToken);
-    }
-
-    public void _whereGreaterThan(String fieldName, Object value) {
-        _whereGreaterThan(fieldName, value, false);
-    }
-
-    public void _whereGreaterThan(String fieldName, Object value, boolean exact) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-        WhereParams whereParams = new WhereParams();
-        whereParams.setValue(value);
-        whereParams.setFieldName(fieldName);
-
-        String parameter = addQueryParameter(value == null ? "*" : transformValue(whereParams, true));
-        WhereToken whereToken = WhereToken.create(WhereOperator.GREATER_THAN, fieldName, parameter, new WhereToken.WhereOptions(exact));
-        tokens.add(whereToken);
-    }
-
-    public void _whereGreaterThanOrEqual(String fieldName, Object value) {
-        _whereGreaterThanOrEqual(fieldName, value, false);
-    }
-
-    public void _whereGreaterThanOrEqual(String fieldName, Object value, boolean exact) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-        WhereParams whereParams = new WhereParams();
-        whereParams.setValue(value);
-        whereParams.setFieldName(fieldName);
-
-        String parameter = addQueryParameter(value == null ? "*" : transformValue(whereParams, true));
-        WhereToken whereToken = WhereToken.create(WhereOperator.GREATER_THAN_OR_EQUAL, fieldName, parameter, new WhereToken.WhereOptions(exact));
-        tokens.add(whereToken);
-    }
-
-    public void _whereLessThan(String fieldName, Object value) {
-        _whereLessThan(fieldName, value, false);
-    }
-
-    public void _whereLessThan(String fieldName, Object value, boolean exact) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereParams whereParams = new WhereParams();
-        whereParams.setValue(value);
-        whereParams.setFieldName(fieldName);
-
-        String parameter = addQueryParameter(value == null ? "NULL" : transformValue(whereParams, true));
-        WhereToken whereToken = WhereToken.create(WhereOperator.LESS_THAN, fieldName, parameter, new WhereToken.WhereOptions(exact));
-        tokens.add(whereToken);
-    }
-
-    public void _whereLessThanOrEqual(String fieldName, Object value) {
-        _whereLessThanOrEqual(fieldName, value, false);
-    }
-
-    public void _whereLessThanOrEqual(String fieldName, Object value, boolean exact) {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereParams whereParams = new WhereParams();
-        whereParams.setValue(value);
-        whereParams.setFieldName(fieldName);
-
-        String parameter = addQueryParameter(value == null ? "NULL" : transformValue(whereParams, true));
-        WhereToken whereToken = WhereToken.create(WhereOperator.LESS_THAN_OR_EQUAL, fieldName, parameter, new WhereToken.WhereOptions(exact));
-        tokens.add(whereToken);
-    }
-
-    @Override
-    public void _whereRegex(String fieldName, String pattern) {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereParams whereParams = new WhereParams();
-        whereParams.setValue(pattern);
-        whereParams.setFieldName(fieldName);
-
-        String parameter = addQueryParameter(transformValue(whereParams));
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.REGEX, fieldName, parameter);
-        tokens.add(whereToken);
-    }
-
-    public void _andAlso() {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        if (tokens.isEmpty()) {
-            return;
-        }
-
-        if (tokens.get(tokens.size() - 1) instanceof QueryOperatorToken) {
-            throw new IllegalStateException("Cannot add AND, previous token was already an operator token.");
-        }
-
-        tokens.add(QueryOperatorToken.AND);
-    }
-
-    public void _orElse() {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        if (tokens.isEmpty()) {
-            return;
-        }
-
-        if (tokens.get(tokens.size() - 1) instanceof QueryOperatorToken) {
-            throw new IllegalStateException("Cannot add OR, previous token was already an operator token.");
-        }
-
-        tokens.add(QueryOperatorToken.OR);
-    }
-
-    @Override
-    public void _boost(double boost) {
-        if (boost == 1.0) {
-            return;
-        }
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        if (tokens.isEmpty()) {
-            throw new IllegalStateException("Missing where clause");
-        }
-
-        QueryToken whereToken = tokens.get(tokens.size() - 1);
-        if (!(whereToken instanceof WhereToken)) {
-            throw new IllegalStateException("Missing where clause");
-        }
-
-        if (boost <= 0.0) {
-            throw new IllegalArgumentException("Boost factor must be a positive number");
-        }
-
-        ((WhereToken) whereToken).getOptions().setBoost(boost);
-    }
-
-    @Override
-    public void _fuzzy(double fuzzy) {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        if (tokens.isEmpty()) {
-            throw new IllegalStateException("Missing where clause");
-        }
-
-        QueryToken whereToken = tokens.get(tokens.size() - 1);
-        if (!(whereToken instanceof WhereToken)) {
-            throw new IllegalStateException("Missing where clause");
-        }
-
-        if (fuzzy < 0.0 || fuzzy > 1.0) {
-            throw new IllegalArgumentException("Fuzzy distance must be between 0.0 and 1.0");
-        }
-
-        ((WhereToken) whereToken).getOptions().setFuzzy(fuzzy);
-    }
-
-    @Override
-    public void _proximity(int proximity) {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        if (tokens.isEmpty()) {
-            throw new IllegalStateException("Missing where clause");
-        }
-
-        QueryToken whereToken = tokens.get(tokens.size() - 1);
-        if (!(whereToken instanceof WhereToken)) {
-            throw new IllegalStateException("Missing where clause");
-        }
-
-        if (proximity < 1) {
-            throw new IllegalArgumentException("Proximity distance must be a positive number");
-        }
-
-        ((WhereToken) whereToken).getOptions().setProximity(proximity);
-    }
-
-    public void _orderBy(String field) {
-        _orderBy(field, OrderingType.STRING);
-    }
-
-    public void _orderBy(String field, OrderingType ordering) {
-        assertNoRawQuery();
-        String f = ensureValidFieldName(field, false);
-        orderByTokens.add(OrderByToken.createAscending(f, ordering));
-    }
-
-    public void _orderByDescending(String field) {
-        _orderByDescending(field, OrderingType.STRING);
-    }
-
-    public void _orderByDescending(String field, OrderingType ordering) {
-        assertNoRawQuery();
-        String f = ensureValidFieldName(field, false);
-        orderByTokens.add(OrderByToken.createDescending(f, ordering));
-    }
-
-    public void _orderByScore() {
-        assertNoRawQuery();
-
-        orderByTokens.add(OrderByToken.scoreAscending);
-    }
-
-    public void _orderByScoreDescending() {
-        assertNoRawQuery();
-        orderByTokens.add(OrderByToken.scoreDescending);
-    }
-
-    public void _statistics(Reference<QueryStatistics> stats) {
-        stats.value = queryStats;
-    }
-
-    public void invokeAfterQueryExecuted(QueryResult result) {
-        EventHelper.invoke(afterQueryExecutedCallback, result);
-    }
-
-    public void invokeBeforeQueryExecuted(IndexQuery query) {
-        EventHelper.invoke(beforeQueryExecutedCallback, query);
-    }
-
-    public void invokeAfterStreamExecuted(ObjectNode result) {
-        EventHelper.invoke(afterStreamExecutedCallback, result);
-    }
-
-    protected IndexQuery generateIndexQuery(String query) {
-        IndexQuery indexQuery = new IndexQuery();
-        indexQuery.setQuery(query);
-        indexQuery.setStart(start);
-        indexQuery.setWaitForNonStaleResults(theWaitForNonStaleResults);
-        indexQuery.setWaitForNonStaleResultsTimeout(timeout);
-        indexQuery.setQueryParameters(queryParameters);
-        indexQuery.setDisableCaching(disableCaching);
-
-        if (pageSize != null) {
-            indexQuery.setPageSize(pageSize);
-        }
-        return indexQuery;
-    }
-
-    @Override
-    public void _search(String fieldName, String searchTerms) {
-        _search(fieldName, searchTerms, SearchOperator.OR);
-    }
-
-    @Override
-    public void _search(String fieldName, String searchTerms, SearchOperator operator) {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-
-        fieldName = ensureValidFieldName(fieldName, false);
-        negateIfNeeded(tokens, fieldName);
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.SEARCH, fieldName, addQueryParameter(searchTerms), new WhereToken.WhereOptions(operator));
-        tokens.add(whereToken);
-    }
-
-    @Override
-    public String toString() {
-        if (queryRaw != null) {
-            return queryRaw;
-        }
-
-        if (_currentClauseDepth != 0) {
-            throw new IllegalStateException("A clause was not closed correctly within this query, current clause depth = " + _currentClauseDepth);
-        }
-
-        StringBuilder queryText = new StringBuilder();
-        buildDeclare(queryText);
-        buildFrom(queryText);
-        buildGroupBy(queryText);
-        buildWhere(queryText);
-        buildOrderBy(queryText);
-
-        buildLoad(queryText);
-        buildSelect(queryText);
-        buildInclude(queryText);
-
-        return queryText.toString();
-    }
-
-    private void buildInclude(StringBuilder queryText) {
-        if (includes == null || includes.isEmpty()) {
-            return;
-        }
-
-        queryText.append(" include ");
-        boolean first = true;
-        for (String include : includes) {
-            if (!first) {
-                queryText.append(",");
-            }
-            first = false;
-
-            boolean requiredQuotes = false;
-
-            for (int i = 0; i < include.length(); i++) {
-                char ch = include.charAt(i);
-                if (!Character.isLetterOrDigit(ch) && ch != '_' && ch != '.') {
-                    requiredQuotes = true;
-                    break;
-                }
-            }
-
-            if (requiredQuotes) {
-                queryText.append("'").append(include.replaceAll("'", "\\'")).append("'");
-            } else {
-                queryText.append(include);
-            }
-        }
-    }
-
-    @Override
-    public void _intersect() {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        if (tokens.size() > 0) {
-            QueryToken last = tokens.get(tokens.size() - 1);
-            if (last instanceof WhereToken || last instanceof CloseSubclauseToken) {
-                isIntersect = true;
-
-                tokens.add(IntersectMarkerToken.INSTANCE);
-                return;
-            }
-        }
-
-        throw new IllegalStateException("Cannot add INTERSECT at this point.");
-    }
-
-    public void _whereExists(String fieldName) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        tokens.add(WhereToken.create(WhereOperator.EXISTS, fieldName, null));
-    }
-
-    @Override
-    public void _containsAny(String fieldName, Collection<Object> values) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        Collection<Object> array = transformCollection(fieldName, unpackCollection(values));
-        WhereToken whereToken = WhereToken.create(WhereOperator.IN, fieldName, addQueryParameter(array), new WhereToken.WhereOptions(false));
-        tokens.add(whereToken);
-    }
-
-    @Override
-    public void _containsAll(String fieldName, Collection<Object> values) {
-        fieldName = ensureValidFieldName(fieldName, false);
-
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
-
-        Collection<Object> array = transformCollection(fieldName, unpackCollection(values));
-
-        if (array.isEmpty()) {
-            tokens.add(TrueToken.INSTANCE);
-            return;
-        }
-
-        WhereToken whereToken = WhereToken.create(WhereOperator.ALL_IN, fieldName, addQueryParameter(array));
-        tokens.add(whereToken);
-    }
-
-    @Override
-    public void _addRootType(Class clazz) {
-        rootTypes.add(clazz);
-    }
-
-    @Override
-    public void _distinct() {
-        if (isDistinct()) {
-            throw new IllegalStateException("The is already a distinct query");
-        }
-
-        if (selectTokens.isEmpty()) {
-            selectTokens.add(DistinctToken.INSTANCE);
-        } else {
-            selectTokens.add(0, DistinctToken.INSTANCE);
-        }
-    }
-
-    private void updateStatsAndHighlightings(QueryResult queryResult) {
-        queryStats.updateQueryStats(queryResult);
-        //TBD 4.1 Highlightings.Update(queryResult);
-    }
-
-    private void buildSelect(StringBuilder writer) {
-        if (selectTokens.isEmpty()) {
-            return;
-        }
-
-        writer.append(" select ");
-        if (selectTokens.size() == 1 && selectTokens.get(0) instanceof DistinctToken) {
-            selectTokens.get(0).writeTo(writer);
-            writer.append(" *");
-
-            return;
-        }
-
-        for (int i = 0; i < selectTokens.size(); i++) {
-            QueryToken token = selectTokens.get(i);
-            if (i > 0 && !(selectTokens.get(i - 1) instanceof DistinctToken)) {
-                writer.append(",");
-            }
-
-            DocumentQueryHelper.addSpaceIfNeeded(i > 0 ? selectTokens.get(i - 1) : null, token, writer);
-
-            token.writeTo(writer);
-        }
-    }
-
-    private void buildFrom(StringBuilder writer) {
-        fromToken.writeTo(writer);
-    }
-
-    private void buildDeclare(StringBuilder writer) {
-        if (declareToken != null) {
-            declareToken.writeTo(writer);
-        }
-    }
-
-    private void buildLoad(StringBuilder writer) {
-        if (loadTokens == null || loadTokens.isEmpty()) {
-            return;
-        }
-
-        writer.append(" load ");
-
-        for (int i = 0; i < loadTokens.size(); i++) {
-            if (i != 0) {
-                writer.append(", ");
-            }
-
-            loadTokens.get(i).writeTo(writer);
-        }
-    }
-
-    private void buildWhere(StringBuilder writer) {
-        if (whereTokens.isEmpty()) {
-            return;
-        }
-
-        writer
-                .append(" where ");
-
-        if (isIntersect) {
-            writer
-                    .append("intersect(");
-        }
-
-        for (int i = 0; i < whereTokens.size(); i++) {
-            DocumentQueryHelper.addSpaceIfNeeded(i > 0 ? whereTokens.get(i - 1) : null, whereTokens.get(i), writer);
-            whereTokens.get(i).writeTo(writer);
-        }
-
-        if (isIntersect) {
-            writer.append(") ");
-        }
-    }
-
-    private void buildGroupBy(StringBuilder writer) {
-        if (groupByTokens.isEmpty()) {
-            return;
-        }
-
-        writer
-                .append(" group by ");
-
-        boolean isFirst = true;
-
-        for (QueryToken token : groupByTokens) {
-            if (!isFirst) {
-                writer.append(", ");
-            }
-
-            token.writeTo(writer);
-            isFirst = false;
-        }
-    }
-
-    private void buildOrderBy(StringBuilder writer) {
-        if (orderByTokens.isEmpty()) {
-            return;
-        }
-
-        writer
-                .append(" order by ");
-
-        boolean isFirst = true;
-
-        for (QueryToken token : orderByTokens) {
-            if (!isFirst) {
-                writer.append(", ");
-            }
-
-            token.writeTo(writer);
-            isFirst = false;
-        }
-    }
-
-    private void appendOperatorIfNeeded(List<QueryToken> tokens) {
-        assertNoRawQuery();
-
-        if (tokens.isEmpty()) {
-            return;
-        }
-
-        QueryToken lastToken = tokens.get(tokens.size() - 1);
-        if (!(lastToken instanceof WhereToken) && !(lastToken instanceof CloseSubclauseToken)) {
-            return;
-        }
-
-        WhereToken lastWhere = null;
-
-        for (int i = tokens.size() - 1; i >= 0; i--) {
-            if (tokens.get(i) instanceof WhereToken) {
-                lastWhere = (WhereToken) tokens.get(i);
-                break;
-            }
-        }
-
-        QueryOperatorToken token = defaultOperator == QueryOperator.AND ? QueryOperatorToken.AND : QueryOperatorToken.OR;
-
-        if (lastWhere != null && lastWhere.getOptions().getSearchOperator() != null) {
-            token = QueryOperatorToken.OR; // default to OR operator after search if AND was not specified explicitly
-        }
-
-        tokens.add(token);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Collection<Object> transformCollection(String fieldName, Collection<Object> values) {
-        List<Object> result = new ArrayList<>();
-        for (Object value : values) {
-            if (value instanceof Collection) {
-                result.addAll(transformCollection(fieldName, (Collection) value));
-            } else {
-                WhereParams nestedWhereParams = new WhereParams();
-                nestedWhereParams.setAllowWildcards(true);
-                nestedWhereParams.setFieldName(fieldName);
-                nestedWhereParams.setValue(value);
-
-                result.add(transformValue(nestedWhereParams));
-            }
-        }
-        return result;
-    }
-
-    private void negateIfNeeded(List<QueryToken> tokens, String fieldName) {
-        if (!negate) {
-            return;
-        }
-
-        negate = false;
-
-        if (tokens.isEmpty() || tokens.get(tokens.size() - 1) instanceof OpenSubclauseToken) {
-            if (fieldName != null) {
-                _whereExists(fieldName);
-            } else {
-                _whereTrue();
-            }
-            _andAlso();
-        }
-
-        tokens.add(NegateToken.INSTANCE);
-    }
-
-    private static Collection<Object> unpackCollection(Collection items) {
-        List<Object> results = new ArrayList<>();
-
-        for (Object item : items) {
-            if (item instanceof Collection) {
-                results.addAll(unpackCollection((Collection) item));
-            } else {
-                results.add(item);
-            }
-        }
-
-        return results;
-    }
-
-    private String ensureValidFieldName(String fieldName, boolean isNestedPath) {
-        if (theSession == null || theSession.getConventions() == null || isNestedPath || isGroupBy) {
-            return QueryFieldUtil.escapeIfNecessary(fieldName);
-        }
-
-        for (Class rootType : rootTypes) {
-            Field identityProperty = theSession.getConventions().getIdentityProperty(rootType);
-            if (identityProperty != null && identityProperty.getName().equals(fieldName)) {
-                return Constants.Documents.Indexing.Fields.DOCUMENT_ID_FIELD_NAME;
-            }
-        }
-
-        return QueryFieldUtil.escapeIfNecessary(fieldName);
-    }
-
-    private Object transformValue(WhereParams whereParams) {
-        return transformValue(whereParams, false);
-    }
-
-    private Object transformValue(WhereParams whereParams, boolean forRange) {
-        if (whereParams.getValue() == null) {
-            return null;
-        }
-
-        if ("".equals(whereParams.getValue())) {
-            return "";
-        }
-
-        Reference<String> stringValueReference = new Reference<>();
-        if (_conventions.tryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, stringValueReference)) {
-            return stringValueReference.value;
-        }
-
-        Class<?> clazz = whereParams.getValue().getClass();
-        if (Date.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (String.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (Integer.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (Long.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (Float.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (Double.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (Duration.class.equals(clazz)) {
-            return ((Duration) whereParams.getValue()).toNanos() / 100;
-        }
-
-        if (String.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (Boolean.class.equals(clazz)) {
-            return whereParams.getValue();
-        }
-
-        if (clazz.isEnum()) {
-            return whereParams.getValue();
-        }
-
-        return whereParams.getValue();
-
-    }
-
-    private String addQueryParameter(Object value) {
-        String parameterName = "p" + queryParameters.size();
-        queryParameters.put(parameterName, value);
-        return parameterName;
-    }
-
-    private List<QueryToken> getCurrentWhereTokens() {
-        if (!_isInMoreLikeThis) {
-            return whereTokens;
-        }
-
-        if (whereTokens.isEmpty()) {
-            throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
-        }
-
-        QueryToken lastToken = whereTokens.get(whereTokens.size() - 1);
-
-        if (lastToken instanceof MoreLikeThisToken) {
-            MoreLikeThisToken moreLikeThisToken = (MoreLikeThisToken) lastToken;
-            return moreLikeThisToken.whereTokens;
-        } else {
-            throw new IllegalStateException("Last token is not MoreLikeThisToken");
-        }
-    }
-
-    protected void updateFieldsToFetchToken(FieldsToFetchToken fieldsToFetch) {
-        this.fieldsToFetchToken = fieldsToFetch;
-
-        if (selectTokens.isEmpty()) {
-            selectTokens.add(fieldsToFetch);
-        } else {
-            Optional<QueryToken> fetchToken = selectTokens.stream()
-                    .filter(x -> x instanceof FieldsToFetchToken)
-                    .findFirst();
-
-            if (fetchToken.isPresent()) {
-                int idx = selectTokens.indexOf(fetchToken.get());
-                selectTokens.set(idx, fieldsToFetch);
-            } else {
-                selectTokens.add(fieldsToFetch);
-            }
-        }
-    }
-
-    protected List<Consumer<IndexQuery>> beforeQueryExecutedCallback = new ArrayList<>();
-
-    protected List<Consumer<QueryResult>> afterQueryExecutedCallback = new ArrayList<>();
-
-    protected List<Consumer<ObjectNode>> afterStreamExecutedCallback = new ArrayList<>();
-
-    protected QueryOperation queryOperation;
-
-    public QueryOperation getQueryOperation() {
-        return queryOperation;
-    }
-
-    public void _addBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
-        beforeQueryExecutedCallback.add(action);
-    }
-
-    public void _removeBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
-        beforeQueryExecutedCallback.remove(action);
-    }
-
-    public void _addAfterQueryExecutedListener(Consumer<QueryResult> action) {
-        afterQueryExecutedCallback.add(action);
-    }
-
-    public void _removeAfterQueryExecutedListener(Consumer<QueryResult> action) {
-        afterQueryExecutedCallback.remove(action);
-    }
-
-    public void _addAfterStreamExecutedListener(Consumer<ObjectNode> action) {
-        afterStreamExecutedCallback.add(action);
-    }
-
-    public void _removeAfterStreamExecutedListener(Consumer<ObjectNode> action) {
-        afterStreamExecutedCallback.remove(action);
-    }
-
-    public void _noTracking() {
-        disableEntitiesTracking = true;
-    }
-
-    public void _noCaching() {
-        disableCaching = true;
-    }
-
-    protected void _withinRadiusOf(String fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits, double distErrorPercent) {
+*/
+
+func (q *AbstractDocumentQuery) assertNoRawQuery() {
+	panicIf(q.queryRaw != "", "RawQuery was called, cannot modify this query by calling on operations that would modify the query (such as Where, Select, OrderBy, GroupBy, etc)")
+}
+
+/*
+     _addParameter(string name, Object value) {
+       name = stringUtils.stripStart(name, "$");
+       if (queryParameters.containsKey(name)) {
+           throw new IllegalStateException("The parameter " + name + " was already added");
+       }
+
+       queryParameters.put(name, value);
+   }
+
+   @Override
+     _groupBy(string fieldName, string... fieldNames) {
+       GroupBy[] mapping = Arrays.stream(fieldNames)
+               .map(x -> GroupBy.field(x))
+               .toArray(GroupBy[]::new);
+
+       _groupBy(GroupBy.field(fieldName), mapping);
+   }
+
+   @Override
+     _groupBy(GroupBy field, GroupBy... fields) {
+       if (!fromToken.isDynamic()) {
+           throw new IllegalStateException("groupBy only works with dynamic queries");
+       }
+
+       assertNoRawQuery();
+       isGroupBy = true;
+
+       string fieldName = ensureValidFieldName(field.getField(), false);
+
+       groupByTokens.add(GroupByToken.create(fieldName, field.getMethod()));
+
+       if (fields == null || fields.length <= 0) {
+           return;
+       }
+
+       for (GroupBy item : fields) {
+           fieldName = ensureValidFieldName(item.getField(), false);
+           groupByTokens.add(GroupByToken.create(fieldName, item.getMethod()));
+       }
+   }
+
+   @Override
+     _groupByKey(string fieldName) {
+       _groupByKey(fieldName, null);
+   }
+
+   @Override
+     _groupByKey(string fieldName, string projectedName) {
+       assertNoRawQuery();
+       isGroupBy = true;
+
+       if (projectedName != null && _aliasToGroupByFieldName.containsKey(projectedName)) {
+           string aliasedFieldName = _aliasToGroupByFieldName.get(projectedName);
+           if (fieldName == null || fieldName.equalsIgnoreCase(projectedName)) {
+               fieldName = aliasedFieldName;
+           }
+       } else if (fieldName != null && _aliasToGroupByFieldName.containsValue(fieldName)) {
+           string aliasedFieldName = _aliasToGroupByFieldName.get(fieldName);
+           fieldName = aliasedFieldName;
+       }
+
+       selectTokens.add(GroupByKeyToken.create(fieldName, projectedName));
+   }
+
+   @Override
+     _groupBySum(string fieldName) {
+       _groupBySum(fieldName, null);
+   }
+
+   @Override
+     _groupBySum(string fieldName, string projectedName) {
+       assertNoRawQuery();
+       isGroupBy = true;
+
+       fieldName = ensureValidFieldName(fieldName, false);
+       selectTokens.add(GroupBySumToken.create(fieldName, projectedName));
+   }
+
+   @Override
+     _groupByCount() {
+       _groupByCount(null);
+   }
+
+   @Override
+     _groupByCount(string projectedName) {
+       assertNoRawQuery();
+       isGroupBy = true;
+
+       selectTokens.add(GroupByCountToken.create(projectedName));
+   }
+
+   @Override
+     _whereTrue() {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, null);
+
+       tokens.add(TrueToken.INSTANCE);
+   }
+
+
+    MoreLikeThisScope _moreLikeThis() {
+       appendOperatorIfNeeded(whereTokens);
+
+       MoreLikeThisToken token = new MoreLikeThisToken();
+       whereTokens.add(token);
+
+       _isInMoreLikeThis = true;
+       return new MoreLikeThisScope(token, this::addQueryParameter, () -> _isInMoreLikeThis = false);
+   }
+
+   @Override
+     _include(string path) {
+       includes.add(path);
+   }
+
+   @Override
+     _take(int count) {
+       pageSize = count;
+   }
+
+   @Override
+     _skip(int count) {
+       start = count;
+   }
+
+     _whereLucene(string fieldName, string whereClause, bool exact) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereToken.WhereOptions options = exact ? new WhereToken.WhereOptions(exact) : null;
+       WhereToken whereToken = WhereToken.create(WhereOperator.LUCENE, fieldName, addQueryParameter(whereClause), options);
+       tokens.add(whereToken);
+   }
+
+   @Override
+     _openSubclause() {
+       _currentClauseDepth++;
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, null);
+
+       tokens.add(OpenSubclauseToken.INSTANCE);
+   }
+
+   @Override
+     _closeSubclause() {
+       _currentClauseDepth--;
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       tokens.add(CloseSubclauseToken.INSTANCE);
+   }
+
+   @Override
+     _whereEquals(string fieldName, Object value) {
+       _whereEquals(fieldName, value, false);
+   }
+
+   @Override
+     _whereEquals(string fieldName, Object value, bool exact) {
+       WhereParams params = new WhereParams();
+       params.setFieldName(fieldName);
+       params.setValue(value);
+       params.setExact(exact);
+       _whereEquals(params);
+   }
+
+   @Override
+     _whereEquals(string fieldName, MethodCall method) {
+       _whereEquals(fieldName, method, false);
+   }
+
+   @Override
+     _whereEquals(string fieldName, MethodCall method, bool exact) {
+       _whereEquals(fieldName, (Object) method, exact);
+   }
+
+   @SuppressWarnings("unchecked")
+     _whereEquals(WhereParams whereParams) {
+       if (negate) {
+           negate = false;
+           _whereNotEquals(whereParams);
+           return;
+       }
+
+       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+
+       if (ifValueIsMethod(WhereOperator.EQUALS, whereParams, tokens)) {
+           return;
+       }
+
+       Object transformToEqualValue = transformValue(whereParams);
+       string addQueryParameter = addQueryParameter(transformToEqualValue);
+       WhereToken whereToken = WhereToken.create(WhereOperator.EQUALS, whereParams.getFieldName(), addQueryParameter, new WhereToken.WhereOptions(whereParams.isExact()));
+       tokens.add(whereToken);
+   }
+
+    bool ifValueIsMethod(WhereOperator op, WhereParams whereParams, List<QueryToken> tokens) {
+       if (whereParams.getValue() instanceof MethodCall) {
+           MethodCall mc = (MethodCall) whereParams.getValue();
+
+           string[] args = new string[mc.args.length];
+           for (int i = 0; i < mc.args.length; i++) {
+               args[i] = addQueryParameter(mc.args[i]);
+           }
+
+           WhereToken token;
+           Class<? extends MethodCall> type = mc.getClass();
+           if (CmpXchg.class.equals(type)) {
+               token = WhereToken.create(op, whereParams.getFieldName(), null, new WhereToken.WhereOptions(WhereToken.MethodsType.CMP_X_CHG, args, mc.accessPath, whereParams.isExact()));
+           } else {
+               throw new IllegalArgumentException("Unknown method " + type);
+           }
+
+           tokens.add(token);
+           return true;
+       }
+
+       return false;
+   }
+
+     _whereNotEquals(string fieldName, Object value) {
+       _whereNotEquals(fieldName, value, false);
+   }
+
+     _whereNotEquals(string fieldName, Object value, bool exact) {
+       WhereParams params = new WhereParams();
+       params.setFieldName(fieldName);
+       params.setValue(value);
+       params.setExact(exact);
+
+       _whereNotEquals(params);
+   }
+
+   @Override
+     _whereNotEquals(string fieldName, MethodCall method) {
+       _whereNotEquals(fieldName, (Object) method);
+   }
+
+   @Override
+     _whereNotEquals(string fieldName, MethodCall method, bool exact) {
+       _whereNotEquals(fieldName, (Object) method, exact);
+   }
+
+   @SuppressWarnings("unchecked")
+     _whereNotEquals(WhereParams whereParams) {
+       if (negate) {
+           negate = false;
+           _whereEquals(whereParams);
+           return;
+       }
+
+       Object transformToEqualValue = transformValue(whereParams);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+
+       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
+
+       if (ifValueIsMethod(WhereOperator.NOT_EQUALS, whereParams, tokens)) {
+           return;
+       }
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.NOT_EQUALS, whereParams.getFieldName(), addQueryParameter(transformToEqualValue), new WhereToken.WhereOptions(whereParams.isExact()));
+       tokens.add(whereToken);
+   }
+
+     negateNext() {
+       negate = !negate;
+   }
+
+   @Override
+     _whereIn(string fieldName, Collection<Object> values) {
+       _whereIn(fieldName, values, false);
+   }
+
+   @Override
+     _whereIn(string fieldName, Collection<Object> values, bool exact) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.IN, fieldName, addQueryParameter(transformCollection(fieldName, unpackCollection(values))));
+       tokens.add(whereToken);
+   }
+
+   @SuppressWarnings("unchecked")
+     _whereStartsWith(string fieldName, Object value) {
+       WhereParams whereParams = new WhereParams();
+       whereParams.setFieldName(fieldName);
+       whereParams.setValue(value);
+       whereParams.setAllowWildcards(true);
+
+       Object transformToEqualValue = transformValue(whereParams);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+
+       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
+       negateIfNeeded(tokens, whereParams.getFieldName());
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.STARTS_WITH, whereParams.getFieldName(), addQueryParameter(transformToEqualValue));
+       tokens.add(whereToken);
+   }
+
+   @SuppressWarnings("unchecked")
+     _whereEndsWith(string fieldName, Object value) {
+       WhereParams whereParams = new WhereParams();
+       whereParams.setFieldName(fieldName);
+       whereParams.setValue(value);
+       whereParams.setAllowWildcards(true);
+
+       Object transformToEqualValue = transformValue(whereParams);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+
+       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
+       negateIfNeeded(tokens, whereParams.getFieldName());
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.ENDS_WITH, whereParams.getFieldName(), addQueryParameter(transformToEqualValue));
+       tokens.add(whereToken);
+   }
+
+   @Override
+     _whereBetween(string fieldName, Object start, Object end) {
+       _whereBetween(fieldName, start, end, false);
+   }
+
+   @Override
+     _whereBetween(string fieldName, Object start, Object end, bool exact) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereParams startParams = new WhereParams();
+       startParams.setValue(start);
+       startParams.setFieldName(fieldName);
+
+       WhereParams endParams = new WhereParams();
+       endParams.setValue(end);
+       endParams.setFieldName(fieldName);
+
+       string fromParameterName = addQueryParameter(start == null ? "*" : transformValue(startParams, true));
+       string toParameterName = addQueryParameter(start == null ? "NULL" : transformValue(endParams, true));
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.BETWEEN, fieldName, null, new WhereToken.WhereOptions(exact, fromParameterName, toParameterName));
+       tokens.add(whereToken);
+   }
+
+     _whereGreaterThan(string fieldName, Object value) {
+       _whereGreaterThan(fieldName, value, false);
+   }
+
+     _whereGreaterThan(string fieldName, Object value, bool exact) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+       WhereParams whereParams = new WhereParams();
+       whereParams.setValue(value);
+       whereParams.setFieldName(fieldName);
+
+       string parameter = addQueryParameter(value == null ? "*" : transformValue(whereParams, true));
+       WhereToken whereToken = WhereToken.create(WhereOperator.GREATER_THAN, fieldName, parameter, new WhereToken.WhereOptions(exact));
+       tokens.add(whereToken);
+   }
+
+     _whereGreaterThanOrEqual(string fieldName, Object value) {
+       _whereGreaterThanOrEqual(fieldName, value, false);
+   }
+
+     _whereGreaterThanOrEqual(string fieldName, Object value, bool exact) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+       WhereParams whereParams = new WhereParams();
+       whereParams.setValue(value);
+       whereParams.setFieldName(fieldName);
+
+       string parameter = addQueryParameter(value == null ? "*" : transformValue(whereParams, true));
+       WhereToken whereToken = WhereToken.create(WhereOperator.GREATER_THAN_OR_EQUAL, fieldName, parameter, new WhereToken.WhereOptions(exact));
+       tokens.add(whereToken);
+   }
+
+     _whereLessThan(string fieldName, Object value) {
+       _whereLessThan(fieldName, value, false);
+   }
+
+     _whereLessThan(string fieldName, Object value, bool exact) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereParams whereParams = new WhereParams();
+       whereParams.setValue(value);
+       whereParams.setFieldName(fieldName);
+
+       string parameter = addQueryParameter(value == null ? "NULL" : transformValue(whereParams, true));
+       WhereToken whereToken = WhereToken.create(WhereOperator.LESS_THAN, fieldName, parameter, new WhereToken.WhereOptions(exact));
+       tokens.add(whereToken);
+   }
+
+     _whereLessThanOrEqual(string fieldName, Object value) {
+       _whereLessThanOrEqual(fieldName, value, false);
+   }
+
+     _whereLessThanOrEqual(string fieldName, Object value, bool exact) {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereParams whereParams = new WhereParams();
+       whereParams.setValue(value);
+       whereParams.setFieldName(fieldName);
+
+       string parameter = addQueryParameter(value == null ? "NULL" : transformValue(whereParams, true));
+       WhereToken whereToken = WhereToken.create(WhereOperator.LESS_THAN_OR_EQUAL, fieldName, parameter, new WhereToken.WhereOptions(exact));
+       tokens.add(whereToken);
+   }
+
+   @Override
+     _whereRegex(string fieldName, string pattern) {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereParams whereParams = new WhereParams();
+       whereParams.setValue(pattern);
+       whereParams.setFieldName(fieldName);
+
+       string parameter = addQueryParameter(transformValue(whereParams));
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.REGEX, fieldName, parameter);
+       tokens.add(whereToken);
+   }
+
+     _andAlso() {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       if (tokens.isEmpty()) {
+           return;
+       }
+
+       if (tokens.get(tokens.size() - 1) instanceof QueryOperatorToken) {
+           throw new IllegalStateException("Cannot add AND, previous token was already an operator token.");
+       }
+
+       tokens.add(QueryOperatorToken.AND);
+   }
+
+     _orElse() {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       if (tokens.isEmpty()) {
+           return;
+       }
+
+       if (tokens.get(tokens.size() - 1) instanceof QueryOperatorToken) {
+           throw new IllegalStateException("Cannot add OR, previous token was already an operator token.");
+       }
+
+       tokens.add(QueryOperatorToken.OR);
+   }
+
+   @Override
+     _boost(double boost) {
+       if (boost == 1.0) {
+           return;
+       }
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       if (tokens.isEmpty()) {
+           throw new IllegalStateException("Missing where clause");
+       }
+
+       QueryToken whereToken = tokens.get(tokens.size() - 1);
+       if (!(whereToken instanceof WhereToken)) {
+           throw new IllegalStateException("Missing where clause");
+       }
+
+       if (boost <= 0.0) {
+           throw new IllegalArgumentException("Boost factor must be a positive number");
+       }
+
+       ((WhereToken) whereToken).getOptions().setBoost(boost);
+   }
+
+   @Override
+     _fuzzy(double fuzzy) {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       if (tokens.isEmpty()) {
+           throw new IllegalStateException("Missing where clause");
+       }
+
+       QueryToken whereToken = tokens.get(tokens.size() - 1);
+       if (!(whereToken instanceof WhereToken)) {
+           throw new IllegalStateException("Missing where clause");
+       }
+
+       if (fuzzy < 0.0 || fuzzy > 1.0) {
+           throw new IllegalArgumentException("Fuzzy distance must be between 0.0 and 1.0");
+       }
+
+       ((WhereToken) whereToken).getOptions().setFuzzy(fuzzy);
+   }
+
+   @Override
+     _proximity(int proximity) {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       if (tokens.isEmpty()) {
+           throw new IllegalStateException("Missing where clause");
+       }
+
+       QueryToken whereToken = tokens.get(tokens.size() - 1);
+       if (!(whereToken instanceof WhereToken)) {
+           throw new IllegalStateException("Missing where clause");
+       }
+
+       if (proximity < 1) {
+           throw new IllegalArgumentException("Proximity distance must be a positive number");
+       }
+
+       ((WhereToken) whereToken).getOptions().setProximity(proximity);
+   }
+
+     _orderBy(string field) {
+       _orderBy(field, OrderingType.string);
+   }
+
+     _orderBy(string field, OrderingType ordering) {
+       assertNoRawQuery();
+       string f = ensureValidFieldName(field, false);
+       orderByTokens.add(OrderByToken.createAscending(f, ordering));
+   }
+
+     _orderByDescending(string field) {
+       _orderByDescending(field, OrderingType.string);
+   }
+
+     _orderByDescending(string field, OrderingType ordering) {
+       assertNoRawQuery();
+       string f = ensureValidFieldName(field, false);
+       orderByTokens.add(OrderByToken.createDescending(f, ordering));
+   }
+
+     _orderByScore() {
+       assertNoRawQuery();
+
+       orderByTokens.add(OrderByToken.scoreAscending);
+   }
+*/
+
+func (q *AbstractDocumentQuery) _orderByScoreDescending() {
+	q.assertNoRawQuery()
+	q.orderByTokens = append(q.orderByTokens, OrderByToken_scoreDescending)
+}
+
+func (q *AbstractDocumentQuery) _statistics(stats **QueryStatistics) {
+	*stats = q.queryStats
+}
+
+func (q *AbstractDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
+	panicIf(true, "NYI")
+	// TODO:
+	// EventHelper.invoke(afterQueryExecutedCallback, result);
+}
+
+func (q *AbstractDocumentQuery) invokeBeforeQueryExecuted(query *IndexQuery) {
+	panicIf(true, "NYI")
+	// TODO:
+	// EventHelper.invoke(beforeQueryExecutedCallback, query)
+}
+
+func (q *AbstractDocumentQuery) invokeAfterStreamExecuted(result ObjectNode) {
+	panicIf(true, "NYI")
+	// TODO:
+	// EventHelper.invoke(afterStreamExecutedCallback, result)
+}
+
+func (q *AbstractDocumentQuery) generateIndexQuery(query string) *IndexQuery {
+	indexQuery := NewIndexQuery("")
+	indexQuery.setQuery(query)
+	indexQuery.setStart(q.start)
+	indexQuery.setWaitForNonStaleResults(q.theWaitForNonStaleResults)
+	indexQuery.setWaitForNonStaleResultsTimeout(q.timeout)
+	indexQuery.setQueryParameters(q.queryParameters)
+	indexQuery.setDisableCaching(q.disableCaching)
+
+	if q.pageSize != 0 {
+		indexQuery.setPageSize(q.pageSize)
+	}
+	return indexQuery
+}
+
+/*
+   @Override
+     _search(string fieldName, string searchTerms) {
+       _search(fieldName, searchTerms, SearchOperator.OR);
+   }
+
+   @Override
+     _search(string fieldName, string searchTerms, SearchOperator operator) {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+
+       fieldName = ensureValidFieldName(fieldName, false);
+       negateIfNeeded(tokens, fieldName);
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.SEARCH, fieldName, addQueryParameter(searchTerms), new WhereToken.WhereOptions(operator));
+       tokens.add(whereToken);
+   }
+*/
+
+func (q *AbstractDocumentQuery) String() string {
+	if q.queryRaw != "" {
+		return q.queryRaw
+	}
+
+	if q._currentClauseDepth != 0 {
+		// throw new IllegalStateException("A clause was not closed correctly within this query, current clause depth = " + _currentClauseDepth);
+		panicIf(true, "A clause was not closed correctly within this query, current clause depth = %d", q._currentClauseDepth)
+	}
+
+	queryText := NewStringBuilder()
+	q.buildDeclare(queryText)
+	q.buildFrom(queryText)
+	q.buildGroupBy(queryText)
+	q.buildWhere(queryText)
+	q.buildOrderBy(queryText)
+
+	q.buildLoad(queryText)
+	q.buildSelect(queryText)
+	q.buildInclude(queryText)
+
+	return queryText.String()
+}
+
+func Character_isLetterOrDigit(r rune) bool {
+	if r >= 'a' && r <= 'z' {
+		return true
+	}
+	if r >= 'A' && r <= 'Z' {
+		return true
+	}
+	if r >= '0' && r <= '9' {
+		return true
+	}
+	return false
+}
+
+func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
+	if q.includes != nil && q.includes.Size() == 0 {
+		return
+	}
+
+	queryText.append(" include ")
+	for i, include := range q.includes.strings {
+		if i > 0 {
+			queryText.append(",")
+		}
+
+		requiredQuotes := false
+
+		for _, ch := range include {
+			if !Character_isLetterOrDigit(ch) && ch != '_' && ch != '.' {
+				requiredQuotes = true
+				break
+			}
+		}
+
+		if requiredQuotes {
+			s := strings.Replace(include, "'", "\\'", -1)
+			queryText.append("'").append(s).append("'")
+		} else {
+			queryText.append(include)
+		}
+	}
+}
+
+/*
+   @Override
+     _intersect() {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       if (tokens.size() > 0) {
+           QueryToken last = tokens.get(tokens.size() - 1);
+           if (last instanceof WhereToken || last instanceof CloseSubclauseToken) {
+               isIntersect = true;
+
+               tokens.add(IntersectMarkerToken.INSTANCE);
+               return;
+           }
+       }
+
+       throw new IllegalStateException("Cannot add INTERSECT at this point.");
+   }
+
+     _whereExists(string fieldName) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       tokens.add(WhereToken.create(WhereOperator.EXISTS, fieldName, null));
+   }
+
+   @Override
+     _containsAny(string fieldName, Collection<Object> values) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       Collection<Object> array = transformCollection(fieldName, unpackCollection(values));
+       WhereToken whereToken = WhereToken.create(WhereOperator.IN, fieldName, addQueryParameter(array), new WhereToken.WhereOptions(false));
+       tokens.add(whereToken);
+   }
+
+   @Override
+     _containsAll(string fieldName, Collection<Object> values) {
+       fieldName = ensureValidFieldName(fieldName, false);
+
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
+
+       Collection<Object> array = transformCollection(fieldName, unpackCollection(values));
+
+       if (array.isEmpty()) {
+           tokens.add(TrueToken.INSTANCE);
+           return;
+       }
+
+       WhereToken whereToken = WhereToken.create(WhereOperator.ALL_IN, fieldName, addQueryParameter(array));
+       tokens.add(whereToken);
+   }
+
+   @Override
+     _addRootType(Class clazz) {
+       rootTypes.add(clazz);
+
+
+   @Override
+*/
+
+func (q *AbstractDocumentQuery) _distinct() {
+	panicIf(q.isDistinct(), "The is already a distinct query")
+	//throw new IllegalStateException("The is already a distinct query");
+
+	q.selectTokens = append(q.selectTokens, DistinctToken_INSTANCE)
+}
+
+func (q *AbstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
+	q.queryStats.updateQueryStats(queryResult)
+	//TBD 4.1 Highlightings.Update(queryResult);
+}
+
+func (q *AbstractDocumentQuery) buildSelect(writer *StringBuilder) {
+	if len(q.selectTokens) == 0 {
+		return
+	}
+
+	writer.append(" select ")
+
+	if len(q.selectTokens) == 1 {
+		tok := q.selectTokens[0]
+		if dtok, ok := tok.(*DistinctToken); ok {
+			dtok.writeTo(writer)
+			writer.append(" *")
+			return
+		}
+	}
+
+	for i, token := range q.selectTokens {
+		if i > 0 {
+			prevToken := q.selectTokens[i-1]
+			if _, ok := prevToken.(*DistinctToken); !ok {
+				writer.append(",")
+			}
+		}
+
+		var prevToken QueryToken
+		if i > 0 {
+			prevToken = q.selectTokens[i-1]
+		}
+		DocumentQueryHelper_addSpaceIfNeeded(prevToken, token, writer)
+
+		token.writeTo(writer)
+	}
+}
+
+func (q *AbstractDocumentQuery) buildFrom(writer *StringBuilder) {
+	q.fromToken.writeTo(writer)
+}
+
+func (q *AbstractDocumentQuery) buildDeclare(writer *StringBuilder) {
+	if q.declareToken != nil {
+		q.declareToken.writeTo(writer)
+	}
+}
+
+func (q *AbstractDocumentQuery) buildLoad(writer *StringBuilder) {
+	if len(q.loadTokens) == 0 {
+		return
+	}
+
+	writer.append(" load ")
+
+	for i, tok := range q.loadTokens {
+		if i != 0 {
+			writer.append(", ")
+		}
+
+		tok.writeTo(writer)
+	}
+}
+
+func (q *AbstractDocumentQuery) buildWhere(writer *StringBuilder) {
+	if len(q.whereTokens) == 0 {
+		return
+	}
+
+	writer.append(" where ")
+
+	if q.isIntersect {
+		writer.append("intersect(")
+	}
+
+	for i, tok := range q.whereTokens {
+		var prevToken QueryToken
+		if i > 0 {
+			prevToken = q.whereTokens[i-1]
+		}
+		DocumentQueryHelper_addSpaceIfNeeded(prevToken, tok, writer)
+		tok.writeTo(writer)
+	}
+
+	if q.isIntersect {
+		writer.append(") ")
+	}
+}
+
+func (q *AbstractDocumentQuery) buildGroupBy(writer *StringBuilder) {
+	if len(q.groupByTokens) == 0 {
+		return
+	}
+
+	writer.append(" group by ")
+
+	for i, token := range q.groupByTokens {
+		if i > 0 {
+			writer.append(", ")
+		}
+		token.writeTo(writer)
+	}
+}
+
+func (q *AbstractDocumentQuery) buildOrderBy(writer *StringBuilder) {
+	if len(q.orderByTokens) == 0 {
+		return
+	}
+
+	writer.append(" order by ")
+
+	for i, token := range q.orderByTokens {
+		if i > 0 {
+			writer.append(", ")
+		}
+
+		token.writeTo(writer)
+	}
+}
+
+/*
+     appendOperatorIfNeeded(List<QueryToken> tokens) {
+       assertNoRawQuery();
+
+       if (tokens.isEmpty()) {
+           return;
+       }
+
+       QueryToken lastToken = tokens.get(tokens.size() - 1);
+       if (!(lastToken instanceof WhereToken) && !(lastToken instanceof CloseSubclauseToken)) {
+           return;
+       }
+
+       WhereToken lastWhere = null;
+
+       for (int i = tokens.size() - 1; i >= 0; i--) {
+           if (tokens.get(i) instanceof WhereToken) {
+               lastWhere = (WhereToken) tokens.get(i);
+               break;
+           }
+       }
+
+       QueryOperatorToken token = defaultOperator == QueryOperator.AND ? QueryOperatorToken.AND : QueryOperatorToken.OR;
+
+       if (lastWhere != null && lastWhere.getOptions().getSearchOperator() != null) {
+           token = QueryOperatorToken.OR; // default to OR operator after search if AND was not specified explicitly
+       }
+
+       tokens.add(token);
+   }
+
+   @SuppressWarnings("unchecked")
+    Collection<Object> transformCollection(string fieldName, Collection<Object> values) {
+       List<Object> result = new ArrayList<>();
+       for (Object value : values) {
+           if (value instanceof Collection) {
+               result.addAll(transformCollection(fieldName, (Collection) value));
+           } else {
+               WhereParams nestedWhereParams = new WhereParams();
+               nestedWhereParams.setAllowWildcards(true);
+               nestedWhereParams.setFieldName(fieldName);
+               nestedWhereParams.setValue(value);
+
+               result.add(transformValue(nestedWhereParams));
+           }
+       }
+       return result;
+   }
+
+     negateIfNeeded(List<QueryToken> tokens, string fieldName) {
+       if (!negate) {
+           return;
+       }
+
+       negate = false;
+
+       if (tokens.isEmpty() || tokens.get(tokens.size() - 1) instanceof OpenSubclauseToken) {
+           if (fieldName != null) {
+               _whereExists(fieldName);
+           } else {
+               _whereTrue();
+           }
+           _andAlso();
+       }
+
+       tokens.add(NegateToken.INSTANCE);
+   }
+
+    static Collection<Object> unpackCollection(Collection items) {
+       List<Object> results = new ArrayList<>();
+
+       for (Object item : items) {
+           if (item instanceof Collection) {
+               results.addAll(unpackCollection((Collection) item));
+           } else {
+               results.add(item);
+           }
+       }
+
+       return results;
+   }
+
+    string ensureValidFieldName(string fieldName, bool isNestedPath) {
+       if (theSession == null || theSession.getConventions() == null || isNestedPath || isGroupBy) {
+           return QueryFieldUtil.escapeIfNecessary(fieldName);
+       }
+
+       for (Class rootType : rootTypes) {
+           Field identityProperty = theSession.getConventions().getIdentityProperty(rootType);
+           if (identityProperty != null && identityProperty.getName().equals(fieldName)) {
+               return Constants.Documents.Indexing.Fields.DOCUMENT_ID_FIELD_NAME;
+           }
+       }
+
+       return QueryFieldUtil.escapeIfNecessary(fieldName);
+   }
+
+    Object transformValue(WhereParams whereParams) {
+       return transformValue(whereParams, false);
+   }
+
+    Object transformValue(WhereParams whereParams, bool forRange) {
+       if (whereParams.getValue() == null) {
+           return null;
+       }
+
+       if ("".equals(whereParams.getValue())) {
+           return "";
+       }
+
+       Reference<string> stringValueReference = new Reference<>();
+       if (_conventions.tryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, stringValueReference)) {
+           return stringValueReference.value;
+       }
+
+       Class<?> clazz = whereParams.getValue().getClass();
+       if (Date.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (string.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (Integer.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (Long.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (Float.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (Double.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (Duration.class.equals(clazz)) {
+           return ((Duration) whereParams.getValue()).toNanos() / 100;
+       }
+
+       if (string.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (bool.class.equals(clazz)) {
+           return whereParams.getValue();
+       }
+
+       if (clazz.isEnum()) {
+           return whereParams.getValue();
+       }
+
+       return whereParams.getValue();
+
+   }
+
+    string addQueryParameter(Object value) {
+       string parameterName = "p" + queryParameters.size();
+       queryParameters.put(parameterName, value);
+       return parameterName;
+   }
+
+    List<QueryToken> getCurrentWhereTokens() {
+       if (!_isInMoreLikeThis) {
+           return whereTokens;
+       }
+
+       if (whereTokens.isEmpty()) {
+           throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
+       }
+
+       QueryToken lastToken = whereTokens.get(whereTokens.size() - 1);
+
+       if (lastToken instanceof MoreLikeThisToken) {
+           MoreLikeThisToken moreLikeThisToken = (MoreLikeThisToken) lastToken;
+           return moreLikeThisToken.whereTokens;
+       } else {
+           throw new IllegalStateException("Last token is not MoreLikeThisToken");
+       }
+   }
+
+   protected  updateFieldsToFetchToken(FieldsToFetchToken fieldsToFetch) {
+       this.fieldsToFetchToken = fieldsToFetch;
+
+       if (selectTokens.isEmpty()) {
+           selectTokens.add(fieldsToFetch);
+       } else {
+           Optional<QueryToken> fetchToken = selectTokens.stream()
+                   .filter(x -> x instanceof FieldsToFetchToken)
+                   .findFirst();
+
+           if (fetchToken.isPresent()) {
+               int idx = selectTokens.indexOf(fetchToken.get());
+               selectTokens.set(idx, fieldsToFetch);
+           } else {
+               selectTokens.add(fieldsToFetch);
+           }
+       }
+   }
+*/
+
+func (q *AbstractDocumentQuery) getQueryOperation() *QueryOperation {
+	return q.queryOperation
+}
+
+func (q *AbstractDocumentQuery) _addBeforeQueryExecutedListener(action func(*IndexQuery)) {
+	q.beforeQueryExecutedCallback = append(q.beforeQueryExecutedCallback, action)
+}
+
+func (q *AbstractDocumentQuery) _removeBeforeQueryExecutedListener(action func(*IndexQuery)) {
+	panicIf(true, "NYI")
+	// TODO: implement me
+	// beforeQueryExecutedCallback.remove(action)
+}
+
+func (q *AbstractDocumentQuery) _addAfterQueryExecutedListener(action func(*QueryResult)) {
+	q.afterQueryExecutedCallback = append(q.afterQueryExecutedCallback, action)
+}
+
+func (q *AbstractDocumentQuery) _removeAfterQueryExecutedListener(action func(*QueryResult)) {
+	panicIf(true, "NYI")
+	// TODO: implement me
+	// afterQueryExecutedCallback.remove(action)
+}
+
+func (q *AbstractDocumentQuery) _addAfterStreamExecutedListener(action func(ObjectNode)) {
+	q.afterStreamExecutedCallback = append(q.afterStreamExecutedCallback, action)
+}
+
+func (q *AbstractDocumentQuery) _removeAfterStreamExecutedListener(action func(ObjectNode)) {
+	panicIf(true, "NYI")
+	// TODO: implement me
+	// afterStreamExecutedCallback.remove(action)
+}
+
+func (q *AbstractDocumentQuery) _noTracking() {
+	q.disableEntitiesTracking = true
+}
+
+func (q *AbstractDocumentQuery) _noCaching() {
+	q.disableCaching = true
+}
+
+/*
+    protected  _withinRadiusOf(string fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits, double distErrorPercent) {
         fieldName = ensureValidFieldName(fieldName, false);
 
         List<QueryToken> tokens = getCurrentWhereTokens();
@@ -1311,7 +1340,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         tokens.add(whereToken);
     }
 
-    protected void _spatial(String fieldName, String shapeWkt, SpatialRelation relation, double distErrorPercent) {
+    protected  _spatial(string fieldName, string shapeWkt, SpatialRelation relation, double distErrorPercent) {
         fieldName = ensureValidFieldName(fieldName, false);
 
         List<QueryToken> tokens = getCurrentWhereTokens();
@@ -1342,7 +1371,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _spatial(DynamicSpatialField dynamicField, SpatialCriteria criteria) {
+      _spatial(DynamicSpatialField dynamicField, SpatialCriteria criteria) {
         List<QueryToken> tokens = getCurrentWhereTokens();
         appendOperatorIfNeeded(tokens);
         negateIfNeeded(tokens, null);
@@ -1351,7 +1380,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _spatial(String fieldName, SpatialCriteria criteria) {
+      _spatial(string fieldName, SpatialCriteria criteria) {
         fieldName = ensureValidFieldName(fieldName, false);
 
         List<QueryToken> tokens = getCurrentWhereTokens();
@@ -1362,7 +1391,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _orderByDistance(DynamicSpatialField field, double latitude, double longitude) {
+      _orderByDistance(DynamicSpatialField field, double latitude, double longitude) {
         if (field == null) {
             throw new IllegalArgumentException("Field cannot be null");
         }
@@ -1370,12 +1399,12 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _orderByDistance(String fieldName, double latitude, double longitude) {
+      _orderByDistance(string fieldName, double latitude, double longitude) {
         orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
     }
 
     @Override
-    public void _orderByDistance(DynamicSpatialField field, String shapeWkt) {
+      _orderByDistance(DynamicSpatialField field, string shapeWkt) {
         if (field == null) {
             throw new IllegalArgumentException("Field cannot be null");
         }
@@ -1383,12 +1412,12 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _orderByDistance(String fieldName, String shapeWkt) {
+      _orderByDistance(string fieldName, string shapeWkt) {
         orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(shapeWkt)));
     }
 
     @Override
-    public void _orderByDistanceDescending(DynamicSpatialField field, double latitude, double longitude) {
+      _orderByDistanceDescending(DynamicSpatialField field, double latitude, double longitude) {
         if (field == null) {
             throw new IllegalArgumentException("Field cannot be null");
         }
@@ -1396,12 +1425,12 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _orderByDistanceDescending(String fieldName, double latitude, double longitude) {
+      _orderByDistanceDescending(string fieldName, double latitude, double longitude) {
         orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
     }
 
     @Override
-    public void _orderByDistanceDescending(DynamicSpatialField field, String shapeWkt) {
+      _orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
         if (field == null) {
             throw new IllegalArgumentException("Field cannot be null");
         }
@@ -1409,11 +1438,11 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _orderByDistanceDescending(String fieldName, String shapeWkt) {
+      _orderByDistanceDescending(string fieldName, string shapeWkt) {
         orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(shapeWkt)));
     }
 
-    protected void initSync() {
+    protected  initSync() {
         if (queryOperation != null) {
             return;
         }
@@ -1425,7 +1454,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         executeActualQuery();
     }
 
-    private void executeActualQuery() {
+      executeActualQuery() {
         try (CleanCloseable context = queryOperation.enterQueryContext()) {
             QueryCommand command = queryOperation.createRequest();
             theSession.getRequestExecutor().execute(command, theSession.sessionInfo);
@@ -1435,31 +1464,31 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public Iterator<T> iterator() {
+     Iterator<T> iterator() {
         return executeQueryOperation(null).iterator();
     }
 
-    public List<T> toList() {
+     List<T> toList() {
         return EnumerableUtils.toList(iterator());
     }
 
-    public QueryResult getQueryResult() {
+     QueryResult getQueryResult() {
         initSync();
 
         return queryOperation.getCurrentQueryResults().createSnapshot();
     }
 
-    public T first() {
+     T first() {
         Collection<T> result = executeQueryOperation(1);
         return result.isEmpty() ? null : result.stream().findFirst().get();
     }
 
-    public T firstOrDefault() {
+     T firstOrDefault() {
         Collection<T> result = executeQueryOperation(1);
         return result.stream().findFirst().orElseGet(() -> Defaults.defaultValue(clazz));
     }
 
-    public T single() {
+     T single() {
         Collection<T> result = executeQueryOperation(2);
         if (result.size() > 1) {
             throw new IllegalStateException("Expected single result, got: " + result.size());
@@ -1467,7 +1496,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         return result.stream().findFirst().orElse(null);
     }
 
-    public T singleOrDefault() {
+     T singleOrDefault() {
         Collection<T> result = executeQueryOperation(2);
         if (result.size() > 1) {
             throw new IllegalStateException("Expected single result, got: " + result.size());
@@ -1478,13 +1507,13 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         return result.stream().findFirst().get();
     }
 
-    public int count() {
+     int count() {
         _take(0);
         QueryResult queryResult = getQueryResult();
         return queryResult.getTotalResults();
     }
 
-    public boolean any() {
+     bool any() {
         if (isDistinct()) {
             // for distinct it is cheaper to do count 1
             return executeQueryOperation(1).iterator().hasNext();
@@ -1495,7 +1524,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         return queryResult.getTotalResults() > 0;
     }
 
-    private Collection<T> executeQueryOperation(Integer take) {
+     Collection<T> executeQueryOperation(Integer take) {
         if (take != null && (pageSize == null || pageSize > take)) {
             _take(take);
         }
@@ -1505,7 +1534,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         return queryOperation.complete(clazz);
     }
 
-    public void _aggregateBy(FacetBase facet) {
+      _aggregateBy(FacetBase facet) {
         for (QueryToken token : selectTokens) {
             if (token instanceof FacetToken) {
                 continue;
@@ -1517,15 +1546,15 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         selectTokens.add(FacetToken.create(facet, this::addQueryParameter));
     }
 
-    public void _aggregateUsing(String facetSetupDocumentId) {
+      _aggregateUsing(string facetSetupDocumentId) {
         selectTokens.add(FacetToken.create(facetSetupDocumentId));
     }
 
-    public Lazy<List<T>> lazily() {
+     Lazy<List<T>> lazily() {
         return lazily(null);
     }
 
-    public Lazy<List<T>> lazily(Consumer<List<T>> onEval) {
+     Lazy<List<T>> lazily(Consumer<List<T>> onEval) {
         if (getQueryOperation() == null) {
             queryOperation = initializeQueryOperation();
         }
@@ -1534,7 +1563,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         return ((DocumentSession)theSession).addLazyOperation((Class<List<T>>) (Class<?>)List.class, lazyQueryOperation, onEval);
     }
 
-    public Lazy<Integer> countLazily() {
+     Lazy<Integer> countLazily() {
         if (queryOperation == null) {
             _take(0);
             queryOperation = initializeQueryOperation();
@@ -1545,7 +1574,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
     }
 
     @Override
-    public void _suggestUsing(SuggestionBase suggestion) {
+      _suggestUsing(SuggestionBase suggestion) {
         if (suggestion == null) {
             throw new IllegalArgumentException("suggestion cannot be null");
         }
@@ -1567,8 +1596,8 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         selectTokens.add(token);
     }
 
-    private String getOptionsParameterName(SuggestionOptions options) {
-        String optionsParameterName = null;
+     string getOptionsParameterName(SuggestionOptions options) {
+        string optionsParameterName = null;
         if (options != null && options != SuggestionOptions.defaultOptions) {
             optionsParameterName = addQueryParameter(options);
         }
@@ -1576,7 +1605,7 @@ public abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQue
         return optionsParameterName;
     }
 
-    private void assertCanSuggest() {
+      assertCanSuggest() {
         if (!whereTokens.isEmpty()) {
             throw new IllegalStateException("Cannot add suggest when WHERE statements are present.");
         }

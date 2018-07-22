@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &LoadToken{}
+
 type LoadToken struct {
 	argument string
 	alias    string

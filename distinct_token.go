@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &DistinctToken{}
+
 var (
 	DistinctToken_INSTANCE = NewDistinctToken()
 )

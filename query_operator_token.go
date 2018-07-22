@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &QueryOperatorToken{}
+
 type QueryOperatorToken struct {
 	_queryOperator QueryOperator
 }

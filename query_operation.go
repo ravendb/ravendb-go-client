@@ -2,7 +2,6 @@ package ravendb
 
 import "reflect"
 
-// TODO: implement me
 type QueryOperation struct {
 	_session                 *InMemoryDocumentSessionOperations
 	_indexName               string

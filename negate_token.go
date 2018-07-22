@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &NegateToken{}
+
 var (
 	NegateToken_INSTANCE = NewNegateToken()
 )

@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &FieldsToFetchToken{}
+
 type FieldsToFetchToken struct {
 	fieldsToFetch  []string
 	projections    []string

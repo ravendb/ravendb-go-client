@@ -53,6 +53,10 @@ func (s *StringSet) contains(str string) bool {
 	return false
 }
 
+func (s *StringSet) Size() int {
+	return len(s.strings)
+}
+
 func (s *StringSet) add(str string) {
 	if s.contains(str) {
 		return

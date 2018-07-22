@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &FacetToken{}
+
 type FacetToken struct {
 	_facetSetupDocumentId string
 	_aggregateByFieldName string

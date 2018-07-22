@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &GroupByKeyToken{}
+
 type GroupByKeyToken struct {
 	_fieldName     string
 	_projectedName string

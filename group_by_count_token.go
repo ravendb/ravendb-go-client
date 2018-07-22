@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &GroupByCountToken{}
+
 type GroupByCountToken struct {
 	_fieldName string
 }

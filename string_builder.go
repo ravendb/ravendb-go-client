@@ -31,3 +31,7 @@ func (b *StringBuilder) append(s interface{}) *StringBuilder {
 	b.buf.WriteString(toAppend)
 	return b
 }
+
+func (b *StringBuilder) String() string {
+	return string(b.buf.Bytes())
+}

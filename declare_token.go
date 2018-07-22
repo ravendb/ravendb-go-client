@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &DeclareToken{}
+
 type DeclareToken struct {
 	name       string
 	parameters string

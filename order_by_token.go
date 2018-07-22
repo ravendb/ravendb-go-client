@@ -2,10 +2,12 @@ package ravendb
 
 import "strings"
 
+var _ QueryToken = &OrderByToken{}
+
 var (
-	random          = NewOrderByToken("random()", false, OrderingType_STRING)
-	scoreAscending  = NewOrderByToken("score()", false, OrderingType_STRING)
-	scoreDescending = NewOrderByToken("score()", true, OrderingType_STRING)
+	OrderByToken_random          = NewOrderByToken("random()", false, OrderingType_STRING)
+	OrderByToken_scoreAscending  = NewOrderByToken("score()", false, OrderingType_STRING)
+	OrderByToken_scoreDescending = NewOrderByToken("score()", true, OrderingType_STRING)
 )
 
 type OrderByToken struct {

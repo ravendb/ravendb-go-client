@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &SuggestToken{}
+
 type SuggestToken struct {
 	_fieldName            string
 	_termParameterName    string

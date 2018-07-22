@@ -1,5 +1,7 @@
 package ravendb
 
+var _ QueryToken = &OpenSubclauseToken{}
+
 var (
 	OpenSubclauseToken_INSTANCE = NewOpenSubclauseToken()
 )
