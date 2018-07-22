@@ -172,6 +172,17 @@ func NewTimeoutException(format string, args ...interface{}) *TimeoutException {
 	return res
 }
 
+// IndexDoesNotExistException corresponds to Java's IndexDoesNotExistException
+type IndexDoesNotExistException struct {
+	ExceptionBase
+}
+
+func NewIndexDoesNotExistException(format string, args ...interface{}) *IndexDoesNotExistException {
+	res := &IndexDoesNotExistException{}
+	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	return res
+}
+
 // BadResponseException corresponds to Java's BadResponseException
 type BadResponseException struct {
 	ExceptionBase

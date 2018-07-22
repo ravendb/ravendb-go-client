@@ -87,6 +87,11 @@ func isTypePointerToStruct(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Struct
 }
 
+func treeToValue(typ reflect.Type, js ObjectNode) (interface{}, error) {
+	// TODO: should also handle primitive types
+	return makeStructFromJSONMap(typ, js)
+}
+
 // given a json represented as map and type of a struct
 func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
 	panicIf(!isTypePointerToStruct(typ), "typ should be pointer to struct but is %s, %s", typ.String(), typ.Kind().String())

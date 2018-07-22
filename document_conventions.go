@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -171,4 +172,12 @@ func (c *DocumentConventions) getIdentityPartsSeparator() string {
 
 func (c *DocumentConventions) getTransformClassCollectionNameToDocumentIdPrefix() func(string) string {
 	return c._transformClassCollectionNameToDocumentIdPrefix
+}
+
+func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Type, document ObjectNode) (interface{}, error) {
+	res, e := treeToValue(documentType, document)
+	if e != nil {
+		return nil, NewRavenException("Cannot deserialize entity %s", e)
+	}
+	return res, nil
 }

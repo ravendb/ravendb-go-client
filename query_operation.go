@@ -1,5 +1,7 @@
 package ravendb
 
+import "reflect"
+
 // TODO: implement me
 type QueryOperation struct {
 	_session                 *InMemoryDocumentSessionOperations
@@ -9,7 +11,7 @@ type QueryOperation struct {
 	_indexEntriesOnly        bool
 	_currentQueryResults     *QueryResult
 	_fieldsToFetch           *FieldsToFetchToken
-	_sp                      Stopwatch
+	_sp                      *Stopwatch
 	_disableEntitiesTracking bool
 
 	// static  Log logger = LogFactory.getLog(QueryOperation.class);
@@ -82,147 +84,169 @@ func (o *QueryOperation) enterQueryContext() CleanCloseable {
 	return o._session.getDocumentStore().disableAggressiveCachingWithDatabase(o._session.getDatabaseName())
 }
 
-/*
- class QueryOperation {
+func (o *QueryOperation) complete(clazz reflect.Type) ([]interface{}, error) {
+	queryResult := o._currentQueryResults.createSnapshot()
 
+	if !o._disableEntitiesTracking {
+		o._session.registerIncludes(queryResult.getIncludes())
+	}
 
-     <T> List<T> complete(Class<T> clazz) {
-        QueryResult queryResult = _currentQueryResults.createSnapshot();
+	var list []interface{}
+	{
+		results := queryResult.getResults()
+		for _, document := range results {
+			metadataI, ok := document[Constants_Documents_Metadata_KEY]
+			panicIf(!ok, "missing metadata")
+			metadata := metadataI.(ObjectNode)
+			id, _ := jsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+			el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
+			if err != nil {
+				return nil, NewRuntimeException("Unable to read json: %s", err)
+			}
+			list = append(list, el)
+		}
+	}
 
-        if (!_disableEntitiesTracking) {
-            _session.registerIncludes(queryResult.getIncludes());
-        }
+	if !o._disableEntitiesTracking {
+		o._session.registerMissingIncludes(queryResult.getResults(), queryResult.getIncludes(), queryResult.getIncludedPaths())
+	}
 
-        ArrayList<T> list = new ArrayList<>();
-
-        try {
-            for (JsonNode document : queryResult.getResults()) {
-                ObjectNode metadata = (ObjectNode) document.get(Constants.Documents.Metadata.KEY);
-                JsonNode idNode = metadata.get(Constants.Documents.Metadata.ID);
-
-                string id = null;
-                if (idNode != null && idNode.isTextual()) {
-                    id = idNode.asText();
-                }
-
-                list.add(deserialize(clazz, id, (ObjectNode) document, metadata, _fieldsToFetch, _disableEntitiesTracking, _session));
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Unable to read json: " + e.getMessage(), e);
-        }
-
-        if (!_disableEntitiesTracking) {
-            _session.registerMissingIncludes(queryResult.getResults(), queryResult.getIncludes(), queryResult.getIncludedPaths());
-        }
-
-        return list;
-    }
-
-    @SuppressWarnings("unchecked")
-     static <T> T deserialize(Class<T> clazz, string id, ObjectNode document, ObjectNode metadata, FieldsToFetchToken fieldsToFetch, bool disableEntitiesTracking, InMemoryDocumentSessionOperations session) throws JsonProcessingException {
-
-        JsonNode projection = metadata.get("@projection");
-        if (projection == null || !projection.asBoolean()) {
-            return (T)session.trackEntity(clazz, id, document, metadata, disableEntitiesTracking);
-        }
-
-        if (fieldsToFetch != null && fieldsToFetch.projections != null && fieldsToFetch.projections.length == 1) { // we only select a single field
-            if (string.class.equals(clazz) || ClassUtils.isPrimitiveOrWrapper(clazz) || clazz.isEnum()) {
-                string projectField = fieldsToFetch.projections[0];
-                JsonNode jsonNode = document.get(projectField);
-                if (jsonNode != null && jsonNode instanceof ValueNode) {
-                    return ObjectUtils.firstNonNull((T) session.getConventions().deserializeEntityFromJson(clazz, jsonNode), Defaults.defaultValue(clazz));
-                }
-            }
-
-            JsonNode inner = document.get(fieldsToFetch.projections[0]);
-            if (inner == null) {
-                return Defaults.defaultValue(clazz);
-            }
-
-            if (fieldsToFetch.fieldsToFetch != null && fieldsToFetch.fieldsToFetch[0].equals(fieldsToFetch.projections[0])) {
-                if (inner instanceof ObjectNode) { //extraction from original type
-                    document = (ObjectNode) inner;
-                }
-            }
-        }
-
-        T result = session.getConventions().getEntityMapper().treeToValue(document, clazz);
-
-        if (stringUtils.isNotEmpty(id)) {
-            // we need to make an additional check, since it is possible that a value was explicitly stated
-            // for the identity property, in which case we don't want to override it.
-            Field identityProperty = session.getConventions().getIdentityProperty(clazz);
-            if (identityProperty != null) {
-                JsonNode value = document.get(identityProperty.getName());
-
-                if (value == null) {
-                    session.getGenerateEntityIdOnTheClient().trySetIdentity(result, id);
-                }
-            }
-        }
-
-        return result;
-    }
-
-     bool isDisableEntitiesTracking() {
-        return _disableEntitiesTracking;
-    }
-
-      setDisableEntitiesTracking(bool disableEntitiesTracking) {
-        this._disableEntitiesTracking = disableEntitiesTracking;
-    }
-
-      ensureIsAcceptableAndSaveResult(QueryResult result) {
-        if (result == null) {
-            throw new IndexDoesNotExistException("Could not find index " + _indexName);
-        }
-
-        ensureIsAcceptable(result, _indexQuery.isWaitForNonStaleResults(), _sp, _session);
-
-        _currentQueryResults = result;
-
-        if (logger.isInfoEnabled()) {
-            string isStale = result.isStale() ? " stale " : " ";
-
-            stringBuilder parameters = new stringBuilder();
-            if (_indexQuery.getQueryParameters() != null && !_indexQuery.getQueryParameters().isEmpty()) {
-                parameters.append("(parameters: ");
-
-                bool first = true;
-
-                for (Map.Entry<string, Object> parameter : _indexQuery.getQueryParameters().entrySet()) {
-                    if (!first) {
-                        parameters.append(", ");
-                    }
-
-                    parameters.append(parameter.getKey())
-                            .append(" = ")
-                            .append(parameter.getValue());
-
-                    first = false;
-                }
-
-                parameters.append(") ");
-            }
-
-            logger.info("Query " + _indexQuery.getQuery() + " " + parameters.tostring() + "returned " + result.getResults().size() + isStale + "results (total index results: " + result.getTotalResults() + ")");
-        }
-    }
-
-     static  ensureIsAcceptable(QueryResult result, bool waitForNonStaleResults, Stopwatch duration, InMemoryDocumentSessionOperations session) {
-        if (waitForNonStaleResults && result.isStale()) {
-            duration.stop();
-
-            string msg = "Waited for " + duration.tostring() + " for the query to return non stale result.";
-            throw new TimeoutException(msg);
-
-        }
-    }
-
-
-     IndexQuery getIndexQuery() {
-        return _indexQuery;
-    }
+	return list, nil
 }
-*/
+
+func jsonIsValueNode(v interface{}) bool {
+	switch v.(type) {
+	case string, float64, bool:
+		return true
+	case []interface{}, ObjectNode:
+		return false
+	}
+	panicIf(true, "unhandled type %T", v)
+	return false
+}
+
+func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *FieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
+	_, ok := jsonGetAsBool(metadata, "@projection")
+	if !ok {
+		return session.TrackEntity(clazz, id, document, metadata, disableEntitiesTracking)
+	}
+	if fieldsToFetch != nil && len(fieldsToFetch.projections) == 1 {
+		// we only select a single field
+		isString := reflect.TypeOf("") == clazz
+		if isString || ClassUtils_isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
+			projectField := fieldsToFetch.projections[0]
+			jsonNode, ok := document[projectField]
+			if ok && jsonIsValueNode(jsonNode) {
+				// TODO: this is wrong
+				res, err := session.getConventions().deserializeEntityFromJson(clazz, jsonNode.(ObjectNode))
+				if err != nil {
+					return nil, err
+				}
+				if res != nil {
+					return res, nil
+				}
+				return Defaults_defaultValue(clazz), nil
+			}
+		}
+
+		inner, ok := document[fieldsToFetch.projections[0]]
+		if !ok {
+			return Defaults_defaultValue(clazz), nil
+		}
+
+		if fieldsToFetch.fieldsToFetch != nil && fieldsToFetch.fieldsToFetch[0] == fieldsToFetch.projections[0] {
+			doc, ok := inner.(ObjectNode)
+			if ok {
+				//extraction from original type
+				document = doc
+			}
+		}
+	}
+
+	result, err := treeToValue(clazz, document)
+	if err != nil {
+		return nil, err
+	}
+
+	if StringUtils_isNotEmpty(id) {
+		panicIf(true, "NYI")
+		// we need to make an additional check, since it is possible that a value was explicitly stated
+		// for the identity property, in which case we don't want to override it.
+		/*
+		   Field identityProperty := session.getConventions().getIdentityProperty(clazz);
+		   if (identityProperty != null) {
+		       JsonNode value = document.get(identityProperty.getName());
+
+		       if (value == null) {
+		           session.getGenerateEntityIdOnTheClient().trySetIdentity(result, id);
+		       }
+		   }
+		*/
+	}
+
+	return result, nil
+}
+
+func (o *QueryOperation) isDisableEntitiesTracking() bool {
+	return o._disableEntitiesTracking
+}
+
+func (o *QueryOperation) setDisableEntitiesTracking(disableEntitiesTracking bool) {
+	o._disableEntitiesTracking = disableEntitiesTracking
+}
+
+func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
+	if result == nil {
+		return NewIndexDoesNotExistException("Could not find index " + o._indexName)
+	}
+
+	err := QueryOperation_ensureIsAcceptable(result, o._indexQuery.isWaitForNonStaleResults(), o._sp, o._session)
+	if err != nil {
+		return err
+	}
+	o._currentQueryResults = result
+
+	// TODO: port me when we have logger
+	/*
+	   if (logger.isInfoEnabled()) {
+	       string isStale = result.isStale() ? " stale " : " ";
+
+	       stringBuilder parameters = new stringBuilder();
+	       if (_indexQuery.getQueryParameters() != null && !_indexQuery.getQueryParameters().isEmpty()) {
+	           parameters.append("(parameters: ");
+
+	           bool first = true;
+
+	           for (Map.Entry<string, Object> parameter : _indexQuery.getQueryParameters().entrySet()) {
+	               if (!first) {
+	                   parameters.append(", ");
+	               }
+
+	               parameters.append(parameter.getKey())
+	                       .append(" = ")
+	                       .append(parameter.getValue());
+
+	               first = false;
+	           }
+
+	           parameters.append(") ");
+	       }
+
+	       logger.info("Query " + _indexQuery.getQuery() + " " + parameters.tostring() + "returned " + result.getResults().size() + isStale + "results (total index results: " + result.getTotalResults() + ")");
+	   }
+	*/
+	return nil
+}
+
+func QueryOperation_ensureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *Stopwatch, session *InMemoryDocumentSessionOperations) error {
+	if waitForNonStaleResults && result.isStale() {
+		duration.stop()
+		msg := "Waited for " + duration.String() + " for the query to return non stale result."
+		return NewTimeoutException(msg)
+	}
+	return nil
+}
+
+func (o *QueryOperation) getIndexQuery() *IndexQuery {
+	return o._indexQuery
+}
