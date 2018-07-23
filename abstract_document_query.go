@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -157,132 +158,117 @@ func (q *AbstractDocumentQuery) getIndexQuery() *IndexQuery {
 }
 
 /*
- abstract class AbstractDocumentQuery<T, TSelf extends AbstractDocumentQuery<T, TSelf>> implements IAbstractDocumentQuery<T> {
-
-    @Override
-     List<string> getProjectionFields() {
-        return fieldsToFetchToken != null && fieldsToFetchToken.projections != null ? Arrays.asList(fieldsToFetchToken.projections) : Collections.emptyList();
-    }
-
-    @Override
-      _randomOrdering() {
-        assertNoRawQuery();
-        orderByTokens.add(OrderByToken.random);
-    }
-
-    @Override
-      _randomOrdering(string seed) {
-        assertNoRawQuery();
-
-        if (stringUtils.isBlank(seed)) {
-            _randomOrdering();
-            return;
-        }
-
-        orderByTokens.add(OrderByToken.createRandom(seed));
-    }
-
-    protected  addGroupByAlias(string fieldName, string projectedName) {
-        _aliasToGroupByFieldName.put(projectedName, fieldName);
-    }
+   @Override
+    List<string> getProjectionFields() {
+       return fieldsToFetchToken != null && fieldsToFetchToken.projections != null ? Arrays.asList(fieldsToFetchToken.projections) : Collections.emptyList();
+   }
 */
+
+func (q *AbstractDocumentQuery) _randomOrdering() {
+	q.assertNoRawQuery()
+	q.orderByTokens = append(q.orderByTokens, OrderByToken_random)
+}
+
+func (q *AbstractDocumentQuery) _randomOrderingWithSeed(seed string) {
+	q.assertNoRawQuery()
+
+	if StringUtils_isBlank(seed) {
+		q._randomOrdering()
+		return
+	}
+
+	q.orderByTokens = append(q.orderByTokens, OrderByToken_createRandom(seed))
+}
+
+func (q *AbstractDocumentQuery) addGroupByAlias(fieldName string, projectedName string) {
+	q._aliasToGroupByFieldName[projectedName] = fieldName
+}
 
 func (q *AbstractDocumentQuery) assertNoRawQuery() {
 	panicIf(q.queryRaw != "", "RawQuery was called, cannot modify this query by calling on operations that would modify the query (such as Where, Select, OrderBy, GroupBy, etc)")
 }
 
+func (q *AbstractDocumentQuery) _addParameter(name string, value Object) {
+	name = strings.TrimPrefix(name, "$")
+	if _, ok := q.queryParameters[name]; ok {
+		// throw new IllegalStateException("The parameter " + name + " was already added");
+		panicIf(true, "The parameter "+name+" was already added")
+	}
+
+	q.queryParameters[name] = value
+}
+
+func (q *AbstractDocumentQuery) _groupBy(fieldName string, fieldNames ...string) {
+	var mapping []*GroupBy
+	for _, x := range fieldNames {
+		el := GroupBy_field(x)
+		mapping = append(mapping, el)
+	}
+	q._groupBy2(GroupBy_field(fieldName), mapping...)
+}
+
+// TODO: better name
+func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
+	if !q.fromToken.isDynamic() {
+		//throw new IllegalStateException("groupBy only works with dynamic queries");
+		panicIf(true, "groupBy only works with dynamic queries")
+	}
+
+	q.assertNoRawQuery()
+	q.isGroupBy = true
+
+	fieldName := q.ensureValidFieldName(field.getField(), false)
+
+	q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, field.getMethod()))
+
+	if len(fields) == 0 {
+		return
+	}
+
+	for _, item := range fields {
+		fieldName = q.ensureValidFieldName(item.getField(), false)
+		q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, item.getMethod()))
+	}
+}
+
+func (q *AbstractDocumentQuery) _groupByKey(fieldName string, projectedName string) {
+	q.assertNoRawQuery()
+	q.isGroupBy = true
+
+	_, hasProjectedName := q._aliasToGroupByFieldName[projectedName]
+	_, hasFieldName := q._aliasToGroupByFieldName[fieldName]
+
+	if projectedName != "" && hasProjectedName {
+		aliasedFieldName := q._aliasToGroupByFieldName[projectedName]
+		if fieldName == "" || strings.EqualFold(fieldName, projectedName) {
+			fieldName = aliasedFieldName
+		}
+	} else if fieldName != "" && hasFieldName {
+		aliasedFieldName := q._aliasToGroupByFieldName[fieldName]
+		fieldName = aliasedFieldName
+	}
+
+	q.selectTokens = append(q.selectTokens, GroupByKeyToken_create(fieldName, projectedName))
+}
+
+// projectedName is optional
+func (q *AbstractDocumentQuery) _groupBySum(fieldName string, projectedName string) {
+	q.assertNoRawQuery()
+	q.isGroupBy = true
+
+	fieldName = q.ensureValidFieldName(fieldName, false)
+	q.selectTokens = append(q.selectTokens, GroupBySumToken_create(fieldName, projectedName))
+}
+
+// projectedName is optional
+func (q *AbstractDocumentQuery) _groupByCount(projectedName string) {
+	q.assertNoRawQuery()
+	q.isGroupBy = true
+
+	q.selectTokens = append(q.selectTokens, GroupByCountToken_create(projectedName))
+}
+
 /*
-     _addParameter(string name, Object value) {
-       name = stringUtils.stripStart(name, "$");
-       if (queryParameters.containsKey(name)) {
-           throw new IllegalStateException("The parameter " + name + " was already added");
-       }
-
-       queryParameters.put(name, value);
-   }
-
-   @Override
-     _groupBy(string fieldName, string... fieldNames) {
-       GroupBy[] mapping = Arrays.stream(fieldNames)
-               .map(x -> GroupBy.field(x))
-               .toArray(GroupBy[]::new);
-
-       _groupBy(GroupBy.field(fieldName), mapping);
-   }
-
-   @Override
-     _groupBy(GroupBy field, GroupBy... fields) {
-       if (!fromToken.isDynamic()) {
-           throw new IllegalStateException("groupBy only works with dynamic queries");
-       }
-
-       assertNoRawQuery();
-       isGroupBy = true;
-
-       string fieldName = ensureValidFieldName(field.getField(), false);
-
-       groupByTokens.add(GroupByToken.create(fieldName, field.getMethod()));
-
-       if (fields == null || fields.length <= 0) {
-           return;
-       }
-
-       for (GroupBy item : fields) {
-           fieldName = ensureValidFieldName(item.getField(), false);
-           groupByTokens.add(GroupByToken.create(fieldName, item.getMethod()));
-       }
-   }
-
-   @Override
-     _groupByKey(string fieldName) {
-       _groupByKey(fieldName, null);
-   }
-
-   @Override
-     _groupByKey(string fieldName, string projectedName) {
-       assertNoRawQuery();
-       isGroupBy = true;
-
-       if (projectedName != null && _aliasToGroupByFieldName.containsKey(projectedName)) {
-           string aliasedFieldName = _aliasToGroupByFieldName.get(projectedName);
-           if (fieldName == null || fieldName.equalsIgnoreCase(projectedName)) {
-               fieldName = aliasedFieldName;
-           }
-       } else if (fieldName != null && _aliasToGroupByFieldName.containsValue(fieldName)) {
-           string aliasedFieldName = _aliasToGroupByFieldName.get(fieldName);
-           fieldName = aliasedFieldName;
-       }
-
-       selectTokens.add(GroupByKeyToken.create(fieldName, projectedName));
-   }
-
-   @Override
-     _groupBySum(string fieldName) {
-       _groupBySum(fieldName, null);
-   }
-
-   @Override
-     _groupBySum(string fieldName, string projectedName) {
-       assertNoRawQuery();
-       isGroupBy = true;
-
-       fieldName = ensureValidFieldName(fieldName, false);
-       selectTokens.add(GroupBySumToken.create(fieldName, projectedName));
-   }
-
-   @Override
-     _groupByCount() {
-       _groupByCount(null);
-   }
-
-   @Override
-     _groupByCount(string projectedName) {
-       assertNoRawQuery();
-       isGroupBy = true;
-
-       selectTokens.add(GroupByCountToken.create(projectedName));
-   }
-
    @Override
      _whereTrue() {
        List<QueryToken> tokens = getCurrentWhereTokens();
@@ -844,19 +830,6 @@ func (q *AbstractDocumentQuery) String() string {
 	return queryText.String()
 }
 
-func Character_isLetterOrDigit(r rune) bool {
-	if r >= 'a' && r <= 'z' {
-		return true
-	}
-	if r >= 'A' && r <= 'Z' {
-		return true
-	}
-	if r >= '0' && r <= '9' {
-		return true
-	}
-	return false
-}
-
 func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
 	if q.includes != nil && q.includes.Size() == 0 {
 		return
@@ -1162,129 +1135,98 @@ func (q *AbstractDocumentQuery) buildOrderBy(writer *StringBuilder) {
 
        return results;
    }
-
-    string ensureValidFieldName(string fieldName, bool isNestedPath) {
-       if (theSession == null || theSession.getConventions() == null || isNestedPath || isGroupBy) {
-           return QueryFieldUtil.escapeIfNecessary(fieldName);
-       }
-
-       for (Class rootType : rootTypes) {
-           Field identityProperty = theSession.getConventions().getIdentityProperty(rootType);
-           if (identityProperty != null && identityProperty.getName().equals(fieldName)) {
-               return Constants.Documents.Indexing.Fields.DOCUMENT_ID_FIELD_NAME;
-           }
-       }
-
-       return QueryFieldUtil.escapeIfNecessary(fieldName);
-   }
-
-    Object transformValue(WhereParams whereParams) {
-       return transformValue(whereParams, false);
-   }
-
-    Object transformValue(WhereParams whereParams, bool forRange) {
-       if (whereParams.getValue() == null) {
-           return null;
-       }
-
-       if ("".equals(whereParams.getValue())) {
-           return "";
-       }
-
-       Reference<string> stringValueReference = new Reference<>();
-       if (_conventions.tryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, stringValueReference)) {
-           return stringValueReference.value;
-       }
-
-       Class<?> clazz = whereParams.getValue().getClass();
-       if (Date.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (string.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (Integer.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (Long.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (Float.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (Double.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (Duration.class.equals(clazz)) {
-           return ((Duration) whereParams.getValue()).toNanos() / 100;
-       }
-
-       if (string.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (bool.class.equals(clazz)) {
-           return whereParams.getValue();
-       }
-
-       if (clazz.isEnum()) {
-           return whereParams.getValue();
-       }
-
-       return whereParams.getValue();
-
-   }
-
-    string addQueryParameter(Object value) {
-       string parameterName = "p" + queryParameters.size();
-       queryParameters.put(parameterName, value);
-       return parameterName;
-   }
-
-    List<QueryToken> getCurrentWhereTokens() {
-       if (!_isInMoreLikeThis) {
-           return whereTokens;
-       }
-
-       if (whereTokens.isEmpty()) {
-           throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
-       }
-
-       QueryToken lastToken = whereTokens.get(whereTokens.size() - 1);
-
-       if (lastToken instanceof MoreLikeThisToken) {
-           MoreLikeThisToken moreLikeThisToken = (MoreLikeThisToken) lastToken;
-           return moreLikeThisToken.whereTokens;
-       } else {
-           throw new IllegalStateException("Last token is not MoreLikeThisToken");
-       }
-   }
-
-   protected  updateFieldsToFetchToken(FieldsToFetchToken fieldsToFetch) {
-       this.fieldsToFetchToken = fieldsToFetch;
-
-       if (selectTokens.isEmpty()) {
-           selectTokens.add(fieldsToFetch);
-       } else {
-           Optional<QueryToken> fetchToken = selectTokens.stream()
-                   .filter(x -> x instanceof FieldsToFetchToken)
-                   .findFirst();
-
-           if (fetchToken.isPresent()) {
-               int idx = selectTokens.indexOf(fetchToken.get());
-               selectTokens.set(idx, fieldsToFetch);
-           } else {
-               selectTokens.add(fieldsToFetch);
-           }
-       }
-   }
 */
+
+func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
+	if q.theSession == nil || q.theSession.getConventions() == nil || isNestedPath || q.isGroupBy {
+		return QueryFieldUtil_escapeIfNecessary(fieldName)
+	}
+
+	if fieldName == DocumentConventions_identityPropertyName {
+		return Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME
+	}
+
+	return QueryFieldUtil_escapeIfNecessary(fieldName)
+}
+
+func (q *AbstractDocumentQuery) transformValue(whereParams *WhereParams) Object {
+	return q.transformValue2(whereParams, false)
+}
+
+func (q *AbstractDocumentQuery) transformValue2(whereParams *WhereParams, forRange bool) Object {
+	if whereParams.getValue() == nil {
+		return nil
+	}
+
+	if "" == whereParams.getValue() {
+		return ""
+	}
+
+	var stringValueReference string
+	if q._conventions.tryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, &stringValueReference) {
+		return stringValueReference
+	}
+
+	// TODO: this could be a type switch
+	val := whereParams.getValue()
+	switch val.(type) {
+	case time.Time, string, int, int32, int64, float32, float64, bool:
+		return val
+	case time.Duration:
+		panicIf(true, "NYI")
+		//return ((Duration) whereParams.getValue()).toNanos() / 100;
+	}
+	return whereParams.getValue()
+}
+
+func (q *AbstractDocumentQuery) addQueryParameter(value Object) string {
+	parameterName := "p" + strconv.Itoa(len(q.queryParameters))
+	q.queryParameters[parameterName] = value
+	return parameterName
+}
+
+func (q *AbstractDocumentQuery) getCurrentWhereTokens() []QueryToken {
+	if !q._isInMoreLikeThis {
+		return q.whereTokens
+	}
+
+	n := len(q.whereTokens)
+
+	if n == 0 {
+		// throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
+		panicIf(true, "Cannot get MoreLikeThisToken because there are no where token specified.")
+	}
+
+	lastToken := q.whereTokens[n-1]
+
+	if moreLikeThisToken, ok := lastToken.(*MoreLikeThisToken); ok {
+		return moreLikeThisToken.whereTokens
+	} else {
+		//throw new IllegalStateException("Last token is not MoreLikeThisToken");
+		panicIf(true, "Last token is not MoreLikeThisToken")
+	}
+	return nil
+}
+
+func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *FieldsToFetchToken) {
+	q.fieldsToFetchToken = fieldsToFetch
+
+	if len(q.selectTokens) == 0 {
+		q.selectTokens = append(q.selectTokens, fieldsToFetch)
+	} else {
+		for _, x := range q.selectTokens {
+			if _, ok := x.(*FieldsToFetchToken); ok {
+				for idx, tok := range q.selectTokens {
+					if tok == x {
+						q.selectTokens[idx] = fieldsToFetch
+					}
+				}
+				return
+			}
+		}
+		q.selectTokens = append(q.selectTokens, fieldsToFetch)
+	}
+}
 
 func (q *AbstractDocumentQuery) getQueryOperation() *QueryOperation {
 	return q.queryOperation

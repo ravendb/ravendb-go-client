@@ -8,6 +8,12 @@ import (
 	"unicode"
 )
 
+var (
+	// Note: helps find places that in Java code used DocumentConventsion.getIdentityProperty()
+	// if we add support for that
+	DocumentConventions_identityPropertyName = "ID"
+)
+
 type DocumentIDGeneratorFunc func(dbName string, entity Object) string
 
 // DocumentConventions describes document conventions
@@ -180,4 +186,19 @@ func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Typ
 		return nil, NewRavenException("Cannot deserialize entity %s", e)
 	}
 	return res, nil
+}
+
+func (c *DocumentConventions) tryConvertValueForQuery(fieldName string, value Object, forRange bool, stringValue *string) bool {
+	panicIf(true, "NYI")
+	/*
+		for (Tuple<Class, IValueForQueryConverter<Object>> queryValueConverter : _listOfQueryValueConverters) {
+			if (!queryValueConverter.first.isInstance(value)) {
+				continue;
+			}
+
+			return queryValueConverter.second.tryConvertValueForQuery(fieldName, value, forRange, stringValue);
+		}
+	*/
+	*stringValue = ""
+	return false
 }
