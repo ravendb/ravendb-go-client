@@ -268,17 +268,17 @@ func (q *AbstractDocumentQuery) _groupByCount(projectedName string) {
 	q.selectTokens = append(q.selectTokens, GroupByCountToken_create(projectedName))
 }
 
+func (q *AbstractDocumentQuery) _whereTrue() {
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, "")
+
+	tokens := *tokensRef
+	tokens = append(tokens, TrueToken_INSTANCE)
+	*tokensRef = tokens
+}
+
 /*
-   @Override
-     _whereTrue() {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, null);
-
-       tokens.add(TrueToken.INSTANCE);
-   }
-
-
     MoreLikeThisScope _moreLikeThis() {
        appendOperatorIfNeeded(whereTokens);
 
@@ -630,33 +630,46 @@ func (q *AbstractDocumentQuery) _groupByCount(projectedName string) {
        WhereToken whereToken = WhereToken.create(WhereOperator.REGEX, fieldName, parameter);
        tokens.add(whereToken);
    }
+*/
 
-     _andAlso() {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       if (tokens.isEmpty()) {
-           return;
-       }
+func (q *AbstractDocumentQuery) _andAlso() {
+	tokensRef := q.getCurrentWhereTokensRef()
+	tokens := *tokensRef
 
-       if (tokens.get(tokens.size() - 1) instanceof QueryOperatorToken) {
-           throw new IllegalStateException("Cannot add AND, previous token was already an operator token.");
-       }
+	n := len(tokens)
+	if n == 0 {
+		return
+	}
 
-       tokens.add(QueryOperatorToken.AND);
-   }
+	lastToken := tokens[n-1]
+	if _, ok := lastToken.(*QueryOperatorToken); ok {
+		//throw new IllegalStateException("Cannot add AND, previous token was already an operator token.");
+		panicIf(true, "Cannot add AND, previous token was already an operator token.")
+	}
 
-     _orElse() {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       if (tokens.isEmpty()) {
-           return;
-       }
+	tokens = append(tokens, QueryOperatorToken_AND)
+	*tokensRef = tokens
+}
 
-       if (tokens.get(tokens.size() - 1) instanceof QueryOperatorToken) {
-           throw new IllegalStateException("Cannot add OR, previous token was already an operator token.");
-       }
+func (q *AbstractDocumentQuery) _orElse() {
+	tokensRef := q.getCurrentWhereTokensRef()
+	tokens := *tokensRef
+	n := len(tokens)
+	if n == 0 {
+		return
+	}
 
-       tokens.add(QueryOperatorToken.OR);
-   }
+	lastToken := tokens[n-1]
+	if _, ok := lastToken.(*QueryOperatorToken); ok {
+		//throw new IllegalStateException("Cannot add OR, previous token was already an operator token.");
+		panicIf(true, "Cannot add OR, previous token was already an operator token.")
+	}
 
+	tokens = append(tokens, QueryOperatorToken_OR)
+	*tokensRef = tokens
+}
+
+/*
    @Override
      _boost(double boost) {
        if (boost == 1.0) {
@@ -875,17 +888,21 @@ func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
 
        throw new IllegalStateException("Cannot add INTERSECT at this point.");
    }
+*/
 
-     _whereExists(string fieldName) {
-       fieldName = ensureValidFieldName(fieldName, false);
+func (q *AbstractDocumentQuery) _whereExists(fieldName string) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       tokens.add(WhereToken.create(WhereOperator.EXISTS, fieldName, null));
-   }
+	tokens := *tokensRef
+	tokens = append(tokens, WhereToken_create(WhereOperator_EXISTS, fieldName, ""))
+	*tokensRef = tokens
+}
 
+/*
    @Override
      _containsAny(string fieldName, Collection<Object> values) {
        fieldName = ensureValidFieldName(fieldName, false);
@@ -1054,73 +1071,93 @@ func (q *AbstractDocumentQuery) buildOrderBy(writer *StringBuilder) {
 	}
 }
 
+func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]QueryToken) {
+	tokens := *tokensRef
+	q.assertNoRawQuery()
+
+	n := len(tokens)
+	if len(tokens) == 0 {
+		return
+	}
+
+	lastToken := tokens[n-1]
+	_, isWhereToken := lastToken.(*WhereToken)
+	_, isCloseSubclauseToken := lastToken.(*CloseSubclauseToken)
+	if !isWhereToken && !isCloseSubclauseToken {
+		return
+	}
+
+	var lastWhere *WhereToken
+
+	for i := n - 1; i >= 0; i-- {
+		tok := tokens[i]
+		if maybeLastWhere, ok := tok.(*WhereToken); ok {
+			lastWhere = maybeLastWhere
+			break
+		}
+	}
+
+	var token *QueryOperatorToken
+	if q.defaultOperator == QueryOperator_AND {
+		token = QueryOperatorToken_AND
+	} else {
+		token = QueryOperatorToken_OR
+	}
+
+	if lastWhere != nil && lastWhere.getOptions().getSearchOperator() != SearchOperator_UNSET {
+		token = QueryOperatorToken_OR // default to OR operator after search if AND was not specified explicitly
+	}
+
+	tokens = append(tokens, token)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) transformCollection(fieldName string, values []Object) []Object {
+	var result []Object
+	for _, value := range values {
+		if collectionValue, ok := value.([]Object); ok {
+			tmp := q.transformCollection(fieldName, collectionValue)
+			result = append(result, tmp...)
+		} else {
+			nestedWhereParams := NewWhereParams()
+			nestedWhereParams.setAllowWildcards(true)
+			nestedWhereParams.setFieldName(fieldName)
+			nestedWhereParams.setValue(value)
+			tmp := q.transformValue(nestedWhereParams)
+			result = append(result, tmp)
+		}
+	}
+	return result
+}
+
+func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]QueryToken, fieldName string) {
+	if !q.negate {
+		return
+	}
+
+	q.negate = false
+
+	tokens := *tokensRef
+
+	n := len(tokens)
+	isOpenSubclauseToken := false
+	if n > 0 {
+		_, isOpenSubclauseToken = tokens[n-1].(*OpenSubclauseToken)
+	}
+	if n == 0 || isOpenSubclauseToken {
+		if fieldName != "" {
+			q._whereExists(fieldName)
+		} else {
+			q._whereTrue()
+		}
+		q._andAlso()
+	}
+
+	tokens = append(tokens, NegateToken_INSTANCE)
+	*tokensRef = tokens
+}
+
 /*
-     appendOperatorIfNeeded(List<QueryToken> tokens) {
-       assertNoRawQuery();
-
-       if (tokens.isEmpty()) {
-           return;
-       }
-
-       QueryToken lastToken = tokens.get(tokens.size() - 1);
-       if (!(lastToken instanceof WhereToken) && !(lastToken instanceof CloseSubclauseToken)) {
-           return;
-       }
-
-       WhereToken lastWhere = null;
-
-       for (int i = tokens.size() - 1; i >= 0; i--) {
-           if (tokens.get(i) instanceof WhereToken) {
-               lastWhere = (WhereToken) tokens.get(i);
-               break;
-           }
-       }
-
-       QueryOperatorToken token = defaultOperator == QueryOperator.AND ? QueryOperatorToken.AND : QueryOperatorToken.OR;
-
-       if (lastWhere != null && lastWhere.getOptions().getSearchOperator() != null) {
-           token = QueryOperatorToken.OR; // default to OR operator after search if AND was not specified explicitly
-       }
-
-       tokens.add(token);
-   }
-
-   @SuppressWarnings("unchecked")
-    Collection<Object> transformCollection(string fieldName, Collection<Object> values) {
-       List<Object> result = new ArrayList<>();
-       for (Object value : values) {
-           if (value instanceof Collection) {
-               result.addAll(transformCollection(fieldName, (Collection) value));
-           } else {
-               WhereParams nestedWhereParams = new WhereParams();
-               nestedWhereParams.setAllowWildcards(true);
-               nestedWhereParams.setFieldName(fieldName);
-               nestedWhereParams.setValue(value);
-
-               result.add(transformValue(nestedWhereParams));
-           }
-       }
-       return result;
-   }
-
-     negateIfNeeded(List<QueryToken> tokens, string fieldName) {
-       if (!negate) {
-           return;
-       }
-
-       negate = false;
-
-       if (tokens.isEmpty() || tokens.get(tokens.size() - 1) instanceof OpenSubclauseToken) {
-           if (fieldName != null) {
-               _whereExists(fieldName);
-           } else {
-               _whereTrue();
-           }
-           _andAlso();
-       }
-
-       tokens.add(NegateToken.INSTANCE);
-   }
 
     static Collection<Object> unpackCollection(Collection items) {
        List<Object> results = new ArrayList<>();
@@ -1201,6 +1238,29 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokens() []QueryToken {
 
 	if moreLikeThisToken, ok := lastToken.(*MoreLikeThisToken); ok {
 		return moreLikeThisToken.whereTokens
+	} else {
+		//throw new IllegalStateException("Last token is not MoreLikeThisToken");
+		panicIf(true, "Last token is not MoreLikeThisToken")
+	}
+	return nil
+}
+
+func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]QueryToken {
+	if !q._isInMoreLikeThis {
+		return &q.whereTokens
+	}
+
+	n := len(q.whereTokens)
+
+	if n == 0 {
+		// throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
+		panicIf(true, "Cannot get MoreLikeThisToken because there are no where token specified.")
+	}
+
+	lastToken := q.whereTokens[n-1]
+
+	if moreLikeThisToken, ok := lastToken.(*MoreLikeThisToken); ok {
+		return &moreLikeThisToken.whereTokens
 	} else {
 		//throw new IllegalStateException("Last token is not MoreLikeThisToken");
 		panicIf(true, "Last token is not MoreLikeThisToken")

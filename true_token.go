@@ -2,6 +2,8 @@ package ravendb
 
 var _ QueryToken = &TrueToken{}
 
+var TrueToken_INSTANCE = NewTrueToken()
+
 type TrueToken struct {
 }
 

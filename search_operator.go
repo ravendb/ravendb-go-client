@@ -3,6 +3,7 @@ package ravendb
 type SearchOperator int
 
 const (
-	SearchOperator_OR SearchOperator = iota
+	SearchOperator_UNSET SearchOperator = iota
+	SearchOperator_OR
 	SearchOperator_AND
 )
