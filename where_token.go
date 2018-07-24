@@ -58,6 +58,14 @@ func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, prop
 	}
 }
 
+func NewWhereOptionsWithFromTo(exact bool, from string, to string) *WhereOptions {
+	return &WhereOptions{
+		exact:             exact,
+		fromParameterName: from,
+		toParameterName:   to,
+	}
+}
+
 func (o *WhereOptions) getSearchOperator() SearchOperator {
 	return o.searchOperator
 }

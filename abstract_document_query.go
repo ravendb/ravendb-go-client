@@ -461,94 +461,110 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WherePara
 	*tokensRef = tokens
 }
 
+func (q *AbstractDocumentQuery) negateNext() {
+	q.negate = !q.negate
+}
+
+func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []Object) {
+	q._whereInWithExact(fieldName, values, false)
+}
+
+func (q *AbstractDocumentQuery) _whereInWithExact(fieldName string, values []Object, exact bool) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	whereToken := WhereToken_create(WhereOperator_IN, fieldName, q.addQueryParameter(q.transformCollection(fieldName, AbstractDocumentQuery_unpackCollection(values))))
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object) {
+	whereParams := NewWhereParams()
+	whereParams.setFieldName(fieldName)
+	whereParams.setValue(value)
+	whereParams.setAllowWildcards(true)
+
+	transformToEqualValue := q.transformValue(whereParams)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
+	q.negateIfNeeded(tokensRef, whereParams.getFieldName())
+
+	whereToken := WhereToken_create(WhereOperator_STARTS_WITH, whereParams.getFieldName(), q.addQueryParameter(transformToEqualValue))
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
+	whereParams := NewWhereParams()
+	whereParams.setFieldName(fieldName)
+	whereParams.setValue(value)
+	whereParams.setAllowWildcards(true)
+
+	transformToEqualValue := q.transformValue(whereParams)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
+	q.negateIfNeeded(tokensRef, whereParams.getFieldName())
+
+	whereToken := WhereToken_create(WhereOperator_ENDS_WITH, whereParams.getFieldName(), q.addQueryParameter(transformToEqualValue))
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _whereBetween(fieldName string, start Object, end Object) {
+	q._whereBetweenWithExact(fieldName, start, end, false)
+}
+
+func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start Object, end Object, exact bool) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	startParams := NewWhereParams()
+	startParams.setValue(start)
+	startParams.setFieldName(fieldName)
+
+	endParams := NewWhereParams()
+	endParams.setValue(end)
+	endParams.setFieldName(fieldName)
+
+	fromParam := interface{}("*")
+	if start == nil {
+		fromParam = q.transformValueWithRange(startParams, true)
+	}
+	fromParameterName := q.addQueryParameter(fromParam)
+
+	toParam := interface{}("NULL")
+	// TODO: should this be end == nil? A bug in Java code?
+	if start == nil {
+		toParam = q.transformValueWithRange(endParams, true)
+	}
+	toParameterName := q.addQueryParameter(toParam)
+
+	whereToken := WhereToken_createWithOptions(WhereOperator_BETWEEN, fieldName, "", NewWhereOptionsWithFromTo(exact, fromParameterName, toParameterName))
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
 /*
-     negateNext() {
-       negate = !negate;
-   }
-
-   @Override
-     _whereIn(string fieldName, Collection<Object> values) {
-       _whereIn(fieldName, values, false);
-   }
-
-   @Override
-     _whereIn(string fieldName, Collection<Object> values, bool exact) {
-       fieldName = ensureValidFieldName(fieldName, false);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-
-       WhereToken whereToken = WhereToken.create(WhereOperator.IN, fieldName, addQueryParameter(transformCollection(fieldName, unpackCollection(values))));
-       tokens.add(whereToken);
-   }
-
-   @SuppressWarnings("unchecked")
-     _whereStartsWith(string fieldName, Object value) {
-       WhereParams whereParams = new WhereParams();
-       whereParams.setFieldName(fieldName);
-       whereParams.setValue(value);
-       whereParams.setAllowWildcards(true);
-
-       Object transformToEqualValue = transformValue(whereParams);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-
-       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
-       negateIfNeeded(tokens, whereParams.getFieldName());
-
-       WhereToken whereToken = WhereToken.create(WhereOperator.STARTS_WITH, whereParams.getFieldName(), addQueryParameter(transformToEqualValue));
-       tokens.add(whereToken);
-   }
-
-   @SuppressWarnings("unchecked")
-     _whereEndsWith(string fieldName, Object value) {
-       WhereParams whereParams = new WhereParams();
-       whereParams.setFieldName(fieldName);
-       whereParams.setValue(value);
-       whereParams.setAllowWildcards(true);
-
-       Object transformToEqualValue = transformValue(whereParams);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-
-       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
-       negateIfNeeded(tokens, whereParams.getFieldName());
-
-       WhereToken whereToken = WhereToken.create(WhereOperator.ENDS_WITH, whereParams.getFieldName(), addQueryParameter(transformToEqualValue));
-       tokens.add(whereToken);
-   }
-
-   @Override
-     _whereBetween(string fieldName, Object start, Object end) {
-       _whereBetween(fieldName, start, end, false);
-   }
-
-   @Override
-     _whereBetween(string fieldName, Object start, Object end, bool exact) {
-       fieldName = ensureValidFieldName(fieldName, false);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-
-       WhereParams startParams = new WhereParams();
-       startParams.setValue(start);
-       startParams.setFieldName(fieldName);
-
-       WhereParams endParams = new WhereParams();
-       endParams.setValue(end);
-       endParams.setFieldName(fieldName);
-
-       string fromParameterName = addQueryParameter(start == null ? "*" : transformValue(startParams, true));
-       string toParameterName = addQueryParameter(start == null ? "NULL" : transformValue(endParams, true));
-
-       WhereToken whereToken = WhereToken.create(WhereOperator.BETWEEN, fieldName, null, new WhereToken.WhereOptions(exact, fromParameterName, toParameterName));
-       tokens.add(whereToken);
-   }
-
      _whereGreaterThan(string fieldName, Object value) {
        _whereGreaterThan(fieldName, value, false);
    }
@@ -1167,22 +1183,20 @@ func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]QueryToken, fieldNam
 	*tokensRef = tokens
 }
 
-/*
+func AbstractDocumentQuery_unpackCollection(items []Object) []Object {
+	var results []Object
 
-    static Collection<Object> unpackCollection(Collection items) {
-       List<Object> results = new ArrayList<>();
+	for _, item := range items {
+		if itemCollection, ok := item.([]Object); ok {
+			els := AbstractDocumentQuery_unpackCollection(itemCollection)
+			results = append(results, els...)
+		} else {
+			results = append(results, item)
+		}
+	}
 
-       for (Object item : items) {
-           if (item instanceof Collection) {
-               results.addAll(unpackCollection((Collection) item));
-           } else {
-               results.add(item);
-           }
-       }
-
-       return results;
-   }
-*/
+	return results
+}
 
 func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
 	if q.theSession == nil || q.theSession.getConventions() == nil || isNestedPath || q.isGroupBy {
@@ -1197,10 +1211,10 @@ func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedP
 }
 
 func (q *AbstractDocumentQuery) transformValue(whereParams *WhereParams) Object {
-	return q.transformValue2(whereParams, false)
+	return q.transformValueWithRange(whereParams, false)
 }
 
-func (q *AbstractDocumentQuery) transformValue2(whereParams *WhereParams, forRange bool) Object {
+func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams, forRange bool) Object {
 	if whereParams.getValue() == nil {
 		return nil
 	}
