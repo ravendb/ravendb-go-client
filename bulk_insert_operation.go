@@ -272,7 +272,7 @@ func (o *BulkInsertOperation) abort() error {
 	err = o._requestExecutor.executeCommand(command)
 	//o._currentWriter.Close()
 	if err != nil {
-		return NewBulkInsertAbortedException("Unable to kill ths bulk insert operation, because it was not found on the server.")
+		return NewBulkInsertAbortedException("%s", "Unable to kill ths bulk insert operation, because it was not found on the server.")
 	}
 	o._currentWriter.CloseWithError(NewBulkInsertAbortedException("killed operation"))
 	return nil

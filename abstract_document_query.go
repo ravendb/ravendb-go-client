@@ -306,18 +306,24 @@ func (q *AbstractDocumentQuery) _skip(count int) {
 	q.start = count
 }
 
+func (q *AbstractDocumentQuery) _whereLucene(fieldName string, whereClause string, exact bool) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	tokens := *tokensRef
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	var options *WhereOptions
+	if exact {
+		options = NewWhereOptionsWithExact(exact)
+	}
+	whereToken := WhereToken_createWithOptions(WhereOperator_LUCENE, fieldName, q.addQueryParameter(whereClause), options)
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
 /*
-     _whereLucene(string fieldName, string whereClause, bool exact) {
-       fieldName = ensureValidFieldName(fieldName, false);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-
-       WhereToken.WhereOptions options = exact ? new WhereToken.WhereOptions(exact) : null;
-       WhereToken whereToken = WhereToken.create(WhereOperator.LUCENE, fieldName, addQueryParameter(whereClause), options);
-       tokens.add(whereToken);
-   }
 
    @Override
      _openSubclause() {

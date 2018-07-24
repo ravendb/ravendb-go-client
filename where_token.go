@@ -36,6 +36,12 @@ func NewWhereOptions() *WhereOptions {
 	return &WhereOptions{}
 }
 
+func NewWhereOptionsWithExact(exact bool) *WhereOptions {
+	return &WhereOptions{
+		exact: exact,
+	}
+}
+
 func (o *WhereOptions) getSearchOperator() SearchOperator {
 	return o.searchOperator
 }
@@ -135,7 +141,7 @@ func WhereToken_create(op WhereOperator, fieldName string, parameterName string)
 	return res
 }
 
-func WhereToken_create2(op WhereOperator, fieldName string, parameterName string, options *WhereOptions) *WhereToken {
+func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterName string, options *WhereOptions) *WhereToken {
 	token := NewWhereToken()
 	token.fieldName = fieldName
 	token.parameterName = parameterName
