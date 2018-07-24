@@ -323,144 +323,145 @@ func (q *AbstractDocumentQuery) _whereLucene(fieldName string, whereClause strin
 	*tokensRef = tokens
 }
 
+func (q *AbstractDocumentQuery) _openSubclause() {
+	q._currentClauseDepth++
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, "")
+
+	tokens := *tokensRef
+	tokens = append(tokens, OpenSubclauseToken_INSTANCE)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _closeSubclause() {
+	q._currentClauseDepth--
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	tokens := *tokensRef
+	tokens = append(tokens, CloseSubclauseToken_INSTANCE)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _whereEquals(fieldName string, value Object) {
+	q._whereEqualsWithExact(fieldName, value, false)
+}
+
+func (q *AbstractDocumentQuery) _whereEqualsWithExact(fieldName string, value Object, exact bool) {
+	params := NewWhereParams()
+	params.setFieldName(fieldName)
+	params.setValue(value)
+	params.setExact(exact)
+	q._whereEqualsWithParams(params)
+}
+
 /*
 
-   @Override
-     _openSubclause() {
-       _currentClauseDepth++;
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, null);
-
-       tokens.add(OpenSubclauseToken.INSTANCE);
-   }
-
-   @Override
-     _closeSubclause() {
-       _currentClauseDepth--;
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       tokens.add(CloseSubclauseToken.INSTANCE);
-   }
-
-   @Override
-     _whereEquals(string fieldName, Object value) {
-       _whereEquals(fieldName, value, false);
-   }
-
-   @Override
-     _whereEquals(string fieldName, Object value, bool exact) {
-       WhereParams params = new WhereParams();
-       params.setFieldName(fieldName);
-       params.setValue(value);
-       params.setExact(exact);
-       _whereEquals(params);
-   }
-
-   @Override
      _whereEquals(string fieldName, MethodCall method) {
        _whereEquals(fieldName, method, false);
    }
 
-   @Override
      _whereEquals(string fieldName, MethodCall method, bool exact) {
        _whereEquals(fieldName, (Object) method, exact);
    }
+*/
 
-   @SuppressWarnings("unchecked")
-     _whereEquals(WhereParams whereParams) {
-       if (negate) {
-           negate = false;
-           _whereNotEquals(whereParams);
-           return;
-       }
+func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams) {
+	if q.negate {
+		q.negate = false
+		q._whereNotEqualsWithParams(whereParams)
+		return
+	}
 
-       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
 
-       if (ifValueIsMethod(WhereOperator.EQUALS, whereParams, tokens)) {
-           return;
-       }
+	if q.ifValueIsMethod(WhereOperator_EQUALS, whereParams, tokensRef) {
+		return
+	}
 
-       Object transformToEqualValue = transformValue(whereParams);
-       string addQueryParameter = addQueryParameter(transformToEqualValue);
-       WhereToken whereToken = WhereToken.create(WhereOperator.EQUALS, whereParams.getFieldName(), addQueryParameter, new WhereToken.WhereOptions(whereParams.isExact()));
-       tokens.add(whereToken);
-   }
+	transformToEqualValue := q.transformValue(whereParams)
+	addQueryParameter := q.addQueryParameter(transformToEqualValue)
+	whereToken := WhereToken_createWithOptions(WhereOperator_EQUALS, whereParams.getFieldName(), addQueryParameter, NewWhereOptionsWithExact(whereParams.isExact()))
 
-    bool ifValueIsMethod(WhereOperator op, WhereParams whereParams, List<QueryToken> tokens) {
-       if (whereParams.getValue() instanceof MethodCall) {
-           MethodCall mc = (MethodCall) whereParams.getValue();
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
-           string[] args = new string[mc.args.length];
-           for (int i = 0; i < mc.args.length; i++) {
-               args[i] = addQueryParameter(mc.args[i]);
-           }
+func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *WhereParams, tokensRef *[]QueryToken) bool {
+	if mc, ok := whereParams.getValue().(*CmpXchg); ok {
+		n := len(mc.args)
+		args := make([]string, n)
+		for i := 0; i < n; i++ {
+			args[i] = q.addQueryParameter(mc.args[i])
+		}
 
-           WhereToken token;
-           Class<? extends MethodCall> type = mc.getClass();
-           if (CmpXchg.class.equals(type)) {
-               token = WhereToken.create(op, whereParams.getFieldName(), null, new WhereToken.WhereOptions(WhereToken.MethodsType.CMP_X_CHG, args, mc.accessPath, whereParams.isExact()));
-           } else {
-               throw new IllegalArgumentException("Unknown method " + type);
-           }
+		opts := NewWhereOptionsWithMethod(MethodsType_CMP_X_CHG, args, mc.accessPath, whereParams.isExact())
+		token := WhereToken_createWithOptions(op, whereParams.getFieldName(), "", opts)
 
-           tokens.add(token);
-           return true;
-       }
+		tokens := *tokensRef
+		tokens = append(tokens, token)
+		*tokensRef = tokens
+		return true
+	} else {
+		//throw new IllegalArgumentException("Unknown method " + type);
+		panicIf(true, "Unknown method %T", whereParams.getValue())
+	}
 
-       return false;
-   }
+	return false
+}
 
-     _whereNotEquals(string fieldName, Object value) {
-       _whereNotEquals(fieldName, value, false);
-   }
+func (q *AbstractDocumentQuery) _whereNotEquals(fieldName string, value Object) {
+	q._whereNotEqualsWithExact(fieldName, value, false)
+}
 
-     _whereNotEquals(string fieldName, Object value, bool exact) {
-       WhereParams params = new WhereParams();
-       params.setFieldName(fieldName);
-       params.setValue(value);
-       params.setExact(exact);
+func (q *AbstractDocumentQuery) _whereNotEqualsWithExact(fieldName string, value Object, exact bool) {
+	params := NewWhereParams()
+	params.setFieldName(fieldName)
+	params.setValue(value)
+	params.setExact(exact)
 
-       _whereNotEquals(params);
-   }
+	q._whereNotEqualsWithParams(params)
+}
 
-   @Override
-     _whereNotEquals(string fieldName, MethodCall method) {
-       _whereNotEquals(fieldName, (Object) method);
-   }
+func (q *AbstractDocumentQuery) _whereNotEqualsWithMethod(fieldName string, method MethodCall) {
+	q._whereNotEquals(fieldName, method)
+}
 
-   @Override
-     _whereNotEquals(string fieldName, MethodCall method, bool exact) {
-       _whereNotEquals(fieldName, (Object) method, exact);
-   }
+func (q *AbstractDocumentQuery) _whereNotEqualsWithMethodAndExact(fieldName string, method MethodCall, exact bool) {
+	q._whereNotEqualsWithExact(fieldName, method, exact)
+}
 
-   @SuppressWarnings("unchecked")
-     _whereNotEquals(WhereParams whereParams) {
-       if (negate) {
-           negate = false;
-           _whereEquals(whereParams);
-           return;
-       }
+func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WhereParams) {
+	if q.negate {
+		q.negate = false
+		q._whereEqualsWithParams(whereParams)
+		return
+	}
 
-       Object transformToEqualValue = transformValue(whereParams);
+	transformToEqualValue := q.transformValue(whereParams)
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
 
-       whereParams.setFieldName(ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()));
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
 
-       if (ifValueIsMethod(WhereOperator.NOT_EQUALS, whereParams, tokens)) {
-           return;
-       }
+	if q.ifValueIsMethod(WhereOperator_NOT_EQUALS, whereParams, tokensRef) {
+		return
+	}
 
-       WhereToken whereToken = WhereToken.create(WhereOperator.NOT_EQUALS, whereParams.getFieldName(), addQueryParameter(transformToEqualValue), new WhereToken.WhereOptions(whereParams.isExact()));
-       tokens.add(whereToken);
-   }
+	whereToken := WhereToken_createWithOptions(WhereOperator_NOT_EQUALS, whereParams.getFieldName(), q.addQueryParameter(transformToEqualValue), NewWhereOptionsWithExact(whereParams.isExact()))
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
+/*
      negateNext() {
        negate = !negate;
    }

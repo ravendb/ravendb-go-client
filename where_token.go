@@ -4,16 +4,20 @@ import "math"
 
 var _ QueryToken = &WhereToken{}
 
-type MethodType = string
+type MethodsType = string
 
 const (
-	MethodType_CMP_X_CHG = "CmpXChg"
+	MethodsType_CMP_X_CHG = "CmpXChg"
 )
 
 type WhereMethodCall struct {
-	methodType MethodType
+	methodType MethodsType
 	parameters []string
 	property   string
+}
+
+func NewWhereMethodCall() *WhereMethodCall {
+	return &WhereMethodCall{}
 }
 
 type WhereOptions struct {
@@ -39,6 +43,18 @@ func NewWhereOptions() *WhereOptions {
 func NewWhereOptionsWithExact(exact bool) *WhereOptions {
 	return &WhereOptions{
 		exact: exact,
+	}
+}
+
+func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *WhereOptions {
+	method := NewWhereMethodCall()
+	method.methodType = methodType
+	method.parameters = parameters
+	method.property = property
+
+	return &WhereOptions{
+		method: method,
+		exact:  exact,
 	}
 }
 
@@ -196,7 +212,7 @@ func (t *WhereToken) addAlias(alias string) {
 func (t *WhereToken) writeMethod(writer *StringBuilder) bool {
 	if t.options.getMethod() != nil {
 		switch t.options.getMethod().methodType {
-		case MethodType_CMP_X_CHG:
+		case MethodsType_CMP_X_CHG:
 			writer.append("cmpxchg(")
 			break
 		default:
