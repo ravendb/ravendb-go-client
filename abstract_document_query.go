@@ -278,32 +278,35 @@ func (q *AbstractDocumentQuery) _whereTrue() {
 	*tokensRef = tokens
 }
 
+func (q *AbstractDocumentQuery) _moreLikeThis() *MoreLikeThisScope {
+	q.appendOperatorIfNeeded(&q.whereTokens)
+
+	token := NewMoreLikeThisToken()
+	q.whereTokens = append(q.whereTokens, token)
+
+	q._isInMoreLikeThis = true
+	funcAddQueryParameter := func(o Object) string {
+		return q.addQueryParameter(o)
+	}
+	funcOnDispose := func() {
+		q._isInMoreLikeThis = false
+	}
+	return NewMoreLikeThisScope(token, funcAddQueryParameter, funcOnDispose)
+}
+
+func (q *AbstractDocumentQuery) _include(path string) {
+	q.includes.add(path)
+}
+
+func (q *AbstractDocumentQuery) _take(count int) {
+	q.pageSize = count
+}
+
+func (q *AbstractDocumentQuery) _skip(count int) {
+	q.start = count
+}
+
 /*
-    MoreLikeThisScope _moreLikeThis() {
-       appendOperatorIfNeeded(whereTokens);
-
-       MoreLikeThisToken token = new MoreLikeThisToken();
-       whereTokens.add(token);
-
-       _isInMoreLikeThis = true;
-       return new MoreLikeThisScope(token, this::addQueryParameter, () -> _isInMoreLikeThis = false);
-   }
-
-   @Override
-     _include(string path) {
-       includes.add(path);
-   }
-
-   @Override
-     _take(int count) {
-       pageSize = count;
-   }
-
-   @Override
-     _skip(int count) {
-       start = count;
-   }
-
      _whereLucene(string fieldName, string whereClause, bool exact) {
        fieldName = ensureValidFieldName(fieldName, false);
 
