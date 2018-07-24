@@ -46,6 +46,12 @@ func NewWhereOptionsWithExact(exact bool) *WhereOptions {
 	}
 }
 
+func NewWhereOptionsWithOperator(search SearchOperator) *WhereOptions {
+	return &WhereOptions{
+		searchOperator: search,
+	}
+}
+
 func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *WhereOptions {
 	method := NewWhereMethodCall()
 	method.methodType = methodType

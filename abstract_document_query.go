@@ -564,99 +564,132 @@ func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start O
 	*tokensRef = tokens
 }
 
-/*
-     _whereGreaterThan(string fieldName, Object value) {
-       _whereGreaterThan(fieldName, value, false);
-   }
+func (q *AbstractDocumentQuery) _whereGreaterThan(fieldName string, value Object) {
+	q._whereGreaterThanWithExact(fieldName, value, false)
+}
 
-     _whereGreaterThan(string fieldName, Object value, bool exact) {
-       fieldName = ensureValidFieldName(fieldName, false);
+func (q *AbstractDocumentQuery) _whereGreaterThanWithExact(fieldName string, value Object, exact bool) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-       WhereParams whereParams = new WhereParams();
-       whereParams.setValue(value);
-       whereParams.setFieldName(fieldName);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       string parameter = addQueryParameter(value == null ? "*" : transformValue(whereParams, true));
-       WhereToken whereToken = WhereToken.create(WhereOperator.GREATER_THAN, fieldName, parameter, new WhereToken.WhereOptions(exact));
-       tokens.add(whereToken);
-   }
+	whereParams := NewWhereParams()
+	whereParams.setValue(value)
+	whereParams.setFieldName(fieldName)
 
-     _whereGreaterThanOrEqual(string fieldName, Object value) {
-       _whereGreaterThanOrEqual(fieldName, value, false);
-   }
+	paramValue := interface{}("*")
+	if value != nil {
+		paramValue = q.transformValueWithRange(whereParams, true)
+	}
+	parameter := q.addQueryParameter(paramValue)
 
-     _whereGreaterThanOrEqual(string fieldName, Object value, bool exact) {
-       fieldName = ensureValidFieldName(fieldName, false);
+	whereToken := WhereToken_createWithOptions(WhereOperator_GREATER_THAN, fieldName, parameter, NewWhereOptionsWithExact(exact))
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-       WhereParams whereParams = new WhereParams();
-       whereParams.setValue(value);
-       whereParams.setFieldName(fieldName);
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
-       string parameter = addQueryParameter(value == null ? "*" : transformValue(whereParams, true));
-       WhereToken whereToken = WhereToken.create(WhereOperator.GREATER_THAN_OR_EQUAL, fieldName, parameter, new WhereToken.WhereOptions(exact));
-       tokens.add(whereToken);
-   }
+func (q *AbstractDocumentQuery) _whereGreaterThanOrEqual(fieldName string, value Object) {
+	q._whereGreaterThanOrEqualWithExact(fieldName, value, false)
+}
 
-     _whereLessThan(string fieldName, Object value) {
-       _whereLessThan(fieldName, value, false);
-   }
+func (q *AbstractDocumentQuery) _whereGreaterThanOrEqualWithExact(fieldName string, value Object, exact bool) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
 
-     _whereLessThan(string fieldName, Object value, bool exact) {
-       fieldName = ensureValidFieldName(fieldName, false);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+	whereParams := NewWhereParams()
+	whereParams.setValue(value)
+	whereParams.setFieldName(fieldName)
 
-       WhereParams whereParams = new WhereParams();
-       whereParams.setValue(value);
-       whereParams.setFieldName(fieldName);
+	paramValue := interface{}("*")
+	if value != nil {
+		paramValue = q.transformValueWithRange(whereParams, true)
+	}
 
-       string parameter = addQueryParameter(value == null ? "NULL" : transformValue(whereParams, true));
-       WhereToken whereToken = WhereToken.create(WhereOperator.LESS_THAN, fieldName, parameter, new WhereToken.WhereOptions(exact));
-       tokens.add(whereToken);
-   }
+	parameter := q.addQueryParameter(paramValue)
 
-     _whereLessThanOrEqual(string fieldName, Object value) {
-       _whereLessThanOrEqual(fieldName, value, false);
-   }
+	whereToken := WhereToken_createWithOptions(WhereOperator_GREATER_THAN_OR_EQUAL, fieldName, parameter, NewWhereOptionsWithExact(exact))
 
-     _whereLessThanOrEqual(string fieldName, Object value, bool exact) {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
-       WhereParams whereParams = new WhereParams();
-       whereParams.setValue(value);
-       whereParams.setFieldName(fieldName);
+func (q *AbstractDocumentQuery) _whereLessThan(fieldName string, value Object) {
+	q._whereLessThanWithExact(fieldName, value, false)
+}
 
-       string parameter = addQueryParameter(value == null ? "NULL" : transformValue(whereParams, true));
-       WhereToken whereToken = WhereToken.create(WhereOperator.LESS_THAN_OR_EQUAL, fieldName, parameter, new WhereToken.WhereOptions(exact));
-       tokens.add(whereToken);
-   }
+func (q *AbstractDocumentQuery) _whereLessThanWithExact(fieldName string, value Object, exact bool) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
 
-   @Override
-     _whereRegex(string fieldName, string pattern) {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       WhereParams whereParams = new WhereParams();
-       whereParams.setValue(pattern);
-       whereParams.setFieldName(fieldName);
+	whereParams := NewWhereParams()
+	whereParams.setValue(value)
+	whereParams.setFieldName(fieldName)
 
-       string parameter = addQueryParameter(transformValue(whereParams));
+	paramValue := interface{}("NULL")
+	if value != nil {
+		paramValue = q.transformValueWithRange(whereParams, true)
+	}
+	parameter := q.addQueryParameter(paramValue)
+	whereToken := WhereToken_createWithOptions(WhereOperator_LESS_THAN, fieldName, parameter, NewWhereOptionsWithExact(exact))
 
-       WhereToken whereToken = WhereToken.create(WhereOperator.REGEX, fieldName, parameter);
-       tokens.add(whereToken);
-   }
-*/
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _whereLessThanOrEqual(fieldName string, value Object) {
+	q._whereLessThanOrEqualWithExact(fieldName, value, false)
+}
+
+func (q *AbstractDocumentQuery) _whereLessThanOrEqualWithExact(fieldName string, value Object, exact bool) {
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	whereParams := NewWhereParams()
+	whereParams.setValue(value)
+	whereParams.setFieldName(fieldName)
+
+	paramValue := interface{}("NULL")
+	if value != nil {
+		paramValue = q.transformValueWithRange(whereParams, true)
+	}
+	parameter := q.addQueryParameter(paramValue)
+	whereToken := WhereToken_createWithOptions(WhereOperator_LESS_THAN_OR_EQUAL, fieldName, parameter, NewWhereOptionsWithExact(exact))
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _whereRegex(fieldName string, pattern string) {
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	whereParams := NewWhereParams()
+	whereParams.setValue(pattern)
+	whereParams.setFieldName(fieldName)
+
+	parameter := q.addQueryParameter(q.transformValue(whereParams))
+
+	whereToken := WhereToken_create(WhereOperator_REGEX, fieldName, parameter)
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
 func (q *AbstractDocumentQuery) _andAlso() {
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -794,21 +827,21 @@ func (q *AbstractDocumentQuery) _statistics(stats **QueryStatistics) {
 }
 
 func (q *AbstractDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
-	panicIf(true, "NYI")
-	// TODO:
-	// EventHelper.invoke(afterQueryExecutedCallback, result);
+	for _, cb := range q.afterQueryExecutedCallback {
+		cb(result)
+	}
 }
 
 func (q *AbstractDocumentQuery) invokeBeforeQueryExecuted(query *IndexQuery) {
-	panicIf(true, "NYI")
-	// TODO:
-	// EventHelper.invoke(beforeQueryExecutedCallback, query)
+	for _, cb := range q.beforeQueryExecutedCallback {
+		cb(query)
+	}
 }
 
 func (q *AbstractDocumentQuery) invokeAfterStreamExecuted(result ObjectNode) {
-	panicIf(true, "NYI")
-	// TODO:
-	// EventHelper.invoke(afterStreamExecutedCallback, result)
+	for _, cb := range q.afterStreamExecutedCallback {
+		cb(result)
+	}
 }
 
 func (q *AbstractDocumentQuery) generateIndexQuery(query string) *IndexQuery {
@@ -826,24 +859,23 @@ func (q *AbstractDocumentQuery) generateIndexQuery(query string) *IndexQuery {
 	return indexQuery
 }
 
-/*
-   @Override
-     _search(string fieldName, string searchTerms) {
-       _search(fieldName, searchTerms, SearchOperator.OR);
-   }
+func (q *AbstractDocumentQuery) _search(fieldName string, searchTerms string) {
+	q._searchWithOperator(fieldName, searchTerms, SearchOperator_OR)
+}
 
-   @Override
-     _search(string fieldName, string searchTerms, SearchOperator operator) {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
+func (q *AbstractDocumentQuery) _searchWithOperator(fieldName string, searchTerms string, operator SearchOperator) {
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
 
-       fieldName = ensureValidFieldName(fieldName, false);
-       negateIfNeeded(tokens, fieldName);
+	fieldName = q.ensureValidFieldName(fieldName, false)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       WhereToken whereToken = WhereToken.create(WhereOperator.SEARCH, fieldName, addQueryParameter(searchTerms), new WhereToken.WhereOptions(operator));
-       tokens.add(whereToken);
-   }
-*/
+	whereToken := WhereToken_createWithOptions(WhereOperator_SEARCH, fieldName, q.addQueryParameter(searchTerms), NewWhereOptionsWithOperator(operator))
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
 func (q *AbstractDocumentQuery) String() string {
 	if q.queryRaw != "" {
@@ -961,13 +993,11 @@ func (q *AbstractDocumentQuery) _whereExists(fieldName string) {
        tokens.add(whereToken);
    }
 
-   @Override
-     _addRootType(Class clazz) {
-       rootTypes.add(clazz);
-
-
-   @Override
 */
+
+func (q *AbstractDocumentQuery) _addRootType(clazz reflect.Type) {
+	q.rootTypes.add(clazz)
+}
 
 func (q *AbstractDocumentQuery) _distinct() {
 	panicIf(q.isDistinct(), "The is already a distinct query")
