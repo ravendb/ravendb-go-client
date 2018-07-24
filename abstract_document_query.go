@@ -1271,294 +1271,296 @@ func (q *AbstractDocumentQuery) _noCaching() {
 }
 
 /*
-    protected  _withinRadiusOf(string fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits, double distErrorPercent) {
-        fieldName = ensureValidFieldName(fieldName, false);
+   protected  _withinRadiusOf(string fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits, double distErrorPercent) {
+       fieldName = ensureValidFieldName(fieldName, false);
 
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
 
-        WhereToken whereToken = WhereToken.create(WhereOperator.SPATIAL_WITHIN, fieldName, null, new WhereToken.WhereOptions(ShapeToken.circle(addQueryParameter(radius), addQueryParameter(latitude), addQueryParameter(longitude), radiusUnits), distErrorPercent));
-        tokens.add(whereToken);
-    }
+       WhereToken whereToken = WhereToken.create(WhereOperator.SPATIAL_WITHIN, fieldName, null, new WhereToken.WhereOptions(ShapeToken.circle(addQueryParameter(radius), addQueryParameter(latitude), addQueryParameter(longitude), radiusUnits), distErrorPercent));
+       tokens.add(whereToken);
+   }
 
-    protected  _spatial(string fieldName, string shapeWkt, SpatialRelation relation, double distErrorPercent) {
-        fieldName = ensureValidFieldName(fieldName, false);
+   protected  _spatial(string fieldName, string shapeWkt, SpatialRelation relation, double distErrorPercent) {
+       fieldName = ensureValidFieldName(fieldName, false);
 
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
 
-        ShapeToken wktToken = ShapeToken.wkt(addQueryParameter(shapeWkt));
+       ShapeToken wktToken = ShapeToken.wkt(addQueryParameter(shapeWkt));
 
-        WhereOperator whereOperator;
-        switch (relation) {
-            case WITHIN:
-                whereOperator = WhereOperator.SPATIAL_WITHIN;
-                break;
-            case CONTAINS:
-                whereOperator = WhereOperator.SPATIAL_CONTAINS;
-                break;
-            case DISJOINT:
-                whereOperator = WhereOperator.SPATIAL_DISJOINT;
-                break;
-            case INTERSECTS:
-                whereOperator = WhereOperator.SPATIAL_INTERSECTS;
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
+       WhereOperator whereOperator;
+       switch (relation) {
+           case WITHIN:
+               whereOperator = WhereOperator.SPATIAL_WITHIN;
+               break;
+           case CONTAINS:
+               whereOperator = WhereOperator.SPATIAL_CONTAINS;
+               break;
+           case DISJOINT:
+               whereOperator = WhereOperator.SPATIAL_DISJOINT;
+               break;
+           case INTERSECTS:
+               whereOperator = WhereOperator.SPATIAL_INTERSECTS;
+               break;
+           default:
+               throw new IllegalArgumentException();
+       }
 
-        tokens.add(WhereToken.create(whereOperator, fieldName, null, new WhereToken.WhereOptions(wktToken, distErrorPercent)));
-    }
+       tokens.add(WhereToken.create(whereOperator, fieldName, null, new WhereToken.WhereOptions(wktToken, distErrorPercent)));
+   }
 
-    @Override
-      _spatial(DynamicSpatialField dynamicField, SpatialCriteria criteria) {
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, null);
+   @Override
+     _spatial(DynamicSpatialField dynamicField, SpatialCriteria criteria) {
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, null);
 
-        tokens.add(criteria.toQueryToken(dynamicField.toField(this::ensureValidFieldName), this::addQueryParameter));
-    }
+       tokens.add(criteria.toQueryToken(dynamicField.toField(this::ensureValidFieldName), this::addQueryParameter));
+   }
 
-    @Override
-      _spatial(string fieldName, SpatialCriteria criteria) {
-        fieldName = ensureValidFieldName(fieldName, false);
+   @Override
+     _spatial(string fieldName, SpatialCriteria criteria) {
+       fieldName = ensureValidFieldName(fieldName, false);
 
-        List<QueryToken> tokens = getCurrentWhereTokens();
-        appendOperatorIfNeeded(tokens);
-        negateIfNeeded(tokens, fieldName);
+       List<QueryToken> tokens = getCurrentWhereTokens();
+       appendOperatorIfNeeded(tokens);
+       negateIfNeeded(tokens, fieldName);
 
-        tokens.add(criteria.toQueryToken(fieldName, this::addQueryParameter));
-    }
+       tokens.add(criteria.toQueryToken(fieldName, this::addQueryParameter));
+   }
 
-    @Override
-      _orderByDistance(DynamicSpatialField field, double latitude, double longitude) {
-        if (field == null) {
-            throw new IllegalArgumentException("Field cannot be null");
-        }
-        _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
-    }
+   @Override
+     _orderByDistance(DynamicSpatialField field, double latitude, double longitude) {
+       if (field == null) {
+           throw new IllegalArgumentException("Field cannot be null");
+       }
+       _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
+   }
 
-    @Override
-      _orderByDistance(string fieldName, double latitude, double longitude) {
-        orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
-    }
+   @Override
+     _orderByDistance(string fieldName, double latitude, double longitude) {
+       orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
+   }
 
-    @Override
-      _orderByDistance(DynamicSpatialField field, string shapeWkt) {
-        if (field == null) {
-            throw new IllegalArgumentException("Field cannot be null");
-        }
-        _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
-    }
+   @Override
+     _orderByDistance(DynamicSpatialField field, string shapeWkt) {
+       if (field == null) {
+           throw new IllegalArgumentException("Field cannot be null");
+       }
+       _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
+   }
 
-    @Override
-      _orderByDistance(string fieldName, string shapeWkt) {
-        orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(shapeWkt)));
-    }
+   @Override
+     _orderByDistance(string fieldName, string shapeWkt) {
+       orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(shapeWkt)));
+   }
 
-    @Override
-      _orderByDistanceDescending(DynamicSpatialField field, double latitude, double longitude) {
-        if (field == null) {
-            throw new IllegalArgumentException("Field cannot be null");
-        }
-        _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
-    }
+   @Override
+     _orderByDistanceDescending(DynamicSpatialField field, double latitude, double longitude) {
+       if (field == null) {
+           throw new IllegalArgumentException("Field cannot be null");
+       }
+       _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
+   }
 
-    @Override
-      _orderByDistanceDescending(string fieldName, double latitude, double longitude) {
-        orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
-    }
+   @Override
+     _orderByDistanceDescending(string fieldName, double latitude, double longitude) {
+       orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
+   }
 
-    @Override
-      _orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
-        if (field == null) {
-            throw new IllegalArgumentException("Field cannot be null");
-        }
-        _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
-    }
+   @Override
+     _orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
+       if (field == null) {
+           throw new IllegalArgumentException("Field cannot be null");
+       }
+       _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
+   }
 
-    @Override
-      _orderByDistanceDescending(string fieldName, string shapeWkt) {
-        orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(shapeWkt)));
-    }
+   @Override
+     _orderByDistanceDescending(string fieldName, string shapeWkt) {
+       orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(shapeWkt)));
+   }
 
-    protected  initSync() {
-        if (queryOperation != null) {
-            return;
-        }
+   protected  initSync() {
+       if (queryOperation != null) {
+           return;
+       }
 
-        BeforeQueryEventArgs beforeQueryEventArgs = new BeforeQueryEventArgs(theSession, new DocumentQueryCustomizationDelegate(this));
-        theSession.onBeforeQueryInvoke(beforeQueryEventArgs);
+       BeforeQueryEventArgs beforeQueryEventArgs = new BeforeQueryEventArgs(theSession, new DocumentQueryCustomizationDelegate(this));
+       theSession.onBeforeQueryInvoke(beforeQueryEventArgs);
 
-        queryOperation = initializeQueryOperation();
-        executeActualQuery();
-    }
+       queryOperation = initializeQueryOperation();
+       executeActualQuery();
+   }
 
-      executeActualQuery() {
-        try (CleanCloseable context = queryOperation.enterQueryContext()) {
-            QueryCommand command = queryOperation.createRequest();
-            theSession.getRequestExecutor().execute(command, theSession.sessionInfo);
-            queryOperation.setResult(command.getResult());
-        }
-        invokeAfterQueryExecuted(queryOperation.getCurrentQueryResults());
-    }
+     executeActualQuery() {
+       try (CleanCloseable context = queryOperation.enterQueryContext()) {
+           QueryCommand command = queryOperation.createRequest();
+           theSession.getRequestExecutor().execute(command, theSession.sessionInfo);
+           queryOperation.setResult(command.getResult());
+       }
+       invokeAfterQueryExecuted(queryOperation.getCurrentQueryResults());
+   }
 
-    @Override
-     Iterator<T> iterator() {
-        return executeQueryOperation(null).iterator();
-    }
+   @Override
+    Iterator<T> iterator() {
+       return executeQueryOperation(null).iterator();
+   }
 
-     List<T> toList() {
-        return EnumerableUtils.toList(iterator());
-    }
+    List<T> toList() {
+       return EnumerableUtils.toList(iterator());
+   }
 
-     QueryResult getQueryResult() {
-        initSync();
+    QueryResult getQueryResult() {
+       initSync();
 
-        return queryOperation.getCurrentQueryResults().createSnapshot();
-    }
+       return queryOperation.getCurrentQueryResults().createSnapshot();
+   }
 
-     T first() {
-        Collection<T> result = executeQueryOperation(1);
-        return result.isEmpty() ? null : result.stream().findFirst().get();
-    }
+    T first() {
+       Collection<T> result = executeQueryOperation(1);
+       return result.isEmpty() ? null : result.stream().findFirst().get();
+   }
 
-     T firstOrDefault() {
-        Collection<T> result = executeQueryOperation(1);
-        return result.stream().findFirst().orElseGet(() -> Defaults.defaultValue(clazz));
-    }
+    T firstOrDefault() {
+       Collection<T> result = executeQueryOperation(1);
+       return result.stream().findFirst().orElseGet(() -> Defaults.defaultValue(clazz));
+   }
 
-     T single() {
-        Collection<T> result = executeQueryOperation(2);
-        if (result.size() > 1) {
-            throw new IllegalStateException("Expected single result, got: " + result.size());
-        }
-        return result.stream().findFirst().orElse(null);
-    }
+    T single() {
+       Collection<T> result = executeQueryOperation(2);
+       if (result.size() > 1) {
+           throw new IllegalStateException("Expected single result, got: " + result.size());
+       }
+       return result.stream().findFirst().orElse(null);
+   }
 
-     T singleOrDefault() {
-        Collection<T> result = executeQueryOperation(2);
-        if (result.size() > 1) {
-            throw new IllegalStateException("Expected single result, got: " + result.size());
-        }
-        if (result.isEmpty()) {
-            return Defaults.defaultValue(clazz);
-        }
-        return result.stream().findFirst().get();
-    }
+    T singleOrDefault() {
+       Collection<T> result = executeQueryOperation(2);
+       if (result.size() > 1) {
+           throw new IllegalStateException("Expected single result, got: " + result.size());
+       }
+       if (result.isEmpty()) {
+           return Defaults.defaultValue(clazz);
+       }
+       return result.stream().findFirst().get();
+   }
 
-     int count() {
-        _take(0);
-        QueryResult queryResult = getQueryResult();
-        return queryResult.getTotalResults();
-    }
+    int count() {
+       _take(0);
+       QueryResult queryResult = getQueryResult();
+       return queryResult.getTotalResults();
+   }
 
-     bool any() {
-        if (isDistinct()) {
-            // for distinct it is cheaper to do count 1
-            return executeQueryOperation(1).iterator().hasNext();
-        }
+    bool any() {
+       if (isDistinct()) {
+           // for distinct it is cheaper to do count 1
+           return executeQueryOperation(1).iterator().hasNext();
+       }
 
-        _take(0);
-        QueryResult queryResult = getQueryResult();
-        return queryResult.getTotalResults() > 0;
-    }
+       _take(0);
+       QueryResult queryResult = getQueryResult();
+       return queryResult.getTotalResults() > 0;
+   }
 
-     Collection<T> executeQueryOperation(Integer take) {
-        if (take != null && (pageSize == null || pageSize > take)) {
-            _take(take);
-        }
+    Collection<T> executeQueryOperation(Integer take) {
+       if (take != null && (pageSize == null || pageSize > take)) {
+           _take(take);
+       }
 
-        initSync();
+       initSync();
 
-        return queryOperation.complete(clazz);
-    }
+       return queryOperation.complete(clazz);
+   }
 
-      _aggregateBy(FacetBase facet) {
-        for (QueryToken token : selectTokens) {
-            if (token instanceof FacetToken) {
-                continue;
-            }
+     _aggregateBy(FacetBase facet) {
+       for (QueryToken token : selectTokens) {
+           if (token instanceof FacetToken) {
+               continue;
+           }
 
-            throw new IllegalStateException("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
-        }
+           throw new IllegalStateException("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
+       }
 
-        selectTokens.add(FacetToken.create(facet, this::addQueryParameter));
-    }
+       selectTokens.add(FacetToken.create(facet, this::addQueryParameter));
+   }
 
-      _aggregateUsing(string facetSetupDocumentId) {
-        selectTokens.add(FacetToken.create(facetSetupDocumentId));
-    }
+     _aggregateUsing(string facetSetupDocumentId) {
+       selectTokens.add(FacetToken.create(facetSetupDocumentId));
+   }
 
-     Lazy<List<T>> lazily() {
-        return lazily(null);
-    }
+    Lazy<List<T>> lazily() {
+       return lazily(null);
+   }
 
-     Lazy<List<T>> lazily(Consumer<List<T>> onEval) {
-        if (getQueryOperation() == null) {
-            queryOperation = initializeQueryOperation();
-        }
+    Lazy<List<T>> lazily(Consumer<List<T>> onEval) {
+       if (getQueryOperation() == null) {
+           queryOperation = initializeQueryOperation();
+       }
 
-        LazyQueryOperation<T> lazyQueryOperation = new LazyQueryOperation<>(clazz, theSession.getConventions(), queryOperation, afterQueryExecutedCallback);
-        return ((DocumentSession)theSession).addLazyOperation((Class<List<T>>) (Class<?>)List.class, lazyQueryOperation, onEval);
-    }
+       LazyQueryOperation<T> lazyQueryOperation = new LazyQueryOperation<>(clazz, theSession.getConventions(), queryOperation, afterQueryExecutedCallback);
+       return ((DocumentSession)theSession).addLazyOperation((Class<List<T>>) (Class<?>)List.class, lazyQueryOperation, onEval);
+   }
 
-     Lazy<Integer> countLazily() {
-        if (queryOperation == null) {
-            _take(0);
-            queryOperation = initializeQueryOperation();
-        }
+    Lazy<Integer> countLazily() {
+       if (queryOperation == null) {
+           _take(0);
+           queryOperation = initializeQueryOperation();
+       }
 
-        LazyQueryOperation<T> lazyQueryOperation = new LazyQueryOperation<T>(clazz, theSession.getConventions(), queryOperation, afterQueryExecutedCallback);
-        return ((DocumentSession)theSession).addLazyCountOperation(lazyQueryOperation);
-    }
+       LazyQueryOperation<T> lazyQueryOperation = new LazyQueryOperation<T>(clazz, theSession.getConventions(), queryOperation, afterQueryExecutedCallback);
+       return ((DocumentSession)theSession).addLazyCountOperation(lazyQueryOperation);
+   }
 
-    @Override
-      _suggestUsing(SuggestionBase suggestion) {
-        if (suggestion == null) {
-            throw new IllegalArgumentException("suggestion cannot be null");
-        }
+   @Override
+     _suggestUsing(SuggestionBase suggestion) {
+       if (suggestion == null) {
+           throw new IllegalArgumentException("suggestion cannot be null");
+       }
 
-        assertCanSuggest();
+       assertCanSuggest();
 
-        SuggestToken token;
+       SuggestToken token;
 
-        if (suggestion instanceof SuggestionWithTerm) {
-            SuggestionWithTerm term = (SuggestionWithTerm) suggestion;
-            token = SuggestToken.create(term.getField(), addQueryParameter(term.getTerm()), getOptionsParameterName(term.getOptions()));
-        } else if (suggestion instanceof SuggestionWithTerms) {
-            SuggestionWithTerms terms = (SuggestionWithTerms) suggestion;
-            token = SuggestToken.create(terms.getField(), addQueryParameter(terms.getTerms()), getOptionsParameterName(terms.getOptions()));
-        } else {
-            throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
-        }
+       if (suggestion instanceof SuggestionWithTerm) {
+           SuggestionWithTerm term = (SuggestionWithTerm) suggestion;
+           token = SuggestToken.create(term.getField(), addQueryParameter(term.getTerm()), getOptionsParameterName(term.getOptions()));
+       } else if (suggestion instanceof SuggestionWithTerms) {
+           SuggestionWithTerms terms = (SuggestionWithTerms) suggestion;
+           token = SuggestToken.create(terms.getField(), addQueryParameter(terms.getTerms()), getOptionsParameterName(terms.getOptions()));
+       } else {
+           throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
+       }
 
-        selectTokens.add(token);
-    }
-
-     string getOptionsParameterName(SuggestionOptions options) {
-        string optionsParameterName = null;
-        if (options != null && options != SuggestionOptions.defaultOptions) {
-            optionsParameterName = addQueryParameter(options);
-        }
-
-        return optionsParameterName;
-    }
-
-      assertCanSuggest() {
-        if (!whereTokens.isEmpty()) {
-            throw new IllegalStateException("Cannot add suggest when WHERE statements are present.");
-        }
-
-        if (!selectTokens.isEmpty()) {
-            throw new IllegalStateException("Cannot add suggest when SELECT statements are present.");
-        }
-
-        if (!orderByTokens.isEmpty()) {
-            throw new IllegalStateException("Cannot add suggest when ORDER BY statements are present.");
-        }
-    }
-}
+       selectTokens.add(token);
+   }
 */
+
+func (q *AbstractDocumentQuery) getOptionsParameterName(options *SuggestionOptions) string {
+	optionsParameterName := ""
+	if options != nil && options != SuggestionOptions_defaultOptions {
+		optionsParameterName = q.addQueryParameter(options)
+	}
+
+	return optionsParameterName
+}
+
+func (q *AbstractDocumentQuery) assertCanSuggest() {
+	if len(q.whereTokens) > 0 {
+		//throw new IllegalStateException("Cannot add suggest when WHERE statements are present.");
+		panicIf(true, "Cannot add suggest when WHERE statements are present.")
+	}
+
+	if len(q.selectTokens) > 0 {
+		//throw new IllegalStateException("Cannot add suggest when SELECT statements are present.");
+		panicIf(true, "Cannot add suggest when SELECT statements are present.")
+	}
+
+	if len(q.orderByTokens) > 0 {
+		//throw new IllegalStateException("Cannot add suggest when ORDER BY statements are present.");
+		panicIf(true, "Cannot add suggest when ORDER BY statements are present.")
+	}
+}
