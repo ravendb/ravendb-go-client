@@ -157,12 +157,13 @@ func (q *AbstractDocumentQuery) getIndexQuery() *IndexQuery {
 	return indexQuery
 }
 
-/*
-   @Override
-    List<string> getProjectionFields() {
-       return fieldsToFetchToken != null && fieldsToFetchToken.projections != null ? Arrays.asList(fieldsToFetchToken.projections) : Collections.emptyList();
-   }
-*/
+func (q *AbstractDocumentQuery) getProjectionFields() []string {
+
+	if q.fieldsToFetchToken != nil && q.fieldsToFetchToken.projections != nil {
+		return q.fieldsToFetchToken.projections
+	}
+	return nil
+}
 
 func (q *AbstractDocumentQuery) _randomOrdering() {
 	q.assertNoRawQuery()
@@ -356,17 +357,9 @@ func (q *AbstractDocumentQuery) _whereEqualsWithExact(fieldName string, value Ob
 	q._whereEqualsWithParams(params)
 }
 
-/*
-
-
-     _whereEquals(string fieldName, MethodCall method) {
-       _whereEquals(fieldName, method, false);
-   }
-
-     _whereEquals(string fieldName, MethodCall method, bool exact) {
-       _whereEquals(fieldName, (Object) method, exact);
-   }
-*/
+func (q *AbstractDocumentQuery) _whereEqualsWithMethodCall(fieldName string, method MethodCall, exact bool) {
+	q._whereEqualsWithExact(fieldName, method, exact)
+}
 
 func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams) {
 	if q.negate {
@@ -728,94 +721,105 @@ func (q *AbstractDocumentQuery) _orElse() {
 	*tokensRef = tokens
 }
 
-/*
-   @Override
-     _boost(double boost) {
-       if (boost == 1.0) {
-           return;
-       }
+func (q *AbstractDocumentQuery) _boost(boost float64) {
+	if boost == 1.0 {
+		return
+	}
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       if (tokens.isEmpty()) {
-           throw new IllegalStateException("Missing where clause");
-       }
+	tokens := q.getCurrentWhereTokens()
+	n := len(tokens)
+	if n == 0 {
+		//throw new IllegalStateException("Missing where clause");
+		panicIf(true, "Missing where clause")
+	}
 
-       QueryToken whereToken = tokens.get(tokens.size() - 1);
-       if (!(whereToken instanceof WhereToken)) {
-           throw new IllegalStateException("Missing where clause");
-       }
+	maybeWhereToken := tokens[n-1]
+	whereToken, ok := maybeWhereToken.(*WhereToken)
+	if !ok {
+		//throw new IllegalStateException("Missing where clause");
+		panicIf(true, "Missing where clause")
+	}
 
-       if (boost <= 0.0) {
-           throw new IllegalArgumentException("Boost factor must be a positive number");
-       }
+	if boost <= 0.0 {
+		//throw new IllegalArgumentException("Boost factor must be a positive number");
+		panicIf(true, "Boost factor must be a positive number")
+	}
 
-       ((WhereToken) whereToken).getOptions().setBoost(boost);
-   }
+	whereToken.getOptions().setBoost(boost)
+}
 
-   @Override
-     _fuzzy(double fuzzy) {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       if (tokens.isEmpty()) {
-           throw new IllegalStateException("Missing where clause");
-       }
+func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
+	tokens := q.getCurrentWhereTokens()
+	n := len(tokens)
+	if n == 0 {
+		//throw new IllegalStateException("Missing where clause");
+		panicIf(true, "Missing where clause")
+	}
 
-       QueryToken whereToken = tokens.get(tokens.size() - 1);
-       if (!(whereToken instanceof WhereToken)) {
-           throw new IllegalStateException("Missing where clause");
-       }
+	maybeWhereToken := tokens[n-1]
+	whereToken, ok := maybeWhereToken.(*WhereToken)
+	if !ok {
+		//throw new IllegalStateException("Missing where clause");
+		panicIf(true, "Missing where clause")
+	}
 
-       if (fuzzy < 0.0 || fuzzy > 1.0) {
-           throw new IllegalArgumentException("Fuzzy distance must be between 0.0 and 1.0");
-       }
+	if fuzzy < 0.0 || fuzzy > 1.0 {
+		//throw new IllegalArgumentException("Fuzzy distance must be between 0.0 and 1.0");
+		panicIf(true, "Fuzzy distance must be between 0.0 and 1.0")
+	}
 
-       ((WhereToken) whereToken).getOptions().setFuzzy(fuzzy);
-   }
+	whereToken.getOptions().setFuzzy(fuzzy)
+}
 
-   @Override
-     _proximity(int proximity) {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       if (tokens.isEmpty()) {
-           throw new IllegalStateException("Missing where clause");
-       }
+func (q *AbstractDocumentQuery) _proximity(proximity int) {
+	tokens := q.getCurrentWhereTokens()
 
-       QueryToken whereToken = tokens.get(tokens.size() - 1);
-       if (!(whereToken instanceof WhereToken)) {
-           throw new IllegalStateException("Missing where clause");
-       }
+	n := len(tokens)
+	if n == 0 {
+		//throw new IllegalStateException("Missing where clause");
+		panicIf(true, "Missing where clause")
+	}
 
-       if (proximity < 1) {
-           throw new IllegalArgumentException("Proximity distance must be a positive number");
-       }
+	maybeWhereToken := tokens[n-1]
+	whereToken, ok := maybeWhereToken.(*WhereToken)
+	if !ok {
+		//throw new IllegalStateException("Missing where clause");
+		panicIf(true, "Missing where clause")
+	}
 
-       ((WhereToken) whereToken).getOptions().setProximity(proximity);
-   }
+	if proximity < 1 {
+		//throw new IllegalArgumentException("Proximity distance must be a positive number");
+		panicIf(true, "Proximity distance must be a positive number")
+	}
 
-     _orderBy(string field) {
-       _orderBy(field, OrderingType.string);
-   }
+	whereToken.getOptions().setProximity(proximity)
+}
 
-     _orderBy(string field, OrderingType ordering) {
-       assertNoRawQuery();
-       string f = ensureValidFieldName(field, false);
-       orderByTokens.add(OrderByToken.createAscending(f, ordering));
-   }
+func (q *AbstractDocumentQuery) _orderBy(field string) {
+	q._orderByWithOrdering(field, OrderingType_STRING)
+}
 
-     _orderByDescending(string field) {
-       _orderByDescending(field, OrderingType.string);
-   }
+func (q *AbstractDocumentQuery) _orderByWithOrdering(field string, ordering OrderingType) {
+	q.assertNoRawQuery()
+	f := q.ensureValidFieldName(field, false)
+	q.orderByTokens = append(q.orderByTokens, OrderByToken_createAscending(f, ordering))
+}
 
-     _orderByDescending(string field, OrderingType ordering) {
-       assertNoRawQuery();
-       string f = ensureValidFieldName(field, false);
-       orderByTokens.add(OrderByToken.createDescending(f, ordering));
-   }
+func (q *AbstractDocumentQuery) _orderByDescending(field string) {
+	q._orderByDescendingWithOrdering(field, OrderingType_STRING)
+}
 
-     _orderByScore() {
-       assertNoRawQuery();
+func (q *AbstractDocumentQuery) _orderByDescendingWithOrdering(field string, ordering OrderingType) {
+	q.assertNoRawQuery()
+	f := q.ensureValidFieldName(field, false)
+	q.orderByTokens = append(q.orderByTokens, OrderByToken_createDescending(f, ordering))
+}
 
-       orderByTokens.add(OrderByToken.scoreAscending);
-   }
-*/
+func (q *AbstractDocumentQuery) _orderByScore() {
+	q.assertNoRawQuery()
+
+	q.orderByTokens = append(q.orderByTokens, OrderByToken_scoreAscending)
+}
 
 func (q *AbstractDocumentQuery) _orderByScoreDescending() {
 	q.assertNoRawQuery()
@@ -930,23 +934,26 @@ func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
 	}
 }
 
-/*
-   @Override
-     _intersect() {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       if (tokens.size() > 0) {
-           QueryToken last = tokens.get(tokens.size() - 1);
-           if (last instanceof WhereToken || last instanceof CloseSubclauseToken) {
-               isIntersect = true;
+func (q *AbstractDocumentQuery) _intersect() {
+	tokensRef := q.getCurrentWhereTokensRef()
+	tokens := *tokensRef
+	n := len(tokens)
+	if n > 0 {
+		last := tokens[n-1]
+		_, isWhere := last.(*WhereToken)
+		_, isClose := last.(*CloseSubclauseToken)
+		if isWhere || isClose {
+			q.isIntersect = true
 
-               tokens.add(IntersectMarkerToken.INSTANCE);
-               return;
-           }
-       }
+			tokens = append(tokens, IntersectMarkerToken_INSTANCE)
+			*tokensRef = tokens
+			return
+		}
+	}
 
-       throw new IllegalStateException("Cannot add INTERSECT at this point.");
-   }
-*/
+	//throw new IllegalStateException("Cannot add INTERSECT at this point.");
+	panicIf(true, "Cannot add INTERSECT at this point.")
+}
 
 func (q *AbstractDocumentQuery) _whereExists(fieldName string) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
@@ -960,40 +967,39 @@ func (q *AbstractDocumentQuery) _whereExists(fieldName string) {
 	*tokensRef = tokens
 }
 
-/*
-   @Override
-     _containsAny(string fieldName, Collection<Object> values) {
-       fieldName = ensureValidFieldName(fieldName, false);
+func (q *AbstractDocumentQuery) _containsAny(fieldName string, values []Object) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       Collection<Object> array = transformCollection(fieldName, unpackCollection(values));
-       WhereToken whereToken = WhereToken.create(WhereOperator.IN, fieldName, addQueryParameter(array), new WhereToken.WhereOptions(false));
-       tokens.add(whereToken);
-   }
+	array := q.transformCollection(fieldName, AbstractDocumentQuery_unpackCollection(values))
+	whereToken := WhereToken_createWithOptions(WhereOperator_IN, fieldName, q.addQueryParameter(array), NewWhereOptionsWithExact(false))
 
-   @Override
-     _containsAll(string fieldName, Collection<Object> values) {
-       fieldName = ensureValidFieldName(fieldName, false);
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []Object) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
 
-       Collection<Object> array = transformCollection(fieldName, unpackCollection(values));
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
 
-       if (array.isEmpty()) {
-           tokens.add(TrueToken.INSTANCE);
-           return;
-       }
+	array := q.transformCollection(fieldName, AbstractDocumentQuery_unpackCollection(values))
 
-       WhereToken whereToken = WhereToken.create(WhereOperator.ALL_IN, fieldName, addQueryParameter(array));
-       tokens.add(whereToken);
-   }
-
-*/
+	tokens := *tokensRef
+	if len(array) == 0 {
+		tokens = append(tokens, TrueToken_INSTANCE)
+	} else {
+		whereToken := WhereToken_create(WhereOperator_ALL_IN, fieldName, q.addQueryParameter(array))
+		tokens = append(tokens, whereToken)
+	}
+	*tokensRef = tokens
+}
 
 func (q *AbstractDocumentQuery) _addRootType(clazz reflect.Type) {
 	q.rootTypes.add(clazz)
@@ -1384,58 +1390,68 @@ func (q *AbstractDocumentQuery) _noCaching() {
 	q.disableCaching = true
 }
 
+func (q *AbstractDocumentQuery) _withinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distErrorPercent float64) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	shape := ShapeToken_circle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
+	opts := NewWhereOptionsWithTokenAndDistance(shape, distErrorPercent)
+	whereToken := WhereToken_createWithOptions(WhereOperator_SPATIAL_WITHIN, fieldName, "", opts)
+
+	tokens := *tokensRef
+	tokens = append(tokens, whereToken)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _spatial(fieldName string, shapeWkt string, relation SpatialRelation, distErrorPercent float64) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	wktToken := ShapeToken_wkt(q.addQueryParameter(shapeWkt))
+
+	var whereOperator WhereOperator
+	switch relation {
+	case SpatialRelation_WITHIN:
+		whereOperator = WhereOperator_SPATIAL_WITHIN
+	case SpatialRelation_CONTAINS:
+		whereOperator = WhereOperator_SPATIAL_CONTAINS
+	case SpatialRelation_DISJOINT:
+		whereOperator = WhereOperator_SPATIAL_DISJOINT
+	case SpatialRelation_INTERSECTS:
+		whereOperator = WhereOperator_SPATIAL_INTERSECTS
+	default:
+		//throw new IllegalArgumentException();
+		panicIf(true, "unknown relation %s", relation)
+	}
+
+	tokens := *tokensRef
+	opts := NewWhereOptionsWithTokenAndDistance(wktToken, distErrorPercent)
+	tok := WhereToken_createWithOptions(whereOperator, fieldName, "", opts)
+	tokens = append(tokens, tok)
+	*tokensRef = tokens
+}
+
 /*
-   protected  _withinRadiusOf(string fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits, double distErrorPercent) {
-       fieldName = ensureValidFieldName(fieldName, false);
 
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
+func (q *AbstractDocumentQuery) _spatial2(dynamicField DynamicSpatialField, criteria SpatialCriteria) {
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, "")
 
-       WhereToken whereToken = WhereToken.create(WhereOperator.SPATIAL_WITHIN, fieldName, null, new WhereToken.WhereOptions(ShapeToken.circle(addQueryParameter(radius), addQueryParameter(latitude), addQueryParameter(longitude), radiusUnits), distErrorPercent));
-       tokens.add(whereToken);
-   }
+		tok := criteria.toQueryToken(dynamicField.toField(this::ensureValidFieldName), this::addQueryParameter)
+		tokens := *tokensRef
+		tokens = append(tokens, tok)
+		*tokensRef = tokens
+}
+*/
 
-   protected  _spatial(string fieldName, string shapeWkt, SpatialRelation relation, double distErrorPercent) {
-       fieldName = ensureValidFieldName(fieldName, false);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-
-       ShapeToken wktToken = ShapeToken.wkt(addQueryParameter(shapeWkt));
-
-       WhereOperator whereOperator;
-       switch (relation) {
-           case WITHIN:
-               whereOperator = WhereOperator.SPATIAL_WITHIN;
-               break;
-           case CONTAINS:
-               whereOperator = WhereOperator.SPATIAL_CONTAINS;
-               break;
-           case DISJOINT:
-               whereOperator = WhereOperator.SPATIAL_DISJOINT;
-               break;
-           case INTERSECTS:
-               whereOperator = WhereOperator.SPATIAL_INTERSECTS;
-               break;
-           default:
-               throw new IllegalArgumentException();
-       }
-
-       tokens.add(WhereToken.create(whereOperator, fieldName, null, new WhereToken.WhereOptions(wktToken, distErrorPercent)));
-   }
-
-   @Override
-     _spatial(DynamicSpatialField dynamicField, SpatialCriteria criteria) {
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, null);
-
-       tokens.add(criteria.toQueryToken(dynamicField.toField(this::ensureValidFieldName), this::addQueryParameter));
-   }
-
-   @Override
+/*
      _spatial(string fieldName, SpatialCriteria criteria) {
        fieldName = ensureValidFieldName(fieldName, false);
 
@@ -1446,20 +1462,17 @@ func (q *AbstractDocumentQuery) _noCaching() {
        tokens.add(criteria.toQueryToken(fieldName, this::addQueryParameter));
    }
 
-   @Override
-     _orderByDistance(DynamicSpatialField field, double latitude, double longitude) {
+     _orderByDistance(DynamicSpatialField field, float64 latitude, float64 longitude) {
        if (field == null) {
            throw new IllegalArgumentException("Field cannot be null");
        }
        _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
    }
 
-   @Override
-     _orderByDistance(string fieldName, double latitude, double longitude) {
+     _orderByDistance(string fieldName, float64 latitude, float64 longitude) {
        orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
    }
 
-   @Override
      _orderByDistance(DynamicSpatialField field, string shapeWkt) {
        if (field == null) {
            throw new IllegalArgumentException("Field cannot be null");
@@ -1467,25 +1480,21 @@ func (q *AbstractDocumentQuery) _noCaching() {
        _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
    }
 
-   @Override
      _orderByDistance(string fieldName, string shapeWkt) {
        orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(shapeWkt)));
    }
 
-   @Override
-     _orderByDistanceDescending(DynamicSpatialField field, double latitude, double longitude) {
+     _orderByDistanceDescending(DynamicSpatialField field, float64 latitude, float64 longitude) {
        if (field == null) {
            throw new IllegalArgumentException("Field cannot be null");
        }
        _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
    }
 
-   @Override
-     _orderByDistanceDescending(string fieldName, double latitude, double longitude) {
+     _orderByDistanceDescending(string fieldName, float64 latitude, float64 longitude) {
        orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
    }
 
-   @Override
      _orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
        if (field == null) {
            throw new IllegalArgumentException("Field cannot be null");
@@ -1493,7 +1502,6 @@ func (q *AbstractDocumentQuery) _noCaching() {
        _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
    }
 
-   @Override
      _orderByDistanceDescending(string fieldName, string shapeWkt) {
        orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(shapeWkt)));
    }
@@ -1519,7 +1527,6 @@ func (q *AbstractDocumentQuery) _noCaching() {
        invokeAfterQueryExecuted(queryOperation.getCurrentQueryResults());
    }
 
-   @Override
     Iterator<T> iterator() {
        return executeQueryOperation(null).iterator();
    }
@@ -1629,7 +1636,6 @@ func (q *AbstractDocumentQuery) _noCaching() {
        return ((DocumentSession)theSession).addLazyCountOperation(lazyQueryOperation);
    }
 
-   @Override
      _suggestUsing(SuggestionBase suggestion) {
        if (suggestion == null) {
            throw new IllegalArgumentException("suggestion cannot be null");

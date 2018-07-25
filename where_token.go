@@ -52,6 +52,13 @@ func NewWhereOptionsWithOperator(search SearchOperator) *WhereOptions {
 	}
 }
 
+func NewWhereOptionsWithTokenAndDistance(shape *ShapeToken, distance float64) *WhereOptions {
+	return &WhereOptions{
+		whereShape:       shape,
+		distanceErrorPct: distance,
+	}
+}
+
 func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *WhereOptions {
 	method := NewWhereMethodCall()
 	method.methodType = methodType
