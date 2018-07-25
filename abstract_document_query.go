@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// TODO: implement me
 type AbstractDocumentQuery struct {
 	clazz                    reflect.Type
 	_aliasToGroupByFieldName map[string]string
