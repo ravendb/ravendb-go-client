@@ -8,8 +8,8 @@ type IChangesConnectionState interface {
 	inc()
 	dec()
 	error(error)
-	addOnChangeNotification(ChangesType, Consumer)
-	removeOnChangeNotification(ChangesType, Consumer)
-	addOnError(Consumer)
-	removeOnError(Consumer)
+	addOnChangeNotification(ChangesType, func(*DocumentChange))
+	removeOnChangeNotification(ChangesType, func(*DocumentChange))
+	addOnError(func(error))
+	removeOnError(func(error))
 }

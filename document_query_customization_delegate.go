@@ -13,66 +13,65 @@ func NewDocumentQueryCustomizationDelegate(query *AbstractDocumentQuery) *Docume
 }
 
 func (d *DocumentQueryCustomizationDelegate) getQueryOperation() *QueryOperation {
-	//return query.getQueryOperation();
-	return nil
+	return d.query.getQueryOperation()
 }
 
-func (d *DocumentQueryCustomizationDelegate) addBeforeQueryExecutedListener(action ConsumerOfIndexQuery) *IDocumentQueryCustomization {
-	//query._addBeforeQueryExecutedListener(action);
+func (d *DocumentQueryCustomizationDelegate) addBeforeQueryExecutedListener(action func(*IndexQuery)) *IDocumentQueryCustomization {
+	d.query._addBeforeQueryExecutedListener(action)
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) removeBeforeQueryExecutedListener(action ConsumerOfIndexQuery) *IDocumentQueryCustomization {
-	//query._removeBeforeQueryExecutedListener(action);
+func (d *DocumentQueryCustomizationDelegate) removeBeforeQueryExecutedListener(action func(*IndexQuery)) *IDocumentQueryCustomization {
+	d.query._removeBeforeQueryExecutedListener(action)
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) addAfterQueryExecutedListener(action ConsumerOfQueryResult) *IDocumentQueryCustomization {
-	//query._addAfterQueryExecutedListener(action);
+func (d *DocumentQueryCustomizationDelegate) addAfterQueryExecutedListener(action func(*QueryResult)) *IDocumentQueryCustomization {
+	d.query._addAfterQueryExecutedListener(action)
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) removeAfterQueryExecutedListener(action ConsumerOfQueryResult) *IDocumentQueryCustomization {
-	//query._removeAfterQueryExecutedListener(action);
+func (d *DocumentQueryCustomizationDelegate) removeAfterQueryExecutedListener(action func(*QueryResult)) *IDocumentQueryCustomization {
+	d.query._removeAfterQueryExecutedListener(action)
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) addAfterStreamExecutedCallback(action ConsumerOfObjectNode) *IDocumentQueryCustomization {
-	//query._addAfterStreamExecutedListener(action);
+func (d *DocumentQueryCustomizationDelegate) addAfterStreamExecutedCallback(action func(ObjectNode)) *IDocumentQueryCustomization {
+	d.query._addAfterStreamExecutedListener(action)
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) removeAfterStreamExecutedCallback(action ConsumerOfObjectNode) *IDocumentQueryCustomization {
-	//query._removeAfterStreamExecutedListener(action);
+func (d *DocumentQueryCustomizationDelegate) removeAfterStreamExecutedCallback(action func(ObjectNode)) *IDocumentQueryCustomization {
+	d.query._removeAfterStreamExecutedListener(action)
 	return d
 }
 
 func (d *DocumentQueryCustomizationDelegate) noCaching() *IDocumentQueryCustomization {
-	//query._noCaching();
+	d.query._noCaching()
 	return d
 }
 
 func (d *DocumentQueryCustomizationDelegate) noTracking() *IDocumentQueryCustomization {
-	//query._noTracking();
+	d.query._noTracking()
 	return d
 }
 
 func (d *DocumentQueryCustomizationDelegate) randomOrdering() *IDocumentQueryCustomization {
-	//query._randomOrdering();
+	d.query._randomOrdering()
 	return d
 }
 
 func (d *DocumentQueryCustomizationDelegate) randomOrderingWithSeed(seed string) *IDocumentQueryCustomization {
-	//query._randomOrdering(seed);
+	d.query._randomOrderingWithSeed(seed)
 	return d
 }
 
 func (d *DocumentQueryCustomizationDelegate) waitForNonStaleResults() *IDocumentQueryCustomization {
-	//query._waitForNonStaleResults(null);
+	d.query._waitForNonStaleResults(0)
 	return d
 }
 
 func (d *DocumentQueryCustomizationDelegate) waitForNonStaleResultsWithTimeout(waitTimeout time.Duration) *IDocumentQueryCustomization {
-	//query._waitForNonStaleResults(waitTimeout);
+	d.query._waitForNonStaleResults(waitTimeout)
 	return d
 }

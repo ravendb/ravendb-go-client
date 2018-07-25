@@ -67,12 +67,12 @@ func (c *DatabaseChanges) removeConnectionStatusChanged(handler EventHandler) {
 
 }
 
-func (c *DatabaseChanges) addOnError(handler Consumer) {
+func (c *DatabaseChanges) addOnError(handler func(error)) {
 	panicIf(true, "NYI")
 
 }
 
-func (c *DatabaseChanges) removeOnError(handler Consumer) {
+func (c *DatabaseChanges) removeOnError(handler func(error)) {
 	panicIf(true, "NYI")
 }
 

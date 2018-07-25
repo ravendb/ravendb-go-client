@@ -6,7 +6,7 @@ var (
 )
 
 type DatabaseConnectionState struct {
-	onError []Consumer
+	onError []func(error)
 
 	_onDisconnect Runnable
 	onConnect     Runnable
@@ -14,19 +14,20 @@ type DatabaseConnectionState struct {
 	_value        AtomicInteger
 	lastException error
 
-	onDocumentChangeNotification []Consumer
+	onDocumentChangeNotification []func(*DocumentChange)
 
-	onIndexChangeNotification []Consumer
+	onIndexChangeNotification []func(*IndexChange)
 
-	onOperationStatusChangeNotification []Consumer
+	onOperationStatusChangeNotification []func(*OperationStatusChange)
 }
 
-func (s *DatabaseConnectionState) addOnError(handler Consumer) {
+func (s *DatabaseConnectionState) addOnError(handler func(error)) {
 	s.onError = append(s.onError, handler)
 }
 
-func (s *DatabaseConnectionState) removeOnError(handler Consumer) {
-	s.onError = removeConsumerFromSlice(s.onError, handler)
+func (s *DatabaseConnectionState) removeOnError(handler func(error)) {
+	panicIf(true, "NYI")
+	//s.onError = removeConsumerFromSlice(s.onError, handler)
 }
 
 func (s *DatabaseConnectionState) inc() {
@@ -61,33 +62,28 @@ func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *Data
 	}
 }
 
-func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler Consumer) {
+func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler func(*DocumentChange)) {
 	panicIf(true, "NYI")
 }
 
-func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, handler Consumer) {
+func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, handler func(*DocumentChange)) {
 	panicIf(true, "NYI")
 }
 
 func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
-	EventHelper_invoke(s.onDocumentChangeNotification, documentChange)
+	for _, f := range s.onDocumentChangeNotification {
+		f(documentChange)
+	}
 }
 
 func (s *DatabaseConnectionState) sendIndexChange(indexChange *IndexChange) {
-	EventHelper_invoke(s.onIndexChangeNotification, indexChange)
+	for _, f := range s.onIndexChangeNotification {
+		f(indexChange)
+	}
 }
 
 func (s *DatabaseConnectionState) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
-	EventHelper_invoke(s.onOperationStatusChangeNotification, operationStatusChange)
-}
-
-func removeConsumerFromSlice(a []Consumer, toRemove Consumer) []Consumer {
-	// TODO: optimize
-	var res []Consumer
-	for _, c := range a {
-		if c != toRemove {
-			res = append(res, c)
-		}
+	for _, f := range s.onOperationStatusChangeNotification {
+		f(operationStatusChange)
 	}
-	return res
 }

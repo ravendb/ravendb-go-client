@@ -1436,96 +1436,129 @@ func (q *AbstractDocumentQuery) _spatial(fieldName string, shapeWkt string, rela
 	*tokensRef = tokens
 }
 
-/*
-
 func (q *AbstractDocumentQuery) _spatial2(dynamicField DynamicSpatialField, criteria SpatialCriteria) {
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, "")
 
-		tok := criteria.toQueryToken(dynamicField.toField(this::ensureValidFieldName), this::addQueryParameter)
-		tokens := *tokensRef
-		tokens = append(tokens, tok)
-		*tokensRef = tokens
+	ensure := func(fieldName string, isNestedPath bool) string {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
+	}
+	add := func(value interface{}) string {
+		return q.addQueryParameter(value)
+	}
+	tok := criteria.toQueryToken(dynamicField.toField(ensure), add)
+	tokens := *tokensRef
+	tokens = append(tokens, tok)
+	*tokensRef = tokens
 }
-*/
+
+func (q *AbstractDocumentQuery) _spatial3(fieldName string, criteria SpatialCriteria) {
+	fieldName = q.ensureValidFieldName(fieldName, false)
+
+	tokensRef := q.getCurrentWhereTokensRef()
+	q.appendOperatorIfNeeded(tokensRef)
+	q.negateIfNeeded(tokensRef, fieldName)
+
+	tokens := *tokensRef
+	add := func(value interface{}) string {
+		return q.addQueryParameter(value)
+	}
+	tok := criteria.toQueryToken(fieldName, add)
+	tokens = append(tokens, tok)
+	*tokensRef = tokens
+}
+
+func (q *AbstractDocumentQuery) _orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) {
+	if field == nil {
+		//throw new IllegalArgumentException("Field cannot be null");
+		panicIf(true, "Field cannot be null")
+	}
+	ensure := func(fieldName string, isNestedPath bool) string {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
+	}
+
+	q._orderByDistanceLatLong("'"+field.toField(ensure)+"'", latitude, longitude)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) {
+	tok := OrderByToken_createDistanceAscending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
+	q.orderByTokens = append(q.orderByTokens, tok)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistance2(field DynamicSpatialField, shapeWkt string) {
+	if field == nil {
+		//throw new IllegalArgumentException("Field cannot be null");
+		panicIf(true, "Field cannot be null")
+	}
+	ensure := func(fieldName string, isNestedPath bool) string {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
+	}
+	q._orderByDistance3("'"+field.toField(ensure)+"'", shapeWkt)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistance3(fieldName string, shapeWkt string) {
+	tok := OrderByToken_createDistanceAscending2(fieldName, q.addQueryParameter(shapeWkt))
+	q.orderByTokens = append(q.orderByTokens, tok)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) {
+	if field == nil {
+		//throw new IllegalArgumentException("Field cannot be null");
+		panicIf(true, "Field cannot be null")
+	}
+	ensure := func(fieldName string, isNestedPath bool) string {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
+	}
+	q._orderByDistanceDescendingLatLong("'"+field.toField(ensure)+"'", latitude, longitude)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) {
+	tok := OrderByToken_createDistanceDescending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
+	q.orderByTokens = append(q.orderByTokens, tok)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) {
+	if field == nil {
+		//throw new IllegalArgumentException("Field cannot be null");
+		panicIf(true, "Field cannot be null")
+	}
+	ensure := func(fieldName string, isNestedPath bool) string {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
+	}
+	q._orderByDistanceDescending3("'"+field.toField(ensure)+"'", shapeWkt)
+}
+
+func (q *AbstractDocumentQuery) _orderByDistanceDescending3(fieldName string, shapeWkt string) {
+	tok := OrderByToken_createDistanceDescending2(fieldName, q.addQueryParameter(shapeWkt))
+	q.orderByTokens = append(q.orderByTokens, tok)
+}
+
+func (q *AbstractDocumentQuery) initSync() {
+	if q.queryOperation != nil {
+		return
+	}
+
+	delegate := NewDocumentQueryCustomizationDelegate(q)
+	beforeQueryEventArgs := NewBeforeQueryEventArgs(q.theSession, delegate)
+	q.theSession.onBeforeQueryInvoke(beforeQueryEventArgs)
+
+	q.queryOperation = q.initializeQueryOperation()
+	q.executeActualQuery()
+}
+
+func (q *AbstractDocumentQuery) executeActualQuery() {
+	{
+		context := q.queryOperation.enterQueryContext()
+		command := q.queryOperation.createRequest()
+		q.theSession.getRequestExecutor().executeCommandWithSessionInfo(command, q.theSession.sessionInfo)
+		q.queryOperation.setResult(command.Result)
+		context.Close()
+	}
+	q.invokeAfterQueryExecuted(q.queryOperation.getCurrentQueryResults())
+}
 
 /*
-     _spatial(string fieldName, SpatialCriteria criteria) {
-       fieldName = ensureValidFieldName(fieldName, false);
-
-       List<QueryToken> tokens = getCurrentWhereTokens();
-       appendOperatorIfNeeded(tokens);
-       negateIfNeeded(tokens, fieldName);
-
-       tokens.add(criteria.toQueryToken(fieldName, this::addQueryParameter));
-   }
-
-     _orderByDistance(DynamicSpatialField field, float64 latitude, float64 longitude) {
-       if (field == null) {
-           throw new IllegalArgumentException("Field cannot be null");
-       }
-       _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
-   }
-
-     _orderByDistance(string fieldName, float64 latitude, float64 longitude) {
-       orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
-   }
-
-     _orderByDistance(DynamicSpatialField field, string shapeWkt) {
-       if (field == null) {
-           throw new IllegalArgumentException("Field cannot be null");
-       }
-       _orderByDistance("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
-   }
-
-     _orderByDistance(string fieldName, string shapeWkt) {
-       orderByTokens.add(OrderByToken.createDistanceAscending(fieldName, addQueryParameter(shapeWkt)));
-   }
-
-     _orderByDistanceDescending(DynamicSpatialField field, float64 latitude, float64 longitude) {
-       if (field == null) {
-           throw new IllegalArgumentException("Field cannot be null");
-       }
-       _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", latitude, longitude);
-   }
-
-     _orderByDistanceDescending(string fieldName, float64 latitude, float64 longitude) {
-       orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(latitude), addQueryParameter(longitude)));
-   }
-
-     _orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
-       if (field == null) {
-           throw new IllegalArgumentException("Field cannot be null");
-       }
-       _orderByDistanceDescending("'" + field.toField(this::ensureValidFieldName) + "'", shapeWkt);
-   }
-
-     _orderByDistanceDescending(string fieldName, string shapeWkt) {
-       orderByTokens.add(OrderByToken.createDistanceDescending(fieldName, addQueryParameter(shapeWkt)));
-   }
-
-   protected  initSync() {
-       if (queryOperation != null) {
-           return;
-       }
-
-       BeforeQueryEventArgs beforeQueryEventArgs = new BeforeQueryEventArgs(theSession, new DocumentQueryCustomizationDelegate(this));
-       theSession.onBeforeQueryInvoke(beforeQueryEventArgs);
-
-       queryOperation = initializeQueryOperation();
-       executeActualQuery();
-   }
-
-     executeActualQuery() {
-       try (CleanCloseable context = queryOperation.enterQueryContext()) {
-           QueryCommand command = queryOperation.createRequest();
-           theSession.getRequestExecutor().execute(command, theSession.sessionInfo);
-           queryOperation.setResult(command.getResult());
-       }
-       invokeAfterQueryExecuted(queryOperation.getCurrentQueryResults());
-   }
-
     Iterator<T> iterator() {
        return executeQueryOperation(null).iterator();
    }
