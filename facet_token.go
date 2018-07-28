@@ -115,24 +115,19 @@ func FacetToken_createWithRangeFacet(facet *RangeFacet, addQueryParameter func(O
 	return token
 }
 
-/*
-public class FacetToken extends QueryToken {
-    public static FacetToken create(GenericRangeFacet facet, Function<Object, string> addQueryParameter) {
-        string optionsParameterName = getOptionsParameterName(facet, addQueryParameter);
+func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(Object) string) *FacetToken {
+	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
-        []string ranges = new ArrayList<>();
-        for (RangeBuilder<?> rangeBuilder : facet.getRanges()) {
-            ranges.add(GenericRangeFacet.parse(rangeBuilder, addQueryParameter));
-        }
+	var ranges []string
+	for _, rangeBuilder := range facet.getRanges() {
+		ranges = append(ranges, GenericRangeFacet_parse(rangeBuilder, addQueryParameter))
+	}
 
-        FacetToken token = new FacetToken(null, facet.getDisplayFieldName(), ranges, optionsParameterName);
+	token := NewFacetTokenAll("", facet.getDisplayFieldName(), ranges, optionsParameterName)
 
-        applyAggregations(facet, token);
-        return token;
-    }
-
+	applyAggregations(facet, token)
+	return token
 }
-*/
 
 func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(Object) string) *FacetToken {
 	// this is just a dispatcher

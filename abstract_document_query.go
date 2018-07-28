@@ -1565,6 +1565,12 @@ func (q *AbstractDocumentQuery) executeActualQuery() {
 	q.invokeAfterQueryExecuted(q.queryOperation.getCurrentQueryResults())
 }
 
+func (q *AbstractDocumentQuery) getQueryResult() *QueryResult {
+	q.initSync()
+
+	return q.queryOperation.getCurrentQueryResults().createSnapshot()
+}
+
 /*
     Iterator<T> iterator() {
        return executeQueryOperation(null).iterator();
@@ -1572,12 +1578,6 @@ func (q *AbstractDocumentQuery) executeActualQuery() {
 
     List<T> toList() {
        return EnumerableUtils.toList(iterator());
-   }
-
-    QueryResult getQueryResult() {
-       initSync();
-
-       return queryOperation.getCurrentQueryResults().createSnapshot();
    }
 
     T first() {
@@ -1615,17 +1615,23 @@ func (q *AbstractDocumentQuery) executeActualQuery() {
        return queryResult.getTotalResults();
    }
 
-    bool any() {
-       if (isDistinct()) {
-           // for distinct it is cheaper to do count 1
-           return executeQueryOperation(1).iterator().hasNext();
-       }
 
-       _take(0);
-       QueryResult queryResult = getQueryResult();
-       return queryResult.getTotalResults() > 0;
-   }
 */
+
+func (q *AbstractDocumentQuery) any() (bool, error) {
+	if q.isDistinct() {
+		// for distinct it is cheaper to do count 1
+		res, err := q.executeQueryOperation(1)
+		if err != nil {
+			return false, err
+		}
+		return len(res) > 0, nil
+	}
+
+	q._take(0)
+	queryResult := q.getQueryResult()
+	return queryResult.getTotalResults() > 0, nil
+}
 
 func (q *AbstractDocumentQuery) executeQueryOperation(take int) ([]interface{}, error) {
 	if take > 0 && (q.pageSize == 0 || q.pageSize > take) {
