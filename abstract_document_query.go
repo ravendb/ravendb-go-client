@@ -55,6 +55,10 @@ type AbstractDocumentQuery struct {
 
 	_isInMoreLikeThis bool
 
+	// Go doesn't allow comparing functions so to remove we use index returned
+	// by add() function. We maintain stable index by never shrinking
+	// callback arrays. We assume there is no high churn of adding/removing
+	// callbacks
 	beforeQueryExecutedCallback []func(*IndexQuery)
 	afterQueryExecutedCallback  []func(*QueryResult)
 	afterStreamExecutedCallback []func(ObjectNode)
@@ -831,19 +835,25 @@ func (q *AbstractDocumentQuery) _statistics(stats **QueryStatistics) {
 
 func (q *AbstractDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
 	for _, cb := range q.afterQueryExecutedCallback {
-		cb(result)
+		if cb != nil {
+			cb(result)
+		}
 	}
 }
 
 func (q *AbstractDocumentQuery) invokeBeforeQueryExecuted(query *IndexQuery) {
 	for _, cb := range q.beforeQueryExecutedCallback {
-		cb(query)
+		if cb != nil {
+			cb(query)
+		}
 	}
 }
 
 func (q *AbstractDocumentQuery) invokeAfterStreamExecuted(result ObjectNode) {
 	for _, cb := range q.afterStreamExecutedCallback {
-		cb(result)
+		if cb != nil {
+			cb(result)
+		}
 	}
 }
 
@@ -1351,34 +1361,31 @@ func (q *AbstractDocumentQuery) getQueryOperation() *QueryOperation {
 	return q.queryOperation
 }
 
-func (q *AbstractDocumentQuery) _addBeforeQueryExecutedListener(action func(*IndexQuery)) {
+func (q *AbstractDocumentQuery) _addBeforeQueryExecutedListener(action func(*IndexQuery)) int {
 	q.beforeQueryExecutedCallback = append(q.beforeQueryExecutedCallback, action)
+	return len(q.beforeQueryExecutedCallback) - 1
 }
 
-func (q *AbstractDocumentQuery) _removeBeforeQueryExecutedListener(action func(*IndexQuery)) {
-	panicIf(true, "NYI")
-	// TODO: implement me
-	// beforeQueryExecutedCallback.remove(action)
+func (q *AbstractDocumentQuery) _removeBeforeQueryExecutedListener(idx int) {
+	q.beforeQueryExecutedCallback[idx] = nil
 }
 
-func (q *AbstractDocumentQuery) _addAfterQueryExecutedListener(action func(*QueryResult)) {
+func (q *AbstractDocumentQuery) _addAfterQueryExecutedListener(action func(*QueryResult)) int {
 	q.afterQueryExecutedCallback = append(q.afterQueryExecutedCallback, action)
+	return len(q.afterQueryExecutedCallback) - 1
 }
 
-func (q *AbstractDocumentQuery) _removeAfterQueryExecutedListener(action func(*QueryResult)) {
-	panicIf(true, "NYI")
-	// TODO: implement me
-	// afterQueryExecutedCallback.remove(action)
+func (q *AbstractDocumentQuery) _removeAfterQueryExecutedListener(idx int) {
+	q.afterQueryExecutedCallback[idx] = nil
 }
 
-func (q *AbstractDocumentQuery) _addAfterStreamExecutedListener(action func(ObjectNode)) {
+func (q *AbstractDocumentQuery) _addAfterStreamExecutedListener(action func(ObjectNode)) int {
 	q.afterStreamExecutedCallback = append(q.afterStreamExecutedCallback, action)
+	return len(q.afterStreamExecutedCallback) - 1
 }
 
-func (q *AbstractDocumentQuery) _removeAfterStreamExecutedListener(action func(ObjectNode)) {
-	panicIf(true, "NYI")
-	// TODO: implement me
-	// afterStreamExecutedCallback.remove(action)
+func (q *AbstractDocumentQuery) _removeAfterStreamExecutedListener(idx int) {
+	q.afterStreamExecutedCallback[idx] = nil
 }
 
 func (q *AbstractDocumentQuery) _noTracking() {

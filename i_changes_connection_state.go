@@ -8,8 +8,8 @@ type IChangesConnectionState interface {
 	inc()
 	dec()
 	error(error)
-	addOnChangeNotification(ChangesType, interface{})
-	removeOnChangeNotification(ChangesType, interface{})
-	addOnError(func(error))
-	removeOnError(func(error))
+	addOnChangeNotification(ChangesType, interface{}) int
+	removeOnChangeNotification(ChangesType, int)
+	addOnError(func(error)) int
+	removeOnError(int)
 }

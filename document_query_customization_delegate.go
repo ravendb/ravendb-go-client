@@ -21,8 +21,8 @@ func (d *DocumentQueryCustomizationDelegate) addBeforeQueryExecutedListener(acti
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) removeBeforeQueryExecutedListener(action func(*IndexQuery)) *IDocumentQueryCustomization {
-	d.query._removeBeforeQueryExecutedListener(action)
+func (d *DocumentQueryCustomizationDelegate) removeBeforeQueryExecutedListener(idx int) *IDocumentQueryCustomization {
+	d.query._removeBeforeQueryExecutedListener(idx)
 	return d
 }
 
@@ -31,8 +31,8 @@ func (d *DocumentQueryCustomizationDelegate) addAfterQueryExecutedListener(actio
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) removeAfterQueryExecutedListener(action func(*QueryResult)) *IDocumentQueryCustomization {
-	d.query._removeAfterQueryExecutedListener(action)
+func (d *DocumentQueryCustomizationDelegate) removeAfterQueryExecutedListener(idx int) *IDocumentQueryCustomization {
+	d.query._removeAfterQueryExecutedListener(idx)
 	return d
 }
 
@@ -41,8 +41,8 @@ func (d *DocumentQueryCustomizationDelegate) addAfterStreamExecutedCallback(acti
 	return d
 }
 
-func (d *DocumentQueryCustomizationDelegate) removeAfterStreamExecutedCallback(action func(ObjectNode)) *IDocumentQueryCustomization {
-	d.query._removeAfterStreamExecutedListener(action)
+func (d *DocumentQueryCustomizationDelegate) removeAfterStreamExecutedCallback(idx int) *IDocumentQueryCustomization {
+	d.query._removeAfterStreamExecutedListener(idx)
 	return d
 }
 

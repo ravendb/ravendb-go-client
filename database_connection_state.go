@@ -14,20 +14,18 @@ type DatabaseConnectionState struct {
 	_value        AtomicInteger
 	lastException error
 
-	onDocumentChangeNotification []func(*DocumentChange)
-
-	onIndexChangeNotification []func(*IndexChange)
-
+	onDocumentChangeNotification        []func(*DocumentChange)
+	onIndexChangeNotification           []func(*IndexChange)
 	onOperationStatusChangeNotification []func(*OperationStatusChange)
 }
 
-func (s *DatabaseConnectionState) addOnError(handler func(error)) {
+func (s *DatabaseConnectionState) addOnError(handler func(error)) int {
 	s.onError = append(s.onError, handler)
+	return len(s.onError) - 1
 }
 
-func (s *DatabaseConnectionState) removeOnError(handler func(error)) {
-	panicIf(true, "NYI")
-	//s.onError = removeConsumerFromSlice(s.onError, handler)
+func (s *DatabaseConnectionState) removeOnError(idx int) {
+	s.onError[idx] = nil
 }
 
 func (s *DatabaseConnectionState) inc() {
@@ -42,17 +40,18 @@ func (s *DatabaseConnectionState) dec() {
 
 func (s *DatabaseConnectionState) error(e error) {
 	s.lastException = e
-	panicIf(true, "NYI")
-	//EventHelper.invoke(onError, e);
+	for _, f := range s.onError {
+		if f != nil {
+			f(e)
+		}
+	}
 }
 
 func (s *DatabaseConnectionState) Close() {
-	panicIf(true, "NYI")
-
-	//onDocumentChangeNotification.clear()
-	//onIndexChangeNotification.clear()
-	//onOperationStatusChangeNotification.clear()
-	//onError.clear()
+	s.onDocumentChangeNotification = nil
+	s.onIndexChangeNotification = nil
+	s.onOperationStatusChangeNotification = nil
+	s.onError = nil
 }
 
 func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *DatabaseConnectionState {
@@ -62,78 +61,37 @@ func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *Data
 	}
 }
 
-func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler interface{}) {
+func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler interface{}) int {
 
 	switch typ {
 	case ChangesType_DOCUMENT:
 		h := handler.(func(*DocumentChange))
 		s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, h)
+		return len(s.onDocumentChangeNotification) - 1
 	case ChangesType_INDEX:
 		h := handler.(func(*IndexChange))
 		s.onIndexChangeNotification = append(s.onIndexChangeNotification, h)
+		return len(s.onIndexChangeNotification) - 1
 	case ChangesType_OPERATION:
 		h := handler.(func(*OperationStatusChange))
 		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, h)
+		return len(s.onOperationStatusChangeNotification) - 1
 	default:
 		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
 	}
+	return -1
 }
 
-func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, handler interface{}) {
+func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, idx int) {
 	switch typ {
 	case ChangesType_DOCUMENT:
-		curr := 0
-		a := s.onDocumentChangeNotification
-		n := len(a)
-		for i, el := range a {
-			var v interface{} = el
-			if handler == v {
-				continue
-			}
-			if i != curr {
-				a[curr] = a[i]
-			}
-			curr++
-		}
-		if curr < n-1 {
-			s.onDocumentChangeNotification = a[:curr]
-		}
+		s.onDocumentChangeNotification[idx] = nil
 
 	case ChangesType_INDEX:
-		curr := 0
-		a := s.onIndexChangeNotification
-		n := len(a)
-		for i, el := range a {
-			var v interface{} = el
-			if handler == v {
-				continue
-			}
-			if i != curr {
-				a[curr] = a[i]
-			}
-			curr++
-		}
-		if curr < n-1 {
-			s.onIndexChangeNotification = a[:curr]
-		}
+		s.onIndexChangeNotification[idx] = nil
 	case ChangesType_OPERATION:
-		curr := 0
-		a := s.onOperationStatusChangeNotification
-		n := len(a)
-		for i, el := range a {
-			var v interface{} = el
-			if handler == v {
-				continue
-			}
-			if i != curr {
-				a[curr] = a[i]
-			}
-			curr++
-		}
-		if curr < n-1 {
-			s.onOperationStatusChangeNotification = a[:curr]
-		}
+		s.onOperationStatusChangeNotification[idx] = nil
 	default:
 		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
@@ -142,18 +100,24 @@ func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, ha
 
 func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
 	for _, f := range s.onDocumentChangeNotification {
-		f(documentChange)
+		if f != nil {
+			f(documentChange)
+		}
 	}
 }
 
 func (s *DatabaseConnectionState) sendIndexChange(indexChange *IndexChange) {
 	for _, f := range s.onIndexChangeNotification {
-		f(indexChange)
+		if f != nil {
+			f(indexChange)
+		}
 	}
 }
 
 func (s *DatabaseConnectionState) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
 	for _, f := range s.onOperationStatusChangeNotification {
-		f(operationStatusChange)
+		if f != nil {
+			f(operationStatusChange)
+		}
 	}
 }
