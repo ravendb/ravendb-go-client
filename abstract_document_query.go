@@ -289,13 +289,13 @@ func (q *AbstractDocumentQuery) _moreLikeThis() *MoreLikeThisScope {
 	q.whereTokens = append(q.whereTokens, token)
 
 	q._isInMoreLikeThis = true
-	funcAddQueryParameter := func(o Object) string {
+	add := func(o Object) string {
 		return q.addQueryParameter(o)
 	}
-	funcOnDispose := func() {
+	onDispose := func() {
 		q._isInMoreLikeThis = false
 	}
-	return NewMoreLikeThisScope(token, funcAddQueryParameter, funcOnDispose)
+	return NewMoreLikeThisScope(token, add, onDispose)
 }
 
 func (q *AbstractDocumentQuery) _include(path string) {
@@ -1625,33 +1625,39 @@ func (q *AbstractDocumentQuery) executeActualQuery() {
        QueryResult queryResult = getQueryResult();
        return queryResult.getTotalResults() > 0;
    }
+*/
 
-    Collection<T> executeQueryOperation(Integer take) {
-       if (take != null && (pageSize == null || pageSize > take)) {
-           _take(take);
-       }
+func (q *AbstractDocumentQuery) executeQueryOperation(take int) ([]interface{}, error) {
+	if take > 0 && (q.pageSize == 0 || q.pageSize > take) {
+		q._take(take)
+	}
 
-       initSync();
+	q.initSync()
 
-       return queryOperation.complete(clazz);
-   }
+	return q.queryOperation.complete(q.clazz)
+}
 
-     _aggregateBy(FacetBase facet) {
-       for (QueryToken token : selectTokens) {
-           if (token instanceof FacetToken) {
-               continue;
-           }
+func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
+	for _, token := range q.selectTokens {
+		if _, ok := token.(*FacetToken); ok {
+			continue
+		}
 
-           throw new IllegalStateException("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
-       }
+		//throw new IllegalStateException("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
+		panicIf(true, "Aggregation query can select only facets while it got %T token", token)
+	}
 
-       selectTokens.add(FacetToken.create(facet, this::addQueryParameter));
-   }
+	add := func(o Object) string {
+		return q.addQueryParameter(o)
+	}
+	q.selectTokens = append(q.selectTokens, FacetToken_createWithFacetBase(facet, add))
+}
 
-     _aggregateUsing(string facetSetupDocumentId) {
-       selectTokens.add(FacetToken.create(facetSetupDocumentId));
-   }
+func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
+	q.selectTokens = append(q.selectTokens, FacetToken_create(facetSetupDocumentId))
+}
 
+/*
     Lazy<List<T>> lazily() {
        return lazily(null);
    }

@@ -171,3 +171,18 @@ To avoid quoting strings, use `%v` or `%s`.
 In Java, the name of id property is `id`.
 
 In Go publicly accessible properties have to start with capital letter so it would have to be `Id`. Additionally the Go naming rule for abbreviations is all capitalized i.e. `ID`.
+
+## managing callbacks
+
+Go doesn't allow comparing functions so for the purpose of removing them, we need to identifiy them somehow.
+
+I chose the simplest solution: they are identified by the index in the array of callbacks.
+
+Function that adds returns the index.
+
+To make the index stable, we never shrink the arrays. Removing callback from the array is `a[idx] = nil`.
+
+This assumes that there is no big churn of adding/removing callbacks, which would grow callback arrays infnitely.
+
+If churn does happen, we can change things to use a unique id and store callbacks as a pair of (id, function).
+

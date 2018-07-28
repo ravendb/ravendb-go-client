@@ -20,6 +20,12 @@ func NewFacetToken() *FacetToken {
 	return &FacetToken{}
 }
 
+func NewFacetTokenWithID(facetSetupDocumentId string) *FacetToken {
+	return &FacetToken{
+		_facetSetupDocumentId: facetSetupDocumentId,
+	}
+}
+
 func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string, optionsParameterName string) *FacetToken {
 	return &FacetToken{
 		_aggregateByFieldName: aggregateByFieldName,
@@ -82,36 +88,35 @@ func (t *FacetToken) writeTo(writer *StringBuilder) {
 	writer.append(t._alias)
 }
 
+func FacetToken_create(facetSetupDocumentId string) *FacetToken {
+	if StringUtils_isWhitespace(facetSetupDocumentId) {
+		//throw new IllegalArgumentException("facetSetupDocumentId cannot be null");
+		panicIf(true, "facetSetupDocumentId cannot be null")
+	}
+
+	return NewFacetTokenWithID(facetSetupDocumentId)
+}
+
+func FacetToken_createWithFacet(facet *Facet, addQueryParameter func(Object) string) *FacetToken {
+	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
+	token := NewFacetTokenAll(facet.getFieldName(), facet.getDisplayFieldName(), nil, optionsParameterName)
+
+	applyAggregations(facet, token)
+	return token
+}
+
+func FacetToken_createWithRangeFacet(facet *RangeFacet, addQueryParameter func(Object) string) *FacetToken {
+	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
+
+	token := NewFacetTokenAll("", facet.getDisplayFieldName(), facet.getRanges(), optionsParameterName)
+
+	applyAggregations(facet, token)
+
+	return token
+}
+
 /*
 public class FacetToken extends QueryToken {
-
-    public static FacetToken create(string facetSetupDocumentId) {
-        if (stringUtils.isWhitespace(facetSetupDocumentId)) {
-            throw new IllegalArgumentException("facetSetupDocumentId cannot be null");
-        }
-
-        return new FacetToken(facetSetupDocumentId);
-    }
-
-    public static FacetToken create(Facet facet, Function<Object, string> addQueryParameter) {
-        string optionsParameterName = getOptionsParameterName(facet, addQueryParameter);
-        FacetToken token = new FacetToken(facet.getFieldName(), facet.getDisplayFieldName(), null, optionsParameterName);
-
-        applyAggregations(facet, token);
-
-        return token;
-    }
-
-    public static FacetToken create(RangeFacet facet, Function<Object, string> addQueryParameter) {
-        string optionsParameterName = getOptionsParameterName(facet, addQueryParameter);
-
-        FacetToken token = new FacetToken(null, facet.getDisplayFieldName(), facet.getRanges(), optionsParameterName);
-
-        applyAggregations(facet, token);
-
-        return token;
-    }
-
     public static FacetToken create(GenericRangeFacet facet, Function<Object, string> addQueryParameter) {
         string optionsParameterName = getOptionsParameterName(facet, addQueryParameter);
 
@@ -126,41 +131,43 @@ public class FacetToken extends QueryToken {
         return token;
     }
 
-    public static FacetToken create(FacetBase facet, Function<Object, string> addQueryParameter) {
-        // this is just a dispatcher
-        return facet.toFacetToken(addQueryParameter);
-    }
-
-
-    private static void applyAggregations(FacetBase facet, FacetToken token) {
-        for (Map.Entry<FacetAggregation, string> aggregation : facet.getAggregations().entrySet()) {
-            FacetAggregationToken aggregationToken;
-            switch (aggregation.getKey()) {
-                case MAX:
-                    aggregationToken = FacetAggregationToken.max(aggregation.getValue());
-                    break;
-                case MIN:
-                    aggregationToken = FacetAggregationToken.min(aggregation.getValue());
-                    break;
-                case AVERAGE:
-                    aggregationToken = FacetAggregationToken.average(aggregation.getValue());
-                    break;
-                case SUM:
-                    aggregationToken = FacetAggregationToken.sum(aggregation.getValue());
-                    break;
-                default :
-                    throw new NotImplementedException("Unsupported aggregation method: " + aggregation.getKey());
-            }
-
-            token._aggregations.add(aggregationToken);
-        }
-    }
-
-    private static string getOptionsParameterName(FacetBase facet, Function<Object, string> addQueryParameter) {
-        return facet.getOptions() != null && facet.getOptions() != FacetOptions.getDefaultOptions() ? addQueryParameter.apply(facet.getOptions()) : null;
-    }
 }
 */
+
+func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(Object) string) *FacetToken {
+	// this is just a dispatcher
+	return facet.toFacetToken(addQueryParameter)
+}
+
+func applyAggregations(facet FacetBase, token *FacetToken) {
+	m := facet.getAggregations()
+
+	for key, value := range m {
+		var aggregationToken *FacetAggregationToken
+		switch key {
+		case FacetAggregation_MAX:
+			aggregationToken = FacetAggregationToken_max(value)
+		case FacetAggregation_MIN:
+			aggregationToken = FacetAggregationToken_min(value)
+		case FacetAggregation_AVERAGE:
+			aggregationToken = FacetAggregationToken_average(value)
+		case FacetAggregation_SUM:
+			aggregationToken = FacetAggregationToken_sum(value)
+		default:
+			panic("Unsupported aggregation method: " + key)
+			//throw new NotImplementedException("Unsupported aggregation method: " + aggregation.getKey());
+		}
+
+		token._aggregations = append(token._aggregations, aggregationToken)
+	}
+}
+
+func getOptionsParameterName(facet FacetBase, addQueryParameter func(Object) string) string {
+	if facet.getOptions() == nil || facet.getOptions() == FacetOptions_getDefaultOptions() {
+		return ""
+	}
+	return addQueryParameter(facet.getOptions())
+}
 
 type FacetAggregationToken struct {
 	_fieldName   string
