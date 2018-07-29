@@ -26,7 +26,7 @@ type AbstractDocumentQuery struct {
 
 	theSession *InMemoryDocumentSessionOperations
 
-	pageSize int // 0 is unset
+	pageSize *int
 
 	selectTokens       []QueryToken
 	fromToken          *FromToken
@@ -302,7 +302,7 @@ func (q *AbstractDocumentQuery) _include(path string) {
 	q.includes.add(path)
 }
 
-func (q *AbstractDocumentQuery) _take(count int) {
+func (q *AbstractDocumentQuery) _take(count *int) {
 	q.pageSize = count
 }
 
@@ -866,8 +866,8 @@ func (q *AbstractDocumentQuery) generateIndexQuery(query string) *IndexQuery {
 	indexQuery.setQueryParameters(q.queryParameters)
 	indexQuery.setDisableCaching(q.disableCaching)
 
-	if q.pageSize != 0 {
-		indexQuery.setPageSize(q.pageSize)
+	if q.pageSize != nil {
+		indexQuery.setPageSize(*q.pageSize)
 	}
 	return indexQuery
 }
@@ -1571,70 +1571,100 @@ func (q *AbstractDocumentQuery) getQueryResult() *QueryResult {
 	return q.queryOperation.getCurrentQueryResults().createSnapshot()
 }
 
-/*
-    Iterator<T> iterator() {
-       return executeQueryOperation(null).iterator();
-   }
+func (q *AbstractDocumentQuery) iterator() ([]interface{}, error) {
+	tmp := 0
+	return q.executeQueryOperation(&tmp)
+}
 
-    List<T> toList() {
-       return EnumerableUtils.toList(iterator());
-   }
+// Note: toList() is the same as iterator() becuase Go has no iterators
+func (q *AbstractDocumentQuery) toList() ([]interface{}, error) {
+	return q.iterator()
+}
 
-    T first() {
-       Collection<T> result = executeQueryOperation(1);
-       return result.isEmpty() ? null : result.stream().findFirst().get();
-   }
+func (q *AbstractDocumentQuery) first() (interface{}, error) {
+	tmp := 1
+	result, err := q.executeQueryOperation(&tmp)
+	if err != nil {
+		return nil, err
+	}
+	if len(result) == 0 {
+		return nil, nil
+	}
+	return result[0], nil
+}
 
-    T firstOrDefault() {
-       Collection<T> result = executeQueryOperation(1);
-       return result.stream().findFirst().orElseGet(() -> Defaults.defaultValue(clazz));
-   }
+func (q *AbstractDocumentQuery) firstOrDefault() (interface{}, error) {
+	tmp := 1
+	result, err := q.executeQueryOperation(&tmp)
+	if err != nil {
+		return nil, err
+	}
+	if len(result) == 0 {
+		return Defaults_defaultValue(q.clazz), nil
+	}
+	return result[0], nil
+}
 
-    T single() {
-       Collection<T> result = executeQueryOperation(2);
-       if (result.size() > 1) {
-           throw new IllegalStateException("Expected single result, got: " + result.size());
-       }
-       return result.stream().findFirst().orElse(null);
-   }
+func (q *AbstractDocumentQuery) single() (interface{}, error) {
+	tmp := 2
+	result, err := q.executeQueryOperation(&tmp)
+	if err != nil {
+		return nil, err
+	}
 
-    T singleOrDefault() {
-       Collection<T> result = executeQueryOperation(2);
-       if (result.size() > 1) {
-           throw new IllegalStateException("Expected single result, got: " + result.size());
-       }
-       if (result.isEmpty()) {
-           return Defaults.defaultValue(clazz);
-       }
-       return result.stream().findFirst().get();
-   }
+	if len(result) > 1 {
+		return nil, NewIllegalStateException("Expected single result, got: %d", len(result))
+	}
 
-    int count() {
-       _take(0);
-       QueryResult queryResult = getQueryResult();
-       return queryResult.getTotalResults();
-   }
+	return result[0], nil
+}
 
+func (q *AbstractDocumentQuery) singleOrDefault() (interface{}, error) {
+	tmp := 2
+	result, err := q.executeQueryOperation(&tmp)
+	if err != nil {
+		return nil, err
+	}
+	if len(result) > 1 {
+		return nil, NewIllegalStateException("Expected single result, got: %d", len(result))
+	}
 
-*/
+	if len(result) == 0 {
+		return Defaults_defaultValue(q.clazz), nil
+	}
+	return result[0], nil
+}
+
+func (q *AbstractDocumentQuery) count() int {
+	{
+		var tmp = 0
+		q._take(&tmp)
+	}
+	queryResult := q.getQueryResult()
+	return queryResult.getTotalResults()
+}
 
 func (q *AbstractDocumentQuery) any() (bool, error) {
 	if q.isDistinct() {
 		// for distinct it is cheaper to do count 1
-		res, err := q.executeQueryOperation(1)
+		var tmp = 1
+		res, err := q.executeQueryOperation(&tmp)
 		if err != nil {
 			return false, err
 		}
 		return len(res) > 0, nil
 	}
 
-	q._take(0)
+	{
+		var tmp = 0
+		q._take(&tmp)
+	}
 	queryResult := q.getQueryResult()
 	return queryResult.getTotalResults() > 0, nil
 }
 
-func (q *AbstractDocumentQuery) executeQueryOperation(take int) ([]interface{}, error) {
-	if take > 0 && (q.pageSize == 0 || q.pageSize > take) {
+func (q *AbstractDocumentQuery) executeQueryOperation(take *int) ([]interface{}, error) {
+	if take != nil && (q.pageSize == nil || *q.pageSize > *take) {
 		q._take(take)
 	}
 

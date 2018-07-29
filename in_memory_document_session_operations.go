@@ -978,7 +978,21 @@ func (s *InMemoryDocumentSessionOperations) onBeforeQueryInvoke(beforeQueryEvent
 	}
 }
 
-//TODO: protected Tuple<String, String> processQueryParameters(Class clazz, String indexName, String collectionName,
+func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect.Type, indexName string, collectionName string, conventions *DocumentConventions) (string, string) {
+	isIndex := StringUtils_isNotBlank(indexName)
+	isCollection := StringUtils_isNotEmpty(collectionName)
+
+	if isIndex && isCollection {
+		//throw new IllegalStateException("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.");
+		panic("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.")
+	}
+
+	if !isIndex && !isCollection {
+		collectionName = conventions.getCollectionName(clazz)
+	}
+
+	return indexName, collectionName
+}
 
 type SaveChangesData struct {
 	deferredCommands    []ICommandData
