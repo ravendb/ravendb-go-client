@@ -29,25 +29,22 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 		session.Close()
 	}
 
-	// TODO: fix loadTest_canDeleteByQuery
-	if false {
+	{
+		indexQuery := NewIndexQuery("from users where age == 5")
+		operation := NewDeleteByQueryOperation(indexQuery)
+		asyncOp, err := store.operations().sendAsync(operation)
+		assert.NoError(t, err)
+
+		err = asyncOp.waitForCompletion()
+		assert.NoError(t, err)
+
 		{
-			indexQuery := NewIndexQuery("from users where age == 5")
-			operation := NewDeleteByQueryOperation(indexQuery)
-			asyncOp, err := store.operations().sendAsync(operation)
+			session := openSessionMust(t, store)
+			q := session.query(getTypeOf(&User{}))
+			count, err := q.count()
 			assert.NoError(t, err)
-
-			err = asyncOp.waitForCompletion()
-			assert.NoError(t, err)
-
-			{
-				session := openSessionMust(t, store)
-				q := session.query(getTypeOf(&User{}))
-				count, err := q.count()
-				assert.NoError(t, err)
-				assert.Equal(t, count, 1)
-				session.Close()
-			}
+			assert.Equal(t, count, 1)
+			session.Close()
 		}
 	}
 }

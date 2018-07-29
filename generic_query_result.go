@@ -1,64 +1,65 @@
 package ravendb
 
-// TODO: json-annotate?
 type GenericQueryResult struct {
 	QueryResultBase
-	totalResults   int
-	skippedResults int
+	TotalResults   int `json:"TotalResults"`
+	SkippedResults int `json:"SkippedResults"`
 	//TBD 4.1  map[string]map[string]List<String>>> highlightings
-	durationInMs      int64
-	scoreExplanations map[string]string
-	timingsInMs       map[string]float64
-	resultSize        int64
+	DurationInMs int64 `json:"DurationInMs"`
+
+	// TODO: json-annotate? don't seem to be present in json
+	ScoreExplanations map[string]string
+	TimingsInMs       map[string]float64
+	ResultSize        int64
 }
 
 func (r *GenericQueryResult) getTotalResults() int {
-	return r.totalResults
+	return r.TotalResults
 }
 
 func (r *GenericQueryResult) setTotalResults(totalResults int) {
-	r.totalResults = totalResults
+	r.TotalResults = totalResults
 }
 
 func (r *GenericQueryResult) getSkippedResults() int {
-	return r.skippedResults
+	return r.SkippedResults
 }
 
 func (r *GenericQueryResult) setSkippedResults(skippedResults int) {
-	r.skippedResults = skippedResults
+	r.SkippedResults = skippedResults
 }
 
 //TBD 4.1  map[string]map[string]List<String>>> getHighlightings()
 //TBD 4.1   setHighlightings(map[string]map[string]List<String>>> highlightings) {
 
 func (r *GenericQueryResult) getDurationInMs() int64 {
-	return r.durationInMs
+	return r.DurationInMs
 }
 
 func (r *GenericQueryResult) setDurationInMs(durationInMs int64) {
-	r.durationInMs = durationInMs
+	r.DurationInMs = durationInMs
 }
 
 func (r *GenericQueryResult) getScoreExplanations() map[string]string {
-	return r.scoreExplanations
+	return r.ScoreExplanations
 }
 
 func (r *GenericQueryResult) setScoreExplanations(scoreExplanations map[string]string) {
-	r.scoreExplanations = scoreExplanations
+	r.ScoreExplanations = scoreExplanations
 }
 
 func (r *GenericQueryResult) getTimingsInMs() map[string]float64 {
-	return r.timingsInMs
+	return r.TimingsInMs
 }
 
 func (r *GenericQueryResult) setTimingsInMs(timingsInMs map[string]float64) {
-	r.timingsInMs = timingsInMs
+	r.TimingsInMs = timingsInMs
 }
 
 func (r *GenericQueryResult) getResultSize() int64 {
-	return r.resultSize
+	return r.ResultSize
 }
 
 func (r *GenericQueryResult) setResultSize(resultSize int64) {
-	r.resultSize = resultSize
+	r.ResultSize = resultSize
 }

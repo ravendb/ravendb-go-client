@@ -29,15 +29,22 @@ func (t *ServerTime) UnmarshalJSON(d []byte) error {
 
 	tt, err := time.Parse(serverTimeFormat, s)
 	if err != nil {
-		// TODO: for now make it a fatal error to catch bugs early
-		must(err)
-		return err
+		// server sometimes returns this value, which is missing
+		// "Z" at the end so doesn't parse as serverTimeFormat
+		if s == "0001-01-01T00:00:00.0000000" {
+			tt = time.Time{}
+		} else {
+			// TODO: for now make it a fatal error to catch bugs early
+			must(err)
+			return err
+		}
 	}
 	*t = ServerTime(tt)
 	return nil
 }
 
 func (t *ServerTime) toTime() time.Time {
+	// for convenience make it work on nil pointer
 	if t == nil {
 		return time.Time{}
 	}

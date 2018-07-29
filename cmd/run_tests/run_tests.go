@@ -62,7 +62,7 @@ func runJava() {
 	//runSingleJavaTest("PatchTest", "trace_patch_java.txt")
 	//runSingleJavaTest("IndexOperationsTest", "trace_index_operations_java.txt")
 	//runSingleJavaTest("documents.LoadTest", "trace_documents_load_java.txt")
-	//runSingleJavaTest("DeleteByQueryTest", "trace_delete_by_query_java.txt")
+	runSingleJavaTest("DeleteByQueryTest", "trace_delete_by_query_java.txt")
 	//runSingleJavaTest("CrudTest", "trace_crud_java.txt")
 	//runSingleJavaTest("UniqueValuesTest", "trace_unique_values_java.txt")
 	//runSingleJavaTest("AttachmentsRevisionsTest", "trace_attachments_revisions_java.txt")
@@ -70,7 +70,7 @@ func runJava() {
 	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
 	//runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
 	//runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
-	runSingleJavaTest("QueryTest", "trace_query_java.txt")
+	//runSingleJavaTest("QueryTest", "trace_query_java.txt")
 }
 
 func main() {

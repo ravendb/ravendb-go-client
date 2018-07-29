@@ -18,7 +18,7 @@ func (r *QueryResult) createSnapshot() *QueryResult {
 		queryResult.setHighlightings(highlightings);
 	}*/
 
-	queryResult.scoreExplanations = dupMapStringString(r.scoreExplanations)
-	queryResult.timingsInMs = dupMapStringFloat64(r.timingsInMs)
+	queryResult.ScoreExplanations = dupMapStringString(r.ScoreExplanations)
+	queryResult.TimingsInMs = dupMapStringFloat64(r.TimingsInMs)
 	return &queryResult
 }

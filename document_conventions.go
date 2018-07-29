@@ -69,20 +69,18 @@ func (c *DocumentConventions) freeze() {
 	c._frozen = true
 }
 
-func (c *DocumentConventions) getCollectionName(entity Object) string {
-	return defaultGetCollectionName(entity)
+func (c *DocumentConventions) getCollectionName(entityOrClazz Object) string {
+	return defaultGetCollectionName(entityOrClazz)
 }
 
 func (c *DocumentConventions) isThrowIfQueryPageSizeIsNotSet() bool {
 	return c._throwIfQueryPageSizeIsNotSet
 }
 
-// TODO: tests
-func defaultGetCollectionName(entity interface{}) string {
+func defaultGetCollectionName(entityOrClazz interface{}) string {
 	// TODO: caching
-	typ := getShortTypeName(entity)
-	result := pluralize(typ)
-	return result
+	name := getShortTypeName(entityOrClazz)
+	return pluralize(name)
 }
 
 func (c *DocumentConventions) updateFrom(configuration *ClientConfiguration) {
