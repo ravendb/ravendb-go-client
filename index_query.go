@@ -99,20 +99,16 @@ func (q *IndexQuery) setDisableCaching(disableCaching bool) {
 }
 
 func (q *IndexQuery) getQueryHash() string {
-	// TODO: port me
-	panicIf(true, "NYI")
-	/*
-		QueryHashCalculator hasher = new QueryHashCalculator();
-			hasher.write(getQuery());
-			hasher.write(isWaitForNonStaleResults());
-			hasher.write(isSkipDuplicateChecking());
-			//TBD 4.1 hasher.write(isShowTimings());
-			//TBD 4.1 hasher.write(isExplainScores());
-			hasher.write(Optional.ofNullable(getWaitForNonStaleResultsTimeout()).map(x -> x.toMillis()).orElse(0L));
-			hasher.write(getStart());
-			hasher.write(getPageSize());
-			hasher.write(getQueryParameters());
-			return hasher.getHash();
-	*/
-	return ""
+	hasher := NewQueryHashCalculator()
+	hasher.write(q.getQuery())
+	hasher.write(q.isWaitForNonStaleResults())
+	hasher.write(q.isSkipDuplicateChecking())
+	//TBD 4.1 hasher.write(isShowTimings());
+	//TBD 4.1 hasher.write(isExplainScores());
+	n := int64(q.getWaitForNonStaleResultsTimeout())
+	hasher.write(n)
+	hasher.write(q.getStart())
+	hasher.write(q.getPageSize())
+	hasher.write(q.getQueryParameters())
+	return hasher.getHash()
 }

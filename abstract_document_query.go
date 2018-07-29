@@ -47,7 +47,7 @@ type AbstractDocumentQuery struct {
 
 	includes *StringSet
 
-	queryStats *QueryStatistics // TODO: queryStats = NewQueryStatistics
+	queryStats *QueryStatistics
 
 	disableEntitiesTracking bool
 
@@ -111,6 +111,7 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 		theSession:               session,
 		_aliasToGroupByFieldName: make(map[string]string),
 		queryParameters:          make(map[string]Object),
+		queryStats:               NewQueryStatistics(),
 	}
 	res.rootTypes.add(clazz)
 	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
@@ -915,7 +916,7 @@ func (q *AbstractDocumentQuery) String() string {
 }
 
 func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
-	if q.includes != nil && q.includes.Size() == 0 {
+	if q.includes == nil || q.includes.isEmpty() {
 		return
 	}
 
@@ -1541,9 +1542,9 @@ func (q *AbstractDocumentQuery) _orderByDistanceDescending3(fieldName string, sh
 	q.orderByTokens = append(q.orderByTokens, tok)
 }
 
-func (q *AbstractDocumentQuery) initSync() {
+func (q *AbstractDocumentQuery) initSync() error {
 	if q.queryOperation != nil {
-		return
+		return nil
 	}
 
 	delegate := NewDocumentQueryCustomizationDelegate(q)
@@ -1551,26 +1552,35 @@ func (q *AbstractDocumentQuery) initSync() {
 	q.theSession.onBeforeQueryInvoke(beforeQueryEventArgs)
 
 	q.queryOperation = q.initializeQueryOperation()
-	q.executeActualQuery()
+	return q.executeActualQuery()
 }
 
-func (q *AbstractDocumentQuery) executeActualQuery() {
+func (q *AbstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
 		command := q.queryOperation.createRequest()
-		q.theSession.getRequestExecutor().executeCommandWithSessionInfo(command, q.theSession.sessionInfo)
+		err := q.theSession.getRequestExecutor().executeCommandWithSessionInfo(command, q.theSession.sessionInfo)
 		q.queryOperation.setResult(command.Result)
 		context.Close()
+		// make sure context.Close() is executed
+		if err != nil {
+			return err
+		}
 	}
 	q.invokeAfterQueryExecuted(q.queryOperation.getCurrentQueryResults())
+	return nil
 }
 
-func (q *AbstractDocumentQuery) getQueryResult() *QueryResult {
-	q.initSync()
+func (q *AbstractDocumentQuery) getQueryResult() (*QueryResult, error) {
+	err := q.initSync()
+	if err != nil {
+		return nil, err
+	}
 
-	return q.queryOperation.getCurrentQueryResults().createSnapshot()
+	return q.queryOperation.getCurrentQueryResults().createSnapshot(), nil
 }
 
+// TODO: Go has no interatos so for better API, rename to getResult() or sth.
 func (q *AbstractDocumentQuery) iterator() ([]interface{}, error) {
 	tmp := 0
 	return q.executeQueryOperation(&tmp)
@@ -1635,13 +1645,16 @@ func (q *AbstractDocumentQuery) singleOrDefault() (interface{}, error) {
 	return result[0], nil
 }
 
-func (q *AbstractDocumentQuery) count() int {
+func (q *AbstractDocumentQuery) count() (int, error) {
 	{
 		var tmp = 0
 		q._take(&tmp)
 	}
-	queryResult := q.getQueryResult()
-	return queryResult.getTotalResults()
+	queryResult, err := q.getQueryResult()
+	if err != nil {
+		return 0, err
+	}
+	return queryResult.getTotalResults(), nil
 }
 
 func (q *AbstractDocumentQuery) any() (bool, error) {
@@ -1659,7 +1672,10 @@ func (q *AbstractDocumentQuery) any() (bool, error) {
 		var tmp = 0
 		q._take(&tmp)
 	}
-	queryResult := q.getQueryResult()
+	queryResult, err := q.getQueryResult()
+	if err != nil {
+		return false, err
+	}
 	return queryResult.getTotalResults() > 0, nil
 }
 

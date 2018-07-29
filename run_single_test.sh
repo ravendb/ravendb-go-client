@@ -12,4 +12,7 @@ export HTTP_PROXY=http://localhost:8888
 # antidote to test caching
 go clean -testcache
 
-go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
+# go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
+
+go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestDeleteByQuery$
+

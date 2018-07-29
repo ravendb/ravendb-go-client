@@ -114,21 +114,18 @@ func (s *QueryStatistics) setResultSize(resultSize int64) {
 }
 
 func (s *QueryStatistics) updateQueryStats(qr *QueryResult) {
-	panicIf(true, "NYI")
-	/*
-		        s._isStale = qr.isStale()
-		        s.durationInMs = qr.getDurationInMs()
-		        s.totalResults = qr.getTotalResults()
-		        s.skippedResults = qr.getSkippedResults()
-		        s.timestamp = qr.getIndexTimestamp()
-		        s.indexName = qr.getIndexName()
-		        s.indexTimestamp = qr.getIndexTimestamp()
-		        s.timingsInMs = qr.getTimingsInMs()
-		        s.lastQueryTime = qr.getLastQueryTime()
-		        s.resultSize = qr.getResultSize()
-		        s.resultEtag = qr.getResultEtag()
-				s.scoreExplanations = qr.getScoreExplanations()
-	*/
+	s._isStale = qr.isStale()
+	s.durationInMs = qr.getDurationInMs()
+	s.totalResults = qr.getTotalResults()
+	s.skippedResults = qr.getSkippedResults()
+	s.timestamp = qr.getIndexTimestamp()
+	s.indexName = qr.getIndexName()
+	s.indexTimestamp = qr.getIndexTimestamp()
+	s.timingsInMs = qr.getTimingsInMs()
+	s.lastQueryTime = qr.getLastQueryTime()
+	s.resultSize = qr.getResultSize()
+	s.resultEtag = qr.getResultEtag()
+	s.scoreExplanations = qr.getScoreExplanations()
 }
 
 func (s *QueryStatistics) getScoreExplanations() map[string]string {

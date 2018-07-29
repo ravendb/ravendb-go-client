@@ -57,6 +57,13 @@ func (s *StringSet) Size() int {
 	return len(s.strings)
 }
 
+func (s *StringSet) isEmpty() bool {
+	if s == nil {
+		return true
+	}
+	return len(s.strings) == 0
+}
+
 func (s *StringSet) add(str string) {
 	if s.contains(str) {
 		return

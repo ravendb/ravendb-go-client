@@ -43,7 +43,7 @@ func (o *QueryOperation) getCurrentQueryResults() *QueryResult {
 }
 
 func (o *QueryOperation) setResult(queryResult *QueryResult) {
-	//o.ensureIsAcceptableAndSaveResult(queryResult)
+	o.ensureIsAcceptableAndSaveResult(queryResult)
 }
 
 func (o *QueryOperation) assertPageSizeSet() {
@@ -77,7 +77,8 @@ func (o *QueryOperation) enterQueryContext() CleanCloseable {
 	o.startTiming()
 
 	if !o._indexQuery.isWaitForNonStaleResults() {
-		return nil
+		var res *NilCleanCloseable
+		return res
 	}
 
 	return o._session.getDocumentStore().disableAggressiveCachingWithDatabase(o._session.getDatabaseName())
