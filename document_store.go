@@ -206,6 +206,10 @@ func (s *DocumentStore) setIdentifier(identifier string) {
 
 // Close closes the store
 func (s *DocumentStore) Close() {
+	if s.disposed {
+		return
+	}
+
 	for _, fn := range s.beforeClose {
 		fn(s)
 	}
