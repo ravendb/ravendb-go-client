@@ -132,13 +132,12 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 	}
 	if fieldsToFetch != nil && len(fieldsToFetch.projections) == 1 {
 		// we only select a single field
-		isString := reflect.TypeOf("") == clazz
+		isString := clazz.Kind() == reflect.String
 		if isString || ClassUtils_isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
 			projectField := fieldsToFetch.projections[0]
 			jsonNode, ok := document[projectField]
 			if ok && jsonIsValueNode(jsonNode) {
-				// TODO: this is wrong
-				res, err := session.getConventions().deserializeEntityFromJson(clazz, jsonNode.(ObjectNode))
+				res, err := session.getConventions().deserializeEntityFromJson(clazz, jsonNode)
 				if err != nil {
 					return nil, err
 				}
@@ -169,19 +168,15 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 	}
 
 	if StringUtils_isNotEmpty(id) {
-		panic("NYI")
 		// we need to make an additional check, since it is possible that a value was explicitly stated
 		// for the identity property, in which case we don't want to override it.
-		/*
-		   Field identityProperty := session.getConventions().getIdentityProperty(clazz);
-		   if (identityProperty != null) {
-		       JsonNode value = document.get(identityProperty.getName());
 
-		       if (value == null) {
-		           session.getGenerateEntityIdOnTheClient().trySetIdentity(result, id);
-		       }
-		   }
-		*/
+		identityProperty := session.getConventions().getIdentityProperty(clazz)
+		if identityProperty != "" {
+			if _, ok := document[identityProperty]; !ok {
+				session.getGenerateEntityIdOnTheClient().trySetIdentity(result, id)
+			}
+		}
 	}
 
 	return result, nil

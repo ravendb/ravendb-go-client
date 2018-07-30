@@ -114,9 +114,25 @@ func isTypePointerToStruct(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Struct
 }
 
-func treeToValue(typ reflect.Type, js ObjectNode) (interface{}, error) {
+func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 	// TODO: should also handle primitive types
-	return makeStructFromJSONMap(typ, js)
+	switch v := js.(type) {
+	case string:
+		if typ.Kind() == reflect.String {
+			return js, nil
+		}
+		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+	case float64:
+		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+	case bool:
+		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+	case []interface{}:
+		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+	case ObjectNode:
+		return makeStructFromJSONMap(typ, v)
+	}
+	panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+	return nil, fmt.Errorf("don't know how to convert value of type %v to reflect type %s", js, typ.Name())
 }
 
 // given a json represented as map and type of a struct

@@ -13,12 +13,17 @@ type JsonNode = interface{}
 
 // JsonNodeType represents a type of JSON value e.g. object, array.
 // Equivalent of com.fasterxml.jackson.databind.node.JsonNodeType
-// TODO: change to reflect.Type
+// TODO: change to reflect.Type?
 type JsonNodeType = interface{}
 
 // ObjectNode represents parsed JSON document in memory
 // equivalent of com.fasterxml.jackson.databind.node.ObjectNode
 type ObjectNode = map[string]interface{}
+
+// TreeNode is equivalent of com.fasterxml.jackson.databind.TreeNode
+// in terms of Go's json package, it's the same as interface{} becuase
+// interface{} combines both the value and its type
+type TreeNode = interface{}
 
 // ArrayNode represents result of BatchCommand, which is array of JSON objects
 // it's a type alias so that it doesn't need casting when json marshalling

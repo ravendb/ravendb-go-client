@@ -36,6 +36,10 @@ type WhereOptions struct {
 	distanceErrorPct float64
 }
 
+func WhereOptions_defaultOptions() *WhereOptions {
+	return NewWhereOptions()
+}
+
 func NewWhereOptions() *WhereOptions {
 	return &WhereOptions{}
 }
@@ -171,11 +175,7 @@ func NewWhereToken() *WhereToken {
 }
 
 func WhereToken_create(op WhereOperator, fieldName string, parameterName string) *WhereToken {
-	res := NewWhereToken()
-	res.whereOperator = op
-	res.fieldName = fieldName
-	res.parameterName = parameterName
-	return res
+	return WhereToken_createWithOptions(op, fieldName, parameterName, nil)
 }
 
 func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterName string, options *WhereOptions) *WhereToken {
@@ -186,7 +186,7 @@ func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterN
 	if options != nil {
 		token.options = options
 	} else {
-		token.options = NewWhereOptions()
+		token.options = WhereOptions_defaultOptions()
 	}
 	return token
 }

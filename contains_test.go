@@ -63,50 +63,41 @@ func containsTestcontainsTest(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
 		session.Close()
 	}
 
 	{
 		session := openSessionMust(t, store)
+
 		q := session.query(getTypeOf(&UserWithFavs{}))
-		q.containsAny("Favourites", []Object{"pascal", "go"})
-		q.selectFields(getTypeOf(""), "Name")
+		q = q.containsAny("Favourites", []Object{"pascal", "go"})
+		q = q.selectFields(getTypeOf(""), "Name")
 		pascalOrGoDeveloperNames, err := q.toList()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
 		assert.True(t, interfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
 		assert.True(t, interfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
+
 		session.Close()
 	}
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&UserWithFavs{}))
+		q = q.containsAll("Favourites", []Object{"java"})
+		q = q.selectFields(getTypeOf(""), "Name")
+		javaDevelopers, err := q.toList()
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(javaDevelopers))
+		assert.True(t, interfaceArrayContains(javaDevelopers, "John"))
+		assert.True(t, interfaceArrayContains(javaDevelopers, "Tarzan"))
+
+		session.Close()
+	}
+
 }
-
-/*
-   try (IDocumentSession session = store.openSession()) {
-       List<String> pascalOrGoDeveloperNames = session
-               .query(UserWithFavs.class)
-               .containsAny("favourites", Arrays.asList("pascal", "go"))
-               .selectFields(String.class, "name")
-               .toList();
-
-       assertThat(pascalOrGoDeveloperNames)
-               .hasSize(2)
-               .contains("Jane")
-               .contains("Tarzan");
-   }
-
-   try (IDocumentSession session = store.openSession()) {
-       List<String> javaDevelopers = session
-               .query(UserWithFavs.class)
-               .containsAll("favourites", Collections.singletonList("java"))
-               .selectFields(String.class, "name")
-               .toList();
-
-       assertThat(javaDevelopers)
-               .hasSize(2)
-               .contains("John")
-               .contains("Tarzan");
-   }
-*/
 
 func TestContains(t *testing.T) {
 	if dbTestsDisabled() {
@@ -119,6 +110,5 @@ func TestContains(t *testing.T) {
 	createTestDriver()
 	defer deleteTestDriver()
 
-	// TODO: re-enable when finished
-	//containsTestcontainsTest(t)
+	containsTestcontainsTest(t)
 }

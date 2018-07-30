@@ -182,7 +182,7 @@ func (c *DocumentConventions) getTransformClassCollectionNameToDocumentIdPrefix(
 	return c._transformClassCollectionNameToDocumentIdPrefix
 }
 
-func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Type, document ObjectNode) (interface{}, error) {
+func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Type, document TreeNode) (interface{}, error) {
 	res, e := treeToValue(documentType, document)
 	if e != nil {
 		return nil, NewRavenException("Cannot deserialize entity %s", e)
