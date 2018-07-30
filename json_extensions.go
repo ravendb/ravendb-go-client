@@ -4,7 +4,7 @@ package ravendb
 func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *IndexQuery) map[string]interface{} {
 	res := map[string]interface{}{}
 	res["Query"] = query.getQuery()
-	if query.isPageSizeSet() && query.getPageSize() >= 0 {
+	if query.isPageSizeSet() && query.getPageSize() > 0 {
 		res["PageSize"] = query.getPageSize()
 	}
 

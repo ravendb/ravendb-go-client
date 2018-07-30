@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 type AbstractDocumentQuery struct {
@@ -916,7 +917,7 @@ func (q *AbstractDocumentQuery) String() string {
 }
 
 func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
-	if q.includes == nil || q.includes.isEmpty() {
+	if q.includes == nil || q.includes.IsEmpty() {
 		return
 	}
 
@@ -1245,6 +1246,18 @@ func AbstractDocumentQuery_unpackCollection(items []Object) []Object {
 }
 
 func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
+	// in Go only public fields can be serialized so check that first
+	// letter is uppercase
+	if len(fieldName) > 0 {
+		for i, c := range fieldName {
+			if i > 0 {
+				break
+			}
+			isUpper := unicode.IsUpper(c)
+			panicIf(!isUpper, "field '%s' is not public (doesn't start with uppercase letter)", fieldName)
+		}
+	}
+
 	if q.theSession == nil || q.theSession.getConventions() == nil || isNestedPath || q.isGroupBy {
 		return QueryFieldUtil_escapeIfNecessary(fieldName)
 	}
@@ -1280,7 +1293,7 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams
 	case time.Time, string, int, int32, int64, float32, float64, bool:
 		return val
 	case time.Duration:
-		panicIf(true, "NYI")
+		panic("NYI")
 		//return ((Duration) whereParams.getValue()).toNanos() / 100;
 	}
 	return whereParams.getValue()
@@ -1588,7 +1601,7 @@ func (q *AbstractDocumentQuery) iterator() ([]interface{}, error) {
 
 // Note: toList() is the same as iterator() becuase Go has no iterators
 func (q *AbstractDocumentQuery) toList() ([]interface{}, error) {
-	return q.iterator()
+	return q.executeQueryOperation(nil)
 }
 
 func (q *AbstractDocumentQuery) first() (interface{}, error) {

@@ -66,21 +66,18 @@ func containsTestcontainsTest(t *testing.T) {
 		session.Close()
 	}
 
-	/*
-			{
-				session := openSessionMust(t, store)
-				List<String> pascalOrGoDeveloperNames = session
-				.query(UserWithFavs.class)
-				.containsAny("favourites", Arrays.asList("pascal", "go"))
-				.selectFields(String.class, "name")
-				.toList();
-
-		assertThat(pascalOrGoDeveloperNames)
-				.hasSize(2)
-				.contains("Jane")
-				.contains("Tarzan");
-			}*/
-
+	{
+		session := openSessionMust(t, store)
+		q := session.query(getTypeOf(&UserWithFavs{}))
+		q.containsAny("Favourites", []Object{"pascal", "go"})
+		q.selectFields(getTypeOf(""), "Name")
+		pascalOrGoDeveloperNames, err := q.toList()
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
+		assert.True(t, interfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
+		assert.True(t, interfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
+		session.Close()
+	}
 }
 
 /*

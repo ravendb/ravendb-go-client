@@ -62,7 +62,6 @@ func NewDocumentConventions() *DocumentConventions {
 		RaiseIfQueryPageSizeIsNotSet:                    false,
 		_transformClassCollectionNameToDocumentIdPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
 	}
-
 }
 
 func (c *DocumentConventions) freeze() {
@@ -149,6 +148,11 @@ func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
 	return getFullTypeName(entity)
 }
 
+// returns "" if no identity property
+func (c *DocumentConventions) getIdentityProperty(clazz reflect.Type) string {
+	return getIdentityProperty(clazz)
+}
+
 func (c *DocumentConventions) getDocumentIdGenerator() DocumentIDGeneratorFunc {
 	return c._documentIdGenerator
 }
@@ -187,7 +191,8 @@ func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Typ
 }
 
 func (c *DocumentConventions) tryConvertValueForQuery(fieldName string, value Object, forRange bool, stringValue *string) bool {
-	panicIf(true, "NYI")
+	// TODO: implement me
+	// Tested by CustomSerializationTest
 	/*
 		for (Tuple<Class, IValueForQueryConverter<Object>> queryValueConverter : _listOfQueryValueConverters) {
 			if (!queryValueConverter.first.isInstance(value)) {

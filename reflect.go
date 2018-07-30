@@ -53,6 +53,21 @@ func getShortTypeName(v interface{}) string {
 	return name
 }
 
+// identity property is field of type string with name ID
+func getIdentityProperty(typ reflect.Type) string {
+	for typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	if typ.Kind() != reflect.Struct {
+		return ""
+	}
+	field, ok := typ.FieldByName("ID")
+	if !ok || field.Type.Kind() != reflect.String {
+		return ""
+	}
+	return "ID"
+}
+
 func getTypeOf(v interface{}) reflect.Type {
 	// TODO: validate that v is of valid type (for now pointer to a struct)
 	return reflect.TypeOf(v)
@@ -70,7 +85,7 @@ func isTypePrimitive(t reflect.Type) bool {
 		return false
 	// TODO: not all of those we should support
 	case reflect.Array, reflect.Interface, reflect.Map, reflect.Slice, reflect.Struct:
-		panicIf(true, "NYI")
+		panic("NYI")
 	}
 	return false
 }

@@ -57,11 +57,20 @@ func (s *StringSet) Size() int {
 	return len(s.strings)
 }
 
-func (s *StringSet) isEmpty() bool {
+func (s *StringSet) IsEmpty() bool {
+	// for convenience, make it work with nil receiver
 	if s == nil {
 		return true
 	}
 	return len(s.strings) == 0
+}
+
+func (s *StringSet) Strings() []string {
+	// for convenience, make it work with nil receiver
+	if s == nil {
+		return nil
+	}
+	return s.strings
 }
 
 func (s *StringSet) add(str string) {

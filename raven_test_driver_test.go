@@ -199,7 +199,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	store.getConventions().setDisableTopologyUpdates(true)
 
 	if secured {
-		panicIf(true, "NYI")
+		panic("NYI")
 		globalSecuredServer = store
 		//TODO: KeyStore clientCert = getTestClientCertificate();
 		//TODO: store.setCertificate(clientCert);

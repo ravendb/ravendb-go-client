@@ -219,7 +219,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 		}
 
 		if stream != nil {
-			panicIf(true, "NYI")
+			panic("NYI")
 			/*
 				try {
 					GetDocumentsResult result = command.getResult();

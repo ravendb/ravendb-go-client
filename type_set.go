@@ -12,6 +12,12 @@ func NewTypeSet() *TypeSet {
 	return &TypeSet{}
 }
 
+func NewTypeSetWithType(t reflect.Type) *TypeSet {
+	return &TypeSet{
+		a: []reflect.Type{t},
+	}
+}
+
 func (s *TypeSet) exists(t reflect.Type) bool {
 	for _, el := range s.a {
 		if el == t {

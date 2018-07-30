@@ -77,3 +77,31 @@ func TestIsStructy(t *testing.T) {
 		t.Fatalf("getStructTypeOfValue(%T) returned true", v2)
 	}
 }
+
+func TestGetIdentityProperty(t *testing.T) {
+	got := getIdentityProperty(getTypeOf(""))
+	assert.Equal(t, "", got)
+	got = getIdentityProperty(getTypeOf(User{}))
+	assert.Equal(t, "ID", got)
+	got = getIdentityProperty(getTypeOf(&User{}))
+	assert.Equal(t, "ID", got)
+
+	{
+		// field not named ID
+		v := struct {
+			Id string
+		}{}
+		got = getIdentityProperty(getTypeOf(v))
+		assert.Equal(t, "", got)
+	}
+
+	{
+		// field named ID but not stringa
+		v := struct {
+			ID int
+		}{}
+		got = getIdentityProperty(getTypeOf(v))
+		assert.Equal(t, "", got)
+	}
+
+}

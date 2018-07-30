@@ -837,12 +837,12 @@ func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command Ra
 }
 
 func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerNode, command RavenCommand) (*http.Response, error) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	return nil, nil
 }
 
 func (re *RequestExecutor) getFromCache(command RavenCommand, url string, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
-	panicIf(true, "NYI")
+	panic("NYI")
 	return nil
 }
 

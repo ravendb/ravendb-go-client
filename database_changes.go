@@ -48,35 +48,35 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 }
 
 func (c *DatabaseChanges) isConnected() bool {
-	panicIf(true, "NYI")
+	panic("NYI")
 	return false
 }
 
 func (c *DatabaseChanges) ensureConnectedNow() {
-	panicIf(true, "NYI")
+	panic("NYI")
 
 }
 
 func (c *DatabaseChanges) addConnectionStatusChanged(handler EventHandler) {
-	panicIf(true, "NYI")
+	panic("NYI")
 
 }
 
 func (c *DatabaseChanges) removeConnectionStatusChanged(handler EventHandler) {
-	panicIf(true, "NYI")
+	panic("NYI")
 
 }
 
 func (c *DatabaseChanges) addOnError(handler func(error)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 
 }
 
 func (c *DatabaseChanges) removeOnError(handler func(error)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 }
 
 func (c *DatabaseChanges) forAllOperations() IChangesObservable_OperationStatusChange {
-	panicIf(true, "NYI")
+	panic("NYI")
 	return nil
 }

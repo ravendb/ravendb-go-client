@@ -111,3 +111,12 @@ func deepCopy(v interface{}) interface{} {
 	// TOOD: implement me
 	return v
 }
+
+func interfaceArrayContains(a []interface{}, v interface{}) bool {
+	for _, el := range a {
+		if el == v {
+			return true
+		}
+	}
+	return false
+}

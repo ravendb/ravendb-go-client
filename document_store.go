@@ -74,7 +74,7 @@ func (s *DocumentStore) addBeforeStoreListener(handler func(interface{}, *Before
 
 }
 func (s *DocumentStore) removeBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onBeforeStore.remove(handler);
 }
 
@@ -83,7 +83,7 @@ func (s *DocumentStore) addAfterSaveChangesListener(handler func(interface{}, *A
 }
 
 func (s *DocumentStore) removeAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onAfterSaveChanges.remove(handler);
 }
 
@@ -92,7 +92,7 @@ func (s *DocumentStore) addBeforeDeleteListener(handler func(interface{}, *Befor
 }
 
 func (s *DocumentStore) removeBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onBeforeDelete.remove(handler);
 }
 
@@ -101,7 +101,7 @@ func (s *DocumentStore) addBeforeQueryListener(handler func(interface{}, *Before
 }
 
 func (s *DocumentStore) removeBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onBeforeQuery.remove(handler);
 }
 

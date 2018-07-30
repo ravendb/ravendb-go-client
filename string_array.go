@@ -82,3 +82,19 @@ func stringArrayContains(a []string, s string) bool {
 	}
 	return false
 }
+
+func stringArrayEq(a1, a2 []string) bool {
+	if len(a1) != len(a2) {
+		return false
+	}
+	if len(a1) == 0 {
+		return true
+	}
+	// TODO: could be faster if used map
+	for _, s := range a1 {
+		if !stringArrayContains(a2, s) {
+			return false
+		}
+	}
+	return true
+}

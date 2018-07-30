@@ -115,7 +115,7 @@ func (s *InMemoryDocumentSessionOperations) addBeforeStoreListener(handler func(
 
 }
 func (s *InMemoryDocumentSessionOperations) removeBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onBeforeStore.remove(handler);
 }
 
@@ -124,7 +124,7 @@ func (s *InMemoryDocumentSessionOperations) addAfterSaveChangesListener(handler 
 }
 
 func (s *InMemoryDocumentSessionOperations) removeAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onAfterSaveChanges.remove(handler);
 }
 
@@ -133,7 +133,7 @@ func (s *InMemoryDocumentSessionOperations) addBeforeDeleteListener(handler func
 }
 
 func (s *InMemoryDocumentSessionOperations) removeBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onBeforeDelete.remove(handler);
 }
 
@@ -142,7 +142,7 @@ func (s *InMemoryDocumentSessionOperations) addBeforeQueryListener(handler func(
 }
 
 func (s *InMemoryDocumentSessionOperations) removeBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
-	panicIf(true, "NYI")
+	panic("NYI")
 	//this.onBeforeQuery.remove(handler);
 }
 
@@ -228,7 +228,7 @@ func (s *InMemoryDocumentSessionOperations) getChangeVectorFor(instance interfac
 
 // GetLastModifiedFor retursn last modified time for a given instance
 func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interface{}) (time.Time, bool) {
-	panicIf(true, "NYI")
+	panic("NYI")
 
 	var res time.Time
 	return res, false
@@ -742,7 +742,7 @@ func (s *InMemoryDocumentSessionOperations) whatChanged() (map[string][]*Documen
 
 // Gets a value indicating whether any of the entities tracked by the session has changes.
 func (s *InMemoryDocumentSessionOperations) hasChanges() bool {
-	panicIf(true, "NYI")
+	panic("NYI")
 	/*
 		for (Map.Entry<Object, DocumentInfo> entity : documentsByEntity.entrySet()) {
 			ObjectNode document = entityToJson.convertEntityToJson(entity.getKey(), entity.getValue());

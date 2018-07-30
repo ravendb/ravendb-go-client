@@ -16,7 +16,7 @@ func UrlUtils_escapeDataString(stringToEscape string) string {
 		}
 		return new string(dest, 0, position.value);
 
-		panicIf(true, "NYI")
+		panic("NYI")
 		return stringToEscape
 	*/
 }

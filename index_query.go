@@ -1,11 +1,14 @@
 package ravendb
 
-import "time"
+import (
+	"math"
+	"time"
+)
 
 type IndexQuery struct {
 
 	// from IndexQueryBase<T>
-	_pageSize                     int // = Integer.MAX_VALUE;
+	_pageSize                     int
 	pageSizeSet                   bool
 	query                         string
 	queryParameters               Parameters
@@ -18,6 +21,14 @@ type IndexQuery struct {
 
 	// from IndexQuery
 	disableCaching bool
+}
+
+// from IndexQuery
+func NewIndexQuery(query string) *IndexQuery {
+	return &IndexQuery{
+		query:     query,
+		_pageSize: math.MaxInt32,
+	}
 }
 
 // from IndexQueryBase<T>
@@ -81,13 +92,6 @@ func (q *IndexQuery) isSkipDuplicateChecking() bool {
 
 func (q *IndexQuery) setSkipDuplicateChecking(skipDuplicateChecking bool) {
 	q.skipDuplicateChecking = skipDuplicateChecking
-}
-
-// from IndexQuery
-func NewIndexQuery(query string) *IndexQuery {
-	return &IndexQuery{
-		query: query,
-	}
 }
 
 func (q *IndexQuery) isDisableCaching() bool {

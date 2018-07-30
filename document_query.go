@@ -1,6 +1,9 @@
 package ravendb
 
-import "reflect"
+import (
+	"reflect"
+	"time"
+)
 
 type DocumentQuery struct {
 	*AbstractDocumentQuery
@@ -18,9 +21,15 @@ func NewDocumentQueryWithToken(clazz reflect.Type, session *InMemoryDocumentSess
 	}
 }
 
-/*
- <TProjection> IDocumentQuery<TProjection> selectFields(Class<TProjection> projectionClass) {
-	try {
+func (q *DocumentQuery) selectFields(projectionClass reflect.Type, fields ...string) *DocumentQuery {
+	if len(fields) > 0 {
+		queryData := NewQueryData(fields, fields)
+		return q.selectFieldsWithQueryData(projectionClass, queryData)
+	}
+
+	panic("NYI")
+	// TODO: implement me
+	/*
 		PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(projectionClass).getPropertyDescriptors();
 
 		string[] projections = Arrays.stream(propertyDescriptors)
@@ -32,55 +41,37 @@ func NewDocumentQueryWithToken(clazz reflect.Type, session *InMemoryDocumentSess
 				.toArray(string[]::new);
 
 		return selectFields(projectionClass, new QueryData(fields, projections));
-	} catch (IntrospectionException e) {
-		throw new RuntimeException("Unable to project to class: " + projectionClass.getName() + e.getMessage(), e);
-	}
+	*/
+	return nil
 }
 
-
- IDocumentQuery<T> distinct() {
-	_distinct();
-	return this;
+func (q *DocumentQuery) selectFieldsWithQueryData(projectionClass reflect.Type, queryData *QueryData) *DocumentQuery {
+	return q.createDocumentQueryInternalWithQueryData(projectionClass, queryData)
 }
 
-
- IDocumentQuery<T> orderByScore() {
-	_orderByScore();
-	return this;
+func (q *DocumentQuery) distinct() *DocumentQuery {
+	q._distinct()
+	return q
 }
 
+func (q *DocumentQuery) orderByScore() *DocumentQuery {
+	q._orderByScore()
+	return q
+}
 
- IDocumentQuery<T> orderByScoreDescending() {
-	_orderByScoreDescending();
-	return this;
+func (q *DocumentQuery) orderByScoreDescending() *DocumentQuery {
+	q._orderByScoreDescending()
+	return q
 }
 
 //TBD 4.1  IDocumentQuery<T> explainScores() {
 
-
- <TProjection> IDocumentQuery<TProjection> selectFields(Class<TProjection> projectionClass, string... fields) {
-	QueryData queryData = new QueryData(fields, fields);
-	return selectFields(projectionClass, queryData);
+func (q *DocumentQuery) waitForNonStaleResults(waitTimeout time.Duration) *DocumentQuery {
+	q._waitForNonStaleResults(waitTimeout)
+	return q
 }
 
-
- <TProjection> IDocumentQuery<TProjection> selectFields(Class<TProjection> projectionClass, QueryData queryData) {
-	return createDocumentQueryInternal(projectionClass, queryData);
-}
-
-
- IDocumentQuery<T> waitForNonStaleResults() {
-	_waitForNonStaleResults(nil);
-	return this;
-}
-
-
- IDocumentQuery<T> waitForNonStaleResults(Duration waitTimeout) {
-	_waitForNonStaleResults(waitTimeout);
-	return this;
-}
-
-
+/*
  IDocumentQuery<T> addParameter(string name, Object value) {
 	_addParameter(name, value);
 	return this;
@@ -158,23 +149,23 @@ func NewDocumentQueryWithToken(clazz reflect.Type, session *InMemoryDocumentSess
 	_intersect();
 	return this;
 }
+*/
 
-
- IDocumentQuery<T> containsAny(string fieldName, Collection<Object> values) {
-	_containsAny(fieldName, values);
-	return this;
+func (q *DocumentQuery) containsAny(fieldName string, values []Object) *DocumentQuery {
+	q._containsAny(fieldName, values)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> ContainsAny<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values)
 
-
- IDocumentQuery<T> containsAll(string fieldName, Collection<Object> values) {
-	_containsAll(fieldName, values);
-	return this;
+func (q *DocumentQuery) containsAll(fieldName string, values []Object) *DocumentQuery {
+	q._containsAll(fieldName, values)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> ContainsAll<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values)
 
+/*
 
  IDocumentQuery<T> statistics(Reference<QueryStatistics> stats) {
 	_statistics(stats);
@@ -499,74 +490,88 @@ func NewDocumentQueryWithToken(clazz reflect.Type, session *InMemoryDocumentSess
 	_removeBeforeQueryExecutedListener(action);
 	return this;
 }
+*/
 
-private <TResult> DocumentQuery<TResult> createDocumentQueryInternal(Class<TResult> resultClass) {
-	return createDocumentQueryInternal(resultClass, nil);
+func (q *DocumentQuery) createDocumentQueryInternal(resultClass reflect.Type) *DocumentQuery {
+	return q.createDocumentQueryInternalWithQueryData(resultClass, nil)
 }
 
-@SuppressWarnings("unchecked")
-private <TResult> DocumentQuery<TResult> createDocumentQueryInternal(Class<TResult> resultClass, QueryData queryData) {
-	FieldsToFetchToken newFieldsToFetch;
+func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
 
-	if (queryData != nil && queryData.getFields().length > 0) {
-		string[] fields = queryData.getFields();
+	var newFieldsToFetch *FieldsToFetchToken
 
-		Field identityProperty = getConventions().getIdentityProperty(resultClass);
+	if queryData != nil && len(queryData.getFields()) > 0 {
+		fields := queryData.getFields()
 
-		if (identityProperty != nil) {
-			fields = Arrays.stream(queryData.getFields())
-					.map(p -> p.equals(identityProperty.getName()) ? Constants.Documents.Indexing.Fields.DOCUMENT_ID_FIELD_NAME : p)
-					.toArray(string[]::new);
+		identityProperty := q.getConventions().getIdentityProperty(resultClass)
+
+		if identityProperty != "" {
+			// make a copy, just in case, because we might modify it
+			fields = append([]string{}, fields...)
+
+			for idx, p := range fields {
+				if p == identityProperty {
+					fields[idx] = Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME
+				}
+			}
 		}
 
-		newFieldsToFetch = FieldsToFetchToken.create(fields, queryData.getProjections(), queryData.isCustomFunction());
-	} else {
-		newFieldsToFetch = nil;
+		newFieldsToFetch = FieldsToFetchToken_create(fields, queryData.getProjections(), queryData.IsCustomFunction())
 	}
 
-	if (newFieldsToFetch != nil) {
-		updateFieldsToFetchToken(newFieldsToFetch);
+	if newFieldsToFetch != nil {
+		q.updateFieldsToFetchToken(newFieldsToFetch)
 	}
 
-	DocumentQuery query = new DocumentQuery<>(resultClass,
-			theSession,
-			getIndexName(),
-			getCollectionName(),
-			isGroupBy,
-			queryData != nil ? queryData.getDeclareToken() : nil,
-			queryData != nil ? queryData.getLoadTokens() : nil,
-			queryData != nil ? queryData.getFromAlias() : nil);
+	var declareToken *DeclareToken
+	var loadTokens []*LoadToken
+	var fromAlias string
+	if queryData != nil {
+		declareToken = queryData.getDeclareToken()
+		loadTokens = queryData.getLoadTokens()
+		fromAlias = queryData.getFromAlias()
+	}
+	query := NewDocumentQueryWithToken(resultClass,
+		q.theSession,
+		q.getIndexName(),
+		q.getCollectionName(),
+		q.isGroupBy,
+		declareToken,
+		loadTokens,
+		fromAlias)
 
-	query.queryRaw = queryRaw;
-	query.pageSize = pageSize;
-	query.selectTokens = selectTokens;
-	query.fieldsToFetchToken = fieldsToFetchToken;
-	query.whereTokens = whereTokens;
-	query.orderByTokens = orderByTokens;
-	query.groupByTokens = groupByTokens;
-	query.queryParameters = queryParameters;
-	query.start = start;
-	query.timeout = timeout;
-	query.queryStats = queryStats;
-	query.theWaitForNonStaleResults = theWaitForNonStaleResults;
-	query.negate = negate;
+	query.queryRaw = q.queryRaw
+	query.pageSize = q.pageSize
+	query.selectTokens = q.selectTokens
+	query.fieldsToFetchToken = q.fieldsToFetchToken
+	query.whereTokens = q.whereTokens
+	query.orderByTokens = q.orderByTokens
+	query.groupByTokens = q.groupByTokens
+	query.queryParameters = q.queryParameters
+	query.start = q.start
+	query.timeout = q.timeout
+	query.queryStats = q.queryStats
+	query.theWaitForNonStaleResults = q.theWaitForNonStaleResults
+	query.negate = q.negate
 	//noinspection unchecked
-	query.includes = new HashSet(includes);
-	query.rootTypes = Sets.newHashSet(clazz);
-	query.beforeQueryExecutedCallback = beforeQueryExecutedCallback;
-	query.afterQueryExecutedCallback = afterQueryExecutedCallback;
-	query.afterStreamExecutedCallback = afterStreamExecutedCallback;
-	query.disableEntitiesTracking = disableEntitiesTracking;
-	query.disableCaching = disableCaching;
+	query.includes = NewStringSetFromStrings(q.includes.Strings()...)
+	query.rootTypes = NewTypeSetWithType(q.clazz)
+	// TODO: should this be deep copy so that adding/removing in one
+	// doesn't affect the other?
+	query.beforeQueryExecutedCallback = q.beforeQueryExecutedCallback
+	query.afterQueryExecutedCallback = q.afterQueryExecutedCallback
+	query.afterStreamExecutedCallback = q.afterStreamExecutedCallback
+	query.disableEntitiesTracking = q.disableEntitiesTracking
+	query.disableCaching = q.disableCaching
 	//TBD 4.1 ShowQueryTimings = ShowQueryTimings,
 	//TBD 4.1 query.shouldExplainScores = shouldExplainScores;
-	query.isIntersect = isIntersect;
-	query.defaultOperator = defaultOperator;
+	query.isIntersect = q.isIntersect
+	query.defaultOperator = q.defaultOperator
 
-	return query;
+	return query
 }
 
-
+/*
  IAggregationDocumentQuery<T> aggregateBy(Consumer<IFacetBuilder<T>> builder) {
 	FacetBuilder ff = new FacetBuilder<>();
 	builder.accept(ff);

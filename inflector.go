@@ -121,5 +121,9 @@ func pluralize(s string) string {
 	if ok {
 		return res
 	}
+	// TODO: temporary, redundant if tryRules is implemented
+	if strings.HasSuffix(s, "s") {
+		return s
+	}
 	return s + "s"
 }
