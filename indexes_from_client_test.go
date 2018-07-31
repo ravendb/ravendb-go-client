@@ -196,8 +196,76 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 }
 
 func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
-	// TODO: requires query
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+	{
+		session := openSessionMust(t, store)
+
+		user1 := NewUser()
+		user1.setName("Fitzchak")
+		err = session.StoreEntity(user1)
+		assert.NoError(t, err)
+
+		user2 := NewUser()
+		user2.setName("Arek")
+		err = session.StoreEntity(user2)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		q := session.query(getTypeOf(&User{}))
+		q = q.waitForNonStaleResults(0)
+		q = q.whereEquals("name", "Arek")
+		users, err := q.toList()
+		assert.NoError(t, err)
+		assert.Equal(t, len(users), 1)
+	}
+
+	op := NewGetIndexesOperation(0, 128)
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+	indexes := op.Command.Result
+	assert.Equal(t, len(indexes), 1)
+
+	index := indexes[0]
+
+	{
+		op := NewGetIndexStatisticsOperation(index.getName())
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+		stats := op.Command.Result
+		assert.Equal(t, stats.getLockMode(), IndexLockMode_UNLOCK)
+		assert.Equal(t, stats.getPriority(), IndexPriority_NORMAL)
+	}
+
+	{
+		op := NewSetIndexesLockOperation(index.getName(), IndexLockMode_LOCKED_IGNORE)
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+	}
+
+	{
+		op := NewSetIndexesPriorityOperation(index.getName(), IndexPriority_LOW)
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+	}
+	{
+		op := NewGetIndexStatisticsOperation(index.getName())
+		err = store.maintenance().send(op)
+		assert.NoError(t, err)
+		stats := op.Command.Result
+		assert.Equal(t, stats.getLockMode(), IndexLockMode_LOCKED_IGNORE)
+		assert.Equal(t, stats.getPriority(), IndexPriority_LOW)
+	}
 }
+
 func indexesFromClientTest_getTerms(t *testing.T) {
 	// TODO: requires query
 }

@@ -14,5 +14,5 @@ go clean -testcache
 
 # go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
 
-go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestContains$
+go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestIndexesFromClient$
 

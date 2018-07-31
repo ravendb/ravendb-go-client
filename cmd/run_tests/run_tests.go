@@ -57,7 +57,7 @@ func runJava() {
 	//runSingleJavaTest("CompactTest", "trace_compact_java.txt")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest", "trace_next_and_seed_identities_java.txt")
 	//runSingleJavaTest("StoreTest", "trace_store_java.txt")
-	runSingleJavaTest("ContainsTest", "trace_contains_java.txt")
+	//runSingleJavaTest("ContainsTest", "trace_contains_java.txt")
 	//runSingleJavaTest("RevisionsTest", "trace_revisions_java.txt")
 	//runSingleJavaTest("PatchTest", "trace_patch_java.txt")
 	//runSingleJavaTest("IndexOperationsTest", "trace_index_operations_java.txt")
@@ -71,6 +71,7 @@ func runJava() {
 	//runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
 	//runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
 	//runSingleJavaTest("QueryTest", "trace_query_java.txt")
+	runSingleJavaTest("IndexesFromClientTest", "trace_indexes_from_client_java.txt")
 }
 
 func main() {

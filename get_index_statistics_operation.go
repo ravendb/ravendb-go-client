@@ -13,7 +13,7 @@ type GetIndexStatisticsOperation struct {
 	Command *GetIndexStatisticsCommand
 }
 
-func NewGetIndexStatisticsOperationWithPageSize(indexName string) *GetIndexStatisticsOperation {
+func NewGetIndexStatisticsOperation(indexName string) *GetIndexStatisticsOperation {
 	panicIf(indexName == "", "Index name connot be empty")
 	return &GetIndexStatisticsOperation{
 		_indexName: indexName,

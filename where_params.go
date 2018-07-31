@@ -21,6 +21,7 @@ func (p *WhereParams) getFieldName() string {
 }
 
 func (p *WhereParams) setFieldName(fieldName string) {
+	assertValidFieldName(fieldName)
 	p.fieldName = fieldName
 }
 

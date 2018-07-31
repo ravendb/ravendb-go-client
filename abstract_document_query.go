@@ -406,10 +406,10 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *W
 		tokens = append(tokens, token)
 		*tokensRef = tokens
 		return true
-	} else {
-		//throw new IllegalArgumentException("Unknown method " + type);
-		panicIf(true, "Unknown method %T", whereParams.getValue())
 	}
+
+	// add more if there are more types that "derive" from MethodCall
+	// (by embedding MethodCallData)
 
 	return false
 }
@@ -1245,19 +1245,27 @@ func AbstractDocumentQuery_unpackCollection(items []Object) []Object {
 	return results
 }
 
-func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
+func assertValidFieldName(fieldName string) {
+	// TODO: for now always true
+	if true {
+		return
+	}
 	// in Go only public fields can be serialized so check that first
 	// letter is uppercase
-	if len(fieldName) > 0 {
-		for i, c := range fieldName {
-			if i > 0 {
-				break
-			}
-			isUpper := unicode.IsUpper(c)
-			panicIf(!isUpper, "field '%s' is not public (doesn't start with uppercase letter)", fieldName)
-		}
+	if len(fieldName) == 0 {
+		return
 	}
+	for i, c := range fieldName {
+		if i > 0 {
+			return
+		}
+		isUpper := unicode.IsUpper(c)
+		panicIf(!isUpper, "field '%s' is not public (doesn't start with uppercase letter)", fieldName)
+	}
+}
 
+func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
+	assertValidFieldName(fieldName)
 	if q.theSession == nil || q.theSession.getConventions() == nil || isNestedPath || q.isGroupBy {
 		return QueryFieldUtil_escapeIfNecessary(fieldName)
 	}

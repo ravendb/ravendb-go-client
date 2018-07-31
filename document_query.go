@@ -227,74 +227,60 @@ func (q *DocumentQuery) containsAll(fieldName string, values []Object) *Document
 	_whereLucene(fieldName, whereClause, exact);
 	return this;
 }
+*/
 
-
- IDocumentQuery<T> whereEquals(string fieldName, Object value) {
-	_whereEquals(fieldName, value, false);
-	return this;
+func (q *DocumentQuery) whereEquals(fieldName string, value Object) *DocumentQuery {
+	q._whereEqualsWithExact(fieldName, value, false)
+	return q
 }
 
-
- IDocumentQuery<T> whereEquals(string fieldName, Object value, bool exact) {
-	_whereEquals(fieldName, value, exact);
-	return this;
+func (q *DocumentQuery) whereEqualsWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
+	q._whereEqualsWithExact(fieldName, value, exact)
+	return q
 }
 
-
- IDocumentQuery<T> whereEquals(string fieldName, MethodCall method) {
-	_whereEquals(fieldName, method);
-	return this;
-}
-
-
- IDocumentQuery<T> whereEquals(string fieldName, MethodCall method, bool exact) {
-	_whereEquals(fieldName, method, exact);
-	return this;
+func (q *DocumentQuery) whereEqualsWithMethodCall(fieldName string, method MethodCall, exact bool) *DocumentQuery {
+	q._whereEqualsWithMethodCall(fieldName, method, exact)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WhereEquals<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact)
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereEquals<TValue>(Expression<Func<T, TValue>> propertySelector, MethodCall value, bool exact)
 
-
- IDocumentQuery<T> whereEquals(WhereParams whereParams) {
-	_whereEquals(whereParams);
-	return this;
+func (q *DocumentQuery) whereEqualsWithParams(whereParams *WhereParams) *DocumentQuery {
+	q._whereEqualsWithParams(whereParams)
+	return q
 }
 
-
- IDocumentQuery<T> whereNotEquals(string fieldName, Object value) {
-	_whereNotEquals(fieldName, value);
-	return this;
+func (q *DocumentQuery) whereNotEquals(fieldName string, value Object) *DocumentQuery {
+	q._whereNotEquals(fieldName, value)
+	return q
 }
 
-
- IDocumentQuery<T> whereNotEquals(string fieldName, Object value, bool exact) {
-	_whereNotEquals(fieldName, value, exact);
-	return this;
+func (q *DocumentQuery) whereNotEqualsWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
+	q._whereNotEqualsWithExact(fieldName, value, exact)
+	return q
 }
 
-
- IDocumentQuery<T> whereNotEquals(string fieldName, MethodCall method) {
-	_whereNotEquals(fieldName, method);
-	return this;
+func (q *DocumentQuery) _whereNotEqualsWithMethod(fieldName string, method MethodCall) *DocumentQuery {
+	q._whereNotEqualsWithMethod(fieldName, method)
+	return q
 }
 
-
- IDocumentQuery<T> whereNotEquals(string fieldName, MethodCall method, bool exact) {
-	_whereNotEquals(fieldName, method, exact);
-	return this;
+func (q *DocumentQuery) _whereNotEqualsWithMethodAndExact(fieldName string, method MethodCall, exact bool) *DocumentQuery {
+	q._whereNotEqualsWithMethodAndExact(fieldName, method, exact)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WhereNotEquals<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact)
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereNotEquals<TValue>(Expression<Func<T, TValue>> propertySelector, MethodCall value, bool exact)
 
-
- IDocumentQuery<T> whereNotEquals(WhereParams whereParams) {
-	_whereNotEquals(whereParams);
-	return this;
+func (q *DocumentQuery) whereNotEqualsWithParams(whereParams *WhereParams) *DocumentQuery {
+	q._whereNotEqualsWithParams(whereParams)
+	return q
 }
 
-
+/*
  IDocumentQuery<T> whereIn(string fieldName, Collection<Object> values) {
 	return whereIn(fieldName, values, false);
 }
