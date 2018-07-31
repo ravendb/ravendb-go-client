@@ -222,6 +222,8 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 		session := openSessionMust(t, store)
 		q := session.query(getTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
+		// TODO: should this be Name (name of the struct field) and we would
+		// convert that to json tag (if necessary) internally?
 		q = q.whereEquals("name", "Arek")
 		users, err := q.toList()
 		assert.NoError(t, err)
@@ -267,8 +269,56 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 }
 
 func indexesFromClientTest_getTerms(t *testing.T) {
-	// TODO: requires query
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user1 := NewUser()
+		user1.setName("Fitzchak")
+		err = session.StoreEntity(user1)
+		assert.NoError(t, err)
+
+		user2 := NewUser()
+		user2.setName("Arek")
+		err = session.StoreEntity(user2)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	var indexName string
+
+	{
+		session := openSessionMust(t, store)
+
+		var stats *QueryStatistics
+		q := session.query(getTypeOf(&User{}))
+		q = q.waitForNonStaleResults(0)
+		q = q.statistics(&stats)
+		q = q.whereEquals("name", "Arek")
+		_, err := q.toList()
+		assert.NoError(t, err)
+
+		indexName = stats.getIndexName()
+
+		session.Close()
+	}
+
+	op := NewGetTermsOperationWithPageSize(indexName, "name", "", 128)
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+	terms := op.Command.Result
+	assert.Equal(t, len(terms), 2)
+	assert.True(t, stringArrayContains(terms, "fitzchak"))
+	assert.True(t, stringArrayContains(terms, "arek"))
 }
+
 func indexesFromClientTest_getIndexNames(t *testing.T) {
 	// TODO: requires query
 }
