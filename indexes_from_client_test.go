@@ -376,8 +376,61 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 }
 
 func indexesFromClientTest_canExplain(t *testing.T) {
-	// TODO: requires query
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	user1 := NewUser()
+	user1.setName("Fitzchak")
+
+	user2 := NewUser()
+	user2.setName("Arek")
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.StoreEntity(user1)
+		assert.NoError(t, err)
+		err = session.StoreEntity(user2)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		var statsRef *QueryStatistics
+		q := session.query(getTypeOf(&User{}))
+		q = q.statistics(&statsRef)
+		q = q.whereEquals("name", "Arek")
+		_, err = q.toList()
+		assert.NoError(t, err)
+
+		q = session.query(getTypeOf(&User{}))
+		q = q.statistics(&statsRef)
+		q = q.whereGreaterThan("age", 10)
+		_, err = q.toList()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	indexQuery := NewIndexQuery("from users")
+	command := NewExplainQueryCommand(store.getConventions(), indexQuery)
+	err = store.getRequestExecutor().executeCommand(command)
+	assert.NoError(t, err)
+
+	explanations := command.Result
+
+	assert.Equal(t, len(explanations), 1)
+	explanation := explanations[0]
+	assert.NotEmpty(t, explanation.getIndex())
+	assert.NotEmpty(t, explanation.getReason())
 }
+
 func indexesFromClientTest_moreLikeThis(t *testing.T) {
 	// TODO: requires query
 }

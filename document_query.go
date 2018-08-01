@@ -321,55 +321,53 @@ func (q *DocumentQuery) whereNotEqualsWithParams(whereParams *WhereParams) *Docu
 
 //TBD expr  IDocumentQuery<T> WhereBetween<TValue>(Expression<Func<T, TValue>> propertySelector, TValue start, TValue end, bool exact = false)
 
+*/
 
- IDocumentQuery<T> whereGreaterThan(string fieldName, Object value) {
-	return whereGreaterThan(fieldName, value, false);
+func (q *DocumentQuery) whereGreaterThan(fieldName string, value Object) *DocumentQuery {
+	return q.whereGreaterThanWithExact(fieldName, value, false)
 }
 
-
- IDocumentQuery<T> whereGreaterThan(string fieldName, Object value, bool exact) {
-	_whereGreaterThan(fieldName, value, exact);
-	return this;
+func (q *DocumentQuery) whereGreaterThanWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
+	q._whereGreaterThanWithExact(fieldName, value, exact)
+	return q
 }
 
-
- IDocumentQuery<T> whereGreaterThanOrEqual(string fieldName, Object value) {
-	return whereGreaterThanOrEqual(fieldName, value, false);
+func (q *DocumentQuery) whereGreaterThanOrEqual(fieldName string, value Object) *DocumentQuery {
+	return q.whereGreaterThanOrEqualWithExact(fieldName, value, false)
 }
 
-
- IDocumentQuery<T> whereGreaterThanOrEqual(string fieldName, Object value, bool exact) {
-	_whereGreaterThanOrEqual(fieldName, value, exact);
-	return this;
+func (q *DocumentQuery) whereGreaterThanOrEqualWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
+	q._whereGreaterThanOrEqualWithExact(fieldName, value, exact)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereGreaterThan<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 //TBD expr  IDocumentQuery<T> WhereGreaterThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
- IDocumentQuery<T> whereLessThan(string fieldName, Object value) {
-	return whereLessThan(fieldName, value, false);
+func (q *DocumentQuery) whereLessThan(fieldName string, value Object) *DocumentQuery {
+	return q.whereLessThanWithExact(fieldName, value, false)
 }
 
- IDocumentQuery<T> whereLessThan(string fieldName, Object value, bool exact) {
-	_whereLessThan(fieldName, value, exact);
-	return this;
+func (q *DocumentQuery) whereLessThanWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
+	q._whereLessThanWithExact(fieldName, value, exact)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereLessThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
- IDocumentQuery<T> whereLessThanOrEqual(string fieldName, Object value) {
-	return whereLessThanOrEqual(fieldName, value, false);
+func (q *DocumentQuery) whereLessThanOrEqual(fieldName string, value Object) *DocumentQuery {
+	return q.whereLessThanOrEqualWithExact(fieldName, value, false)
 }
 
- IDocumentQuery<T> whereLessThanOrEqual(string fieldName, Object value, bool exact) {
-	_whereLessThanOrEqual(fieldName, value, exact);
-	return this;
+func (q *DocumentQuery) whereLessThanOrEqualWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
+	q._whereLessThanOrEqualWithExact(fieldName, value, exact)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereLessThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 //TBD expr  IDocumentQuery<T> WhereExists<TValue>(Expression<Func<T, TValue>> propertySelector)
 
-
+/*
  IDocumentQuery<T> whereExists(string fieldName) {
 	_whereExists(fieldName);
 	return this;
