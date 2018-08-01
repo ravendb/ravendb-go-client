@@ -245,13 +245,9 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 // private boolean tryMergePatches(string id, PatchRequest patchRequest) {
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
-/*
-//TODO: documentQueryInIndex ?
-func func (s *DocumentSession) documentQueryWithIndex(clazz reflect.Type, indexClazz reflect.Type ) *DocumentQuery {
-            index := reflect.New(indexClazz)
-            return q.documentQuery(clazz, index.getIndexName(), nil, index.isMapReduce());
-    }
-*/
+func (s *DocumentSession) documentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.documentQueryAll(clazz, index.getIndexName(), "", index.isMapReduce())
+}
 
 func (s *DocumentSession) documentQuery(clazz reflect.Type) *DocumentQuery {
 	return s.documentQueryAll(clazz, "", "", false)
@@ -281,12 +277,9 @@ func (s *DocumentSession) queryWithQuery(clazz reflect.Type, collectionOrIndexNa
 	return s.documentQueryAll(clazz, collectionOrIndexName.getIndexName(), "", false)
 }
 
-/*
-// TODO: queryInIndex ?
-func (s *DocumentSession) queryWithIndex(clazz reflect.Type, indexClazz reflect.Type) {
-	return s.documentQueryWithIndex(clazz, indexClazz)
+func (s *DocumentSession) queryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.documentQueryInIndex(clazz, index)
 }
-*/
 
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {

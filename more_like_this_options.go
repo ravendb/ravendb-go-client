@@ -33,6 +33,10 @@ type MoreLikeThisOptions struct {
 	fields                             []string
 }
 
+func NewMoreLikeThisOptions() *MoreLikeThisOptions {
+	return &MoreLikeThisOptions{}
+}
+
 func (o *MoreLikeThisOptions) getMinimumTermFrequency() *int {
 	return o.minimumTermFrequency
 }

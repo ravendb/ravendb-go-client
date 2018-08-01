@@ -1246,7 +1246,8 @@ func AbstractDocumentQuery_unpackCollection(items []Object) []Object {
 }
 
 func assertValidFieldName(fieldName string) {
-	// TODO: for now always true
+	// TODO: for now all names are valid.
+	// The code below checks
 	if true {
 		return
 	}

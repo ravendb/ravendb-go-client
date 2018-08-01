@@ -707,39 +707,42 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	_orderByDistanceDescending(fieldName, shapeWkt);
 	return this;
 }
+*/
 
+func (q *DocumentQuery) moreLikeThis(moreLikeThis MoreLikeThisBase) *DocumentQuery {
+	mlt := q._moreLikeThis()
+	defer mlt.Close()
 
- IDocumentQuery<T> moreLikeThis(MoreLikeThisBase moreLikeThis) {
-	try (MoreLikeThisScope mlt = _moreLikeThis()) {
-		mlt.withOptions(moreLikeThis.getOptions());
+	mlt.withOptions(moreLikeThis.getOptions())
 
-		if (moreLikeThis instanceof MoreLikeThisUsingDocument) {
-			mlt.withDocument(((MoreLikeThisUsingDocument) moreLikeThis).getDocumentJson());
-		}
+	if mltud, ok := moreLikeThis.(*MoreLikeThisUsingDocument); ok {
+		mlt.withDocument(mltud.getDocumentJson())
+
 	}
 
-	return this;
+	return q
 }
 
+func (q *DocumentQuery) moreLikeThisWithBuilder(builder func(IMoreLikeThisBuilderForDocumentQuery)) *DocumentQuery {
+	f := NewMoreLikeThisBuilder()
+	builder(f)
 
- IDocumentQuery<T> moreLikeThis(Consumer<IMoreLikeThisBuilderForDocumentQuery<T>> builder) {
-	MoreLikeThisBuilder<T> f = new MoreLikeThisBuilder<>();
-	builder.accept(f);
+	moreLikeThis := q._moreLikeThis()
+	defer moreLikeThis.Close()
 
-	try (MoreLikeThisScope moreLikeThis = _moreLikeThis()) {
-		moreLikeThis.withOptions(f.getMoreLikeThis().getOptions());
+	moreLikeThis.withOptions(f.getMoreLikeThis().getOptions())
 
-		if (f.getMoreLikeThis() instanceof MoreLikeThisUsingDocument) {
-			moreLikeThis.withDocument(((MoreLikeThisUsingDocument) f.getMoreLikeThis()).getDocumentJson());
-		} else if (f.getMoreLikeThis() instanceof MoreLikeThisUsingDocumentForDocumentQuery) {
-			((MoreLikeThisUsingDocumentForDocumentQuery) f.getMoreLikeThis()).getForDocumentQuery().accept(this);
-		}
+	tmp := f.getMoreLikeThis()
+	if mlt, ok := tmp.(*MoreLikeThisUsingDocument); ok {
+		moreLikeThis.withDocument(mlt.getDocumentJson())
+	} else if mlt, ok := tmp.(*MoreLikeThisUsingDocumentForDocumentQuery); ok {
+		mlt.getForDocumentQuery()(q)
 	}
 
-	return this;
+	return q
 }
 
-
+/*
  ISuggestionDocumentQuery<T> suggestUsing(SuggestionBase suggestion) {
 	_suggestUsing(suggestion);
 	return new SuggestionDocumentQuery<>(this);
