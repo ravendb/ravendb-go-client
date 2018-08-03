@@ -15,7 +15,7 @@ env:
 # TODO: the import rewrite is temporary, only needed for kjk/ravendb-go-client
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libunwind8 wget libicu52 libssl-dev curl unzip gettext libcurl4-openssl-dev zlib1g uuid-dev bzip2 openssl sed libpcap
+  - sudo apt-get install -y libunwind8 wget libicu52 libssl-dev curl unzip gettext libcurl4-openssl-dev zlib1g uuid-dev bzip2 openssl sed libpcap-dev
   - mkdir ./certs; cd ./certs
   - openssl genrsa -out ca.key 2048
   - openssl req -new -x509 -key ca.key -out ca.crt -subj "/C=US/ST=Arizona/L=Nevada/O=RavenDB Test CA/OU=RavenDB test CA/CN=localhost/emailAddress=ravendbca@example.com"
