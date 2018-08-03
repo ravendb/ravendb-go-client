@@ -1,10 +1,10 @@
 package ravendb
 
 import (
+	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -548,11 +548,9 @@ func TestIndexesFromClient(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_indexes_from_client_go.txt")
-	}
 
-	createTestDriver()
+	pcapPath := filepath.Join("logs", "trace_indexes_from_client_go.pcap")
+	createTestDriverWithPacketCapture(pcapPath)
 	defer deleteTestDriver()
 
 	verboseLog = true

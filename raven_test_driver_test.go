@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
+	"github.com/ravendb/ravendb-go-client/pkg/capture"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,11 +30,18 @@ var (
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
+	pcapPath   string
+	pcapCloser io.Closer
+
 	disposed bool
 }
 
 func NewRavenTestDriver() *RavenTestDriver {
 	return &RavenTestDriver{}
+}
+
+func NewRavenTestDriverWithPacketCapture(pcapPath string) *RavenTestDriver {
+	return &RavenTestDriver{pcapPath: pcapPath}
 }
 
 func (d *RavenTestDriver) getSecuredDocumentStore() (*DocumentStore, error) {
@@ -181,6 +188,23 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		return fmt.Errorf("Unable to start server")
 	}
 	fmt.Printf("Server started on: '%s'\n", url)
+
+	// capture packets if not https
+	if !secured && d.pcapPath != "" {
+		ipAddr := strings.TrimPrefix(url, "http://")
+		fmt.Printf("Capturing packets from interface '%s' to file '%s'\n", ipAddr, d.pcapPath)
+		d.pcapCloser, err = capture.StartCapture(ipAddr, d.pcapPath)
+		if err != nil {
+			if strings.Contains(err.Error(), "You don't have permission") {
+				// ignore if this is a permissions error
+				fmt.Printf("Failed to start packet capture, error: '%s'\n", err)
+				fmt.Printf("To get capture, re-run under root e.g. with:\n")
+				fmt.Printf("sudo -E ./run_single_test.sh\n")
+			} else {
+				panic(err)
+			}
+		}
+	}
 
 	if RavenServerVerbose {
 		go func() {
@@ -375,11 +399,24 @@ func createTestDriver() {
 	gRavenTestDriver = NewRavenTestDriver()
 }
 
+func createTestDriverWithPacketCapture(pcapPath string) {
+	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
+	gRavenTestDriver = NewRavenTestDriverWithPacketCapture(pcapPath)
+}
+
 func deleteTestDriver() {
 	if gRavenTestDriver == nil {
 		return
 	}
 	gRavenTestDriver.Close()
+	if gRavenTestDriver.pcapCloser != nil {
+		fmt.Printf("Closing pcap capture\n")
+		gRavenTestDriver.pcapCloser.Close()
+		gRavenTestDriver.pcapCloser = nil
+		fmt.Printf("Closed pcap capture\n")
+	}
+	gRavenTestDriver.killGlobalServerProcess(true)
+	gRavenTestDriver.killGlobalServerProcess(false)
 	gRavenTestDriver = nil
 }
 
@@ -435,9 +472,6 @@ func TestMain(m *testing.M) {
 	}
 
 	//RavenServerVerbose = true
-	if useProxy() {
-		go proxy.Run("")
-	}
 
 	var code int
 
@@ -445,10 +479,6 @@ func TestMain(m *testing.M) {
 	defer func() {
 		shutdownTests()
 
-		if useProxy() {
-			proxy.CloseLogFile()
-			fmt.Printf("Closed proxy log file\n")
-		}
 		//logGoroutines()
 		os.Exit(code)
 	}()

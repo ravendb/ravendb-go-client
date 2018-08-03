@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	"github.com/google/gopacket/pcap"
+	"github.com/google/gopacket/pcapgo"
 )
 
 // given ip address finds corresponding device name
@@ -95,8 +97,9 @@ func StartCapture(ipAddr string, pcapPath string) (io.Closer, error) {
 		return nil, fmt.Errorf("didn't find network interface for ip address '%s'. Error: %s", ipAddr, err)
 	}
 
-	fmt.Printf("Opening packet capture on '%s' for port '%d'\n", devName, port)
-	handleRead, err := pcap.OpenLive(devName, 1600, true, time.Second)
+	// fmt.Printf("Opening packet capture on '%s' for port '%d'\n", devName, port)
+	snaplen := 1600
+	handleRead, err := pcap.OpenLive(devName, int32(snaplen), true, time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -108,17 +111,25 @@ func StartCapture(ipAddr string, pcapPath string) (io.Closer, error) {
 			return nil, fmt.Errorf("handle.SetBPFFilter('%s') failed with %s", filter, err)
 		}
 	}
-	pcapFile, err := pcap.OpenOffline(pcapPath)
+	pcapFile, err := os.Create(pcapPath)
 	if err != nil {
 		handleRead.Close()
+		return nil, err
+	}
+	pcapWriter := pcapgo.NewWriter(pcapFile)
+	err = pcapWriter.WriteFileHeader(uint32(snaplen), handleRead.LinkType())
+	if err != nil {
+		handleRead.Close()
+		pcapFile.Close()
+		os.Remove(pcapPath)
 		return nil, err
 	}
 	res := &pcapCloser{}
 	go func() {
 		for {
-			data, _, err := handleRead.ReadPacketData()
+			data, ci, err := handleRead.ReadPacketData()
 			if err == nil {
-				err = pcapFile.WritePacketData(data)
+				err = pcapWriter.WritePacket(ci, data)
 				if err != nil {
 					break
 				}
