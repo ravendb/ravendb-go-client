@@ -75,16 +75,5 @@ func runJava() {
 }
 
 func main() {
-	var arg string
-	if len(os.Args) == 2 {
-		arg = os.Args[1]
-	}
-
-	switch arg {
-	case "-java":
-		runJava()
-	default:
-		fmt.Printf("Needs to privide an argument -java or -go\n")
-		os.Exit(1)
-	}
+	runJava()
 }
