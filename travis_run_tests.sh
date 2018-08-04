@@ -9,7 +9,7 @@ go build -o ./capturer github.com/kjk/ravendb-go-client/cmd/capture
 # mark it as owend by root so that it has root priviledges even when
 # not invoked by root.
 # it needs root priviledges to capture packets
-sudo chown root:wheel ./capturer
+sudo chown root ./capturer
 # set "follow user id on execution" bit so that it inherits root priviledges
 # from file ownership
 sudo chmod +s ./capturer
