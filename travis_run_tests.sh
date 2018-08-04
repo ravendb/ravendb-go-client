@@ -3,6 +3,6 @@ set -u -e -o pipefail
 
 #RAVENDB_JAVA_TEST_SERVER_PATH=./RavenDB/Server/Raven.Server
 
-# TODO: for now disabling -race because fails with "too many goroutines"
+VERBOSE_LOG=true
 #go test -race -covermode=atomic -coverprofile=coverage.txt
 go test -race -covermode=atomic -coverprofile=coverage.txt
