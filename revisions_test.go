@@ -1,11 +1,11 @@
 package ravendb
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -91,12 +91,13 @@ func TestRevisions(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_revisions_go.txt")
-	}
-
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	revisionsTest_revisions(t)
 }

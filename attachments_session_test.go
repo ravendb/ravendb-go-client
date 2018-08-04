@@ -2,12 +2,12 @@ package ravendb
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"sort"
 	"strconv"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -530,9 +530,6 @@ func TestAttachmentsSession(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_attachments_session_go.txt")
-	}
 
 	if true {
 		oldDumpFailedHTTP := dumpFailedHTTP
@@ -542,8 +539,13 @@ func TestAttachmentsSession(t *testing.T) {
 		}()
 	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	// TODO: those tests are flaky. Not often but they sometimes fail
 

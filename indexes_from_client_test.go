@@ -1,7 +1,7 @@
 package ravendb
 
 import (
-	"path/filepath"
+	"fmt"
 	"testing"
 	"time"
 
@@ -549,11 +549,14 @@ func TestIndexesFromClient(t *testing.T) {
 		return
 	}
 
-	pcapPath := filepath.Join("logs", "trace_indexes_from_client_go.pcap")
-	createTestDriverWithPacketCapture(pcapPath)
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
-	verboseLog = true
 	// order matches Java tests
 	indexesFromClientTest_canExecuteManyIndexes(t)
 	indexesFromClientTest_canDelete(t)

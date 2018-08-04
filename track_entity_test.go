@@ -1,10 +1,10 @@
 package ravendb
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -100,12 +100,13 @@ func TestTrackEntity(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_track_entity_go.txt")
-	}
-
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	// matches order of java tests
 	trackEntityTest_loadingDeletedDocumentShouldReturnNull(t)

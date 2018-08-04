@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+var (
+	gRavenLogsDir string
+)
+
 func NewTestServiceLocator() (*RavenServerLocator, error) {
 	locator, err := NewRavenServerLocator()
 	if err != nil {

@@ -1,9 +1,9 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,12 +76,14 @@ func TestDeleteDocumentCommand(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_delete_document_command_go.txt")
-	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	// follows execution order of java tests
 	deleteDocumentCommandTest_canDeleteDocument(t)
