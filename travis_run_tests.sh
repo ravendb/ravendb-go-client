@@ -5,7 +5,7 @@ set -u -e -o pipefail -o xtrace
 
 export VERBOSE_LOG=true
 
-go build -o ./capturer github.com/ravendb/ravendb-go-client/cmd/capture
+go build -o ./capturer github.com/kjk/ravendb-go-client/cmd/capture
 # mark it as owend by root so that it has root priviledges even when
 # not invoked by root.
 # it needs root priviledges to capture packets
