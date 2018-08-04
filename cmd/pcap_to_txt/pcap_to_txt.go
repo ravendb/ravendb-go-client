@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"sync"
 
 	"github.com/ga0/netgraph/ngnet"
@@ -88,49 +89,128 @@ var (
 	mu sync.Mutex
 )
 
-func printHTTPRequestEvent(req ngnet.HTTPRequestEvent) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	fmt.Fprintf(file, "--------------- Request %d %s->%s\n", req.StreamSeq, req.ClientAddr, req.ServerAddr)
+func printHTTPRequestEvent(req *ngnet.HTTPRequestEvent, no int) {
+	fmt.Fprintf(file, "> Request %d %d %s->%s\n", no, req.StreamSeq, req.ClientAddr, req.ServerAddr)
 	fmt.Fprintf(file, "%s %s %s\n", req.Method, req.URI, req.Version)
 	for _, h := range req.Headers {
 		fmt.Fprintf(file, "%s: %s\n", h.Name, h.Value)
 	}
 
-	fmt.Fprintf(file, "\n%d bytes:\n", len(req.Body))
-	if len(req.Body) > 0 {
-		d := prettyPrintMaybeJSON(req.Body)
-		fmt.Fprintf(file, "%s", d)
+	n := len(req.Body)
+	if n == 0 {
+		fmt.Fprint(file, "\n0 bytes sent\n")
+		return
 	}
-	fmt.Fprintf(file, "\n---------------\n")
+
+	fmt.Fprintf(file, "\n%d bytes:\n", n)
+	d := prettyPrintMaybeJSON(req.Body)
+	fmt.Fprintf(file, "%s\n", d)
 }
 
-func printHTTPResponseEvent(resp ngnet.HTTPResponseEvent) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	fmt.Fprintf(file, "--------------- Response %d %s<-%s\n", resp.StreamSeq, resp.ClientAddr, resp.ServerAddr)
+func printHTTPResponseEvent(resp *ngnet.HTTPResponseEvent, no int) {
+	fmt.Fprintf(file, "< Response %d %d %s<-%s\n", no, resp.StreamSeq, resp.ClientAddr, resp.ServerAddr)
 	fmt.Fprintf(file, "%s %d %s\n", resp.Version, resp.Code, resp.Reason)
 	for _, h := range resp.Headers {
 		fmt.Fprintf(file, "%s: %s\n", h.Name, h.Value)
 	}
 
-	fmt.Fprintf(file, "\n%d bytes:\n", len(resp.Body))
-	if len(resp.Body) > 0 {
-		d := prettyPrintMaybeJSON(resp.Body)
-		fmt.Fprintf(file, "%s", d)
+	n := len(resp.Body)
+	if n == 0 {
+		fmt.Fprint(file, "\n0 bytes received\n")
+		return
 	}
-	fmt.Fprintf(file, "\n---------------\n")
+
+	fmt.Fprintf(file, "\n%d bytes:\n", n)
+	d := prettyPrintMaybeJSON(resp.Body)
+	fmt.Fprintf(file, "%s\n", d)
+}
+
+type reqRsp struct {
+	req *ngnet.HTTPRequestEvent
+	rsp *ngnet.HTTPResponseEvent
+}
+
+var (
+	// hae to queue them to match requests with responses
+	requests           []reqRsp
+	unmatchedRequests  []*ngnet.HTTPRequestEvent
+	unmatchedResponses []*ngnet.HTTPResponseEvent
+)
+
+func dumpRequests() {
+	sort.Slice(requests, func(i, j int) bool {
+		t1 := requests[i].req.HTTPEvent.Start
+		t2 := requests[j].req.HTTPEvent.Start
+		return t1.After(t2)
+	})
+
+	for n, rr := range requests {
+		printHTTPRequestEvent(rr.req, n+1)
+		printHTTPResponseEvent(rr.rsp, n+1)
+	}
+
+	if len(unmatchedRequests) > 0 {
+		fmt.Printf("%d unmatched requests\n", len(unmatchedRequests))
+		for n, r := range unmatchedRequests {
+			printHTTPRequestEvent(r, n)
+		}
+	}
+
+	if len(unmatchedResponses) > 0 {
+		fmt.Printf("%d unmatched responses\n", len(unmatchedResponses))
+		for n, r := range unmatchedResponses {
+			printHTTPResponseEvent(r, n)
+		}
+	}
+}
+
+func rememberRequest(r *ngnet.HTTPRequestEvent) {
+	if len(unmatchedResponses) == 0 {
+		unmatchedRequests = append(unmatchedRequests, r)
+		return
+	}
+	for idx, rsp := range unmatchedResponses {
+		if r.HTTPEvent.StreamSeq == rsp.HTTPEvent.StreamSeq {
+			rr := reqRsp{
+				req: r,
+				rsp: rsp,
+			}
+			requests = append(requests, rr)
+			// remove element at idx
+			unmatchedResponses = append(unmatchedResponses[:idx], unmatchedResponses[idx+1:]...)
+			return
+		}
+	}
+	unmatchedRequests = append(unmatchedRequests, r)
+}
+
+func rememberResponse(r *ngnet.HTTPResponseEvent) {
+	if len(unmatchedRequests) == 0 {
+		unmatchedResponses = append(unmatchedResponses, r)
+		return
+	}
+	for idx, req := range unmatchedRequests {
+		if r.HTTPEvent.StreamSeq == req.HTTPEvent.StreamSeq {
+			rr := reqRsp{
+				req: req,
+				rsp: r,
+			}
+			requests = append(requests, rr)
+			// remove element at idx
+			unmatchedRequests = append(unmatchedRequests[:idx], unmatchedRequests[idx+1:]...)
+			return
+		}
+	}
+	unmatchedResponses = append(unmatchedResponses, r)
 }
 
 func runEvents(eventChan <-chan interface{}) {
 	for e := range eventChan {
 		switch v := e.(type) {
 		case ngnet.HTTPRequestEvent:
-			printHTTPRequestEvent(v)
+			rememberRequest(&v)
 		case ngnet.HTTPResponseEvent:
-			printHTTPResponseEvent(v)
+			rememberResponse(&v)
 		default:
 			panic(fmt.Sprintf("Unsupported event %T", e))
 		}
@@ -144,7 +224,7 @@ func (h *httpStreamFactory) New(net, transport gopacket.Flow) tcpassembly.Stream
 	stream := &httpStream{
 		net:       net,
 		transport: transport,
-		r:         newTcpStream(),
+		r:         newTCPStream(),
 	}
 	return stream.r
 }
@@ -160,7 +240,7 @@ type tcpStream struct {
 	buf      *bytes.Buffer
 }
 
-func newTcpStream() *tcpStream {
+func newTCPStream() *tcpStream {
 	return &tcpStream{
 		buf: bytes.NewBuffer(nil),
 	}
@@ -218,6 +298,7 @@ func dumpHTTPFromPcap(pcapPath string) {
 
 	streamFactory.Wait()
 	close(eventChan)
+	dumpRequests()
 }
 
 func dumpHTTPFromPcap2(pcapPath string) {
@@ -228,6 +309,7 @@ func dumpHTTPFromPcap2(pcapPath string) {
 	streamPool := tcpassembly.NewStreamPool(streamFactory)
 	assembler := tcpassembly.NewAssembler(streamPool)
 	readAllPackets(packetSource, assembler)
+	dumpRequests()
 }
 
 func main() {
@@ -238,5 +320,5 @@ func main() {
 	pcapPath := args[0]
 	fmt.Printf("Started on %s\n", pcapPath)
 	file = os.Stdout
-	dumpHTTPFromPcap2(pcapPath)
+	dumpHTTPFromPcap(pcapPath)
 }
