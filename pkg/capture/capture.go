@@ -98,7 +98,7 @@ func StartCapture(ipAddr string, pcapPath string) (io.Closer, error) {
 	}
 
 	// fmt.Printf("Opening packet capture on '%s' for port '%d'\n", devName, port)
-	snaplen := 1600
+	snaplen := 65536
 	handleRead, err := pcap.OpenLive(devName, int32(snaplen), true, time.Second)
 	if err != nil {
 		return nil, err
