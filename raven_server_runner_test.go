@@ -69,7 +69,7 @@ func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error)
 		}
 		{
 			// modes: None, Operations, Information
-			arg := "--Logs.Mode=Operations"
+			arg := "--Logs.Mode=Information"
 			commandArguments = append(commandArguments, arg)
 		}
 	}

@@ -329,25 +329,26 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 	return NewTimeoutException("The indexes stayed stale for more than %s.%s", timeout, allIndexErrorsText)
 }
 
-func (d *RavenTestDriver) killGlobalServerProcess(secured bool) {
-	var err error
-	if secured {
-		if globalSecuredServerProcess != nil {
-			err = globalSecuredServerProcess.cmd.Process.Kill()
-			if err != nil {
-				fmt.Printf(" -- globalSecuredServerProcess.cmd.Process.Kill() failed with '%s'\n", err)
-			}
-			globalSecuredServerProcess = nil
-		}
-	} else {
-		if globalServerProcess != nil {
-			globalServerProcess.cmd.Process.Kill()
-			if err != nil {
-				fmt.Printf(" -- globalServerProcess.cmd.Process.Kill() failed with '%s'\n", err)
-			}
-			globalServerProcess = nil
-		}
+func killServer(procPtr **Process) {
+	proc := *procPtr
+	if proc == nil {
+		return
 	}
+	err := proc.cmd.Process.Kill()
+	if err != nil {
+		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
+	} else {
+		s := strings.Join(proc.cmd.Args, " ")
+		fmt.Printf("Killed a process '%s'\n", s)
+	}
+	*procPtr = nil
+}
+
+func killGlobalServerProcesses() {
+	killServer(&globalSecuredServerProcess)
+	killServer(&globalServerProcess)
+	globalSecuredServer = nil
+	globalServer = nil
 }
 
 func (d *RavenTestDriver) getGlobalServer(secured bool) *DocumentStore {
@@ -380,8 +381,7 @@ func (d *RavenTestDriver) Close() {
 }
 
 func shutdownTests() {
-	gRavenTestDriver.killGlobalServerProcess(true)
-	gRavenTestDriver.killGlobalServerProcess(false)
+	killGlobalServerProcesses()
 	gRavenTestDriver.killCaptureProcess()
 }
 
@@ -459,8 +459,7 @@ func deleteTestDriver() {
 		return
 	}
 	gRavenTestDriver.Close()
-	gRavenTestDriver.killGlobalServerProcess(true)
-	gRavenTestDriver.killGlobalServerProcess(false)
+	killGlobalServerProcesses()
 	gRavenTestDriver.killCaptureProcess()
 	gRavenTestDriver = nil
 }
