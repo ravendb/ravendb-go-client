@@ -202,7 +202,7 @@ func dumpRequests() {
 	sort.Slice(requests, func(i, j int) bool {
 		t1 := getRequestTime(requests[i], t)
 		t2 := getRequestTime(requests[j], t)
-		return t1.After(t2)
+		return t2.After(t1)
 	})
 
 	for n, rr := range requests {
