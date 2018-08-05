@@ -4,6 +4,8 @@ set -u -e -o pipefail -o xtrace
 # for testing
 # ./capturer -addr 127.0.0.1:5332 -pcap foo.pcap
 
+go get -v -u github.com/ga0/netgraph/ngnet
+
 rm -rf ./capturer
 go build -o ./capturer github.com/ravendb/ravendb-go-client/cmd/capture
 # mark it as owend by root so that it has root priviledges even when
