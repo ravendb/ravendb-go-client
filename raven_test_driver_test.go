@@ -464,14 +464,34 @@ func deleteTestDriver() {
 	gRavenTestDriver = nil
 }
 
+func maybeConvertPcapToTxt(pcapPath string) {
+	if pcapPath == "" {
+		return
+	}
+	exe := "./pcap_convert"
+	_, err := os.Stat(exe)
+	if err != nil {
+		// skip if we don't have pcap_convert
+		return
+	}
+	cmd := exec.Command(exe, pcapPath)
+	err = cmd.Run()
+	if err != nil {
+		s := strings.Join(cmd.Args, " ")
+		fmt.Printf("command '%s' failed with '%s'\n", s, err)
+	}
+}
+
 func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 
 	maybeEnableVerbose()
 	gRavenLogsDir = ravenLogsDirFromTestName(t)
 
+	fmt.Printf("\nStarting %s\n", t.Name())
+	var pcapPath string
 	if os.Getenv("PCAP_CAPTURE") != "" {
-		pcapPath := pcapPathFromTestName(t)
+		pcapPath = pcapPathFromTestName(t)
 		panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 		gRavenTestDriver = NewRavenTestDriverWithPacketCapture(pcapPath)
 	} else {
@@ -479,6 +499,7 @@ func createTestDriver(t *testing.T) func() {
 	}
 	return func() {
 		deleteTestDriver()
+		maybeConvertPcapToTxt(pcapPath)
 	}
 }
 
