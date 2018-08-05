@@ -2,12 +2,12 @@ package ravendb
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"sort"
 	"strings"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -347,9 +347,6 @@ func TestAttachmentsRevisions(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_attachments_revisions_go.txt")
-	}
 
 	//RavenServerVerbose = true
 	if true {
@@ -360,8 +357,13 @@ func TestAttachmentsRevisions(t *testing.T) {
 		}()
 	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	// matches order of Java tests
 

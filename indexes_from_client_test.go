@@ -1,10 +1,10 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -548,14 +548,15 @@ func TestIndexesFromClient(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_indexes_from_client_go.txt")
-	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
-	verboseLog = true
 	// order matches Java tests
 	indexesFromClientTest_canExecuteManyIndexes(t)
 	indexesFromClientTest_canDelete(t)

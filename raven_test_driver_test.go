@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime/pprof"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
+	"github.com/ravendb/ravendb-go-client/pkg/capture"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,11 +32,18 @@ var (
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
+	pcapPath            string
+	pcapCapturerProcess *exec.Cmd
+
 	disposed bool
 }
 
 func NewRavenTestDriver() *RavenTestDriver {
 	return &RavenTestDriver{}
+}
+
+func NewRavenTestDriverWithPacketCapture(pcapPath string) *RavenTestDriver {
+	return &RavenTestDriver{pcapPath: pcapPath}
 }
 
 func (d *RavenTestDriver) getSecuredDocumentStore() (*DocumentStore, error) {
@@ -133,6 +142,47 @@ func (d *RavenTestDriver) setupDatabase(documentStore *DocumentStore) {
 	// empty by design
 }
 
+func startPcapCaptureProcess(ipAddr string, pcapPath string) (*exec.Cmd, error) {
+	cmd := exec.Command("./capturer", "-addr", ipAddr, "-pcap", pcapPath, "-show-request-summary")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+	return cmd, nil
+}
+
+func stopPcapCaptureProcess(cmd *exec.Cmd) {
+	if cmd == nil {
+		return
+	}
+	// capture process should exit cleanly when given SIGINT
+	// we wait up to 3 seconds for exit
+	cmd.Process.Signal(syscall.SIGINT)
+	exited := make(chan bool, 1)
+	go func() {
+		cmd.Wait()
+		exited <- true
+	}()
+
+	select {
+	case <-exited:
+		fmt.Printf("Pcap capture process exited cleanly\n")
+	case <-time.After(time.Second * 3):
+		fmt.Printf("Pcap capture process didn't exit within 3 seconds\n")
+		cmd.Process.Kill()
+	}
+}
+
+func (d *RavenTestDriver) killCaptureProcess() {
+	if d == nil {
+		return
+	}
+	stopPcapCaptureProcess(d.pcapCapturerProcess)
+	d.pcapCapturerProcess = nil
+}
+
 func (d *RavenTestDriver) runServer(secured bool) error {
 	var locator *RavenServerLocator
 	var err error
@@ -144,11 +194,13 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("runServer: starting server\n")
 	proc, err := RavenServerRunner_run(locator)
 	if err != nil {
 		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
 		return err
+	} else {
+		args := strings.Join(proc.cmd.Args, " ")
+		fmt.Printf("Started raven server '%s'\n", args)
 	}
 	d.setGlobalServerProcess(secured, proc)
 
@@ -181,6 +233,17 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		return fmt.Errorf("Unable to start server")
 	}
 	fmt.Printf("Server started on: '%s'\n", url)
+
+	// capture packets if not https
+	if !secured && d.pcapPath != "" {
+		ipAddr := strings.TrimPrefix(url, "http://")
+		fmt.Printf("Capturing packets from interface '%s' to file '%s'\n", ipAddr, d.pcapPath)
+		capture.RequestsSummaryWriter = os.Stdout
+		d.pcapCapturerProcess, err = startPcapCaptureProcess(ipAddr, d.pcapPath)
+		if err != nil {
+			fmt.Printf("Failed to start pcap capturer process. Error: %s\n", err)
+		}
+	}
 
 	if RavenServerVerbose {
 		go func() {
@@ -266,25 +329,26 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 	return NewTimeoutException("The indexes stayed stale for more than %s.%s", timeout, allIndexErrorsText)
 }
 
-func (d *RavenTestDriver) killGlobalServerProcess(secured bool) {
-	var err error
-	if secured {
-		if globalSecuredServerProcess != nil {
-			err = globalSecuredServerProcess.cmd.Process.Kill()
-			if err != nil {
-				fmt.Printf(" -- globalSecuredServerProcess.cmd.Process.Kill() failed with '%s'\n", err)
-			}
-			globalSecuredServerProcess = nil
-		}
-	} else {
-		if globalServerProcess != nil {
-			globalServerProcess.cmd.Process.Kill()
-			if err != nil {
-				fmt.Printf(" -- globalServerProcess.cmd.Process.Kill() failed with '%s'\n", err)
-			}
-			globalServerProcess = nil
-		}
+func killServer(procPtr **Process) {
+	proc := *procPtr
+	if proc == nil {
+		return
 	}
+	err := proc.cmd.Process.Kill()
+	if err != nil {
+		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
+	} else {
+		s := strings.Join(proc.cmd.Args, " ")
+		fmt.Printf("Killed a process '%s'\n", s)
+	}
+	*procPtr = nil
+}
+
+func killGlobalServerProcesses() {
+	killServer(&globalSecuredServerProcess)
+	killServer(&globalServerProcess)
+	globalSecuredServer = nil
+	globalServer = nil
 }
 
 func (d *RavenTestDriver) getGlobalServer(secured bool) *DocumentStore {
@@ -316,28 +380,9 @@ func (d *RavenTestDriver) Close() {
 	d.disposed = true
 }
 
-var (
-	useProxyCached *bool
-)
-
-func useProxy() bool {
-	if useProxyCached != nil {
-		return *useProxyCached
-	}
-	var b bool
-	if os.Getenv("HTTP_PROXY") != "" {
-		fmt.Printf("Using http proxy\n")
-		b = true
-	} else {
-		fmt.Printf("Not using http proxy\n")
-	}
-	useProxyCached = &b
-	return b
-}
-
 func shutdownTests() {
-	gRavenTestDriver.killGlobalServerProcess(true)
-	gRavenTestDriver.killGlobalServerProcess(false)
+	killGlobalServerProcesses()
+	gRavenTestDriver.killCaptureProcess()
 }
 
 var dbTestsDisabledAlreadyPrinted = false
@@ -370,9 +415,43 @@ func openSessionMust(t *testing.T, store *DocumentStore) *DocumentSession {
 // In Java, RavenTestDriver is created/destroyed for each test
 // In Go we have to do it manually
 
-func createTestDriver() {
-	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
-	gRavenTestDriver = NewRavenTestDriver()
+func isUpper(c byte) bool {
+	return c >= 'A' && c <= 'Z'
+}
+
+// converts "TestIndexesFromClient" => "indexes_from_client"
+func testNameToFileName(s string) string {
+	s = strings.TrimPrefix(s, "Test")
+	lower := strings.ToLower(s)
+	var res []byte
+	n := len(s)
+	for i := 0; i < n; i++ {
+		c := s[i]
+		if i > 0 && isUpper(c) {
+			res = append(res, '_')
+		}
+		res = append(res, lower[i])
+	}
+	return string(res)
+}
+
+func pcapPathFromTestName(t *testing.T) string {
+	name := "trace_" + testNameToFileName(t.Name()) + "_go.pcap"
+	path := filepath.Join("logs", name)
+	os.Mkdir("logs", 0755)
+	return path
+}
+
+func ravenLogsDirFromTestName(t *testing.T) string {
+	// if this is not full path, raven will put it in it's own Logs directory
+	// next to server executable
+	cwd, _ := os.Getwd()
+	name := "trace_" + testNameToFileName(t.Name()) + "_go_server_dir"
+	path := filepath.Join(cwd, "logs", name)
+	// recreate dir for clean logs
+	os.RemoveAll(path)
+	os.MkdirAll(path, 0755)
+	return path
 }
 
 func deleteTestDriver() {
@@ -380,7 +459,48 @@ func deleteTestDriver() {
 		return
 	}
 	gRavenTestDriver.Close()
+	killGlobalServerProcesses()
+	gRavenTestDriver.killCaptureProcess()
 	gRavenTestDriver = nil
+}
+
+func maybeConvertPcapToTxt(pcapPath string) {
+	if pcapPath == "" {
+		return
+	}
+	exe := "./pcap_convert"
+	_, err := os.Stat(exe)
+	if err != nil {
+		// skip if we don't have pcap_convert
+		return
+	}
+	cmd := exec.Command(exe, pcapPath)
+	err = cmd.Run()
+	if err != nil {
+		s := strings.Join(cmd.Args, " ")
+		fmt.Printf("command '%s' failed with '%s'\n", s, err)
+	}
+}
+
+func createTestDriver(t *testing.T) func() {
+	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
+
+	maybeEnableVerbose()
+	gRavenLogsDir = ravenLogsDirFromTestName(t)
+
+	fmt.Printf("\nStarting %s\n", t.Name())
+	var pcapPath string
+	if os.Getenv("PCAP_CAPTURE") != "" {
+		pcapPath = pcapPathFromTestName(t)
+		panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
+		gRavenTestDriver = NewRavenTestDriverWithPacketCapture(pcapPath)
+	} else {
+		gRavenTestDriver = NewRavenTestDriver()
+	}
+	return func() {
+		deleteTestDriver()
+		maybeConvertPcapToTxt(pcapPath)
+	}
 }
 
 // This helps debugging leaking gorutines by dumping stack traces
@@ -408,11 +528,14 @@ func logGoroutines(file string) {
 	profile.WriteTo(f, 2)
 }
 
-func TestMain(m *testing.M) {
+func maybeEnableVerbose() {
 	if os.Getenv("VERBOSE_LOG") != "" {
 		verboseLog = true
+		fmt.Printf("verbose logging enabled\n")
 	}
+}
 
+func TestMain(m *testing.M) {
 	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
 	if noDb == "" {
 		// this helps running tests from withing Visual Studio Code,
@@ -435,9 +558,6 @@ func TestMain(m *testing.M) {
 	}
 
 	//RavenServerVerbose = true
-	if useProxy() {
-		go proxy.Run("")
-	}
 
 	var code int
 
@@ -445,10 +565,6 @@ func TestMain(m *testing.M) {
 	defer func() {
 		shutdownTests()
 
-		if useProxy() {
-			proxy.CloseLogFile()
-			fmt.Printf("Closed proxy log file\n")
-		}
 		//logGoroutines()
 		os.Exit(code)
 	}()

@@ -1,9 +1,9 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,12 +33,14 @@ func TestGetClusterTopology(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_get_cluster_topology_go.txt")
-	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	getClusterTopologyTest_canGetTopology(t)
 }

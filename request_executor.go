@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -127,15 +126,9 @@ var (
 
 func getGlobalHTTPClient() *http.Client {
 	if globalHTTPClient == nil {
-		// TODO: certificate, make sure respects HTTP_PROXY etc.
+		// TODO: certificate
 		client := &http.Client{
 			Timeout: time.Second * 15,
-		}
-		// TODO: figure out why http.DefaultTransport doesn't go via proxy
-		proxyURL := os.Getenv("HTTP_PROXY")
-		if proxyURL != "" {
-			envProxyURL = proxyURL
-			client.Transport = proxyTransport
 		}
 		globalHTTPClient = client
 	}
@@ -1125,15 +1118,9 @@ var proxyTransport http.RoundTripper = &http.Transport{
 }
 
 func (re *RequestExecutor) createClient() *http.Client {
-	// TODO: certificate, make sure respects HTTP_PROXY etc.
+	// TODO: certificate
 	client := &http.Client{
 		Timeout: time.Second * 5,
-	}
-	// TODO: figure out why http.DefaultTransport doesn't go via proxy
-	proxyURL := os.Getenv("HTTP_PROXY")
-	if proxyURL != "" {
-		envProxyURL = proxyURL
-		client.Transport = proxyTransport
 	}
 	return client
 }

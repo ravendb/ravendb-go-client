@@ -62,8 +62,23 @@ func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error)
 		"--Testing.ParentProcessId=" + getProcessId(),
 		"--non-interactive",
 	}
+	if gRavenLogsDir != "" {
+		{
+			arg := "--Logs.Path=" + gRavenLogsDir
+			commandArguments = append(commandArguments, arg)
+		}
+		{
+			// modes: None, Operations, Information
+			arg := "--Logs.Mode=Information"
+			commandArguments = append(commandArguments, arg)
+		}
+	}
 	if RavenServerVerbose {
-		commandArguments = append(commandArguments, "--log-to-console", "--Logs.Mode=Information", "--Logs.Path=./logs")
+		if gRavenLogsDir == "" {
+			arg := "--Logs.Mode=Information"
+			commandArguments = append(commandArguments, arg)
+		}
+		commandArguments = append(commandArguments, "--log-to-console")
 	}
 	commandArguments = append(locator.commandArguments, commandArguments...)
 	res := &ProcessStartInfo{

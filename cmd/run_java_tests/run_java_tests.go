@@ -69,22 +69,11 @@ func runJava() {
 	//runSingleJavaTest("BasicDocumentsTest", "trace_basic_documents_java.txt")
 	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
 	//runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
-	//runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
+	runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
 	//runSingleJavaTest("QueryTest", "trace_query_java.txt")
-	runSingleJavaTest("IndexesFromClientTest", "trace_indexes_from_client_java.txt")
+	//runSingleJavaTest("IndexesFromClientTest", "trace_indexes_from_client_java.txt")
 }
 
 func main() {
-	var arg string
-	if len(os.Args) == 2 {
-		arg = os.Args[1]
-	}
-
-	switch arg {
-	case "-java":
-		runJava()
-	default:
-		fmt.Printf("Needs to privide an argument -java or -go\n")
-		os.Exit(1)
-	}
+	runJava()
 }

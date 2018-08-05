@@ -1,9 +1,9 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -155,12 +155,14 @@ func TestNextAndSeedIdentities(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_next_and_seed_identities_go.txt")
-	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	nextAndSeedIdentitiesTest_nextIdentityFor(t)
 	nextAndSeedIdentitiesTest_seedIdentityFor(t)

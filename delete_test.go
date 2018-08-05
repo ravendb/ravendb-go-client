@@ -1,9 +1,9 @@
 package ravendb
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -74,12 +74,14 @@ func TestDelete(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	if useProxy() {
-		proxy.ChangeLogFile("trace_delete_go.txt")
-	}
 
-	createTestDriver()
-	defer deleteTestDriver()
+	destroyDriver := createTestDriver(t)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Recovered in %s\n", t.Name())
+		}
+		destroyDriver()
+	}()
 
 	// matches order of Java tests
 	deleteTest_deleteDocumentByEntity(t)

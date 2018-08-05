@@ -23,3 +23,6 @@ logs/
 RavenDB/
 coverage.txt
 RavenDB.tar.bz2
+capturer
+foo.pcap
+pcap_convert
