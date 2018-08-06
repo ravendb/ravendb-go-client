@@ -27,4 +27,4 @@ export PCAP_CAPTURE=true
 
 # go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
 
-go test -v -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestIndexesFromClient$
+go test -v -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestQuery$

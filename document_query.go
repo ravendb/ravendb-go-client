@@ -199,25 +199,24 @@ func (q *DocumentQuery) statistics(stats **QueryStatistics) *DocumentQuery {
 	return this;
 }
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Include(Expression<Func<T, object>> path)
+*/
 
-
- IDocumentQuery<T> not() {
-	negateNext();
-	return this;
+func (q *DocumentQuery) not() *DocumentQuery {
+	q.negateNext()
+	return q
 }
 
-
- IDocumentQuery<T> take(int count) {
-	_take(count);
-	return this;
+func (q *DocumentQuery) take(count int) *DocumentQuery {
+	q._take(&count)
+	return q
 }
 
- IDocumentQuery<T> skip(int count) {
-	_skip(count);
-	return this;
+func (q *DocumentQuery) skip(count int) *DocumentQuery {
+	q._skip(count)
+	return q
 }
 
-
+/*
  IDocumentQuery<T> whereLucene(string fieldName, string whereClause) {
 	_whereLucene(fieldName, whereClause, false);
 	return this;
@@ -367,63 +366,56 @@ func (q *DocumentQuery) whereLessThanOrEqualWithExact(fieldName string, value Ob
 //TBD expr  IDocumentQuery<T> WhereLessThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 //TBD expr  IDocumentQuery<T> WhereExists<TValue>(Expression<Func<T, TValue>> propertySelector)
 
-/*
- IDocumentQuery<T> whereExists(string fieldName) {
-	_whereExists(fieldName);
-	return this;
+func (q *DocumentQuery) whereExists(fieldName string) *DocumentQuery {
+	q._whereExists(fieldName)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereRegex<TValue>(Expression<Func<T, TValue>> propertySelector, string pattern)
 
- IDocumentQuery<T> whereRegex(string fieldName, string pattern) {
-	_whereRegex(fieldName, pattern);
-	return this;
+func (q *DocumentQuery) whereRegex(fieldName string, pattern string) *DocumentQuery {
+	q._whereRegex(fieldName, pattern)
+	return q
 }
 
- IDocumentQuery<T> andAlso() {
-	_andAlso();
-	return this;
+func (q *DocumentQuery) andAlso() *DocumentQuery {
+	q._andAlso()
+	return q
 }
 
-
- IDocumentQuery<T> orElse() {
-	_orElse();
-	return this;
+func (q *DocumentQuery) orElse() *DocumentQuery {
+	q._orElse()
+	return q
 }
 
-
- IDocumentQuery<T> boost(double boost) {
-	_boost(boost);
-	return this;
+func (q *DocumentQuery) boost(boost float64) *DocumentQuery {
+	q._boost(boost)
+	return q
 }
 
-
- IDocumentQuery<T> fuzzy(double fuzzy) {
-	_fuzzy(fuzzy);
-	return this;
+func (q *DocumentQuery) fuzzy(fuzzy float64) *DocumentQuery {
+	q._fuzzy(fuzzy)
+	return q
 }
 
-
- IDocumentQuery<T> proximity(int proximity) {
-	_proximity(proximity);
-	return this;
+func (q *DocumentQuery) proximity(proximity int) *DocumentQuery {
+	q._proximity(proximity)
+	return q
 }
 
-
- IDocumentQuery<T> randomOrdering() {
-	_randomOrdering();
-	return this;
+func (q *DocumentQuery) randomOrdering() *DocumentQuery {
+	q._randomOrdering()
+	return q
 }
 
-
- IDocumentQuery<T> randomOrdering(string seed) {
-	_randomOrdering(seed);
-	return this;
+func (q *DocumentQuery) randomOrderingWithSeed(seed string) *DocumentQuery {
+	q._randomOrderingWithSeed(seed)
+	return q
 }
 
 //TBD 4.1  IDocumentQuery<T> customSortUsing(string typeName, bool descending)
 
-
+/*
  IGroupByDocumentQuery<T> groupBy(string fieldName, string... fieldNames) {
 	_groupBy(fieldName, fieldNames);
 
@@ -612,25 +604,25 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 }
 
 //TBD expr  IDocumentQuery<T> Spatial(Func<SpatialDynamicFieldFactory<T>, DynamicSpatialField> field, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
-//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, double radius, double latitude, double longitude, SpatialUnits? radiusUnits, double distanceErrorPct)
+//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, float64 radius, float64 latitude, float64 longitude, SpatialUnits? radiusUnits, float64 distanceErrorPct)
 
 
- IDocumentQuery<T> withinRadiusOf(string fieldName, double radius, double latitude, double longitude) {
+ IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude) {
 	return withinRadiusOf(fieldName, radius, latitude, longitude, nil, Constants.Documents.Indexing.Spatial.DEFAULT_DISTANCE_ERROR_PCT);
 }
 
 
- IDocumentQuery<T> withinRadiusOf(string fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits) {
+ IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude, SpatialUnits radiusUnits) {
 	return withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, Constants.Documents.Indexing.Spatial.DEFAULT_DISTANCE_ERROR_PCT);
 }
 
 
- IDocumentQuery<T> withinRadiusOf(string fieldName, double radius, double latitude, double longitude, SpatialUnits radiusUnits, double distanceErrorPct) {
+ IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude, SpatialUnits radiusUnits, float64 distanceErrorPct) {
 	_withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, distanceErrorPct);
 	return this;
 }
 
-//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.RelatesToShape<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt, SpatialRelation relation, double distanceErrorPct)
+//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.RelatesToShape<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt, SpatialRelation relation, float64 distanceErrorPct)
 
 
  IDocumentQuery<T> relatesToShape(string fieldName, string shapeWkt, SpatialRelation relation) {
@@ -638,18 +630,18 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 }
 
 
- IDocumentQuery<T> relatesToShape(string fieldName, string shapeWkt, SpatialRelation relation, double distanceErrorPct) {
+ IDocumentQuery<T> relatesToShape(string fieldName, string shapeWkt, SpatialRelation relation, float64 distanceErrorPct) {
 	_spatial(fieldName, shapeWkt, relation, distanceErrorPct);
 	return this;
 }
 
 
- IDocumentQuery<T> orderByDistance(DynamicSpatialField field, double latitude, double longitude) {
+ IDocumentQuery<T> orderByDistance(DynamicSpatialField field, float64 latitude, float64 longitude) {
 	_orderByDistance(field, latitude, longitude);
 	return this;
 }
 
-//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, double latitude, double longitude)
+//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
 
  IDocumentQuery<T> orderByDistance(DynamicSpatialField field, string shapeWkt) {
@@ -660,10 +652,10 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, string shapeWkt)
 
 
-//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, double latitude, double longitude)
+//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
 
- IDocumentQuery<T> orderByDistance(string fieldName, double latitude, double longitude) {
+ IDocumentQuery<T> orderByDistance(string fieldName, float64 latitude, float64 longitude) {
 	_orderByDistance(fieldName, latitude, longitude);
 	return this;
 }
@@ -677,12 +669,12 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 }
 
 
- IDocumentQuery<T> orderByDistanceDescending(DynamicSpatialField field, double latitude, double longitude) {
+ IDocumentQuery<T> orderByDistanceDescending(DynamicSpatialField field, float64 latitude, float64 longitude) {
 	_orderByDistanceDescending(field, latitude, longitude);
 	return this;
 }
 
-//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, double latitude, double longitude)
+//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
 
  IDocumentQuery<T> orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
@@ -692,10 +684,10 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, string shapeWkt)
 
-//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, double latitude, double longitude)
+//TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
 
- IDocumentQuery<T> orderByDistanceDescending(string fieldName, double latitude, double longitude) {
+ IDocumentQuery<T> orderByDistanceDescending(string fieldName, float64 latitude, float64 longitude) {
 	_orderByDistanceDescending(fieldName, latitude, longitude);
 	return this;
 }

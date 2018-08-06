@@ -39,7 +39,6 @@ func query_queryParameters(t *testing.T)                  {}
 func query_queryRandomOrder(t *testing.T)                 {}
 
 func query_queryWhereExists(t *testing.T) {
-	//var err error
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -47,24 +46,25 @@ func query_queryWhereExists(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		{
+			q := session.query(getTypeOf(&User{}))
+			q = q.whereExists("name")
+			res, err := q.toList()
+			assert.NoError(t, err)
+			assert.Equal(t, len(res), 3)
+		}
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereExists("name")
+		q = q.andAlso()
+		q = q.not()
+		q = q.whereExists("no_such_field")
+		res, err := q.toList()
+		assert.NoError(t, err)
+		assert.Equal(t, len(res), 3)
+
 		session.Close()
 	}
-	/*
-		try (DocumentSession session = (DocumentSession) store.openSession()) {
-			assertThat(session.query(User.class)
-					.whereExists("name")
-					.toList())
-					.hasSize(3);
-
-			assertThat(session.query(User.class)
-					.whereExists("name")
-					.andAlso()
-					.not()
-					.whereExists("no_such_field")
-					.toList())
-					.hasSize(3);
-		}
-	*/
 }
 
 func query_queryWithBoost(t *testing.T) {}
