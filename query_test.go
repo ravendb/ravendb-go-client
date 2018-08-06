@@ -7,9 +7,76 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func query_querySimple(t *testing.T)                      {}
-func query_queryLazily(t *testing.T)                      {}
-func query_collectionsStats(t *testing.T)                 {}
+func query_querySimple(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user1 := NewUser()
+		user1.setName("John")
+
+		user2 := NewUser()
+		user2.setName("Jane")
+
+		user3 := NewUser()
+		user3.setName("Tarzan")
+
+		err = session.StoreEntityWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user2, "users/2")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user3, "users/3")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		q := session.advanced().documentQueryAll(getTypeOf(&User{}), "", "users", false)
+		queryResult, err := q.toList()
+		assert.NoError(t, err)
+		assert.Equal(t, len(queryResult), 3)
+
+		session.Close()
+	}
+}
+
+// TODO: requires Lazy support
+func query_queryLazily(t *testing.T) {}
+
+func query_collectionsStats(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		user1 := NewUser()
+		user1.setName("John")
+
+		user2 := NewUser()
+		user2.setName("Jane")
+
+		err = session.StoreEntityWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user2, "users/2")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	op := NewGetCollectionStatisticsOperation()
+	err = store.maintenance().send(op)
+	assert.NoError(t, err)
+	stats := op.Command.Result
+	assert.Equal(t, stats.getCountOfDocuments(), 2)
+	coll := stats.getCollections()["Users"]
+	assert.Equal(t, coll, 2)
+}
+
 func query_queryWithWhereClause(t *testing.T)             {}
 func query_queryMapReduceWithCount(t *testing.T)          {}
 func query_queryMapReduceWithSum(t *testing.T)            {}
@@ -54,14 +121,16 @@ func query_queryWhereExists(t *testing.T) {
 			assert.Equal(t, len(res), 3)
 		}
 
-		q := session.query(getTypeOf(&User{}))
-		q = q.whereExists("name")
-		q = q.andAlso()
-		q = q.not()
-		q = q.whereExists("no_such_field")
-		res, err := q.toList()
-		assert.NoError(t, err)
-		assert.Equal(t, len(res), 3)
+		{
+			q := session.query(getTypeOf(&User{}))
+			q = q.whereExists("name")
+			q = q.andAlso()
+			q = q.not()
+			q = q.whereExists("no_such_field")
+			res, err := q.toList()
+			assert.NoError(t, err)
+			assert.Equal(t, len(res), 3)
+		}
 
 		session.Close()
 	}
