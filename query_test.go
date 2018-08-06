@@ -77,7 +77,56 @@ func query_collectionsStats(t *testing.T) {
 	assert.Equal(t, coll, 2)
 }
 
-func query_queryWithWhereClause(t *testing.T)             {}
+func query_queryWithWhereClause(t *testing.T) {
+
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user1 := NewUser()
+		user1.setName("John")
+
+		user2 := NewUser()
+		user2.setName("Jane")
+
+		user3 := NewUser()
+		user3.setName("Tarzan")
+
+		err = session.StoreEntityWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user2, "users/2")
+		assert.NoError(t, err)
+		err = session.StoreEntityWithID(user3, "users/3")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		q := session.queryWithQuery(getTypeOf(&User{}), Query_collection("users"))
+		q = q.whereStartsWith("name", "J")
+		queryResult, err := q.toList()
+		assert.NoError(t, err)
+
+		q2 := session.queryWithQuery(getTypeOf(&User{}), Query_collection("users"))
+		q2 = q2.whereEquals("name", "Tarzan")
+		queryResult2, err := q2.toList()
+		assert.NoError(t, err)
+
+		q3 := session.queryWithQuery(getTypeOf(&User{}), Query_collection("users"))
+		q3 = q3.whereEndsWith("name", "n")
+		queryResult3, err := q3.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(queryResult), 2)
+		assert.Equal(t, len(queryResult2), 1)
+		assert.Equal(t, len(queryResult3), 2)
+
+		session.Close()
+	}
+}
+
 func query_queryMapReduceWithCount(t *testing.T)          {}
 func query_queryMapReduceWithSum(t *testing.T)            {}
 func query_queryMapReduceIndex(t *testing.T)              {}

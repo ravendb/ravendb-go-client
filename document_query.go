@@ -280,47 +280,39 @@ func (q *DocumentQuery) whereNotEqualsWithParams(whereParams *WhereParams) *Docu
 	return q
 }
 
-/*
- IDocumentQuery<T> whereIn(string fieldName, Collection<Object> values) {
-	return whereIn(fieldName, values, false);
+func (q *DocumentQuery) whereIn(fieldName string, values []Object) *DocumentQuery {
+	return q.whereInWithExact(fieldName, values, false)
 }
 
-
- IDocumentQuery<T> whereIn(string fieldName, Collection<Object> values, bool exact) {
-	_whereIn(fieldName, values, exact);
-	return this;
+func (q *DocumentQuery) whereInWithExact(fieldName string, values []Object, exact bool) *DocumentQuery {
+	q._whereInWithExact(fieldName, values, exact)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereIn<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values, bool exact = false)
 
-
- IDocumentQuery<T> whereStartsWith(string fieldName, Object value) {
-	_whereStartsWith(fieldName, value);
-	return this;
+func (q *DocumentQuery) whereStartsWith(fieldName string, value Object) *DocumentQuery {
+	q._whereStartsWith(fieldName, value)
+	return q
 }
 
-
- IDocumentQuery<T> whereEndsWith(string fieldName, Object value) {
-	_whereEndsWith(fieldName, value);
-	return this;
+func (q *DocumentQuery) whereEndsWith(fieldName string, value Object) *DocumentQuery {
+	q._whereEndsWith(fieldName, value)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereEndsWith<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value)
 
-
- IDocumentQuery<T> whereBetween(string fieldName, Object start, Object end) {
-	return whereBetween(fieldName, start, end, false);
+func (q *DocumentQuery) whereBetween(fieldName string, start Object, end Object) *DocumentQuery {
+	return q.whereBetweenWithExact(fieldName, start, end, false)
 }
 
-
- IDocumentQuery<T> whereBetween(string fieldName, Object start, Object end, bool exact) {
-	_whereBetween(fieldName, start, end, exact);
-	return this;
+func (q *DocumentQuery) whereBetweenWithExact(fieldName string, start Object, end Object, exact bool) *DocumentQuery {
+	q._whereBetweenWithExact(fieldName, start, end, exact)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereBetween<TValue>(Expression<Func<T, TValue>> propertySelector, TValue start, TValue end, bool exact = false)
-
-*/
 
 func (q *DocumentQuery) whereGreaterThan(fieldName string, value Object) *DocumentQuery {
 	return q.whereGreaterThanWithExact(fieldName, value, false)
