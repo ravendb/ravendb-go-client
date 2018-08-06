@@ -407,48 +407,45 @@ func (q *DocumentQuery) randomOrderingWithSeed(seed string) *DocumentQuery {
 
 //TBD 4.1  IDocumentQuery<T> customSortUsing(string typeName, bool descending)
 
-/*
- IGroupByDocumentQuery<T> groupBy(string fieldName, string... fieldNames) {
-	_groupBy(fieldName, fieldNames);
+func (q *DocumentQuery) groupBy(fieldName string, fieldNames ...string) *IGroupByDocumentQuery {
+	q._groupBy(fieldName, fieldNames...)
 
-	return new GroupByDocumentQuery<>(this);
+	return NewGroupByDocumentQuery(q)
 }
 
+func (q *DocumentQuery) groupBy2(field *GroupBy, fields ...*GroupBy) *IGroupByDocumentQuery {
+	q._groupBy2(field, fields...)
 
- IGroupByDocumentQuery<T> groupBy(GroupBy field, GroupBy... fields) {
-	_groupBy(field, fields);
-
-	return new GroupByDocumentQuery<>(this);
+	return NewGroupByDocumentQuery(q)
 }
 
-
- <TResult> IDocumentQuery<TResult> ofType(Class<TResult> tResultClass) {
-	return createDocumentQueryInternal(tResultClass);
+func (q *DocumentQuery) ofType(tResultClass reflect.Type) *IDocumentQuery {
+	return q.createDocumentQueryInternal(tResultClass)
 }
 
- IDocumentQuery<T> orderBy(string field) {
-	return orderBy(field, OrderingType.STRING);
+func (q *DocumentQuery) orderBy(field string) *IDocumentQuery {
+	return q.orderByWithOrdering(field, OrderingType_STRING)
 }
 
- IDocumentQuery<T> orderBy(string field, OrderingType ordering) {
-	_orderBy(field, ordering);
-	return this;
+func (q *DocumentQuery) orderByWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
+	q._orderByWithOrdering(field, ordering)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> OrderBy<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
- IDocumentQuery<T> orderByDescending(string field) {
-	return orderByDescending(field, OrderingType.STRING);
+func (q *DocumentQuery) orderByDescending(field string) *IDocumentQuery {
+	return q.orderByDescendingWithOrdering(field, OrderingType_STRING)
 }
 
- IDocumentQuery<T> orderByDescending(string field, OrderingType ordering) {
-	_orderByDescending(field, ordering);
-	return this;
+func (q *DocumentQuery) orderByDescendingWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
+	q._orderByDescendingWithOrdering(field, ordering)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> OrderByDescending<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
-
+/*
  IDocumentQuery<T> addBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
 	_addBeforeQueryExecutedListener(action);
 	return this;

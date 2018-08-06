@@ -78,7 +78,6 @@ func query_collectionsStats(t *testing.T) {
 }
 
 func query_queryWithWhereClause(t *testing.T) {
-
 	var err error
 	store := getDocumentStoreMust(t)
 	defer store.Close()
@@ -127,7 +126,40 @@ func query_queryWithWhereClause(t *testing.T) {
 	}
 }
 
-func query_queryMapReduceWithCount(t *testing.T)          {}
+func query_queryMapReduceWithCount(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q2 := q.groupBy("name")
+		q2 = q2.selectKey()
+		q = q2.selectCount()
+		q = q.orderByDescending("count")
+		q = q.ofType(getTypeOf(&ReduceResult{}))
+		results, err := q.toList()
+		assert.NoError(t, err)
+
+		{
+			result := results[0].(*ReduceResult)
+			assert.Equal(t, result.getCount(), 2)
+			assert.Equal(t, result.getName(), "John")
+		}
+
+		{
+			result := results[1].(*ReduceResult)
+			assert.Equal(t, result.getCount(), 1)
+			assert.Equal(t, result.getName(), "Tarzan")
+		}
+
+		session.Close()
+	}
+}
+
 func query_queryMapReduceWithSum(t *testing.T)            {}
 func query_queryMapReduceIndex(t *testing.T)              {}
 func query_querySingleProperty(t *testing.T)              {}
@@ -243,6 +275,36 @@ func query_addUsers(t *testing.T, store *IDocumentStore) {
 func query_queryWithCustomize(t *testing.T) {}
 func query_queryLongRequest(t *testing.T)   {}
 func query_queryByIndex(t *testing.T)       {}
+
+type ReduceResult struct {
+	Count int
+	Name  string
+	Age   int
+}
+
+func (r *ReduceResult) getAge() int {
+	return r.Age
+}
+
+func (r *ReduceResult) setAge(age int) {
+	r.Age = age
+}
+
+func (r *ReduceResult) getCount() int {
+	return r.Count
+}
+
+func (r *ReduceResult) setCount(count int) {
+	r.Count = count
+}
+
+func (r *ReduceResult) getName() string {
+	return r.Name
+}
+
+func (r *ReduceResult) setName(name string) {
+	r.Name = name
+}
 
 func TestQuery(t *testing.T) {
 	if dbTestsDisabled() {
