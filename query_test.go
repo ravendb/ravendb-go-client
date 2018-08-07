@@ -160,7 +160,41 @@ func query_queryMapReduceWithCount(t *testing.T) {
 	}
 }
 
-func query_queryMapReduceWithSum(t *testing.T)            {}
+func query_queryMapReduceWithSum(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		//List<ReduceResult> results =
+		q := session.query(getTypeOf(&User{}))
+		q2 := q.groupBy("name")
+		q2 = q2.selectKey()
+		q = q2.selectSum(NewGroupByFieldWithName("age"))
+		q = q.orderByDescending("age")
+		q = q.ofType(getTypeOf(&ReduceResult{}))
+		results, err := q.toList()
+		assert.NoError(t, err)
+
+		{
+			result := results[0].(*ReduceResult)
+			assert.Equal(t, result.getAge(), 8)
+			assert.Equal(t, result.getName(), "John")
+		}
+
+		{
+			result := results[1].(*ReduceResult)
+			assert.Equal(t, result.getAge(), 2)
+			assert.Equal(t, result.getName(), "Tarzan")
+		}
+
+		session.Close()
+	}
+}
+
 func query_queryMapReduceIndex(t *testing.T)              {}
 func query_querySingleProperty(t *testing.T)              {}
 func query_queryWithSelect(t *testing.T)                  {}
