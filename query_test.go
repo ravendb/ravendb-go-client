@@ -403,10 +403,124 @@ func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {
 	}
 }
 
-func query_queryWithProjection(t *testing.T)  {}
-func query_queryWithProjection2(t *testing.T) {}
-func query_queryDistinct(t *testing.T)        {}
-func query_querySearchWithOr(t *testing.T)    {}
+type UserProjection struct {
+	ID   string
+	Name string
+}
+
+func (p *UserProjection) getId() string {
+	return p.ID
+}
+
+func (p *UserProjection) setId(id string) {
+	p.ID = id
+}
+
+func (p *UserProjection) getName() string {
+	return p.Name
+}
+
+func (p *UserProjection) setName(name string) {
+	p.Name = name
+}
+
+func query_queryWithProjection(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.selectFields(getTypeOf(&UserProjection{}))
+		projections, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(projections), 3)
+
+		for _, p := range projections {
+			projection := p.(*UserProjection)
+			assert.NotEmpty(t, projection.getId())
+
+			assert.NotEmpty(t, projection.getName())
+		}
+
+		session.Close()
+	}
+}
+
+func query_queryWithProjection2(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.selectFields(getTypeOf(&UserProjection{}), "lastName")
+		projections, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(projections), 3)
+
+		for _, p := range projections {
+			projection := p.(*UserProjection)
+			assert.NotEmpty(t, projection.getId())
+
+			assert.Empty(t, projection.getName()) // we didn't specify this field in mapping
+		}
+
+		session.Close()
+	}
+}
+
+func query_queryDistinct(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.selectFields(getTypeOf(""), "name")
+		q = q.distinct()
+		uniqueNames, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(uniqueNames), 2)
+		assert.True(t, interfaceArrayContains(uniqueNames, "Tarzan"))
+		assert.True(t, interfaceArrayContains(uniqueNames, "John"))
+
+		session.Close()
+	}
+}
+
+func query_querySearchWithOr(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.searchWithOperator("name", "Tarzan John", SearchOperator_OR)
+		uniqueNames, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(uniqueNames), 3)
+
+		session.Close()
+	}
+}
+
 func query_queryNoTracking(t *testing.T)      {}
 func query_querySkipTake(t *testing.T)        {}
 func query_rawQuerySkipTake(t *testing.T)     {}
