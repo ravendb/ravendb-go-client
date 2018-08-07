@@ -169,7 +169,6 @@ func query_queryMapReduceWithSum(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		//List<ReduceResult> results =
 		q := session.query(getTypeOf(&User{}))
 		q2 := q.groupBy("name")
 		q2 = q2.selectKey()
@@ -195,11 +194,129 @@ func query_queryMapReduceWithSum(t *testing.T) {
 	}
 }
 
-func query_queryMapReduceIndex(t *testing.T)              {}
-func query_querySingleProperty(t *testing.T)              {}
-func query_queryWithSelect(t *testing.T)                  {}
-func query_queryWithWhereIn(t *testing.T)                 {}
-func query_queryWithWhereBetween(t *testing.T)            {}
+func query_queryMapReduceIndex(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.queryWithQuery(getTypeOf(&ReduceResult{}), Query_index("UsersByName"))
+		q = q.orderByDescending("Count")
+		results, err := q.toList()
+		assert.NoError(t, err)
+
+		{
+			result := results[0].(*ReduceResult)
+			assert.Equal(t, result.getCount(), 2)
+			assert.Equal(t, result.getName(), "John")
+		}
+
+		{
+			result := results[1].(*ReduceResult)
+			assert.Equal(t, result.getCount(), 1)
+			assert.Equal(t, result.getName(), "Tarzan")
+		}
+
+		session.Close()
+	}
+}
+
+func query_querySingleProperty(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.addOrderWithOrdering("age", true, OrderingType_LONG)
+		q = q.selectFields(getTypeOf(int(0)), "age")
+		ages, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(ages), 3)
+
+		for _, n := range []int{5, 3, 2} {
+			assert.True(t, interfaceArrayContains(ages, n))
+		}
+
+		session.Close()
+	}
+}
+
+func query_queryWithSelect(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.selectFields(getTypeOf(&User{}), "age")
+		usersAge, err := q.toList()
+		assert.NoError(t, err)
+
+		for _, u := range usersAge {
+			user := u.(*User)
+
+			assert.True(t, user.getAge() >= 0)
+			assert.NotEmpty(t, user.getId())
+		}
+
+		session.Close()
+	}
+}
+
+func query_queryWithWhereIn(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereIn("name", []Object{"Tarzan", "no_such"})
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 1)
+
+		session.Close()
+	}
+}
+
+func query_queryWithWhereBetween(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereBetween("age", 4, 5)
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 1)
+
+		user := users[0].(*User)
+		assert.Equal(t, *user.getName(), "John")
+
+		session.Close()
+	}
+}
+
 func query_queryWithWhereLessThan(t *testing.T)           {}
 func query_queryWithWhereLessThanOrEqual(t *testing.T)    {}
 func query_queryWithWhereGreaterThan(t *testing.T)        {}

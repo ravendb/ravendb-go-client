@@ -71,31 +71,27 @@ func (q *DocumentQuery) waitForNonStaleResults(waitTimeout time.Duration) *Docum
 	return q
 }
 
-/*
- IDocumentQuery<T> addParameter(string name, Object value) {
-	_addParameter(name, value);
-	return this;
+func (q *DocumentQuery) addParameter(name string, value Object) *IDocumentQuery {
+	q._addParameter(name, value)
+	return q
 }
 
-
- IDocumentQuery<T> addOrder(string fieldName, bool descending) {
-	return addOrder(fieldName, descending, OrderingType.STRING);
+func (q *DocumentQuery) addOrder(fieldName string, descending bool) *IDocumentQuery {
+	return q.addOrderWithOrdering(fieldName, descending, OrderingType_STRING)
 }
 
-
- IDocumentQuery<T> addOrder(string fieldName, bool descending, OrderingType ordering) {
-	if (descending) {
-		orderByDescending(fieldName, ordering);
+func (q *DocumentQuery) addOrderWithOrdering(fieldName string, descending bool, ordering OrderingType) *IDocumentQuery {
+	if descending {
+		q.orderByDescendingWithOrdering(fieldName, ordering)
 	} else {
-		orderBy(fieldName, ordering);
+		q.orderByWithOrdering(fieldName, ordering)
 	}
-	return this;
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> AddOrder<TValue>(Expression<Func<T, TValue>> propertySelector, bool descending, OrderingType ordering)
 
-
-
+/*
  IDocumentQuery<T> addAfterQueryExecutedListener(Consumer<QueryResult> action) {
 	_addAfterQueryExecutedListener(action);
 	return this;
@@ -118,38 +114,34 @@ func (q *DocumentQuery) waitForNonStaleResults(waitTimeout time.Duration) *Docum
 	_removeAfterStreamExecutedListener(action);
 	return this;
 }
+*/
 
- IDocumentQuery<T> openSubclause() {
-	_openSubclause();
-	return this;
+func (q *DocumentQuery) openSubclause() *IDocumentQuery {
+	q._openSubclause()
+	return q
 }
 
-
- IDocumentQuery<T> closeSubclause() {
-	_closeSubclause();
-	return this;
+func (q *DocumentQuery) closeSubclause() *IDocumentQuery {
+	q._closeSubclause()
+	return q
 }
 
-
- IDocumentQuery<T> search(string fieldName, string searchTerms) {
-	_search(fieldName, searchTerms);
-	return this;
+func (q *DocumentQuery) search(fieldName string, searchTerms string) *IDocumentQuery {
+	q._search(fieldName, searchTerms)
+	return q
 }
 
-
- IDocumentQuery<T> search(string fieldName, string searchTerms, SearchOperator operator) {
-	_search(fieldName, searchTerms, operator);
-	return this;
+func (q *DocumentQuery) searchWithOperator(fieldName string, searchTerms string, operator SearchOperator) *IDocumentQuery {
+	q._searchWithOperator(fieldName, searchTerms, operator)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> Search<TValue>(Expression<Func<T, TValue>> propertySelector, string searchTerms, SearchOperator @operator)
 
-
- IDocumentQuery<T> intersect() {
-	_intersect();
-	return this;
+func (q *DocumentQuery) intersect() *IDocumentQuery {
+	q._intersect()
+	return q
 }
-*/
 
 func (q *DocumentQuery) containsAny(fieldName string, values []Object) *DocumentQuery {
 	q._containsAny(fieldName, values)
@@ -170,36 +162,29 @@ func (q *DocumentQuery) statistics(stats **QueryStatistics) *DocumentQuery {
 	return q
 }
 
-/*
-
-
-
- IDocumentQuery<T> usingDefaultOperator(QueryOperator queryOperator) {
-	_usingDefaultOperator(queryOperator);
-	return this;
+func (q *DocumentQuery) usingDefaultOperator(queryOperator QueryOperator) *IDocumentQuery {
+	q._usingDefaultOperator(queryOperator)
+	return q
 }
 
-
- IDocumentQuery<T> noTracking() {
-	_noTracking();
-	return this;
+func (q *DocumentQuery) noTracking() *IDocumentQuery {
+	q._noTracking()
+	return q
 }
 
-
- IDocumentQuery<T> noCaching() {
-	_noCaching();
-	return this;
+func (q *DocumentQuery) noCaching() *IDocumentQuery {
+	q._noCaching()
+	return q
 }
 
 //TBD 4.1  IDocumentQuery<T> showTimings()
 
-
- IDocumentQuery<T> include(string path) {
-	_include(path);
-	return this;
+func (q *DocumentQuery) include(path string) *IDocumentQuery {
+	q._include(path)
+	return q
 }
+
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Include(Expression<Func<T, object>> path)
-*/
 
 func (q *DocumentQuery) not() *DocumentQuery {
 	q.negateNext()
@@ -216,18 +201,15 @@ func (q *DocumentQuery) skip(count int) *DocumentQuery {
 	return q
 }
 
-/*
- IDocumentQuery<T> whereLucene(string fieldName, string whereClause) {
-	_whereLucene(fieldName, whereClause, false);
-	return this;
+func (q *DocumentQuery) whereLucene(fieldName string, whereClause string) *IDocumentQuery {
+	q._whereLucene(fieldName, whereClause, false)
+	return q
 }
 
-
- IDocumentQuery<T> whereLucene(string fieldName, string whereClause, bool exact) {
-	_whereLucene(fieldName, whereClause, exact);
-	return this;
+func (q *DocumentQuery) whereLuceneWithExact(fieldName string, whereClause string, exact bool) *IDocumentQuery {
+	q._whereLucene(fieldName, whereClause, exact)
+	return q
 }
-*/
 
 func (q *DocumentQuery) whereEquals(fieldName string, value Object) *DocumentQuery {
 	q._whereEqualsWithExact(fieldName, value, false)
