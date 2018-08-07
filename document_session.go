@@ -259,11 +259,9 @@ func (s *DocumentSession) documentQueryAll(clazz reflect.Type, indexName string,
 	return NewDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 
-/*
-   public <T> IRawDocumentQuery<T> rawQuery(reflect.Type clazz, string query) {
-       return new RawDocumentQuery<>(clazz, this, query);
-   }
-*/
+func (s *DocumentSession) rawQuery(clazz reflect.Type, query string) *IRawDocumentQuery {
+	return NewRawDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, query)
+}
 
 func (s *DocumentSession) query(clazz reflect.Type) *DocumentQuery {
 	return s.documentQueryAll(clazz, "", "", false)
