@@ -317,25 +317,107 @@ func query_queryWithWhereBetween(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereLessThan(t *testing.T)           {}
-func query_queryWithWhereLessThanOrEqual(t *testing.T)    {}
-func query_queryWithWhereGreaterThan(t *testing.T)        {}
-func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {}
-func query_queryWithProjection(t *testing.T)              {}
-func query_queryWithProjection2(t *testing.T)             {}
-func query_queryDistinct(t *testing.T)                    {}
-func query_querySearchWithOr(t *testing.T)                {}
-func query_queryNoTracking(t *testing.T)                  {}
-func query_querySkipTake(t *testing.T)                    {}
-func query_rawQuerySkipTake(t *testing.T)                 {}
-func query_parametersInRawQuery(t *testing.T)             {}
-func query_queryLucene(t *testing.T)                      {}
-func query_queryWhereExact(t *testing.T)                  {}
-func query_queryWhereNot(t *testing.T)                    {}
-func query_queryWithDuration(t *testing.T)                {}
-func query_queryFirst(t *testing.T)                       {}
-func query_queryParameters(t *testing.T)                  {}
-func query_queryRandomOrder(t *testing.T)                 {}
+func query_queryWithWhereLessThan(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereLessThan("age", 3)
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 1)
+
+		user := users[0].(*User)
+		assert.Equal(t, *user.getName(), "Tarzan")
+
+		session.Close()
+	}
+}
+
+func query_queryWithWhereLessThanOrEqual(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereLessThanOrEqual("age", 3)
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 2)
+
+		session.Close()
+	}
+}
+
+func query_queryWithWhereGreaterThan(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereGreaterThan("age", 3)
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 1)
+
+		user := users[0].(*User)
+		assert.Equal(t, *user.getName(), "John")
+
+		session.Close()
+	}
+}
+
+func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereGreaterThanOrEqual("age", 3)
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 2)
+
+		session.Close()
+	}
+}
+
+func query_queryWithProjection(t *testing.T)  {}
+func query_queryWithProjection2(t *testing.T) {}
+func query_queryDistinct(t *testing.T)        {}
+func query_querySearchWithOr(t *testing.T)    {}
+func query_queryNoTracking(t *testing.T)      {}
+func query_querySkipTake(t *testing.T)        {}
+func query_rawQuerySkipTake(t *testing.T)     {}
+func query_parametersInRawQuery(t *testing.T) {}
+func query_queryLucene(t *testing.T)          {}
+func query_queryWhereExact(t *testing.T)      {}
+func query_queryWhereNot(t *testing.T)        {}
+func query_queryWithDuration(t *testing.T)    {}
+func query_queryFirst(t *testing.T)           {}
+func query_queryParameters(t *testing.T)      {}
+func query_queryRandomOrder(t *testing.T)     {}
 
 func query_queryWhereExists(t *testing.T) {
 	store := getDocumentStoreMust(t)
