@@ -15,6 +15,10 @@ type Order struct {
 	Lines     []OrderLine
 }
 
+func NewOrder() *Order {
+	return &Order{}
+}
+
 func (o *Order) getId() string {
 	return o.ID
 }
