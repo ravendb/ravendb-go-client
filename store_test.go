@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,10 +144,11 @@ func TestStore(t *testing.T) {
 
 	destroyDriver := createTestDriver(t)
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered in %s\n", t.Name())
-		}
+		r := recover()
 		destroyDriver()
+		if r != nil {
+			panic(r)
+		}
 	}()
 
 	// matches order of java tests

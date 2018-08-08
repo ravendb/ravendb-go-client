@@ -21,4 +21,4 @@ export VERBOSE_LOG=true
 export PCAP_CAPTURE=true
 
 # go test -race
-go test -race -covermode=atomic -coverprofile=coverage.txt
+go test -covermode=atomic -coverprofile=coverage.txt

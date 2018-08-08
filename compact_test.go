@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -45,10 +44,11 @@ func TestCompact(t *testing.T) {
 
 	destroyDriver := createTestDriver(t)
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered in %s\n", t.Name())
-		}
+		r := recover()
 		destroyDriver()
+		if r != nil {
+			panic(r)
+		}
 	}()
 
 	// follows execution order of java tests

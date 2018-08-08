@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"testing"
@@ -93,10 +92,11 @@ func TestRevisions(t *testing.T) {
 	}
 	destroyDriver := createTestDriver(t)
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered in %s\n", t.Name())
-		}
+		r := recover()
 		destroyDriver()
+		if r != nil {
+			panic(r)
+		}
 	}()
 
 	revisionsTest_revisions(t)
