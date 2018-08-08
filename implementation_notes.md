@@ -186,3 +186,12 @@ This assumes that there is no big churn of adding/removing callbacks, which woul
 
 If churn does happen, we can change things to use a unique id and store callbacks as a pair of (id, function).
 
+## random iteration over maps
+
+In Java iterating over dictionaries has a stable order.
+
+In Go, iteration over maps (`for k, v := range m`) has intentionally random order.
+
+There are code paths in Java code that relay on stable iteration order.
+
+To implement that in Go, we first collect keys of a map, sort them and then iterate based on order of sorted keys.
