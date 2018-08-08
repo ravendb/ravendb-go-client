@@ -413,6 +413,6 @@ func (t *WhereToken) specialOperator(writer *StringBuilder) {
 		}
 		writer.append(")")
 	default:
-		panicIf(true, "unsupported operator %s", t.whereOperator)
+		panicIf(true, "unsupported operator %d", t.whereOperator)
 	}
 }

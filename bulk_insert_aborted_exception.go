@@ -6,7 +6,7 @@ type BulkInsertAbortedException struct {
 
 func NewBulkInsertAbortedException(format string, args ...interface{}) *BulkInsertAbortedException {
 	res := &BulkInsertAbortedException{
-		RavenException: *NewRavenException(format, args),
+		RavenException: *NewRavenException(format, args...),
 	}
 	return res
 }

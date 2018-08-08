@@ -37,7 +37,7 @@ type ConflictException struct {
 
 func NewConflictException(format string, args ...interface{}) *ConflictException {
 	res := &ConflictException{}
-	res.RavenException = *NewRavenException(format, args)
+	res.RavenException = *NewRavenException(format, args...)
 	return res
 }
 
@@ -52,7 +52,7 @@ type ConcurrencyException struct {
 
 func NewConcurrencyException(format string, args ...interface{}) *ConcurrencyException {
 	res := &ConcurrencyException{}
-	res.RavenException = *NewRavenException(format, args)
+	res.RavenException = *NewRavenException(format, args...)
 	return res
 }
 
