@@ -1,6 +1,8 @@
 package ravendb
 
 import (
+	"fmt"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"testing"
@@ -95,7 +97,9 @@ func TestRevisions(t *testing.T) {
 		r := recover()
 		destroyDriver()
 		if r != nil {
-			panic(r)
+			fmt.Printf("Panic: '%v'\n", r)
+			debug.PrintStack()
+			t.Fail()
 		}
 	}()
 

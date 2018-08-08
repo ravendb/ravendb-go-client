@@ -1,6 +1,8 @@
 package ravendb
 
 import (
+	"fmt"
+	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -116,7 +118,9 @@ func TestDocumentsLoad(t *testing.T) {
 		r := recover()
 		destroyDriver()
 		if r != nil {
-			panic(r)
+			fmt.Printf("Panic: '%v'\n", r)
+			debug.PrintStack()
+			t.Fail()
 		}
 	}()
 

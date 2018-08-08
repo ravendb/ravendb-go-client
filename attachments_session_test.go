@@ -2,7 +2,9 @@ package ravendb
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"testing"
@@ -543,7 +545,9 @@ func TestAttachmentsSession(t *testing.T) {
 		r := recover()
 		destroyDriver()
 		if r != nil {
-			panic(r)
+			fmt.Printf("Panic: '%v'\n", r)
+			debug.PrintStack()
+			t.Fail()
 		}
 	}()
 

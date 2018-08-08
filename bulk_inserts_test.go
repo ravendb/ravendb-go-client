@@ -1,6 +1,8 @@
 package ravendb
 
 import (
+	"fmt"
+	"runtime/debug"
 	"strings"
 	"testing"
 	"time"
@@ -182,7 +184,9 @@ func TestBulkInserts(t *testing.T) {
 		r := recover()
 		destroyDriver()
 		if r != nil {
-			panic(r)
+			fmt.Printf("Panic: '%v'\n", r)
+			debug.PrintStack()
+			t.Fail()
 		}
 	}()
 

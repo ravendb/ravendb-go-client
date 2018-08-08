@@ -1,6 +1,8 @@
 package ravendb
 
 import (
+	"fmt"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -113,10 +115,11 @@ func TestPatch(t *testing.T) {
 		r := recover()
 		destroyDriver()
 		if r != nil {
-			panic(r)
+			fmt.Printf("Panic: '%v'\n", r)
+			debug.PrintStack()
+			t.Fail()
 		}
 	}()
-
 	// order matches Java tests
 	patchTestcanPatchManyDocuments(t)
 	patchTestthrowsOnInvalidScript(t)
