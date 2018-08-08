@@ -141,6 +141,8 @@ func (c *DocumentConventions) getReadBalanceBehavior() ReadBalanceBehavior {
 
 func (c *DocumentConventions) clone() *DocumentConventions {
 	res := *c
+	// mutex carries its locking state so we need to re-initialize it
+	res.mu = sync.Mutex{}
 	return &res
 }
 

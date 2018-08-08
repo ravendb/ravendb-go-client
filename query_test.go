@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -1263,8 +1264,89 @@ func makeDogsIndex() *AbstractIndexCreationTask {
 	return res
 }
 
-func query_queryLongRequest(t *testing.T) {}
-func query_queryByIndex(t *testing.T)     {}
+func query_queryLongRequest(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		newSession := openSessionMust(t, store)
+
+		longName := strings.Repeat("x", 2048)
+		user := NewUser()
+		user.setName(longName)
+		err = newSession.StoreEntityWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		q := newSession.advanced().documentQueryAll(getTypeOf(&User{}), "", "Users", false)
+		q = q.whereEquals("name", longName)
+		queryResult, err := q.toList()
+		assert.NoError(t, err)
+		assert.Equal(t, len(queryResult), 1)
+
+		newSession.Close()
+	}
+}
+
+func query_queryByIndex(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	err = store.executeIndex(makeDogsIndex())
+	assert.NoError(t, err)
+
+	{
+		newSession := openSessionMust(t, store)
+		query_createDogs(t, newSession)
+
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		err = gRavenTestDriver.waitForIndexing(store, store.getDatabase(), 0)
+		assert.NoError(t, err)
+
+		newSession.Close()
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+
+		q := newSession.advanced().documentQueryAll(getTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q = q.whereGreaterThan("age", 2)
+		q = q.andAlso()
+		q = q.whereEquals("vaccinated", false)
+		queryResult, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(queryResult), 1)
+		r := queryResult[0].(*DogsIndex_Result)
+		assert.Equal(t, r.getName(), "Brian")
+
+		q = newSession.advanced().documentQueryAll(getTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q = q.whereLessThanOrEqual("age", 2)
+		q = q.andAlso()
+		q = q.whereEquals("vaccinated", false)
+		queryResult2, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(queryResult2), 3)
+
+		var names []string
+		for _, r := range queryResult2 {
+			dir := r.(*DogsIndex_Result)
+			name := dir.getName()
+			names = append(names, name)
+		}
+		sort.Strings(names)
+
+		assert.True(t, stringArrayContainsSequence(names, []string{"Beethoven", "Benji", "Scooby Doo"}))
+		newSession.Close()
+	}
+}
 
 type ReduceResult struct {
 	Count int    `json:"count"`

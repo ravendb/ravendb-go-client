@@ -4,7 +4,7 @@ package ravendb
 type CompactSettings struct {
 	DatabaseName string   `json:"DatabaseName"`
 	Documents    bool     `json:"Documents"`
-	Indexes      []string `json:"Indexes,omitempty`
+	Indexes      []string `json:"Indexes,omitempty"`
 }
 
 // NewCompactSettings creates CompactSettings
