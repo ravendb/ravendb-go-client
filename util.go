@@ -1,9 +1,15 @@
 package ravendb
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"net/url"
 	"os"
+	"runtime"
+	"time"
 )
 
 // TODO: remove it, it only exists to make initial porting faster
@@ -119,4 +125,53 @@ func interfaceArrayContains(a []interface{}, v interface{}) bool {
 		}
 	}
 	return false
+}
+
+func isWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
+func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+	return func(netw, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(netw, addr, cTimeout)
+		if err != nil {
+			return nil, err
+		}
+		conn.SetDeadline(time.Now().Add(rwTimeout))
+		return conn, nil
+	}
+}
+
+// can be used for http.Get() requests with better timeouts. New one must be created
+// for each Get() request
+func newTimeoutClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
+}
+
+func downloadURL(url string) ([]byte, error) {
+	// default timeout for http.Get() is really long, so dial it down
+	// for both connection and read/write timeouts
+	timeoutClient := newTimeoutClient(time.Second*120, time.Second*120)
+	resp, err := timeoutClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("'%s': status code not 200 (%d)", url, resp.StatusCode))
+	}
+	return ioutil.ReadAll(resp.Body)
+}
+
+func httpDl(url string, destPath string) error {
+	d, err := downloadURL(url)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(destPath, d, 0755)
 }

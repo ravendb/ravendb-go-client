@@ -482,10 +482,90 @@ func maybeConvertPcapToTxt(pcapPath string) {
 	}
 }
 
+var (
+	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.0.6-windows-x64.zip"
+	ravenWindowsZipPath       = "Ravendb-4.0.6.zip"
+)
+
+func getRavendbExePath() string {
+	cwd, err := os.Getwd()
+	must(err)
+
+	path := filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
+	if isWindows() {
+		path += ".exe"
+	}
+	return path
+}
+
+func downloadServerIfNeededWindows() {
+	fmt.Printf("downloadServerIfNeededWindows on windows\n")
+	_, err := os.Stat(getRavendbExePath())
+	if err == nil {
+		fmt.Printf("Server already present in %s\n", getRavendbExePath())
+		return
+	}
+	_, err = os.Stat(ravenWindowsZipPath)
+	if err != nil {
+		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
+		timeStart := time.Now()
+		err := httpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
+		must(err)
+		fmt.Printf(" took %s\n", time.Since(timeStart))
+	}
+	destDir := "RavenDB"
+	fmt.Printf("Unzipping %s to %s...", ravenWindowsZipPath, destDir)
+	timeStart := time.Now()
+	err = unzip(ravenWindowsZipPath, destDir)
+	must(err)
+	fmt.Printf(" took %s\n", time.Since(timeStart))
+}
+
+func downloadServerIfNeeded() {
+	fmt.Printf("downloadServerIfNeeded\n")
+	if isWindows() {
+		downloadServerIfNeededWindows()
+		return
+	}
+}
+
+func maybeEnableVerbose() {
+	if os.Getenv("VERBOSE_LOG") != "" {
+		verboseLog = true
+		fmt.Printf("verbose logging enabled\n")
+	}
+}
+
+// this helps running tests from withing Visual Studio Code,
+// where env variables are not set
+func detectServerPath() {
+	// explicitly setting RAVEN_GO_NO_DB_TESTS=true disables database tests
+	// so no need for the server
+	noDB := os.Getenv("RAVEN_GO_NO_DB_TESTS")
+	if noDB != "" {
+		return
+	}
+
+	// use RAVENDB_JAVA_TEST_SERVER_PATH env var if explicilty set
+	serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
+	if serverPath != "" {
+		return
+	}
+
+	path := getRavendbExePath()
+	_, err := os.Stat(path)
+	must(err)
+	os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+	fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
+}
+
 func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
+	downloadServerIfNeeded()
 
 	maybeEnableVerbose()
+	detectServerPath()
+
 	gRavenLogsDir = ravenLogsDirFromTestName(t)
 
 	fmt.Printf("\nStarting %s\n", t.Name())
@@ -528,34 +608,7 @@ func logGoroutines(file string) {
 	profile.WriteTo(f, 2)
 }
 
-func maybeEnableVerbose() {
-	if os.Getenv("VERBOSE_LOG") != "" {
-		verboseLog = true
-		fmt.Printf("verbose logging enabled\n")
-	}
-}
-
 func TestMain(m *testing.M) {
-	noDb := os.Getenv("RAVEN_GO_NO_DB_TESTS")
-	if noDb == "" {
-		// this helps running tests from withing Visual Studio Code,
-		// where env variables are not set
-		serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
-		if serverPath == "" {
-			home := os.Getenv("HOME")
-			path := filepath.Join(home, "Documents", "RavenDB", "Server", "Raven.Server")
-			_, err := os.Stat(path)
-			if err != nil {
-				cwd, err := os.Getwd()
-				must(err)
-				path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
-				_, err = os.Stat(path)
-				must(err)
-			}
-			os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
-			fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
-		}
-	}
 
 	//RavenServerVerbose = true
 

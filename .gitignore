@@ -27,3 +27,4 @@ capturer
 foo.pcap
 pcap_convert
 netgraph
+*.zip

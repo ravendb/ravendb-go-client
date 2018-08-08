@@ -1,7 +1,6 @@
 #!/bin/bash
 set -u -e -o pipefail
 
-
 rm -rf RavenDB.tar.bz2
 
 wget -O RavenDB.tar.bz2 https://daily-builds.s3.amazonaws.com/RavenDB-4.0.3-osx-x64.tar.bz2

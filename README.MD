@@ -26,6 +26,17 @@ You have to manually place it in `$GOPATH/src/github.com/ravendb/ravendb-go-clie
 
 To run current tests do: `./run_tests.sh`.
 
-I'm developing (and testing) on Mac. The CI tests are run on Linux.
+I'm developing and testing mostly on Mac. The CI tests are run on Linux.
 
-Not tested on Windows yet.
+# Running on Windows
+
+First, you have to install latest beta version of go, currently 1.11beta3 from https://golang.org/dl/#go1.11beta1
+Otherwise you'll hit bug https://github.com/golang/go/issues/18468 (it should be backported to 1.10.4 as per https://github.com/golang/go/issues/25292).
+
+When running `go test`, for now you must do `go test -vet=off`. This is to avoid another bug https://github.com/golang/go/issues/26390.
+
+To run tests: `go test -vet=off`.
+
+On Windows, if RavenDB server is not present locally, we'll download it to `RavenDB` directory.
+
+Windows version doesn't capture traffic between HTTP client and server because `gopacket` package requires CGO support and pcap to work so I stubbed it out to be a no-op.
