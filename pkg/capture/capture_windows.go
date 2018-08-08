@@ -17,6 +17,11 @@ var (
 type PacketCapturer struct {
 }
 
+func (c *PacketCapturer) Close() error {
+	// no-op
+	return nil
+}
+
 // StartCapture starts capture of packets at a given ip address and saves
 // the packets to pcap file
 // To finish capture, call Close() on returned io.Closer

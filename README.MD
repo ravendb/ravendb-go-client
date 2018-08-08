@@ -13,6 +13,7 @@ cd $GOPATH/src/github.com/ravendb
 rm -rf ravendb-go-client
 git clone github.com/kjk/ravendb-go-client
 cd ravendb-go-client
+go get -v -u .\...
 ```
 
 In order to avoid renaming imports between `github.com/ravendb/ravendb-go-client`
@@ -26,9 +27,20 @@ You have to manually place it in `$GOPATH/src/github.com/ravendb/ravendb-go-clie
 
 To run current tests do: `./run_tests.sh`.
 
-I'm developing and testing mostly on Mac. The CI tests are run on Linux.
+I'm developing and testing mostly on Mac. The CI tests run on Linux.
 
 # Running on Windows
+
+Install as per Unix instructions.
+
+When running `go get -v -u .\...` to get dependencies, ignore
+
+```
+# github.com/google/gopacket/pcap
+exec: "gcc": executable file not found in %PATH%
+```
+
+Packet capturing is optional, to help debugging.
 
 First, you have to install latest beta version of go, currently 1.11beta3 from https://golang.org/dl/#go1.11beta1
 Otherwise you'll hit bug https://github.com/golang/go/issues/18468 (it should be backported to 1.10.4 as per https://github.com/golang/go/issues/25292).
