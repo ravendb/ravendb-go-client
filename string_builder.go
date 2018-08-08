@@ -24,7 +24,7 @@ func (b *StringBuilder) append(s interface{}) *StringBuilder {
 	case int:
 		toAppend = strconv.Itoa(v)
 	case float64:
-		toAppend = fmt.Sprintf("%s", v)
+		toAppend = fmt.Sprintf("%v", v)
 	default:
 		panicIf(true, "unsupported type %T", s)
 	}

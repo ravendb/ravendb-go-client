@@ -47,6 +47,7 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	indexDefinition.setLockMode(d.lockMode)
 	indexDefinition.setPriority(d.priority)
 	indexDefinition.setOutputReduceToCollection(d.outputReduceToCollection)
+	indexDefinition.updateIndexType()
 
 	suggestions := make(map[string]bool)
 	for _, suggestionsOption := range d.suggestionsOptions.strings {

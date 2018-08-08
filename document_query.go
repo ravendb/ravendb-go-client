@@ -27,22 +27,9 @@ func (q *DocumentQuery) selectFields(projectionClass reflect.Type, fields ...str
 		return q.selectFieldsWithQueryData(projectionClass, queryData)
 	}
 
-	panic("NYI")
-	// TODO: implement me
-	/*
-		PropertyDescriptor[] propertyDescriptors = Introspector.getBeanInfo(projectionClass).getPropertyDescriptors();
-
-		string[] projections = Arrays.stream(propertyDescriptors)
-				.map(x -> x.getName())
-				.toArray(string[]::new);
-
-		string[] fields = Arrays.stream(propertyDescriptors)
-				.map(x -> x.getName())
-				.toArray(string[]::new);
-
-		return selectFields(projectionClass, new QueryData(fields, projections));
-	*/
-	return nil
+	projections := getJSONStructFieldNames(projectionClass)
+	newFields := projections // java re-does the same calculations
+	return q.selectFieldsWithQueryData(projectionClass, NewQueryData(newFields, projections))
 }
 
 func (q *DocumentQuery) selectFieldsWithQueryData(projectionClass reflect.Type, queryData *QueryData) *DocumentQuery {

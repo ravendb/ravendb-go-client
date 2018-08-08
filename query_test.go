@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -206,7 +205,7 @@ func query_queryMapReduceIndex(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.queryWithQuery(getTypeOf(&ReduceResult{}), Query_index("UsersByName"))
-		q = q.orderByDescending("Count")
+		q = q.orderByDescending("count")
 		results, err := q.toList()
 		assert.NoError(t, err)
 
@@ -744,7 +743,7 @@ public static class Result {
 */
 
 func NewOrderTime() *AbstractIndexCreationTask {
-	res := &AbstractIndexCreationTask{}
+	res := NewAbstractIndexCreationTask("OrderTime")
 	res.smap = `from order in docs.Orders
 select new {
   delay = order.shippedAt - ((DateTime?)order.orderedAt)
@@ -835,9 +834,72 @@ func query_queryWithDuration(t *testing.T) {
 	}
 }
 
-func query_queryFirst(t *testing.T)       {}
-func query_queryParameters(t *testing.T)  {}
-func query_queryRandomOrder(t *testing.T) {}
+func query_queryFirst(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+	{
+		session := openSessionMust(t, store)
+
+		first, err := session.query(getTypeOf(&User{})).first()
+		assert.NoError(t, err)
+		assert.NotNil(t, first)
+
+		single, err := session.query(getTypeOf(&User{})).whereEquals("name", "Tarzan").single()
+		assert.NoError(t, err)
+		assert.NotNil(t, single)
+
+		_, err = session.query(getTypeOf(&User{})).single()
+		_ = err.(*IllegalStateException)
+
+		session.Close()
+	}
+}
+
+func query_queryParameters(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+	{
+		session := openSessionMust(t, store)
+
+		q := session.rawQuery(getTypeOf(&User{}), "from Users where name = $name")
+		q = q.addParameter("name", "Tarzan")
+		count, err := q.count()
+		assert.NoError(t, err)
+
+		assert.Equal(t, count, 1)
+
+		session.Close()
+	}
+}
+
+func query_queryRandomOrder(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+	{
+		session := openSessionMust(t, store)
+		{
+			q := session.query(getTypeOf(&User{})).randomOrdering()
+			res, err := q.toList()
+			assert.NoError(t, err)
+			assert.Equal(t, len(res), 3)
+		}
+
+		{
+			q := session.query(getTypeOf(&User{})).randomOrderingWithSeed("123")
+			res, err := q.toList()
+			assert.NoError(t, err)
+			assert.Equal(t, len(res), 3)
+		}
+
+		session.Close()
+	}
+}
 
 func query_queryWhereExists(t *testing.T) {
 	store := getDocumentStoreMust(t)
@@ -870,7 +932,56 @@ func query_queryWhereExists(t *testing.T) {
 	}
 }
 
-func query_queryWithBoost(t *testing.T) {}
+func query_queryWithBoost(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	query_addUsers(t, store)
+	{
+		session := openSessionMust(t, store)
+
+		q := session.query(getTypeOf(&User{}))
+		q = q.whereEquals("name", "Tarzan")
+		q = q.boost(5)
+		q = q.orElse()
+		q = q.whereEquals("name", "John")
+		q = q.boost(2)
+		q = q.orderByScore()
+		users, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 3)
+
+		var names []string
+		for _, u := range users {
+			user := u.(*User)
+			names = append(names, *user.getName())
+		}
+		assert.True(t, stringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
+
+		q = session.query(getTypeOf(&User{}))
+		q = q.whereEquals("name", "Tarzan")
+		q = q.boost(2)
+		q = q.orElse()
+		q = q.whereEquals("name", "John")
+		q = q.boost(5)
+		q = q.orderByScore()
+		users, err = q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(users), 3)
+
+		names = nil
+		for _, u := range users {
+			user := u.(*User)
+			names = append(names, *user.getName())
+		}
+
+		assert.True(t, stringArrayContainsSequence(names, []string{"John", "John", "Tarzan"}))
+
+		session.Close()
+	}
+}
 
 func makeUsersByName() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("UsersByName")
@@ -930,9 +1041,9 @@ func query_queryLongRequest(t *testing.T)   {}
 func query_queryByIndex(t *testing.T)       {}
 
 type ReduceResult struct {
-	Count int
-	Name  string
-	Age   int
+	Count int    `json:"count"`
+	Name  string `json:"name"`
+	Age   int    `json:"age"`
 }
 
 func (r *ReduceResult) getAge() int {
@@ -974,10 +1085,11 @@ func TestQuery(t *testing.T) {
 
 	destroyDriver := createTestDriver(t)
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("Recovered in %s\n", t.Name())
-		}
+		r := recover()
 		destroyDriver()
+		if r != nil {
+			panic(r)
+		}
 	}()
 
 	// matches order of Java tests

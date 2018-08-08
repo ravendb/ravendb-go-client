@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/jinzhu/copier"
 )
@@ -114,6 +115,37 @@ func isTypePointerToStruct(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Struct
 }
 
+func convertFloat64ToType(v float64, typ reflect.Type) interface{} {
+	switch typ.Kind() {
+	case reflect.Float32:
+		return float32(v)
+	case reflect.Float64:
+		return v
+	case reflect.Int:
+		return int(v)
+	case reflect.Int8:
+		return int8(v)
+	case reflect.Int16:
+		return int16(v)
+	case reflect.Int32:
+		return int32(v)
+	case reflect.Int64:
+		return int64(v)
+	case reflect.Uint:
+		return uint(v)
+	case reflect.Uint8:
+		return uint8(v)
+	case reflect.Uint16:
+		return uint16(v)
+	case reflect.Uint32:
+		return uint32(v)
+	case reflect.Uint64:
+		return uint64(v)
+	}
+	panicIf(true, "don't know how to convert value of type %T to reflect type %s", v, typ.Name())
+	return int(0)
+}
+
 func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 	// TODO: should also handle primitive types
 	switch v := js.(type) {
@@ -121,18 +153,54 @@ func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 		if typ.Kind() == reflect.String {
 			return js, nil
 		}
-		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
 	case float64:
-		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+		return convertFloat64ToType(v, typ), nil
 	case bool:
-		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
 	case []interface{}:
-		panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
 	case ObjectNode:
 		return makeStructFromJSONMap(typ, v)
 	}
 	panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
 	return nil, fmt.Errorf("don't know how to convert value of type %v to reflect type %s", js, typ.Name())
+}
+
+// returns names of struct fields as serialized to JSON
+func getJSONStructFieldNames(typ reflect.Type) []string {
+	for typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	panicIf(typ.Kind() != reflect.Struct, "we only support reflect.Struct, we got %s", typ.Kind())
+	rvNew := reflect.New(typ)
+	rv := reflect.ValueOf(rvNew)
+	structType := rv.Type()
+	var res []string
+	for i := 0; i < rv.NumField(); i++ {
+		structField := structType.Field(i)
+		isExported := structField.PkgPath == ""
+		if !isExported {
+			continue
+		}
+		name := structField.Name
+		tag := structField.Tag
+		jsonTag := tag.Get("json")
+		if jsonTag == "" {
+			res = append(res, name)
+			continue
+		}
+		// this could be "json,omitempty" etc. Extract just the name
+		idx := strings.IndexByte(jsonTag, ',')
+		if idx == -1 {
+			res = append(res, jsonTag)
+			continue
+		}
+		s := strings.TrimSpace(jsonTag[:idx-1])
+		res = append(res, s)
+	}
+
+	return res
 }
 
 // given a json represented as map and type of a struct

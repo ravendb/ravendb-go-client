@@ -543,14 +543,14 @@ func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start O
 	endParams.setFieldName(fieldName)
 
 	fromParam := interface{}("*")
-	if start == nil {
+	if start != nil {
 		fromParam = q.transformValueWithRange(startParams, true)
 	}
 	fromParameterName := q.addQueryParameter(fromParam)
 
 	toParam := interface{}("NULL")
 	// TODO: should this be end == nil? A bug in Java code?
-	if start == nil {
+	if start != nil {
 		toParam = q.transformValueWithRange(endParams, true)
 	}
 	toParameterName := q.addQueryParameter(toParam)
@@ -1020,7 +1020,11 @@ func (q *AbstractDocumentQuery) _distinct() {
 	panicIf(q.isDistinct(), "The is already a distinct query")
 	//throw new IllegalStateException("The is already a distinct query");
 
-	q.selectTokens = append(q.selectTokens, DistinctToken_INSTANCE)
+	if len(q.selectTokens) == 0 {
+		q.selectTokens = []QueryToken{DistinctToken_INSTANCE}
+		return
+	}
+	q.selectTokens = append([]QueryToken{DistinctToken_INSTANCE}, q.selectTokens...)
 }
 
 func (q *AbstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
@@ -1298,12 +1302,12 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams
 
 	// TODO: this could be a type switch
 	val := whereParams.getValue()
-	switch val.(type) {
+	switch v := val.(type) {
 	case time.Time, string, int, int32, int64, float32, float64, bool:
 		return val
 	case time.Duration:
-		panic("NYI")
-		//return ((Duration) whereParams.getValue()).toNanos() / 100;
+		n := int64(v/time.Nanosecond) / 100
+		return n
 	}
 	return whereParams.getValue()
 }
@@ -1706,7 +1710,10 @@ func (q *AbstractDocumentQuery) executeQueryOperation(take *int) ([]interface{},
 		q._take(take)
 	}
 
-	q.initSync()
+	err := q.initSync()
+	if err != nil {
+		return nil, err
+	}
 
 	return q.queryOperation.complete(q.clazz)
 }

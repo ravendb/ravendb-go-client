@@ -98,3 +98,16 @@ func stringArrayEq(a1, a2 []string) bool {
 	}
 	return true
 }
+
+// equivalent of Java's containsSequence http://joel-costigliola.github.io/assertj/core/api/org/assertj/core/api/ListAssert.html#containsSequence(ELEMENT...)
+func stringArrayContainsSequence(a1, a2 []string) bool {
+	if len(a1) != len(a2) {
+		return false
+	}
+	for i, s := range a1 {
+		if a2[i] != s {
+			return false
+		}
+	}
+	return true
+}

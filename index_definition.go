@@ -30,9 +30,6 @@ func NewIndexDefinition() *IndexDefinition {
 		Fields:            make(map[string]*IndexFieldOptions),
 		AdditionalSources: make(map[string]string),
 	}
-	// force setting the right index type
-	// Note: in Java it's calculated on demand
-	res.getType()
 	return res
 }
 
@@ -122,6 +119,14 @@ func (d *IndexDefinition) getConfiguration() IndexConfiguration {
 
 func (d *IndexDefinition) setConfiguration(configuration IndexConfiguration) {
 	d.Configuration = configuration
+}
+
+// Note: this must be called after finishing building index definition to set IndexType
+// In Java it's calculated on demand via getType
+func (d *IndexDefinition) updateIndexType() {
+	if d.IndexType == "" || d.IndexType == IndexType_NONE {
+		d.IndexType = d.detectStaticIndexType()
+	}
 }
 
 func (d *IndexDefinition) getType() IndexType {

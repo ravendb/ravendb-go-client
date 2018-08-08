@@ -65,7 +65,8 @@ var (
 	// if true, dumps http requests and responses, without body
 	dumpHTTP bool
 	// if true, also dumps body of response
-	dumpHTTPBody   bool
+	dumpHTTPBody bool
+	// if true, dumps failed http responses
 	dumpFailedHTTP bool
 )
 
@@ -110,7 +111,7 @@ func dumpHTTPResponse(resp *http.Response, withBody bool) {
 		return
 	}
 	body, err := getCopyOfResponseBody(resp)
-	if err != nil {
+	if err == nil {
 		os.Stdout.Write(prettyPrintMaybeJSON(body))
 		os.Stdout.WriteString("\n")
 	}
