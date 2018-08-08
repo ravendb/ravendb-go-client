@@ -17,12 +17,12 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 		session := openSessionMust(t, store)
 		user1 := NewUser()
 		user1.setAge(5)
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
 
 		user2 := NewUser()
 		user2.setAge(10)
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()

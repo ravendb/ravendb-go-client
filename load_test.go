@@ -19,7 +19,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -55,7 +55,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -86,9 +86,9 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Hibernating Rhinos")
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -117,9 +117,9 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Tony Soprano")
 
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -149,9 +149,9 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 		user2 := NewUser()
 		user2.setName("Tony Soprano")
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -187,7 +187,7 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 		geek1.setFavoritePrimes([]int{13, 43, 443, 997})
 		geek1.setFavoriteVeryLargePrimes([]int64{5000000029, 5000000039})
 
-		err = session.StoreEntityWithID(geek1, "geeks/1")
+		err = session.StoreWithID(geek1, "geeks/1")
 		assert.NoError(t, err)
 
 		geek2 := NewGeekPerson()
@@ -195,7 +195,7 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 		geek2.setFavoritePrimes([]int{2, 3, 5, 7})
 		geek2.setFavoriteVeryLargePrimes([]int64{999999999989})
 
-		err = session.StoreEntityWithID(geek2, "geeks/2")
+		err = session.StoreWithID(geek2, "geeks/2")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -237,7 +237,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 
 			user := NewUser()
 			user.setName("Person " + strconv.Itoa(i))
-			err = session.StoreEntityWithID(user, id)
+			err = session.StoreWithID(user, id)
 			assert.NoError(t, err)
 		}
 
@@ -271,7 +271,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 		createUser := func(id string) *User {
 			u := NewUser()
 			u.setId(id)
-			err = session.StoreEntity(u)
+			err = session.Store(u)
 			assert.NoError(t, err)
 			return u
 		}

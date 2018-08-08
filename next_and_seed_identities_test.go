@@ -18,7 +18,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 		user := NewUser()
 		user.setLastName("Adi")
 
-		err = session.StoreEntityWithID(user, "users|")
+		err = session.StoreWithID(user, "users|")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -34,7 +34,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 		user := NewUser()
 		user.setLastName("Avivi")
 
-		err = session.StoreEntityWithID(user, "users|")
+		err = session.StoreWithID(user, "users|")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -77,7 +77,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 		user := NewUser()
 		user.setLastName("Adi")
 
-		err = session.StoreEntityWithID(user, "users|")
+		err = session.StoreWithID(user, "users|")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -95,7 +95,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 		user := NewUser()
 		user.setLastName("Avivi")
 
-		err = session.StoreEntityWithID(user, "users|")
+		err = session.StoreWithID(user, "users|")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

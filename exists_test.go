@@ -22,9 +22,9 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		shalom := NewUser()
 		shalom.setName("Shalom")
 
-		err = session.StoreEntityWithID(idan, "users/1")
+		err = session.StoreWithID(idan, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(shalom, "users/2")
+		err = session.StoreWithID(shalom, "users/2")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

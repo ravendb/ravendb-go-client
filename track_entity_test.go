@@ -40,9 +40,9 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 		user2.setName("Jonathan")
 		user2.setId("users/2")
 
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		session.Close()
@@ -80,7 +80,7 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 		user.setId("users/1")
 		user.setName("User1")
 
-		err = session.StoreEntity(user)
+		err = session.Store(user)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -89,7 +89,7 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 		newUser.setName("User2")
 		newUser.setId("users/1")
 
-		err = session.StoreEntity(newUser)
+		err = session.Store(newUser)
 		_ = err.(*NonUniqueObjectException)
 		msg := err.Error()
 		assert.True(t, strings.HasPrefix(msg, "Attempted to associate a different object with id 'users/1'"))

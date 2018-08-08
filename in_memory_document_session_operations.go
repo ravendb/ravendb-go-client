@@ -417,8 +417,8 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	return nil
 }
 
-// Stores the specified entity in the session. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
+// Store stores entity in the session. The entity will be saved when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) Store(entity Object) error {
 	_, hasID := s.generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
 	concu := ConcurrencyCheck_AUTO
 	if !hasID {
@@ -427,13 +427,13 @@ func (s *InMemoryDocumentSessionOperations) StoreEntity(entity Object) error {
 	return s.storeInternal(entity, nil, "", concu)
 }
 
-/// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreEntityWithID(entity Object, id string) error {
+// StoreWithID stores  entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) StoreWithID(entity Object, id string) error {
 	return s.storeInternal(entity, nil, id, ConcurrencyCheck_AUTO)
 }
 
-// Stores the specified entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreEntityWithChangeVectorAndID(entity Object, changeVector *string, id string) error {
+// StoreWithChangeVectorAndID stores entity in the session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity Object, changeVector *string, id string) error {
 	concurr := ConcurrencyCheck_DISABLED
 	if changeVector != nil {
 		concurr = ConcurrencyCheck_FORCED

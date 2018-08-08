@@ -44,7 +44,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		hiloDoc := &HiLoDoc{}
 		hiloDoc.setMax(64)
 
-		err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+		err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -113,14 +113,14 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 
 		hiloDoc := &HiLoDoc{}
 		hiloDoc.setMax(32)
-		err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+		err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		err = session.StoreEntity(NewUser())
+		err = session.Store(NewUser())
 		assert.NoError(t, err)
-		err = session.StoreEntity(NewUser())
+		err = session.Store(NewUser())
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -162,7 +162,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	hiloDoc := &HiLoDoc{}
 	hiloDoc.setMax(32)
 
-	err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+	err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 	assert.NoError(t, err)
 	err = session.SaveChanges()
 	assert.NoError(t, err)
@@ -175,7 +175,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	ids := []int{nextID}
 
 	hiloDoc.setMax(12)
-	session.StoreEntityWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
+	session.StoreWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
 	err = session.SaveChanges()
 	assert.Nil(t, err)
 
@@ -198,12 +198,12 @@ func hiloTest_multiDb(t *testing.T) {
 
 	hiloDoc := &HiLoDoc{}
 	hiloDoc.setMax(64)
-	err = session.StoreEntityWithID(hiloDoc, "Raven/Hilo/users")
+	err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 	assert.NoError(t, err)
 
 	productsHilo := &HiLoDoc{}
 	productsHilo.setMax(128)
-	err = session.StoreEntityWithID(productsHilo, "Raven/Hilo/products")
+	err = session.StoreWithID(productsHilo, "Raven/Hilo/products")
 	assert.NoError(t, err)
 
 	err = session.SaveChanges()

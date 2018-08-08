@@ -17,7 +17,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	user := NewUser()
 	user.setName("RavenDB")
 
-	err := newSession.StoreEntityWithID(user, "users/1")
+	err := newSession.StoreWithID(user, "users/1")
 	assert.NoError(t, err)
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
@@ -49,7 +49,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	user := NewUser()
 	user.setName("RavenDB")
 
-	err := newSession.StoreEntityWithID(user, "users/1")
+	err := newSession.StoreWithID(user, "users/1")
 	assert.NoError(t, err)
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)

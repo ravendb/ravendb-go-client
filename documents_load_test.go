@@ -62,7 +62,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		session := openSessionMust(t, store)
 		foo := &Foo{}
 		foo.setName("Beginning")
-		err = session.StoreEntity(foo)
+		err = session.Store(foo)
 		assert.NoError(t, err)
 
 		fooId := session.advanced().getDocumentId(foo)
@@ -70,7 +70,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		bar.setName("End")
 		bar.setFooId(fooId)
 
-		session.StoreEntity(bar)
+		session.Store(bar)
 
 		barId = session.advanced().getDocumentId(bar)
 		err = session.SaveChanges()

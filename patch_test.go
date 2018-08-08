@@ -19,7 +19,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -53,7 +53,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -86,7 +86,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 		user := NewUser()
 		user.setName("RavenDB")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

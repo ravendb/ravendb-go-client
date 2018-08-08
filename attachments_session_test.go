@@ -27,7 +27,7 @@ func attachmentsSession_putAttachments(t *testing.T) {
 		user := NewUser()
 		user.setName("Fitzchak")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.advanced().attachments().store("users/1", names[0], profileStream, "image/png")
@@ -87,7 +87,7 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.advanced().attachments().storeEntity(user, "profile", stream, "image/png")
@@ -117,7 +117,7 @@ func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testi
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.advanced().attachments().storeEntity(user, "profile", stream, "image/png")
@@ -142,7 +142,7 @@ func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.
 		profileStream := bytes.NewBuffer([]byte{1, 2, 3})
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.advanced().attachments().storeEntity(user, "profile.png", profileStream, "image/png")
@@ -170,7 +170,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 
 		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
 		stream2 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5, 6})
@@ -261,7 +261,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
@@ -325,7 +325,7 @@ func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		user := NewUser()
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -365,7 +365,7 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		stream := bytes.NewBuffer([]byte{1, 2, 3})
@@ -408,7 +408,7 @@ func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpB
 		session := openSessionMust(t, store)
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		stream := bytes.NewBuffer([]byte{1, 2, 3})
@@ -452,7 +452,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.advanced().attachments().store("users/1", names[0], profileStream, "image/png")
@@ -497,7 +497,7 @@ func attachmentsSession_attachmentExists(t *testing.T) {
 		user := NewUser()
 		user.setName("Fitzchak")
 
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.advanced().attachments().store("users/1", "profile", stream, "image/png")

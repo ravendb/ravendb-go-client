@@ -54,7 +54,7 @@ func containsTestcontainsTest(t *testing.T) {
 			user.setName(name)
 			user.setFavourites(favs)
 
-			err = session.StoreEntity(user)
+			err = session.Store(user)
 			assert.NoError(t, err)
 		}
 

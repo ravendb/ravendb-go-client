@@ -52,7 +52,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			// This will delete the revision #1 which is without attachment
 			user := NewUser()
 			user.setName("Fitzchak 2")
-			err = session.StoreEntityWithID(user, "users/1")
+			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
@@ -75,7 +75,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			// This will delete the revision #2 which is with attachment
 			user := NewUser()
 			user.setName("Fitzchak 3")
-			err = session.StoreEntityWithID(user, "users/1")
+			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
@@ -98,7 +98,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			// This will delete the revision #3 which is with attachment
 			user := NewUser()
 			user.setName("Fitzchak 4")
-			err = session.StoreEntityWithID(user, "users/1")
+			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
@@ -121,7 +121,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			// This will delete the revision #4 which is with attachment
 			user := NewUser()
 			user.setName("Fitzchak 5")
-			err = session.StoreEntityWithID(user, "users/1")
+			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
@@ -200,7 +200,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 
 		user := NewUser()
 		user.setName("Fitzchak")
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()

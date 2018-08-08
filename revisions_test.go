@@ -33,7 +33,7 @@ func revisionsTest_revisions(t *testing.T) {
 		session := openSessionMust(t, store)
 		user := NewUser()
 		user.setName("user" + strconv.Itoa(i+1))
-		err = session.StoreEntityWithID(user, "users/1")
+		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

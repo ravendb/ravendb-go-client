@@ -19,7 +19,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 		user := NewUser()
 		user.setName("Grisha")
 
-		err = session.StoreEntityWithID(user, documentId)
+		err = session.StoreWithID(user, documentId)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -47,7 +47,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 		session := openSessionMust(t, store)
 		person := &Person{}
 		person.setName("Grisha")
-		err = session.StoreEntityWithID(person, documentId)
+		err = session.StoreWithID(person, documentId)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -71,9 +71,9 @@ func basicDocuments_get(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Arek")
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()

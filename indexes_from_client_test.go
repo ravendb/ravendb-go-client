@@ -51,7 +51,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 		session := openSessionMust(t, store)
 		user1 := NewUser()
 		user1.setName("Marcin")
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -205,12 +205,12 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 		user1 := NewUser()
 		user1.setName("Fitzchak")
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
 
 		user2 := NewUser()
 		user2.setName("Arek")
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -279,12 +279,12 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 
 		user1 := NewUser()
 		user1.setName("Fitzchak")
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
 
 		user2 := NewUser()
 		user2.setName("Arek")
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -330,12 +330,12 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 
 		user1 := NewUser()
 		user1.setName("Fitzchak")
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
 
 		user2 := NewUser()
 		user2.setName("Arek")
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -390,9 +390,9 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		err = session.StoreEntity(user1)
+		err = session.Store(user1)
 		assert.NoError(t, err)
-		err = session.StoreEntity(user2)
+		err = session.Store(user2)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -444,35 +444,35 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		post1.setId("posts/1")
 		post1.setTitle("doduck")
 		post1.setDesc("prototype")
-		err = session.StoreEntity(post1)
+		err = session.Store(post1)
 		assert.NoError(t, err)
 
 		post2 := NewPost()
 		post2.setId("posts/2")
 		post2.setTitle("doduck")
 		post2.setDesc("prototype your idea")
-		err = session.StoreEntity(post2)
+		err = session.Store(post2)
 		assert.NoError(t, err)
 
 		post3 := NewPost()
 		post3.setId("posts/3")
 		post3.setTitle("doduck")
 		post3.setDesc("love programming")
-		err = session.StoreEntity(post3)
+		err = session.Store(post3)
 		assert.NoError(t, err)
 
 		post4 := NewPost()
 		post4.setId("posts/4")
 		post4.setTitle("We do")
 		post4.setDesc("prototype")
-		err = session.StoreEntity(post4)
+		err = session.Store(post4)
 		assert.NoError(t, err)
 
 		post5 := NewPost()
 		post5.setId("posts/5")
 		post5.setTitle("We love")
 		post5.setDesc("challange")
-		err = session.StoreEntity(post5)
+		err = session.Store(post5)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()

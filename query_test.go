@@ -28,11 +28,11 @@ func query_querySimple(t *testing.T) {
 		user3 := NewUser()
 		user3.setName("Tarzan")
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user3, "users/3")
+		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -62,9 +62,9 @@ func query_collectionsStats(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Jane")
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -98,11 +98,11 @@ func query_queryWithWhereClause(t *testing.T) {
 		user3 := NewUser()
 		user3.setName("Tarzan")
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user3, "users/3")
+		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -772,21 +772,21 @@ func query_queryWithDuration(t *testing.T) {
 		order1.setCompany("hours")
 		order1.setOrderedAt(DateUtils_addHours(now, -2))
 		order1.setShippedAt(now)
-		err = session.StoreEntity(order1)
+		err = session.Store(order1)
 		assert.NoError(t, err)
 
 		order2 := NewOrder()
 		order2.setCompany("days")
 		order2.setOrderedAt(DateUtils_addDays(now, -2))
 		order2.setShippedAt(now)
-		err = session.StoreEntity(order2)
+		err = session.Store(order2)
 		assert.NoError(t, err)
 
 		order3 := NewOrder()
 		order3.setCompany("minutes")
 		order3.setOrderedAt(DateUtils_addMinutes(now, -2))
 		order3.setShippedAt(now)
-		err = session.StoreEntity(order3)
+		err = session.Store(order3)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -1021,11 +1021,11 @@ func query_addUsers(t *testing.T, store *IDocumentStore) {
 		user3.setName("Tarzan")
 		user3.setAge(2)
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user3, "users/3")
+		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -1093,7 +1093,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog1.setAge(6)
 	dog1.setVaccinated(true)
 
-	err = newSession.StoreEntityWithID(dog1, "docs/1")
+	err = newSession.StoreWithID(dog1, "docs/1")
 	assert.NoError(t, err)
 
 	dog2 := NewDog()
@@ -1103,7 +1103,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog2.setAge(12)
 	dog2.setVaccinated(false)
 
-	err = newSession.StoreEntityWithID(dog2, "docs/2")
+	err = newSession.StoreWithID(dog2, "docs/2")
 	assert.NoError(t, err)
 
 	dog3 := NewDog()
@@ -1113,7 +1113,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog3.setAge(3)
 	dog3.setVaccinated(true)
 
-	err = newSession.StoreEntityWithID(dog3, "docs/3")
+	err = newSession.StoreWithID(dog3, "docs/3")
 	assert.NoError(t, err)
 
 	dog4 := NewDog()
@@ -1123,7 +1123,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog4.setAge(1)
 	dog4.setVaccinated(false)
 
-	err = newSession.StoreEntityWithID(dog4, "docs/4")
+	err = newSession.StoreWithID(dog4, "docs/4")
 	assert.NoError(t, err)
 
 	dog5 := NewDog()
@@ -1133,7 +1133,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog5.setAge(0)
 	dog5.setVaccinated(false)
 
-	err = newSession.StoreEntityWithID(dog5, "docs/5")
+	err = newSession.StoreWithID(dog5, "docs/5")
 	assert.NoError(t, err)
 
 	dog6 := NewDog()
@@ -1143,7 +1143,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog6.setAge(2)
 	dog6.setVaccinated(true)
 
-	err = newSession.StoreEntityWithID(dog6, "docs/6")
+	err = newSession.StoreWithID(dog6, "docs/6")
 	assert.NoError(t, err)
 
 	dog7 := NewDog()
@@ -1153,7 +1153,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog7.setAge(0)
 	dog7.setVaccinated(false)
 
-	err = newSession.StoreEntityWithID(dog7, "docs/7")
+	err = newSession.StoreWithID(dog7, "docs/7")
 	assert.NoError(t, err)
 
 	dog8 := NewDog()
@@ -1163,7 +1163,7 @@ func query_createDogs(t *testing.T, newSession *DocumentSession) {
 	dog8.setAge(6)
 	dog8.setVaccinated(true)
 
-	err = newSession.StoreEntityWithID(dog8, "docs/8")
+	err = newSession.StoreWithID(dog8, "docs/8")
 	assert.NoError(t, err)
 }
 
@@ -1275,7 +1275,7 @@ func query_queryLongRequest(t *testing.T) {
 		longName := strings.Repeat("x", 2048)
 		user := NewUser()
 		user.setName(longName)
-		err = newSession.StoreEntityWithID(user, "users/1")
+		err = newSession.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
 		err = newSession.SaveChanges()

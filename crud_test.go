@@ -108,7 +108,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 		user1 := NewUser()
 		user1.setLastName("user1")
 
-		err = newSession.StoreEntityWithID(user1, "users/1")
+		err = newSession.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -150,24 +150,24 @@ func crudTest_crudOperations(t *testing.T) {
 
 		user1 := NewUser()
 		user1.setLastName("user1")
-		err = newSession.StoreEntityWithID(user1, "users/1")
+		err = newSession.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 
 		user2 := NewUser()
 		user2.setName("user2")
 		user1.setAge(1)
-		err = newSession.StoreEntityWithID(user2, "users/2")
+		err = newSession.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 
 		user3 := NewUser()
 		user3.setName("user3")
 		user3.setAge(1)
-		err = newSession.StoreEntityWithID(user3, "users/3")
+		err = newSession.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
 		user4 := NewUser()
 		user4.setName("user4")
-		err = newSession.StoreEntityWithID(user4, "users/4")
+		err = newSession.StoreWithID(user4, "users/4")
 		assert.NoError(t, err)
 
 		err = newSession.DeleteEntity(user2)
@@ -219,24 +219,24 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 
 		user1 := NewUser()
 		user1.setLastName("user1")
-		err = newSession.StoreEntityWithID(user1, "users/1")
+		err = newSession.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 
 		user2 := NewUser()
 		user2.setName("user2")
 		user1.setAge(1) // TODO: that's probably a bug in Java code
-		err = newSession.StoreEntityWithID(user2, "users/2")
+		err = newSession.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 
 		user3 := NewUser()
 		user3.setName("user3")
 		user3.setAge(1)
-		err = newSession.StoreEntityWithID(user3, "users/3")
+		err = newSession.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
 		user4 := NewUser()
 		user4.setName("user4")
-		err = newSession.StoreEntityWithID(user4, "users/4")
+		err = newSession.StoreWithID(user4, "users/4")
 		assert.NoError(t, err)
 
 		err = newSession.DeleteEntity(user2)
@@ -304,7 +304,7 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		family := &Family{}
 		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		err = newSession.StoreEntityWithID(family, "family/1")
+		err = newSession.StoreWithID(family, "family/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -330,7 +330,7 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		family := &Family{}
 		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		err = newSession.StoreEntityWithID(family, "family/1")
+		err = newSession.StoreWithID(family, "family/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -361,7 +361,7 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		family := &Family{}
 		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		err = newSession.StoreEntityWithID(family, "family/1")
+		err = newSession.StoreWithID(family, "family/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -388,7 +388,7 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		family := &Family{}
 		family.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		err = newSession.StoreEntityWithID(family, "family/1")
+		err = newSession.StoreWithID(family, "family/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -415,7 +415,7 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		user := NewUser()
 
-		err = newSession.StoreEntityWithID(user, "users/1")
+		err = newSession.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -452,7 +452,7 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		family := &FamilyMembers{}
 		family.setMembers([]*Member{member1, member2})
 
-		err = newSession.StoreEntityWithID(family, "family/1")
+		err = newSession.StoreWithID(family, "family/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -594,7 +594,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 		arr := &Arr2{}
 		arr.setArr1([]*Arr1{a1, a2})
 
-		newSession.StoreEntityWithID(arr, "arr/1")
+		newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -698,7 +698,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 			newSession := openSessionMust(t, store)
 			user1 := NewUser()
 			user1.setLastName("user1")
-			err = newSession.StoreEntityWithID(user1, "users/1")
+			err = newSession.StoreWithID(user1, "users/1")
 			assert.NoError(t, err)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
@@ -737,7 +737,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 		poc := &Poc{}
 		poc.setName("aviv")
 
-		err = session.StoreEntityWithID(poc, "pocs/1")
+		err = session.StoreWithID(poc, "pocs/1")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

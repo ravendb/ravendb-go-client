@@ -17,7 +17,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		basicName := &BasicName{}
 		basicName.setName("Toli")
-		err = newSession.StoreEntityWithID(basicName, "users/1")
+		err = newSession.StoreWithID(basicName, "users/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.advanced().whatChanged()
@@ -59,7 +59,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 		nameAndAge.setAge(5)
 		nameAndAge.setName("Toli")
 
-		err = newSession.StoreEntityWithID(nameAndAge, "users/1")
+		err = newSession.StoreWithID(nameAndAge, "users/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.advanced().whatChanged()
@@ -99,7 +99,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		basicAge := &BasicAge{}
 		basicAge.setAge(5)
-		err = newSession.StoreEntityWithID(basicAge, "users/1")
+		err = newSession.StoreWithID(basicAge, "users/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.advanced().whatChanged()
@@ -144,7 +144,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 		arr := &Arr{}
 		arr.setArray([]Object{"a", 1, "b"})
 
-		err = newSession.StoreEntityWithID(arr, "users/1")
+		err = newSession.StoreWithID(arr, "users/1")
 		assert.NoError(t, err)
 		changes, _ := newSession.advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -205,7 +205,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
 		arr.setArray([]Object{"a", 1, "b"})
-		err = newSession.StoreEntityWithID(arr, "arr/1")
+		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -251,7 +251,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
 		arr.setArray([]Object{"a", 1, "b"})
-		err = newSession.StoreEntityWithID(arr, "arr/1")
+		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -304,12 +304,12 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 		anInt := &Int{}
 		anInt.setNumber(1)
 
-		err = newSession.StoreEntityWithID(anInt, "num/1")
+		err = newSession.StoreWithID(anInt, "num/1")
 		assert.NoError(t, err)
 
 		aDouble := &Double{}
 		aDouble.setNumber(2.0)
-		err = newSession.StoreEntityWithID(aDouble, "num/2")
+		err = newSession.StoreWithID(aDouble, "num/2")
 		assert.NoError(t, err)
 
 		err = newSession.SaveChanges()
@@ -358,11 +358,11 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		user3.setName("user3")
 		user3.setAge(1)
 
-		err = session.StoreEntityWithID(user1, "users/1")
+		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user2, "users/2")
+		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
-		err = session.StoreEntityWithID(user3, "users/3")
+		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
 		changes, _ := session.advanced().whatChanged()
