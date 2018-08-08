@@ -731,15 +731,15 @@ func query_queryWhereNot(t *testing.T) {
 
 /*
 TODO: is this used?
-public static class Result {
-	private long delay;
+ static class Result {
+	 long delay
 
-	public long getDelay() {
-		return delay;
+	 long getDelay() {
+		return delay
 	}
 
-	public void setDelay(long delay) {
-		this.delay = delay;
+	  setDelay(long delay) {
+		this.delay = delay
 	}
 }
 */
@@ -985,7 +985,7 @@ func query_queryWithBoost(t *testing.T) {
 	}
 }
 
-func makeUsersByName() *AbstractIndexCreationTask {
+func makeUsersByNameIndex() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("UsersByName")
 	res.smap = "from c in docs.Users select new " +
 		" {" +
@@ -1032,15 +1032,239 @@ func query_addUsers(t *testing.T, store *IDocumentStore) {
 		session.Close()
 	}
 
-	err = store.executeIndex(makeUsersByName())
+	err = store.executeIndex(makeUsersByNameIndex())
 	assert.NoError(t, err)
 	err = gRavenTestDriver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 }
 
-func query_queryWithCustomize(t *testing.T) {}
-func query_queryLongRequest(t *testing.T)   {}
-func query_queryByIndex(t *testing.T)       {}
+func query_queryWithCustomize(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	err := store.executeIndex(makeDogsIndex())
+	assert.NoError(t, err)
+
+	{
+		newSession := openSessionMust(t, store)
+		query_createDogs(t, newSession)
+		err = newSession.SaveChanges()
+		assert.NoError(t, err)
+
+		newSession.Close()
+	}
+
+	{
+		newSession := openSessionMust(t, store)
+
+		q := newSession.advanced().documentQueryAll(getTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q = q.waitForNonStaleResults(0)
+		q = q.orderByWithOrdering("name", OrderingType_ALPHA_NUMERIC)
+		q = q.whereGreaterThan("age", 2)
+		queryResult, err := q.toList()
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(queryResult), 4)
+
+		r := queryResult[0].(*DogsIndex_Result)
+		assert.Equal(t, r.getName(), "Brian")
+
+		r = queryResult[1].(*DogsIndex_Result)
+		assert.Equal(t, r.getName(), "Django")
+
+		r = queryResult[2].(*DogsIndex_Result)
+		assert.Equal(t, r.getName(), "Lassie")
+
+		r = queryResult[3].(*DogsIndex_Result)
+		assert.Equal(t, r.getName(), "Snoopy")
+
+		newSession.Close()
+	}
+}
+
+func query_createDogs(t *testing.T, newSession *DocumentSession) {
+	var err error
+
+	dog1 := NewDog()
+	dog1.setName("Snoopy")
+	dog1.setBreed("Beagle")
+	dog1.setColor("White")
+	dog1.setAge(6)
+	dog1.setVaccinated(true)
+
+	err = newSession.StoreEntityWithID(dog1, "docs/1")
+	assert.NoError(t, err)
+
+	dog2 := NewDog()
+	dog2.setName("Brian")
+	dog2.setBreed("Labrador")
+	dog2.setColor("White")
+	dog2.setAge(12)
+	dog2.setVaccinated(false)
+
+	err = newSession.StoreEntityWithID(dog2, "docs/2")
+	assert.NoError(t, err)
+
+	dog3 := NewDog()
+	dog3.setName("Django")
+	dog3.setBreed("Jack Russel")
+	dog3.setColor("Black")
+	dog3.setAge(3)
+	dog3.setVaccinated(true)
+
+	err = newSession.StoreEntityWithID(dog3, "docs/3")
+	assert.NoError(t, err)
+
+	dog4 := NewDog()
+	dog4.setName("Beethoven")
+	dog4.setBreed("St. Bernard")
+	dog4.setColor("Brown")
+	dog4.setAge(1)
+	dog4.setVaccinated(false)
+
+	err = newSession.StoreEntityWithID(dog4, "docs/4")
+	assert.NoError(t, err)
+
+	dog5 := NewDog()
+	dog5.setName("Scooby Doo")
+	dog5.setBreed("Great Dane")
+	dog5.setColor("Brown")
+	dog5.setAge(0)
+	dog5.setVaccinated(false)
+
+	err = newSession.StoreEntityWithID(dog5, "docs/5")
+	assert.NoError(t, err)
+
+	dog6 := NewDog()
+	dog6.setName("Old Yeller")
+	dog6.setBreed("Black Mouth Cur")
+	dog6.setColor("White")
+	dog6.setAge(2)
+	dog6.setVaccinated(true)
+
+	err = newSession.StoreEntityWithID(dog6, "docs/6")
+	assert.NoError(t, err)
+
+	dog7 := NewDog()
+	dog7.setName("Benji")
+	dog7.setBreed("Mixed")
+	dog7.setColor("White")
+	dog7.setAge(0)
+	dog7.setVaccinated(false)
+
+	err = newSession.StoreEntityWithID(dog7, "docs/7")
+	assert.NoError(t, err)
+
+	dog8 := NewDog()
+	dog8.setName("Lassie")
+	dog8.setBreed("Collie")
+	dog8.setColor("Brown")
+	dog8.setAge(6)
+	dog8.setVaccinated(true)
+
+	err = newSession.StoreEntityWithID(dog8, "docs/8")
+	assert.NoError(t, err)
+}
+
+type Dog struct {
+	ID           string
+	Name         string `json:"name"`
+	Breed        string `json:"breed"`
+	Color        string `json:"color"`
+	Age          int    `json:"age"`
+	IsVaccinated bool   `json:"vaccinated"`
+}
+
+func NewDog() *Dog {
+	return &Dog{}
+}
+
+func (d *Dog) getId() string {
+	return d.ID
+}
+
+func (d *Dog) setId(id string) {
+	d.ID = id
+}
+
+func (d *Dog) getName() string {
+	return d.Name
+}
+
+func (d *Dog) setName(name string) {
+	d.Name = name
+}
+
+func (d *Dog) getBreed() string {
+	return d.Breed
+}
+
+func (d *Dog) setBreed(breed string) {
+	d.Breed = breed
+}
+
+func (d *Dog) getColor() string {
+	return d.Color
+}
+
+func (d *Dog) setColor(color string) {
+	d.Color = color
+}
+
+func (d *Dog) getAge() int {
+	return d.Age
+}
+
+func (d *Dog) setAge(age int) {
+	d.Age = age
+}
+
+func (d *Dog) isVaccinated() bool {
+	return d.IsVaccinated
+}
+
+func (d *Dog) setVaccinated(vaccinated bool) {
+	d.IsVaccinated = vaccinated
+}
+
+type DogsIndex_Result struct {
+	Name         string `json:"name"`
+	Age          int    `json:"age"`
+	IsVaccinated bool   `json:"vaccinated"`
+}
+
+func (r *DogsIndex_Result) getName() string {
+	return r.Name
+}
+
+func (r *DogsIndex_Result) setName(name string) {
+	r.Name = name
+}
+
+func (r *DogsIndex_Result) getAge() int {
+	return r.Age
+}
+
+func (r *DogsIndex_Result) setAge(age int) {
+	r.Age = age
+}
+
+func (r *DogsIndex_Result) isVaccinated() bool {
+	return r.IsVaccinated
+}
+
+func (r *DogsIndex_Result) setVaccinated(vaccinated bool) {
+	r.IsVaccinated = vaccinated
+}
+
+func makeDogsIndex() *AbstractIndexCreationTask {
+	res := NewAbstractIndexCreationTask("DogsIndex")
+	res.smap = "from dog in docs.dogs select new { dog.name, dog.age, dog.vaccinated }"
+	return res
+}
+
+func query_queryLongRequest(t *testing.T) {}
+func query_queryByIndex(t *testing.T)     {}
 
 type ReduceResult struct {
 	Count int    `json:"count"`
