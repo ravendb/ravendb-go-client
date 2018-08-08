@@ -112,7 +112,7 @@ var (
 
 func printHTTPRequestEvent(req *ngnet.HTTPRequestEvent, no int) {
 	if req == nil {
-		fmt.Fprintf(file, "> Request %D missing\n", no)
+		fmt.Fprintf(file, "> Request %d missing\n", no)
 		return
 	}
 
