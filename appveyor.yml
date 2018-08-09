@@ -1,0 +1,33 @@
+# based on https://github.com/joefitzgerald/go-plus/blob/master/appveyor.yml
+# uses a beta version of go because older versions can't deal with so many
+# files in a package
+version: 4.0.{build}
+
+branches:
+  only:
+    - v4.0
+
+skip_tags: true
+
+environment:
+  GOPATH: c:\gopath
+  GOVERSION: 1.11beta3
+
+clone_folder: c:\gopath\src\github.com\ravendb\ravendb-go-client
+
+clone_depth: 1
+
+install:
+  - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
+  - rmdir c:\go /s /q
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
+  - 7z x go%GOVERSION%.windows-amd64.zip -y -oC:\ > NUL
+  - go version
+  - go env
+  - echo %CD%
+  - go get -v -u ./...
+
+test_script:
+  - go test -vet=off
+
+deploy: off
