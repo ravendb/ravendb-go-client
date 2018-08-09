@@ -532,14 +532,6 @@ func TestAttachmentsSession(t *testing.T) {
 		return
 	}
 
-	if true {
-		oldDumpFailedHTTP := dumpFailedHTTP
-		dumpFailedHTTP = true
-		defer func() {
-			dumpFailedHTTP = oldDumpFailedHTTP
-		}()
-	}
-
 	destroyDriver := createTestDriver(t)
 	defer func() {
 		r := recover()

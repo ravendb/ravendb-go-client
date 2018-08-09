@@ -171,14 +171,6 @@ func TestBulkInserts(t *testing.T) {
 		return
 	}
 
-	if false {
-		oldDumpFailedHTTP := dumpFailedHTTP
-		dumpFailedHTTP = true
-		defer func() {
-			dumpFailedHTTP = oldDumpFailedHTTP
-		}()
-	}
-
 	destroyDriver := createTestDriver(t)
 	defer func() {
 		r := recover()

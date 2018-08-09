@@ -12,10 +12,10 @@ skip_tags: true
 environment:
   GOPATH: c:\gopath
   GOVERSION: 1.11beta3
+  LOG_HTTP_REQUEST_SUMMARY: true
+  LOG_FAILED_HTTP_REQUESTS: true
 
 clone_folder: c:\gopath\src\github.com\ravendb\ravendb-go-client
-
-clone_depth: 1
 
 install:
   - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
@@ -27,7 +27,7 @@ install:
   - echo %CD%
   # technically go get ./... fails, because it can't compile gopacket, but thats fine on windows
   - go get -v -u ./... & exit 0
-  # I guess go get ./... doesn't look at test files so we have to get this explicitly
+  # I guess go get ./... doesn't look at test files so we have to get this dependency explicitly
   - go get -v -u github.com/stretchr/testify/assert
 
 # by default appveyor assumes VS project built with MSBuild

@@ -685,9 +685,8 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		response, err = command.getBase().send(re.httpClient, request)
 	}
 
-	if dumpHTTP {
-		dumpHTTPRequest(request)
-		dumpHTTPResponse(response, dumpHTTPBody)
+	if gLogHTTP {
+		dumpRequestAndResponse(request, response, err)
 	}
 
 	if err != nil {
@@ -891,10 +890,8 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		err = RequestExecutor_handleConflict(response)
 		break
 	default:
-		if dumpFailedHTTP {
-			dumpHTTPResponse(response, true)
-		} else if dumpHTTP {
-			dumpHTTPResponse(response, dumpHTTPBody)
+		if gLogHTTP {
+			dumpRequestAndResponse(request, response, err)
 		}
 		command.getBase().onResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)

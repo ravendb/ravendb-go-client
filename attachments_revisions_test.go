@@ -349,15 +349,6 @@ func TestAttachmentsRevisions(t *testing.T) {
 		return
 	}
 
-	//RavenServerVerbose = true
-	if true {
-		oldDumpFailedHTTP := dumpFailedHTTP
-		dumpFailedHTTP = true
-		defer func() {
-			dumpFailedHTTP = oldDumpFailedHTTP
-		}()
-	}
-
 	destroyDriver := createTestDriver(t)
 	defer func() {
 		r := recover()
@@ -375,6 +366,5 @@ func TestAttachmentsRevisions(t *testing.T) {
 	// Note: it also fails in Java on mac pro
 	//attachmentsRevisions_putAttachments(t)
 	//attachmentsRevisions_attachmentRevision(t)
-	RavenServerVerbose = false
 
 }

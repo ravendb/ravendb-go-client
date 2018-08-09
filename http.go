@@ -2,37 +2,17 @@ package ravendb
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
-	"os"
 )
 
-// BufferCloser is a wrapper around bytes.Buffer that adds io.Close method
-// to make it io.ReadCloser
-type BufferCloser struct {
-	*bytes.Buffer
-}
-
-// NewBufferCloser creates new BufferClose
-func NewBufferCloser(buf *bytes.Buffer) *BufferCloser {
-	if buf == nil {
-		buf = &bytes.Buffer{}
-	}
-	return &BufferCloser{
-		Buffer: buf,
-	}
-}
-
-// Close implements io.Close interface
-func (b *BufferCloser) Close() error {
-	// nothing to do
-	return nil
-}
+var (
+	// if true, prints requests and their responses to stdout
+	gLogHTTP = false
+)
 
 // retruns copy of resp.Body but also makes it available for subsequent reads
 func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
@@ -43,82 +23,54 @@ func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp.Body = NewBufferCloser(bytes.NewBuffer(d))
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer(d))
 	return d, nil
 }
 
-// if d is a valid json, pretty-print it
-func prettyPrintMaybeJSON(d []byte) []byte {
-	var m map[string]interface{}
-	err := json.Unmarshal(d, &m)
+func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
 	if err != nil {
-		return d
+		fmt.Printf("%s %s failed with '%s'\n", req.Method, req.URL, err)
 	}
-	d2, err := json.MarshalIndent(m, "", "  ")
-	if err != nil {
-		return d
-	}
-	return d2
-}
-
-var (
-	// if true, dumps http requests and responses, without body
-	dumpHTTP bool
-	// if true, also dumps body of response
-	dumpHTTPBody bool
-	// if true, dumps failed http responses
-	dumpFailedHTTP bool
-)
-
-// TODO: also dump body
-func dumpHTTPRequest(req *http.Request) {
-	if !dumpHTTP {
-		return
-	}
-	d, err := httputil.DumpRequest(req, false)
-	if err != nil {
-		fmt.Printf("httputil.DumpRequest failed with %s\n", err)
-		return
-	}
-	io.WriteString(os.Stdout, "HTTP REQUEST:\n")
-	os.Stdout.Write(d)
-}
-
-func dumpHTTPResponse(resp *http.Response, withBody bool) {
-	d, err := httputil.DumpResponse(resp, false)
-	if err != nil {
-		fmt.Printf("httputil.DumpResponse failed with %s\n", err)
-		return
-	}
-	io.WriteString(os.Stdout, "HTTP RESPONSE:\n")
-	if resp.Request != nil {
-		req := resp.Request
-		reqURI := req.RequestURI
-		if reqURI == "" {
-			reqURI = req.URL.RequestURI()
+	if rsp == nil {
+		fmt.Printf("%s %s returned no response\n", req.Method, req.URL)
+	} else {
+		if rsp.StatusCode >= 400 {
+			fmt.Printf("%s %s failed with status code %d (%s)\n", req.Method, req.URL, rsp.StatusCode, rsp.Status)
+		} else {
+			fmt.Printf("%s %s returned %d (%s)\n", req.Method, req.URL, rsp.StatusCode, rsp.Status)
 		}
-		method := "GET"
-		if req.Method != "" {
-			method = req.Method
-		}
-		fmt.Fprintf(os.Stdout, "%s %s HTTP/%d.%d\r\n", method,
-			reqURI, req.ProtoMajor, req.ProtoMinor)
-
 	}
-	os.Stdout.Write(d)
 
-	if !withBody {
+	if cr, ok := req.Body.(*CapturingReadCloser); ok {
+		body := cr.capturedData.Bytes()
+		if len(body) > 0 {
+			fmt.Printf("Request body %d bytes:\n%s\n", len(body), mabyePrettyPrintJSON(body))
+		}
+	} else {
+		fmt.Printf("Can't get request body\n")
+	}
+
+	if rsp == nil {
 		return
 	}
-	body, err := getCopyOfResponseBody(resp)
-	if err == nil {
-		os.Stdout.Write(prettyPrintMaybeJSON(body))
-		os.Stdout.WriteString("\n")
+	if d, err := getCopyOfResponseBody(rsp); err != nil {
+		fmt.Printf("Failed to read response body. Error: '%s'\n", err)
+	} else {
+		if len(d) > 0 {
+			fmt.Printf("Response body %d bytes:\n%s\n", len(d), mabyePrettyPrintJSON(d))
+		}
 	}
 }
 
-func decodeJSONFromReader(r io.Reader, v interface{}) error {
-	return json.NewDecoder(r).Decode(v)
+func maybeDumpFailedResponse(req *http.Request, rsp *http.Response, err error) {
+	if !gLogFailedRequests {
+		return
+	}
+	if err == nil && rsp.StatusCode < 400 {
+		// not failed
+		return
+	}
+	dumpRequestAndResponse(req, rsp, err)
 }
 
 func urlEncode(s string) string {
@@ -135,6 +87,27 @@ func addCommonHeaders(req *http.Request) {
 	req.Header.Add("User-Agent", "ravendb-go-client/1.0")
 }
 
+// to be able to print request body for failed requests, we must replace
+// body with one that captures data read from original body.
+func maybeCaptureRequestBody(req *http.Request) {
+	shouldCapture := gLogFailedRequests || gLogHTTP
+	if !shouldCapture {
+		return
+	}
+	if req.Body != nil {
+		req.Body = NewCapturingReadCloser(req.Body)
+	}
+}
+
+func maybeLogRequestSummary(req *http.Request) {
+	if !gLogRequestSummary {
+		return
+	}
+	method := req.Method
+	uri := req.URL.String()
+	fmt.Printf("%s %s\n", method, uri)
+}
+
 func NewHttpHead(uri string) (*http.Request, error) {
 	//fmt.Printf("GET %s\n", uri)
 	req, err := http.NewRequest(http.MethodHead, uri, nil)
@@ -142,7 +115,8 @@ func NewHttpHead(uri string) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
-	return req, err
+	maybeLogRequestSummary(req)
+	return req, nil
 }
 
 func NewHttpGet(uri string) (*http.Request, error) {
@@ -151,7 +125,8 @@ func NewHttpGet(uri string) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
-	return req, err
+	maybeLogRequestSummary(req)
+	return req, nil
 }
 
 func NewHttpReset(uri string) (*http.Request, error) {
@@ -160,7 +135,8 @@ func NewHttpReset(uri string) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
-	return req, err
+	maybeLogRequestSummary(req)
+	return req, nil
 }
 
 func NewHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
@@ -169,7 +145,9 @@ func NewHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
-	return req, err
+	maybeLogRequestSummary(req)
+	maybeCaptureRequestBody(req)
+	return req, nil
 }
 
 func NewHttpPost(uri string, data []byte) (*http.Request, error) {
@@ -187,7 +165,9 @@ func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	if len(data) > 0 {
 		req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	}
-	return req, err
+	maybeLogRequestSummary(req)
+	maybeCaptureRequestBody(req)
+	return req, nil
 }
 
 func NewHttpPut(uri string, data []byte) (*http.Request, error) {
@@ -205,7 +185,9 @@ func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	if len(data) > 0 {
 		req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	}
-	return req, err
+	maybeLogRequestSummary(req)
+	maybeCaptureRequestBody(req)
+	return req, nil
 }
 
 func NewHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
@@ -214,7 +196,9 @@ func NewHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
 		return nil, err
 	}
 	addCommonHeaders(req)
-	return req, err
+	maybeLogRequestSummary(req)
+	maybeCaptureRequestBody(req)
+	return req, nil
 }
 
 func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
@@ -232,7 +216,9 @@ func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
 	if len(data) > 0 {
 		req.Header.Add("Content-Type", "application/json; charset=UTF-8")
 	}
-	return req, err
+	maybeLogRequestSummary(req)
+	maybeCaptureRequestBody(req)
+	return req, nil
 }
 
 func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
@@ -248,5 +234,7 @@ func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
 	}
 	addCommonHeaders(req)
 	req.Header.Add("Content-Type", "application/json; charset=UTF-8")
+	maybeLogRequestSummary(req)
+	maybeCaptureRequestBody(req)
 	return req, nil
 }

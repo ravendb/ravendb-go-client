@@ -95,8 +95,11 @@ func throwInvalidResponse() error {
 	return fmt.Errorf("Invalid response")
 }
 
-func (c *RavenCommandBase) send(client *http.Client, request *http.Request) (*http.Response, error) {
-	return client.Do(request)
+func (c *RavenCommandBase) send(client *http.Client, req *http.Request) (*http.Response, error) {
+	rsp, err := client.Do(req)
+	maybeDumpFailedResponse(req, rsp, err)
+	return rsp, err
+
 }
 
 func (c *RavenCommandBase) getFailedNodes() map[*ServerNode]error {

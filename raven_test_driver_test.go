@@ -334,12 +334,15 @@ func killServer(procPtr **Process) {
 	if proc == nil {
 		return
 	}
+	if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
+		fmt.Printf("RavenDB process has already exited with '%s'\n", proc.cmd.ProcessState)
+	}
 	err := proc.cmd.Process.Kill()
 	if err != nil {
 		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
 	} else {
 		s := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Killed a process '%s'\n", s)
+		fmt.Printf("Killed RavenDB process %d '%s'\n", proc.cmd.Process.Pid, s)
 	}
 	*procPtr = nil
 }
@@ -527,10 +530,34 @@ func downloadServerIfNeeded() {
 	}
 }
 
-func maybeEnableVerbose() {
-	if os.Getenv("VERBOSE_LOG") != "" {
-		verboseLog = true
-		fmt.Printf("verbose logging enabled\n")
+func isEnvVarTrue(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	switch v {
+	case "yes", "true":
+		return true
+	}
+	return false
+}
+
+func setStateFromEnv() {
+	if !gLogVerbose && isEnvVarTrue("VERBOSE_LOG") {
+		gLogVerbose = true
+		fmt.Printf("Setting gLogVerbose to true\n")
+	}
+
+	if !gLogRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
+		gLogRequestSummary = true
+		fmt.Printf("Setting gLogRequestSummary to true\n")
+	}
+
+	if !gLogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
+		gLogFailedRequests = true
+		fmt.Printf("Setting gLogFailedRequests to true\n")
+	}
+
+	if !RavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
+		RavenServerVerbose = true
+		fmt.Printf("Setting RavenServerVerbose to true\n")
 	}
 }
 
@@ -561,7 +588,7 @@ func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 	downloadServerIfNeeded()
 
-	maybeEnableVerbose()
+	setStateFromEnv()
 	detectServerPath()
 
 	gRavenLogsDir = ravenLogsDirFromTestName(t)

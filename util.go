@@ -19,11 +19,22 @@ type Object = interface{}
 type String = string
 
 var (
-	verboseLog = false
+	// if true, does verbose logging.
+	// can be enabled by setting VERBOSE_LOG env variable to "true"
+	gLogVerbose = false
+
+	// if true, logs summary of all HTTP requests i.e. "GET /foo"
+	// can be enabled by setting LOG_HTTP_REQUEST_SUMMARY env variable to "true"
+	gLogRequestSummary = false
+
+	// if true, logs request and response of failed http requests (i.e. those returning
+	// status code >= 400)
+	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS env variable to "true"
+	gLogFailedRequests = false
 )
 
 func dbg(format string, args ...interface{}) {
-	if verboseLog {
+	if gLogVerbose {
 		fmt.Printf(format, args...)
 	}
 }

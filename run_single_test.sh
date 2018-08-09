@@ -17,14 +17,17 @@ fi
 
 set -o xtrace
 
-# uncomment for more verbose logging
 export VERBOSE_LOG=true
+export LOG_HTTP_REQUEST_SUMMARY=true
+export LOG_FAILED_HTTP_REQUESTS=true
+
+# logs output of raven server to stdout, helpful for failing tests
+# export LOG_RAVEN_SERVER=true
 
 # force running tests even if code didn't change
 go clean -testcache
 
-export PCAP_CAPTURE=true
+#export PCAP_CAPTURE=true
 
-# go test -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
-
-go test -vet=off -v -race -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestQuery$
+go test -race -vet=off -v -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
+#go test -race -vet=off -v -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestQuery$

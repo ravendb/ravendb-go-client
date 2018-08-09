@@ -145,37 +145,6 @@ func lgShort(s string) {
 	logLineCount = 1
 }
 
-// TeeReadCloser extends io.TeeReader by allowing reader and writer to be
-// closed.
-type TeeReadCloser struct {
-	r io.Reader
-	w io.WriteCloser
-	c io.Closer
-}
-
-func NewTeeReadCloser(r io.ReadCloser, w io.WriteCloser) io.ReadCloser {
-	panicIf(r == nil, "r == nil")
-	panicIf(w == nil, "w == nil")
-	return &TeeReadCloser{io.TeeReader(r, w), w, r}
-}
-
-func (t *TeeReadCloser) Read(b []byte) (int, error) {
-	panicIf(t == nil, "t == nil")
-	panicIf(t.r == nil, "t.r == nil, t: %#v", t)
-	return t.r.Read(b)
-}
-
-// Close attempts to close the reader and write. It returns an error if both
-// failed to Close.
-func (t *TeeReadCloser) Close() error {
-	err1 := t.c.Close()
-	err2 := t.w.Close()
-	if err1 != nil {
-		return err1
-	}
-	return err2
-}
-
 // stoppableListener serves stoppableConn and tracks their lifetime to notify
 // when it is safe to terminate the application.
 type stoppableListener struct {
@@ -230,7 +199,7 @@ func (b *BufferCloser) Close() error {
 
 // SessionData has info about a request/response session
 type SessionData struct {
-	reqBody  *BufferCloser
+	reqBody  bytes.Buffer
 	respBody *BufferCloser
 }
 
@@ -244,8 +213,7 @@ func handleOnRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *
 	ctx.UserData = sd
 
 	if req.Body != nil {
-		sd.reqBody = NewBufferCloser(nil)
-		req.Body = NewTeeReadCloser(req.Body, sd.reqBody)
+		req.Body = ioutil.NopCloser(io.TeeReader(req.Body, &sd.reqBody))
 	}
 	return req, nil
 }
@@ -387,7 +355,7 @@ func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp.Body = NewBufferCloser(bytes.NewBuffer(d))
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer(d))
 	return d, nil
 }
 

@@ -3,6 +3,7 @@ package ravendb
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -150,4 +151,22 @@ func jsonUnmarshalFirst(d []byte, v interface{}) error {
 		dbg("jsonDecodeFirst: dec.Decode() of type %T failed with %s. JSON:\n%s\n\n", v, err, string(d))
 	}
 	return err
+}
+
+func decodeJSONFromReader(r io.Reader, v interface{}) error {
+	return json.NewDecoder(r).Decode(v)
+}
+
+// if d is valid json, pretty-print it
+func mabyePrettyPrintJSON(d []byte) []byte {
+	var m map[string]interface{}
+	err := json.Unmarshal(d, &m)
+	if err != nil {
+		return d
+	}
+	d2, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return d
+	}
+	return d2
 }
