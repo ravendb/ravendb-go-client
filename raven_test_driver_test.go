@@ -499,7 +499,6 @@ func getRavendbExePath() string {
 }
 
 func downloadServerIfNeededWindows() {
-	fmt.Printf("downloadServerIfNeededWindows on windows\n")
 	_, err := os.Stat(getRavendbExePath())
 	if err == nil {
 		fmt.Printf("Server already present in %s\n", getRavendbExePath())
@@ -522,7 +521,6 @@ func downloadServerIfNeededWindows() {
 }
 
 func downloadServerIfNeeded() {
-	fmt.Printf("downloadServerIfNeeded\n")
 	if isWindows() {
 		downloadServerIfNeededWindows()
 		return
