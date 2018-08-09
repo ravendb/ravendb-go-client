@@ -1,8 +1,4 @@
-[![Linux build Status](https://travis-ci.org/kjk/ravendb-go-client.svg?branch=v4.0)](https://travis-ci.org/kjk/ravendb-go-client)
-
-[![Windows build status](https://ci.appveyor.com/api/projects/status/g2iida5te4gpgo7m?svg=true)](https://ci.appveyor.com/project/kjk/ravendb-go-client)
-
-[![codecov](https://codecov.io/gh/kjk/ravendb-go-client/branch/v4.0/graph/badge.svg)](https://codecov.io/gh/kjk/ravendb-go-client)
+Linux Travis CI build status: [![Linux build Status](https://travis-ci.org/kjk/ravendb-go-client.svg?branch=v4.0)](https://travis-ci.org/kjk/ravendb-go-client) Windows AppVeyor build status: [![Windows build status](https://ci.appveyor.com/api/projects/status/g2iida5te4gpgo7m?svg=true)](https://ci.appveyor.com/project/kjk/ravendb-go-client) [![codecov](https://codecov.io/gh/kjk/ravendb-go-client/branch/v4.0/graph/badge.svg)](https://codecov.io/gh/kjk/ravendb-go-client)
 
 # How to install and run
 
