@@ -17,7 +17,6 @@ clone_folder: c:\gopath\src\github.com\ravendb\ravendb-go-client
 
 clone_depth: 1
 
-# technically go get ./... fails, because it can't compile gopacket, but thats fine on windows
 install:
   - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
   - rmdir c:\go /s /q
@@ -26,7 +25,10 @@ install:
   - go version
   - go env
   - echo %CD%
+  # technically go get ./... fails, because it can't compile gopacket, but thats fine on windows
   - go get -v -u ./... & exit 0
+  # I guess go get ./... doesn't look at test files so we have to get this explicitly
+  - go get -v -u github.com/stretchr/testify/assert
 
 # by default appveyor assumes VS project built with MSBuild
 # this marks us as custom build and provides explicit build command
