@@ -17,6 +17,7 @@ clone_folder: c:\gopath\src\github.com\ravendb\ravendb-go-client
 
 clone_depth: 1
 
+# technically go get ./... fails, because it can't compile gopacket, but thats fine on windows
 install:
   - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
   - rmdir c:\go /s /q
@@ -25,7 +26,7 @@ install:
   - go version
   - go env
   - echo %CD%
-  - go get -v -u ./...
+  - go get -v -u ./... & exit 0
 
 test_script:
   - go test -vet=off
