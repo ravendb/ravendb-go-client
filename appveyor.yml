@@ -9,6 +9,12 @@ branches:
 
 skip_tags: true
 
+clone_depth: 5
+
+# TODO: should I use
+# shallow_clone: true
+# https://www.appveyor.com/blog/2014/06/04/shallow-clone-for-git-repositories/ ?
+
 environment:
   GOPATH: c:\gopath
   GOVERSION: 1.11beta3
