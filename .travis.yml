@@ -3,6 +3,9 @@ sudo: required
 dist: trusty
 language: go
 
+go:
+  - "1.10.3"
+
 env:
   global:
     - CERTIFICATE=./certs/ruby.pem
