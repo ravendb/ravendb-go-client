@@ -404,6 +404,7 @@ func main() {
 	st, err := os.Stat(srcPath)
 	if err != nil {
 		fmt.Printf("os.Stat('%s') failed with %s\n", srcPath, err)
+		return
 	}
 
 	if st.IsDir() {
