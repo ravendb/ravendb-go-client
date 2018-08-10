@@ -218,9 +218,20 @@ func handleOnRequest(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *
 	return req, nil
 }
 
+func isUnprintable(c byte) bool {
+	if c < 32 {
+		// 9 - tab, 10 - LF, 13 - CR
+		if c == 9 || c == 10 || c == 13 {
+			return false
+		}
+		return true
+	}
+	return c >= 127
+}
+
 func isBinaryData(d []byte) bool {
 	for _, b := range d {
-		if b < 32 {
+		if isUnprintable(b) {
 			return true
 		}
 	}
@@ -231,21 +242,25 @@ func asHex(d []byte) ([]byte, bool) {
 	if !isBinaryData(d) {
 		return d, false
 	}
-	if len(d) > 32 {
-		d = d[:32]
-	}
-	s := ""
-	for i, b := range d {
-		if i > 0 && i%16 == 0 {
-			s += "\n"
+
+	// convert unprintable characters to hex
+	var res []byte
+	for i, c := range d {
+		if i > 1024 {
+			break
 		}
-		s += fmt.Sprintf("%02x ", b)
+		if isUnprintable(c) {
+			s := fmt.Sprintf("x%02x ", c)
+			res = append(res, s...)
+		} else {
+			res = append(res, c)
+		}
 	}
-	return []byte(s), true
+	return res, true
 }
 
 // if d is a valid json, pretty-print it
-func prettyPrintMaybeJSON(d []byte) []byte {
+func maybePrettyPrintJSON(d []byte) []byte {
 	if d2, ok := asHex(d); ok {
 		return d2
 	}
@@ -322,8 +337,8 @@ func lgReq(ctx *goproxy.ProxyCtx, reqBody []byte, respBody []byte) {
 	reqSummary := getRequestSummary(ctx.Req)
 	lgShort(reqSummary)
 
-	reqBody = prettyPrintMaybeJSON(reqBody)
-	respBody = prettyPrintMaybeJSON(respBody)
+	reqBody = maybePrettyPrintJSON(reqBody)
+	respBody = maybePrettyPrintJSON(respBody)
 
 	var buf bytes.Buffer
 	s := fmt.Sprintf("=========== %d:\n", getNextSessionID())

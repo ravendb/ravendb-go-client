@@ -59,13 +59,20 @@ func panicIfErr(err error) {
 	}
 }
 
-func isNL(c byte) bool {
-	return c == 0xd || c == 0xa
+func isUnprintable(c byte) bool {
+	if c < 32 {
+		// 9 - tab, 10 - LF, 13 - CR
+		if c == 9 || c == 10 || c == 13 {
+			return false
+		}
+		return true
+	}
+	return c >= 127
 }
 
 func isBinaryData(d []byte) bool {
 	for _, b := range d {
-		if b < 32 && !isNL(b) {
+		if isUnprintable(b) {
 			return true
 		}
 	}
@@ -76,21 +83,25 @@ func asHex(d []byte) ([]byte, bool) {
 	if !isBinaryData(d) {
 		return d, false
 	}
-	if len(d) > 32 {
-		d = d[:32]
-	}
-	s := ""
-	for i, b := range d {
-		if i > 0 && i%16 == 0 {
-			s += "\n"
+
+	// convert unprintable characters to hex
+	var res []byte
+	for i, c := range d {
+		if i > 1024 {
+			break
 		}
-		s += fmt.Sprintf("%02x ", b)
+		if isUnprintable(c) {
+			s := fmt.Sprintf("x%02x ", c)
+			res = append(res, s...)
+		} else {
+			res = append(res, c)
+		}
 	}
-	return []byte(s), true
+	return res, true
 }
 
 // if d is a valid json, pretty-print it
-func prettyPrintMaybeJSON(d []byte) []byte {
+func maybePrettyPrintJSON(d []byte) []byte {
 	if d2, ok := asHex(d); ok {
 		return d2
 	}
@@ -129,7 +140,7 @@ func printHTTPRequestEvent(req *ngnet.HTTPRequestEvent, no int) {
 	}
 
 	fmt.Fprintf(file, "\n%d bytes:\n", n)
-	d := prettyPrintMaybeJSON(req.Body)
+	d := maybePrettyPrintJSON(req.Body)
 	fmt.Fprintf(file, "%s\n", d)
 }
 
@@ -152,7 +163,7 @@ func printHTTPResponseEvent(resp *ngnet.HTTPResponseEvent, no int) {
 	}
 
 	fmt.Fprintf(file, "\n%d bytes:\n", n)
-	d := prettyPrintMaybeJSON(resp.Body)
+	d := maybePrettyPrintJSON(resp.Body)
 	fmt.Fprintf(file, "%s\n", d)
 }
 

@@ -44,7 +44,7 @@ func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
 	if cr, ok := req.Body.(*CapturingReadCloser); ok {
 		body := cr.capturedData.Bytes()
 		if len(body) > 0 {
-			fmt.Printf("Request body %d bytes:\n%s\n", len(body), mabyePrettyPrintJSON(body))
+			fmt.Printf("Request body %d bytes:\n%s\n", len(body), maybePrettyPrintJSON(body))
 		}
 	} else {
 		fmt.Printf("Can't get request body\n")
@@ -57,7 +57,7 @@ func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
 		fmt.Printf("Failed to read response body. Error: '%s'\n", err)
 	} else {
 		if len(d) > 0 {
-			fmt.Printf("Response body %d bytes:\n%s\n", len(d), mabyePrettyPrintJSON(d))
+			fmt.Printf("Response body %d bytes:\n%s\n", len(d), maybePrettyPrintJSON(d))
 		}
 	}
 }
@@ -154,7 +154,7 @@ func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := prettyPrintMaybeJSON([]byte(data))
+		//d := maybePrettyPrintJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPost, uri, body)
@@ -174,7 +174,7 @@ func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := prettyPrintMaybeJSON([]byte(data))
+		//d := maybePrettyPrintJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPut, uri, body)
@@ -205,7 +205,7 @@ func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := prettyPrintMaybeJSON([]byte(data))
+		//d := maybePrettyPrintJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPatch, uri, body)
@@ -225,7 +225,7 @@ func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := prettyPrintMaybeJSON([]byte(data))
+		//d := maybePrettyPrintJSON([]byte(data))
 		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodDelete, uri, body)

@@ -3,6 +3,7 @@ package ravendb
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -157,8 +158,52 @@ func decodeJSONFromReader(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
 }
 
-// if d is valid json, pretty-print it
-func mabyePrettyPrintJSON(d []byte) []byte {
+func isUnprintable(c byte) bool {
+	if c < 32 {
+		// 9 - tab, 10 - LF, 13 - CR
+		if c == 9 || c == 10 || c == 13 {
+			return false
+		}
+		return true
+	}
+	return c >= 127
+}
+
+func isBinaryData(d []byte) bool {
+	for _, b := range d {
+		if isUnprintable(b) {
+			return true
+		}
+	}
+	return false
+}
+
+func asHex(d []byte) ([]byte, bool) {
+	if !isBinaryData(d) {
+		return d, false
+	}
+
+	// convert unprintable characters to hex
+	var res []byte
+	for i, c := range d {
+		if i > 1024 {
+			break
+		}
+		if isUnprintable(c) {
+			s := fmt.Sprintf("x%02x ", c)
+			res = append(res, s...)
+		} else {
+			res = append(res, c)
+		}
+	}
+	return res, true
+}
+
+// if d is a valid json, pretty-print it
+func maybePrettyPrintJSON(d []byte) []byte {
+	if d2, ok := asHex(d); ok {
+		return d2
+	}
 	var m map[string]interface{}
 	err := json.Unmarshal(d, &m)
 	if err != nil {

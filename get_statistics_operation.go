@@ -69,7 +69,7 @@ func (c *GetStatisticsCommand) setResponse(response []byte, fromCache bool) erro
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	//dbg("GetStatisticsCommand: JSON:\n%s\n\n", string(prettyPrintMaybeJSON(response)))
+	//dbg("GetStatisticsCommand: JSON:\n%s\n\n", string(maybePrettyPrintJSON(response)))
 	var res DatabaseStatistics
 	err := json.Unmarshal(response, &res)
 	if err != nil {
