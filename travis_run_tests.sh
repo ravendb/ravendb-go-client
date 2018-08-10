@@ -5,6 +5,7 @@ set -u -e -o pipefail -o xtrace
 
 export VERBOSE_LOG=true
 export PCAP_CAPTURE=true
+export LOG_FAILED_HTTP_REQUESTS=true
 
 go build -o ./capturer github.com/kjk/ravendb-go-client/cmd/capture
 # mark it as owend by root so that it has root priviledges even when

@@ -364,7 +364,10 @@ func TestAttachmentsRevisions(t *testing.T) {
 
 	// TODO: this test is flaky. See bugs.txt
 	// Note: it also fails in Java on mac pro
-	//attachmentsRevisions_putAttachments(t)
-	//attachmentsRevisions_attachmentRevision(t)
-
+	if gEnableFlakyTests {
+		attachmentsRevisions_putAttachments(t)
+	}
+	if gEnableFlakyTests {
+		attachmentsRevisions_attachmentRevision(t)
+	}
 }

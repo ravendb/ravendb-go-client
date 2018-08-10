@@ -548,11 +548,15 @@ func TestAttachmentsSession(t *testing.T) {
 	// matches order of Java tests
 
 	// TODO: re-eneable when not flaky
-	//attachmentsSession_putAttachments(t)
+	if gEnableFlakyTests {
+		attachmentsSession_putAttachments(t)
+	}
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t)
 
 	// TODO: re-eneable when not flaky
-	//attachmentsSession_getAttachmentNames(t)
+	if gEnableFlakyTests {
+		attachmentsSession_getAttachmentNames(t)
+	}
 	attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
 	attachmentsSession_deleteAttachments(t)
 	attachmentsSession_attachmentExists(t)

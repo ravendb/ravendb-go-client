@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -31,7 +32,50 @@ var (
 	// status code >= 400)
 	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS env variable to "true"
 	gLogFailedRequests = false
+
+	// if true, enables flaky tests
+	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
+	gEnableFlakyTests = false
+
+	// if true, we log RavenDB's output to stdout
+	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
+	gRavenServerVerbose = false
 )
+
+func setStateFromEnv() {
+	if !gLogVerbose && isEnvVarTrue("VERBOSE_LOG") {
+		gLogVerbose = true
+		fmt.Printf("Setting gLogVerbose to true\n")
+	}
+
+	if !gLogRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
+		gLogRequestSummary = true
+		fmt.Printf("Setting gLogRequestSummary to true\n")
+	}
+
+	if !gLogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
+		gLogFailedRequests = true
+		fmt.Printf("Setting gLogFailedRequests to true\n")
+	}
+
+	if !gRavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
+		gRavenServerVerbose = true
+		fmt.Printf("Setting gRavenServerVerbose to true\n")
+	}
+	if !gEnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
+		gEnableFlakyTests = true
+		fmt.Printf("Setting gEnableFlakyTests to true\n")
+	}
+}
+
+func isEnvVarTrue(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	switch v {
+	case "yes", "true":
+		return true
+	}
+	return false
+}
 
 func dbg(format string, args ...interface{}) {
 	if gLogVerbose {

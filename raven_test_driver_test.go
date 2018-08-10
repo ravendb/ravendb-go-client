@@ -216,7 +216,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 			break
 		}
 		s := scanner.Text()
-		if RavenServerVerbose {
+		if gRavenServerVerbose {
 			fmt.Printf("%s\n", s)
 		}
 		if !strings.HasPrefix(s, wantedPrefix) {
@@ -245,7 +245,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		}
 	}
 
-	if RavenServerVerbose {
+	if gRavenServerVerbose {
 		go func() {
 			_, err := io.Copy(os.Stdout, proc.stdoutReader)
 			if !(err == nil || err == io.EOF) {
@@ -527,37 +527,6 @@ func downloadServerIfNeeded() {
 	if isWindows() {
 		downloadServerIfNeededWindows()
 		return
-	}
-}
-
-func isEnvVarTrue(name string) bool {
-	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
-	switch v {
-	case "yes", "true":
-		return true
-	}
-	return false
-}
-
-func setStateFromEnv() {
-	if !gLogVerbose && isEnvVarTrue("VERBOSE_LOG") {
-		gLogVerbose = true
-		fmt.Printf("Setting gLogVerbose to true\n")
-	}
-
-	if !gLogRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
-		gLogRequestSummary = true
-		fmt.Printf("Setting gLogRequestSummary to true\n")
-	}
-
-	if !gLogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
-		gLogFailedRequests = true
-		fmt.Printf("Setting gLogFailedRequests to true\n")
-	}
-
-	if !RavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
-		RavenServerVerbose = true
-		fmt.Printf("Setting RavenServerVerbose to true\n")
 	}
 }
 

@@ -8,12 +8,6 @@ import (
 	"strconv"
 )
 
-var (
-	// RavenServerVerbose will cause raven server output to go to os.Stdout
-	// if set to true. For debugging.
-	RavenServerVerbose bool
-)
-
 type Process struct {
 	cmd          *exec.Cmd
 	stdoutReader io.ReadCloser
@@ -27,7 +21,7 @@ func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
 	cmd := exec.Command(processStartInfo.command, processStartInfo.arguments...)
 	stdoutReader, err := cmd.StdoutPipe()
 
-	if false && RavenServerVerbose {
+	if false && gRavenServerVerbose {
 		cmd.Stderr = os.Stderr
 		// cmd.StdoutPipe() sets cmd.Stdout to a pipe writer
 		// we multi-plex it into os.Stdout
@@ -73,7 +67,7 @@ func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error)
 			commandArguments = append(commandArguments, arg)
 		}
 	}
-	if RavenServerVerbose {
+	if gRavenServerVerbose {
 		if gRavenLogsDir == "" {
 			arg := "--Logs.Mode=Information"
 			commandArguments = append(commandArguments, arg)
