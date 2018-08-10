@@ -1,8 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
-	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -383,15 +381,7 @@ func TestIndexOperations(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// order matches Java tests
 	testIndexHasIndexChanged(t)

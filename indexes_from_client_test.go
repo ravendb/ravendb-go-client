@@ -1,8 +1,7 @@
 package ravendb
 
 import (
-	"fmt"
-	"runtime/debug"
+	"runtime"
 	"testing"
 	"time"
 
@@ -551,15 +550,7 @@ func TestIndexesFromClient(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// order matches Java tests
 	indexesFromClientTest_canExecuteManyIndexes(t)
@@ -571,6 +562,8 @@ func TestIndexesFromClient(t *testing.T) {
 	indexesFromClientTest_moreLikeThis(t)
 	// TODO: this works on Mac but fails on Travis CI/Linux
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/410576496
-	//indexesFromClientTest_setLockModeAndSetPriority(t)
+	if runtime.GOOS != "linux" {
+		indexesFromClientTest_setLockModeAndSetPriority(t)
+	}
 	indexesFromClientTest_getTerms(t)
 }

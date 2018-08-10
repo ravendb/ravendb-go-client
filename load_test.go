@@ -1,8 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
-	"runtime/debug"
 	"strconv"
 	"testing"
 
@@ -315,15 +313,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
 	loadTest_loadDocumentById(t)

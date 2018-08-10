@@ -2,9 +2,7 @@ package ravendb
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
-	"runtime/debug"
 	"sort"
 	"strings"
 	"testing"
@@ -350,15 +348,7 @@ func TestAttachmentsRevisions(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
 

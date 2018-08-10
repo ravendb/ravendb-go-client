@@ -2,9 +2,7 @@ package ravendb
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
-	"runtime/debug"
 	"sort"
 	"strconv"
 	"testing"
@@ -533,15 +531,7 @@ func TestAttachmentsSession(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// TODO: those tests are flaky. Not often but they sometimes fail
 

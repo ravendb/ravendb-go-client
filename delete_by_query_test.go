@@ -1,8 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
-	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -56,15 +54,7 @@ func TestDeleteByQuery(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
 	loadTest_canDeleteByQuery(t)

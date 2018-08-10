@@ -1,8 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
-	"runtime/debug"
 	"sort"
 	"strings"
 	"testing"
@@ -1384,21 +1382,15 @@ func TestQuery(t *testing.T) {
 	}
 
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
 	query_queryWhereExists(t)
 	query_querySearchWithOr(t)
 	//TODO: this test is flaky
-	//query_rawQuerySkipTake(t)
+	if gEnableFlakyTests {
+		query_rawQuerySkipTake(t)
+	}
 	query_queryWithDuration(t)
 	query_queryWithWhereClause(t)
 	query_queryMapReduceIndex(t)

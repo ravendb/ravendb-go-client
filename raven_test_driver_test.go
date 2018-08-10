@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime/debug"
 	"runtime/pprof"
 	"strings"
 	"sync"
@@ -574,6 +575,16 @@ func createTestDriver(t *testing.T) func() {
 	return func() {
 		deleteTestDriver()
 		maybeConvertPcapToTxt(pcapPath)
+	}
+}
+
+func recoverTest(t *testing.T, destroyDriver func()) {
+	r := recover()
+	destroyDriver()
+	if r != nil {
+		fmt.Printf("Panic: '%v'\n", r)
+		debug.PrintStack()
+		t.Fail()
 	}
 }
 

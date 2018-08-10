@@ -1,8 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
-	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -102,15 +100,7 @@ func TestTrackEntity(t *testing.T) {
 		return
 	}
 	destroyDriver := createTestDriver(t)
-	defer func() {
-		r := recover()
-		destroyDriver()
-		if r != nil {
-			fmt.Printf("Panic: '%v'\n", r)
-			debug.PrintStack()
-			t.Fail()
-		}
-	}()
+	defer recoverTest(t, destroyDriver)
 
 	// matches order of java tests
 	trackEntityTest_loadingDeletedDocumentShouldReturnNull(t)
