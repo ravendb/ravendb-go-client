@@ -246,7 +246,7 @@ func asHex(d []byte) ([]byte, bool) {
 	// convert unprintable characters to hex
 	var res []byte
 	for i, c := range d {
-		if i > 1024 {
+		if i > 2048 {
 			break
 		}
 		if isUnprintable(c) {
