@@ -111,3 +111,8 @@ func stringArrayContainsSequence(a1, a2 []string) bool {
 	}
 	return true
 }
+
+func stringArrayContainsExactly(a1, a2 []string) bool {
+	// TODO: not sure if the semantics are the same
+	return stringArrayContainsSequence(a1, a2)
+}

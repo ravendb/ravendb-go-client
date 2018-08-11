@@ -45,6 +45,11 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	}
 
 	for _, indexToAdd := range indexesToAdd {
+		// Note: unlike java, Type is not calculated on demand. This is a decent
+		// place to ensure it. Assumes that indexToAdd will not be modified
+		// between now an createRequest()
+		indexToAdd.updateIndexType()
+
 		panicIf(indexToAdd.getName() == "", "Index name cannot be null")
 		objectNode := EntityToJson_convertEntityToJson(indexToAdd, nil)
 		cmd._indexToAdd = append(cmd._indexToAdd, objectNode)

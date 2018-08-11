@@ -547,24 +547,24 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.SetHighlighterTags(string[] preTags, string[] postTags)
 //TBD expr  IDocumentQuery<T> Spatial(Expression<Func<T, object>> path, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
 
+*/
 
- IDocumentQuery<T> spatial(string fieldName, Function<SpatialCriteriaFactory, SpatialCriteria> clause) {
-	SpatialCriteria criteria = clause.apply(SpatialCriteriaFactory.INSTANCE);
-	_spatial(fieldName, criteria);
-	return this;
+func (q *DocumentQuery) spatial3(fieldName string, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
+	criteria := clause(SpatialCriteriaFactory_INSTANCE)
+	q._spatial3(fieldName, criteria)
+	return q
 }
 
-
- IDocumentQuery<T> spatial(DynamicSpatialField field, Function<SpatialCriteriaFactory, SpatialCriteria> clause) {
-	SpatialCriteria criteria = clause.apply(SpatialCriteriaFactory.INSTANCE);
-	_spatial(field, criteria);
-	return this;
+func (q *DocumentQuery) spatial2(field DynamicSpatialField, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
+	criteria := clause(SpatialCriteriaFactory_INSTANCE)
+	q._spatial2(field, criteria)
+	return q
 }
 
 //TBD expr  IDocumentQuery<T> Spatial(Func<SpatialDynamicFieldFactory<T>, DynamicSpatialField> field, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, float64 radius, float64 latitude, float64 longitude, SpatialUnits? radiusUnits, float64 distanceErrorPct)
 
-
+/*
  IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude) {
 	return withinRadiusOf(fieldName, radius, latitude, longitude, nil, Constants.Documents.Indexing.Spatial.DEFAULT_DISTANCE_ERROR_PCT);
 }
@@ -593,40 +593,37 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	return this;
 }
 
+*/
 
- IDocumentQuery<T> orderByDistance(DynamicSpatialField field, float64 latitude, float64 longitude) {
-	_orderByDistance(field, latitude, longitude);
-	return this;
+func (q *DocumentQuery) orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
+	q._orderByDistance(field, latitude, longitude)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
-
- IDocumentQuery<T> orderByDistance(DynamicSpatialField field, string shapeWkt) {
-	_orderByDistance(field, shapeWkt);
-	return this;
+func (q *DocumentQuery) orderByDistance2(field DynamicSpatialField, shapeWkt string) *IDocumentQuery {
+	q._orderByDistance2(field, shapeWkt)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, string shapeWkt)
 
-
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
-
- IDocumentQuery<T> orderByDistance(string fieldName, float64 latitude, float64 longitude) {
-	_orderByDistance(fieldName, latitude, longitude);
-	return this;
+func (q *DocumentQuery) orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
+	q._orderByDistanceLatLong(fieldName, latitude, longitude)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
-
- IDocumentQuery<T> orderByDistance(string fieldName, string shapeWkt) {
-	_orderByDistance(fieldName, shapeWkt);
-	return this;
+func (q *DocumentQuery) orderByDistance3(fieldName string, shapeWkt string) *IDocumentQuery {
+	q._orderByDistance3(fieldName, shapeWkt)
+	return q
 }
 
-
+/*
  IDocumentQuery<T> orderByDistanceDescending(DynamicSpatialField field, float64 latitude, float64 longitude) {
 	_orderByDistanceDescending(field, latitude, longitude);
 	return this;
