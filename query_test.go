@@ -1411,7 +1411,9 @@ func TestQuery(t *testing.T) {
 	query_queryFirst(t)
 	query_querySingleProperty(t)
 	//TODO: this test is flaky
-	//query_parametersInRawQuery(t)
+	if gEnableFlakyTests {
+		query_parametersInRawQuery(t)
+	}
 	query_queryWithWhereLessThan(t)
 	query_queryMapReduceWithCount(t)
 	query_queryWithWhereGreaterThanOrEqual(t)
