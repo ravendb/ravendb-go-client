@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 // TODO: make it more efficient by modifying the array in-place
 func stringArrayRemove(pa *[]string, s string) bool {
 	if len(*pa) == 0 {
@@ -99,20 +101,35 @@ func stringArrayEq(a1, a2 []string) bool {
 	return true
 }
 
+const (
+	unlikelySep = "\x02\x01\x03"
+)
+
 // equivalent of Java's containsSequence http://joel-costigliola.github.io/assertj/core/api/org/assertj/core/api/ListAssert.html#containsSequence(ELEMENT...)
+// checks if a1 contains sub-sequence a2
 func stringArrayContainsSequence(a1, a2 []string) bool {
+	// TODO: technically it's possible for this to have false positive
+	// but it's very unlikely
+	s1 := strings.Join(a1, unlikelySep)
+	s2 := strings.Join(a2, unlikelySep)
+	return strings.Contains(s1, s2)
+}
+
+func stringArrayContainsExactly(a1, a2 []string) bool {
 	if len(a1) != len(a2) {
 		return false
 	}
 	for i, s := range a1 {
-		if a2[i] != s {
+		if s != a2[i] {
 			return false
 		}
 	}
 	return true
 }
 
-func stringArrayContainsExactly(a1, a2 []string) bool {
-	// TODO: not sure if the semantics are the same
-	return stringArrayContainsSequence(a1, a2)
+func stringArrayReverse(a []string) {
+	n := len(a)
+	for i := 0; i < n/2; i++ {
+		a[i], a[n-1-i] = a[n-1-i], a[i]
+	}
 }

@@ -623,38 +623,33 @@ func (q *DocumentQuery) orderByDistance3(fieldName string, shapeWkt string) *IDo
 	return q
 }
 
-/*
- IDocumentQuery<T> orderByDistanceDescending(DynamicSpatialField field, float64 latitude, float64 longitude) {
-	_orderByDistanceDescending(field, latitude, longitude);
-	return this;
+func (q *DocumentQuery) orderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
+	q._orderByDistanceDescending(field, latitude, longitude)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
-
- IDocumentQuery<T> orderByDistanceDescending(DynamicSpatialField field, string shapeWkt) {
-	_orderByDistanceDescending(field, shapeWkt);
-	return this;
+func (q *DocumentQuery) orderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) *IDocumentQuery {
+	q._orderByDistanceDescending2(field, shapeWkt)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, string shapeWkt)
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
-
- IDocumentQuery<T> orderByDistanceDescending(string fieldName, float64 latitude, float64 longitude) {
-	_orderByDistanceDescending(fieldName, latitude, longitude);
-	return this;
+func (q *DocumentQuery) orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
+	q._orderByDistanceDescendingLatLong(fieldName, latitude, longitude)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
-
- IDocumentQuery<T> orderByDistanceDescending(string fieldName, string shapeWkt) {
-	_orderByDistanceDescending(fieldName, shapeWkt);
-	return this;
+func (q *DocumentQuery) orderByDistanceDescending3(fieldName string, shapeWkt string) *IDocumentQuery {
+	q._orderByDistanceDescending3(fieldName, shapeWkt)
+	return q
 }
-*/
 
 func (q *DocumentQuery) moreLikeThis(moreLikeThis MoreLikeThisBase) *DocumentQuery {
 	mlt := q._moreLikeThis()
@@ -694,7 +689,6 @@ func (q *DocumentQuery) moreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	_suggestUsing(suggestion);
 	return new SuggestionDocumentQuery<>(this);
 }
-
 
  ISuggestionDocumentQuery<T> suggestUsing(Consumer<ISuggestionBuilder<T>> builder) {
 	SuggestionBuilder<T> f = new SuggestionBuilder<>();
