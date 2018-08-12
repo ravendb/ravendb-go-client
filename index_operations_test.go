@@ -8,13 +8,13 @@ import (
 
 func NewUsersInvalidIndex() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("UsersInvalidIndex")
-	res.smap = "from u in docs.Users select new { a = 5 / u.Age }"
+	res.Map = "from u in docs.Users select new { a = 5 / u.Age }"
 	return res
 }
 
 func NewUsers_Index() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("Users_Index")
-	res.smap = "from u in docs.Users select new { u.name }"
+	res.Map = "from u in docs.Users select new { u.name }"
 	return res
 }
 

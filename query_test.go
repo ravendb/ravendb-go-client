@@ -745,7 +745,7 @@ TODO: is this used?
 
 func NewOrderTime() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("OrderTime")
-	res.smap = `from order in docs.Orders
+	res.Map = `from order in docs.Orders
 select new {
   delay = order.shippedAt - ((DateTime?)order.orderedAt)
 }`
@@ -986,12 +986,12 @@ func query_queryWithBoost(t *testing.T) {
 
 func makeUsersByNameIndex() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("UsersByName")
-	res.smap = "from c in docs.Users select new " +
+	res.Map = "from c in docs.Users select new " +
 		" {" +
 		"    c.name, " +
 		"    count = 1" +
 		"}"
-	res.reduce = "from result in results " +
+	res.Reduce = "from result in results " +
 		"group result by result.name " +
 		"into g " +
 		"select new " +
@@ -1258,7 +1258,7 @@ func (r *DogsIndex_Result) setVaccinated(vaccinated bool) {
 
 func makeDogsIndex() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("DogsIndex")
-	res.smap = "from dog in docs.dogs select new { dog.name, dog.age, dog.vaccinated }"
+	res.Map = "from dog in docs.dogs select new { dog.name, dog.age, dog.vaccinated }"
 	return res
 }
 

@@ -10,17 +10,17 @@ import (
 
 func NewUsersIndex() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("UsersIndex")
-	res.smap = "from user in docs.users select new { user.name }"
+	res.Map = "from user in docs.users select new { user.name }"
 	return res
 }
 
 func NewUsers_ByName() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("NewUsers_ByName")
-	res.smap = "from u in docs.Users select new { u.name }"
+	res.Map = "from u in docs.Users select new { u.name }"
 
 	res.index("name", FieldIndexing_SEARCH)
 
-	res.indexSuggestions.add("name")
+	res.IndexSuggestions.add("name")
 
 	res.store("name", FieldStorage_YES)
 
@@ -29,7 +29,7 @@ func NewUsers_ByName() *AbstractIndexCreationTask {
 
 func Posts_ByTitleAndDesc() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
-	res.smap = "from p in docs.Posts select new { p.title, p.desc }"
+	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
 	res.index("title", FieldIndexing_SEARCH)
 	res.store("title", FieldStorage_YES)
 	res.analyze("title", "Lucene.Net.Analysis.SimpleAnalyzer")

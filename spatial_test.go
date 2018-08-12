@@ -99,7 +99,7 @@ func (p *MyProjection) setLongitude(longitude float64) {
 
 func NewMyIndex() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("MyIndex")
-	res.smap = "docs.MyDocuments.SelectMany(doc => doc.items, (doc, item) => new {\n" +
+	res.Map = "docs.MyDocuments.SelectMany(doc => doc.items, (doc, item) => new {\n" +
 		"    doc = doc,\n" +
 		"    item = item\n" +
 		"}).Select(this0 => new {\n" +

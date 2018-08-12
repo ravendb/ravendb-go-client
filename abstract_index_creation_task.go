@@ -2,105 +2,108 @@ package ravendb
 
 import "strings"
 
+// AbstractIndexCreationTask is for creating an index
+// TODO: rename to IndexCreationTask
 type AbstractIndexCreationTask struct {
-	smap   string // Note: in Go map is a reserved keyword
-	reduce string
+	Map    string // Note: in Go map is a reserved keyword
+	Reduce string
 
-	conventions       *DocumentConventions
-	additionalSources map[string]string
-	priority          IndexPriority
-	lockMode          IndexLockMode
+	Conventions       *DocumentConventions
+	AdditionalSources map[string]string
+	Priority          IndexPriority
+	LockMode          IndexLockMode
 
-	storesStrings         map[string]FieldStorage
-	indexesStrings        map[string]FieldIndexing
-	analyzersStrings      map[string]string
-	indexSuggestions      *StringSet
-	termVectorsStrings    map[string]FieldTermVector
-	spatialOptionsStrings map[string]*SpatialOptions
+	StoresStrings         map[string]FieldStorage
+	IndexesStrings        map[string]FieldIndexing
+	AnalyzersStrings      map[string]string
+	IndexSuggestions      *StringSet
+	TermVectorsStrings    map[string]FieldTermVector
+	SpatialOptionsStrings map[string]*SpatialOptions
 
-	outputReduceToCollection string
+	OutputReduceToCollection string
 
 	// in Go this must be set by "sub-class". In Java it's dynamically calculated
 	// as getClass().getSimpleName()
-	indexName string
+	IndexName string
 }
 
+// NewAbstractIndexCreationTask creates AbstractIndexCreationTask
 // Note: in Java we subclass AbstractIndexCreationTask and indexName is derived
 // from derived class name. In Go we don't subclass and must provide index name
 // manually
 func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
 	panicIf(indexName == "", "indexName cannot be empty")
 	return &AbstractIndexCreationTask{
-		storesStrings:         make(map[string]FieldStorage),
-		indexesStrings:        make(map[string]FieldIndexing),
-		analyzersStrings:      make(map[string]string),
-		indexSuggestions:      NewStringSet(),
-		termVectorsStrings:    make(map[string]FieldTermVector),
-		spatialOptionsStrings: make(map[string]*SpatialOptions),
+		StoresStrings:         make(map[string]FieldStorage),
+		IndexesStrings:        make(map[string]FieldIndexing),
+		AnalyzersStrings:      make(map[string]string),
+		IndexSuggestions:      NewStringSet(),
+		TermVectorsStrings:    make(map[string]FieldTermVector),
+		SpatialOptionsStrings: make(map[string]*SpatialOptions),
 
-		indexName: indexName,
+		IndexName: indexName,
 	}
 }
 
 func (t *AbstractIndexCreationTask) getAdditionalSources() map[string]string {
-	return t.additionalSources
+	return t.AdditionalSources
 }
 
 func (t *AbstractIndexCreationTask) setAdditionalSources(additionalSources map[string]string) {
-	t.additionalSources = additionalSources
+	t.AdditionalSources = additionalSources
 }
 
 func (t *AbstractIndexCreationTask) createIndexDefinition() *IndexDefinition {
-	if t.conventions == nil {
-		t.conventions = NewDocumentConventions()
+	if t.Conventions == nil {
+		t.Conventions = NewDocumentConventions()
 	}
 
 	indexDefinitionBuilder := NewIndexDefinitionBuilder(t.getIndexName())
-	indexDefinitionBuilder.setIndexesStrings(t.indexesStrings)
-	indexDefinitionBuilder.setAnalyzersStrings(t.analyzersStrings)
-	indexDefinitionBuilder.setMap(t.smap)
-	indexDefinitionBuilder.setReduce(t.reduce)
-	indexDefinitionBuilder.setStoresStrings(t.storesStrings)
-	indexDefinitionBuilder.setSuggestionsOptions(t.indexSuggestions)
-	indexDefinitionBuilder.setTermVectorsStrings(t.termVectorsStrings)
-	indexDefinitionBuilder.setSpatialIndexesStrings(t.spatialOptionsStrings)
-	indexDefinitionBuilder.setOutputReduceToCollection(t.outputReduceToCollection)
+	indexDefinitionBuilder.setIndexesStrings(t.IndexesStrings)
+	indexDefinitionBuilder.setAnalyzersStrings(t.AnalyzersStrings)
+	indexDefinitionBuilder.setMap(t.Map)
+	indexDefinitionBuilder.setReduce(t.Reduce)
+	indexDefinitionBuilder.setStoresStrings(t.StoresStrings)
+	indexDefinitionBuilder.setSuggestionsOptions(t.IndexSuggestions)
+	indexDefinitionBuilder.setTermVectorsStrings(t.TermVectorsStrings)
+	indexDefinitionBuilder.setSpatialIndexesStrings(t.SpatialOptionsStrings)
+	indexDefinitionBuilder.setOutputReduceToCollection(t.OutputReduceToCollection)
 	indexDefinitionBuilder.setAdditionalSources(t.getAdditionalSources())
 
-	return indexDefinitionBuilder.toIndexDefinition(t.conventions, false)
+	return indexDefinitionBuilder.toIndexDefinition(t.Conventions, false)
 }
 
 func (t *AbstractIndexCreationTask) isMapReduce() bool {
-	return t.reduce != ""
+	return t.Reduce != ""
 }
 
 func (t *AbstractIndexCreationTask) getIndexName() string {
-	panicIf(t.indexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName()")
-	return strings.Replace(t.indexName, "_", "/", -1)
+	panicIf(t.IndexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName()")
+	return strings.Replace(t.IndexName, "_", "/", -1)
 }
 
 func (t *AbstractIndexCreationTask) getConventions() *DocumentConventions {
-	return t.conventions
+	return t.Conventions
 }
 
 func (t *AbstractIndexCreationTask) setConventions(conventions *DocumentConventions) {
-	t.conventions = conventions
+	t.Conventions = conventions
 }
 
 func (t *AbstractIndexCreationTask) getPriority() IndexPriority {
-	return t.priority
+	return t.Priority
 }
 
 func (t *AbstractIndexCreationTask) setPriority(priority IndexPriority) {
-	t.priority = priority
+	t.Priority = priority
 }
 
 func (t *AbstractIndexCreationTask) getLockMode() IndexLockMode {
-	return t.lockMode
+	return t.LockMode
 }
 
 func (t *AbstractIndexCreationTask) setLockMode(lockMode IndexLockMode) {
-	t.lockMode = lockMode
+	t.LockMode = lockMode
 }
 
 func (t *AbstractIndexCreationTask) execute(store *IDocumentStore) error {
@@ -127,12 +130,12 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 	indexDefinition := t.createIndexDefinition()
 	indexDefinition.setName(t.getIndexName())
 
-	if t.lockMode != "" {
-		indexDefinition.setLockMode(t.lockMode)
+	if t.LockMode != "" {
+		indexDefinition.setLockMode(t.LockMode)
 	}
 
-	if t.priority != "" {
-		indexDefinition.setPriority(t.priority)
+	if t.Priority != "" {
+		indexDefinition.setPriority(t.Priority)
 	}
 
 	op := NewPutIndexesOperation(indexDefinition)
@@ -143,30 +146,30 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 }
 
 func (t *AbstractIndexCreationTask) index(field string, indexing FieldIndexing) {
-	t.indexesStrings[field] = indexing
+	t.IndexesStrings[field] = indexing
 }
 
 func (t *AbstractIndexCreationTask) spatial(field string, indexing func(*SpatialOptionsFactory) *SpatialOptions) {
 	v := indexing(NewSpatialOptionsFactory())
-	t.spatialOptionsStrings[field] = v
+	t.SpatialOptionsStrings[field] = v
 }
 
 func (t *AbstractIndexCreationTask) storeAllFields(storage FieldStorage) {
-	t.storesStrings[Constants_Documents_Indexing_Fields_ALL_FIELDS] = storage
+	t.StoresStrings[Constants_Documents_Indexing_Fields_ALL_FIELDS] = storage
 }
 
 func (t *AbstractIndexCreationTask) store(field string, storage FieldStorage) {
-	t.storesStrings[field] = storage
+	t.StoresStrings[field] = storage
 }
 
 func (t *AbstractIndexCreationTask) analyze(field string, analyzer string) {
-	t.analyzersStrings[field] = analyzer
+	t.AnalyzersStrings[field] = analyzer
 }
 
 func (t *AbstractIndexCreationTask) termVector(field string, termVector FieldTermVector) {
-	t.termVectorsStrings[field] = termVector
+	t.TermVectorsStrings[field] = termVector
 }
 
 func (t *AbstractIndexCreationTask) suggestion(field string) {
-	t.indexSuggestions.add(field)
+	t.IndexSuggestions.add(field)
 }
