@@ -33,3 +33,7 @@ func (f *GenericRangeFacet) toFacetToken(addQueryParameter func(Object) string) 
 
 	return FacetToken_createWithGenericRangeFacet(f, addQueryParameter)
 }
+
+func (f *GenericRangeFacet) addRange(rng *RangeBuilder) {
+	f.ranges = append(f.ranges, rng)
+}

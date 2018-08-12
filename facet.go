@@ -8,6 +8,12 @@ type Facet struct {
 	fieldName string
 }
 
+func NewFacet() *Facet {
+	return &Facet{
+		FacetBaseCommon: NewFacetBaseCommon(),
+	}
+}
+
 func (f *Facet) getFieldName() string {
 	return f.fieldName
 }

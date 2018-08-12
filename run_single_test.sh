@@ -32,4 +32,4 @@ export PCAP_CAPTURE=true
 #export ENABLE_FLAKY_TESTS=true
 #go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
 
-go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestSpatialSearch$
+go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestAggregation$

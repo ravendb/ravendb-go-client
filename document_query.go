@@ -506,26 +506,26 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	return query
 }
 
-/*
-func (q *DocumentQuery) aggregateBy(Consumer<IFacetBuilder<T>> builder) *IAggregationDocumentQuery {
-	FacetBuilder ff = new FacetBuilder<>();
-	builder.accept(ff);
+// TODO: rename to aggregateByBuilder and aggregateByFacet => aggregateBy
+func (q *DocumentQuery) aggregateBy(builder func(IFacetBuilder)) *IAggregationDocumentQuery {
+	ff := NewFacetBuilder()
+	builder(ff)
 
-	return aggregateBy(ff.getFacet());
+	return q.aggregateByFacet(ff.getFacet())
 }
 
-func (q *DocumentQuery) aggregateBy(facet *FacetBase ) *IAggregationDocumentQuery {
-	_aggregateBy(facet);
+func (q *DocumentQuery) aggregateByFacet(facet FacetBase) *IAggregationDocumentQuery {
+	q._aggregateBy(facet)
 
-	return new AggregationDocumentQuery<T>(this);
+	return NewAggregationDocumentQuery(q)
 }
 
-func (q *DocumentQuery) aggregateBy(Facet... facets) *IAggregationDocumentQuery {
-	for (Facet facet : facets) {
-		_aggregateBy(facet);
+func (q *DocumentQuery) aggregateByFacets(facets ...*Facet) *IAggregationDocumentQuery {
+	for _, facet := range facets {
+		q._aggregateBy(facet)
 	}
 
-	return new AggregationDocumentQuery<T>(this);
+	return NewAggregationDocumentQuery(q)
 }
 
 func (q *DocumentQuery) aggregateUsing(facetSetupDocumentId string) *IAggregationDocumentQuery {
@@ -533,7 +533,6 @@ func (q *DocumentQuery) aggregateUsing(facetSetupDocumentId string) *IAggregatio
 
 	return NewAggregationDocumentQuery(q)
 }
-*/
 
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Highlight(string fieldName, int fragmentLength, int fragmentCount, string fragmentsField)
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Highlight(string fieldName, int fragmentLength, int fragmentCount, out FieldHighlightings highlightings)

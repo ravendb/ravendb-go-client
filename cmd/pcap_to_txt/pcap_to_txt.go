@@ -182,7 +182,7 @@ var (
 func getRequestTime(rr reqRsp, timeDefault time.Time) time.Time {
 	req := rr.req
 	if req == nil {
-		return timeDefault
+		return rr.rsp.HTTPEvent.Start
 	}
 	return req.HTTPEvent.Start
 }

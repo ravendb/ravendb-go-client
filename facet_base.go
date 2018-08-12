@@ -7,6 +7,8 @@ type FacetBase interface {
 	// inherited from FacetBaseCommon
 	getOptions() *FacetOptions
 	getAggregations() map[FacetAggregation]string
+	setDisplayFieldName(string)
+	setOptions(*FacetOptions)
 }
 
 type FacetBaseCommon struct {

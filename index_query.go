@@ -116,3 +116,7 @@ func (q *IndexQuery) getQueryHash() string {
 	hasher.write(q.getQueryParameters())
 	return hasher.getHash()
 }
+
+func (q *IndexQuery) String() string {
+	return q.query
+}
