@@ -74,7 +74,8 @@ func runJava() {
 	//runSingleJavaTest("IndexesFromClientTest", "trace_indexes_from_client_java.txt")
 	//runSingleJavaTest("RegexQueryTest", "trace_regex_query_java.txt")
 	//runSingleJavaTest("SpatialSortingTest", "trace_spatial_sorting_java.txt")
-	runSingleJavaTest("SpatialTest", "trace_spatial_java.txt")
+	//runSingleJavaTest("SpatialTest", "trace_spatial_java.txt")
+	runSingleJavaTest("SpatialQueriesTest", "trace_spatial_queries_java.txt")
 }
 
 func main() {
