@@ -507,22 +507,20 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 }
 
 /*
- IAggregationDocumentQuery<T> aggregateBy(Consumer<IFacetBuilder<T>> builder) {
+func (q *DocumentQuery) aggregateBy(Consumer<IFacetBuilder<T>> builder) *IAggregationDocumentQuery {
 	FacetBuilder ff = new FacetBuilder<>();
 	builder.accept(ff);
 
 	return aggregateBy(ff.getFacet());
 }
 
-
- IAggregationDocumentQuery<T> aggregateBy(FacetBase facet) {
+func (q *DocumentQuery) aggregateBy(facet *FacetBase ) *IAggregationDocumentQuery {
 	_aggregateBy(facet);
 
 	return new AggregationDocumentQuery<T>(this);
 }
 
-
- IAggregationDocumentQuery<T> aggregateBy(Facet... facets) {
+func (q *DocumentQuery) aggregateBy(Facet... facets) *IAggregationDocumentQuery {
 	for (Facet facet : facets) {
 		_aggregateBy(facet);
 	}
@@ -530,12 +528,12 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	return new AggregationDocumentQuery<T>(this);
 }
 
+func (q *DocumentQuery) aggregateUsing(facetSetupDocumentId string) *IAggregationDocumentQuery {
+	q._aggregateUsing(facetSetupDocumentId)
 
- IAggregationDocumentQuery<T> aggregateUsing(string facetSetupDocumentId) {
-	_aggregateUsing(facetSetupDocumentId);
-
-	return new AggregationDocumentQuery<T>(this);
+	return NewAggregationDocumentQuery(q)
 }
+*/
 
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Highlight(string fieldName, int fragmentLength, int fragmentCount, string fragmentsField)
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Highlight(string fieldName, int fragmentLength, int fragmentCount, out FieldHighlightings highlightings)
@@ -546,8 +544,6 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.SetHighlighterTags(string preTag, string postTag)
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.SetHighlighterTags(string[] preTags, string[] postTags)
 //TBD expr  IDocumentQuery<T> Spatial(Expression<Func<T, object>> path, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
-
-*/
 
 func (q *DocumentQuery) spatial3(fieldName string, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
 	criteria := clause(SpatialCriteriaFactory_INSTANCE)
@@ -564,36 +560,31 @@ func (q *DocumentQuery) spatial2(field DynamicSpatialField, clause func(*Spatial
 //TBD expr  IDocumentQuery<T> Spatial(Func<SpatialDynamicFieldFactory<T>, DynamicSpatialField> field, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, float64 radius, float64 latitude, float64 longitude, SpatialUnits? radiusUnits, float64 distanceErrorPct)
 
-/*
- IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude) {
-	return withinRadiusOf(fieldName, radius, latitude, longitude, nil, Constants.Documents.Indexing.Spatial.DEFAULT_DISTANCE_ERROR_PCT);
+func (q *DocumentQuery) withinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64) *IDocumentQuery {
+	q._withinRadiusOf(fieldName, radius, latitude, longitude, "", Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return q
 }
 
-
- IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude, SpatialUnits radiusUnits) {
-	return withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, Constants.Documents.Indexing.Spatial.DEFAULT_DISTANCE_ERROR_PCT);
+func (q *DocumentQuery) withinRadiusOfWithUnits(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits) *IDocumentQuery {
+	q._withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return q
 }
 
-
- IDocumentQuery<T> withinRadiusOf(string fieldName, float64 radius, float64 latitude, float64 longitude, SpatialUnits radiusUnits, float64 distanceErrorPct) {
-	_withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, distanceErrorPct);
-	return this;
+func (q *DocumentQuery) withinRadiusOfWithUnitsAndError(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distanceErrorPct float64) *IDocumentQuery {
+	q._withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, distanceErrorPct)
+	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.RelatesToShape<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt, SpatialRelation relation, float64 distanceErrorPct)
 
-
- IDocumentQuery<T> relatesToShape(string fieldName, string shapeWkt, SpatialRelation relation) {
-	return relatesToShape(fieldName, shapeWkt, relation, Constants.Documents.Indexing.Spatial.DEFAULT_DISTANCE_ERROR_PCT);
+func (q *DocumentQuery) relatesToShape(fieldName string, shapeWkt string, relation SpatialRelation) *IDocumentQuery {
+	return q.relatesToShapeWithError(fieldName, shapeWkt, relation, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
 }
 
-
- IDocumentQuery<T> relatesToShape(string fieldName, string shapeWkt, SpatialRelation relation, float64 distanceErrorPct) {
-	_spatial(fieldName, shapeWkt, relation, distanceErrorPct);
-	return this;
+func (q *DocumentQuery) relatesToShapeWithError(fieldName string, shapeWkt string, relation SpatialRelation, distanceErrorPct float64) *IDocumentQuery {
+	q._spatial(fieldName, shapeWkt, relation, distanceErrorPct)
+	return q
 }
-
-*/
 
 func (q *DocumentQuery) orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
 	q._orderByDistance(field, latitude, longitude)
