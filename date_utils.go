@@ -7,7 +7,11 @@ func DateUtils_addHours(t time.Time, nHours int) time.Time {
 }
 
 func DateUtils_addDays(t time.Time, nDays int) time.Time {
-	return DateUtils_addHours(t, nDays*24)
+	return t.AddDate(0, 0, nDays)
+}
+
+func DateUtils_addYears(t time.Time, nYears int) time.Time {
+	return t.AddDate(nYears, 0, 0)
 }
 
 func DateUtils_addMinutes(t time.Time, nMinutes int) time.Time {
