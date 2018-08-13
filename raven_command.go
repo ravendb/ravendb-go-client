@@ -96,10 +96,11 @@ func throwInvalidResponse() error {
 }
 
 func (c *RavenCommandBase) send(client *http.Client, req *http.Request) (*http.Response, error) {
+	gHTTPRequestCount.incrementAndGet()
 	rsp, err := client.Do(req)
 	maybeDumpFailedResponse(req, rsp, err)
+	maybeLogHTTPRequest(req, rsp, err)
 	return rsp, err
-
 }
 
 func (c *RavenCommandBase) getFailedNodes() map[*ServerNode]error {

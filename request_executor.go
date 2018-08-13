@@ -685,10 +685,6 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 		response, err = command.getBase().send(re.httpClient, request)
 	}
 
-	if gLogHTTP {
-		dumpRequestAndResponse(request, response, err)
-	}
-
 	if err != nil {
 		if !shouldRetry && isNetworkTimeoutError(err) {
 			return err

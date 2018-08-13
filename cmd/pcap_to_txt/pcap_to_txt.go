@@ -385,10 +385,8 @@ func convertDir(dir string) {
 	}
 }
 
-// convert "foo.pcap" => "foo.txt"
+// convert "foo.pcap" => "foo.pcap.txt"
 func convertFilePath(s string) string {
-	ext := filepath.Ext(s)
-	s = s[0 : len(s)-len(ext)]
 	return s + ".txt"
 }
 

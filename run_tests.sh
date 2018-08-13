@@ -16,10 +16,11 @@ fi
 
 set -o xtrace
 
-# uncomment for more verbose logging
+# comment/uncomment to turn additional logging on/off
 export VERBOSE_LOG=true
-export PCAP_CAPTURE=true
 export LOG_FAILED_HTTP_REQUESTS=true
+#export PCAP_CAPTURE=true
+export LOG_ALL_REQUESTS=true
 
 # go test -race
 go test -race -covermode=atomic -coverprofile=coverage.txt

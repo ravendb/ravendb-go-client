@@ -6,12 +6,18 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"os"
 )
 
 var (
 	// if true, prints requests and their responses to stdout
 	gLogHTTP = false
+	// if not nil, we write all http requests and responses here
+	gHTTPLogger io.WriteCloser
+	// numbering of requests helps match http traffic from java client with go client
+	gHTTPRequestCount AtomicInteger
 )
 
 // retruns copy of resp.Body but also makes it available for subsequent reads
@@ -27,39 +33,60 @@ func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 	return d, nil
 }
 
-func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
-	if err != nil {
-		fmt.Printf("%s %s failed with '%s'\n", req.Method, req.URL, err)
-	}
-	if rsp == nil {
-		fmt.Printf("%s %s returned no response\n", req.Method, req.URL)
-	} else {
-		if rsp.StatusCode >= 400 {
-			fmt.Printf("%s %s failed with status code %d (%s)\n", req.Method, req.URL, rsp.StatusCode, rsp.Status)
-		} else {
-			fmt.Printf("%s %s returned %d (%s)\n", req.Method, req.URL, rsp.StatusCode, rsp.Status)
-		}
+func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Response, reqErr error) {
+	n := gHTTPRequestCount.get()
+
+	fmt.Fprintf(w, "=========== %d:\n", n)
+	if reqErr != nil {
+		fmt.Fprintf(w, "%s %s failed with '%s'\n", req.Method, req.URL, reqErr)
 	}
 
-	if cr, ok := req.Body.(*CapturingReadCloser); ok {
-		body := cr.capturedData.Bytes()
-		if len(body) > 0 {
-			fmt.Printf("Request body %d bytes:\n%s\n", len(body), maybePrettyPrintJSON(body))
-		}
-	} else {
-		fmt.Printf("Can't get request body\n")
+	d, err := httputil.DumpRequest(req, false)
+	if err == nil {
+		w.Write(d)
 	}
-
-	if rsp == nil {
+	if reqErr != nil {
 		return
 	}
-	if d, err := getCopyOfResponseBody(rsp); err != nil {
-		fmt.Printf("Failed to read response body. Error: '%s'\n", err)
-	} else {
-		if len(d) > 0 {
-			fmt.Printf("Response body %d bytes:\n%s\n", len(d), maybePrettyPrintJSON(d))
+
+	if req.Body != nil {
+		if cr, ok := req.Body.(*CapturingReadCloser); ok {
+			body := cr.capturedData.Bytes()
+			if len(body) > 0 {
+				fmt.Fprintf(w, "Request body %d bytes:\n%s\n", len(body), maybePrettyPrintJSON(body))
+			}
+		} else {
+			fmt.Fprint(w, "Can't get request body\n")
 		}
 	}
+
+	if rsp == nil {
+		fmt.Fprint(w, "No response\n")
+		return
+	}
+	fmt.Fprint(w, "--------\n")
+	d, err = httputil.DumpResponse(rsp, false)
+	if err == nil {
+		w.Write(d)
+	}
+	if d, err := getCopyOfResponseBody(rsp); err != nil {
+		fmt.Fprintf(w, "Failed to read response body. Error: '%s'\n", err)
+	} else {
+		if len(d) > 0 {
+			fmt.Fprintf(w, "Response body %d bytes:\n%s\n", len(d), maybePrettyPrintJSON(d))
+		}
+	}
+}
+
+func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
+	if gHTTPLogger == nil {
+		return
+	}
+	dumpRequestAndResponseToWriter(gHTTPLogger, req, rsp, err)
+}
+
+func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
+	dumpRequestAndResponseToWriter(os.Stdout, req, rsp, err)
 }
 
 func maybeDumpFailedResponse(req *http.Request, rsp *http.Response, err error) {
@@ -90,7 +117,7 @@ func addCommonHeaders(req *http.Request) {
 // to be able to print request body for failed requests, we must replace
 // body with one that captures data read from original body.
 func maybeCaptureRequestBody(req *http.Request) {
-	shouldCapture := gLogFailedRequests || gLogHTTP
+	shouldCapture := gLogFailedRequests || gLogHTTP || (gHTTPLogger != nil)
 	if !shouldCapture {
 		return
 	}

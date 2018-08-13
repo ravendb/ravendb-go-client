@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ func NewOrders_All() *AbstractIndexCreationTask {
 	return res
 }
 
-type Currency int
+type Currency = string
 
 // Note: must rename as it conflicts with Order in order_test.go
 type AggOrder struct {
@@ -30,9 +31,9 @@ type AggOrder struct {
 }
 
 const (
-	EUR Currency = iota
-	PLN
-	NIS
+	EUR = "EUR"
+	PLN = "PLN"
+	NIS = "NIS"
 )
 
 func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
@@ -103,7 +104,113 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 	}
 }
 
-func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T)                    {}
+func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	index := NewOrders_All()
+	err = index.execute(store)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+		obj := &AggOrder{
+			Currency: EUR,
+			Product:  "Milk",
+			Total:    3,
+		}
+
+		obj2 := &AggOrder{
+			Currency: NIS,
+			Product:  "Milk",
+			Total:    9,
+		}
+
+		obj3 := &AggOrder{
+			Currency: EUR,
+			Product:  "iPhone",
+			Total:    3333,
+		}
+
+		err = session.Store(obj)
+		assert.NoError(t, err)
+		err = session.Store(obj2)
+		assert.NoError(t, err)
+		err = session.Store(obj3)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+
+		session.Close()
+	}
+
+	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.queryInIndex(getTypeOf(&AggOrder{}), index)
+		builder := func(f IFacetBuilder) {
+			f.byField("product").sumOn("total")
+		}
+		q2 := q.aggregateBy(builder)
+		builder2 := func(f IFacetBuilder) {
+			f.byField("currency").sumOn("total")
+		}
+		q2 = q2.andAggregateBy(builder2)
+		r, err := q2.execute()
+		assert.NoError(t, err)
+
+		facetResult := r["product"]
+
+		values := facetResult.getValues()
+		assert.Equal(t, len(values), 2)
+
+		var n float64 = -1
+		for _, x := range values {
+			if x.getRange() == "milk" {
+				n = *x.getSum()
+				break
+			}
+		}
+		assert.Equal(t, n, float64(12))
+
+		n = -1
+		for _, x := range values {
+			if x.getRange() == "iphone" {
+				n = *x.getSum()
+				break
+			}
+		}
+		assert.Equal(t, n, float64(3333))
+
+		facetResult = r["currency"]
+		values = facetResult.getValues()
+		assert.Equal(t, len(values), 2)
+
+		n = -1
+		for _, x := range values {
+			if x.getRange() == strings.ToLower(EUR) {
+				n = *x.getSum()
+				break
+			}
+		}
+		assert.Equal(t, n, float64(3336))
+
+		n = -1
+		for _, x := range values {
+			if x.getRange() == strings.ToLower(NIS) {
+				n = *x.getSum()
+				break
+			}
+		}
+		assert.Equal(t, n, float64(9))
+
+		session.Close()
+	}
+}
 func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T)             {}
 func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T)                      {}
 func aggregation_canCorrectlyAggregate_Ranges(t *testing.T)                           {}

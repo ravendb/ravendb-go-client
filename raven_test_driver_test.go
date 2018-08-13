@@ -446,6 +446,13 @@ func pcapPathFromTestName(t *testing.T) string {
 	return path
 }
 
+func httpLogPathFromTestName(t *testing.T) string {
+	name := "trace_" + testNameToFileName(t.Name()) + "_go.txt"
+	path := filepath.Join("logs", name)
+	os.Mkdir("logs", 0755)
+	return path
+}
+
 func ravenLogsDirFromTestName(t *testing.T) string {
 	// if this is not full path, raven will put it in it's own Logs directory
 	// next to server executable
@@ -554,6 +561,7 @@ func detectServerPath() {
 	fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
 }
 
+// returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 	downloadServerIfNeeded()
@@ -563,18 +571,35 @@ func createTestDriver(t *testing.T) func() {
 
 	gRavenLogsDir = ravenLogsDirFromTestName(t)
 
-	fmt.Printf("\nStarting %s\n", t.Name())
+	fmt.Printf("\nStarting test %s\n", t.Name())
 	var pcapPath string
-	if os.Getenv("PCAP_CAPTURE") != "" {
+
+	if gLogAllRequests {
+		var err error
+		path := httpLogPathFromTestName(t)
+		gHTTPLogger, err = os.Create(path)
+		if err != nil {
+			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
+		} else {
+			fmt.Printf("Logging HTTP traffic to %s\n", path)
+		}
+	}
+
+	if gPcapCapture {
 		pcapPath = pcapPathFromTestName(t)
 		panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 		gRavenTestDriver = NewRavenTestDriverWithPacketCapture(pcapPath)
 	} else {
 		gRavenTestDriver = NewRavenTestDriver()
 	}
+
 	return func() {
 		deleteTestDriver()
 		maybeConvertPcapToTxt(pcapPath)
+		if gHTTPLogger != nil {
+			gHTTPLogger.Close()
+			gHTTPLogger = nil
+		}
 	}
 }
 

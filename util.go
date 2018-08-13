@@ -24,14 +24,20 @@ var (
 	// can be enabled by setting VERBOSE_LOG env variable to "true"
 	gLogVerbose = false
 
-	// if true, logs summary of all HTTP requests i.e. "GET /foo"
+	// if true, logs summary of all HTTP requests i.e. "GET /foo" to stdout
 	// can be enabled by setting LOG_HTTP_REQUEST_SUMMARY env variable to "true"
 	gLogRequestSummary = false
 
 	// if true, logs request and response of failed http requests (i.e. those returning
-	// status code >= 400)
+	// status code >= 400) to stdout
 	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS env variable to "true"
 	gLogFailedRequests = false
+
+	// if true, logs all http requests/responses to a file for further inspection
+	// this is for use in tests so the file has a fixed location:
+	// logs/trace_${test_name}_go.txt
+	// can be enabled by setting LOG_ALL_REQUESTS env variable to "true"
+	gLogAllRequests = false
 
 	// if true, enables flaky tests
 	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
@@ -40,6 +46,11 @@ var (
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
 	gRavenServerVerbose = false
+
+	// if true, we use ./capturer executable to capture http trafic packets
+	// between client and server
+	// can be enabled by setting PCAP_CAPTURE env variable to "true"
+	gPcapCapture = false
 )
 
 func setStateFromEnv() {
@@ -58,13 +69,24 @@ func setStateFromEnv() {
 		fmt.Printf("Setting gLogFailedRequests to true\n")
 	}
 
+	if !gLogAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
+		gLogAllRequests = true
+		fmt.Printf("Setting gLogAllRequests to true\n")
+	}
+
 	if !gRavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
 		gRavenServerVerbose = true
 		fmt.Printf("Setting gRavenServerVerbose to true\n")
 	}
+
 	if !gEnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
 		gEnableFlakyTests = true
 		fmt.Printf("Setting gEnableFlakyTests to true\n")
+	}
+
+	if !gPcapCapture && isEnvVarTrue("PCAP_CAPTURE") {
+		gPcapCapture = true
+		fmt.Printf("Setting gPcapCapture to true\n")
 	}
 }
 
