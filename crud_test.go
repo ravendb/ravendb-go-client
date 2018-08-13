@@ -123,15 +123,15 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 	_, exists := userJson["lastName"]
 	assert.True(t, exists)
 
-	// TODO: rawQuery NYI
-	/*
-	   try (IDocumentSession newSession = store.openSession()) {
-	       List<User> users = newSession.advanced().rawQuery(User.class, "from Users where lastName = 'user1'").toList();
+	{
+		newSession := openSessionMust(t, store)
+		users, err := newSession.advanced().rawQuery(getTypeOf(&User{}), "from Users where lastName = 'user1'").toList()
+		assert.NoError(t, err)
 
-	       assertThat(users)
-	               .hasSize(1);
-	   }
-	*/
+		assert.Equal(t, len(users), 1)
+
+		newSession.Close()
+	}
 }
 
 func crudTest_canCustomizePropertyNamingStrategy(t *testing.T) {
@@ -271,12 +271,13 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 
 		user1.setAge(10)
 
-		// TODO: this returns 3 changes, showing user/2 as added
-		// which is probably wrong. Need to figure out why.
-		/*
-			changes = newSession.advanced().whatChanged()
+		if gEnableFailingTests {
+			// TODO: this returns 3 changes, showing user/2 as added
+			// which is probably wrong. Need to figure out why.
+			changes, err := newSession.advanced().whatChanged()
+			assert.NoError(t, err)
 			assert.Equal(t, len(changes), 2)
-		*/
+		}
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
