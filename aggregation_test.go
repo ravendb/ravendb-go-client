@@ -537,7 +537,8 @@ func TestAggregation(t *testing.T) {
 	aggregation_canCorrectlyAggregate_Ranges(t)
 	aggregation_canCorrectlyAggregate_MultipleItems(t)
 	aggregation_canCorrectlyAggregate_MultipleAggregations(t)
-	//TODO: failing
-	//aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t)
+	if gEnableFailingTests {
+		aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t)
+	}
 	aggregation_canCorrectlyAggregate_DisplayName(t)
 }

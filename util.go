@@ -43,6 +43,10 @@ var (
 	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
 	gEnableFlakyTests = false
 
+	// if true, enable failing tests
+	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
+	gEnableFailingTests = false
+
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
 	gRavenServerVerbose = false
@@ -82,6 +86,11 @@ func setStateFromEnv() {
 	if !gEnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
 		gEnableFlakyTests = true
 		fmt.Printf("Setting gEnableFlakyTests to true\n")
+	}
+
+	if !gEnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
+		gEnableFailingTests = true
+		fmt.Printf("Setting gEnableFailingTests to true\n")
 	}
 
 	if !gPcapCapture && isEnvVarTrue("PCAP_CAPTURE") {

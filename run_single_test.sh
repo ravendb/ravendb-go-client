@@ -20,17 +20,17 @@ set -o xtrace
 export VERBOSE_LOG=true
 export LOG_HTTP_REQUEST_SUMMARY=true
 export LOG_FAILED_HTTP_REQUESTS=true
-
 # logs output of raven server to stdout, helpful for failing tests
 # export LOG_RAVEN_SERVER=true
+#export PCAP_CAPTURE=true
+export LOG_ALL_REQUESTS=true
+#export ENABLE_FAILING_TESTS=true
+#export ENABLE_FLAKY_TESTS=true
 
 # force running tests even if code didn't change
 go clean -testcache
 
-#export PCAP_CAPTURE=true
-export LOG_ALL_REQUESTS=true
 
-#export ENABLE_FLAKY_TESTS=true
-#go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
+go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestRequestExecutor$
 
-go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestAggregation$
+// go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestAdvancedPatching$

@@ -205,6 +205,9 @@ func getJSONStructFieldNames(typ reflect.Type) []string {
 
 // given a json represented as map and type of a struct
 func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
+	if typ == getTypeOf(ObjectNode{}) {
+		return js, nil
+	}
 	panicIf(!isTypePointerToStruct(typ), "typ should be pointer to struct but is %s, %s", typ.String(), typ.Kind().String())
 
 	// reflect.New() creates a pointer to type. if typ is already a pointer,

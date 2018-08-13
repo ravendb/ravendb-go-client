@@ -77,7 +77,9 @@ func runJava() {
 	//runSingleJavaTest("SpatialTest", "trace_spatial_java.txt")
 	//runSingleJavaTest("SpatialQueriesTest", "trace_spatial_queries_java.txt")
 	//runSingleJavaTest("SpatialSearchTest", "trace_spatial_search_java.txt")
-	runSingleJavaTest("AggregationTest", "trace_aggregation_java.txt")
+	//runSingleJavaTest("AggregationTest", "trace_aggregation_java.txt")
+	runSingleJavaTest("AdvancedPatchingTest", "trace_advanced_patching_java.txt")
+
 }
 
 func main() {

@@ -193,14 +193,7 @@ func requestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
 	err := executor.executeCommand(command)
 	assert.Error(t, err)
 
-	// TODO: this fails with proxy enabled
-	// error: panic: interface conversion: error is *ravendb.RavenException, not *ravendb.AllTopologyNodesDownException
-	//_ = err.(*AllTopologyNodesDownException)
-
-	if dbgRequestExecutorTests {
-		fmt.Printf("requestExecutorTest_failsWhenServerIsOffline end\n")
-		logGoroutines("goroutines_req_executor_after.txt")
-	}
+	_ = err.(*AllTopologyNodesDownException)
 }
 
 func TestRequestExecutor(t *testing.T) {

@@ -7,5 +7,7 @@ set -u -e -o pipefail -o xtrace
 export VERBOSE_LOG=true
 export LOG_FAILED_HTTP_REQUESTS=true
 export LOG_ALL_REQUESTS=true
+#export ENABLE_FAILING_TESTS=true
+#export ENABLE_FLAKY_TESTS=true
 
 go test -race -covermode=atomic -coverprofile=coverage.txt
