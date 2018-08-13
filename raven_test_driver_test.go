@@ -457,8 +457,8 @@ func ravenLogsDirFromTestName(t *testing.T) string {
 	// if this is not full path, raven will put it in it's own Logs directory
 	// next to server executable
 	cwd, _ := os.Getwd()
-	name := "trace_" + testNameToFileName(t.Name()) + "_go_server_dir"
-	path := filepath.Join(cwd, "logs", name)
+	name := testNameToFileName(t.Name()) + ".log.txt"
+	path := filepath.Join(cwd, "logs", "server", "go", name)
 	// recreate dir for clean logs
 	os.RemoveAll(path)
 	os.MkdirAll(path, 0755)

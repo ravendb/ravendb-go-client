@@ -38,7 +38,7 @@ func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Re
 
 	fmt.Fprintf(w, "=========== %d:\n", n)
 	if reqErr != nil {
-		fmt.Fprintf(w, "%s %s failed with '%s'\n", req.Method, req.URL, reqErr)
+		fmt.Fprintf(w, "%s\n", reqErr)
 	}
 
 	d, err := httputil.DumpRequest(req, false)

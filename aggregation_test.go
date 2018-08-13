@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -192,7 +191,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 
 		n = -1
 		for _, x := range values {
-			if x.getRange() == strings.ToLower(EUR) {
+			if x.getRange() == "eur" {
 				n = *x.getSum()
 				break
 			}
@@ -201,7 +200,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 
 		n = -1
 		for _, x := range values {
-			if x.getRange() == strings.ToLower(NIS) {
+			if x.getRange() == "nis" {
 				n = *x.getSum()
 				break
 			}
