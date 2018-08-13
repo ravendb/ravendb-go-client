@@ -14,6 +14,11 @@ func DateUtils_addYears(t time.Time, nYears int) time.Time {
 	return t.AddDate(nYears, 0, 0)
 }
 
+func DateUtils_setYears(t time.Time, nYear int) time.Time {
+	diff := nYear - t.Year()
+	return t.AddDate(diff, 0, 0)
+}
+
 func DateUtils_addMinutes(t time.Time, nMinutes int) time.Time {
 	return t.Add(time.Minute * time.Duration(nMinutes))
 }
