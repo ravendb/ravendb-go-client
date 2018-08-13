@@ -124,6 +124,34 @@ var (
 	globalHTTPClient *http.Client
 )
 
+func getGlobalHTTPClientNoKeepAlive() *http.Client {
+	if globalHTTPClient == nil {
+		// TODO: certificate
+
+		// based on http.DefaultTransport with DisableKeepAlives set to true
+		tr := &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			DisableKeepAlives: true,
+		}
+
+		client := &http.Client{
+			Timeout: time.Second * 15,
+			Transport: tr,
+		}
+		globalHTTPClient = client
+	}
+	return globalHTTPClient
+}
+
 func getGlobalHTTPClient() *http.Client {
 	if globalHTTPClient == nil {
 		// TODO: certificate

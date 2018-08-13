@@ -354,6 +354,8 @@ func TestAttachmentsRevisions(t *testing.T) {
 
 	// TODO: this test is flaky. See bugs.txt
 	// Note: it also fails in Java on mac pro
+	// The bytes sent seem to be exactly the same, Go fails with EOF
+	// Is it issue with not closing the request?
 	if gEnableFlakyTests {
 		attachmentsRevisions_putAttachments(t)
 	}

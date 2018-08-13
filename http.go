@@ -45,9 +45,6 @@ func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Re
 	if err == nil {
 		w.Write(d)
 	}
-	if reqErr != nil {
-		return
-	}
 
 	if req.Body != nil {
 		if cr, ok := req.Body.(*CapturingReadCloser); ok {
@@ -58,6 +55,10 @@ func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Re
 		} else {
 			fmt.Fprint(w, "Can't get request body\n")
 		}
+	}
+
+	if reqErr != nil {
+		return
 	}
 
 	if rsp == nil {
