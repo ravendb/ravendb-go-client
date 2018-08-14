@@ -57,12 +57,12 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		changeVector := jsonGetAsTextPointer(batchResult, Constants_Documents_Metadata_CHANGE_VECTOR)
 		if changeVector == nil {
 			return
-			//TODO: throw new IllegalStateException("PUT response is invalid. @change-vector is missing on " + documentInfo.getId());
+			//TODO: throw new IllegalStateException("PUT response is invalid. @change-vector is missing on " + documentInfo.GetId());
 		}
 		id, _ := jsonGetAsText(batchResult, Constants_Documents_Metadata_ID)
 		if id == "" {
 			return
-			//TODO: throw new IllegalStateException("PUT response is invalid. @id is missing on " + documentInfo.getId());
+			//TODO: throw new IllegalStateException("PUT response is invalid. @id is missing on " + documentInfo.GetId());
 		}
 
 		for propertyName, v := range batchResult {

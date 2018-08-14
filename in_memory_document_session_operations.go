@@ -473,11 +473,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 
 	tmp := NewIdTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
 	if _, ok := s.deferredCommandsMap[tmp]; ok {
-		return NewIllegalStateException("Can't store document, there is a deferred command registered for this document in the session. Document id: %s", id)
+		return NewIllegalStateException("Can't Store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
 
 	if s.deletedEntities.contains(entity) {
-		return NewIllegalStateException("Can't store object, it was already deleted in this session.  Document id: %s", id)
+		return NewIllegalStateException("Can't Store object, it was already deleted in this session.  Document id: %s", id)
 	}
 
 	// we make the check here even if we just generated the ID

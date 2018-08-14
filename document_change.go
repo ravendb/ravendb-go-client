@@ -21,7 +21,7 @@ type DocumentChange struct {
         this.type = type;
     }
 
-    public string getId() {
+    public string GetId() {
         return id;
     }
 

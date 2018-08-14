@@ -49,7 +49,7 @@ func (s *DocumentSessionAttachmentsBase) getNames(entity Object) ([]*AttachmentN
 }
 
 // contentType is optional
-// TODO: maybe split into store() and storeWithContentType()
+// TODO: maybe split into Store() and storeWithContentType()
 func (s *DocumentSessionAttachmentsBase) store(documentId string, name string, stream io.Reader, contentType string) error {
 	// TODO: validate args
 
@@ -57,22 +57,22 @@ func (s *DocumentSessionAttachmentsBase) store(documentId string, name string, s
 
 	key := IdTypeAndName_create(documentId, CommandType_DELETE, "")
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot store attachment" + name + " of document " + documentId + ", there is a deferred command registered for this document to be deleted")
+		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered for this document to be deleted")
 	}
 
 	key = IdTypeAndName_create(documentId, CommandType_ATTACHMENT_PUT, name)
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot store attachment" + name + " of document " + documentId + ", there is a deferred command registered to create an attachment with the same name.")
+		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered to create an attachment with the same name.")
 	}
 
 	key = IdTypeAndName_create(documentId, CommandType_ATTACHMENT_DELETE, name)
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot store attachment" + name + " of document " + documentId + ", there is a deferred command registered to delete an attachment with the same name.")
+		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered to delete an attachment with the same name.")
 	}
 
 	documentInfo := s.documentsById.getValue(documentId)
 	if documentInfo != nil && s.deletedEntities.contains(documentInfo.getEntity()) {
-		return NewIllegalStateException("Cannot store attachment " + name + " of document " + documentId + ", the document was already deleted in this session.")
+		return NewIllegalStateException("Cannot Store attachment " + name + " of document " + documentId + ", the document was already deleted in this session.")
 	}
 
 	cmdData := NewPutAttachmentCommandData(documentId, name, stream, contentType, nil)

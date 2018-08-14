@@ -101,7 +101,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	}
 
 	// TODO: is over-written by CustomSerializationTest
-	// customizeStore(store);
+	// customizeStore(Store);
 	d.hookLeakedConnectionCheck(store)
 
 	d.setupDatabase(store)
@@ -266,7 +266,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		panic("NYI")
 		globalSecuredServer = store
 		//TODO: KeyStore clientCert = getTestClientCertificate();
-		//TODO: store.setCertificate(clientCert);
+		//TODO: Store.setCertificate(clientCert);
 	} else {
 		globalServer = store
 	}

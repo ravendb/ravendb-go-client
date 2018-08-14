@@ -103,11 +103,11 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 	return res
 }
 
-func (o *BulkInsertOperation) isUseCompression() bool {
+func (o *BulkInsertOperation) IsUseCompression() bool {
 	return o.useCompression
 }
 
-func (o *BulkInsertOperation) setUseCompression(useCompression bool) {
+func (o *BulkInsertOperation) SetUseCompression(useCompression bool) {
 	o.useCompression = useCompression
 }
 
@@ -141,7 +141,7 @@ func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedExce
 	return nil
 }
 
-func (o *BulkInsertOperation) waitForId() error {
+func (o *BulkInsertOperation) WaitForId() error {
 	if o._operationId != -1 {
 		return nil
 	}
@@ -155,9 +155,9 @@ func (o *BulkInsertOperation) waitForId() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) storeWithID(entity Object, id string, metadata *IMetadataDictionary) error {
+func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IMetadataDictionary) error {
 	if !o._concurrentCheck.compareAndSet(0, 1) {
-		return NewIllegalStateException("Bulk Insert store methods cannot be executed concurrently.")
+		return NewIllegalStateException("Bulk Insert Store methods cannot be executed concurrently.")
 	}
 	defer o._concurrentCheck.set(0)
 
@@ -170,7 +170,7 @@ func (o *BulkInsertOperation) storeWithID(entity Object, id string, metadata *IM
 	if err != nil {
 		return err
 	}
-	o.err = o.waitForId()
+	o.err = o.WaitForId()
 	if o.err != nil {
 		return o.err
 	}
@@ -258,12 +258,12 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) abort() error {
+func (o *BulkInsertOperation) Abort() error {
 	if o._operationId == -1 {
 		return nil // nothing was done, nothing to kill
 	}
 
-	err := o.waitForId()
+	err := o.WaitForId()
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,7 @@ func (o *BulkInsertOperation) abort() error {
 
 func (o *BulkInsertOperation) Close() error {
 	if o._operationId == -1 {
-		// closing without calling a single store.
+		// closing without calling a single Store.
 		return nil
 	}
 
@@ -301,24 +301,24 @@ func (o *BulkInsertOperation) Close() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) store(entity Object) (string, error) {
-	return o.storeWithMetadata(entity, nil)
+func (o *BulkInsertOperation) Store(entity Object) (string, error) {
+	return o.StoreWithMetadata(entity, nil)
 }
 
-func (o *BulkInsertOperation) storeWithMetadata(entity Object, metadata *IMetadataDictionary) (string, error) {
+func (o *BulkInsertOperation) StoreWithMetadata(entity Object, metadata *IMetadataDictionary) (string, error) {
 	var id string
 	if metadata == nil || !metadata.containsKey(Constants_Documents_Metadata_ID) {
-		id = o.getId(entity)
+		id = o.GetId(entity)
 	} else {
 		idVal, ok := metadata.get(Constants_Documents_Metadata_ID)
 		panicIf(!ok, "didn't find %s key in meatadata", Constants_Documents_Metadata_ID)
 		id = idVal.(string)
 	}
 
-	return id, o.storeWithID(entity, id, metadata)
+	return id, o.StoreWithID(entity, id, metadata)
 }
 
-func (o *BulkInsertOperation) getId(entity Object) string {
+func (o *BulkInsertOperation) GetId(entity Object) string {
 	idRef, ok := o._generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
 	if ok {
 		return idRef

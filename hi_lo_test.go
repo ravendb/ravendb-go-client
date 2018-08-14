@@ -125,7 +125,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		session.Close()
 	}
 
-	newStore.Close() //on document store close, hilo-return should be called
+	newStore.Close() //on document Store close, hilo-return should be called
 
 	newStore = NewDocumentStore()
 	newStore.SetUrls(store.GetUrls())
@@ -147,7 +147,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		session.Close()
 	}
 
-	newStore.Close() //on document store close, hilo-return should be called
+	newStore.Close() //on document Store close, hilo-return should be called
 }
 
 func hiloTest_canNotGoDown(t *testing.T) {

@@ -204,7 +204,7 @@ func (s *DocumentStore) SetIdentifier(identifier string) {
 	s.identifier = identifier
 }
 
-// Close closes the store
+// Close closes the Store
 func (s *DocumentStore) Close() {
 	if s.disposed {
 		return
@@ -235,7 +235,7 @@ func (s *DocumentStore) Close() {
 	}
 }
 
-// OpenSession opens a new session to document store.
+// OpenSession opens a new session to document Store.
 func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 	return s.OpenSessionWithOptions(NewSessionOptions())
 }
@@ -313,7 +313,7 @@ func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *Request
 	return executor
 }
 
-// Initialize initializes document store,
+// Initialize initializes document Store,
 // Must be called before executing any operation.
 func (s *DocumentStore) Initialize() (*DocumentStore, error) {
 	if s.initialized {

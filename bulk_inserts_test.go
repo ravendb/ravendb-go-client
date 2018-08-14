@@ -28,16 +28,16 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 	{
 		bulkInsert := store.BulkInsert()
 
-		_, err = bulkInsert.store(fooBar1)
+		_, err = bulkInsert.Store(fooBar1)
 		assert.NoError(t, err)
 
-		_, err = bulkInsert.store(fooBar2)
+		_, err = bulkInsert.Store(fooBar2)
 		assert.NoError(t, err)
 
-		_, err = bulkInsert.store(fooBar3)
+		_, err = bulkInsert.Store(fooBar3)
 		assert.NoError(t, err)
 
-		_, err = bulkInsert.store(fooBar4)
+		_, err = bulkInsert.Store(fooBar4)
 		assert.NoError(t, err)
 
 		err = bulkInsert.Close()
@@ -82,11 +82,11 @@ func bulkInsertsTest_killedToEarly(t *testing.T) {
 	{
 		bulkInsert := store.BulkInsert()
 
-		_, err = bulkInsert.store(&FooBar{})
+		_, err = bulkInsert.Store(&FooBar{})
 		assert.NoError(t, err)
-		err = bulkInsert.abort()
+		err = bulkInsert.Abort()
 		assert.NoError(t, err)
-		_, err = bulkInsert.store(&FooBar{})
+		_, err = bulkInsert.Store(&FooBar{})
 		assert.Error(t, err)
 
 		_, ok := err.(*BulkInsertAbortedException)
@@ -103,7 +103,7 @@ func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T) {
 
 	{
 		bulkInsert := store.BulkInsert()
-		err = bulkInsert.storeWithID(&FooBar{}, "foobars|", nil)
+		err = bulkInsert.StoreWithID(&FooBar{}, "foobars|", nil)
 		assert.Error(t, err)
 		_, ok := err.(*UnsupportedOperationException)
 		assert.True(t, ok)
@@ -131,7 +131,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 		metadata := &MetadataAsDictionary{}
 		metadata.put(Constants_Documents_Metadata_EXPIRES, expirationDate)
 
-		_, err = bulkInsert.storeWithMetadata(fooBar, metadata)
+		_, err = bulkInsert.StoreWithMetadata(fooBar, metadata)
 		assert.NoError(t, err)
 
 		err = bulkInsert.Close()
