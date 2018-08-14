@@ -277,7 +277,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 	}
 
 	op := NewDeleteAttachmentOperation("users/1", "file2", nil)
-	err = store.Operations().send(op)
+	err = store.Operations().Send(op)
 	assert.NoError(t, err)
 
 	{

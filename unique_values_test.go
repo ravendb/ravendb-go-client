@@ -13,7 +13,7 @@ func uniqueValues_canReadNotExistingKey(t *testing.T) {
 
 	{
 		op := NewGetCompareExchangeValueOperation(GetTypeOf(0), "test")
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.Nil(t, res)
@@ -27,19 +27,19 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
 
 	{
 		op := NewGetCompareExchangeValueOperation(GetTypeOf(0), "test")
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.Nil(t, res)
 	}
 	{
 		op := NewPutCompareExchangeValueOperation("test", 5, 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 	}
 	{
 		op := NewGetCompareExchangeValueOperation(GetTypeOf(0), "test")
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.NotNil(t, res)
@@ -58,11 +58,11 @@ func uniqueValues_canPutUniqueString(t *testing.T) {
 		// Note: not sure why Java test opens a session
 		_ = openSessionMust(t, store)
 		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 
 		op2 := NewGetCompareExchangeValueOperation(GetTypeOf(""), "test")
-		err = store.Operations().send(op2)
+		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 
 		res := op2.Command.Result
@@ -81,7 +81,7 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 		user1.setName("Karmel")
 
 		op := NewPutCompareExchangeValueOperation("test", user1, 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 
@@ -89,7 +89,7 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 		user2.setName("Karmel")
 
 		op2 := NewPutCompareExchangeValueOperation("test2", user2, 0)
-		err = store.Operations().send(op2)
+		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 
@@ -112,7 +112,7 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		user1 := NewUser()
 		user1.setName("Karmel")
 		op := NewPutCompareExchangeValueOperation("test", user1, 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res1 := op.Command.Result
 		val1 := res1.getValue().(*User)
@@ -121,7 +121,7 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		user2.setName("Karmel")
 
 		op2 := NewPutCompareExchangeValueOperation("test2", user2, 0)
-		err = store.Operations().send(op2)
+		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 		val2 := res2.getValue().(*User)
@@ -134,7 +134,7 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 	}
 	{
 		op := NewGetCompareExchangeValuesOperation(GetTypeOf(&User{}), "test", -1, -1)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		values := op.Command.Result
 		assert.Equal(t, len(values), 2)
@@ -155,7 +155,7 @@ func uniqueValues_canRemoveUnique(t *testing.T) {
 
 	{
 		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.getValue().(string)
@@ -163,7 +163,7 @@ func uniqueValues_canRemoveUnique(t *testing.T) {
 		assert.True(t, res.isSuccessful())
 		{
 			op := NewDeleteCompareExchangeValueOperation(GetTypeOf(""), "test", res.getIndex())
-			err = store.Operations().send(op)
+			err = store.Operations().Send(op)
 			assert.NoError(t, err)
 			assert.True(t, res.isSuccessful())
 		}
@@ -177,7 +177,7 @@ func uniqueValues_removeUniqueFailed(t *testing.T) {
 
 	{
 		op := NewPutCompareExchangeValueOperation("test", "Karmel", 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.getValue().(string)
@@ -186,14 +186,14 @@ func uniqueValues_removeUniqueFailed(t *testing.T) {
 	}
 	{
 		op := NewDeleteCompareExchangeValueOperation(GetTypeOf(""), "test", 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.False(t, res.isSuccessful())
 	}
 	{
 		op := NewGetCompareExchangeValueOperation(GetTypeOf(""), "test")
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		readValue := op.Command.Result
 		val := readValue.getValue().(string)
@@ -214,12 +214,12 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 		user2.setName("Karmel2")
 
 		op := NewPutCompareExchangeValueOperation("test", user, 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 
 		op2 := NewPutCompareExchangeValueOperation("test", user2, 0)
-		err = store.Operations().send(op2)
+		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 
@@ -236,7 +236,7 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 		user3.setName("Karmel2")
 
 		op3 := NewPutCompareExchangeValueOperation("test", user3, res2.getIndex())
-		err = store.Operations().send(op3)
+		err = store.Operations().Send(op3)
 		assert.NoError(t, err)
 		res2 = op3.Command.Result
 		assert.True(t, res2.isSuccessful())
@@ -254,12 +254,12 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		user := NewUser()
 		user.setName("Karmel")
 		op := NewPutCompareExchangeValueOperation("test", user, 0)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 	}
 	{
 		op := NewGetCompareExchangeValueOperation(GetTypeOf(&User{}), "test")
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.getValue().(*User)
@@ -268,7 +268,7 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		user2 := NewUser()
 		user2.setName("Karmel2")
 		op2 := NewPutCompareExchangeValueOperation("test", user2, res.getIndex())
-		err = store.Operations().send(op2)
+		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 		assert.True(t, res2.isSuccessful())

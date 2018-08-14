@@ -41,7 +41,7 @@ func advancedPatching_testWithVariables(t *testing.T) {
 	}
 	patchRequest.SetValues(m)
 	patchOperation := NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
-	err = store.Operations().send(patchOperation)
+	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
 
 	{

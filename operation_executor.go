@@ -25,7 +25,7 @@ func NewOperationExecutorWithDatabaseName(store *DocumentStore, databaseName str
 	return res
 }
 
-func (e *OperationExecutor) forDatabase(databaseName string) *OperationExecutor {
+func (e *OperationExecutor) ForDatabase(databaseName string) *OperationExecutor {
 	if strings.EqualFold(e.databaseName, databaseName) {
 		return e
 	}
@@ -33,23 +33,23 @@ func (e *OperationExecutor) forDatabase(databaseName string) *OperationExecutor 
 	return NewOperationExecutorWithDatabaseName(e.store, databaseName)
 }
 
-func (e *OperationExecutor) send(operation IOperation) error {
-	return e.sendWithSessionInfo(operation, nil)
+func (e *OperationExecutor) Send(operation IOperation) error {
+	return e.SendWithSessionInfo(operation, nil)
 }
 
 // Note: we don't return a result because we could only return interface{}
 // The caller has access to operation and can access strongly typed
 // command and its result
-func (e *OperationExecutor) sendWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) error {
+func (e *OperationExecutor) SendWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) error {
 	command := operation.getCommand(e.store, e.requestExecutor.getConventions(), e.requestExecutor.getCache())
 	return e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
 }
 
 func (e *OperationExecutor) sendAsync(operation IOperation) (*Operation, error) {
-	return e.sendAsyncWithSessionInfo(operation, nil)
+	return e.SendAsyncWithSessionInfo(operation, nil)
 }
 
-func (e *OperationExecutor) sendAsyncWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) (*Operation, error) {
+func (e *OperationExecutor) SendAsyncWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) (*Operation, error) {
 	command := operation.getCommand(e.store, e.requestExecutor.getConventions(), e.requestExecutor.getCache())
 
 	err := e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)

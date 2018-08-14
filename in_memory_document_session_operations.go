@@ -182,7 +182,7 @@ func (s *InMemoryDocumentSessionOperations) getRequestExecutor() *RequestExecuto
 func (s *InMemoryDocumentSessionOperations) getOperations() *OperationExecutor {
 	if s._operationExecutor == nil {
 		dbName := s.getDatabaseName()
-		s._operationExecutor = s.getDocumentStore().Operations().forDatabase(dbName)
+		s._operationExecutor = s.getDocumentStore().Operations().ForDatabase(dbName)
 	}
 	return s._operationExecutor
 }

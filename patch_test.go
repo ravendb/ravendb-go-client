@@ -26,7 +26,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 
 	patchOperation := NewPatchOperation("users/1", nil,
 		PatchRequest_forScript("this.name = \"Patched\""), nil, false)
-	err = store.Operations().send(patchOperation)
+	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
 	status := patchOperation.Command.Result
 	assert.Equal(t, status.getStatus(), PatchStatus_PATCHED)

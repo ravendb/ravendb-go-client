@@ -218,7 +218,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 		op := NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
 		// TODO this test is flaky. Sometimes it works, sometimes it doesn't
 		// even though the data sent on wire seem to be the same
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 
 		assert.NoError(t, err)
 
@@ -233,7 +233,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	{
 		backgroundStream := bytes.NewReader([]byte{10, 20, 30, 40, 50})
 		op := NewPutAttachmentOperation("users/1", names[1], backgroundStream, "ImGgE/jPeG", nil)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
 		s := *result.getChangeVector()
@@ -245,7 +245,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	{
 		fileStream := bytes.NewReader([]byte{1, 2, 3, 4, 5})
 		op := NewPutAttachmentOperation("users/1", names[2], fileStream, "", nil)
-		err = store.Operations().send(op)
+		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
 		s := *result.getChangeVector()
