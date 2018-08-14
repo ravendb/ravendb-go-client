@@ -1,0 +1,101 @@
+package ravendb
+
+import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	insertData(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		stream := bytes.NewBuffer(nil)
+
+		ids := []string{"employee2s/1-A", "employee2s/4-A", "employee2s/7-A"}
+		err = session.advanced().loadIntoStream(ids, stream)
+		assert.NoError(t, err)
+
+		d, err := ioutil.ReadAll(stream)
+		assert.NoError(t, err)
+		var jsonNode map[string]interface{}
+		err = json.Unmarshal(d, &jsonNode)
+		assert.NoError(t, err)
+
+		res := jsonNode["Results"]
+		a := res.([]interface{})
+		assert.Equal(t, len(a), 3)
+
+		names := []string{"Aviv", "Maxim", "Michael"}
+
+		for _, v := range a {
+			v2 := v.(ObjectNode)
+			s, _ := jsonGetAsText(v2, "firstName")
+			assert.True(t, stringArrayContains(names, s))
+		}
+
+		session.Close()
+	}
+}
+
+func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {}
+
+func insertData(t *testing.T, store *IDocumentStore) {
+	var err error
+	{
+		session := openSessionMust(t, store)
+
+		insertEmployee := func(name string) error {
+			employee := &Employee2{
+				FirstName: name,
+			}
+			return session.Store(employee)
+		}
+
+		err = insertEmployee("Aviv")
+		assert.NoError(t, err)
+		err = insertEmployee("Iftah")
+		assert.NoError(t, err)
+		err = insertEmployee("Tal")
+		assert.NoError(t, err)
+		err = insertEmployee("Maxim")
+		assert.NoError(t, err)
+		err = insertEmployee("Karmel")
+		assert.NoError(t, err)
+		err = insertEmployee("Grisha")
+		assert.NoError(t, err)
+		err = insertEmployee("Michael")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+}
+
+// Note: conflicts with Employee in employee_test.go
+type Employee2 struct {
+	FirstName string `json:"firstName"`
+}
+
+func TestLoadIntoStream(t *testing.T) {
+	if dbTestsDisabled() {
+		return
+	}
+
+	destroyDriver := createTestDriver(t)
+	defer recoverTest(t, destroyDriver)
+
+	// matches order of Java tests
+	loadIntoStream_canLoadStartingWithIntoStream(t)
+	loadIntoStream_canLoadByIdsIntoStream(t)
+}

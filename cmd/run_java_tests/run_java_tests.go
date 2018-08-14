@@ -42,13 +42,10 @@ func runJava() {
 
 	//runSingleJavaTest("AdvancedPatchingTest", "trace_advanced_patching_java.txt")
 	//runSingleJavaTest("AggregationTest", "trace_aggregation_java.txt")
-
 	// fails on mac pro with 4.0.6
-	runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
-
+	//runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
 	// sometimes fails on mac pro
 	// runSingleJavaTest("AttachmentsRevisionsTest", "trace_attachments_revisions_java.txt")
-
 	//runSingleJavaTest("BasicDocumentsTest", "trace_basic_documents_java.txt")
 	//runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
 	//runSingleJavaTest("ClientConfigurationTest", "trace_client_configuration_java.txt")
@@ -84,7 +81,9 @@ func runJava() {
 	//runSingleJavaTest("SpatialQueriesTest", "trace_spatial_queries_java.txt")
 	//runSingleJavaTest("SpatialSearchTest", "trace_spatial_search_java.txt")
 	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
+	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
 
+	runSingleJavaTest("LoadIntoStreamTest", "trace_load_into_stream_java.txt")
 }
 
 func main() {

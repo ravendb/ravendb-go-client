@@ -155,13 +155,9 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 
 		if stream != nil {
 			result := command.Result
-			// TODO: serialize directly to stream
-			d, err := json.Marshal(result)
-			panicIf(err != nil, "json.Marshal() failed with %s", err)
-			_, err = stream.Write(d)
-			if err != nil {
-				return err
-			}
+			enc := json.NewEncoder(stream)
+			err = enc.Encode(result)
+			panicIf(err != nil, "enc.Encode() failed with %s", err)
 		} else {
 			operation.setResult(command.Result)
 		}
@@ -235,7 +231,11 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 	return command, nil
 }
 
-// public void loadIntoStream(Collection<string> ids, OutputStream output) {
+func (s *DocumentSession) loadIntoStream(ids []string, output io.Writer) error {
+	op := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	return s.loadInternalWithOperation(ids, op, output);
+}
+ 
 // public <T, U> void increment(T entity, string path, U valueToAdd) {
 // public <T, U> void increment(string id, string path, U valueToAdd) {
 // public <T, U> void patch(T entity, string path, U value) {

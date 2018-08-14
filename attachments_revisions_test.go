@@ -203,6 +203,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
 		session.Close()
 	}
 
@@ -287,6 +288,7 @@ func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assert
 			revisions[i] = v.(*User)
 		}
 		assertAction(t, session, revisions)
+
 		session.Close()
 	}
 }
