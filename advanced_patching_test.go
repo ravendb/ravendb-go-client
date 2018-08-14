@@ -41,12 +41,12 @@ func advancedPatching_testWithVariables(t *testing.T) {
 	}
 	patchRequest.SetValues(m)
 	patchOperation := NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
-	err = store.operations().send(patchOperation)
+	err = store.Operations().send(patchOperation)
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.Load(getTypeOf(&CustomType{}), "customTypes/1")
+		loadedI, err := session.Load(GetTypeOf(&CustomType{}), "customTypes/1")
 		assert.NoError(t, err)
 		loaded := loadedI.(*CustomType)
 		assert.Equal(t, loaded.Owner, "not-me")
@@ -88,12 +88,12 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	def1.setMaps(NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }"))
 
 	op := NewPutIndexesOperation(def1)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
-		q := session.Advanced().DocumentQueryAll(getTypeOf(&CustomType{}), "TestIndex", "", false)
+		q := session.Advanced().DocumentQueryAll(GetTypeOf(&CustomType{}), "TestIndex", "", false)
 		q = q.waitForNonStaleResults(0)
 		_, err = q.toList()
 		assert.NoError(t, err)
@@ -102,7 +102,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	}
 
 	op2 := NewPatchByQueryOperation("FROM INDEX 'TestIndex' WHERE value = 1 update { put('NewItem/3', {'copiedValue': this.value });}")
-	operation, err := store.operations().sendAsync(op2)
+	operation, err := store.Operations().sendAsync(op2)
 	assert.NoError(t, err)
 
 	operation.waitForCompletion()
@@ -110,7 +110,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		jsonDocument, err := session.Load(getTypeOf(ObjectNode{}), "NewItem/3")
+		jsonDocument, err := session.Load(GetTypeOf(ObjectNode{}), "NewItem/3")
 		assert.NoError(t, err)
 		jsonDoc := jsonDocument.(ObjectNode)
 		assert.Equal(t, jsonDoc["copiedValue"], "1")

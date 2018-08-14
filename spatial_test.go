@@ -159,11 +159,11 @@ func spatial_weirdSpatialResults(t *testing.T) {
 
 		var statsRef *QueryStatistics
 
-		q := session.Advanced().DocumentQueryInIndex(getTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndex(GetTypeOf(&MyDocument{}), index)
 		q = q.waitForNonStaleResults(0)
 		q = q.withinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
 		q = q.statistics(&statsRef)
-		q = q.selectFields(getTypeOf(&MyProjection{}), "id", "latitude", "longitude")
+		q = q.selectFields(GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.take(50)
 
 		result, err := q.toList()
@@ -213,11 +213,11 @@ func spatial_matchSpatialResults(t *testing.T) {
 
 		var statsRef *QueryStatistics
 
-		q := session.Advanced().DocumentQueryInIndex(getTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndex(GetTypeOf(&MyDocument{}), index)
 		q = q.waitForNonStaleResults(0)
 		q = q.withinRadiusOf("coordinates", 0, 10, 10)
 		q = q.statistics(&statsRef)
-		q = q.selectFields(getTypeOf(&MyProjection{}), "id", "latitude", "longitude")
+		q = q.selectFields(GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.take(50)
 
 		result, err := q.toList()

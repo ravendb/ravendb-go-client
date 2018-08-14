@@ -182,7 +182,7 @@ func (s *InMemoryDocumentSessionOperations) getRequestExecutor() *RequestExecuto
 func (s *InMemoryDocumentSessionOperations) getOperations() *OperationExecutor {
 	if s._operationExecutor == nil {
 		dbName := s.getDatabaseName()
-		s._operationExecutor = s.getDocumentStore().operations().forDatabase(dbName)
+		s._operationExecutor = s.getDocumentStore().Operations().forDatabase(dbName)
 	}
 	return s._operationExecutor
 }
@@ -955,7 +955,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 		documentInfo.setChangeVector(changeVector)
 	}
 	documentInfo.setDocument(document)
-	documentInfo.setEntity(s.entityToJson.convertToEntity(getTypeOf(entity), documentInfo.getId(), document))
+	documentInfo.setEntity(s.entityToJson.convertToEntity(GetTypeOf(entity), documentInfo.getId(), document))
 
 	err := BeanUtils_copyProperties(entity, documentInfo.getEntity())
 	if err != nil {

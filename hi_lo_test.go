@@ -35,7 +35,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
+	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().getIdentityPartsSeparator())
 
 	{
 		session := openSessionMust(t, store)
@@ -60,7 +60,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		//err = session.load(&hiloDoc, "Raven/Hilo/users")
 		//assert.Nil(t, err)
 
-		result, err := session.Load(getTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
+		result, err := session.Load(GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
 		assert.NoError(t, err)
 		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.getMax()
@@ -74,7 +74,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		result, err := session.Load(getTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
+		result, err := session.Load(GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
 		assert.NoError(t, err)
 		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.getMax()
@@ -98,8 +98,8 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	defer store.Close()
 
 	newStore := NewDocumentStore()
-	newStore.setUrls(store.getUrls())
-	newStore.setDatabase(store.getDatabase())
+	newStore.SetUrls(store.GetUrls())
+	newStore.SetDatabase(store.GetDatabase())
 
 	_, err = newStore.Initialize()
 	assert.NoError(t, err)
@@ -128,8 +128,8 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	newStore.Close() //on document store close, hilo-return should be called
 
 	newStore = NewDocumentStore()
-	newStore.setUrls(store.getUrls())
-	newStore.setDatabase(store.getDatabase())
+	newStore.SetUrls(store.GetUrls())
+	newStore.SetDatabase(store.GetDatabase())
 
 	_, err = newStore.Initialize()
 	assert.NoError(t, err)
@@ -139,7 +139,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 
-		hiloDocI, err := session.Load(getTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
+		hiloDocI, err := session.Load(GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
 		assert.NoError(t, err)
 		hiloDoc := hiloDocI.(*HiLoDoc)
 		max := hiloDoc.getMax()
@@ -166,7 +166,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, err)
 
-	hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.getDatabase(), store.getConventions().getIdentityPartsSeparator())
+	hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().getIdentityPartsSeparator())
 
 	nextID, err := hiLoKeyGenerator.nextID()
 	assert.Nil(t, err)
@@ -207,7 +207,7 @@ func hiloTest_multiDb(t *testing.T) {
 	err = session.SaveChanges()
 	assert.NoError(t, err)
 
-	multiDbHilo := NewMultiDatabaseHiLoIdGenerator(store, store.getConventions())
+	multiDbHilo := NewMultiDatabaseHiLoIdGenerator(store, store.GetConventions())
 	generateDocumentKey := multiDbHilo.GenerateDocumentID("", NewUser())
 	assert.Equal(t, generateDocumentKey, "users/65-A")
 	generateDocumentKey = multiDbHilo.GenerateDocumentID("", &Product{})

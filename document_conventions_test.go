@@ -9,6 +9,6 @@ import (
 func TestDefaultGetCollectionName(t *testing.T) {
 	name := defaultGetCollectionName(&User{})
 	assert.Equal(t, "Users", name)
-	name = defaultGetCollectionName(getTypeOf(&User{}))
+	name = defaultGetCollectionName(GetTypeOf(&User{}))
 	assert.Equal(t, "Users", name)
 }

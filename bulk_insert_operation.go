@@ -92,13 +92,13 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 	reader, writer := io.Pipe()
 
 	res := &BulkInsertOperation{
-		_conventions:                 store.getConventions(),
+		_conventions:                 store.GetConventions(),
 		_requestExecutor:             re,
 		_generateEntityIdOnTheClient: NewGenerateEntityIdOnTheClient(re.getConventions(), f),
-		_reader:        reader,
-		_currentWriter: writer,
-		_operationId:   -1,
-		_first:         true,
+		_reader:                      reader,
+		_currentWriter:               writer,
+		_operationId:                 -1,
+		_first:                       true,
 	}
 	return res
 }

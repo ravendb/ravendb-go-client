@@ -31,7 +31,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 	{
 		indexQuery := NewIndexQuery("from users where age == 5")
 		operation := NewDeleteByQueryOperation(indexQuery)
-		asyncOp, err := store.operations().sendAsync(operation)
+		asyncOp, err := store.Operations().sendAsync(operation)
 		assert.NoError(t, err)
 
 		err = asyncOp.waitForCompletion()
@@ -39,7 +39,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			q := session.Query(getTypeOf(&User{}))
+			q := session.Query(GetTypeOf(&User{}))
 			count, err := q.count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)

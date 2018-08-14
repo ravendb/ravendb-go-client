@@ -41,20 +41,20 @@ func revisionsTest_revisions(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		allRevisions, err := session.Advanced().Revisions().getFor(getTypeOf(&User{}), "users/1")
+		allRevisions, err := session.Advanced().Revisions().getFor(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		assert.Equal(t, len(allRevisions), 4)
 
 		names := collectUserNamesSorted(allRevisions)
 		assert.Equal(t, names, []string{"user1", "user2", "user3", "user4"})
 
-		revisionsSkipFirst, err := session.Advanced().Revisions().getForStartAt(getTypeOf(&User{}), "users/1", 1)
+		revisionsSkipFirst, err := session.Advanced().Revisions().getForStartAt(GetTypeOf(&User{}), "users/1", 1)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirst), 3)
 		names = collectUserNamesSorted(revisionsSkipFirst)
 		assert.Equal(t, names, []string{"user1", "user2", "user3"})
 
-		revisionsSkipFirstTakeTwo, err := session.Advanced().Revisions().getForPaged(getTypeOf(&User{}), "users/1", 1, 2)
+		revisionsSkipFirstTakeTwo, err := session.Advanced().Revisions().getForPaged(GetTypeOf(&User{}), "users/1", 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirstTakeTwo), 2)
 		names = collectUserNamesSorted(revisionsSkipFirstTakeTwo)
@@ -78,7 +78,7 @@ func revisionsTest_revisions(t *testing.T) {
 		if ok {
 			changeVector = chvi.(string)
 		}
-		userI, err := session.Advanced().Revisions().get(getTypeOf(&User{}), changeVector)
+		userI, err := session.Advanced().Revisions().get(GetTypeOf(&User{}), changeVector)
 		assert.NoError(t, err)
 		user := userI.(*User)
 		assert.Equal(t, *user.getName(), "user3")

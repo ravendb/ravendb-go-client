@@ -26,7 +26,7 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 	defer store.Close()
 
 	{
-		bulkInsert := store.bulkInsert()
+		bulkInsert := store.BulkInsert()
 
 		_, err = bulkInsert.store(fooBar1)
 		assert.NoError(t, err)
@@ -46,13 +46,13 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		doc1I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/1-A")
+		doc1I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
-		doc2I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/2-A")
+		doc2I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/2-A")
 		assert.NoError(t, err)
-		doc3I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/3-A")
+		doc3I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/3-A")
 		assert.NoError(t, err)
-		doc4I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/4-A")
+		doc4I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/4-A")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, doc1I)
@@ -80,7 +80,7 @@ func bulkInsertsTest_killedToEarly(t *testing.T) {
 	defer store.Close()
 
 	{
-		bulkInsert := store.bulkInsert()
+		bulkInsert := store.BulkInsert()
 
 		_, err = bulkInsert.store(&FooBar{})
 		assert.NoError(t, err)
@@ -102,7 +102,7 @@ func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T) {
 	defer store.Close()
 
 	{
-		bulkInsert := store.bulkInsert()
+		bulkInsert := store.BulkInsert()
 		err = bulkInsert.storeWithID(&FooBar{}, "foobars|", nil)
 		assert.Error(t, err)
 		_, ok := err.(*UnsupportedOperationException)
@@ -124,7 +124,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 	expirationDate := NetISO8601Utils_format(et)
 
 	{
-		bulkInsert := store.bulkInsert()
+		bulkInsert := store.BulkInsert()
 
 		fooBar := &FooBar{}
 		fooBar.setName("Jon Show")
@@ -140,7 +140,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entity, err := session.Load(getTypeOf(&FooBar{}), "FooBars/1-A")
+		entity, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
 
 		meta, err := session.Advanced().getMetadataFor(entity)

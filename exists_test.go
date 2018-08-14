@@ -40,7 +40,7 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		_, err = session.Load(getTypeOf(NewUser()), "users/2")
+		_, err = session.Load(GetTypeOf(NewUser()), "users/2")
 		assert.NoError(t, err)
 		ok, err = session.Advanced().Exists("users/2")
 		assert.NoError(t, err)

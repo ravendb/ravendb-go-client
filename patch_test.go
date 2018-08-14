@@ -26,14 +26,14 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 
 	patchOperation := NewPatchOperation("users/1", nil,
 		PatchRequest_forScript("this.name = \"Patched\""), nil, false)
-	err = store.operations().send(patchOperation)
+	err = store.Operations().send(patchOperation)
 	assert.NoError(t, err)
 	status := patchOperation.Command.Result
 	assert.Equal(t, status.getStatus(), PatchStatus_PATCHED)
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(getTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.getName(), "Patched")
@@ -59,14 +59,14 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 	}
 
 	operation := NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
-	op, err := store.operations().sendAsync(operation)
+	op, err := store.Operations().sendAsync(operation)
 	assert.NoError(t, err)
 	err = op.waitForCompletion()
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(getTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.getName(), "Patched")
@@ -93,7 +93,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 
 	operation := NewPatchByQueryOperation("from Users update {  throw 5 }")
 
-	op, err := store.operations().sendAsync(operation)
+	op, err := store.Operations().sendAsync(operation)
 	assert.NoError(t, err)
 
 	err = op.waitForCompletion()

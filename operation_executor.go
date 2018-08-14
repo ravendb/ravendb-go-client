@@ -18,7 +18,7 @@ func NewOperationExecutorWithDatabaseName(store *DocumentStore, databaseName str
 		databaseName: databaseName,
 	}
 	if res.databaseName == "" {
-		res.databaseName = store.getDatabase()
+		res.databaseName = store.GetDatabase()
 	}
 	panicIf(res.databaseName == "", "databaseName is empty")
 	res.requestExecutor = store.GetRequestExecutorWithDatabase(res.databaseName)
@@ -58,7 +58,7 @@ func (e *OperationExecutor) sendAsyncWithSessionInfo(operation IOperation, sessi
 	}
 
 	changes := func() *IDatabaseChanges {
-		return e.store.changes()
+		return e.store.Changes()
 	}
 	result := getCommandOperationIdResult(command)
 

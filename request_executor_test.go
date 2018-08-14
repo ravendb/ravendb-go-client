@@ -20,7 +20,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 	defer store.Close()
 
 	{
-		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
+		executor := RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
 		errorsCount := 0
 
 		for i := 0; i < 40; i++ {
@@ -51,7 +51,7 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 	defer store.Close()
 
 	{
-		executor := RequestExecutor_create(store.getUrls(), store.getDatabase(), nil, conventions)
+		executor := RequestExecutor_create(store.GetUrls(), store.GetDatabase(), nil, conventions)
 		for i := 0; i < 50; i++ {
 			databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
 			command := databaseNamesOperation.getCommand(conventions)
@@ -73,7 +73,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 	defer store.Close()
 
 	{
-		executor := RequestExecutor_create(store.getUrls(), store.getDatabase(), nil, conventions)
+		executor := RequestExecutor_create(store.GetUrls(), store.GetDatabase(), nil, conventions)
 
 		databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.getCommand(conventions)
@@ -81,7 +81,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 		assert.NoError(t, err)
 
 		dbNames := command.Result
-		assert.True(t, stringArrayContains(dbNames, store.getDatabase()))
+		assert.True(t, stringArrayContains(dbNames, store.GetDatabase()))
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canFetchDatabasesNames end\n")
@@ -97,9 +97,9 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 	defer store.Close()
 
 	{
-		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
+		executor := RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
 		serverNode := NewServerNode()
-		serverNode.setUrl(store.getUrls()[0])
+		serverNode.setUrl(store.GetUrls()[0])
 		serverNode.setDatabase("no_such")
 		future := executor.updateTopologyAsync(serverNode, 5000)
 		_, err := future.get()
@@ -119,7 +119,7 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 	defer store.Close()
 
 	{
-		executor := RequestExecutor_create(store.getUrls(), "no_such_db", nil, conventions)
+		executor := RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
 		command := NewGetNextOperationIdCommand()
 		err := executor.executeCommand(command)
 		_ = err.(*DatabaseDoesNotExistException)
@@ -138,13 +138,13 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 	defer store.Close()
 
 	{
-		executor := RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(store.getUrls()[0], store.getDatabase(), nil, documentConventions)
+		executor := RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(store.GetUrls()[0], store.GetDatabase(), nil, documentConventions)
 		nodes := executor.getTopologyNodes()
 		assert.Equal(t, 1, len(nodes))
 
 		serverNode := nodes[0]
-		assert.Equal(t, serverNode.getUrl(), store.getUrls()[0])
-		assert.Equal(t, serverNode.getDatabase(), store.getDatabase())
+		assert.Equal(t, serverNode.getUrl(), store.GetUrls()[0])
+		assert.Equal(t, serverNode.getDatabase(), store.GetDatabase())
 
 		command := NewGetNextOperationIdCommand()
 		err := executor.executeCommand(command)
@@ -164,8 +164,8 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	url := store.getUrls()[0]
-	dbName := store.getDatabase()
+	url := store.GetUrls()[0]
+	dbName := store.GetDatabase()
 	{
 		executor := RequestExecutor_create([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, documentConventions)
 		command := NewGetNextOperationIdCommand()

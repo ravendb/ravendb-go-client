@@ -39,7 +39,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			}
 
 			cmd := NewDeleteDocumentCommand("users/1", nil)
-			err = store.getRequestExecutor().executeCommand(cmd)
+			err = store.GetRequestExecutor().executeCommand(cmd)
 			assert.NoError(t, err)
 			assertRevisions2(t, store, names, f, 6, 0, 3)
 		}
@@ -163,7 +163,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			revisionsI, err := session.Advanced().Revisions().getFor(getTypeOf(&User{}), "users/1")
+			revisionsI, err := session.Advanced().Revisions().getFor(GetTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 
 			// TODO: could be done with reflection
@@ -218,7 +218,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 		op := NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
 		// TODO this test is flaky. Sometimes it works, sometimes it doesn't
 		// even though the data sent on wire seem to be the same
-		err = store.operations().send(op)
+		err = store.Operations().send(op)
 
 		assert.NoError(t, err)
 
@@ -233,7 +233,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	{
 		backgroundStream := bytes.NewReader([]byte{10, 20, 30, 40, 50})
 		op := NewPutAttachmentOperation("users/1", names[1], backgroundStream, "ImGgE/jPeG", nil)
-		err = store.operations().send(op)
+		err = store.Operations().send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
 		s := *result.getChangeVector()
@@ -245,7 +245,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 	{
 		fileStream := bytes.NewReader([]byte{1, 2, 3, 4, 5})
 		op := NewPutAttachmentOperation("users/1", names[2], fileStream, "", nil)
-		err = store.operations().send(op)
+		err = store.Operations().send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
 		s := *result.getChangeVector()
@@ -263,7 +263,7 @@ func assertRevisions(t *testing.T, store *DocumentStore, names []string, assertA
 
 func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assertAction func(*testing.T, *DocumentSession, []*User), expectedCountOfAttachments int, expectedCountOfDocuments int, expectedCountOfUniqueAttachments int) {
 	op := NewGetStatisticsOperation()
-	err := store.maintenance().send(op)
+	err := store.Maintenance().send(op)
 	assert.NoError(t, err)
 	statistics := op.Command.Result
 
@@ -279,7 +279,7 @@ func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assert
 
 	{
 		session := openSessionMust(t, store)
-		revisionsI, err := session.Advanced().Revisions().getFor(getTypeOf(&User{}), "users/1")
+		revisionsI, err := session.Advanced().Revisions().getFor(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		n := len(revisionsI)
 		assert.Equal(t, n, 4)

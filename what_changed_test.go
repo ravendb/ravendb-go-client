@@ -28,7 +28,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		userI, err := newSession.Load(getTypeOf(&NameAndAge{}), "users/1")
+		userI, err := newSession.Load(GetTypeOf(&NameAndAge{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*NameAndAge)
 		user.setAge(5)
@@ -71,7 +71,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(getTypeOf(&BasicAge{}), "users/1")
+		_, err = newSession.Load(GetTypeOf(&BasicAge{}), "users/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().whatChanged()
@@ -111,7 +111,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(getTypeOf(&Int{}), "users/1")
+		_, err = newSession.Load(GetTypeOf(&Int{}), "users/1")
 		assert.NoError(t, err)
 		changes, _ := newSession.Advanced().whatChanged()
 		change := changes["users/1"]
@@ -160,7 +160,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			arrI, err := newSession.Load(getTypeOf(&Arr{}), "users/1")
+			arrI, err := newSession.Load(GetTypeOf(&Arr{}), "users/1")
 			assert.NoError(t, err)
 			arr := arrI.(*Arr)
 
@@ -213,7 +213,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.Load(getTypeOf(&Arr{}), "arr/1")
+		arrI, err := newSession.Load(GetTypeOf(&Arr{}), "arr/1")
 		assert.NoError(t, err)
 
 		arr := arrI.(*Arr)
@@ -259,7 +259,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.Load(getTypeOf(&Arr{}), "arr/1")
+		arrI, err := newSession.Load(GetTypeOf(&Arr{}), "arr/1")
 		assert.NoError(t, err)
 
 		arr := arrI.(*Arr)
@@ -318,7 +318,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(getTypeOf(&Double{}), "num/1")
+		_, err = newSession.Load(GetTypeOf(&Double{}), "num/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().whatChanged()
@@ -328,7 +328,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(getTypeOf(&Int{}), "num/2")
+		_, err = newSession.Load(GetTypeOf(&Int{}), "num/2")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().whatChanged()
@@ -370,11 +370,11 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		user1I, err := session.Load(getTypeOf(&User{}), "users/1")
+		user1I, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
 
-		user2I, err := session.Load(getTypeOf(&User{}), "users/2")
+		user2I, err := session.Load(GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		user2 = user2I.(*User)
 

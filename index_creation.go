@@ -3,12 +3,12 @@ package ravendb
 func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *IDocumentStore, conventions *DocumentConventions) error {
 
 	if conventions == nil {
-		conventions = store.getConventions()
+		conventions = store.GetConventions()
 	}
 
 	indexesToAdd := IndexCreation_createIndexesToAdd(indexes, conventions)
 	op := NewPutIndexesOperation(indexesToAdd...)
-	err := store.maintenance().send(op)
+	err := store.Maintenance().send(op)
 	if err == nil {
 		return nil
 	}

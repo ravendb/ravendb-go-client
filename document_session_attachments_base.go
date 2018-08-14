@@ -35,7 +35,7 @@ func (s *DocumentSessionAttachmentsBase) getNames(entity Object) ([]*AttachmentN
 	}
 	n := len(attachments)
 	results := make([]*AttachmentName, n, n)
-	clazz := getTypeOf(&AttachmentName{})
+	clazz := GetTypeOf(&AttachmentName{})
 	for i := 0; i < n; i++ {
 		jsonNode := attachments[i]
 		resI, err := convertValue(jsonNode, clazz)

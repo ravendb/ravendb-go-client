@@ -69,7 +69,9 @@ func getIdentityProperty(typ reflect.Type) string {
 	return "ID"
 }
 
-func getTypeOf(v interface{}) reflect.Type {
+// GetTypeOf returns reflect.Type of a given value.
+// TODO: possibly just call reflect.TypeOf directly
+func GetTypeOf(v interface{}) reflect.Type {
 	// TODO: validate that v is of valid type (for now pointer to a struct)
 	return reflect.TypeOf(v)
 }
@@ -205,7 +207,7 @@ func getJSONStructFieldNames(typ reflect.Type) []string {
 
 // given a json represented as map and type of a struct
 func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
-	if typ == getTypeOf(ObjectNode{}) {
+	if typ == GetTypeOf(ObjectNode{}) {
 		return js, nil
 	}
 	panicIf(!isTypePointerToStruct(typ), "typ should be pointer to struct but is %s, %s", typ.String(), typ.Kind().String())

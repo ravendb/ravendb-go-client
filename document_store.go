@@ -42,22 +42,22 @@ type DocumentStore struct {
 }
 
 // from DocumentStoreBase
-func (s *DocumentStore) getConventions() *DocumentConventions {
+func (s *DocumentStore) GetConventions() *DocumentConventions {
 	if s.conventions == nil {
 		s.conventions = NewDocumentConventions()
 	}
 	return s.conventions
 }
 
-func (s *DocumentStore) setConventions(conventions *DocumentConventions) {
+func (s *DocumentStore) SetConventions(conventions *DocumentConventions) {
 	s.conventions = conventions
 }
 
-func (s *DocumentStore) getUrls() []string {
+func (s *DocumentStore) GetUrls() []string {
 	return s.urls
 }
 
-func (s *DocumentStore) setUrls(value []string) {
+func (s *DocumentStore) SetUrls(value []string) {
 	panicIf(len(value) == 0, "value is empty")
 	for i, s := range value {
 		value[i] = strings.TrimSuffix(s, "/")
@@ -69,43 +69,43 @@ func (s *DocumentStore) ensureNotClosed() {
 	// TODO: implement me
 }
 
-func (s *DocumentStore) addBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+func (s *DocumentStore) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
 
 }
-func (s *DocumentStore) removeBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+func (s *DocumentStore) RemoveBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
 	panic("NYI")
 	//this.onBeforeStore.remove(handler);
 }
 
-func (s *DocumentStore) addAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+func (s *DocumentStore) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 }
 
-func (s *DocumentStore) removeAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+func (s *DocumentStore) RemoveAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
 	panic("NYI")
 	//this.onAfterSaveChanges.remove(handler);
 }
 
-func (s *DocumentStore) addBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+func (s *DocumentStore) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 }
 
-func (s *DocumentStore) removeBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+func (s *DocumentStore) RemoveBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
 	panic("NYI")
 	//this.onBeforeDelete.remove(handler);
 }
 
-func (s *DocumentStore) addBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+func (s *DocumentStore) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 }
 
-func (s *DocumentStore) removeBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+func (s *DocumentStore) RemoveBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
 	panic("NYI")
 	//this.onBeforeQuery.remove(handler);
 }
 
-func (s *DocumentStore) registerEvents(session *InMemoryDocumentSessionOperations) {
+func (s *DocumentStore) RegisterEvents(session *InMemoryDocumentSessionOperations) {
 	for _, handler := range s.onBeforeStore {
 		session.addBeforeStoreListener(handler)
 	}
@@ -133,30 +133,30 @@ func (s *DocumentStore) assertInitialized() {
 	panicIf(!s.initialized, "DocumentStore must be initialized")
 }
 
-func (s *DocumentStore) getDatabase() string {
+func (s *DocumentStore) GetDatabase() string {
 	return s.database
 }
 
-func (s *DocumentStore) setDatabase(database string) {
+func (s *DocumentStore) SetDatabase(database string) {
 	panicIf(s.initialized, "is already initialized")
 	s.database = database
 }
 
-func (s *DocumentStore) getCertificate() *KeyStore {
+func (s *DocumentStore) GetCertificate() *KeyStore {
 	return s._certificate
 }
 
-func (s *DocumentStore) setCertificate(certificate *KeyStore) {
+func (s *DocumentStore) SetCertificate(certificate *KeyStore) {
 	panicIf(s.initialized, "is already initialized")
 	s._certificate = certificate
 }
 
-func (s *DocumentStore) aggressivelyCache() {
-	s.aggressivelyCacheWithDatabase("")
+func (s *DocumentStore) AggressivelyCache() {
+	s.AggressivelyCacheWithDatabase("")
 }
 
-func (s *DocumentStore) aggressivelyCacheWithDatabase(database string) {
-	s.aggressivelyCacheForDatabase(time.Hour*24, database)
+func (s *DocumentStore) AggressivelyCacheWithDatabase(database string) {
+	s.AggressivelyCacheForDatabase(time.Hour*24, database)
 }
 
 //    protected void registerEvents(InMemoryDocumentSessionOperations session) {
@@ -172,19 +172,19 @@ func NewDocumentStore() *DocumentStore {
 
 func NewDocumentStoreWithUrlAndDatabase(url string, database string) *DocumentStore {
 	res := NewDocumentStore()
-	res.setUrls([]string{url})
-	res.setDatabase(database)
+	res.SetUrls([]string{url})
+	res.SetDatabase(database)
 	return res
 }
 
 func NewDocumentStoreWithUrlsAndDatabase(urls []string, database string) *DocumentStore {
 	res := NewDocumentStore()
-	res.setUrls(urls)
-	res.setDatabase(database)
+	res.SetUrls(urls)
+	res.SetDatabase(database)
 	return res
 }
 
-func (s *DocumentStore) getIdentifier() string {
+func (s *DocumentStore) GetIdentifier() string {
 	if s.identifier != "" {
 		return s.identifier
 	}
@@ -200,7 +200,7 @@ func (s *DocumentStore) getIdentifier() string {
 	return strings.Join(s.urls, ",")
 }
 
-func (s *DocumentStore) setIdentifier(identifier string) {
+func (s *DocumentStore) SetIdentifier(identifier string) {
 	s.identifier = identifier
 }
 
@@ -251,44 +251,39 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	s.ensureNotClosed()
 
 	sessionID := NewUUID().String()
-	databaseName := firstNonEmptyString(options.getDatabase(), s.getDatabase())
+	databaseName := firstNonEmptyString(options.getDatabase(), s.GetDatabase())
 	requestExecutor := options.getRequestExecutor()
 	if requestExecutor == nil {
 		requestExecutor = s.GetRequestExecutorWithDatabase(databaseName)
 	}
 	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
-	s.registerEvents(session.InMemoryDocumentSessionOperations)
+	s.RegisterEvents(session.InMemoryDocumentSessionOperations)
 	s.afterSessionCreated(session.InMemoryDocumentSessionOperations)
 	return session, nil
 }
 
-func (s *DocumentStore) executeIndex(task *AbstractIndexCreationTask) error {
-	return s.executeIndexWithDatabase(task, "")
+func (s *DocumentStore) ExecuteIndex(task *AbstractIndexCreationTask) error {
+	return s.ExecuteIndexWithDatabase(task, "")
 }
 
-func (s *DocumentStore) executeIndexWithDatabase(task *AbstractIndexCreationTask, database string) error {
+func (s *DocumentStore) ExecuteIndexWithDatabase(task *AbstractIndexCreationTask, database string) error {
 	s.assertInitialized()
 	return task.execute2(s, s.conventions, database)
 }
 
-func (s *DocumentStore) executeIndexes(tasks []*AbstractIndexCreationTask) error {
-	return s.executeIndexesWithDatabase(tasks, "")
+func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask) error {
+	return s.ExecuteIndexesWithDatabase(tasks, "")
 }
 
-func (s *DocumentStore) executeIndexesWithDatabase(tasks []*AbstractIndexCreationTask, database string) error {
+func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreationTask, database string) error {
 	s.assertInitialized()
 	indexesToAdd := IndexCreation_createIndexesToAdd(tasks, s.conventions)
 
 	op := NewPutIndexesOperation(indexesToAdd...)
 	if database == "" {
-		database = s.getDatabase()
+		database = s.GetDatabase()
 	}
-	return s.maintenance().forDatabase(database).send(op)
-}
-
-// TODO: for ease of porting, replace with GetRequestExecutor during code cleanup
-func (s *DocumentStore) getRequestExecutor() *RequestExecutor {
-	return s.GetRequestExecutorWithDatabase("")
+	return s.Maintenance().forDatabase(database).send(op)
 }
 
 func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {
@@ -299,7 +294,7 @@ func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {
 func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *RequestExecutor {
 	s.assertInitialized()
 	if database == "" {
-		database = s.getDatabase()
+		database = s.GetDatabase()
 	}
 
 	s.mu.Lock()
@@ -309,10 +304,10 @@ func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *Request
 		return executor
 	}
 
-	if !s.getConventions().isDisableTopologyUpdates() {
-		executor = RequestExecutor_create(s.getUrls(), s.getDatabase(), s.getCertificate(), s.getConventions())
+	if !s.GetConventions().isDisableTopologyUpdates() {
+		executor = RequestExecutor_create(s.GetUrls(), s.GetDatabase(), s.GetCertificate(), s.GetConventions())
 	} else {
-		executor = RequestExecutor_createForSingleNodeWithConfigurationUpdates(s.getUrls()[0], s.getDatabase(), s.getCertificate(), s.getConventions())
+		executor = RequestExecutor_createForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], s.GetDatabase(), s.GetCertificate(), s.GetConventions())
 	}
 	s.requestsExecutors[database] = executor
 	return executor
@@ -331,7 +326,7 @@ func (s *DocumentStore) Initialize() (*DocumentStore, error) {
 
 	conventions := s.conventions
 	if conventions.getDocumentIdGenerator() == nil {
-		generator := NewMultiDatabaseHiLoIdGenerator(s, s.getConventions())
+		generator := NewMultiDatabaseHiLoIdGenerator(s, s.GetConventions())
 		s._multiDbHiLo = generator
 		genID := func(dbName string, entity Object) string {
 			return generator.GenerateDocumentID(dbName, entity)
@@ -359,13 +354,13 @@ func (r *RestoreCaching) Close() {
 	r.re.aggressiveCaching = r.old
 }
 
-func (s *DocumentStore) disableAggressiveCaching() *RestoreCaching {
-	return s.disableAggressiveCachingWithDatabase("")
+func (s *DocumentStore) DisableAggressiveCaching() *RestoreCaching {
+	return s.DisableAggressiveCachingWithDatabase("")
 }
 
-func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string) *RestoreCaching {
+func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string) *RestoreCaching {
 	if databaseName == "" {
-		databaseName = s.getDatabase()
+		databaseName = s.GetDatabase()
 	}
 
 	re := s.GetRequestExecutorWithDatabase(databaseName)
@@ -378,7 +373,7 @@ func (s *DocumentStore) disableAggressiveCachingWithDatabase(databaseName string
 	return res
 }
 
-func (s *DocumentStore) changes() *IDatabaseChanges {
+func (s *DocumentStore) Changes() *IDatabaseChanges {
 	// TODO: implement me
 	return nil
 }
@@ -388,29 +383,29 @@ func (s *DocumentStore) changes() *IDatabaseChanges {
 //     public Exception getLastDatabaseChangesStateException() {
 //    public Exception getLastDatabaseChangesStateException(string database) {
 
-func (s *DocumentStore) aggressivelyCacheFor(cacheDuration time.Duration) {
+func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) {
 	// TODO: implement me
 }
 
-func (s *DocumentStore) aggressivelyCacheForDatabase(cacheDuration time.Duration, database string) {
+func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration, database string) {
 	// TODO: implement me
 }
 
 //    private void listenToChangesAndUpdateTheCache(string database) {
 
-func (s *DocumentStore) addBeforeCloseListener(fn func(*DocumentStore)) {
+func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) {
 	s.beforeClose = append(s.beforeClose, fn)
 }
 
 //   public void removeBeforeCloseListener(EventHandler<VoidArgs> event) {
 
-func (s *DocumentStore) addAfterCloseListener(fn func(*DocumentStore)) {
+func (s *DocumentStore) AddAfterCloseListener(fn func(*DocumentStore)) {
 	s.afterClose = append(s.afterClose, fn)
 }
 
 //    public void removeAfterCloseListener(EventHandler<VoidArgs> event) {
 
-func (s *DocumentStore) maintenance() *MaintenanceOperationExecutor {
+func (s *DocumentStore) Maintenance() *MaintenanceOperationExecutor {
 	s.assertInitialized()
 
 	if s.maintenanceOperationExecutor == nil {
@@ -420,7 +415,7 @@ func (s *DocumentStore) maintenance() *MaintenanceOperationExecutor {
 	return s.maintenanceOperationExecutor
 }
 
-func (s *DocumentStore) operations() *OperationExecutor {
+func (s *DocumentStore) Operations() *OperationExecutor {
 	if s.operationExecutor == nil {
 		s.operationExecutor = NewOperationExecutor(s)
 	}
@@ -428,13 +423,13 @@ func (s *DocumentStore) operations() *OperationExecutor {
 	return s.operationExecutor
 }
 
-func (s *DocumentStore) bulkInsert() *BulkInsertOperation {
-	return s.bulkInsertWithDatabase("")
+func (s *DocumentStore) BulkInsert() *BulkInsertOperation {
+	return s.BulkInsertWithDatabase("")
 }
 
-func (s *DocumentStore) bulkInsertWithDatabase(database string) *BulkInsertOperation {
+func (s *DocumentStore) BulkInsertWithDatabase(database string) *BulkInsertOperation {
 	if database == "" {
-		database = s.getDatabase()
+		database = s.GetDatabase()
 	}
 	return NewBulkInsertOperation(database, s)
 }

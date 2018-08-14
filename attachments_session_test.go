@@ -44,7 +44,7 @@ func attachmentsSession_putAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*User)
 		metadata, err := session.Advanced().getMetadataFor(user)
@@ -193,7 +193,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		// test get attachment by its name
@@ -218,7 +218,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		metadata, err := session.Advanced().getMetadataFor(userI)
@@ -277,13 +277,13 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 	}
 
 	op := NewDeleteAttachmentOperation("users/1", "file2", nil)
-	err = store.operations().send(op)
+	err = store.Operations().send(op)
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		metadata, err := session.Advanced().getMetadataFor(userI)
@@ -380,7 +380,7 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		err = session.DeleteEntity(userI)
@@ -465,7 +465,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		attachments, err := session.Advanced().Attachments().getNames(userI)

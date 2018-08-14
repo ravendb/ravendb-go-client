@@ -62,7 +62,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 
 	results := map[string]*FacetResult{}
 	for _, result := range queryResult.Results {
-		res, err := convertValue(result, getTypeOf(&FacetResult{}))
+		res, err := convertValue(result, GetTypeOf(&FacetResult{}))
 		if err != nil {
 			return nil, err
 		}

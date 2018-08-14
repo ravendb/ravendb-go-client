@@ -34,7 +34,7 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		query := session.Advanced().DocumentQuery(getTypeOf(&RegexMe{}))
+		query := session.Advanced().DocumentQuery(GetTypeOf(&RegexMe{}))
 		query = query.whereRegex("text", "^[a-z ]{2,4}love")
 
 		iq := query.getIndexQuery()

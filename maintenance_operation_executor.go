@@ -17,7 +17,7 @@ func NewMaintenanceOperationExecutorWithDatabase(store *DocumentStore, databaseN
 
 	res := &MaintenanceOperationExecutor{
 		store:        store,
-		databaseName: firstNonEmptyString(databaseName, store.getDatabase()),
+		databaseName: firstNonEmptyString(databaseName, store.GetDatabase()),
 	}
 	if res.databaseName != "" {
 		res.requestExecutor = store.GetRequestExecutorWithDatabase(res.databaseName)

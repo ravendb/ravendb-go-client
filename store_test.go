@@ -22,7 +22,7 @@ func storeTestRefreshTest(t *testing.T) {
 
 		{
 			innerSession := openSessionMust(t, store)
-			innerUserI, err := innerSession.Load(getTypeOf(&User{}), "users/1")
+			innerUserI, err := innerSession.Load(GetTypeOf(&User{}), "users/1")
 			innerUser := innerUserI.(*User)
 			innerUser.setName("RavenDB 4.0")
 			err = innerSession.SaveChanges()
@@ -51,7 +51,7 @@ func storeTestStoreDocument(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		userI, err := session.Load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user = userI.(*User)
 		assert.NotNil(t, user)
@@ -81,7 +81,7 @@ func storeTestStoreDocuments(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		users, err := session.LoadMulti(getTypeOf(&User{}), []string{"users/1", "users/2"})
+		users, err := session.LoadMulti(GetTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
 		session.Close()
@@ -99,7 +99,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 	fn := func(sender interface{}, event *AfterSaveChangesEventArgs) {
 		storeLevelCallBack[0] = event.getDocumentMetadata()
 	}
-	store.addAfterSaveChangesListener(fn)
+	store.AddAfterSaveChangesListener(fn)
 
 	{
 		session := openSessionMust(t, store)

@@ -43,7 +43,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 	jsmap := structToJSONMap(s)
 	vd, err := json.Marshal(s)
 	assert.NoError(t, err)
-	typ := getTypeOf(s)
+	typ := GetTypeOf(s)
 	v2, err := makeStructFromJSONMap(typ, jsmap)
 	assert.NoError(t, err)
 	vTyp := fmt.Sprintf("%T", s)
@@ -79,11 +79,11 @@ func TestIsStructy(t *testing.T) {
 }
 
 func TestGetIdentityProperty(t *testing.T) {
-	got := getIdentityProperty(getTypeOf(""))
+	got := getIdentityProperty(GetTypeOf(""))
 	assert.Equal(t, "", got)
-	got = getIdentityProperty(getTypeOf(User{}))
+	got = getIdentityProperty(GetTypeOf(User{}))
 	assert.Equal(t, "ID", got)
-	got = getIdentityProperty(getTypeOf(&User{}))
+	got = getIdentityProperty(GetTypeOf(&User{}))
 	assert.Equal(t, "ID", got)
 
 	{
@@ -91,7 +91,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			Id string
 		}{}
-		got = getIdentityProperty(getTypeOf(v))
+		got = getIdentityProperty(GetTypeOf(v))
 		assert.Equal(t, "", got)
 	}
 
@@ -100,7 +100,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			ID int
 		}{}
-		got = getIdentityProperty(getTypeOf(v))
+		got = getIdentityProperty(GetTypeOf(v))
 		assert.Equal(t, "", got)
 	}
 

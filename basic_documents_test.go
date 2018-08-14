@@ -35,7 +35,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		userI, err := session.Load(getTypeOf(&User{}), documentId)
+		userI, err := session.Load(GetTypeOf(&User{}), documentId)
 		assert.NoError(t, err)
 		assert.Nil(t, userI)
 		session.Close()
@@ -78,7 +78,7 @@ func basicDocuments_get(t *testing.T) {
 		assert.NoError(t, err)
 		session.Close()
 	}
-	requestExecutor := store.getRequestExecutor()
+	requestExecutor := store.GetRequestExecutor()
 	getDocumentsCommand := NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
 	err = requestExecutor.executeCommand(getDocumentsCommand)
 	assert.NoError(t, err)
@@ -100,10 +100,10 @@ func basicDocuments_get(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		etojs := session.getEntityToJson()
-		user1I := etojs.convertToEntity(getTypeOf(&User{}), "users/1", doc1)
+		user1I := etojs.convertToEntity(GetTypeOf(&User{}), "users/1", doc1)
 		user1 := user1I.(*User)
 
-		user2I := etojs.convertToEntity(getTypeOf(&User{}), "users/2", doc2)
+		user2I := etojs.convertToEntity(GetTypeOf(&User{}), "users/2", doc2)
 		user2 := user2I.(*User)
 		assert.Equal(t, *user1.getName(), "Fitzchak")
 		assert.Equal(t, *user2.getName(), "Arek")

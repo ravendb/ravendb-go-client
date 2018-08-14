@@ -107,7 +107,7 @@ func (t *AbstractIndexCreationTask) setLockMode(lockMode IndexLockMode) {
 }
 
 func (t *AbstractIndexCreationTask) execute(store *IDocumentStore) error {
-	return store.executeIndex(t)
+	return store.ExecuteIndex(t)
 }
 
 func (t *AbstractIndexCreationTask) execute2(store *IDocumentStore, conventions *DocumentConventions, database string) error {
@@ -123,7 +123,7 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 		conv = t.getConventions()
 	}
 	if conv == nil {
-		conv = store.getConventions()
+		conv = store.GetConventions()
 	}
 	t.setConventions(conv)
 
@@ -140,9 +140,9 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 
 	op := NewPutIndexesOperation(indexDefinition)
 	if database == "" {
-		database = store.getDatabase()
+		database = store.GetDatabase()
 	}
-	return store.maintenance().forDatabase(database).send(op)
+	return store.Maintenance().forDatabase(database).send(op)
 }
 
 func (t *AbstractIndexCreationTask) index(field string, indexing FieldIndexing) {

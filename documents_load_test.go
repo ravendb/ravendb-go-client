@@ -79,7 +79,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		// Note: in Java it's fooId, we must match Go naming with FooId
-		bar, err := newSession.Include("FooId").loadMulti(getTypeOf(&Bar{}), []string{barId})
+		bar, err := newSession.Include("FooId").loadMulti(GetTypeOf(&Bar{}), []string{barId})
 		assert.NoError(t, err)
 
 		assert.NotNil(t, bar)
@@ -91,7 +91,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		numOfRequests := newSession.Advanced().getNumberOfRequests()
 
 		barV := bar[barId].(*Bar)
-		foo, err := newSession.Load(getTypeOf(&Foo{}), barV.getFooId())
+		foo, err := newSession.Load(GetTypeOf(&Foo{}), barV.getFooId())
 		assert.NoError(t, err)
 		assert.NotNil(t, foo)
 		fooV := foo.(*Foo)

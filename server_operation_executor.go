@@ -6,9 +6,9 @@ type ServerOperationExecutor struct {
 
 func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	res := &ServerOperationExecutor{}
-	urls := store.getUrls()
-	cert := store.getCertificate()
-	conv := store.getConventions()
+	urls := store.GetUrls()
+	cert := store.GetCertificate()
+	conv := store.GetConventions()
 	if conv.isDisableTopologyUpdates() {
 		res.requestExecutor = ClusterRequestExecutor_createForSingleNode(urls[0], cert, conv)
 	} else {
@@ -17,7 +17,7 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	fn := func(store *DocumentStore) {
 		res.requestExecutor.Close()
 	}
-	store.addAfterCloseListener(fn)
+	store.AddAfterCloseListener(fn)
 	return res
 }
 

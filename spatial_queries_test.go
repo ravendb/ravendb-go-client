@@ -93,11 +93,11 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		indexDefinition.setMaps(maps)
 
 		op := NewPutIndexesOperation(indexDefinition)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 
 		// Wait until the index is built
-		q := session.QueryWithQuery(getTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.waitForNonStaleResults(0)
 		_, err := q.toList()
 		assert.NoError(t, err)
@@ -106,7 +106,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		lng := float64(13.5871808352) // in the middle of AreaOne
 		radius := float64(5.0)
 
-		q = session.QueryWithQuery(getTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.withinRadiusOf("coordinates", radius, lat, lng)
 		q = q.waitForNonStaleResults(0)
 		nearbyDocs, err := q.toList()
@@ -143,11 +143,11 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		indexDefinition.setMaps(maps)
 
 		op := NewPutIndexesOperation(indexDefinition)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 
 		// Wait until the index is built
-		q := session.QueryWithQuery(getTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.waitForNonStaleResults(0)
 		_, err = q.toList()
 		assert.NoError(t, err)
@@ -157,7 +157,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// Find within 8 miles.
 		// We should find both my house and the gym.
 
-		q = session.QueryWithQuery(getTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.withinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_MILES)
 		q = q.waitForNonStaleResults(0)
 		matchesWithinMiles, err := q.toList()
@@ -167,7 +167,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// Find within 8 kilometers.
 		// We should find only my house, since the gym is ~11 kilometers out.
 
-		q = session.QueryWithQuery(getTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.withinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_KILOMETERS)
 		q = q.waitForNonStaleResults(0)
 		matchesWithinKilometers, err := q.toList()

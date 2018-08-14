@@ -14,10 +14,10 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	executor := store.GetRequestExecutor()
 
 	sampleData := NewCreateSampleDataOperation()
-	err = store.maintenance().send(sampleData)
+	err = store.Maintenance().send(sampleData)
 	assert.NoError(t, err)
 
-	err = gRavenTestDriver.waitForIndexing(store, store.getDatabase(), 0)
+	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 	command := NewGetStatisticsCommand()
 	err = executor.executeCommand(command)

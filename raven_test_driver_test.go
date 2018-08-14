@@ -88,16 +88,16 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	databaseRecord.DatabaseName = name
 
 	createDatabaseOperation := NewCreateDatabaseOperation(databaseRecord)
-	err := documentStore.maintenance().server().send(createDatabaseOperation)
+	err := documentStore.Maintenance().server().send(createDatabaseOperation)
 	if err != nil {
 		return nil, err
 	}
 
-	urls := documentStore.getUrls()
+	urls := documentStore.GetUrls()
 	store := NewDocumentStoreWithUrlsAndDatabase(urls, name)
 
 	if secured {
-		store.setCertificate(d.getTestClientCertificate())
+		store.SetCertificate(d.getTestClientCertificate())
 	}
 
 	// TODO: is over-written by CustomSerializationTest
@@ -117,11 +117,11 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 			return
 		}
 
-		operation := NewDeleteDatabasesOperation(store.getDatabase(), true)
-		store.maintenance().server().send(operation)
+		operation := NewDeleteDatabasesOperation(store.GetDatabase(), true)
+		store.Maintenance().server().send(operation)
 	}
 
-	store.addAfterCloseListener(fn)
+	store.AddAfterCloseListener(fn)
 
 	if waitForIndexingTimeout > 0 {
 		d.waitForIndexing(store, name, waitForIndexingTimeout)
@@ -258,9 +258,9 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	time.Sleep(time.Second) // TODO: probably not necessary
 
 	store := NewDocumentStore()
-	store.setUrls([]string{url})
-	store.setDatabase("test.manager")
-	store.getConventions().setDisableTopologyUpdates(true)
+	store.SetUrls([]string{url})
+	store.SetDatabase("test.manager")
+	store.GetConventions().setDisableTopologyUpdates(true)
 
 	if secured {
 		panic("NYI")
@@ -275,7 +275,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 }
 
 func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string, timeout time.Duration) error {
-	admin := store.maintenance().forDatabase(database)
+	admin := store.Maintenance().forDatabase(database)
 	if timeout == 0 {
 		timeout = time.Minute
 	}

@@ -81,7 +81,7 @@ func (o *QueryOperation) enterQueryContext() CleanCloseable {
 		return res
 	}
 
-	return o._session.getDocumentStore().disableAggressiveCachingWithDatabase(o._session.getDatabaseName())
+	return o._session.getDocumentStore().DisableAggressiveCachingWithDatabase(o._session.getDatabaseName())
 }
 
 func (o *QueryOperation) complete(clazz reflect.Type) ([]interface{}, error) {

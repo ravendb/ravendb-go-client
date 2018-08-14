@@ -28,17 +28,17 @@ func testIndexCanDeleteIndex(t *testing.T) {
 	assert.NoError(t, err)
 
 	op := NewGetIndexNamesOperation(0, 10)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 	indexNames := op.Command.Result
 	assert.True(t, stringArrayContains(indexNames, "UsersIndex"))
 
 	op2 := NewDeleteIndexOperation("UsersIndex")
-	err = store.maintenance().send(op2)
+	err = store.Maintenance().send(op2)
 	assert.NoError(t, err)
 
 	op3 := NewGetIndexNamesOperation(0, 10)
-	err = store.maintenance().send(op3)
+	err = store.Maintenance().send(op3)
 	assert.NoError(t, err)
 	indexNames = op3.Command.Result
 	assert.Equal(t, len(indexNames), 0)
@@ -55,13 +55,13 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 
 	{
 		op := NewDisableIndexOperation("UsersIndex")
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.getIndexes()[0]
@@ -70,13 +70,13 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 
 	{
 		op := NewEnableIndexOperation("UsersIndex")
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.getIndexes()[0]
@@ -95,7 +95,7 @@ func testIndexGetCanIndexes(t *testing.T) {
 
 	{
 		op := NewGetIndexesOperation(0, 10)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexDefinitions := op.Command.Result
 		assert.Equal(t, len(indexDefinitions), 1)
@@ -111,7 +111,7 @@ func testIndexGetCanIndexesStats(t *testing.T) {
 
 	{
 		op := NewGetIndexesStatisticsOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexStats := op.Command.Result
 		assert.Equal(t, len(indexStats), 1)
@@ -138,12 +138,12 @@ func testIndexGetTerms(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, store.getDatabase(), 0)
+	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	{
 		op := NewGetTermsOperation("UsersIndex", "name", "")
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		terms := op.Command.Result
 		assert.Equal(t, len(terms), 1)
@@ -159,10 +159,10 @@ func testIndexHasIndexChanged(t *testing.T) {
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
 	op := NewPutIndexesOperation(indexDef)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 	op2 := NewIndexHasChangedOperation(indexDef)
-	err = store.maintenance().send(op2)
+	err = store.Maintenance().send(op2)
 	assert.NoError(t, err)
 	{
 		cmd := op2.Command
@@ -172,7 +172,7 @@ func testIndexHasIndexChanged(t *testing.T) {
 	indexDef.setMaps(m)
 
 	op3 := NewIndexHasChangedOperation(indexDef)
-	err = store.maintenance().send(op3)
+	err = store.Maintenance().send(op3)
 	assert.NoError(t, err)
 	{
 		cmd := op3.Command
@@ -189,19 +189,19 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 	indexDef := index.createIndexDefinition()
 	{
 		op := NewPutIndexesOperation(indexDef)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewStopIndexingOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.getIndexes()[0]
@@ -210,13 +210,13 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 
 	{
 		op := NewStartIndexingOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.getIndexes()[0]
@@ -233,19 +233,19 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	indexDef := index.createIndexDefinition()
 	{
 		op := NewPutIndexesOperation(indexDef)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewStopIndexOperation(indexDef.getName())
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		assert.Equal(t, indexingStatus.getStatus(), IndexRunningStatus_RUNNING)
@@ -255,13 +255,13 @@ func testIndexCanStopStartIndex(t *testing.T) {
 
 	{
 		op := NewStartIndexOperation(indexDef.getName())
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		assert.Equal(t, indexingStatus.getStatus(), IndexRunningStatus_RUNNING)
@@ -279,19 +279,19 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 	indexDef := index.createIndexDefinition()
 	{
 		op := NewPutIndexesOperation(indexDef)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewSetIndexesLockOperation(indexDef.getName(), IndexLockMode_LOCKED_ERROR)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewGetIndexOperation(indexDef.getName())
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		newIndexDef := op.Command.Result
 		assert.Equal(t, *newIndexDef.getLockMode(), IndexLockMode_LOCKED_ERROR)
 	}
@@ -305,15 +305,15 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 	index := NewUsersIndex()
 	indexDef := index.createIndexDefinition()
 	op := NewPutIndexesOperation(indexDef)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 
 	op2 := NewSetIndexesPriorityOperation(indexDef.getName(), IndexPriority_HIGH)
-	err = store.maintenance().send(op2)
+	err = store.Maintenance().send(op2)
 	assert.NoError(t, err)
 
 	op3 := NewGetIndexOperation(indexDef.getName())
-	err = store.maintenance().send(op3)
+	err = store.Maintenance().send(op3)
 	newIndexDef := op3.Command.Result
 	assert.Equal(t, *newIndexDef.getPriority(), IndexPriority_HIGH)
 }
@@ -326,7 +326,7 @@ func testIndexCanListErrors(t *testing.T) {
 	index := NewUsersInvalidIndex()
 	indexDef := index.createIndexDefinition()
 	op := NewPutIndexesOperation(indexDef)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 
 	{
@@ -341,17 +341,17 @@ func testIndexCanListErrors(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, store.getDatabase(), 0)
+	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	op2 := NewGetIndexErrorsOperation(nil)
-	err = store.maintenance().send(op2)
+	err = store.Maintenance().send(op2)
 	assert.NoError(t, err)
 	indexErrors := op2.Command.Result
 	assert.Equal(t, len(indexErrors), 1)
 
 	op3 := NewGetIndexErrorsOperation([]string{indexDef.getName()})
-	err = store.maintenance().send(op3)
+	err = store.Maintenance().send(op3)
 	assert.NoError(t, err)
 	perIndexErrors := op3.Command.Result
 	assert.Equal(t, len(perIndexErrors), 1)
@@ -368,7 +368,7 @@ func testIndexCanGetIndexStatistics(t *testing.T) {
 	assert.NoError(t, err)
 
 	op := NewGetIndexesStatisticsOperation()
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 
 	indexStats := op.Command.Result

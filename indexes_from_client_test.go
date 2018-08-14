@@ -58,14 +58,14 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	}
 
 	userIndex := NewUsersIndex()
-	err = store.executeIndex(userIndex)
+	err = store.ExecuteIndex(userIndex)
 	assert.NoError(t, err)
 
-	err = gRavenTestDriver.waitForIndexing(store, store.getDatabase(), 0)
+	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	command := NewGetStatisticsCommand()
-	err = store.getRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
 	firstIndexingTime := statistics.getIndexes()[0].getLastIndexingTime()
@@ -75,15 +75,15 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	time.Sleep(time.Millisecond * 2)
 	{
 		op := NewResetIndexOperation(indexName)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, store.getDatabase(), 0)
+	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	command = NewGetStatisticsCommand()
-	err = store.getRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
 	statistics = command.Result
 	secondIndexingTime := statistics.getLastIndexingTime()
@@ -96,11 +96,11 @@ func indexesFromClientTest_canExecuteManyIndexes(t *testing.T) {
 	defer store.Close()
 
 	indexes := []*AbstractIndexCreationTask{NewUsersIndex()}
-	err = store.executeIndexes(indexes)
+	err = store.ExecuteIndexes(indexes)
 	assert.NoError(t, err)
 
 	indexNamesOperation := NewGetIndexNamesOperation(0, 10)
-	err = store.maintenance().send(indexNamesOperation)
+	err = store.Maintenance().send(indexNamesOperation)
 	assert.NoError(t, err)
 	indexNames := indexNamesOperation.Command.Result
 	assert.Equal(t, len(indexNames), 1)
@@ -112,15 +112,15 @@ func indexesFromClientTest_canDelete(t *testing.T) {
 	defer store.Close()
 
 	userIndex := NewUsersIndex()
-	err = store.executeIndex(userIndex)
+	err = store.ExecuteIndex(userIndex)
 	assert.NoError(t, err)
 
 	op := NewDeleteIndexOperation(NewUsersIndex().getIndexName())
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 
 	command := NewGetStatisticsCommand()
-	err = store.getRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
 	assert.Equal(t, len(statistics.getIndexes()), 0)
@@ -136,7 +136,7 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 
 	{
 		op := NewGetIndexingStatusOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		status := op.Command.Result
 
@@ -147,12 +147,12 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 
 	{
 		op := NewStopIndexingOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 
 		{
 			op := NewGetIndexingStatusOperation()
-			err = store.maintenance().send(op)
+			err = store.Maintenance().send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
 			assert.Equal(t, status.getStatus(), IndexRunningStatus_PAUSED)
@@ -163,11 +163,11 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 	indexName := ""
 	{
 		op := NewStartIndexingOperation()
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		{
 			op := NewGetIndexingStatusOperation()
-			err = store.maintenance().send(op)
+			err = store.Maintenance().send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
 			indexName = status.getIndexes()[0].getName()
@@ -181,11 +181,11 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 
 	{
 		op := NewStopIndexOperation(indexName)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		{
 			op := NewGetIndexingStatusOperation()
-			err = store.maintenance().send(op)
+			err = store.Maintenance().send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
 			assert.Equal(t, status.getStatus(), IndexRunningStatus_RUNNING)
@@ -220,7 +220,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.Query(getTypeOf(&User{}))
+		q := session.Query(GetTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
@@ -231,7 +231,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	}
 
 	op := NewGetIndexesOperation(0, 128)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 	indexes := op.Command.Result
 	assert.Equal(t, len(indexes), 1)
@@ -240,7 +240,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 	{
 		op := NewGetIndexStatisticsOperation(index.getName())
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
 		assert.Equal(t, stats.getLockMode(), IndexLockMode_UNLOCK)
@@ -249,18 +249,18 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 	{
 		op := NewSetIndexesLockOperation(index.getName(), IndexLockMode_LOCKED_IGNORE)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 
 	{
 		op := NewSetIndexesPriorityOperation(index.getName(), IndexPriority_LOW)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 	}
 	{
 		op := NewGetIndexStatisticsOperation(index.getName())
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
 		assert.Equal(t, stats.getLockMode(), IndexLockMode_LOCKED_IGNORE)
@@ -298,7 +298,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *QueryStatistics
-		q := session.Query(getTypeOf(&User{}))
+		q := session.Query(GetTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
 		q = q.statistics(&stats)
 		q = q.whereEquals("name", "Arek")
@@ -311,7 +311,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 	}
 
 	op := NewGetTermsOperationWithPageSize(indexName, "name", "", 128)
-	err = store.maintenance().send(op)
+	err = store.Maintenance().send(op)
 	assert.NoError(t, err)
 	terms := op.Command.Result
 	assert.Equal(t, len(terms), 2)
@@ -349,7 +349,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *QueryStatistics
-		q := session.Query(getTypeOf(&User{}))
+		q := session.Query(GetTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
 		q = q.statistics(&stats)
 		q = q.whereEquals("name", "Arek")
@@ -364,7 +364,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		op := NewGetIndexNamesOperation(0, 10)
-		err = store.maintenance().send(op)
+		err = store.Maintenance().send(op)
 		assert.NoError(t, err)
 
 		indexNames := op.Command.Result
@@ -403,13 +403,13 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var statsRef *QueryStatistics
-		q := session.Query(getTypeOf(&User{}))
+		q := session.Query(GetTypeOf(&User{}))
 		q = q.statistics(&statsRef)
 		q = q.whereEquals("name", "Arek")
 		_, err = q.toList()
 		assert.NoError(t, err)
 
-		q = session.Query(getTypeOf(&User{}))
+		q = session.Query(GetTypeOf(&User{}))
 		q = q.statistics(&statsRef)
 		q = q.whereGreaterThan("age", 10)
 		_, err = q.toList()
@@ -419,8 +419,8 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	}
 
 	indexQuery := NewIndexQuery("from users")
-	command := NewExplainQueryCommand(store.getConventions(), indexQuery)
-	err = store.getRequestExecutor().executeCommand(command)
+	command := NewExplainQueryCommand(store.GetConventions(), indexQuery)
+	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
 
 	explanations := command.Result
@@ -493,7 +493,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		options.setMinimumDocumentFrequency(1)
 		options.setMinimumTermFrequency(0)
 
-		q := session.QueryInIndex(getTypeOf(&Post{}), Posts_ByTitleAndDesc())
+		q := session.QueryInIndex(GetTypeOf(&Post{}), Posts_ByTitleAndDesc())
 
 		// TODO: finish this
 		/*
