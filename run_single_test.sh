@@ -33,4 +33,4 @@ go clean -testcache
 
 # go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestCrud$
 
-go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestLoadIntoStream$
+go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestFirstClassPatch$

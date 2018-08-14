@@ -65,6 +65,7 @@ func runJava() {
 	//runSingleJavaTest("HiLoTest", "trace_hilo_java.txt")
 	//runSingleJavaTest("IndexOperationsTest", "trace_index_operations_java.txt")
 	//runSingleJavaTest("IndexesFromClientTest", "trace_indexes_from_client_java.txt")
+	//runSingleJavaTest("LoadIntoStreamTest", "trace_load_into_stream_java.txt")
 	//runSingleJavaTest("LoadTest", "trace_load_java.txt")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest", "trace_next_and_seed_identities_java.txt")
 	//runSingleJavaTest("PatchTest", "trace_patch_java.txt")
@@ -83,7 +84,7 @@ func runJava() {
 	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
 	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
 
-	runSingleJavaTest("LoadIntoStreamTest", "trace_load_into_stream_java.txt")
+	runSingleJavaTest("FirstClassPatchTest", "trace_first_class_patch_java.txt")
 }
 
 func main() {
