@@ -41,34 +41,34 @@ func revisionsTest_revisions(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		allRevisions, err := session.advanced().revisions().getFor(getTypeOf(&User{}), "users/1")
+		allRevisions, err := session.Advanced().Revisions().getFor(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		assert.Equal(t, len(allRevisions), 4)
 
 		names := collectUserNamesSorted(allRevisions)
 		assert.Equal(t, names, []string{"user1", "user2", "user3", "user4"})
 
-		revisionsSkipFirst, err := session.advanced().revisions().getForStartAt(getTypeOf(&User{}), "users/1", 1)
+		revisionsSkipFirst, err := session.Advanced().Revisions().getForStartAt(getTypeOf(&User{}), "users/1", 1)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirst), 3)
 		names = collectUserNamesSorted(revisionsSkipFirst)
 		assert.Equal(t, names, []string{"user1", "user2", "user3"})
 
-		revisionsSkipFirstTakeTwo, err := session.advanced().revisions().getForPaged(getTypeOf(&User{}), "users/1", 1, 2)
+		revisionsSkipFirstTakeTwo, err := session.Advanced().Revisions().getForPaged(getTypeOf(&User{}), "users/1", 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirstTakeTwo), 2)
 		names = collectUserNamesSorted(revisionsSkipFirstTakeTwo)
 		assert.Equal(t, names, []string{"user2", "user3"})
 
-		allMetadata, err := session.advanced().revisions().getMetadataFor("users/1")
+		allMetadata, err := session.Advanced().Revisions().getMetadataFor("users/1")
 		assert.NoError(t, err)
 		assert.Equal(t, len(allMetadata), 4)
 
-		metadataSkipFirst, err := session.advanced().revisions().getMetadataForStartAt("users/1", 1)
+		metadataSkipFirst, err := session.Advanced().Revisions().getMetadataForStartAt("users/1", 1)
 		assert.NoError(t, err)
 		assert.Equal(t, len(metadataSkipFirst), 3)
 
-		metadataSkipFirstTakeTwo, err := session.advanced().revisions().getMetadataForPaged("users/1", 1, 2)
+		metadataSkipFirstTakeTwo, err := session.Advanced().Revisions().getMetadataForPaged("users/1", 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, len(metadataSkipFirstTakeTwo), 2)
 
@@ -78,7 +78,7 @@ func revisionsTest_revisions(t *testing.T) {
 		if ok {
 			changeVector = chvi.(string)
 		}
-		userI, err := session.advanced().revisions().get(getTypeOf(&User{}), changeVector)
+		userI, err := session.Advanced().Revisions().get(getTypeOf(&User{}), changeVector)
 		assert.NoError(t, err)
 		user := userI.(*User)
 		assert.Equal(t, *user.getName(), "user3")

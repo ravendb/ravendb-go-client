@@ -32,17 +32,17 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		assert.NoError(t, err)
-		ok, err := session.advanced().exists("users/1")
+		ok, err := session.Advanced().Exists("users/1")
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		ok, err = session.advanced().exists("users/10")
+		ok, err = session.Advanced().Exists("users/10")
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		_, err = session.load(getTypeOf(NewUser()), "users/2")
+		_, err = session.Load(getTypeOf(NewUser()), "users/2")
 		assert.NoError(t, err)
-		ok, err = session.advanced().exists("users/2")
+		ok, err = session.Advanced().Exists("users/2")
 		assert.NoError(t, err)
 		assert.True(t, ok)
 		session.Close()

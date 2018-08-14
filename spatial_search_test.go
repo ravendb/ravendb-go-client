@@ -55,7 +55,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var statsRef *QueryStatistics
-		q := session.queryWithQuery(getTypeOf(&Event{}), Query_index("SpatialIdx"))
+		q := session.QueryWithQuery(getTypeOf(&Event{}), Query_index("SpatialIdx"))
 		q = q.statistics(&statsRef)
 		q = q.whereLessThanOrEqual("date", DateUtils_addYears(time.Now(), 1))
 		q = q.withinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
@@ -81,7 +81,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.advanced().documentQueryInIndex(getTypeOf(&Event{}), index)
+		q := session.Advanced().DocumentQueryInIndex(getTypeOf(&Event{}), index)
 		fn := func(f *SpatialCriteriaFactory) SpatialCriteria {
 			return f.withinRadius(5, 38.9103000, -77.3942)
 		}
@@ -133,7 +133,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 
 		var queryStats *QueryStatistics
 
-		q := session.queryWithQuery(getTypeOf(&Event{}), Query_index("SpatialIdx"))
+		q := session.QueryWithQuery(getTypeOf(&Event{}), Query_index("SpatialIdx"))
 		q = q.statistics(&queryStats)
 		q = q.openSubclause()
 		q = q.whereGreaterThanOrEqual("capacity", 0)
@@ -201,7 +201,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Event{}), Query_index("spatialIdx"))
+		q := session.QueryWithQuery(getTypeOf(&Event{}), Query_index("spatialIdx"))
 		q = q.withinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.orderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.addOrder("venue", false)
@@ -220,7 +220,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Event{}), Query_index("spatialIdx"))
+		q := session.QueryWithQuery(getTypeOf(&Event{}), Query_index("spatialIdx"))
 		q = q.withinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.addOrder("venue", false)
 		q = q.orderByDistanceLatLong("coordinates", 38.96939, -77.386398)

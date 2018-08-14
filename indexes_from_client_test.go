@@ -220,7 +220,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.query(getTypeOf(&User{}))
+		q := session.Query(getTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
@@ -298,7 +298,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *QueryStatistics
-		q := session.query(getTypeOf(&User{}))
+		q := session.Query(getTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
 		q = q.statistics(&stats)
 		q = q.whereEquals("name", "Arek")
@@ -349,7 +349,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *QueryStatistics
-		q := session.query(getTypeOf(&User{}))
+		q := session.Query(getTypeOf(&User{}))
 		q = q.waitForNonStaleResults(0)
 		q = q.statistics(&stats)
 		q = q.whereEquals("name", "Arek")
@@ -403,13 +403,13 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var statsRef *QueryStatistics
-		q := session.query(getTypeOf(&User{}))
+		q := session.Query(getTypeOf(&User{}))
 		q = q.statistics(&statsRef)
 		q = q.whereEquals("name", "Arek")
 		_, err = q.toList()
 		assert.NoError(t, err)
 
-		q = session.query(getTypeOf(&User{}))
+		q = session.Query(getTypeOf(&User{}))
 		q = q.statistics(&statsRef)
 		q = q.whereGreaterThan("age", 10)
 		_, err = q.toList()
@@ -493,7 +493,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		options.setMinimumDocumentFrequency(1)
 		options.setMinimumTermFrequency(0)
 
-		q := session.queryInIndex(getTypeOf(&Post{}), Posts_ByTitleAndDesc())
+		q := session.QueryInIndex(getTypeOf(&Post{}), Posts_ByTitleAndDesc())
 
 		// TODO: finish this
 		/*

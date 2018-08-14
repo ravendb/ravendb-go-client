@@ -125,7 +125,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		users, err := newSession.advanced().rawQuery(getTypeOf(&User{}), "from Users where lastName = 'user1'").toList()
+		users, err := newSession.Advanced().RawQuery(getTypeOf(&User{}), "from Users where lastName = 'user1'").toList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -175,20 +175,20 @@ func crudTest_crudOperations(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err := newSession.load(getTypeOf(&User{}), "users/2")
+		tempUserI, err := newSession.Load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		tempUser := tempUserI.(*User)
 		assert.Nil(t, tempUser)
 
-		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/3")
+		tempUserI, err = newSession.Load(getTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 3)
 
-		user1I, err := newSession.load(getTypeOf(&User{}), "users/1")
+		user1I, err := newSession.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
-		user4I, err := newSession.load(getTypeOf(&User{}), "users/4")
+		user4I, err := newSession.Load(getTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		user4 = user4I.(*User)
 
@@ -198,10 +198,10 @@ func crudTest_crudOperations(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/4")
+		tempUserI, err = newSession.Load(getTypeOf(&User{}), "users/4")
 		tempUser = tempUserI.(*User)
 		assert.Nil(t, tempUser)
-		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/1")
+		tempUserI, err = newSession.Load(getTypeOf(&User{}), "users/1")
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 10)
 		newSession.Close()
@@ -242,27 +242,27 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		assert.NoError(t, err)
 		user3.setAge(3)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 4)
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err := newSession.load(getTypeOf(&User{}), "users/2")
+		tempUserI, err := newSession.Load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		tempUser := tempUserI.(*User)
 		assert.Nil(t, tempUser)
 
-		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/3")
+		tempUserI, err = newSession.Load(getTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 3)
 
-		user1I, err := newSession.load(getTypeOf(&User{}), "users/1")
+		user1I, err := newSession.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
 
-		user4I, err := newSession.load(getTypeOf(&User{}), "users/4")
+		user4I, err := newSession.Load(getTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		user4 = user4I.(*User)
 
@@ -274,7 +274,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		if gEnableFailingTests {
 			// TODO: this returns 3 changes, showing user/2 as added
 			// which is probably wrong. Need to figure out why.
-			changes, err := newSession.advanced().whatChanged()
+			changes, err := newSession.Advanced().whatChanged()
 			assert.NoError(t, err)
 			assert.Equal(t, len(changes), 2)
 		}
@@ -282,12 +282,12 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/4")
+		tempUserI, err = newSession.Load(getTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Nil(t, tempUser)
 
-		tempUserI, err = newSession.load(getTypeOf(&User{}), "users/1")
+		tempUserI, err = newSession.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 10)
@@ -309,11 +309,11 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(getTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Toli", "Mitzi", "Boki"})
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -335,15 +335,15 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(getTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 0)
 
 		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos"})
-		changes, _ = newSession.advanced().whatChanged()
+		changes, _ = newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -366,11 +366,11 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(getTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"RavenDB"})
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -393,11 +393,11 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.load(getTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(getTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos", "Toli", "Mitzi", "Boki"})
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -420,14 +420,14 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		user2I, err := newSession.load(getTypeOf(&User{}), "users/1")
+		user2I, err := newSession.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
-		whatChanged, _ := newSession.advanced().whatChanged()
+		whatChanged, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 0)
 
 		user2 := user2I.(*User)
 		user2.setAge(3)
-		whatChanged, _ = newSession.advanced().whatChanged()
+		whatChanged, _ = newSession.Advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 1)
 		newSession.Close()
 	}
@@ -465,12 +465,12 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		member2.setName("Hibernating Rhinos")
 		member2.setAge(8)
 
-		newFamilyI, err := newSession.load(getTypeOf(&FamilyMembers{}), "family/1")
+		newFamilyI, err := newSession.Load(getTypeOf(&FamilyMembers{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*FamilyMembers)
 		newFamily.setMembers([]*Member{member1, member2})
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		family1Changes := changes["family/1"]
@@ -527,7 +527,7 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		member2.setAge(15)
 
 		newFamily.setMembers([]*Member{member1, member2})
-		changes, _ = newSession.advanced().whatChanged()
+		changes, _ = newSession.Advanced().whatChanged()
 
 		assert.Equal(t, len(changes), 1)
 
@@ -599,7 +599,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newArrI, err := newSession.load(getTypeOf(&Arr2{}), "arr/1")
+		newArrI, err := newSession.Load(getTypeOf(&Arr2{}), "arr/1")
 		assert.NoError(t, err)
 		newArr := newArrI.(*Arr2)
 
@@ -611,7 +611,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 		newArr.setArr1([]*Arr1{a1, a2})
 
-		whatChanged, _ := newSession.advanced().whatChanged()
+		whatChanged, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, 1, len(whatChanged))
 
 		change := whatChanged["arr/1"]
@@ -652,7 +652,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		newArrI, err := newSession.load(getTypeOf(&Arr2{}), "arr/1")
+		newArrI, err := newSession.Load(getTypeOf(&Arr2{}), "arr/1")
 		assert.NoError(t, err)
 		newArr := newArrI.(*Arr2)
 		a1 := &Arr1{}
@@ -662,7 +662,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 		a2.setStr([]string{"a", "b"})
 		newArr.setArr1([]*Arr1{a1, a2})
 
-		whatChanged, _ := newSession.advanced().whatChanged()
+		whatChanged, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(whatChanged), 1)
 
 		change := whatChanged["arr/1"]
@@ -707,7 +707,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			userI, err := newSession.load(getTypeOf(&User{}), "users/1")
+			userI, err := newSession.Load(getTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 			user := userI.(*User)
 			user.Name = nil
@@ -718,7 +718,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			userI, err := newSession.load(getTypeOf(&User{}), "users/1")
+			userI, err := newSession.Load(getTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 			user := userI.(*User)
 			assert.Nil(t, user.Name)
@@ -746,7 +746,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		pocI, err := session.load(getTypeOf(&Poc{}), "pocs/1")
+		pocI, err := session.Load(getTypeOf(&Poc{}), "pocs/1")
 		assert.NoError(t, err)
 		poc := pocI.(*Poc)
 		assert.Nil(t, poc.getObj())
@@ -760,7 +760,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		pocI, err := session.load(getTypeOf(&Poc{}), "pocs/1")
+		pocI, err := session.Load(getTypeOf(&Poc{}), "pocs/1")
 		assert.NoError(t, err)
 		poc := pocI.(*Poc)
 		assert.NotNil(t, poc.getObj())

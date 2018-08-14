@@ -17,21 +17,21 @@ type DocumentSession struct {
 }
 
 // TODO: consider exposing it as IAdvancedSessionOperations interface, like in Java
-func (s *DocumentSession) advanced() *DocumentSession {
+func (s *DocumentSession) Advanced() *DocumentSession {
 	return s
 }
 
 //    public ILazySessionOperations lazily() {
 //    public IEagerSessionOperations eagerly() {
 
-func (s *DocumentSession) attachments() *IAttachmentsSessionOperations {
+func (s *DocumentSession) Attachments() *IAttachmentsSessionOperations {
 	if s._attachments == nil {
 		s._attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
 	}
 	return s._attachments
 }
 
-func (s *DocumentSession) revisions() *IRevisionsSessionOperations {
+func (s *DocumentSession) Revisions() *IRevisionsSessionOperations {
 	return s._revisions
 }
 
@@ -67,7 +67,7 @@ func (s *DocumentSession) SaveChanges() error {
 	return nil
 }
 
-func (s *DocumentSession) exists(id string) (bool, error) {
+func (s *DocumentSession) Exists(id string) (bool, error) {
 	if s.documentsById.getValue(id) != nil {
 		return true, nil
 	}
@@ -82,7 +82,7 @@ func (s *DocumentSession) exists(id string) (bool, error) {
 	return ok, nil
 }
 
-func (s *DocumentSession) refresh(entity Object) error {
+func (s *DocumentSession) Refresh(entity Object) error {
 	documentInfo := s.documentsByEntity[entity]
 	if documentInfo == nil {
 		return NewIllegalStateException("Cannot refresh a transient instance")
@@ -103,7 +103,7 @@ func (s *DocumentSession) refresh(entity Object) error {
 // TODO:    public ResponseTimeInformation executeAllPendingLazyOperations() {
 // TODO:    private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
 
-func (s *DocumentSession) include(path string) ILoaderWithInclude {
+func (s *DocumentSession) Include(path string) ILoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).include(path)
 }
 
@@ -111,7 +111,7 @@ func (s *DocumentSession) include(path string) ILoaderWithInclude {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(reflect.Type clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)
 
-func (s *DocumentSession) load(clazz reflect.Type, id string) (interface{}, error) {
+func (s *DocumentSession) Load(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
 		return Defaults_defaultValue(clazz), nil
 	}
@@ -134,7 +134,7 @@ func (s *DocumentSession) load(clazz reflect.Type, id string) (interface{}, erro
 	return loadOperation.getDocument(clazz)
 }
 
-func (s *DocumentSession) loadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
+func (s *DocumentSession) LoadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	err := s.loadInternalWithOperation(ids, loadOperation, nil)
 	if err != nil {
@@ -165,7 +165,7 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 	return nil
 }
 
-func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
+func (s *DocumentSession) LoadInternalMulti(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
@@ -182,11 +182,11 @@ func (s *DocumentSession) loadInternalMulti(clazz reflect.Type, ids []string, in
 	return loadOperation.getDocuments(clazz)
 }
 
-func (s *DocumentSession) loadStartingWith(clazz reflect.Type, idPrefix string) ([]interface{}, error) {
-	return s.loadStartingWithFull(clazz, idPrefix, "", 0, 25, "", "")
+func (s *DocumentSession) LoadStartingWith(clazz reflect.Type, idPrefix string) ([]interface{}, error) {
+	return s.LoadStartingWithFull(clazz, idPrefix, "", 0, 25, "", "")
 }
 
-func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix string, matches string, start int, pageSize int, exclude string, startAfter string) ([]interface{}, error) {
+func (s *DocumentSession) LoadStartingWithFull(clazz reflect.Type, idPrefix string, matches string, start int, pageSize int, exclude string, startAfter string) ([]interface{}, error) {
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
 	_, err := s.loadStartingWithInternal(idPrefix, loadStartingWithOperation, nil, matches, start, pageSize, exclude, startAfter)
 	if err != nil {
@@ -195,29 +195,29 @@ func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix stri
 	return loadStartingWithOperation.getDocuments(clazz)
 }
 
-func (s *DocumentSession)  loadStartingWithIntoStream( idPrefix string, output io.Writer) error {
-	return s.loadStartingWithIntoStreamAll(idPrefix, output, "", 0, 25, "", "")
+func (s *DocumentSession) LoadStartingWithIntoStream(idPrefix string, output io.Writer) error {
+	return s.LoadStartingWithIntoStreamAll(idPrefix, output, "", 0, 25, "", "")
 }
 
-func (s *DocumentSession)  loadStartingWithIntoStream2(idPrefix string, output io.Writer, matches string )  error {
-	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, 0, 25, "", "")
+func (s *DocumentSession) LoadStartingWithIntoStream2(idPrefix string, output io.Writer, matches string) error {
+	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, 0, 25, "", "")
 }
 
-func (s *DocumentSession)  loadStartingWithIntoStream3(idPrefix string, output io.Writer, matches string,  start int)  error {
-	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, start, 25, "", "")
+func (s *DocumentSession) LoadStartingWithIntoStream3(idPrefix string, output io.Writer, matches string, start int) error {
+	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, start, 25, "", "")
 }
 
-func (s *DocumentSession)  loadStartingWithIntoStream4(idPrefix string, output io.Writer, matches string , start int, pageSize int )  error {
-	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
+func (s *DocumentSession) LoadStartingWithIntoStream4(idPrefix string, output io.Writer, matches string, start int, pageSize int) error {
+	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
 }
 
-func (s *DocumentSession)  loadStartingWithIntoStream5(idPrefix string, output io.Writer, matches string , start int, pageSize int , exclude string)  error {
-	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
+func (s *DocumentSession) LoadStartingWithIntoStream5(idPrefix string, output io.Writer, matches string, start int, pageSize int, exclude string) error {
+	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
 }
 
-func (s *DocumentSession)  loadStartingWithIntoStreamAll(idPrefix string, output io.Writer, matches string , start int, pageSize int , exclude string, startAfter string)  error {
+func (s *DocumentSession) LoadStartingWithIntoStreamAll(idPrefix string, output io.Writer, matches string, start int, pageSize int, exclude string, startAfter string) error {
 	op := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
-	_, err := s.loadStartingWithInternal(idPrefix, op, output, matches, start, pageSize, exclude, startAfter);
+	_, err := s.loadStartingWithInternal(idPrefix, op, output, matches, start, pageSize, exclude, startAfter)
 	return err
 }
 
@@ -245,7 +245,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 	return command, nil
 }
 
-func (s *DocumentSession) loadIntoStream(ids []string, output io.Writer) error {
+func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 	op := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	return s.loadInternalWithOperation(ids, op, output)
 }
@@ -259,38 +259,38 @@ func (s *DocumentSession) loadIntoStream(ids []string, output io.Writer) error {
 // private boolean tryMergePatches(string id, PatchRequest patchRequest) {
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
-func (s *DocumentSession) documentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.documentQueryAll(clazz, index.getIndexName(), "", index.isMapReduce())
+func (s *DocumentSession) DocumentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.DocumentQueryAll(clazz, index.getIndexName(), "", index.isMapReduce())
 }
 
-func (s *DocumentSession) documentQuery(clazz reflect.Type) *DocumentQuery {
-	return s.documentQueryAll(clazz, "", "", false)
+func (s *DocumentSession) DocumentQuery(clazz reflect.Type) *DocumentQuery {
+	return s.DocumentQueryAll(clazz, "", "", false)
 }
 
-func (s *DocumentSession) documentQueryAll(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
+func (s *DocumentSession) DocumentQueryAll(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.getConventions())
 
 	return NewDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 
-func (s *DocumentSession) rawQuery(clazz reflect.Type, query string) *IRawDocumentQuery {
+func (s *DocumentSession) RawQuery(clazz reflect.Type, query string) *IRawDocumentQuery {
 	return NewRawDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, query)
 }
 
-func (s *DocumentSession) query(clazz reflect.Type) *DocumentQuery {
-	return s.documentQueryAll(clazz, "", "", false)
+func (s *DocumentSession) Query(clazz reflect.Type) *DocumentQuery {
+	return s.DocumentQueryAll(clazz, "", "", false)
 }
 
-func (s *DocumentSession) queryWithQuery(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
+func (s *DocumentSession) QueryWithQuery(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
 	if StringUtils_isNotEmpty(collectionOrIndexName.getCollection()) {
-		return s.documentQueryAll(clazz, "", collectionOrIndexName.getCollection(), false)
+		return s.DocumentQueryAll(clazz, "", collectionOrIndexName.getCollection(), false)
 	}
 
-	return s.documentQueryAll(clazz, collectionOrIndexName.getIndexName(), "", false)
+	return s.DocumentQueryAll(clazz, collectionOrIndexName.getIndexName(), "", false)
 }
 
-func (s *DocumentSession) queryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.documentQueryInIndex(clazz, index)
+func (s *DocumentSession) QueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.DocumentQueryInIndex(clazz, index)
 }
 
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {

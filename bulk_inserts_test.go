@@ -46,13 +46,13 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		doc1I, err := session.load(getTypeOf(&FooBar{}), "FooBars/1-A")
+		doc1I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
-		doc2I, err := session.load(getTypeOf(&FooBar{}), "FooBars/2-A")
+		doc2I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/2-A")
 		assert.NoError(t, err)
-		doc3I, err := session.load(getTypeOf(&FooBar{}), "FooBars/3-A")
+		doc3I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/3-A")
 		assert.NoError(t, err)
-		doc4I, err := session.load(getTypeOf(&FooBar{}), "FooBars/4-A")
+		doc4I, err := session.Load(getTypeOf(&FooBar{}), "FooBars/4-A")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, doc1I)
@@ -140,10 +140,10 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entity, err := session.load(getTypeOf(&FooBar{}), "FooBars/1-A")
+		entity, err := session.Load(getTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
 
-		meta, err := session.advanced().getMetadataFor(entity)
+		meta, err := session.Advanced().getMetadataFor(entity)
 		assert.NoError(t, err)
 
 		metadataExpirationDate, ok := meta.get(Constants_Documents_Metadata_EXPIRES)

@@ -19,7 +19,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 		err = newSession.StoreWithID(basicName, "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -28,12 +28,12 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		userI, err := newSession.load(getTypeOf(&NameAndAge{}), "users/1")
+		userI, err := newSession.Load(getTypeOf(&NameAndAge{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*NameAndAge)
 		user.setAge(5)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		change := changes["users/1"]
 		assert.Equal(t, len(change), 1)
 
@@ -61,7 +61,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 		err = newSession.StoreWithID(nameAndAge, "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -71,10 +71,10 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.load(getTypeOf(&BasicAge{}), "users/1")
+		_, err = newSession.Load(getTypeOf(&BasicAge{}), "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		change := changes["users/1"]
 		assert.Equal(t, len(change), 1)
 
@@ -101,7 +101,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 		err = newSession.StoreWithID(basicAge, "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -111,9 +111,9 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.load(getTypeOf(&Int{}), "users/1")
+		_, err = newSession.Load(getTypeOf(&Int{}), "users/1")
 		assert.NoError(t, err)
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		change := changes["users/1"]
 		assert.Equal(t, len(change), 2)
 
@@ -145,7 +145,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		err = newSession.StoreWithID(arr, "users/1")
 		assert.NoError(t, err)
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		change := changes["users/1"]
@@ -160,13 +160,13 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			arrI, err := newSession.load(getTypeOf(&Arr{}), "users/1")
+			arrI, err := newSession.Load(getTypeOf(&Arr{}), "users/1")
 			assert.NoError(t, err)
 			arr := arrI.(*Arr)
 
 			arr.setArray([]Object{"a", 2, "c"})
 
-			changes, _ := newSession.advanced().whatChanged()
+			changes, _ := newSession.Advanced().whatChanged()
 			assert.Equal(t, len(changes), 1)
 
 			change := changes["users/1"]
@@ -213,13 +213,13 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.load(getTypeOf(&Arr{}), "arr/1")
+		arrI, err := newSession.Load(getTypeOf(&Arr{}), "arr/1")
 		assert.NoError(t, err)
 
 		arr := arrI.(*Arr)
 		arr.setArray([]Object{"a", 1, "b", "c", 2})
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 		change := changes["arr/1"]
 		assert.Equal(t, len(change), 2)
@@ -259,13 +259,13 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.load(getTypeOf(&Arr{}), "arr/1")
+		arrI, err := newSession.Load(getTypeOf(&Arr{}), "arr/1")
 		assert.NoError(t, err)
 
 		arr := arrI.(*Arr)
 		arr.setArray([]Object{"a"})
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 1)
 		change := changes["arr/1"]
 		assert.Equal(t, len(change), 2)
@@ -318,20 +318,20 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.load(getTypeOf(&Double{}), "num/1")
+		_, err = newSession.Load(getTypeOf(&Double{}), "num/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 0)
 		newSession.Close()
 	}
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.load(getTypeOf(&Int{}), "num/2")
+		_, err = newSession.Load(getTypeOf(&Int{}), "num/2")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.advanced().whatChanged()
+		changes, _ := newSession.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 0)
 		newSession.Close()
 	}
@@ -364,26 +364,26 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
-		changes, _ := session.advanced().whatChanged()
+		changes, _ := session.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 3)
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		user1I, err := session.load(getTypeOf(&User{}), "users/1")
+		user1I, err := session.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
 
-		user2I, err := session.load(getTypeOf(&User{}), "users/2")
+		user2I, err := session.Load(getTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		user2 = user2I.(*User)
 
 		user1.setAge(10)
 		err = session.DeleteEntity(user2)
 
-		changes, _ = session.advanced().whatChanged()
+		changes, _ = session.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 2)
-		changes, _ = session.advanced().whatChanged()
+		changes, _ = session.Advanced().whatChanged()
 		assert.Equal(t, len(changes), 2)
 		session.Close()
 	}

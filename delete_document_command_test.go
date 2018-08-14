@@ -26,7 +26,7 @@ func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 	assert.NoError(t, err)
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.load(getTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Nil(t, loadedUser)
@@ -48,14 +48,14 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		changeVector, err = session.advanced().getChangeVectorFor(user)
+		changeVector, err = session.Advanced().getChangeVectorFor(user)
 		assert.NoError(t, err)
 		session.Close()
 	}
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.load(getTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.NotNil(t, loadedUser)

@@ -159,7 +159,7 @@ func spatial_weirdSpatialResults(t *testing.T) {
 
 		var statsRef *QueryStatistics
 
-		q := session.advanced().documentQueryInIndex(getTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndex(getTypeOf(&MyDocument{}), index)
 		q = q.waitForNonStaleResults(0)
 		q = q.withinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
 		q = q.statistics(&statsRef)
@@ -213,7 +213,7 @@ func spatial_matchSpatialResults(t *testing.T) {
 
 		var statsRef *QueryStatistics
 
-		q := session.advanced().documentQueryInIndex(getTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndex(getTypeOf(&MyDocument{}), index)
 		q = q.waitForNonStaleResults(0)
 		q = q.withinRadiusOf("coordinates", 0, 10, 10)
 		q = q.statistics(&statsRef)

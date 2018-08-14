@@ -33,7 +33,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.load(getTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.getName(), "Patched")
@@ -66,7 +66,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.load(getTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.getName(), "Patched")

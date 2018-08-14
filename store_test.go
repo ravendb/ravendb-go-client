@@ -22,14 +22,14 @@ func storeTestRefreshTest(t *testing.T) {
 
 		{
 			innerSession := openSessionMust(t, store)
-			innerUserI, err := innerSession.load(getTypeOf(&User{}), "users/1")
+			innerUserI, err := innerSession.Load(getTypeOf(&User{}), "users/1")
 			innerUser := innerUserI.(*User)
 			innerUser.setName("RavenDB 4.0")
 			err = innerSession.SaveChanges()
 			assert.NoError(t, err)
 		}
 
-		session.advanced().refresh(user)
+		session.Advanced().Refresh(user)
 
 		name := *user.getName()
 		assert.Equal(t, name, "RavenDB 4.0")
@@ -51,7 +51,7 @@ func storeTestStoreDocument(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		userI, err := session.load(getTypeOf(&User{}), "users/1")
+		userI, err := session.Load(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user = userI.(*User)
 		assert.NotNil(t, user)
@@ -81,7 +81,7 @@ func storeTestStoreDocuments(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		users, err := session.loadMulti(getTypeOf(&User{}), []string{"users/1", "users/2"})
+		users, err := session.LoadMulti(getTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
 		session.Close()
@@ -106,7 +106,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 		fn := func(sender interface{}, event *AfterSaveChangesEventArgs) {
 			sessionLevelCallback[0] = event.getDocumentMetadata()
 		}
-		session.advanced().addAfterSaveChangesListener(fn)
+		session.Advanced().addAfterSaveChangesListener(fn)
 
 		user1 := NewUser()
 		user1.setName("RavenDB")
@@ -115,10 +115,10 @@ func storeTestNotifyAfterStore(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		isLoaded := session.advanced().IsLoaded("users/1")
+		isLoaded := session.Advanced().IsLoaded("users/1")
 		assert.True(t, isLoaded)
 
-		changeVEctor, err := session.advanced().getChangeVectorFor(user1)
+		changeVEctor, err := session.Advanced().getChangeVectorFor(user1)
 		assert.NoError(t, err)
 
 		assert.NotNil(t, changeVEctor)

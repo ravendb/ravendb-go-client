@@ -75,7 +75,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryInIndex(getTypeOf(&Order{}), index)
+		q := session.QueryInIndex(getTypeOf(&Order{}), index)
 		builder := func(f IFacetBuilder) {
 			f.byField("region").maxOn("total").minOn("total")
 		}
@@ -159,7 +159,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryInIndex(getTypeOf(&AggOrder{}), index)
+		q := session.QueryInIndex(getTypeOf(&AggOrder{}), index)
 		builder := func(f IFacetBuilder) {
 			f.byField("product").sumOn("total")
 		}
@@ -243,7 +243,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryInIndex(getTypeOf(&AggOrder{}), index)
+		q := session.QueryInIndex(getTypeOf(&AggOrder{}), index)
 		builder := func(f IFacetBuilder) {
 			f.byField("product").maxOn("total").minOn("total")
 		}
@@ -314,7 +314,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryInIndex(getTypeOf(&AggOrder{}), index)
+		q := session.QueryInIndex(getTypeOf(&AggOrder{}), index)
 		builder := func(f IFacetBuilder) {
 			f.byField("product").withDisplayName("productMax").maxOn("total")
 		}
@@ -382,7 +382,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 		session := openSessionMust(t, store)
 		_range := RangeBuilder_forPath("total")
 
-		q := session.queryInIndex(getTypeOf(&Order{}), index)
+		q := session.QueryInIndex(getTypeOf(&Order{}), index)
 		builder := func(f IFacetBuilder) {
 			f.byField("product").sumOn("total")
 		}
@@ -486,7 +486,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 	{
 		session := openSessionMust(t, store)
-		q := session.queryInIndex(getTypeOf(&ItemsOrder{}), index)
+		q := session.QueryInIndex(getTypeOf(&ItemsOrder{}), index)
 		q = q.whereGreaterThanOrEqual("at", end0)
 		fn := func(f IFacetBuilder) {
 			r1 := builder.isGreaterThanOrEqualTo(minValue)              // all - 4

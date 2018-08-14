@@ -69,7 +69,7 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.query(getTypeOf(&UserWithFavs{}))
+		q := session.Query(getTypeOf(&UserWithFavs{}))
 		q = q.containsAny("Favourites", []Object{"pascal", "go"})
 		q = q.selectFields(getTypeOf(""), "Name")
 		pascalOrGoDeveloperNames, err := q.toList()
@@ -84,7 +84,7 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.query(getTypeOf(&UserWithFavs{}))
+		q := session.Query(getTypeOf(&UserWithFavs{}))
 		q = q.containsAll("Favourites", []Object{"java"})
 		q = q.selectFields(getTypeOf(""), "Name")
 		javaDevelopers, err := q.toList()

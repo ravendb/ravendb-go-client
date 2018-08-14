@@ -128,7 +128,7 @@ func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQu
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		fn := func(f *SpatialCriteriaFactory) SpatialCriteria {
 			res := f.within(getQueryShapeFromLatLon(FILTERED_LAT, FILTERED_LNG, FILTERED_RADIUS))
 			return res
@@ -166,7 +166,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		q = q.orderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
 
 		shops, err := q.toList()
@@ -189,7 +189,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
 		q = q.orderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
 		shops, err := q.toList()
 		assert.NoError(t, err)
@@ -210,7 +210,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		q = q.orderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.toList()
 
@@ -226,7 +226,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		q = q.orderByDistanceDescendingLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.toList()
 
@@ -250,7 +250,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
 		q = q.orderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.toList()
 
@@ -266,7 +266,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.queryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
+		q := session.QueryWithQuery(getTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
 		q = q.orderByDistanceDescendingLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.toList()
 

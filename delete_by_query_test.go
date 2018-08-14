@@ -39,7 +39,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			q := session.query(getTypeOf(&User{}))
+			q := session.Query(getTypeOf(&User{}))
 			count, err := q.count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)

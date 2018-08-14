@@ -46,7 +46,7 @@ func advancedPatching_testWithVariables(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.load(getTypeOf(&CustomType{}), "customTypes/1")
+		loadedI, err := session.Load(getTypeOf(&CustomType{}), "customTypes/1")
 		assert.NoError(t, err)
 		loaded := loadedI.(*CustomType)
 		assert.Equal(t, loaded.Owner, "not-me")
@@ -93,7 +93,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.advanced().documentQueryAll(getTypeOf(&CustomType{}), "TestIndex", "", false)
+		q := session.Advanced().DocumentQueryAll(getTypeOf(&CustomType{}), "TestIndex", "", false)
 		q = q.waitForNonStaleResults(0)
 		_, err = q.toList()
 		assert.NoError(t, err)
@@ -110,7 +110,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		jsonDocument, err := session.load(getTypeOf(ObjectNode{}), "NewItem/3")
+		jsonDocument, err := session.Load(getTypeOf(ObjectNode{}), "NewItem/3")
 		assert.NoError(t, err)
 		jsonDoc := jsonDocument.(ObjectNode)
 		assert.Equal(t, jsonDoc["copiedValue"], "1")

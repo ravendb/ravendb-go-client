@@ -35,7 +35,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		userI, err := session.load(getTypeOf(&User{}), documentId)
+		userI, err := session.Load(getTypeOf(&User{}), documentId)
 		assert.NoError(t, err)
 		assert.Nil(t, userI)
 		session.Close()

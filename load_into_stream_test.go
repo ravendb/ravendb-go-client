@@ -22,7 +22,7 @@ func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
 		stream := bytes.NewBuffer(nil)
 
 		ids := []string{"employee2s/1-A", "employee2s/4-A", "employee2s/7-A"}
-		err = session.advanced().loadIntoStream(ids, stream)
+		err = session.Advanced().LoadIntoStream(ids, stream)
 		assert.NoError(t, err)
 
 		d, err := ioutil.ReadAll(stream)
@@ -58,7 +58,7 @@ func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
 		session := openSessionMust(t, store)
 		stream := bytes.NewBuffer(nil)
 
-		err = session.advanced().loadStartingWithIntoStream("employee2s/", stream);
+		err = session.Advanced().LoadStartingWithIntoStream("employee2s/", stream)
 		assert.NoError(t, err)
 
 		d, err := ioutil.ReadAll(stream)

@@ -153,7 +153,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 		{
 			session := openSessionMust(t, store)
 			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
-			err = session.advanced().attachments().store("users/1", "profile.png", bais, "")
+			err = session.Advanced().Attachments().store("users/1", "profile.png", bais, "")
 			assert.NoError(t, err)
 
 			err = session.SaveChanges()
@@ -163,7 +163,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			revisionsI, err := session.advanced().revisions().getFor(getTypeOf(&User{}), "users/1")
+			revisionsI, err := session.Advanced().Revisions().getFor(getTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 
 			// TODO: could be done with reflection
@@ -174,11 +174,11 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 			}
 
 			rev := revisions[1]
-			changeVector, err := session.advanced().getChangeVectorFor(rev)
+			changeVector, err := session.Advanced().getChangeVectorFor(rev)
 			assert.NoError(t, err)
 
 			{
-				revision, err := session.advanced().attachments().getRevision("users/1", "profile.png", changeVector)
+				revision, err := session.Advanced().Attachments().getRevision("users/1", "profile.png", changeVector)
 				assert.NoError(t, err)
 				r := revision.getData()
 				bytes, err := ioutil.ReadAll(r)
@@ -279,7 +279,7 @@ func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assert
 
 	{
 		session := openSessionMust(t, store)
-		revisionsI, err := session.advanced().revisions().getFor(getTypeOf(&User{}), "users/1")
+		revisionsI, err := session.Advanced().Revisions().getFor(getTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		n := len(revisionsI)
 		assert.Equal(t, n, 4)
@@ -294,7 +294,7 @@ func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assert
 }
 
 func assertNoRevisionAttachment(t *testing.T, revision *User, session *DocumentSession, isDeleteRevision bool) {
-	metadata, err := session.advanced().getMetadataFor(revision)
+	metadata, err := session.Advanced().getMetadataFor(revision)
 	assert.NoError(t, err)
 
 	if isDeleteRevision {
@@ -314,7 +314,7 @@ func assertNoRevisionAttachment(t *testing.T, revision *User, session *DocumentS
 }
 
 func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, revision *User, session *DocumentSession) {
-	metadata, err := session.advanced().getMetadataFor(revision)
+	metadata, err := session.Advanced().getMetadataFor(revision)
 	assert.NoError(t, err)
 	v, _ := metadata.get(Constants_Documents_Metadata_FLAGS)
 	s := v.(string)

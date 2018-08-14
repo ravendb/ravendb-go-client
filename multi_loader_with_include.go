@@ -21,11 +21,11 @@ func (l *MultiLoaderWithInclude) include(path string) ILoaderWithInclude {
 }
 
 func (l *MultiLoaderWithInclude) loadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
-	return l._session.loadInternalMulti(clazz, ids, l._includes)
+	return l._session.LoadInternalMulti(clazz, ids, l._includes)
 }
 
 func (l *MultiLoaderWithInclude) load(clazz reflect.Type, id string) (interface{}, error) {
-	stringObjectMap, err := l._session.loadInternalMulti(clazz, []string{id}, l._includes)
+	stringObjectMap, err := l._session.LoadInternalMulti(clazz, []string{id}, l._includes)
 	if err != nil {
 		return nil, err
 	}

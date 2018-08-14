@@ -63,14 +63,14 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		err = session.Store(foo)
 		assert.NoError(t, err)
 
-		fooId := session.advanced().getDocumentId(foo)
+		fooId := session.Advanced().getDocumentId(foo)
 		bar := &Bar{}
 		bar.setName("End")
 		bar.setFooId(fooId)
 
 		session.Store(bar)
 
-		barId = session.advanced().getDocumentId(bar)
+		barId = session.Advanced().getDocumentId(bar)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		session.Close()
@@ -79,7 +79,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		// Note: in Java it's fooId, we must match Go naming with FooId
-		bar, err := newSession.include("FooId").loadMulti(getTypeOf(&Bar{}), []string{barId})
+		bar, err := newSession.Include("FooId").loadMulti(getTypeOf(&Bar{}), []string{barId})
 		assert.NoError(t, err)
 
 		assert.NotNil(t, bar)
@@ -88,16 +88,16 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 			assert.NotNil(t, v)
 		}
 
-		numOfRequests := newSession.advanced().getNumberOfRequests()
+		numOfRequests := newSession.Advanced().getNumberOfRequests()
 
 		barV := bar[barId].(*Bar)
-		foo, err := newSession.load(getTypeOf(&Foo{}), barV.getFooId())
+		foo, err := newSession.Load(getTypeOf(&Foo{}), barV.getFooId())
 		assert.NoError(t, err)
 		assert.NotNil(t, foo)
 		fooV := foo.(*Foo)
 		assert.Equal(t, fooV.getName(), "Beginning")
 
-		assert.Equal(t, newSession.advanced().getNumberOfRequests(), numOfRequests)
+		assert.Equal(t, newSession.Advanced().getNumberOfRequests(), numOfRequests)
 		newSession.Close()
 	}
 }
