@@ -47,7 +47,40 @@ func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
 	}
 }
 
-func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {}
+func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	insertData(t, store)
+
+	{
+		session := openSessionMust(t, store)
+		stream := bytes.NewBuffer(nil)
+
+		err = session.advanced().loadStartingWithIntoStream("employee2s/", stream);
+		assert.NoError(t, err)
+
+		d, err := ioutil.ReadAll(stream)
+		assert.NoError(t, err)
+		var jsonNode map[string]interface{}
+		err = json.Unmarshal(d, &jsonNode)
+		assert.NoError(t, err)
+
+		res := jsonNode["Results"]
+		a := res.([]interface{})
+		assert.Equal(t, len(a), 7)
+
+		names := []string{"Aviv", "Iftah", "Tal", "Maxim", "Karmel", "Grisha", "Michael"}
+		for _, v := range a {
+			v2 := v.(ObjectNode)
+			s, _ := jsonGetAsText(v2, "firstName")
+			assert.True(t, stringArrayContains(names, s))
+		}
+
+		session.Close()
+	}
+}
 
 func insertData(t *testing.T, store *IDocumentStore) {
 	var err error

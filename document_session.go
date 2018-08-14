@@ -195,12 +195,31 @@ func (s *DocumentSession) loadStartingWithFull(clazz reflect.Type, idPrefix stri
 	return loadStartingWithOperation.getDocuments(clazz)
 }
 
-// public void loadStartingWithIntoStream(string idPrefix, OutputStream output) {
-// public void loadStartingWithIntoStream(string idPrefix, OutputStream output, string matches) {
-// public void loadStartingWithIntoStream(string idPrefix, OutputStream output, string matches, int start)
-// public void loadStartingWithIntoStream(string idPrefix, OutputStream output, string matches, int start, int pageSize) {
-// public void loadStartingWithIntoStream(string idPrefix, OutputStream output, string matches, int start, int pageSize, string exclude) {
-// public void loadStartingWithIntoStream(string idPrefix, OutputStream output, string matches, int start, int
+func (s *DocumentSession)  loadStartingWithIntoStream( idPrefix string, output io.Writer) error {
+	return s.loadStartingWithIntoStreamAll(idPrefix, output, "", 0, 25, "", "")
+}
+
+func (s *DocumentSession)  loadStartingWithIntoStream2(idPrefix string, output io.Writer, matches string )  error {
+	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, 0, 25, "", "")
+}
+
+func (s *DocumentSession)  loadStartingWithIntoStream3(idPrefix string, output io.Writer, matches string,  start int)  error {
+	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, start, 25, "", "")
+}
+
+func (s *DocumentSession)  loadStartingWithIntoStream4(idPrefix string, output io.Writer, matches string , start int, pageSize int )  error {
+	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
+}
+
+func (s *DocumentSession)  loadStartingWithIntoStream5(idPrefix string, output io.Writer, matches string , start int, pageSize int , exclude string)  error {
+	return s.loadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
+}
+
+func (s *DocumentSession)  loadStartingWithIntoStreamAll(idPrefix string, output io.Writer, matches string , start int, pageSize int , exclude string, startAfter string)  error {
+	op := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
+	_, err := s.loadStartingWithInternal(idPrefix, op, output, matches, start, pageSize, exclude, startAfter);
+	return err
+}
 
 func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *LoadStartingWithOperation, stream io.Writer,
 	matches string, start int, pageSize int, exclude string, startAfter string) (*GetDocumentsCommand, error) {
@@ -215,15 +234,10 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 		}
 
 		if stream != nil {
-			panic("NYI")
-			/*
-				try {
-					GetDocumentsResult result = command.getResult();
-					JsonExtensions.getDefaultMapper().writeValue(stream, result);
-				} catch (IOException e) {
-					throw new RuntimeException("Unable to serialize returned value into stream" + e.getMessage(), e);
-				}
-			*/
+			result := command.Result
+			enc := json.NewEncoder(stream)
+			err = enc.Encode(result)
+			panicIf(err != nil, "enc.Encode() failed with %s", err)
 		} else {
 			operation.setResult(command.Result)
 		}
@@ -233,9 +247,9 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 
 func (s *DocumentSession) loadIntoStream(ids []string, output io.Writer) error {
 	op := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-	return s.loadInternalWithOperation(ids, op, output);
+	return s.loadInternalWithOperation(ids, op, output)
 }
- 
+
 // public <T, U> void increment(T entity, string path, U valueToAdd) {
 // public <T, U> void increment(string id, string path, U valueToAdd) {
 // public <T, U> void patch(T entity, string path, U value) {
