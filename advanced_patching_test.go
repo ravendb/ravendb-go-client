@@ -35,11 +35,11 @@ func advancedPatching_testWithVariables(t *testing.T) {
 	}
 
 	patchRequest := NewPatchRequest()
-	patchRequest.setScript("this.owner = args.v1")
+	patchRequest.SetScript("this.owner = args.v1")
 	m := map[string]Object{
 		"v1": "not-me",
 	}
-	patchRequest.setValues(m)
+	patchRequest.SetValues(m)
 	patchOperation := NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
 	err = store.operations().send(patchOperation)
 	assert.NoError(t, err)

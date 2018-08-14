@@ -64,8 +64,8 @@ type PatchOperation struct {
 
 func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, patchIfMissing *PatchRequest, skipPatchIfChangeVectorMismatch bool) *PatchOperation {
 	panicIf(patch == nil, "Patch cannot be nil")
-	panicIf(StringUtils_isWhitespace(patch.getScript()), "Patch script cannot be empty")
-	panicIf(patchIfMissing != nil && StringUtils_isWhitespace(patchIfMissing.getScript()), "PatchIfMissing script cannot be empty")
+	panicIf(StringUtils_isWhitespace(patch.GetScript()), "Patch script cannot be empty")
+	panicIf(patchIfMissing != nil && StringUtils_isWhitespace(patchIfMissing.GetScript()), "PatchIfMissing script cannot be empty")
 	return &PatchOperation{
 		_id:                              id,
 		_changeVector:                    changeVector,
@@ -105,12 +105,12 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 	cmd := &PatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_id:           id,
-		_changeVector: changeVector,
-		_patch:        NewPatchOperationPayload(patch, patchIfMissing),
+		_id:                              id,
+		_changeVector:                    changeVector,
+		_patch:                           NewPatchOperationPayload(patch, patchIfMissing),
 		_skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
 		_returnDebugInformation:          returnDebugInformation,
-		_test: test,
+		_test:                            test,
 	}
 
 	return cmd
@@ -133,12 +133,12 @@ func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 
 	patch := ObjectNode{}
 	if c._patch.getPatch() != nil {
-		patch = c._patch.getPatch().serialize()
+		patch = c._patch.getPatch().Serialize()
 	}
 
 	var patchIfMissing ObjectNode
 	if c._patch.getPatchIfMissing() != nil {
-		patchIfMissing = c._patch.getPatchIfMissing().serialize()
+		patchIfMissing = c._patch.getPatchIfMissing().Serialize()
 	}
 
 	m := map[string]interface{}{

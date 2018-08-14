@@ -1,24 +1,24 @@
 package ravendb
 
 type PatchRequest struct {
-	script string
-	values map[string]Object
+	Script string
+	Values map[string]Object
 }
 
-func (r *PatchRequest) getScript() string {
-	return r.script
+func (r *PatchRequest) GetScript() string {
+	return r.Script
 }
 
-func (r *PatchRequest) setScript(script string) {
-	r.script = script
+func (r *PatchRequest) SetScript(script string) {
+	r.Script = script
 }
 
-func (r *PatchRequest) getValues() map[string]Object {
-	return r.values
+func (r *PatchRequest) GetValues() map[string]Object {
+	return r.Values
 }
 
-func (r *PatchRequest) setValues(values map[string]Object) {
-	r.values = values
+func (r *PatchRequest) SetValues(values map[string]Object) {
+	r.Values = values
 }
 
 func NewPatchRequest() *PatchRequest {
@@ -27,17 +27,17 @@ func NewPatchRequest() *PatchRequest {
 
 func PatchRequest_forScript(script string) *PatchRequest {
 	return &PatchRequest{
-		script: script,
+		Script: script,
 	}
 }
 
-func (r *PatchRequest) serialize() ObjectNode {
-	values := r.values
+func (r *PatchRequest) Serialize() ObjectNode {
+	values := r.Values
 	if values == nil {
 		values = ObjectNode{}
 	}
 	m := map[string]interface{}{
-		"Script": r.script,
+		"Script": r.Script,
 		"Values": values,
 	}
 	return m

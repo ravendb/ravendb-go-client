@@ -33,10 +33,10 @@ func (d *PatchCommandData) getPatchIfMissing() *PatchRequest {
 
 func (d *PatchCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
 	res := d.baseJSON()
-	res["Patch"] = d.patch.serialize()
+	res["Patch"] = d.patch.Serialize()
 
 	if d.patchIfMissing != nil {
-		res["PatchIfMissing"] = d.patchIfMissing.serialize()
+		res["PatchIfMissing"] = d.patchIfMissing.Serialize()
 	}
 	return res, nil
 }
