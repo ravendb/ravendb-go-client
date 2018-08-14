@@ -25,21 +25,21 @@ func NewMaintenanceOperationExecutorWithDatabase(store *DocumentStore, databaseN
 	return res
 }
 
-func (e *MaintenanceOperationExecutor) server() *ServerOperationExecutor {
+func (e *MaintenanceOperationExecutor) Server() *ServerOperationExecutor {
 	if e.serverOperationExecutor == nil {
 		e.serverOperationExecutor = NewServerOperationExecutor(e.store)
 	}
 	return e.serverOperationExecutor
 }
 
-func (e *MaintenanceOperationExecutor) forDatabase(databaseName string) *MaintenanceOperationExecutor {
+func (e *MaintenanceOperationExecutor) ForDatabase(databaseName string) *MaintenanceOperationExecutor {
 	if strings.EqualFold(e.databaseName, databaseName) {
 		return e
 	}
 	return NewMaintenanceOperationExecutorWithDatabase(e.store, databaseName)
 }
 
-func (e *MaintenanceOperationExecutor) send(operation IMaintenanceOperation) error {
+func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) error {
 	err := e.assertDatabaseNameSet()
 	if err != nil {
 		return err

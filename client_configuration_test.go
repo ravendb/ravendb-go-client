@@ -11,7 +11,7 @@ func clientConfiguration_canHandleNoConfiguration(t *testing.T) {
 	defer store.Close()
 
 	operation := NewGetClientConfigurationOperation()
-	err := store.Maintenance().send(operation)
+	err := store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
 	assert.Nil(t, result.getConfiguration())
@@ -30,9 +30,9 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T) {
 
 	saveOperation, err := NewPutClientConfigurationOperation(configurationToSave)
 	assert.NoError(t, err)
-	store.Maintenance().send(saveOperation)
+	store.Maintenance().Send(saveOperation)
 	operation := NewGetClientConfigurationOperation()
-	err = store.Maintenance().send(operation)
+	err = store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
 	assert.True(t, result.getEtag() > 0)

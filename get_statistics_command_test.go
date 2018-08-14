@@ -14,7 +14,7 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	executor := store.GetRequestExecutor()
 
 	sampleData := NewCreateSampleDataOperation()
-	err = store.Maintenance().send(sampleData)
+	err = store.Maintenance().Send(sampleData)
 	assert.NoError(t, err)
 
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)

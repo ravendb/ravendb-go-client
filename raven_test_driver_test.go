@@ -88,7 +88,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	databaseRecord.DatabaseName = name
 
 	createDatabaseOperation := NewCreateDatabaseOperation(databaseRecord)
-	err := documentStore.Maintenance().server().send(createDatabaseOperation)
+	err := documentStore.Maintenance().Server().send(createDatabaseOperation)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 		}
 
 		operation := NewDeleteDatabasesOperation(store.GetDatabase(), true)
-		store.Maintenance().server().send(operation)
+		store.Maintenance().Server().send(operation)
 	}
 
 	store.AddAfterCloseListener(fn)
@@ -275,7 +275,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 }
 
 func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string, timeout time.Duration) error {
-	admin := store.Maintenance().forDatabase(database)
+	admin := store.Maintenance().ForDatabase(database)
 	if timeout == 0 {
 		timeout = time.Minute
 	}
@@ -283,7 +283,7 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 	sp := time.Now()
 	for time.Since(sp) < timeout {
 		op := NewGetStatisticsOperation()
-		err := admin.send(op)
+		err := admin.Send(op)
 		if err != nil {
 			return err
 		}
@@ -311,7 +311,7 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 	}
 
 	op := NewGetIndexErrorsOperation(nil)
-	err := admin.send(op)
+	err := admin.Send(op)
 	if err != nil {
 		return err
 	}

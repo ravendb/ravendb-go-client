@@ -141,7 +141,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 
 	{
 		op := NewGetIdentitiesOperation()
-		err = store.Maintenance().send(op)
+		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 
 		identites := op.Command.Result

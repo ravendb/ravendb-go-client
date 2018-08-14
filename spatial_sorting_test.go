@@ -79,7 +79,7 @@ func spatialSorting_createData(t *testing.T, store *IDocumentStore) {
 	indexDefinition.setFields(fields)
 
 	op := NewPutIndexesOperation(indexDefinition)
-	err = store.Maintenance().send(op)
+	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	indexDefinition2 := NewIndexDefinition()
@@ -95,7 +95,7 @@ func spatialSorting_createData(t *testing.T, store *IDocumentStore) {
 	indexDefinition2.setFields(fields)
 
 	op = NewPutIndexesOperation(indexDefinition2)
-	err = store.Maintenance().send(op)
+	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	{

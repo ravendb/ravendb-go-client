@@ -88,7 +88,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	def1.setMaps(NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }"))
 
 	op := NewPutIndexesOperation(def1)
-	err = store.Maintenance().send(op)
+	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	{

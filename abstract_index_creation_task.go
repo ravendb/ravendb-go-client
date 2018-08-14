@@ -142,7 +142,7 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 	if database == "" {
 		database = store.GetDatabase()
 	}
-	return store.Maintenance().forDatabase(database).send(op)
+	return store.Maintenance().ForDatabase(database).Send(op)
 }
 
 func (t *AbstractIndexCreationTask) index(field string, indexing FieldIndexing) {

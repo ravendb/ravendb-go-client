@@ -56,7 +56,7 @@ func setupRevisions(store *DocumentStore, purgeOnDelete bool, minimumRevisionsTo
 	revisionsConfiguration.setDefaultConfig(defaultCollection)
 	operation := NewConfigureRevisionsOperation(revisionsConfiguration)
 
-	err := store.Maintenance().send(operation)
+	err := store.Maintenance().Send(operation)
 	if err != nil {
 		return nil, err
 	}

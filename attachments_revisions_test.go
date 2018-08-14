@@ -263,7 +263,7 @@ func assertRevisions(t *testing.T, store *DocumentStore, names []string, assertA
 
 func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assertAction func(*testing.T, *DocumentSession, []*User), expectedCountOfAttachments int, expectedCountOfDocuments int, expectedCountOfUniqueAttachments int) {
 	op := NewGetStatisticsOperation()
-	err := store.Maintenance().send(op)
+	err := store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	statistics := op.Command.Result
 

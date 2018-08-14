@@ -93,7 +93,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		indexDefinition.setMaps(maps)
 
 		op := NewPutIndexesOperation(indexDefinition)
-		err = store.Maintenance().send(op)
+		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 
 		// Wait until the index is built
@@ -143,7 +143,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		indexDefinition.setMaps(maps)
 
 		op := NewPutIndexesOperation(indexDefinition)
-		err = store.Maintenance().send(op)
+		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 
 		// Wait until the index is built

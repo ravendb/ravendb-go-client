@@ -283,7 +283,7 @@ func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreatio
 	if database == "" {
 		database = s.GetDatabase()
 	}
-	return s.Maintenance().forDatabase(database).send(op)
+	return s.Maintenance().ForDatabase(database).Send(op)
 }
 
 func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {

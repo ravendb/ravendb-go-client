@@ -71,7 +71,7 @@ func query_collectionsStats(t *testing.T) {
 	}
 
 	op := NewGetCollectionStatisticsOperation()
-	err = store.Maintenance().send(op)
+	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	stats := op.Command.Result
 	assert.Equal(t, stats.getCountOfDocuments(), 2)
