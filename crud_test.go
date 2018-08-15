@@ -11,7 +11,7 @@ type Family struct {
 	Names []string
 }
 
-func (f *Family) getNames() []string {
+func (f *Family) GetNames() []string {
 	return f.Names
 }
 
@@ -36,7 +36,7 @@ type Member struct {
 	Age  int
 }
 
-func (m *Member) getName() string {
+func (m *Member) GetName() string {
 	return m.Name
 }
 
@@ -81,7 +81,7 @@ type Poc struct {
 	Obj  *User
 }
 
-func (p *Poc) getName() string {
+func (p *Poc) GetName() string {
 	return p.Name
 }
 

@@ -9,7 +9,7 @@ func NewIndexErrors() *IndexErrors {
 	return &IndexErrors{}
 }
 
-func (e *IndexErrors) getName() string {
+func (e *IndexErrors) GetName() string {
 	return e.Name
 }
 

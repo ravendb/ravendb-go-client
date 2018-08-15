@@ -65,10 +65,10 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 		doc3 := doc3I.(*FooBar)
 		doc4 := doc4I.(*FooBar)
 
-		assert.Equal(t, doc1.getName(), "John Doe")
-		assert.Equal(t, doc2.getName(), "Jane Doe")
-		assert.Equal(t, doc3.getName(), "Mega John")
-		assert.Equal(t, doc4.getName(), "Mega Jane")
+		assert.Equal(t, doc1.GetName(), "John Doe")
+		assert.Equal(t, doc2.GetName(), "Jane Doe")
+		assert.Equal(t, doc3.GetName(), "Mega John")
+		assert.Equal(t, doc4.GetName(), "Mega Jane")
 
 		session.Close()
 	}
@@ -129,7 +129,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 		fooBar := &FooBar{}
 		fooBar.setName("Jon Show")
 		metadata := &MetadataAsDictionary{}
-		metadata.put(Constants_Documents_Metadata_EXPIRES, expirationDate)
+		metadata.Put(Constants_Documents_Metadata_EXPIRES, expirationDate)
 
 		_, err = bulkInsert.StoreWithMetadata(fooBar, metadata)
 		assert.NoError(t, err)
@@ -143,10 +143,10 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 		entity, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
 
-		meta, err := session.Advanced().getMetadataFor(entity)
+		meta, err := session.Advanced().GetMetadataFor(entity)
 		assert.NoError(t, err)
 
-		metadataExpirationDate, ok := meta.get(Constants_Documents_Metadata_EXPIRES)
+		metadataExpirationDate, ok := meta.Get(Constants_Documents_Metadata_EXPIRES)
 		assert.True(t, ok)
 		assert.Equal(t, metadataExpirationDate, expirationDate)
 	}
@@ -156,7 +156,7 @@ type FooBar struct {
 	Name string
 }
 
-func (f *FooBar) getName() string {
+func (f *FooBar) GetName() string {
 	return f.Name
 }
 

@@ -81,7 +81,7 @@ func (s *StringSet) add(str string) {
 }
 
 func (s *StringSet) remove(str string) {
-	stringArrayRemoveCustomCompare(&s.strings, str, s.cmp)
+	StringArrayRemoveCustomCompare(&s.strings, str, s.cmp)
 }
 
 func (s *StringSet) clear() {

@@ -68,7 +68,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
-	firstIndexingTime := statistics.getIndexes()[0].GetLastIndexingTime()
+	firstIndexingTime := statistics.GetIndexes()[0].GetLastIndexingTime()
 
 	indexName := NewUsersIndex().GetIndexName()
 	// now reset index
@@ -86,7 +86,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics = command.Result
-	secondIndexingTime := statistics.getLastIndexingTime()
+	secondIndexingTime := statistics.GetLastIndexingTime()
 	assert.True(t, secondIndexingTime.Sub(firstIndexingTime) > 0)
 }
 
@@ -123,7 +123,7 @@ func indexesFromClientTest_canDelete(t *testing.T) {
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
-	assert.Equal(t, len(statistics.getIndexes()), 0)
+	assert.Equal(t, len(statistics.GetIndexes()), 0)
 }
 
 func indexesFromClientTest_canStopAndStart(t *testing.T) {
@@ -170,7 +170,7 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 			err = store.Maintenance().Send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
-			indexName = status.getIndexes()[0].getName()
+			indexName = status.getIndexes()[0].GetName()
 
 			assert.Equal(t, status.getStatus(), IndexRunningStatus_RUNNING)
 			assert.Equal(t, len(status.getIndexes()), 1)
@@ -315,8 +315,8 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 	assert.NoError(t, err)
 	terms := op.Command.Result
 	assert.Equal(t, len(terms), 2)
-	assert.True(t, stringArrayContains(terms, "fitzchak"))
-	assert.True(t, stringArrayContains(terms, "arek"))
+	assert.True(t, StringArrayContains(terms, "fitzchak"))
+	assert.True(t, StringArrayContains(terms, "arek"))
 }
 
 func indexesFromClientTest_getIndexNames(t *testing.T) {
@@ -370,7 +370,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 		indexNames := op.Command.Result
 
 		assert.Equal(t, len(indexNames), 1)
-		assert.True(t, stringArrayContains(indexNames, indexName))
+		assert.True(t, StringArrayContains(indexNames, indexName))
 		session.Close()
 	}
 }

@@ -12,7 +12,7 @@ type FacetToken struct {
 	_aggregations []*FacetAggregationToken
 }
 
-func (t *FacetToken) getName() string {
+func (t *FacetToken) GetName() string {
 	return firstNonEmptyString(t._alias, t._aggregateByFieldName)
 }
 

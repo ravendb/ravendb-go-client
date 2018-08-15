@@ -66,7 +66,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
-		assert.Equal(t, "RavenDB", *user.getName())
+		assert.Equal(t, "RavenDB", *user.GetName())
 		newSession.Close()
 	}
 }
@@ -293,7 +293,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
 		for _, useri := range usersi {
 			user := useri.(*User)
-			assert.True(t, stringArrayContains(userIDs, user.ID))
+			assert.True(t, StringArrayContains(userIDs, user.ID))
 		}
 
 		usersi, err = newSession.Advanced().LoadStartingWithFull(GetTypeOf(&User{}), "A", "", 1, 2, "", "")
@@ -301,7 +301,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 		userIDs = []string{"Abc", "Afa"}
 		for _, useri := range usersi {
 			user := useri.(*User)
-			assert.True(t, stringArrayContains(userIDs, user.ID))
+			assert.True(t, StringArrayContains(userIDs, user.ID))
 		}
 		newSession.Close()
 	}

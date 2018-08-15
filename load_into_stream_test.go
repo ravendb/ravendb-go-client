@@ -40,7 +40,7 @@ func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
 		for _, v := range a {
 			v2 := v.(ObjectNode)
 			s, _ := jsonGetAsText(v2, "firstName")
-			assert.True(t, stringArrayContains(names, s))
+			assert.True(t, StringArrayContains(names, s))
 		}
 
 		session.Close()
@@ -75,7 +75,7 @@ func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
 		for _, v := range a {
 			v2 := v.(ObjectNode)
 			s, _ := jsonGetAsText(v2, "firstName")
-			assert.True(t, stringArrayContains(names, s))
+			assert.True(t, StringArrayContains(names, s))
 		}
 
 		session.Close()

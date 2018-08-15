@@ -321,7 +321,7 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 		// TODO: port this
 		Function<IndexErrors, String> formatIndexErrors = indexErrors -> {
 				String errorsListText = Arrays.stream(indexErrors.getErrors()).map(x -> "-" + x).collect(Collectors.joining(System.lineSeparator()));
-				return "Index " + indexErrors.getName() + " (" + indexErrors.getErrors().length + " errors): "+ System.lineSeparator() + errorsListText;
+				return "Index " + indexErrors.GetName() + " (" + indexErrors.getErrors().length + " errors): "+ System.lineSeparator() + errorsListText;
 			};
 
 			if (errors != null && errors.length > 0) {

@@ -26,7 +26,7 @@ type IndexStatus struct {
 	Status IndexRunningStatus `json:"Status"`
 }
 
-func (s *IndexStatus) getName() string {
+func (s *IndexStatus) GetName() string {
 	return s.Name
 }
 

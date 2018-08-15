@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func attachmentsRevisions_putAttachments(t *testing.T) {
@@ -21,7 +22,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 
 		names := createDocumentWithAttachments(t, store)
 		{
-			f := func(t *testing.T, session *DocumentSession, revisions []*User) {
+			f := func(t *testing.T, session *ravendb.DocumentSession, revisions []*User) {
 				assertRevisionAttachments(t, names, 3, revisions[0], session)
 				assertRevisionAttachments(t, names, 2, revisions[1], session)
 				assertRevisionAttachments(t, names, 1, revisions[2], session)
@@ -31,14 +32,14 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		}
 		{
 			// Delete document should delete all the attachments
-			f := func(t *testing.T, session *DocumentSession, revisions []*User) {
+			f := func(t *testing.T, session *ravendb.DocumentSession, revisions []*User) {
 				assertNoRevisionAttachment(t, revisions[0], session, true)
 				assertRevisionAttachments(t, names, 3, revisions[1], session)
 				assertRevisionAttachments(t, names, 2, revisions[2], session)
 				assertRevisionAttachments(t, names, 1, revisions[3], session)
 			}
 
-			cmd := NewDeleteDocumentCommand("users/1", nil)
+			cmd := ravendb.NewDeleteDocumentCommand("users/1", nil)
 			err = store.GetRequestExecutor().ExecuteCommand(cmd)
 			assert.NoError(t, err)
 			assertRevisions2(t, store, names, f, 6, 0, 3)
@@ -58,7 +59,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		}
 
 		{
-			f := func(t *testing.T, session *DocumentSession, revisions []*User) {
+			f := func(t *testing.T, session *ravendb.DocumentSession, revisions []*User) {
 				// This will delete the revision #2 which is with attachment
 				assertNoRevisionAttachment(t, revisions[0], session, false)
 				assertNoRevisionAttachment(t, revisions[1], session, true)
@@ -81,7 +82,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		}
 
 		{
-			f := func(t *testing.T, session *DocumentSession, revisions []*User) {
+			f := func(t *testing.T, session *ravendb.DocumentSession, revisions []*User) {
 				// This will delete the revision #2 which is with attachment
 				assertNoRevisionAttachment(t, revisions[0], session, false)
 				assertNoRevisionAttachment(t, revisions[1], session, false)
@@ -104,7 +105,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		}
 
 		{
-			f := func(t *testing.T, session *DocumentSession, revisions []*User) {
+			f := func(t *testing.T, session *ravendb.DocumentSession, revisions []*User) {
 				// This will delete the revision #2 which is with attachment
 				assertNoRevisionAttachment(t, revisions[0], session, false)
 				assertNoRevisionAttachment(t, revisions[1], session, false)
@@ -127,7 +128,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		}
 
 		{
-			f := func(t *testing.T, session *DocumentSession, revisions []*User) {
+			f := func(t *testing.T, session *ravendb.DocumentSession, revisions []*User) {
 				// This will delete the revision #2 which is with attachment
 				assertNoRevisionAttachment(t, revisions[0], session, false)
 				assertNoRevisionAttachment(t, revisions[1], session, false)
@@ -153,7 +154,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 		{
 			session := openSessionMust(t, store)
 			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
-			err = session.Advanced().Attachments().store("users/1", "profile.png", bais, "")
+			err = session.Advanced().Attachments().Store("users/1", "profile.png", bais, "")
 			assert.NoError(t, err)
 
 			err = session.SaveChanges()
@@ -163,7 +164,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			revisionsI, err := session.Advanced().Revisions().getFor(GetTypeOf(&User{}), "users/1")
+			revisionsI, err := session.Advanced().Revisions().GetFor(ravendb.GetTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 
 			// TODO: could be done with reflection
@@ -174,13 +175,13 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 			}
 
 			rev := revisions[1]
-			changeVector, err := session.Advanced().getChangeVectorFor(rev)
+			changeVector, err := session.Advanced().GetChangeVectorFor(rev)
 			assert.NoError(t, err)
 
 			{
-				revision, err := session.Advanced().Attachments().getRevision("users/1", "profile.png", changeVector)
+				revision, err := session.Advanced().Attachments().GetRevision("users/1", "profile.png", changeVector)
 				assert.NoError(t, err)
-				r := revision.getData()
+				r := revision.GetData()
 				bytes, err := ioutil.ReadAll(r)
 				assert.NoError(t, err)
 				assert.Equal(t, len(bytes), 3)
@@ -191,7 +192,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 	}
 }
 
-func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string {
+func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) []string {
 	var err error
 	{
 		session := openSessionMust(t, store)
@@ -215,7 +216,7 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 
 	{
 		profileStream := bytes.NewBuffer([]byte{1, 2, 3})
-		op := NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
+		op := ravendb.NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
 		// TODO this test is flaky. Sometimes it works, sometimes it doesn't
 		// even though the data sent on wire seem to be the same
 		err = store.Operations().Send(op)
@@ -223,63 +224,63 @@ func createDocumentWithAttachments(t *testing.T, store *DocumentStore) []string 
 		assert.NoError(t, err)
 
 		result := op.Command.Result
-		s := *result.getChangeVector()
+		s := *result.GetChangeVector()
 		assert.True(t, strings.Contains(s, "A:3"))
-		assert.Equal(t, result.getName(), names[0])
-		assert.Equal(t, result.getDocumentId(), "users/1")
-		assert.Equal(t, result.getContentType(), "image/png")
+		assert.Equal(t, result.GetName(), names[0])
+		assert.Equal(t, result.GetDocumentID(), "users/1")
+		assert.Equal(t, result.GetContentType(), "image/png")
 	}
 
 	{
 		backgroundStream := bytes.NewReader([]byte{10, 20, 30, 40, 50})
-		op := NewPutAttachmentOperation("users/1", names[1], backgroundStream, "ImGgE/jPeG", nil)
+		op := ravendb.NewPutAttachmentOperation("users/1", names[1], backgroundStream, "ImGgE/jPeG", nil)
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
-		s := *result.getChangeVector()
+		s := *result.GetChangeVector()
 		assert.True(t, strings.Contains(s, "A:7"))
-		assert.Equal(t, result.getName(), names[1])
-		assert.Equal(t, result.getDocumentId(), "users/1")
-		assert.Equal(t, result.getContentType(), "ImGgE/jPeG")
+		assert.Equal(t, result.GetName(), names[1])
+		assert.Equal(t, result.GetDocumentID(), "users/1")
+		assert.Equal(t, result.GetContentType(), "ImGgE/jPeG")
 	}
 	{
 		fileStream := bytes.NewReader([]byte{1, 2, 3, 4, 5})
-		op := NewPutAttachmentOperation("users/1", names[2], fileStream, "", nil)
+		op := ravendb.NewPutAttachmentOperation("users/1", names[2], fileStream, "", nil)
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
-		s := *result.getChangeVector()
+		s := *result.GetChangeVector()
 		assert.True(t, strings.Contains(s, "A:12"))
-		assert.Equal(t, result.getName(), names[2])
-		assert.Equal(t, result.getDocumentId(), "users/1")
-		assert.Equal(t, result.getContentType(), "")
+		assert.Equal(t, result.GetName(), names[2])
+		assert.Equal(t, result.GetDocumentID(), "users/1")
+		assert.Equal(t, result.GetContentType(), "")
 	}
 	return names
 }
 
-func assertRevisions(t *testing.T, store *DocumentStore, names []string, assertAction func(*testing.T, *DocumentSession, []*User), expectedCountOfAttachments int) {
+func assertRevisions(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int) {
 	assertRevisions2(t, store, names, assertAction, expectedCountOfAttachments, 1, 3)
 }
 
-func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assertAction func(*testing.T, *DocumentSession, []*User), expectedCountOfAttachments int, expectedCountOfDocuments int, expectedCountOfUniqueAttachments int) {
-	op := NewGetStatisticsOperation()
+func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int, expectedCountOfDocuments int, expectedCountOfUniqueAttachments int) {
+	op := ravendb.NewGetStatisticsOperation()
 	err := store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	statistics := op.Command.Result
 
-	assert.Equal(t, statistics.getCountOfAttachments(), expectedCountOfAttachments)
+	assert.Equal(t, statistics.GetCountOfAttachments(), expectedCountOfAttachments)
 
-	assert.Equal(t, statistics.getCountOfUniqueAttachments(), expectedCountOfUniqueAttachments)
+	assert.Equal(t, statistics.GetCountOfUniqueAttachments(), expectedCountOfUniqueAttachments)
 
-	assert.Equal(t, statistics.getCountOfRevisionDocuments(), 4)
+	assert.Equal(t, statistics.GetCountOfRevisionDocuments(), 4)
 
-	assert.Equal(t, statistics.getCountOfDocuments(), expectedCountOfDocuments)
+	assert.Equal(t, statistics.GetCountOfDocuments(), expectedCountOfDocuments)
 
-	assert.Equal(t, statistics.getCountOfIndexes(), 0)
+	assert.Equal(t, statistics.GetCountOfIndexes(), 0)
 
 	{
 		session := openSessionMust(t, store)
-		revisionsI, err := session.Advanced().Revisions().getFor(GetTypeOf(&User{}), "users/1")
+		revisionsI, err := session.Advanced().Revisions().GetFor(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		n := len(revisionsI)
 		assert.Equal(t, n, 4)
@@ -293,49 +294,49 @@ func assertRevisions2(t *testing.T, store *DocumentStore, names []string, assert
 	}
 }
 
-func assertNoRevisionAttachment(t *testing.T, revision *User, session *DocumentSession, isDeleteRevision bool) {
-	metadata, err := session.Advanced().getMetadataFor(revision)
+func assertNoRevisionAttachment(t *testing.T, revision *User, session *ravendb.DocumentSession, isDeleteRevision bool) {
+	metadata, err := session.Advanced().GetMetadataFor(revision)
 	assert.NoError(t, err)
 
 	if isDeleteRevision {
-		v, _ := metadata.get(Constants_Documents_Metadata_FLAGS)
+		v, _ := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 		s := v.(string)
 		assert.True(t, strings.Contains(s, "HasRevisions"))
 		assert.True(t, strings.Contains(s, "DeleteRevision"))
 	} else {
-		v, _ := metadata.get(Constants_Documents_Metadata_FLAGS)
+		v, _ := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 		s := v.(string)
 		assert.True(t, strings.Contains(s, "HasRevisions"))
 		assert.True(t, strings.Contains(s, "Revision"))
 	}
 
-	hasIt := metadata.containsKey(Constants_Documents_Metadata_ATTACHMENTS)
+	hasIt := metadata.ContainsKey(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 	assert.False(t, hasIt)
 }
 
-func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, revision *User, session *DocumentSession) {
-	metadata, err := session.Advanced().getMetadataFor(revision)
+func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, revision *User, session *ravendb.DocumentSession) {
+	metadata, err := session.Advanced().GetMetadataFor(revision)
 	assert.NoError(t, err)
-	v, _ := metadata.get(Constants_Documents_Metadata_FLAGS)
+	v, _ := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 	s := v.(string)
 	assert.True(t, strings.Contains(s, "HasRevisions"))
 	assert.True(t, strings.Contains(s, "Revision"))
 	assert.True(t, strings.Contains(s, "Revision"))
 
-	attachments := metadata.getObjects(Constants_Documents_Metadata_ATTACHMENTS)
+	attachments := metadata.GetObjects(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 	assert.Equal(t, len(attachments), expectedCount)
 
 	// Note: unlike Java, compare them after sorting
 	attachmentNames := make([]string, expectedCount, expectedCount)
 	for i := 0; i < expectedCount; i++ {
 		attachment := attachments[i]
-		aname, ok := attachment.get("Name")
+		aname, ok := attachment.Get("Name")
 		anameStr, ok := aname.(string)
 		assert.True(t, ok)
 		attachmentNames[i] = anameStr
 	}
 
-	orderedNames := stringArrayCopy(names)
+	orderedNames := ravendb.StringArrayCopy(names)
 	if len(orderedNames) > expectedCount {
 		orderedNames = orderedNames[:expectedCount]
 	}
@@ -358,10 +359,10 @@ func TestAttachmentsRevisions(t *testing.T) {
 	// Note: it also fails in Java on mac pro
 	// The bytes sent seem to be exactly the same, Go fails with EOF
 	// Is it issue with not closing the request?
-	if EnableFlakyTests {
+	if ravendb.EnableFlakyTests {
 		attachmentsRevisions_putAttachments(t)
 	}
-	if EnableFlakyTests {
+	if ravendb.EnableFlakyTests {
 		attachmentsRevisions_attachmentRevision(t)
 	}
 }

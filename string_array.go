@@ -3,7 +3,7 @@ package ravendb
 import "strings"
 
 // TODO: make it more efficient by modifying the array in-place
-func stringArrayRemove(pa *[]string, s string) bool {
+func StringArrayRemove(pa *[]string, s string) bool {
 	if len(*pa) == 0 {
 		return false
 	}
@@ -21,7 +21,7 @@ func stringArrayRemove(pa *[]string, s string) bool {
 }
 
 // TODO: make it more efficient by modifying the array in-place
-func stringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, string) bool) bool {
+func StringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, string) bool) bool {
 	if len(*pa) == 0 {
 		return false
 	}
@@ -38,7 +38,7 @@ func stringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, str
 	return removed
 }
 
-func stringArrayCopy(a []string) []string {
+func StringArrayCopy(a []string) []string {
 	n := len(a)
 	if n == 0 {
 		return nil
@@ -51,7 +51,7 @@ func stringArrayCopy(a []string) []string {
 }
 
 // return a1 - a2
-func stringArraySubtract(a1, a2 []string) []string {
+func StringArraySubtract(a1, a2 []string) []string {
 	if len(a2) == 0 {
 		return a1
 	}
@@ -76,7 +76,7 @@ func stringArraySubtract(a1, a2 []string) []string {
 	return res
 }
 
-func stringArrayContains(a []string, s string) bool {
+func StringArrayContains(a []string, s string) bool {
 	for _, el := range a {
 		if el == s {
 			return true
@@ -85,7 +85,7 @@ func stringArrayContains(a []string, s string) bool {
 	return false
 }
 
-func stringArrayEq(a1, a2 []string) bool {
+func StringArrayEq(a1, a2 []string) bool {
 	if len(a1) != len(a2) {
 		return false
 	}
@@ -94,7 +94,7 @@ func stringArrayEq(a1, a2 []string) bool {
 	}
 	// TODO: could be faster if used map
 	for _, s := range a1 {
-		if !stringArrayContains(a2, s) {
+		if !StringArrayContains(a2, s) {
 			return false
 		}
 	}
@@ -107,7 +107,7 @@ const (
 
 // equivalent of Java's containsSequence http://joel-costigliola.github.io/assertj/core/api/org/assertj/core/api/ListAssert.html#containsSequence(ELEMENT...)
 // checks if a1 contains sub-sequence a2
-func stringArrayContainsSequence(a1, a2 []string) bool {
+func StringArrayContainsSequence(a1, a2 []string) bool {
 	// TODO: technically it's possible for this to have false positive
 	// but it's very unlikely
 	s1 := strings.Join(a1, unlikelySep)
@@ -115,7 +115,7 @@ func stringArrayContainsSequence(a1, a2 []string) bool {
 	return strings.Contains(s1, s2)
 }
 
-func stringArrayContainsExactly(a1, a2 []string) bool {
+func StringArrayContainsExactly(a1, a2 []string) bool {
 	if len(a1) != len(a2) {
 		return false
 	}
@@ -127,7 +127,7 @@ func stringArrayContainsExactly(a1, a2 []string) bool {
 	return true
 }
 
-func stringArrayReverse(a []string) {
+func StringArrayReverse(a []string) {
 	n := len(a)
 	for i := 0; i < n/2; i++ {
 		a[i], a[n-1-i] = a[n-1-i], a[i]

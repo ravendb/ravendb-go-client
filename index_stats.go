@@ -28,7 +28,7 @@ type IndexStats struct {
 	IsTestIndex      bool               `json:"IsTestIndex"`
 }
 
-func (s *IndexStats) getName() string {
+func (s *IndexStats) GetName() string {
 	return s.Name
 }
 

@@ -20,7 +20,7 @@ func (a *AfterSaveChangesEventArgs) getSession() *InMemoryDocumentSessionOperati
 	return a.session
 }
 
-func (a *AfterSaveChangesEventArgs) getDocumentId() string {
+func (a *AfterSaveChangesEventArgs) GetDocumentID() string {
 	return a.documentId
 }
 
@@ -30,7 +30,7 @@ func (a *AfterSaveChangesEventArgs) getEntity() Object {
 
 func (a *AfterSaveChangesEventArgs) getDocumentMetadata() *IMetadataDictionary {
 	if a._documentMetadata == nil {
-		a._documentMetadata, _ = a.session.getMetadataFor(a.entity)
+		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
 	}
 
 	return a._documentMetadata

@@ -17,7 +17,7 @@ func NewCloseableAttachmentResult(response *http.Response, details *AttachmentDe
 	}
 }
 
-func (r *CloseableAttachmentResult) getData() io.Reader {
+func (r *CloseableAttachmentResult) GetData() io.Reader {
 	return r.response.Body
 }
 

@@ -191,8 +191,8 @@ func (s *InMemoryDocumentSessionOperations) getNumberOfRequests() int {
 	return s.numberOfRequests
 }
 
-// getMetadataFor gets the metadata for the specified entity.
-func (s *InMemoryDocumentSessionOperations) getMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
+// GetMetadataFor gets the metadata for the specified entity.
+func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
 	if instance == nil {
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
@@ -211,9 +211,9 @@ func (s *InMemoryDocumentSessionOperations) getMetadataFor(instance interface{})
 	return metadata, nil
 }
 
-// getChangeVectorFor returns metadata for a given instance
+// GetChangeVectorFor returns metadata for a given instance
 // empty string means there is not change vector
-func (s *InMemoryDocumentSessionOperations) getChangeVectorFor(instance interface{}) (*string, error) {
+func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (*string, error) {
 	if instance == nil {
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
@@ -279,8 +279,8 @@ func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
 	return s._knownMissingIds.contains(id)
 }
 
-// getDocumentId returns id of a given instance
-func (s *InMemoryDocumentSessionOperations) getDocumentId(instance interface{}) string {
+// GetDocumentID returns id of a given instance
+func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) string {
 	if instance == nil {
 		return ""
 	}
@@ -405,7 +405,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 		}
 
 		s.documentsById.remove(id)
-		changeVector = documentInfo.getChangeVector()
+		changeVector = documentInfo.GetChangeVector()
 	}
 
 	s._knownMissingIds.add(id)
@@ -455,7 +455,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 
 	value := s.documentsByEntity[entity]
 	if value != nil {
-		value.setChangeVector(firstNonNilString(changeVector, value.getChangeVector()))
+		value.setChangeVector(firstNonNilString(changeVector, value.GetChangeVector()))
 		value.setConcurrencyCheckMode(forceConcurrencyCheck)
 		return nil
 	}
@@ -571,18 +571,18 @@ func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(document
 	metadataInstance := documentInfo.getMetadataInstance()
 	metadata := documentInfo.getMetadata()
 	if metadataInstance != nil {
-		if metadataInstance.isDirty() {
+		if metadataInstance.IsDirty() {
 			dirty = true
 		}
-		props := metadataInstance.keySet()
+		props := metadataInstance.KeySet()
 		for _, prop := range props {
-			propValue, ok := metadataInstance.get(prop)
+			propValue, ok := metadataInstance.Get(prop)
 			if !ok {
 				dirty = true
 				continue
 			}
 			if d, ok := propValue.(*MetadataAsDictionary); ok {
-				if d.isDirty() {
+				if d.IsDirty() {
 					dirty = true
 				}
 			}
@@ -621,7 +621,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			documentInfo = s.documentsById.getValue(documentInfo.getId())
 
 			if documentInfo != nil {
-				changeVector = documentInfo.getChangeVector()
+				changeVector = documentInfo.GetChangeVector()
 
 				if documentInfo.getEntity() != nil {
 					delete(s.documentsByEntity, documentInfo.getEntity())
@@ -701,12 +701,12 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			if entityValue.getConcurrencyCheckMode() != ConcurrencyCheck_DISABLED {
 				// if the user didn't provide a change vector, we'll test for an empty one
 				tmp := ""
-				changeVector = firstNonNilString(entityValue.getChangeVector(), &tmp)
+				changeVector = firstNonNilString(entityValue.GetChangeVector(), &tmp)
 			} else {
 				changeVector = nil // TODO: redundant
 			}
 		} else if entityValue.getConcurrencyCheckMode() == ConcurrencyCheck_FORCED {
-			changeVector = entityValue.getChangeVector()
+			changeVector = entityValue.GetChangeVector()
 		} else {
 			changeVector = nil // TODO: redundant
 		}
@@ -819,7 +819,7 @@ func (s *InMemoryDocumentSessionOperations) DeferMany(commands []ICommandData) {
 }
 
 func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) {
-	idType := NewIdTypeAndName(command.getId(), command.getType(), command.getName())
+	idType := NewIdTypeAndName(command.getId(), command.getType(), command.GetName())
 	s.deferredCommandsMap[idType] = command
 	idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
 	s.deferredCommandsMap[idType] = command

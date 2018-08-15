@@ -149,13 +149,13 @@ func query_queryMapReduceWithCount(t *testing.T) {
 		{
 			result := results[0].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 2)
-			assert.Equal(t, result.getName(), "John")
+			assert.Equal(t, result.GetName(), "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 1)
-			assert.Equal(t, result.getName(), "Tarzan")
+			assert.Equal(t, result.GetName(), "Tarzan")
 		}
 
 		session.Close()
@@ -183,13 +183,13 @@ func query_queryMapReduceWithSum(t *testing.T) {
 		{
 			result := results[0].(*ReduceResult)
 			assert.Equal(t, result.getAge(), 8)
-			assert.Equal(t, result.getName(), "John")
+			assert.Equal(t, result.GetName(), "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
 			assert.Equal(t, result.getAge(), 2)
-			assert.Equal(t, result.getName(), "Tarzan")
+			assert.Equal(t, result.GetName(), "Tarzan")
 		}
 
 		session.Close()
@@ -213,13 +213,13 @@ func query_queryMapReduceIndex(t *testing.T) {
 		{
 			result := results[0].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 2)
-			assert.Equal(t, result.getName(), "John")
+			assert.Equal(t, result.GetName(), "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 1)
-			assert.Equal(t, result.getName(), "Tarzan")
+			assert.Equal(t, result.GetName(), "Tarzan")
 		}
 
 		session.Close()
@@ -313,7 +313,7 @@ func query_queryWithWhereBetween(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.getName(), "John")
+		assert.Equal(t, *user.GetName(), "John")
 
 		session.Close()
 	}
@@ -336,7 +336,7 @@ func query_queryWithWhereLessThan(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.getName(), "Tarzan")
+		assert.Equal(t, *user.GetName(), "Tarzan")
 
 		session.Close()
 	}
@@ -379,7 +379,7 @@ func query_queryWithWhereGreaterThan(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.getName(), "John")
+		assert.Equal(t, *user.GetName(), "John")
 
 		session.Close()
 	}
@@ -418,7 +418,7 @@ func (p *UserProjection) setId(id string) {
 	p.ID = id
 }
 
-func (p *UserProjection) getName() string {
+func (p *UserProjection) GetName() string {
 	return p.Name
 }
 
@@ -446,7 +446,7 @@ func query_queryWithProjection(t *testing.T) {
 			projection := p.(*UserProjection)
 			assert.NotEmpty(t, projection.getId())
 
-			assert.NotEmpty(t, projection.getName())
+			assert.NotEmpty(t, projection.GetName())
 		}
 
 		session.Close()
@@ -473,7 +473,7 @@ func query_queryWithProjection2(t *testing.T) {
 			projection := p.(*UserProjection)
 			assert.NotEmpty(t, projection.getId())
 
-			assert.Empty(t, projection.getName()) // we didn't specify this field in mapping
+			assert.Empty(t, projection.GetName()) // we didn't specify this field in mapping
 		}
 
 		session.Close()
@@ -568,7 +568,7 @@ func query_querySkipTake(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.getName(), "Tarzan")
+		assert.Equal(t, *user.GetName(), "Tarzan")
 
 		session.Close()
 	}
@@ -591,7 +591,7 @@ func query_rawQuerySkipTake(t *testing.T) {
 
 		assert.Equal(t, len(users), 1)
 		user := users[0].(*User)
-		assert.Equal(t, *user.getName(), "Tarzan")
+		assert.Equal(t, *user.GetName(), "Tarzan")
 
 		session.Close()
 	}
@@ -613,7 +613,7 @@ func query_parametersInRawQuery(t *testing.T) {
 
 		assert.Equal(t, len(users), 1)
 		user := users[0].(*User)
-		assert.Equal(t, *user.getName(), "John")
+		assert.Equal(t, *user.GetName(), "John")
 
 		session.Close()
 	}
@@ -637,7 +637,7 @@ func query_queryLucene(t *testing.T) {
 
 		for _, u := range users {
 			user := u.(*User)
-			assert.Equal(t, *user.getName(), "Tarzan")
+			assert.Equal(t, *user.GetName(), "Tarzan")
 		}
 
 		session.Close()
@@ -811,7 +811,7 @@ func query_queryWithDuration(t *testing.T) {
 				delay = append(delay, company)
 			}
 			sort.Strings(delay)
-			stringArrayEq(delay, []string{"hours", "minutes"})
+			StringArrayEq(delay, []string{"hours", "minutes"})
 		}
 
 		{
@@ -827,7 +827,7 @@ func query_queryWithDuration(t *testing.T) {
 				delay2 = append(delay2, company)
 			}
 			sort.Strings(delay2)
-			stringArrayEq(delay2, []string{"days"})
+			StringArrayEq(delay2, []string{"days"})
 
 		}
 
@@ -956,9 +956,9 @@ func query_queryWithBoost(t *testing.T) {
 		var names []string
 		for _, u := range users {
 			user := u.(*User)
-			names = append(names, *user.getName())
+			names = append(names, *user.GetName())
 		}
-		assert.True(t, stringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
+		assert.True(t, StringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
 		q = session.Query(GetTypeOf(&User{}))
 		q = q.WhereEquals("name", "Tarzan")
@@ -975,10 +975,10 @@ func query_queryWithBoost(t *testing.T) {
 		names = nil
 		for _, u := range users {
 			user := u.(*User)
-			names = append(names, *user.getName())
+			names = append(names, *user.GetName())
 		}
 
-		assert.True(t, stringArrayContainsSequence(names, []string{"John", "John", "Tarzan"}))
+		assert.True(t, StringArrayContainsSequence(names, []string{"John", "John", "Tarzan"}))
 
 		session.Close()
 	}
@@ -1066,16 +1066,16 @@ func query_queryWithCustomize(t *testing.T) {
 		assert.Equal(t, len(queryResult), 4)
 
 		r := queryResult[0].(*DogsIndex_Result)
-		assert.Equal(t, r.getName(), "Brian")
+		assert.Equal(t, r.GetName(), "Brian")
 
 		r = queryResult[1].(*DogsIndex_Result)
-		assert.Equal(t, r.getName(), "Django")
+		assert.Equal(t, r.GetName(), "Django")
 
 		r = queryResult[2].(*DogsIndex_Result)
-		assert.Equal(t, r.getName(), "Lassie")
+		assert.Equal(t, r.GetName(), "Lassie")
 
 		r = queryResult[3].(*DogsIndex_Result)
-		assert.Equal(t, r.getName(), "Snoopy")
+		assert.Equal(t, r.GetName(), "Snoopy")
 
 		newSession.Close()
 	}
@@ -1186,7 +1186,7 @@ func (d *Dog) setId(id string) {
 	d.ID = id
 }
 
-func (d *Dog) getName() string {
+func (d *Dog) GetName() string {
 	return d.Name
 }
 
@@ -1232,7 +1232,7 @@ type DogsIndex_Result struct {
 	IsVaccinated bool   `json:"vaccinated"`
 }
 
-func (r *DogsIndex_Result) getName() string {
+func (r *DogsIndex_Result) GetName() string {
 	return r.Name
 }
 
@@ -1322,7 +1322,7 @@ func query_queryByIndex(t *testing.T) {
 
 		assert.Equal(t, len(queryResult), 1)
 		r := queryResult[0].(*DogsIndex_Result)
-		assert.Equal(t, r.getName(), "Brian")
+		assert.Equal(t, r.GetName(), "Brian")
 
 		q = newSession.Advanced().DocumentQueryAll(GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WhereLessThanOrEqual("age", 2)
@@ -1336,12 +1336,12 @@ func query_queryByIndex(t *testing.T) {
 		var names []string
 		for _, r := range queryResult2 {
 			dir := r.(*DogsIndex_Result)
-			name := dir.getName()
+			name := dir.GetName()
 			names = append(names, name)
 		}
 		sort.Strings(names)
 
-		assert.True(t, stringArrayContainsSequence(names, []string{"Beethoven", "Benji", "Scooby Doo"}))
+		assert.True(t, StringArrayContainsSequence(names, []string{"Beethoven", "Benji", "Scooby Doo"}))
 		newSession.Close()
 	}
 }
@@ -1368,7 +1368,7 @@ func (r *ReduceResult) setCount(count int) {
 	r.Count = count
 }
 
-func (r *ReduceResult) getName() string {
+func (r *ReduceResult) GetName() string {
 	return r.Name
 }
 

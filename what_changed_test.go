@@ -393,7 +393,7 @@ type BasicName struct {
 	Name string
 }
 
-func (n *BasicName) getName() string {
+func (n *BasicName) GetName() string {
 	return n.Name
 }
 
@@ -406,7 +406,7 @@ type NameAndAge struct {
 	Age  int
 }
 
-func (n *NameAndAge) getName() string {
+func (n *NameAndAge) GetName() string {
 	return n.Name
 }
 

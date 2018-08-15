@@ -28,11 +28,11 @@ func attachmentsSession_putAttachments(t *testing.T) {
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().store("users/1", names[0], profileStream, "image/png")
+		err = session.Advanced().Attachments().Store("users/1", names[0], profileStream, "image/png")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, names[1], backgroundStream, "ImGgE/jPeG")
+		err = session.Advanced().Attachments().StoreEntity(user, names[1], backgroundStream, "ImGgE/jPeG")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, names[2], fileStream, "")
+		err = session.Advanced().Attachments().StoreEntity(user, names[2], fileStream, "")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -47,14 +47,14 @@ func attachmentsSession_putAttachments(t *testing.T) {
 		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*User)
-		metadata, err := session.Advanced().getMetadataFor(user)
+		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
-		v, ok := metadata.get(Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
 		vStr := v.(string)
 		assert.Equal(t, vStr, "HasAttachments")
 
-		attachmentsI, ok := metadata.get(Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
 		attachments := attachmentsI.([]Object)
 		assert.Equal(t, len(attachments), 3)
@@ -63,7 +63,7 @@ func attachmentsSession_putAttachments(t *testing.T) {
 		var gotNames []string
 		for _, v := range attachments {
 			attachment := v.(*IMetadataDictionary)
-			name, ok := attachment.get("Name")
+			name, ok := attachment.Get("Name")
 			assert.True(t, ok)
 			gotNames = append(gotNames, name.(string))
 		}
@@ -88,9 +88,9 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().storeEntity(user, "profile", stream, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "profile", stream, "image/png")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, "other", stream, "")
+		err = session.Advanced().Attachments().StoreEntity(user, "other", stream, "")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -118,10 +118,10 @@ func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testi
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().storeEntity(user, "profile", stream, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "profile", stream, "image/png")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().storeEntity(user, "profile", stream2, "")
+		err = session.Advanced().Attachments().StoreEntity(user, "profile", stream2, "")
 		assert.Error(t, err)
 		_, ok := err.(*IllegalStateException)
 		assert.True(t, ok)
@@ -143,7 +143,7 @@ func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().storeEntity(user, "profile.png", profileStream, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "profile.png", profileStream, "image/png")
 		assert.NoError(t, err)
 
 		err = session.DeleteEntity(user)
@@ -175,13 +175,13 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 		stream3 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9})
 		stream4 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 
-		err = session.Advanced().Attachments().storeEntity(user, "file1", stream1, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file1", stream1, "image/png")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, "file2", stream2, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file2", stream2, "image/png")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, "file3", stream3, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file3", stream3, "image/png")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, "file4", stream4, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file4", stream4, "image/png")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -198,16 +198,16 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 
 		// test get attachment by its name
 		{
-			attachmentResult, err := session.Advanced().Attachments().get("users/1", "file2")
+			attachmentResult, err := session.Advanced().Attachments().Get("users/1", "file2")
 			assert.NoError(t, err)
-			name := attachmentResult.getDetails().getName()
+			name := attachmentResult.getDetails().GetName()
 			assert.Equal(t, name, "file2")
 			attachmentResult.Close()
 		}
 
-		err = session.Advanced().Attachments().delete("users/1", "file2")
+		err = session.Advanced().Attachments().Delete("users/1", "file2")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().deleteEntity(userI, "file4")
+		err = session.Advanced().Attachments().DeleteEntity(userI, "file4")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -221,23 +221,23 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().getMetadataFor(userI)
+		metadata, err := session.Advanced().GetMetadataFor(userI)
 		assert.NoError(t, err)
 
-		v, ok := metadata.get(Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
 		assert.Equal(t, v, "HasAttachments")
 
-		attachmentsI, ok := metadata.get(Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
 		attachments := attachmentsI.([]Object)
 
 		assert.Equal(t, len(attachments), 2)
 
 		{
-			result, err := session.Advanced().Attachments().get("users/1", "file1")
+			result, err := session.Advanced().Attachments().Get("users/1", "file1")
 			assert.NoError(t, err)
-			r := result.getData()
+			r := result.GetData()
 			file1Bytes, err := ioutil.ReadAll(r)
 			assert.NoError(t, err)
 
@@ -265,9 +265,9 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
 		stream2 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5, 6})
 
-		err = session.Advanced().Attachments().storeEntity(user, "file1", stream1, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file1", stream1, "image/png")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().storeEntity(user, "file2", stream2, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file2", stream2, "image/png")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -286,22 +286,22 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().getMetadataFor(userI)
+		metadata, err := session.Advanced().GetMetadataFor(userI)
 		assert.NoError(t, err)
 
-		v, ok := metadata.get(Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
 		assert.Equal(t, v, "HasAttachments")
 
-		attachmentsI, ok := metadata.get(Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
 		attachments := attachmentsI.([]Object)
 		assert.Equal(t, len(attachments), 1)
 
 		{
-			result, err := session.Advanced().Attachments().get("users/1", "file1")
+			result, err := session.Advanced().Attachments().Get("users/1", "file1")
 			assert.NoError(t, err)
-			r := result.getData()
+			r := result.GetData()
 			file1Bytes, err := ioutil.ReadAll(r)
 			assert.NoError(t, err)
 			assert.Equal(t, len(file1Bytes), 3)
@@ -335,7 +335,7 @@ func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
-		err = session.Advanced().Attachments().store("users/1", "file"+strconv.Itoa(i), stream1, "image/png")
+		err = session.Advanced().Attachments().Store("users/1", "file"+strconv.Itoa(i), stream1, "image/png")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -345,7 +345,7 @@ func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
 
 	for i := 0; i < count; i++ {
 		session := openSessionMust(t, store)
-		result, err := session.Advanced().Attachments().get("users/1", "file"+strconv.Itoa(i))
+		result, err := session.Advanced().Attachments().Get("users/1", "file"+strconv.Itoa(i))
 		assert.NoError(t, err)
 		// don't read data as it marks entity as consumed
 		result.Close()
@@ -368,7 +368,7 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 
 		stream := bytes.NewBuffer([]byte{1, 2, 3})
 
-		err = session.Advanced().Attachments().storeEntity(user, "file", stream, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file", stream, "image/png")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -385,9 +385,9 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 
 		err = session.DeleteEntity(userI)
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().deleteEntity(userI, "file")
+		err = session.Advanced().Attachments().DeleteEntity(userI, "file")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().deleteEntity(userI, "file") // this should be no-op
+		err = session.Advanced().Attachments().DeleteEntity(userI, "file") // this should be no-op
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -411,7 +411,7 @@ func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpB
 
 		stream := bytes.NewBuffer([]byte{1, 2, 3})
 
-		err = session.Advanced().Attachments().storeEntity(user, "file", stream, "image/png")
+		err = session.Advanced().Attachments().StoreEntity(user, "file", stream, "image/png")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -424,9 +424,9 @@ func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpB
 
 		cd := NewDeleteCommandData("users/1", nil)
 		session.Advanced().Defer(cd)
-		err = session.Advanced().Attachments().delete("users/1", "file")
+		err = session.Advanced().Attachments().Delete("users/1", "file")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().delete("users/1", "file")
+		err = session.Advanced().Attachments().Delete("users/1", "file")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -453,7 +453,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().store("users/1", names[0], profileStream, "image/png")
+		err = session.Advanced().Attachments().Store("users/1", names[0], profileStream, "image/png")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -468,15 +468,15 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
-		attachments, err := session.Advanced().Attachments().getNames(userI)
+		attachments, err := session.Advanced().Attachments().GetNames(userI)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(attachments), 1)
 
 		attachment := attachments[0]
-		assert.Equal(t, attachment.getContentType(), "image/png")
-		assert.Equal(t, attachment.getName(), names[0])
-		assert.Equal(t, attachment.getSize(), int64(3))
+		assert.Equal(t, attachment.GetContentType(), "image/png")
+		assert.Equal(t, attachment.GetName(), names[0])
+		assert.Equal(t, attachment.GetSize(), int64(3))
 
 		session.Close()
 	}
@@ -498,7 +498,7 @@ func attachmentsSession_attachmentExists(t *testing.T) {
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().Attachments().store("users/1", "profile", stream, "image/png")
+		err = session.Advanced().Attachments().Store("users/1", "profile", stream, "image/png")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -509,15 +509,15 @@ func attachmentsSession_attachmentExists(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		ok, err := session.Advanced().Attachments().exists("users/1", "profile")
+		ok, err := session.Advanced().Attachments().Exists("users/1", "profile")
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		ok, err = session.Advanced().Attachments().exists("users/1", "background-photo")
+		ok, err = session.Advanced().Attachments().Exists("users/1", "background-photo")
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		ok, err = session.Advanced().Attachments().exists("users/2", "profile")
+		ok, err = session.Advanced().Attachments().Exists("users/2", "profile")
 		assert.NoError(t, err)
 		assert.False(t, ok)
 

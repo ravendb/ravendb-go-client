@@ -26,63 +26,63 @@ type DatabaseStatistics struct {
 	NumberOfTransactionMergerQueueOperations int         `json:"NumberOfTransactionMergerQueueOperations"`
 }
 
-func (s *DatabaseStatistics) getLastDocEtag() int {
+func (s *DatabaseStatistics) GetLastDocEtag() int {
 	return s.LastDocEtag
 }
 
-func (s *DatabaseStatistics) getCountOfIndexes() int {
+func (s *DatabaseStatistics) GetCountOfIndexes() int {
 	return s.CountOfIndexes
 }
 
-func (s *DatabaseStatistics) getCountOfDocuments() int {
+func (s *DatabaseStatistics) GetCountOfDocuments() int {
 	return s.CountOfDocuments
 }
 
-func (s *DatabaseStatistics) getCountOfRevisionDocuments() int {
+func (s *DatabaseStatistics) GetCountOfRevisionDocuments() int {
 	return s.CountOfRevisionDocuments
 }
 
-func (s *DatabaseStatistics) getCountOfDocumentsConflicts() int {
+func (s *DatabaseStatistics) GetCountOfDocumentsConflicts() int {
 	return s.CountOfDocumentsConflicts
 }
 
-func (s *DatabaseStatistics) getCountOfTombstones() int {
+func (s *DatabaseStatistics) GetCountOfTombstones() int {
 	return s.CountOfTombstones
 }
 
-func (s *DatabaseStatistics) getCountOfConflicts() int {
+func (s *DatabaseStatistics) GetCountOfConflicts() int {
 	return s.CountOfConflicts
 }
 
-func (s *DatabaseStatistics) getCountOfAttachments() int {
+func (s *DatabaseStatistics) GetCountOfAttachments() int {
 	return s.CountOfAttachments
 }
 
-func (s *DatabaseStatistics) getCountOfUniqueAttachments() int {
+func (s *DatabaseStatistics) GetCountOfUniqueAttachments() int {
 	return s.CountOfUniqueAttachments
 }
 
-func (s *DatabaseStatistics) getDatabaseChangeVector() string {
+func (s *DatabaseStatistics) GetDatabaseChangeVector() string {
 	return s.DatabaseChangeVector
 }
 
-func (s *DatabaseStatistics) getDatabaseId() string {
+func (s *DatabaseStatistics) GetDatabaseID() string {
 	return s.DatabaseID
 }
 
-func (s *DatabaseStatistics) getPager() string {
+func (s *DatabaseStatistics) GetPager() string {
 	return s.Pager
 }
 
-func (s *DatabaseStatistics) getLastIndexingTime() *time.Time {
+func (s *DatabaseStatistics) GetLastIndexingTime() *time.Time {
 	return serverTimePtrToTimePtr(s.LastIndexingTime)
 }
 
-func (s *DatabaseStatistics) getIndexes() []*IndexInformation {
+func (s *DatabaseStatistics) GetIndexes() []*IndexInformation {
 	return s.Indexes
 }
 
-func (s *DatabaseStatistics) getSizeOnDisk() *Size {
+func (s *DatabaseStatistics) GetSizeOnDisk() *Size {
 	return s.SizeOnDisk
 }
 

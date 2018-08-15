@@ -12,7 +12,7 @@ type Foo struct {
 	Name string
 }
 
-func (f *Foo) getName() string {
+func (f *Foo) GetName() string {
 	return f.Name
 }
 
@@ -42,7 +42,7 @@ func (b *Bar) setFooIDs(fooIDs []string) {
 	b.FooIDs = fooIDs
 }
 
-func (b *Bar) getName() string {
+func (b *Bar) GetName() string {
 	return b.Name
 }
 
@@ -63,14 +63,14 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		err = session.Store(foo)
 		assert.NoError(t, err)
 
-		fooId := session.Advanced().getDocumentId(foo)
+		fooId := session.Advanced().GetDocumentID(foo)
 		bar := &Bar{}
 		bar.setName("End")
 		bar.setFooId(fooId)
 
 		session.Store(bar)
 
-		barId = session.Advanced().getDocumentId(bar)
+		barId = session.Advanced().GetDocumentID(bar)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		session.Close()
@@ -95,7 +95,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, foo)
 		fooV := foo.(*Foo)
-		assert.Equal(t, fooV.getName(), "Beginning")
+		assert.Equal(t, fooV.GetName(), "Beginning")
 
 		assert.Equal(t, newSession.Advanced().getNumberOfRequests(), numOfRequests)
 		newSession.Close()

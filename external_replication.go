@@ -23,7 +23,7 @@ func (r *ExternalReplication) setTaskId(taskId int) {
 	r.TaskId = taskId
 }
 
-func (r *ExternalReplication) getName() string {
+func (r *ExternalReplication) GetName() string {
 	return r.Name
 }
 

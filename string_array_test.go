@@ -18,9 +18,9 @@ func TestStringArraySubtract(t *testing.T) {
 		{[]string{"a", "b"}, []string{"a"}, []string{"b"}},
 	}
 	for _, test := range tests {
-		got := stringArraySubtract(test.a1, test.a2)
+		got := StringArraySubtract(test.a1, test.a2)
 		sort.Strings(got)
-		if !stringArrayEq(test.exp, got) {
+		if !StringArrayEq(test.exp, got) {
 			t.Fatalf("got: %#v, exp: %#v", got, test.exp)
 		}
 	}
@@ -43,7 +43,7 @@ func TestStringArrayContains(t *testing.T) {
 		{[]string{}, "", false},
 	}
 	for _, test := range tests {
-		got := stringArrayContains(test.a, test.s)
+		got := StringArrayContains(test.a, test.s)
 		assert.Equal(t, test.exp, got)
 	}
 }

@@ -152,7 +152,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 			a = append(a, event.(*Event).getVenue())
 		}
 
-		assert.True(t, stringArrayContainsExactly(a, []string{"c/3", "b/2"}))
+		assert.True(t, StringArrayContainsExactly(a, []string{"c/3", "b/2"}))
 
 		session.Close()
 	}
@@ -212,7 +212,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 		for _, event := range events {
 			a = append(a, event.(*Event).getVenue())
 		}
-		assert.True(t, stringArrayContainsExactly(a, []string{"a/2", "b/2", "c/2", "a/1", "b/1", "c/1", "a/3", "b/3", "c/3"}))
+		assert.True(t, StringArrayContainsExactly(a, []string{"a/2", "b/2", "c/2", "a/1", "b/1", "c/1", "a/3", "b/3", "c/3"}))
 
 		session.Close()
 	}
@@ -231,7 +231,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 		for _, event := range events {
 			a = append(a, event.(*Event).getVenue())
 		}
-		assert.True(t, stringArrayContainsExactly(a, []string{"a/1", "a/2", "a/3", "b/1", "b/2", "b/3", "c/1", "c/2", "c/3"}))
+		assert.True(t, StringArrayContainsExactly(a, []string{"a/1", "a/2", "a/3", "b/1", "b/2", "b/3", "c/1", "c/2", "c/3"}))
 
 		session.Close()
 	}

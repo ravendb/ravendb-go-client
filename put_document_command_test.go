@@ -23,14 +23,14 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 	result := command.Result
 	assert.Equal(t, "users/1", result.getId())
 
-	assert.NotNil(t, result.getChangeVector())
+	assert.NotNil(t, result.GetChangeVector())
 
 	{
 		session := openSessionMust(t, store)
 		loadedUserI, err := session.Load(GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
-		assert.Equal(t, "Marcin", *loadedUser.getName())
+		assert.Equal(t, "Marcin", *loadedUser.GetName())
 		session.Close()
 	}
 }

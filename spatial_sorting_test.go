@@ -115,7 +115,7 @@ func spatialSorting_createData(t *testing.T, store *IDocumentStore) {
 }
 
 func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string) {
-	ok := stringArrayContainsExactly(resultIDs, expectedOrder)
+	ok := StringArrayContainsExactly(resultIDs, expectedOrder)
 	assert.True(t, ok)
 }
 
@@ -234,7 +234,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
 
 		ids := getShopIDs(shops)
-		stringArrayReverse(ids)
+		StringArrayReverse(ids)
 		assertResultsOrder(t, ids, filteredExpectedOrder)
 
 		session.Close()
@@ -274,7 +274,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
 
 		ids := getShopIDs(shops)
-		stringArrayReverse(ids)
+		StringArrayReverse(ids)
 		assertResultsOrder(t, ids, filteredExpectedOrder)
 
 		session.Close()

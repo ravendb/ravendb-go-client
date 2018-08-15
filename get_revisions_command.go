@@ -47,7 +47,7 @@ func NewGetRevisionsCommandRange(id string, start int, pageSize int, metadataOnl
 	return cmd
 }
 
-func (c *GetRevisionsCommand) getChangeVectors() []string {
+func (c *GetRevisionsCommand) GetChangeVectors() []string {
 	return c._changeVectors
 }
 

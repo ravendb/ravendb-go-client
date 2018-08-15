@@ -94,11 +94,11 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 		res2 := op2.Command.Result
 
 		val := res.getValue().(*User)
-		assert.Equal(t, *val.getName(), "Karmel")
+		assert.Equal(t, *val.GetName(), "Karmel")
 		assert.True(t, res.isSuccessful())
 
 		val2 := res2.getValue().(*User)
-		assert.Equal(t, *val2.getName(), "Karmel")
+		assert.Equal(t, *val2.GetName(), "Karmel")
 		assert.True(t, res.isSuccessful())
 	}
 }
@@ -126,10 +126,10 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		res2 := op2.Command.Result
 		val2 := res2.getValue().(*User)
 
-		assert.Equal(t, *val1.getName(), "Karmel")
+		assert.Equal(t, *val1.GetName(), "Karmel")
 		assert.True(t, res1.isSuccessful())
 
-		assert.Equal(t, *val2.getName(), "Karmel")
+		assert.Equal(t, *val2.GetName(), "Karmel")
 		assert.True(t, res2.isSuccessful())
 	}
 	{
@@ -140,10 +140,10 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		assert.Equal(t, len(values), 2)
 
 		v := values["test"].getValue().(*User)
-		assert.Equal(t, *v.getName(), "Karmel")
+		assert.Equal(t, *v.GetName(), "Karmel")
 
 		v = values["test2"].getValue().(*User)
-		assert.Equal(t, *v.getName(), "Karmel")
+		assert.Equal(t, *v.GetName(), "Karmel")
 
 	}
 }
@@ -227,10 +227,10 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 		assert.False(t, res2.isSuccessful())
 
 		val := res.getValue().(*User)
-		assert.Equal(t, *val.getName(), "Karmel")
+		assert.Equal(t, *val.GetName(), "Karmel")
 
 		val2 := res2.getValue().(*User)
-		assert.Equal(t, *val2.getName(), "Karmel")
+		assert.Equal(t, *val2.GetName(), "Karmel")
 
 		user3 := NewUser()
 		user3.setName("Karmel2")
@@ -241,7 +241,7 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 		res2 = op3.Command.Result
 		assert.True(t, res2.isSuccessful())
 		val2 = res2.getValue().(*User)
-		assert.Equal(t, *val2.getName(), "Karmel2")
+		assert.Equal(t, *val2.GetName(), "Karmel2")
 	}
 }
 
@@ -263,7 +263,7 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.getValue().(*User)
-		assert.Equal(t, *val.getName(), "Karmel")
+		assert.Equal(t, *val.GetName(), "Karmel")
 
 		user2 := NewUser()
 		user2.setName("Karmel2")
@@ -273,7 +273,7 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		res2 := op2.Command.Result
 		assert.True(t, res2.isSuccessful())
 		val2 := res2.getValue().(*User)
-		assert.Equal(t, *val2.getName(), "Karmel2")
+		assert.Equal(t, *val2.GetName(), "Karmel2")
 	}
 }
 

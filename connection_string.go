@@ -6,7 +6,7 @@ type ConnectionString struct {
 	typ ConnectionStringType
 }
 
-func (s *ConnectionString) getName() string {
+func (s *ConnectionString) GetName() string {
 	return s.name
 }
 

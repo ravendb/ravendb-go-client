@@ -14,7 +14,7 @@ func (p *Person) setId(id string) {
 	p.ID = id
 }
 
-func (p *Person) getName() string {
+func (p *Person) GetName() string {
 	return p.Name
 }
 

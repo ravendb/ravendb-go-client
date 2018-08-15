@@ -31,7 +31,7 @@ func (t *IdTypeAndName) setType(typ CommandType) {
 	t.typ = typ
 }
 
-func (t *IdTypeAndName) getName() string {
+func (t *IdTypeAndName) GetName() string {
 	return t.name
 }
 

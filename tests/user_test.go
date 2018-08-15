@@ -18,7 +18,7 @@ func (u *User) getId() string {
 	return u.ID
 }
 
-func (u *User) getName() *string {
+func (u *User) GetName() *string {
 	return u.Name
 }
 

@@ -31,7 +31,7 @@ func testIndexCanDeleteIndex(t *testing.T) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	indexNames := op.Command.Result
-	assert.True(t, stringArrayContains(indexNames, "UsersIndex"))
+	assert.True(t, StringArrayContains(indexNames, "UsersIndex"))
 
 	op2 := NewDeleteIndexOperation("UsersIndex")
 	err = store.Maintenance().Send(op2)

@@ -80,7 +80,7 @@ testing.tRunner.func1(0xc4201ea0f0)
 	/usr/local/Cellar/go/1.10.3/libexec/src/testing/testing.go:742 +0x567
 panic(0x15f67e0, 0x19506b0)
 	/usr/local/Cellar/go/1.10.3/libexec/src/runtime/panic.go:502 +0x24a
-github.com/ravendb/ravendb-go-client.(*AttachmentDetails).getChangeVector(...)
+github.com/ravendb/ravendb-go-client.(*AttachmentDetails).GetChangeVector(...)
 	/Users/kjk/src/go/src/github.com/ravendb/ravendb-go-client/attachment_details.go:14
 github.com/ravendb/ravendb-go-client.createDocumentWithAttachments(0xc4201ea0f0, 0xc420302000, 0x0, 0x0, 0x0)
 	/Users/kjk/src/go/src/github.com/ravendb/ravendb-go-client/attachments_revisions_test.go:165 +0x61c

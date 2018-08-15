@@ -7,33 +7,33 @@ type AttachmentName struct {
 	Size        int64  `json:"Size"`
 }
 
-func (n *AttachmentName) getName() string {
+func (n *AttachmentName) GetName() string {
 	return n.Name
 }
 
-func (n *AttachmentName) setName(name string) {
+func (n *AttachmentName) SetName(name string) {
 	n.Name = name
 }
 
-func (n *AttachmentName) getHash() string {
+func (n *AttachmentName) GetHash() string {
 	return n.Hash
 }
-func (n *AttachmentName) setHash(hash string) {
+func (n *AttachmentName) SetHash(hash string) {
 	n.Hash = hash
 }
 
-func (n *AttachmentName) getContentType() string {
+func (n *AttachmentName) GetContentType() string {
 	return n.ContentType
 }
 
-func (n *AttachmentName) setContentType(contentType string) {
+func (n *AttachmentName) SetContentType(contentType string) {
 	n.ContentType = contentType
 }
 
-func (n *AttachmentName) getSize() int64 {
+func (n *AttachmentName) GetSize() int64 {
 	return n.Size
 }
 
-func (n *AttachmentName) setSize(size int64) {
+func (n *AttachmentName) SetSize(size int64) {
 	n.Size = size
 }

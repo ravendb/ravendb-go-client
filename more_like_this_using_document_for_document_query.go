@@ -12,7 +12,7 @@ func NewMoreLikeThisUsingDocumentForDocumentQuery() *MoreLikeThisUsingDocumentFo
 	return &MoreLikeThisUsingDocumentForDocumentQuery{}
 }
 
-func (m *MoreLikeThisUsingDocumentForDocumentQuery) getForDocumentQuery() func(*IFilterDocumentQueryBase) {
+func (m *MoreLikeThisUsingDocumentForDocumentQuery) GetForDocumentQuery() func(*IFilterDocumentQueryBase) {
 	return m.forDocumentQuery
 }
 

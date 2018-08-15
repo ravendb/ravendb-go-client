@@ -48,7 +48,7 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		changeVector, err = session.Advanced().getChangeVectorFor(user)
+		changeVector, err = session.Advanced().GetChangeVectorFor(user)
 		assert.NoError(t, err)
 		session.Close()
 	}

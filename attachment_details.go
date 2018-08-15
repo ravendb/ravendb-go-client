@@ -10,18 +10,18 @@ func NewAttachmentDetails() *AttachmentDetails {
 	return &AttachmentDetails{}
 }
 
-func (d *AttachmentDetails) getChangeVector() *string {
+func (d *AttachmentDetails) GetChangeVector() *string {
 	return d.ChangeVector
 }
 
-func (d *AttachmentDetails) setChangeVector(changeVector *string) {
+func (d *AttachmentDetails) SetChangeVector(changeVector *string) {
 	d.ChangeVector = changeVector
 }
 
-func (d *AttachmentDetails) getDocumentId() string {
+func (d *AttachmentDetails) GetDocumentID() string {
 	return d.DocumentId
 }
 
-func (d *AttachmentDetails) setDocumentId(documentId string) {
+func (d *AttachmentDetails) SetDocumentID(documentId string) {
 	d.DocumentId = documentId
 }

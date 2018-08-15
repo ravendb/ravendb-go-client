@@ -35,7 +35,7 @@ func (c *Company) setId(id string) {
 	c.ID = id
 }
 
-func (c *Company) getName() string {
+func (c *Company) GetName() string {
 	return c.Name
 }
 

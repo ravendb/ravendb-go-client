@@ -15,7 +15,7 @@ func NewDocumentSessionAttachmentsBase(session *InMemoryDocumentSessionOperation
 	return res
 }
 
-func (s *DocumentSessionAttachmentsBase) getNames(entity Object) ([]*AttachmentName, error) {
+func (s *DocumentSessionAttachmentsBase) GetNames(entity Object) ([]*AttachmentName, error) {
 	if entity == nil {
 		return nil, nil
 	}
@@ -50,7 +50,7 @@ func (s *DocumentSessionAttachmentsBase) getNames(entity Object) ([]*AttachmentN
 
 // contentType is optional
 // TODO: maybe split into Store() and storeWithContentType()
-func (s *DocumentSessionAttachmentsBase) store(documentId string, name string, stream io.Reader, contentType string) error {
+func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, stream io.Reader, contentType string) error {
 	// TODO: validate args
 
 	deferredCommandsMap := s.deferredCommandsMap
@@ -80,25 +80,25 @@ func (s *DocumentSessionAttachmentsBase) store(documentId string, name string, s
 	return nil
 }
 
-func (s *DocumentSessionAttachmentsBase) storeEntity(entity Object, name string, stream io.Reader, contentType string) error {
+func (s *DocumentSessionAttachmentsBase) StoreEntity(entity Object, name string, stream io.Reader, contentType string) error {
 	document := s.documentsByEntity[entity]
 	if document == nil {
 		return throwEntityNotInSession(entity)
 	}
 
-	return s.store(document.getId(), name, stream, contentType)
+	return s.Store(document.getId(), name, stream, contentType)
 }
 
-func (s *DocumentSessionAttachmentsBase) deleteEntity(entity Object, name string) error {
+func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity Object, name string) error {
 	document := s.documentsByEntity[entity]
 	if document == nil {
 		return throwEntityNotInSession(entity)
 	}
 
-	return s.delete(document.getId(), name)
+	return s.Delete(document.getId(), name)
 }
 
-func (s *DocumentSessionAttachmentsBase) delete(documentId string, name string) error {
+func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) error {
 	// TODO: validate args
 
 	deferredCommandsMap := s.deferredCommandsMap

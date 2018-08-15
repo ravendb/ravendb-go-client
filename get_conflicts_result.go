@@ -47,7 +47,7 @@ type Conflict struct {
            this.lastModified = lastModified;
        }
 
-       public String getChangeVector() {
+       public String GetChangeVector() {
            return changeVector;
        }
 

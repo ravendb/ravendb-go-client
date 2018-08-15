@@ -14,7 +14,7 @@ type IndexChange struct {
        this.type = type;
    }
 
-   public string getName() {
+   public string GetName() {
        return name;
    }
 

@@ -72,7 +72,7 @@ func (e *EntityToJson) convertToEntity(entityType reflect.Type, id string, docum
 
 			return entity;
 		} catch (Exception e) {
-			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.getName(), e);
+			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.GetName(), e);
 		}
 	*/
 }
@@ -95,7 +95,7 @@ func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo)
 		}
 	} else if metadataInstance != nil {
 		setMetadata = true
-		for key, value := range metadataInstance.entrySet() {
+		for key, value := range metadataInstance.EntrySet() {
 			metadataNode[key] = value
 		}
 	}

@@ -39,13 +39,13 @@ func NewMetadataAsDictionary(metadata ObjectNode, parent *IMetadataDictionary, p
 	}
 }
 
-func (d *MetadataAsDictionary) isDirty() bool {
+func (d *MetadataAsDictionary) IsDirty() bool {
 	return d.dirty
 }
 
-func (d *MetadataAsDictionary) keySet() []string {
+func (d *MetadataAsDictionary) KeySet() []string {
 	if d._metadata == nil {
-		d.init()
+		d.Init()
 	}
 	// TODO: pre-allocate res
 	var res []string
@@ -55,23 +55,23 @@ func (d *MetadataAsDictionary) keySet() []string {
 	return res
 }
 
-func (d *MetadataAsDictionary) init() {
+func (d *MetadataAsDictionary) Init() {
 	d.dirty = true
 	d._metadata = map[string]Object{}
 
 	for k, v := range d._source {
-		val := d.convertValue(k, v)
+		val := d.ConvertValue(k, v)
 		d._metadata[k] = val
 	}
 
 	if d._parent != nil {
-		d._parent.put(d._parentKey, d)
+		d._parent.Put(d._parentKey, d)
 	}
 }
 
-func (d *MetadataAsDictionary) put(key string, value Object) Object {
+func (d *MetadataAsDictionary) Put(key string, value Object) Object {
 	if d._metadata == nil {
-		d.init()
+		d.Init()
 	}
 	d.dirty = true
 
@@ -79,7 +79,7 @@ func (d *MetadataAsDictionary) put(key string, value Object) Object {
 	return value
 }
 
-func (d *MetadataAsDictionary) convertValue(key string, value Object) Object {
+func (d *MetadataAsDictionary) ConvertValue(key string, value Object) Object {
 	if value == nil {
 		return nil
 	}
@@ -93,7 +93,7 @@ func (d *MetadataAsDictionary) convertValue(key string, value Object) Object {
 		n := len(v)
 		res := make([]interface{}, n, n)
 		for i, el := range v {
-			newEl := d.convertValue(key, el)
+			newEl := d.ConvertValue(key, el)
 			res[i] = newEl
 		}
 		return res
@@ -104,16 +104,16 @@ func (d *MetadataAsDictionary) convertValue(key string, value Object) Object {
 	return nil
 }
 
-func (d *MetadataAsDictionary) clear() {
+func (d *MetadataAsDictionary) Clear() {
 	if d._metadata == nil {
-		d.init()
+		d.Init()
 	}
 	d.dirty = true
 
 	d._metadata = map[string]Object{} // TODO: can it be nil?
 }
 
-func (d *MetadataAsDictionary) get(key string) (interface{}, bool) {
+func (d *MetadataAsDictionary) Get(key string) (interface{}, bool) {
 	if d._metadata != nil {
 		v, ok := d._metadata[key]
 		return v, ok
@@ -123,18 +123,18 @@ func (d *MetadataAsDictionary) get(key string) (interface{}, bool) {
 	if !ok {
 		return v, ok
 	}
-	return d.convertValue(key, v), ok
+	return d.ConvertValue(key, v), ok
 }
 
-func (d *MetadataAsDictionary) entrySet() map[string]Object {
+func (d *MetadataAsDictionary) EntrySet() map[string]Object {
 	if d._metadata == nil {
-		d.init()
+		d.Init()
 	}
 
 	return d._metadata
 }
 
-func (d *MetadataAsDictionary) containsKey(key string) bool {
+func (d *MetadataAsDictionary) ContainsKey(key string) bool {
 	if d._metadata != nil {
 		_, ok := d._metadata[key]
 		return ok
@@ -145,8 +145,8 @@ func (d *MetadataAsDictionary) containsKey(key string) bool {
 }
 
 // TODO: return an error instead of panicking on cast failures
-func (d *MetadataAsDictionary) getObjects(key string) []*IMetadataDictionary {
-	objI, ok := d.get(key)
+func (d *MetadataAsDictionary) GetObjects(key string) []*IMetadataDictionary {
+	objI, ok := d.Get(key)
 	if !ok || objI == nil {
 		return nil
 	}

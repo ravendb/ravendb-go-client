@@ -24,7 +24,7 @@ func (u *UserWithFavs) setId(id string) {
 	u.ID = id
 }
 
-func (u *UserWithFavs) getName() string {
+func (u *UserWithFavs) GetName() string {
 	return u.Name
 }
 

@@ -90,12 +90,12 @@ func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.
 	}
 
 	attachmentDetails := NewAttachmentDetails()
-	attachmentDetails.setContentType(contentType)
-	attachmentDetails.setName(c._name)
-	attachmentDetails.setHash(hash)
-	attachmentDetails.setSize(size)
-	attachmentDetails.setChangeVector(changeVector)
-	attachmentDetails.setDocumentId(c._documentId)
+	attachmentDetails.SetContentType(contentType)
+	attachmentDetails.SetName(c._name)
+	attachmentDetails.SetHash(hash)
+	attachmentDetails.SetSize(size)
+	attachmentDetails.SetChangeVector(changeVector)
+	attachmentDetails.SetDocumentID(c._documentId)
 
 	c.Result = NewCloseableAttachmentResult(response, attachmentDetails)
 	return ResponseDisposeHandling_MANUALLY, nil

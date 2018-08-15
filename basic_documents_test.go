@@ -89,12 +89,12 @@ func basicDocuments_get(t *testing.T) {
 
 	assert.NotNil(t, doc1)
 	doc1Properties := fieldNames(doc1)
-	assert.True(t, stringArrayContains(doc1Properties, "@metadata"))
+	assert.True(t, StringArrayContains(doc1Properties, "@metadata"))
 	assert.Equal(t, len(doc1Properties), len(dummy)+1) // +1 for @metadata
 
 	assert.NotNil(t, doc2)
 	doc2Properties := fieldNames(doc2)
-	assert.True(t, stringArrayContains(doc2Properties, "@metadata"))
+	assert.True(t, StringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), len(dummy)+1) // +1 for @metadata
 
 	{
@@ -105,8 +105,8 @@ func basicDocuments_get(t *testing.T) {
 
 		user2I := etojs.convertToEntity(GetTypeOf(&User{}), "users/2", doc2)
 		user2 := user2I.(*User)
-		assert.Equal(t, *user1.getName(), "Fitzchak")
-		assert.Equal(t, *user2.getName(), "Arek")
+		assert.Equal(t, *user1.GetName(), "Fitzchak")
+		assert.Equal(t, *user2.GetName(), "Arek")
 		session.Close()
 	}
 	getDocumentsCommand = NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
@@ -118,12 +118,12 @@ func basicDocuments_get(t *testing.T) {
 
 	assert.NotNil(t, doc1)
 	doc1Properties = fieldNames(doc1)
-	assert.True(t, stringArrayContains(doc1Properties, "@metadata"))
+	assert.True(t, StringArrayContains(doc1Properties, "@metadata"))
 	assert.Equal(t, len(doc1Properties), 1)
 
 	assert.NotNil(t, doc1)
 	doc2Properties = fieldNames(doc2)
-	assert.True(t, stringArrayContains(doc2Properties, "@metadata"))
+	assert.True(t, StringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), 1)
 }
 

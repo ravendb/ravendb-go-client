@@ -27,7 +27,7 @@ func (r *PatchResult) getDebug() ObjectNode {
 	return r.Debug
 }
 
-func (r *PatchResult) getChangeVector() *string {
+func (r *PatchResult) GetChangeVector() *string {
 	return r.ChangeVector
 }
 

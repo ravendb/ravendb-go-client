@@ -31,7 +31,7 @@ func storeTestRefreshTest(t *testing.T) {
 
 		session.Advanced().Refresh(user)
 
-		name := *user.getName()
+		name := *user.GetName()
 		assert.Equal(t, name, "RavenDB 4.0")
 		session.Close()
 	}
@@ -55,7 +55,7 @@ func storeTestStoreDocument(t *testing.T) {
 		assert.NoError(t, err)
 		user = userI.(*User)
 		assert.NotNil(t, user)
-		name := *user.getName()
+		name := *user.GetName()
 		assert.Equal(t, name, "RavenDB")
 		session.Close()
 	}
@@ -118,7 +118,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 		isLoaded := session.Advanced().IsLoaded("users/1")
 		assert.True(t, isLoaded)
 
-		changeVEctor, err := session.Advanced().getChangeVectorFor(user1)
+		changeVEctor, err := session.Advanced().GetChangeVectorFor(user1)
 		assert.NoError(t, err)
 
 		assert.NotNil(t, changeVEctor)
@@ -130,7 +130,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 	assert.NotNil(t, sessionLevelCallback[0])
 
 	iMetadataDictionary := sessionLevelCallback[0]
-	entrySet := iMetadataDictionary.entrySet()
+	entrySet := iMetadataDictionary.EntrySet()
 	for key, value := range entrySet {
 		assert.NotEqual(t, key, "")
 		assert.NotNil(t, value)

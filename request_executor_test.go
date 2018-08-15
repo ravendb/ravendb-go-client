@@ -81,7 +81,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 		assert.NoError(t, err)
 
 		dbNames := command.Result
-		assert.True(t, stringArrayContains(dbNames, store.GetDatabase()))
+		assert.True(t, StringArrayContains(dbNames, store.GetDatabase()))
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canFetchDatabasesNames end\n")

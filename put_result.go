@@ -10,7 +10,7 @@ func (r *PutResult) getId() string {
 	return r.ID
 }
 
-func (r *PutResult) getChangeVector() *string {
+func (r *PutResult) GetChangeVector() *string {
 	return r.ChangeVector
 }
 

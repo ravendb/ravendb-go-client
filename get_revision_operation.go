@@ -34,7 +34,7 @@ func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {
 }
 
 // Note: in Java it's getRevision
-func (o *GetRevisionOperation) getRevisionWithDocument(clazz reflect.Type, document ObjectNode) interface{} {
+func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document ObjectNode) interface{} {
 	if document == nil {
 		return Defaults_defaultValue(clazz)
 	}
@@ -61,18 +61,18 @@ func (o *GetRevisionOperation) getRevisionWithDocument(clazz reflect.Type, docum
 	return entity
 }
 
-func (o *GetRevisionOperation) getRevisionsFor(clazz reflect.Type) []interface{} {
+func (o *GetRevisionOperation) GetRevisionsFor(clazz reflect.Type) []interface{} {
 	resultsCount := len(o._result.getResults())
 	results := make([]interface{}, resultsCount, resultsCount)
 	for i := 0; i < resultsCount; i++ {
 		document := o._result.getResults()[i]
-		results[i] = o.getRevisionWithDocument(clazz, document)
+		results[i] = o.GetRevisionWithDocument(clazz, document)
 	}
 
 	return results
 }
 
-func (o *GetRevisionOperation) getRevisionsMetadataFor() []*MetadataAsDictionary {
+func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary {
 	resultsCount := len(o._result.getResults())
 	results := make([]*MetadataAsDictionary, resultsCount, resultsCount)
 	for i := 0; i < resultsCount; i++ {
@@ -87,28 +87,28 @@ func (o *GetRevisionOperation) getRevisionsMetadataFor() []*MetadataAsDictionary
 	return results
 }
 
-func (o *GetRevisionOperation) getRevision(clazz reflect.Type) interface{} {
+func (o *GetRevisionOperation) GetRevision(clazz reflect.Type) interface{} {
 	if o._result == nil {
 		return Defaults_defaultValue(clazz)
 	}
 
 	document := o._result.getResults()[0]
-	return o.getRevisionWithDocument(clazz, document)
+	return o.GetRevisionWithDocument(clazz, document)
 }
 
-func (o *GetRevisionOperation) getRevisions(clazz reflect.Type) map[string]interface{} {
+func (o *GetRevisionOperation) GetRevisions(clazz reflect.Type) map[string]interface{} {
 	// Maybe: Java uses case-insensitive keys, but keys are change vectors
 	// so that shouldn't matter
 	results := map[string]interface{}{}
 
-	for i := 0; i < len(o._command.getChangeVectors()); i++ {
-		changeVector := o._command.getChangeVectors()[i]
+	for i := 0; i < len(o._command.GetChangeVectors()); i++ {
+		changeVector := o._command.GetChangeVectors()[i]
 		if changeVector == "" {
 			continue
 		}
 
 		v := o._result.getResults()[i]
-		rev := o.getRevisionWithDocument(clazz, v)
+		rev := o.GetRevisionWithDocument(clazz, v)
 		results[changeVector] = rev
 	}
 

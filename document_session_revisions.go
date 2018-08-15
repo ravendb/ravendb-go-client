@@ -12,16 +12,16 @@ func NewDocumentSessionRevisions(session *InMemoryDocumentSessionOperations) *Do
 	}
 }
 
-func (r *DocumentSessionRevisions) getFor(clazz reflect.Type, id string) ([]interface{}, error) {
-	return r.getForPaged(clazz, id, 0, 25)
+func (r *DocumentSessionRevisions) GetFor(clazz reflect.Type, id string) ([]interface{}, error) {
+	return r.GetForPaged(clazz, id, 0, 25)
 }
 
-func (r *DocumentSessionRevisions) getForStartAt(clazz reflect.Type, id string, start int) ([]interface{}, error) {
-	return r.getForPaged(clazz, id, start, 25)
+func (r *DocumentSessionRevisions) GetForStartAt(clazz reflect.Type, id string, start int) ([]interface{}, error) {
+	return r.GetForPaged(clazz, id, start, 25)
 }
 
 // use -1 for start and pageSize to mean: "not given"
-func (r *DocumentSessionRevisions) getForPaged(clazz reflect.Type, id string, start int, pageSize int) ([]interface{}, error) {
+func (r *DocumentSessionRevisions) GetForPaged(clazz reflect.Type, id string, start int, pageSize int) ([]interface{}, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
 
 	command := operation.CreateRequest()
@@ -30,18 +30,18 @@ func (r *DocumentSessionRevisions) getForPaged(clazz reflect.Type, id string, st
 		return nil, err
 	}
 	operation.setResult(command.Result)
-	return operation.getRevisionsFor(clazz), nil
+	return operation.GetRevisionsFor(clazz), nil
 }
 
-func (r *DocumentSessionRevisions) getMetadataFor(id string) ([]*MetadataAsDictionary, error) {
-	return r.getMetadataForPaged(id, 0, 25)
+func (r *DocumentSessionRevisions) GetMetadataFor(id string) ([]*MetadataAsDictionary, error) {
+	return r.GetMetadataForPaged(id, 0, 25)
 }
 
-func (r *DocumentSessionRevisions) getMetadataForStartAt(id string, start int) ([]*MetadataAsDictionary, error) {
-	return r.getMetadataForPaged(id, start, 25)
+func (r *DocumentSessionRevisions) GetMetadataForStartAt(id string, start int) ([]*MetadataAsDictionary, error) {
+	return r.GetMetadataForPaged(id, start, 25)
 }
 
-func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
+func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
 	command := operation.CreateRequest()
 	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
@@ -49,7 +49,7 @@ func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pag
 		return nil, err
 	}
 	operation.setResult(command.Result)
-	return operation.getRevisionsMetadataFor(), nil
+	return operation.GetRevisionsMetadataFor(), nil
 }
 
 // TODO: change to take interace{} to return as an argument?
@@ -62,7 +62,7 @@ func (r *DocumentSessionRevisions) get(clazz reflect.Type, changeVector string) 
 		return nil, err
 	}
 	operation.setResult(command.Result)
-	return operation.getRevision(clazz), nil
+	return operation.GetRevision(clazz), nil
 }
 
 /*
@@ -73,6 +73,6 @@ func (r *DocumentSessionRevisions) get(clazz reflect.Type, changeVector string) 
        GetRevisionsCommand command = operation.CreateRequest();
        requestExecutor.execute(command, sessionInfo);
        operation.setResult(command.getResult());
-       return operation.getRevisions(clazz);
+       return operation.GetRevisions(clazz);
    }
 */

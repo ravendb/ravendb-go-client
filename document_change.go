@@ -45,7 +45,7 @@ type DocumentChange struct {
         this.typeName = typeName;
     }
 
-    public string getChangeVector() {
+    public string GetChangeVector() {
         return changeVector;
     }
 

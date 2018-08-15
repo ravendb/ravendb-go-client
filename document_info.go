@@ -43,7 +43,7 @@ func (d *DocumentInfo) isIgnoreChanges() bool {
 	return d.ignoreChanges
 }
 
-func (d *DocumentInfo) getChangeVector() *string {
+func (d *DocumentInfo) GetChangeVector() *string {
 	return d.changeVector
 }
 

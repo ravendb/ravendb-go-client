@@ -40,6 +40,6 @@ func (d *PutAttachmentCommandData) getStream() io.Reader {
 	return d.stream
 }
 
-func (d *PutAttachmentCommandData) getContentType() string {
+func (d *PutAttachmentCommandData) GetContentType() string {
 	return d.contentType
 }
