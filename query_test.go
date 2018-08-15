@@ -584,8 +584,8 @@ func query_rawQuerySkipTake(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.RawQuery(GetTypeOf(&User{}), "from users")
-		q = q.skip(2)
-		q = q.take(1)
+		q = q.Skip(2)
+		q = q.Take(1)
 		users, err := q.ToList()
 		assert.NoError(t, err)
 
@@ -607,7 +607,7 @@ func query_parametersInRawQuery(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.RawQuery(GetTypeOf(&User{}), "from users where age == $p0")
-		q = q.addParameter("p0", 5)
+		q = q.AddParameter("p0", 5)
 		users, err := q.ToList()
 		assert.NoError(t, err)
 
@@ -867,7 +867,7 @@ func query_queryParameters(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.RawQuery(GetTypeOf(&User{}), "from Users where name = $name")
-		q = q.addParameter("name", "Tarzan")
+		q = q.AddParameter("name", "Tarzan")
 		count, err := q.Count()
 		assert.NoError(t, err)
 
