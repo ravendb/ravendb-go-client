@@ -750,7 +750,7 @@ func (q *AbstractDocumentQuery) _boost(boost float64) {
 		panicIf(true, "Boost factor must be a positive number")
 	}
 
-	whereToken.getOptions().setBoost(boost)
+	whereToken.GetOptions().setBoost(boost)
 }
 
 func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
@@ -773,7 +773,7 @@ func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
 		panicIf(true, "Fuzzy distance must be between 0.0 and 1.0")
 	}
 
-	whereToken.getOptions().setFuzzy(fuzzy)
+	whereToken.GetOptions().setFuzzy(fuzzy)
 }
 
 func (q *AbstractDocumentQuery) _proximity(proximity int) {
@@ -797,7 +797,7 @@ func (q *AbstractDocumentQuery) _proximity(proximity int) {
 		panicIf(true, "Proximity distance must be a positive number")
 	}
 
-	whereToken.getOptions().setProximity(proximity)
+	whereToken.GetOptions().setProximity(proximity)
 }
 
 func (q *AbstractDocumentQuery) _orderBy(field string) {
@@ -1042,7 +1042,7 @@ func (q *AbstractDocumentQuery) buildSelect(writer *StringBuilder) {
 	if len(q.selectTokens) == 1 {
 		tok := q.selectTokens[0]
 		if dtok, ok := tok.(*DistinctToken); ok {
-			dtok.writeTo(writer)
+			dtok.WriteTo(writer)
 			writer.append(" *")
 			return
 		}
@@ -1062,17 +1062,17 @@ func (q *AbstractDocumentQuery) buildSelect(writer *StringBuilder) {
 		}
 		DocumentQueryHelper_addSpaceIfNeeded(prevToken, token, writer)
 
-		token.writeTo(writer)
+		token.WriteTo(writer)
 	}
 }
 
 func (q *AbstractDocumentQuery) buildFrom(writer *StringBuilder) {
-	q.fromToken.writeTo(writer)
+	q.fromToken.WriteTo(writer)
 }
 
 func (q *AbstractDocumentQuery) buildDeclare(writer *StringBuilder) {
 	if q.declareToken != nil {
-		q.declareToken.writeTo(writer)
+		q.declareToken.WriteTo(writer)
 	}
 }
 
@@ -1088,7 +1088,7 @@ func (q *AbstractDocumentQuery) buildLoad(writer *StringBuilder) {
 			writer.append(", ")
 		}
 
-		tok.writeTo(writer)
+		tok.WriteTo(writer)
 	}
 }
 
@@ -1109,7 +1109,7 @@ func (q *AbstractDocumentQuery) buildWhere(writer *StringBuilder) {
 			prevToken = q.whereTokens[i-1]
 		}
 		DocumentQueryHelper_addSpaceIfNeeded(prevToken, tok, writer)
-		tok.writeTo(writer)
+		tok.WriteTo(writer)
 	}
 
 	if q.isIntersect {
@@ -1128,7 +1128,7 @@ func (q *AbstractDocumentQuery) buildGroupBy(writer *StringBuilder) {
 		if i > 0 {
 			writer.append(", ")
 		}
-		token.writeTo(writer)
+		token.WriteTo(writer)
 	}
 }
 
@@ -1144,7 +1144,7 @@ func (q *AbstractDocumentQuery) buildOrderBy(writer *StringBuilder) {
 			writer.append(", ")
 		}
 
-		token.writeTo(writer)
+		token.WriteTo(writer)
 	}
 }
 
@@ -1181,7 +1181,7 @@ func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]QueryToken) 
 		token = QueryOperatorToken_OR
 	}
 
-	if lastWhere != nil && lastWhere.getOptions().getSearchOperator() != SearchOperator_UNSET {
+	if lastWhere != nil && lastWhere.GetOptions().getSearchOperator() != SearchOperator_UNSET {
 		token = QueryOperatorToken_OR // default to OR operator after search if AND was not specified explicitly
 	}
 
@@ -1773,10 +1773,10 @@ func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
 
        if (suggestion instanceof SuggestionWithTerm) {
            SuggestionWithTerm term = (SuggestionWithTerm) suggestion;
-           token = SuggestToken.create(term.getField(), addQueryParameter(term.getTerm()), getOptionsParameterName(term.getOptions()));
+           token = SuggestToken.create(term.getField(), addQueryParameter(term.getTerm()), getOptionsParameterName(term.GetOptions()));
        } else if (suggestion instanceof SuggestionWithTerms) {
            SuggestionWithTerms terms = (SuggestionWithTerms) suggestion;
-           token = SuggestToken.create(terms.getField(), addQueryParameter(terms.getTerms()), getOptionsParameterName(terms.getOptions()));
+           token = SuggestToken.create(terms.getField(), addQueryParameter(terms.getTerms()), getOptionsParameterName(terms.GetOptions()));
        } else {
            throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
        }

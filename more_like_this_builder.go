@@ -35,7 +35,7 @@ func (b *MoreLikeThisBuilder) usingDocumentWithBuilder(builder func(*IFilterDocu
 }
 
 func (b *MoreLikeThisBuilder) WithOptions(options *MoreLikeThisOptions) IMoreLikeThisOperations {
-	b.moreLikeThis.setOptions(options)
+	b.moreLikeThis.SetOptions(options)
 
 	return b
 }

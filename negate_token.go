@@ -13,6 +13,6 @@ func NewNegateToken() *NegateToken {
 	return &NegateToken{}
 }
 
-func (t *NegateToken) writeTo(writer *StringBuilder) {
+func (t *NegateToken) WriteTo(writer *StringBuilder) {
 	writer.append("not")
 }

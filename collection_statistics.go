@@ -10,26 +10,26 @@ func NewCollectionStatistics() *CollectionStatistics {
 	return &CollectionStatistics{}
 }
 
-func (s *CollectionStatistics) getCollections() map[string]int {
+func (s *CollectionStatistics) GetCollections() map[string]int {
 	return s.Collections
 }
 
-func (s *CollectionStatistics) setCollections(collections map[string]int) {
+func (s *CollectionStatistics) SetCollections(collections map[string]int) {
 	s.Collections = collections
 }
 
-func (s *CollectionStatistics) getCountOfDocuments() int {
+func (s *CollectionStatistics) GetCountOfDocuments() int {
 	return s.CountOfDocuments
 }
 
-func (s *CollectionStatistics) setCountOfDocuments(countOfDocuments int) {
+func (s *CollectionStatistics) SetCountOfDocuments(countOfDocuments int) {
 	s.CountOfDocuments = countOfDocuments
 }
 
-func (s *CollectionStatistics) getCountOfConflicts() int {
+func (s *CollectionStatistics) GetCountOfConflicts() int {
 	return s.CountOfConflicts
 }
 
-func (s *CollectionStatistics) setCountOfConflicts(countOfConflicts int) {
+func (s *CollectionStatistics) SetCountOfConflicts(countOfConflicts int) {
 	s.CountOfConflicts = countOfConflicts
 }

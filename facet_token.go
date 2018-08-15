@@ -35,7 +35,7 @@ func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string
 	}
 }
 
-func (t *FacetToken) writeTo(writer *StringBuilder) {
+func (t *FacetToken) WriteTo(writer *StringBuilder) {
 	writer.append("facet(")
 
 	if t._facetSetupDocumentId != "" {
@@ -70,7 +70,7 @@ func (t *FacetToken) writeTo(writer *StringBuilder) {
 			writer.append(", ")
 		}
 		firstArgument = false
-		aggregation.writeTo(writer)
+		aggregation.WriteTo(writer)
 	}
 
 	if StringUtils_isNotBlank(t._optionsParameterName) {
@@ -99,7 +99,7 @@ func FacetToken_create(facetSetupDocumentId string) *FacetToken {
 
 func FacetToken_createWithFacet(facet *Facet, addQueryParameter func(Object) string) *FacetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
-	token := NewFacetTokenAll(facet.getFieldName(), facet.getDisplayFieldName(), nil, optionsParameterName)
+	token := NewFacetTokenAll(facet.GetFieldName(), facet.GetDisplayFieldName(), nil, optionsParameterName)
 
 	applyAggregations(facet, token)
 	return token
@@ -108,7 +108,7 @@ func FacetToken_createWithFacet(facet *Facet, addQueryParameter func(Object) str
 func FacetToken_createWithRangeFacet(facet *RangeFacet, addQueryParameter func(Object) string) *FacetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
-	token := NewFacetTokenAll("", facet.getDisplayFieldName(), facet.getRanges(), optionsParameterName)
+	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), facet.getRanges(), optionsParameterName)
 
 	applyAggregations(facet, token)
 
@@ -123,7 +123,7 @@ func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryPa
 		ranges = append(ranges, GenericRangeFacet_parse(rangeBuilder, addQueryParameter))
 	}
 
-	token := NewFacetTokenAll("", facet.getDisplayFieldName(), ranges, optionsParameterName)
+	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), ranges, optionsParameterName)
 
 	applyAggregations(facet, token)
 	return token
@@ -131,11 +131,11 @@ func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryPa
 
 func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(Object) string) *FacetToken {
 	// this is just a dispatcher
-	return facet.toFacetToken(addQueryParameter)
+	return facet.ToFacetToken(addQueryParameter)
 }
 
 func applyAggregations(facet FacetBase, token *FacetToken) {
-	m := facet.getAggregations()
+	m := facet.GetAggregations()
 
 	for key, value := range m {
 		var aggregationToken *FacetAggregationToken
@@ -158,10 +158,10 @@ func applyAggregations(facet FacetBase, token *FacetToken) {
 }
 
 func getOptionsParameterName(facet FacetBase, addQueryParameter func(Object) string) string {
-	if facet.getOptions() == nil || facet.getOptions() == FacetOptions_getDefaultOptions() {
+	if facet.GetOptions() == nil || facet.GetOptions() == FacetOptions_getDefaultOptions() {
 		return ""
 	}
-	return addQueryParameter(facet.getOptions())
+	return addQueryParameter(facet.GetOptions())
 }
 
 type FacetAggregationToken struct {
@@ -176,7 +176,7 @@ func NewFacetAggregationToken(fieldName string, aggregation FacetAggregation) *F
 	}
 }
 
-func (t *FacetAggregationToken) writeTo(writer *StringBuilder) {
+func (t *FacetAggregationToken) WriteTo(writer *StringBuilder) {
 	switch t._aggregation {
 	case FacetAggregation_MAX:
 		writer.append("max(")

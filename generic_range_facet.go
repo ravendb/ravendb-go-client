@@ -26,9 +26,9 @@ func (f *GenericRangeFacet) setRanges(ranges []*RangeBuilder) {
 	f.ranges = ranges
 }
 
-func (f *GenericRangeFacet) toFacetToken(addQueryParameter func(Object) string) *FacetToken {
+func (f *GenericRangeFacet) ToFacetToken(addQueryParameter func(Object) string) *FacetToken {
 	if f._parent != nil {
-		return f._parent.toFacetToken(addQueryParameter)
+		return f._parent.ToFacetToken(addQueryParameter)
 	}
 
 	return FacetToken_createWithGenericRangeFacet(f, addQueryParameter)

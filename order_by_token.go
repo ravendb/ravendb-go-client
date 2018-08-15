@@ -57,7 +57,7 @@ func OrderByToken_createDescending(fieldName string, ordering OrderingType) *Ord
 	return NewOrderByToken(fieldName, true, ordering)
 }
 
-func (t *OrderByToken) writeTo(writer *StringBuilder) {
+func (t *OrderByToken) WriteTo(writer *StringBuilder) {
 	QueryToken_writeField(writer, t._fieldName)
 
 	switch t._ordering {

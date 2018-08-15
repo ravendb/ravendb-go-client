@@ -1,34 +1,30 @@
 package ravendb
 
-var (
-	RQL_KEYWORDS = map[string]struct{}{
-		"as":      struct{}{},
-		"select":  struct{}{},
-		"where":   struct{}{},
-		"load":    struct{}{},
-		"group":   struct{}{},
-		"order":   struct{}{},
-		"include": struct{}{},
+func isRqlTokenKeyword(s string) bool {
+	switch s {
+	case "as", "select", "where", "load",
+		"group", "order", "include":
+		return true
 	}
-)
+	return false
+}
 
 // QueryToken describes interface for query token
 // In Java QueryToken is a base class that defines virtual writeTo and provides
 // writeField. We make writeField a stand-alone helper function and make QueryToken
 // an interface
 type QueryToken interface {
-	// TODO: rename to WriteTo
-	writeTo(*StringBuilder)
+	WriteTo(*StringBuilder)
 }
 
 func QueryToken_writeField(writer *StringBuilder, field string) {
-	_, keyWord := RQL_KEYWORDS[field]
-	if keyWord {
+	isKeyWord := isRqlTokenKeyword(field)
+	if isKeyWord {
 		writer.append("'")
 	}
 	writer.append(field)
 
-	if keyWord {
+	if isKeyWord {
 		writer.append("'")
 	}
 }

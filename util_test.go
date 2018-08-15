@@ -23,7 +23,7 @@ func TestInterfaceArrayContains(t *testing.T) {
 		{[]interface{}{}, "", false},
 	}
 	for idx, test := range tests {
-		got := interfaceArrayContains(test.a, test.v)
+		got := InterfaceArrayContains(test.a, test.v)
 		assert.Equal(t, test.exp, got, "a: %v, v: %v, idx: %d", test.a, test.v, idx)
 	}
 }

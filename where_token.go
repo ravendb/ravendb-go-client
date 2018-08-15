@@ -215,11 +215,11 @@ func (t *WhereToken) setParameterName(parameterName string) {
 	t.parameterName = parameterName
 }
 
-func (t *WhereToken) getOptions() *WhereOptions {
+func (t *WhereToken) GetOptions() *WhereOptions {
 	return t.options
 }
 
-func (t *WhereToken) setOptions(options *WhereOptions) {
+func (t *WhereToken) SetOptions(options *WhereOptions) {
 	t.options = options
 }
 
@@ -263,7 +263,7 @@ func (t *WhereToken) writeMethod(writer *StringBuilder) bool {
 	return false
 }
 
-func (t *WhereToken) writeTo(writer *StringBuilder) {
+func (t *WhereToken) WriteTo(writer *StringBuilder) {
 	options := t.options
 	if options.boost != 0 {
 		writer.append("boost(")
@@ -405,7 +405,7 @@ func (t *WhereToken) specialOperator(writer *StringBuilder) {
 		writer.append(")")
 	case WhereOperator_SPATIAL_WITHIN, WhereOperator_SPATIAL_CONTAINS, WhereOperator_SPATIAL_DISJOINT, WhereOperator_SPATIAL_INTERSECTS:
 		writer.append(", ")
-		options.whereShape.writeTo(writer)
+		options.whereShape.WriteTo(writer)
 
 		if math.Abs(options.distanceErrorPct-Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT) > 1e-40 {
 			writer.append(", ")

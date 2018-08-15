@@ -18,7 +18,7 @@ func GroupBySumToken_create(fieldName string, projectedName string) *GroupBySumT
 	return NewGroupBySumToken(fieldName, projectedName)
 }
 
-func (t *GroupBySumToken) writeTo(writer *StringBuilder) {
+func (t *GroupBySumToken) WriteTo(writer *StringBuilder) {
 	writer.append("sum(")
 	writer.append(t._fieldName)
 	writer.append(")")

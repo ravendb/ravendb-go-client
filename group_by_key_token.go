@@ -18,7 +18,7 @@ func GroupByKeyToken_create(fieldName string, projectedName string) *GroupByKeyT
 	return NewGroupByKeyToken(fieldName, projectedName)
 }
 
-func (t *GroupByKeyToken) writeTo(writer *StringBuilder) {
+func (t *GroupByKeyToken) WriteTo(writer *StringBuilder) {
 	QueryToken_writeField(writer, firstNonEmptyString(t._fieldName, "key()"))
 
 	if t._projectedName == "" || t._projectedName == t._fieldName {

@@ -27,6 +27,6 @@ func ShapeToken_wkt(shapeWktParameterName string) *ShapeToken {
 	return NewShapeToken("spatial.wkt($" + shapeWktParameterName + ")")
 }
 
-func (t *ShapeToken) writeTo(writer *StringBuilder) {
+func (t *ShapeToken) WriteTo(writer *StringBuilder) {
 	writer.append(t._shape)
 }

@@ -13,6 +13,6 @@ func NewOpenSubclauseToken() *OpenSubclauseToken {
 	return &OpenSubclauseToken{}
 }
 
-func (t *OpenSubclauseToken) writeTo(writer *StringBuilder) {
+func (t *OpenSubclauseToken) WriteTo(writer *StringBuilder) {
 	writer.append("(")
 }

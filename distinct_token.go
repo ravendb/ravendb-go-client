@@ -13,6 +13,6 @@ func NewDistinctToken() *DistinctToken {
 	return &DistinctToken{}
 }
 
-func (t *DistinctToken) writeTo(writer *StringBuilder) {
+func (t *DistinctToken) WriteTo(writer *StringBuilder) {
 	writer.append("distinct")
 }

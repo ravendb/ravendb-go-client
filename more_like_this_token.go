@@ -12,14 +12,14 @@ func NewMoreLikeThisToken() *MoreLikeThisToken {
 	return &MoreLikeThisToken{}
 }
 
-func (t *MoreLikeThisToken) writeTo(writer *StringBuilder) {
+func (t *MoreLikeThisToken) WriteTo(writer *StringBuilder) {
 	writer.append("moreLikeThis(")
 
 	if t.documentParameterName == "" {
 		var prevToken QueryToken
 		for _, whereToken := range t.whereTokens {
 			DocumentQueryHelper_addSpaceIfNeeded(prevToken, whereToken, writer)
-			whereToken.writeTo(writer)
+			whereToken.WriteTo(writer)
 			prevToken = whereToken
 		}
 	} else {

@@ -13,6 +13,6 @@ func NewIntersectMarkerToken() *IntersectMarkerToken {
 	return &IntersectMarkerToken{}
 }
 
-func (t *IntersectMarkerToken) writeTo(writer *StringBuilder) {
+func (t *IntersectMarkerToken) WriteTo(writer *StringBuilder) {
 	writer.append(",")
 }

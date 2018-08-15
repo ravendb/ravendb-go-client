@@ -14,14 +14,14 @@ func NewFacet() *Facet {
 	}
 }
 
-func (f *Facet) getFieldName() string {
+func (f *Facet) GetFieldName() string {
 	return f.fieldName
 }
 
-func (f *Facet) setFieldName(fieldName string) {
+func (f *Facet) SetFieldName(fieldName string) {
 	f.fieldName = fieldName
 }
 
-func (f *Facet) toFacetToken(addQueryParameter func(Object) string) *FacetToken {
+func (f *Facet) ToFacetToken(addQueryParameter func(Object) string) *FacetToken {
 	return FacetToken_createWithFacet(f, addQueryParameter)
 }

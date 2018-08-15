@@ -24,7 +24,7 @@ func DeclareToken_create2(name string, body string, parameters string) *DeclareT
 	return NewDeclareToken(name, body, parameters)
 }
 
-func (t *DeclareToken) writeTo(writer *StringBuilder) {
+func (t *DeclareToken) WriteTo(writer *StringBuilder) {
 
 	writer.append("declare ")
 	writer.append("function ")

@@ -20,7 +20,7 @@ func SuggestToken_create(fieldName string, termParameterName string, optionsPara
 	return NewSuggestToken(fieldName, termParameterName, optionsParameterName)
 }
 
-func (t *SuggestToken) writeTo(writer *StringBuilder) {
+func (t *SuggestToken) WriteTo(writer *StringBuilder) {
 	writer.append("suggest(")
 	writer.append(t._fieldName)
 	writer.append(", $")

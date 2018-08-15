@@ -53,7 +53,7 @@ func (b *FacetBuilder) ByField(fieldName string) IFacetOperations {
 		fieldName = "'" + fieldName + "'"
 	}
 
-	b._default.setFieldName(fieldName)
+	b._default.SetFieldName(fieldName)
 
 	return b
 }
@@ -63,37 +63,37 @@ func (b *FacetBuilder) AllResults() IFacetOperations {
 		b._default = NewFacet()
 	}
 
-	b._default.setFieldName("")
+	b._default.SetFieldName("")
 	return b
 }
 
 func (b *FacetBuilder) WithOptions(options *FacetOptions) IFacetOperations {
-	b.getFacet().setOptions(options)
+	b.getFacet().SetOptions(options)
 	return b
 }
 
 func (b *FacetBuilder) WithDisplayName(displayName string) IFacetOperations {
-	b.getFacet().setDisplayFieldName(displayName)
+	b.getFacet().SetDisplayFieldName(displayName)
 	return b
 }
 
 func (b *FacetBuilder) SumOn(path string) IFacetOperations {
-	b.getFacet().getAggregations()[FacetAggregation_SUM] = path
+	b.getFacet().GetAggregations()[FacetAggregation_SUM] = path
 	return b
 }
 
 func (b *FacetBuilder) MinOn(path string) IFacetOperations {
-	b.getFacet().getAggregations()[FacetAggregation_MIN] = path
+	b.getFacet().GetAggregations()[FacetAggregation_MIN] = path
 	return b
 }
 
 func (b *FacetBuilder) MaxOn(path string) IFacetOperations {
-	b.getFacet().getAggregations()[FacetAggregation_MAX] = path
+	b.getFacet().GetAggregations()[FacetAggregation_MAX] = path
 	return b
 }
 
 func (b *FacetBuilder) AverageOn(path string) IFacetOperations {
-	b.getFacet().getAggregations()[FacetAggregation_AVERAGE] = path
+	b.getFacet().GetAggregations()[FacetAggregation_AVERAGE] = path
 	return b
 }
 

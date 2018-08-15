@@ -75,8 +75,8 @@ func containsTestcontainsTest(t *testing.T) {
 		pascalOrGoDeveloperNames, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
-		assert.True(t, interfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
-		assert.True(t, interfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
+		assert.True(t, InterfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
+		assert.True(t, InterfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
 
 		session.Close()
 	}
@@ -90,8 +90,8 @@ func containsTestcontainsTest(t *testing.T) {
 		javaDevelopers, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(javaDevelopers))
-		assert.True(t, interfaceArrayContains(javaDevelopers, "John"))
-		assert.True(t, interfaceArrayContains(javaDevelopers, "Tarzan"))
+		assert.True(t, InterfaceArrayContains(javaDevelopers, "John"))
+		assert.True(t, InterfaceArrayContains(javaDevelopers, "Tarzan"))
 
 		session.Close()
 	}

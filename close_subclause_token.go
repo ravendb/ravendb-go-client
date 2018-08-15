@@ -13,6 +13,6 @@ func NewCloseSubclauseToken() *CloseSubclauseToken {
 	return &CloseSubclauseToken{}
 }
 
-func (t *CloseSubclauseToken) writeTo(writer *StringBuilder) {
+func (t *CloseSubclauseToken) WriteTo(writer *StringBuilder) {
 	writer.append(")")
 }

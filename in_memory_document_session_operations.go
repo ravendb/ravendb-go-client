@@ -1022,7 +1022,7 @@ func (d *SaveChangesData) getEntities() []Object {
 	return d.entities
 }
 
-func (d *SaveChangesData) getOptions() *BatchOptions {
+func (d *SaveChangesData) GetOptions() *BatchOptions {
 	return d.options
 }
 

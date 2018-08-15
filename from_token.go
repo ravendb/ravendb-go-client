@@ -40,7 +40,7 @@ func FromToken_create(indexName string, collectionName string, alias string) *Fr
 	return NewFromToken(indexName, collectionName, alias)
 }
 
-func (t *FromToken) writeTo(writer *StringBuilder) {
+func (t *FromToken) WriteTo(writer *StringBuilder) {
 	if t.indexName == "" && t.collectionName == "" {
 		panicIf(true, "Either indexName or collectionName must be specified")
 		// NewIllegalStateException("Either indexName or collectionName must be specified");

@@ -11,6 +11,6 @@ func NewTrueToken() *TrueToken {
 	return &TrueToken{}
 }
 
-func (t *TrueToken) writeTo(writer *StringBuilder) {
+func (t *TrueToken) WriteTo(writer *StringBuilder) {
 	writer.append("true")
 }

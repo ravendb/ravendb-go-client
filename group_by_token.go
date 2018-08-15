@@ -22,7 +22,7 @@ func GroupByToken_createWithMethod(fieldName string, method GroupByMethod) *Grou
 	return NewGroupByToken(fieldName, method)
 }
 
-func (t *GroupByToken) writeTo(writer *StringBuilder) {
+func (t *GroupByToken) WriteTo(writer *StringBuilder) {
 	_method := t._method
 	if _method != GroupByMethod_NONE {
 		writer.append("Array(")

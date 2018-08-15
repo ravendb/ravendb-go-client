@@ -214,7 +214,7 @@ func deepCopy(v interface{}) interface{} {
 	return v
 }
 
-func interfaceArrayContains(a []interface{}, v interface{}) bool {
+func InterfaceArrayContains(a []interface{}, v interface{}) bool {
 	for _, el := range a {
 		if el == v {
 			return true

@@ -30,7 +30,7 @@ func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, cus
 	return NewFieldsToFetchToken(fieldsToFetch, projections, customFunction)
 }
 
-func (t *FieldsToFetchToken) writeTo(writer *StringBuilder) {
+func (t *FieldsToFetchToken) WriteTo(writer *StringBuilder) {
 	for i, fieldToFetch := range t.fieldsToFetch {
 
 		if i > 0 {

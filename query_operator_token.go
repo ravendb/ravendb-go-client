@@ -17,7 +17,7 @@ func NewQueryOperatorToken(queryOperator QueryOperator) *QueryOperatorToken {
 	}
 }
 
-func (t *QueryOperatorToken) writeTo(writer *StringBuilder) {
+func (t *QueryOperatorToken) WriteTo(writer *StringBuilder) {
 	if t._queryOperator == QueryOperator_AND {
 		writer.append("and")
 		return

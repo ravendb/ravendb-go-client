@@ -10,20 +10,20 @@ func NewGroupByDocumentQuery(query *DocumentQuery) *GroupByDocumentQuery {
 	}
 }
 
-func (q *GroupByDocumentQuery) selectKey() *IGroupByDocumentQuery {
-	return q.selectKeyWithNameAndProjectedName("", "")
+func (q *GroupByDocumentQuery) SelectKey() *IGroupByDocumentQuery {
+	return q.SelectKeyWithNameAndProjectedName("", "")
 }
 
-func (q *GroupByDocumentQuery) selectKeyWithName(fieldName string) *IGroupByDocumentQuery {
-	return q.selectKeyWithNameAndProjectedName(fieldName, "")
+func (q *GroupByDocumentQuery) SelectKeyWithName(fieldName string) *IGroupByDocumentQuery {
+	return q.SelectKeyWithNameAndProjectedName(fieldName, "")
 }
 
-func (q *GroupByDocumentQuery) selectKeyWithNameAndProjectedName(fieldName string, projectedName string) *IGroupByDocumentQuery {
+func (q *GroupByDocumentQuery) SelectKeyWithNameAndProjectedName(fieldName string, projectedName string) *IGroupByDocumentQuery {
 	q._query._groupByKey(fieldName, projectedName)
 	return q
 }
 
-func (q *GroupByDocumentQuery) selectSum(field *GroupByField, fields ...*GroupByField) *IDocumentQuery {
+func (q *GroupByDocumentQuery) SelectSum(field *GroupByField, fields ...*GroupByField) *IDocumentQuery {
 	if field == nil {
 		panic("Field cannot be null")
 		//throw new IllegalArgumentException("Field cannot be null");
@@ -42,11 +42,11 @@ func (q *GroupByDocumentQuery) selectSum(field *GroupByField, fields ...*GroupBy
 	return q._query
 }
 
-func (q *GroupByDocumentQuery) selectCount() *IDocumentQuery {
-	return q.selectCountWithName("count")
+func (q *GroupByDocumentQuery) SelectCount() *IDocumentQuery {
+	return q.SelectCountWithName("count")
 }
 
-func (q *GroupByDocumentQuery) selectCountWithName(projectedName string) *IDocumentQuery {
+func (q *GroupByDocumentQuery) SelectCountWithName(projectedName string) *IDocumentQuery {
 	q._query._groupByCount(projectedName)
 	return q._query
 }

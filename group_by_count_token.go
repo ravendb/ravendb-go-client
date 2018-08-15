@@ -16,7 +16,7 @@ func GroupByCountToken_create(fieldName string) *GroupByCountToken {
 	return NewGroupByCountToken(fieldName)
 }
 
-func (t *GroupByCountToken) writeTo(writer *StringBuilder) {
+func (t *GroupByCountToken) WriteTo(writer *StringBuilder) {
 	writer.append("count()")
 
 	if t._fieldName == "" {
