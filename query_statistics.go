@@ -25,95 +25,125 @@ func NewQueryStatistics() *QueryStatistics {
 	}
 }
 
-func (s *QueryStatistics) isStale() bool {
+func cloneMapStringFloat(m map[string]float64) map[string]float64 {
+	if m == nil {
+		return nil
+	}
+	res := map[string]float64{}
+	for k, v := range m {
+		res[k] = v
+	}
+	return res
+}
+
+func cloneMapStringString(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	res := map[string]string{}
+	for k, v := range m {
+		res[k] = v
+	}
+	return res
+}
+
+
+func (s *QueryStatistics) Clone() *QueryStatistics {
+	res := *s
+	res.timingsInMs = cloneMapStringFloat(s.timingsInMs)
+	res.scoreExplanations = cloneMapStringString(s.scoreExplanations)
+	return &res
+}
+
+func (s *QueryStatistics) IsStale() bool {
 	return s._isStale
 }
 
-func (s *QueryStatistics) setStale(stale bool) {
+func (s *QueryStatistics) SetStale(stale bool) {
 	s._isStale = stale
 }
 
-func (s *QueryStatistics) getDurationInMs() int64 {
+func (s *QueryStatistics) GetDurationInMs() int64 {
 	return s.durationInMs
 }
 
-func (s *QueryStatistics) setDurationInMs(durationInMs int64) {
+func (s *QueryStatistics) SetDurationInMs(durationInMs int64) {
 	s.durationInMs = durationInMs
 }
 
-func (s *QueryStatistics) getTotalResults() int {
+func (s *QueryStatistics) GetTotalResults() int {
 	return s.totalResults
 }
 
-func (s *QueryStatistics) setTotalResults(totalResults int) {
+func (s *QueryStatistics) SetTotalResults(totalResults int) {
 	s.totalResults = totalResults
 }
 
-func (s *QueryStatistics) getSkippedResults() int {
+func (s *QueryStatistics) GetSkippedResults() int {
 	return s.skippedResults
 }
 
-func (s *QueryStatistics) setSkippedResults(skippedResults int) {
+func (s *QueryStatistics) SetSkippedResults(skippedResults int) {
 	s.skippedResults = skippedResults
 }
 
-func (s *QueryStatistics) getTimestamp() time.Time {
+func (s *QueryStatistics) GetTimestamp() time.Time {
 	return s.timestamp
 }
 
-func (s *QueryStatistics) setTimestamp(timestamp time.Time) {
+func (s *QueryStatistics) SetTimestamp(timestamp time.Time) {
 	s.timestamp = timestamp
 }
 
-func (s *QueryStatistics) getIndexName() string {
+func (s *QueryStatistics) GetIndexName() string {
 	return s.indexName
 }
 
-func (s *QueryStatistics) setIndexName(indexName string) {
+func (s *QueryStatistics) SetIndexName(indexName string) {
 	s.indexName = indexName
 }
 
-func (s *QueryStatistics) getIndexTimestamp() time.Time {
+func (s *QueryStatistics) GetIndexTimestamp() time.Time {
 	return s.indexTimestamp
 }
 
-func (s *QueryStatistics) setIndexTimestamp(indexTimestamp time.Time) {
+func (s *QueryStatistics) SetIndexTimestamp(indexTimestamp time.Time) {
 	s.indexTimestamp = indexTimestamp
 }
 
-func (s *QueryStatistics) getLastQueryTime() time.Time {
+func (s *QueryStatistics) GetLastQueryTime() time.Time {
 	return s.lastQueryTime
 }
 
-func (s *QueryStatistics) setLastQueryTime(lastQueryTime time.Time) {
+func (s *QueryStatistics) SetLastQueryTime(lastQueryTime time.Time) {
 	s.lastQueryTime = lastQueryTime
 }
 
-func (s *QueryStatistics) getTimingsInMs() map[string]float64 {
+func (s *QueryStatistics) GetTimingsInMs() map[string]float64 {
 	return s.timingsInMs
 }
 
-func (s *QueryStatistics) setTimingsInMs(timingsInMs map[string]float64) {
+func (s *QueryStatistics) SetTimingsInMs(timingsInMs map[string]float64) {
 	s.timingsInMs = timingsInMs
 }
 
-func (s *QueryStatistics) getResultEtag() int64 {
+func (s *QueryStatistics) GetResultEtag() int64 {
 	return s.resultEtag
 }
 
-func (s *QueryStatistics) setResultEtag(resultEtag int64) {
+func (s *QueryStatistics) SetResultEtag(resultEtag int64) {
 	s.resultEtag = resultEtag
 }
 
-func (s *QueryStatistics) getResultSize() int64 {
+func (s *QueryStatistics) GetResultSize() int64 {
 	return s.resultSize
 }
 
-func (s *QueryStatistics) setResultSize(resultSize int64) {
+func (s *QueryStatistics) SetResultSize(resultSize int64) {
 	s.resultSize = resultSize
 }
 
-func (s *QueryStatistics) updateQueryStats(qr *QueryResult) {
+func (s *QueryStatistics) UpdateQueryStats(qr *QueryResult) {
 	s._isStale = qr.isStale()
 	s.durationInMs = qr.getDurationInMs()
 	s.totalResults = qr.getTotalResults()
@@ -128,10 +158,10 @@ func (s *QueryStatistics) updateQueryStats(qr *QueryResult) {
 	s.scoreExplanations = qr.getScoreExplanations()
 }
 
-func (s *QueryStatistics) getScoreExplanations() map[string]string {
+func (s *QueryStatistics) GetScoreExplanations() map[string]string {
 	return s.scoreExplanations
 }
 
-func (s *QueryStatistics) setScoreExplanations(scoreExplanations map[string]string) {
+func (s *QueryStatistics) SetScoreExplanations(scoreExplanations map[string]string) {
 	s.scoreExplanations = scoreExplanations
 }

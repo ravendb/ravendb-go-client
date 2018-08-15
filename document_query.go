@@ -144,7 +144,7 @@ func (q *DocumentQuery) ContainsAll(fieldName string, values []Object) *Document
 
 //TBD expr  IDocumentQuery<T> ContainsAll<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values)
 
-func (q *DocumentQuery) Statistics(stats **QueryStatistics) *DocumentQuery {
+func (q *DocumentQuery) Statistics(stats *QueryStatistics) *DocumentQuery {
 	q._statistics(stats)
 	return q
 }

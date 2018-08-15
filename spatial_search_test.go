@@ -54,7 +54,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		var statsRef *QueryStatistics
+		var statsRef QueryStatistics
 		q := session.QueryWithQuery(GetTypeOf(&Event{}), Query_index("SpatialIdx"))
 		q = q.Statistics(&statsRef)
 		q = q.WhereLessThanOrEqual("date", DateUtils_addYears(time.Now(), 1))
@@ -131,7 +131,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 	{
 		session := openSessionMust(t, store)
 
-		var queryStats *QueryStatistics
+		var queryStats QueryStatistics
 
 		q := session.QueryWithQuery(GetTypeOf(&Event{}), Query_index("SpatialIdx"))
 		q = q.Statistics(&queryStats)
@@ -145,7 +145,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		events, err := q.ToList()
 		assert.NoError(t, err)
 
-		assert.Equal(t, queryStats.getTotalResults(), 2)
+		assert.Equal(t, queryStats.GetTotalResults(), 2)
 
 		var a []string
 		for _, event := range events {
