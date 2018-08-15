@@ -47,7 +47,7 @@ func (o *QueryOperation) setResult(queryResult *QueryResult) {
 }
 
 func (o *QueryOperation) assertPageSizeSet() {
-	if !o._session.getConventions().isThrowIfQueryPageSizeIsNotSet() {
+	if !o._session.getConventions().IsThrowIfQueryPageSizeIsNotSet() {
 		return
 	}
 
@@ -137,7 +137,7 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 			projectField := fieldsToFetch.projections[0]
 			jsonNode, ok := document[projectField]
 			if ok && jsonIsValueNode(jsonNode) {
-				res, err := session.getConventions().deserializeEntityFromJson(clazz, jsonNode)
+				res, err := session.getConventions().DeserializeEntityFromJson(clazz, jsonNode)
 				if err != nil {
 					return nil, err
 				}
@@ -171,7 +171,7 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 		// we need to make an additional check, since it is possible that a value was explicitly stated
 		// for the identity property, in which case we don't want to override it.
 
-		identityProperty := session.getConventions().getIdentityProperty(clazz)
+		identityProperty := session.getConventions().GetIdentityProperty(clazz)
 		if identityProperty != "" {
 			if _, ok := document[identityProperty]; !ok {
 				session.getGenerateEntityIdOnTheClient().trySetIdentity(result, id)

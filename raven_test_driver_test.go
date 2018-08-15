@@ -260,7 +260,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	store := NewDocumentStore()
 	store.SetUrls([]string{url})
 	store.SetDatabase("test.manager")
-	store.GetConventions().setDisableTopologyUpdates(true)
+	store.GetConventions().SetDisableTopologyUpdates(true)
 
 	if secured {
 		panic("NYI")

@@ -86,7 +86,7 @@ type BulkInsertOperation struct {
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
 	re := store.GetRequestExecutorWithDatabase(database)
 	f := func(entity Object) string {
-		return re.getConventions().generateDocumentId(database, entity)
+		return re.getConventions().GenerateDocumentId(database, entity)
 	}
 
 	reader, writer := io.Pipe()
@@ -190,13 +190,13 @@ func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IM
 	}
 
 	if !metadata.containsKey(Constants_Documents_Metadata_COLLECTION) {
-		collection := o._requestExecutor.getConventions().getCollectionName(entity)
+		collection := o._requestExecutor.getConventions().GetCollectionName(entity)
 		if collection != "" {
 			metadata.put(Constants_Documents_Metadata_COLLECTION, collection)
 		}
 	}
 	if !metadata.containsKey(Constants_Documents_Metadata_RAVEN_GO_TYPE) {
-		goType := o._requestExecutor.getConventions().getGoTypeName(entity)
+		goType := o._requestExecutor.getConventions().GetGoTypeName(entity)
 		if goType != "" {
 			metadata.put(Constants_Documents_Metadata_RAVEN_GO_TYPE, goType)
 		}

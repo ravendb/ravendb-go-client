@@ -438,7 +438,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	if queryData != nil && len(queryData.getFields()) > 0 {
 		fields := queryData.getFields()
 
-		identityProperty := q.GetConventions().getIdentityProperty(resultClass)
+		identityProperty := q.GetConventions().GetIdentityProperty(resultClass)
 
 		if identityProperty != "" {
 			// make a copy, just in case, because we might modify it

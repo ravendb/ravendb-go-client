@@ -25,17 +25,17 @@ func NewMultiTypeHiLoIDGenerator(store *DocumentStore, dbName string, convention
 // GenerateDocumentID generates a unique key for entity using its type to
 // partition keys
 func (g *MultiTypeHiLoIDGenerator) GenerateDocumentID(entity interface{}) string {
-	typeTagName := g.conventions.getCollectionName(entity)
+	typeTagName := g.conventions.GetCollectionName(entity)
 	if typeTagName == "" {
 		return ""
 	}
 
-	tag := g.conventions.getTransformClassCollectionNameToDocumentIdPrefix()(typeTagName)
+	tag := g.conventions.GetTransformClassCollectionNameToDocumentIdPrefix()(typeTagName)
 
 	g._generatorLock.Lock()
 	value, ok := g._idGeneratorsByTag[tag]
 	if !ok {
-		value = NewHiLoIdGenerator(tag, g.store, g.dbName, g.conventions.getIdentityPartsSeparator())
+		value = NewHiLoIdGenerator(tag, g.store, g.dbName, g.conventions.GetIdentityPartsSeparator())
 		g._idGeneratorsByTag[tag] = value
 	}
 	g._generatorLock.Unlock()

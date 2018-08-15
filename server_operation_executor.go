@@ -9,7 +9,7 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	urls := store.GetUrls()
 	cert := store.GetCertificate()
 	conv := store.GetConventions()
-	if conv.isDisableTopologyUpdates() {
+	if conv.IsDisableTopologyUpdates() {
 		res.requestExecutor = ClusterRequestExecutor_createForSingleNode(urls[0], cert, conv)
 	} else {
 		res.requestExecutor = ClusterRequestExecutor_create(urls, cert, conv)

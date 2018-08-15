@@ -304,7 +304,7 @@ func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *Request
 		return executor
 	}
 
-	if !s.GetConventions().isDisableTopologyUpdates() {
+	if !s.GetConventions().IsDisableTopologyUpdates() {
 		executor = RequestExecutor_create(s.GetUrls(), s.GetDatabase(), s.GetCertificate(), s.GetConventions())
 	} else {
 		executor = RequestExecutor_createForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], s.GetDatabase(), s.GetCertificate(), s.GetConventions())
@@ -325,13 +325,13 @@ func (s *DocumentStore) Initialize() (*DocumentStore, error) {
 	}
 
 	conventions := s.conventions
-	if conventions.getDocumentIdGenerator() == nil {
+	if conventions.GetDocumentIdGenerator() == nil {
 		generator := NewMultiDatabaseHiLoIdGenerator(s, s.GetConventions())
 		s._multiDbHiLo = generator
 		genID := func(dbName string, entity Object) string {
 			return generator.GenerateDocumentID(dbName, entity)
 		}
-		conventions.setDocumentIdGenerator(genID)
+		conventions.SetDocumentIdGenerator(genID)
 	}
 	s.initialized = true
 	return s, nil

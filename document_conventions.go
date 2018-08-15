@@ -64,15 +64,15 @@ func NewDocumentConventions() *DocumentConventions {
 	}
 }
 
-func (c *DocumentConventions) freeze() {
+func (c *DocumentConventions) Freeze() {
 	c._frozen = true
 }
 
-func (c *DocumentConventions) getCollectionName(entityOrClazz Object) string {
+func (c *DocumentConventions) GetCollectionName(entityOrClazz Object) string {
 	return defaultGetCollectionName(entityOrClazz)
 }
 
-func (c *DocumentConventions) isThrowIfQueryPageSizeIsNotSet() bool {
+func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 	return c._throwIfQueryPageSizeIsNotSet
 }
 
@@ -82,7 +82,7 @@ func defaultGetCollectionName(entityOrClazz interface{}) string {
 	return pluralize(name)
 }
 
-func (c *DocumentConventions) updateFrom(configuration *ClientConfiguration) {
+func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 	if configuration == nil {
 		return
 	}
@@ -135,56 +135,56 @@ func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collec
 	return collectionName
 }
 
-func (c *DocumentConventions) getReadBalanceBehavior() ReadBalanceBehavior {
+func (c *DocumentConventions) GetReadBalanceBehavior() ReadBalanceBehavior {
 	return c._readBalanceBehavior
 }
 
-func (c *DocumentConventions) clone() *DocumentConventions {
+func (c *DocumentConventions) Clone() *DocumentConventions {
 	res := *c
 	// mutex carries its locking state so we need to re-initialize it
 	res.mu = sync.Mutex{}
 	return &res
 }
 
-func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
+func (c *DocumentConventions) GetGoTypeName(entity interface{}) string {
 	return getFullTypeName(entity)
 }
 
 // returns "" if no identity property
-func (c *DocumentConventions) getIdentityProperty(clazz reflect.Type) string {
+func (c *DocumentConventions) GetIdentityProperty(clazz reflect.Type) string {
 	return getIdentityProperty(clazz)
 }
 
-func (c *DocumentConventions) getDocumentIdGenerator() DocumentIDGeneratorFunc {
+func (c *DocumentConventions) GetDocumentIdGenerator() DocumentIDGeneratorFunc {
 	return c._documentIdGenerator
 }
 
-func (c *DocumentConventions) setDocumentIdGenerator(documentIdGenerator DocumentIDGeneratorFunc) {
+func (c *DocumentConventions) SetDocumentIdGenerator(documentIdGenerator DocumentIDGeneratorFunc) {
 	c._documentIdGenerator = documentIdGenerator
 }
 
 // Generates the document id.
-func (c *DocumentConventions) generateDocumentId(databaseName string, entity Object) string {
+func (c *DocumentConventions) GenerateDocumentId(databaseName string, entity Object) string {
 	return c._documentIdGenerator(databaseName, entity)
 }
 
-func (c *DocumentConventions) isDisableTopologyUpdates() bool {
+func (c *DocumentConventions) IsDisableTopologyUpdates() bool {
 	return c._disableTopologyUpdates
 }
 
-func (c *DocumentConventions) setDisableTopologyUpdates(disable bool) {
+func (c *DocumentConventions) SetDisableTopologyUpdates(disable bool) {
 	c._disableTopologyUpdates = disable
 }
 
-func (c *DocumentConventions) getIdentityPartsSeparator() string {
+func (c *DocumentConventions) GetIdentityPartsSeparator() string {
 	return c.IdentityPartsSeparator
 }
 
-func (c *DocumentConventions) getTransformClassCollectionNameToDocumentIdPrefix() func(string) string {
+func (c *DocumentConventions) GetTransformClassCollectionNameToDocumentIdPrefix() func(string) string {
 	return c._transformClassCollectionNameToDocumentIdPrefix
 }
 
-func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Type, document TreeNode) (interface{}, error) {
+func (c *DocumentConventions) DeserializeEntityFromJson(documentType reflect.Type, document TreeNode) (interface{}, error) {
 	res, e := treeToValue(documentType, document)
 	if e != nil {
 		return nil, NewRavenException("Cannot deserialize entity %s", e)
@@ -192,7 +192,7 @@ func (c *DocumentConventions) deserializeEntityFromJson(documentType reflect.Typ
 	return res, nil
 }
 
-func (c *DocumentConventions) tryConvertValueForQuery(fieldName string, value Object, forRange bool, stringValue *string) bool {
+func (c *DocumentConventions) TryConvertValueForQuery(fieldName string, value Object, forRange bool, stringValue *string) bool {
 	// TODO: implement me
 	// Tested by CustomSerializationTest
 	/*

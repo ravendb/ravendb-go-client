@@ -35,7 +35,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().getIdentityPartsSeparator())
+	hiLoIdGenerator := NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
 
 	{
 		session := openSessionMust(t, store)
@@ -166,7 +166,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, err)
 
-	hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().getIdentityPartsSeparator())
+	hiLoKeyGenerator := NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
 
 	nextID, err := hiLoKeyGenerator.nextID()
 	assert.Nil(t, err)

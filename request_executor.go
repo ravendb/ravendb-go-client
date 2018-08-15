@@ -173,11 +173,11 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		_updateClientConfigurationSemaphore: NewSemaphore(1),
 
 		cache:                NewHttpCache(),
-		_readBalanceBehavior: conventions.getReadBalanceBehavior(),
+		_readBalanceBehavior: conventions.GetReadBalanceBehavior(),
 		_databaseName:        databaseName,
 		certificate:          certificate,
 
-		conventions: conventions.clone(),
+		conventions: conventions.Clone(),
 	}
 	res._lastReturnedResponse.Store(time.Now())
 	// TODO: create a different client if settings like compression
@@ -328,7 +328,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 			return
 		}
 
-		re.conventions.updateFrom(result.getConfiguration())
+		re.conventions.UpdateFrom(result.getConfiguration())
 		re.clientConfigurationEtag = result.getEtag()
 
 		if re._disposed {

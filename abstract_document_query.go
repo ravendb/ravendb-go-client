@@ -1296,7 +1296,7 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams
 	}
 
 	var stringValueReference string
-	if q._conventions.tryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, &stringValueReference) {
+	if q._conventions.TryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, &stringValueReference) {
 		return stringValueReference
 	}
 
