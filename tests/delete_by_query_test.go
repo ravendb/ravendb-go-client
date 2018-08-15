@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func loadTest_canDeleteByQuery(t *testing.T) {
@@ -29,8 +30,8 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 	}
 
 	{
-		indexQuery := NewIndexQuery("from users where age == 5")
-		operation := NewDeleteByQueryOperation(indexQuery)
+		indexQuery := ravendb.NewIndexQuery("from users where age == 5")
+		operation := ravendb.NewDeleteByQueryOperation(indexQuery)
 		asyncOp, err := store.Operations().SendAsync(operation)
 		assert.NoError(t, err)
 
@@ -39,7 +40,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			q := session.Query(GetTypeOf(&User{}))
+			q := session.Query(ravendb.GetTypeOf(&User{}))
 			count, err := q.Count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)
