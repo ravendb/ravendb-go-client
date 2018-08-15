@@ -12,26 +12,26 @@ func NewCompactSettings() *CompactSettings {
 	return &CompactSettings{}
 }
 
-func (s *CompactSettings) getDatabaseName() string {
+func (s *CompactSettings) GetDatabaseName() string {
 	return s.DatabaseName
 }
 
-func (s *CompactSettings) isDocuments() bool {
+func (s *CompactSettings) IsDocuments() bool {
 	return s.Documents
 }
 
-func (s *CompactSettings) getIndexes() []string {
+func (s *CompactSettings) GetIndexes() []string {
 	return s.Indexes
 }
 
-func (s *CompactSettings) setDatabaseName(databaseName string) {
+func (s *CompactSettings) SetDatabaseName(databaseName string) {
 	s.DatabaseName = databaseName
 }
 
-func (s *CompactSettings) setDocuments(documents bool) {
+func (s *CompactSettings) SetDocuments(documents bool) {
 	s.Documents = documents
 }
 
-func (s *CompactSettings) setIndexes(indexes []string) {
+func (s *CompactSettings) SetIndexes(indexes []string) {
 	s.Indexes = indexes
 }

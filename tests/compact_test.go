@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func compactTest_canCompactDatabase(t *testing.T) {
@@ -23,11 +24,11 @@ func compactTest_canCompactDatabase(t *testing.T) {
 		newSession.Close()
 	}
 
-	compactSettings := NewCompactSettings()
-	compactSettings.setDatabaseName(store.GetDatabase())
-	compactSettings.setDocuments(true)
+	compactSettings := ravendb.NewCompactSettings()
+	compactSettings.SetDatabaseName(store.GetDatabase())
+	compactSettings.SetDocuments(true)
 
-	compactOp := NewCompactDatabaseOperation(compactSettings)
+	compactOp := ravendb.NewCompactDatabaseOperation(compactSettings)
 	operation, err := store.Maintenance().Server().SendAsync(compactOp)
 	assert.NoError(t, err)
 
