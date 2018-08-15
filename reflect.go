@@ -34,7 +34,7 @@ func getFullTypeName(v interface{}) string {
 // e.g. for struct Foo, the type of Foo and *Foo is "Foo"
 // This is equivalent to Python's v.__class__.__name__
 // Note: this emulates Java's operator over-loading to support
-// defaultGetCollectionName.
+// GefaultGetCollectionName.
 // We should have separate functions for reflect.Type and regular value
 func getShortTypeName(v interface{}) string {
 	var typ reflect.Type

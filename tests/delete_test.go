@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func deleteTest_deleteDocumentByEntity(t *testing.T) {
@@ -20,7 +21,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err := newSession.Load(GetTypeOf(NewUser()), "users/1")
+	result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 	assert.NoError(t, err)
 	user = result.(*User)
 
@@ -31,7 +32,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err = newSession.Load(GetTypeOf(NewUser()), "users/1")
+	result, err = newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 	assert.NoError(t, err)
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)
@@ -52,7 +53,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err := newSession.Load(GetTypeOf(NewUser()), "users/1")
+	result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 	assert.NoError(t, err)
 	user = result.(*User)
 	assert.NotNil(t, user)
@@ -62,7 +63,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err = newSession.Load(GetTypeOf(NewUser()), "users/1")
+	result, err = newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 	assert.NoError(t, err)
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)

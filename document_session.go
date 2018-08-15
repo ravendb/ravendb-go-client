@@ -104,7 +104,7 @@ func (s *DocumentSession) Refresh(entity Object) error {
 // TODO:    private boolean ExecuteLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
 
 func (s *DocumentSession) Include(path string) ILoaderWithInclude {
-	return NewMultiLoaderWithInclude(s).include(path)
+	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
 // TODO:    public <T> Lazy<T> addLazyOperation(reflect.Type clazz, ILazyOperation operation, Consumer<T> onEval) {
