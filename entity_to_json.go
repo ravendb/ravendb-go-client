@@ -41,7 +41,7 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 }
 
 // Converts a json object to an entity.
-func (e *EntityToJson) convertToEntity(entityType reflect.Type, id string, document ObjectNode) Object {
+func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) Object {
 	if isTypeObjectNode(entityType) {
 		return document
 	}

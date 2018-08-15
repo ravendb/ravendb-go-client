@@ -7,15 +7,15 @@ type GetDocumentsResult struct {
 	NextPageStart int        `json:"NextPageStart"`
 }
 
-func (r *GetDocumentsResult) getIncludes() ObjectNode {
+func (r *GetDocumentsResult) GetIncludes() ObjectNode {
 	return r.Includes
 }
 
-func (r *GetDocumentsResult) getResults() ArrayNode {
+func (r *GetDocumentsResult) GetResults() ArrayNode {
 	return r.Results
 }
 
-func (r *GetDocumentsResult) getNextPageStart() int {
+func (r *GetDocumentsResult) GetNextPageStart() int {
 	return r.NextPageStart
 }
 

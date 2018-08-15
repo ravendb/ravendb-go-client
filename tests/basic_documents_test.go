@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
@@ -35,7 +36,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		userI, err := session.Load(GetTypeOf(&User{}), documentId)
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), documentId)
 		assert.NoError(t, err)
 		assert.Nil(t, userI)
 		session.Close()
@@ -58,7 +59,7 @@ func basicDocuments_get(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	dummy := valueToTree(NewUser())
+	dummy := ravendb.ValueToTree(NewUser())
 	delete(dummy, "ID")
 
 	{
@@ -79,51 +80,51 @@ func basicDocuments_get(t *testing.T) {
 		session.Close()
 	}
 	requestExecutor := store.GetRequestExecutor()
-	getDocumentsCommand := NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
+	getDocumentsCommand := ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	assert.NoError(t, err)
 	docs := getDocumentsCommand.Result
-	assert.Equal(t, len(docs.getResults()), 2)
-	doc1 := docs.getResults()[0]
-	doc2 := docs.getResults()[1]
+	assert.Equal(t, len(docs.GetResults()), 2)
+	doc1 := docs.GetResults()[0]
+	doc2 := docs.GetResults()[1]
 
 	assert.NotNil(t, doc1)
-	doc1Properties := fieldNames(doc1)
-	assert.True(t, StringArrayContains(doc1Properties, "@metadata"))
+	doc1Properties := ravendb.FieldNames(doc1)
+	assert.True(t, ravendb.StringArrayContains(doc1Properties, "@metadata"))
 	assert.Equal(t, len(doc1Properties), len(dummy)+1) // +1 for @metadata
 
 	assert.NotNil(t, doc2)
-	doc2Properties := fieldNames(doc2)
-	assert.True(t, StringArrayContains(doc2Properties, "@metadata"))
+	doc2Properties := ravendb.FieldNames(doc2)
+	assert.True(t, ravendb.StringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), len(dummy)+1) // +1 for @metadata
 
 	{
 		session := openSessionMust(t, store)
-		etojs := session.getEntityToJson()
-		user1I := etojs.convertToEntity(GetTypeOf(&User{}), "users/1", doc1)
+		etojs := session.GetEntityToJson()
+		user1I := etojs.ConvertToEntity(ravendb.GetTypeOf(&User{}), "users/1", doc1)
 		user1 := user1I.(*User)
 
-		user2I := etojs.convertToEntity(GetTypeOf(&User{}), "users/2", doc2)
+		user2I := etojs.ConvertToEntity(ravendb.GetTypeOf(&User{}), "users/2", doc2)
 		user2 := user2I.(*User)
 		assert.Equal(t, *user1.GetName(), "Fitzchak")
 		assert.Equal(t, *user2.GetName(), "Arek")
 		session.Close()
 	}
-	getDocumentsCommand = NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
+	getDocumentsCommand = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	docs = getDocumentsCommand.Result
-	assert.Equal(t, len(docs.getResults()), 2)
-	doc1 = docs.getResults()[0]
-	doc2 = docs.getResults()[1]
+	assert.Equal(t, len(docs.GetResults()), 2)
+	doc1 = docs.GetResults()[0]
+	doc2 = docs.GetResults()[1]
 
 	assert.NotNil(t, doc1)
-	doc1Properties = fieldNames(doc1)
-	assert.True(t, StringArrayContains(doc1Properties, "@metadata"))
+	doc1Properties = ravendb.FieldNames(doc1)
+	assert.True(t, ravendb.StringArrayContains(doc1Properties, "@metadata"))
 	assert.Equal(t, len(doc1Properties), 1)
 
 	assert.NotNil(t, doc1)
-	doc2Properties = fieldNames(doc2)
-	assert.True(t, StringArrayContains(doc2Properties, "@metadata"))
+	doc2Properties = ravendb.FieldNames(doc2)
+	assert.True(t, ravendb.StringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), 1)
 }
 

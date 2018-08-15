@@ -49,7 +49,7 @@ func (o *LoadStartingWithOperation) withStartWithFull(idPrefix string, matches s
 }
 
 func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
-	documents := result.getResults()
+	documents := result.GetResults()
 
 	for _, document := range documents {
 		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)

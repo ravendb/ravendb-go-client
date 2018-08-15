@@ -150,7 +150,7 @@ func (s *InMemoryDocumentSessionOperations) getGenerateEntityIdOnTheClient() *Ge
 	return s.generateEntityIdOnTheClient
 }
 
-func (s *InMemoryDocumentSessionOperations) getEntityToJson() *EntityToJson {
+func (s *InMemoryDocumentSessionOperations) GetEntityToJson() *EntityToJson {
 	return s.entityToJson
 }
 
@@ -317,7 +317,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			docInfo.entity = s.entityToJson.convertToEntity(entityType, id, document)
+			docInfo.entity = s.entityToJson.ConvertToEntity(entityType, id, document)
 		}
 
 		if !noTracking {
@@ -330,7 +330,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 	docInfo = s.includedDocumentsById[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
-			docInfo.entity = s.entityToJson.convertToEntity(entityType, id, document)
+			docInfo.entity = s.entityToJson.ConvertToEntity(entityType, id, document)
 		}
 
 		if !noTracking {
@@ -342,7 +342,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type,
 		return docInfo.entity, nil
 	}
 
-	entity := s.entityToJson.convertToEntity(entityType, id, document)
+	entity := s.entityToJson.ConvertToEntity(entityType, id, document)
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	if changeVector == nil {
@@ -896,7 +896,7 @@ func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results Arra
 }
 
 func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
-	return s.entityToJson.convertToEntity(clazz, id, document)
+	return s.entityToJson.ConvertToEntity(clazz, id, document)
 }
 
 func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
@@ -941,7 +941,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 }
 
 func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
-	document := cmd.Result.getResults()[0]
+	document := cmd.Result.GetResults()[0]
 	if document == nil {
 		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.getId())
 	}
@@ -955,7 +955,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 		documentInfo.setChangeVector(changeVector)
 	}
 	documentInfo.setDocument(document)
-	documentInfo.setEntity(s.entityToJson.convertToEntity(GetTypeOf(entity), documentInfo.getId(), document))
+	documentInfo.setEntity(s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.getId(), document))
 
 	err := BeanUtils_copyProperties(entity, documentInfo.getEntity())
 	if err != nil {

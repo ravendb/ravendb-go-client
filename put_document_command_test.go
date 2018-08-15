@@ -15,7 +15,7 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 	user.setName("Marcin")
 	user.setAge(30)
 
-	node := valueToTree(user)
+	node := ValueToTree(user)
 	command := NewPutDocumentCommand("users/1", nil, node)
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
