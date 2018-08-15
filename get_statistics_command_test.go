@@ -41,13 +41,13 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 
 	indexes := stats.getIndexes()
 	for _, indexInformation := range indexes {
-		assert.NotEqual(t, indexInformation.getName(), "")
-		assert.False(t, indexInformation.isStale())
-		assert.NotNil(t, indexInformation.getState())
-		assert.NotEqual(t, indexInformation.getLockMode(), "")
-		assert.NotEqual(t, indexInformation.getPriority(), "")
-		assert.NotEqual(t, indexInformation.getType(), "")
-		assert.NotNil(t, indexInformation.getLastIndexingTime())
+		assert.NotEqual(t, indexInformation.GetName(), "")
+		assert.False(t, indexInformation.IsStale())
+		assert.NotNil(t, indexInformation.GetState())
+		assert.NotEqual(t, indexInformation.GetLockMode(), "")
+		assert.NotEqual(t, indexInformation.GetPriority(), "")
+		assert.NotEqual(t, indexInformation.GetType(), "")
+		assert.NotNil(t, indexInformation.GetLastIndexingTime())
 	}
 }
 

@@ -46,7 +46,7 @@ func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
 
 func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error) {
 	path := locator.serverPath
-	if !fileExists(path) {
+	if !FileExists(path) {
 		return nil, fmt.Errorf("Serer file was not found: %s", path)
 	}
 	commandArguments := []string{

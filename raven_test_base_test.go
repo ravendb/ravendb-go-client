@@ -50,10 +50,10 @@ func setupRevisions(store *DocumentStore, purgeOnDelete bool, minimumRevisionsTo
 
 	revisionsConfiguration := NewRevisionsConfiguration()
 	defaultCollection := NewRevisionsCollectionConfiguration()
-	defaultCollection.setPurgeOnDelete(purgeOnDelete)
-	defaultCollection.setMinimumRevisionsToKeep(minimumRevisionsToKeep)
+	defaultCollection.SetPurgeOnDelete(purgeOnDelete)
+	defaultCollection.SetMinimumRevisionsToKeep(minimumRevisionsToKeep)
 
-	revisionsConfiguration.setDefaultConfig(defaultCollection)
+	revisionsConfiguration.SetDefaultConfig(defaultCollection)
 	operation := NewConfigureRevisionsOperation(revisionsConfiguration)
 
 	err := store.Maintenance().Send(operation)

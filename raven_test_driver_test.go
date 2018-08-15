@@ -292,13 +292,13 @@ func (d *RavenTestDriver) waitForIndexing(store *DocumentStore, database string,
 		isDone := true
 		hasError := false
 		for _, index := range databaseStatistics.Indexes {
-			if index.getState() == IndexState_DISABLED {
+			if index.GetState() == IndexState_DISABLED {
 				continue
 			}
-			if index.isStale() || strings.HasPrefix(index.getName(), Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX) {
+			if index.IsStale() || strings.HasPrefix(index.GetName(), Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX) {
 				isDone = false
 			}
-			if index.getState() == IndexState_ERROR {
+			if index.GetState() == IndexState_ERROR {
 				hasError = true
 			}
 		}
@@ -504,7 +504,7 @@ func getRavendbExePath() string {
 	must(err)
 
 	path := filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
-	if isWindows() {
+	if IsWindows() {
 		path += ".exe"
 	}
 	return path
@@ -520,20 +520,20 @@ func downloadServerIfNeededWindows() {
 	if err != nil {
 		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
 		timeStart := time.Now()
-		err := httpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
+		err := HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
 		must(err)
 		fmt.Printf(" took %s\n", time.Since(timeStart))
 	}
 	destDir := "RavenDB"
 	fmt.Printf("Unzipping %s to %s...", ravenWindowsZipPath, destDir)
 	timeStart := time.Now()
-	err = unzip(ravenWindowsZipPath, destDir)
+	err = Unzip(ravenWindowsZipPath, destDir)
 	must(err)
 	fmt.Printf(" took %s\n", time.Since(timeStart))
 }
 
 func downloadServerIfNeeded() {
-	if isWindows() {
+	if IsWindows() {
 		downloadServerIfNeededWindows()
 		return
 	}

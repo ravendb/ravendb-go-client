@@ -68,7 +68,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	err = store.GetRequestExecutor().executeCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
-	firstIndexingTime := statistics.getIndexes()[0].getLastIndexingTime()
+	firstIndexingTime := statistics.getIndexes()[0].GetLastIndexingTime()
 
 	indexName := NewUsersIndex().getIndexName()
 	// now reset index

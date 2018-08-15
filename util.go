@@ -201,7 +201,7 @@ func fieldNames(js ObjectNode) []string {
 	return res
 }
 
-func fileExists(path string) bool {
+func FileExists(path string) bool {
 	st, err := os.Lstat(path)
 	if err != nil {
 		return false
@@ -223,7 +223,7 @@ func interfaceArrayContains(a []interface{}, v interface{}) bool {
 	return false
 }
 
-func isWindows() bool {
+func IsWindows() bool {
 	return runtime.GOOS == "windows"
 }
 
@@ -264,7 +264,7 @@ func downloadURL(url string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func httpDl(url string, destPath string) error {
+func HttpDl(url string, destPath string) error {
 	d, err := downloadURL(url)
 	if err != nil {
 		return err

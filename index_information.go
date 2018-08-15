@@ -12,30 +12,30 @@ type IndexInformation struct {
 	LastIndexingTime ServerTime    `json:"LastIndexingTime"`
 }
 
-func (i *IndexInformation) getName() string {
+func (i *IndexInformation) GetName() string {
 	return i.Name
 }
 
-func (i *IndexInformation) isStale() bool {
+func (i *IndexInformation) IsStale() bool {
 	return i.Stale
 }
 
-func (i *IndexInformation) getState() IndexState {
+func (i *IndexInformation) GetState() IndexState {
 	return i.State
 }
 
-func (i *IndexInformation) getLockMode() IndexLockMode {
+func (i *IndexInformation) GetLockMode() IndexLockMode {
 	return i.LockMode
 }
-func (i *IndexInformation) getPriority() IndexPriority {
+func (i *IndexInformation) GetPriority() IndexPriority {
 	return i.Priority
 }
 
-func (i *IndexInformation) getType() IndexType {
+func (i *IndexInformation) GetType() IndexType {
 	return i.Type
 }
 
-func (i *IndexInformation) getLastIndexingTime() time.Time {
+func (i *IndexInformation) GetLastIndexingTime() time.Time {
 	return time.Time(i.LastIndexingTime)
 }
 
