@@ -34,11 +34,11 @@ func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, m
 	return cmd
 }
 
-func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	c._canCache = !c._indexQuery.isDisableCaching()
 
 	// we won't allow aggressive caching of queries with WaitForNonStaleResults
-	c._canCacheAggressively = c.canCache() && !c._indexQuery.isWaitForNonStaleResults()
+	c._canCacheAggressively = c.CanCache() && !c._indexQuery.isWaitForNonStaleResults()
 
 	// we need to add a query hash because we are using POST queries
 	// so we need to unique parameter per query so the query cache will
@@ -61,7 +61,7 @@ func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return NewHttpPost(path, d)
 }
 
-func (c *QueryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *QueryCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

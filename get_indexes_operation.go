@@ -51,7 +51,7 @@ func NewGetIndexesCommand(_start int, _pageSize int) *GetIndexesCommand {
 	return res
 }
 
-func (c *GetIndexesCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	start := strconv.Itoa(c._start)
 	pageSize := strconv.Itoa(c._pageSize)
 
@@ -60,7 +60,7 @@ func (c *GetIndexesCommand) createRequest(node *ServerNode) (*http.Request, erro
 	return NewHttpGet(url)
 }
 
-func (c *GetIndexesCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIndexesCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

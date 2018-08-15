@@ -51,7 +51,7 @@ func NewDeleteAttachmentCommand(documentId string, name string, changeVector *st
 	return cmd
 }
 
-func (c *DeleteAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *DeleteAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	request, err := NewHttpDelete(url, nil)

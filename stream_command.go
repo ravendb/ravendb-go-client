@@ -27,7 +27,7 @@ func NewStreamCommand(url string) *StreamCommand {
 	return cmd
 }
 
-func (c *StreamCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *StreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/" + c._url
 	return NewHttpGet(url)
 }
@@ -36,7 +36,7 @@ func (c *StreamCommand) processResponse(cache *HttpCache, response *http.Respons
 
 	// TODO: return an error if response.Body is nil
 	streamResponse := NewStreamResultResponse()
-	streamResponse.setResponse(response)
+	streamResponse.SetResponse(response)
 	streamResponse.setStream(response.Body)
 	c.Result = streamResponse
 

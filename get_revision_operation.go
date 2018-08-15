@@ -25,7 +25,7 @@ func NewGetRevisionOperationRange(session *InMemoryDocumentSessionOperations, id
 	}
 }
 
-func (o *GetRevisionOperation) createRequest() *GetRevisionsCommand {
+func (o *GetRevisionOperation) CreateRequest() *GetRevisionsCommand {
 	return o._command
 }
 

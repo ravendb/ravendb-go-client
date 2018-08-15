@@ -39,7 +39,7 @@ func NewNextHiLoCommand(tag string, lastBatchSize int, lastRangeAt *time.Time, i
 	return cmd
 }
 
-func (c *NextHiLoCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *NextHiLoCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 
 	date := ""
 	if c._lastRangeAt != nil && !c._lastRangeAt.IsZero() {
@@ -50,7 +50,7 @@ func (c *NextHiLoCommand) createRequest(node *ServerNode) (*http.Request, error)
 	return NewHttpGet(url)
 }
 
-func (c *NextHiLoCommand) setResponse(response []byte, fromCache bool) error {
+func (c *NextHiLoCommand) SetResponse(response []byte, fromCache bool) error {
 	var res HiLoResult
 	err := json.Unmarshal(response, &res)
 	if err != nil {

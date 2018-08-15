@@ -24,7 +24,7 @@ func (r *DocumentSessionRevisions) getForStartAt(clazz reflect.Type, id string, 
 func (r *DocumentSessionRevisions) getForPaged(clazz reflect.Type, id string, start int, pageSize int) ([]interface{}, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
 
-	command := operation.createRequest()
+	command := operation.CreateRequest()
 	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (r *DocumentSessionRevisions) getMetadataForStartAt(id string, start int) (
 
 func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
-	command := operation.createRequest()
+	command := operation.CreateRequest()
 	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pag
 // TODO: change changeVector to *string?
 func (r *DocumentSessionRevisions) get(clazz reflect.Type, changeVector string) (interface{}, error) {
 	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)
-	command := operation.createRequest()
+	command := operation.CreateRequest()
 	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (r *DocumentSessionRevisions) get(clazz reflect.Type, changeVector string) 
    public <T> Map<String, T> get(Class<T> clazz, String[] changeVectors) {
        GetRevisionOperation operation = new GetRevisionOperation(session, changeVectors);
 
-       GetRevisionsCommand command = operation.createRequest();
+       GetRevisionsCommand command = operation.CreateRequest();
        requestExecutor.execute(command, sessionInfo);
        operation.setResult(command.getResult());
        return operation.getRevisions(clazz);

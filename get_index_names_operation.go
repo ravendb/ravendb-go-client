@@ -52,7 +52,7 @@ func NewGetIndexNamesCommand(start int, pageSize int) *GetIndexNamesCommand {
 	return res
 }
 
-func (c *GetIndexNamesCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexNamesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	start := strconv.Itoa(c._start)
 	pageSize := strconv.Itoa(c._pageSize)
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes?start=" + start + "&pageSize=" + pageSize + "&namesOnly=true"
@@ -60,7 +60,7 @@ func (c *GetIndexNamesCommand) createRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetIndexNamesCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIndexNamesCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

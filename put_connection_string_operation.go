@@ -44,7 +44,7 @@ func NewPutConnectionStringCommand(connectionString interface{}) *PutConnectionS
 	}
 }
 
-func (c *PutConnectionStringCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutConnectionStringCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/connection-strings"
 
 	d, err := json.Marshal(c._connectionString)
@@ -55,7 +55,7 @@ func (c *PutConnectionStringCommand) createRequest(node *ServerNode) (*http.Requ
 	return NewHttpPut(url, d)
 }
 
-func (c *PutConnectionStringCommand) setResponse(response []byte, fromCache bool) error {
+func (c *PutConnectionStringCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

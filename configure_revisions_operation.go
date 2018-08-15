@@ -46,7 +46,7 @@ func NewConfigureRevisionsCommand(conventions *DocumentConventions, configuratio
 	return cmd
 }
 
-func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/revisions/config"
 
 	d, err := json.Marshal(c._configuration)
@@ -56,7 +56,7 @@ func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpPost(url, d)
 }
 
-func (c *ConfigureRevisionsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *ConfigureRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
 	var res ConfigureRevisionsOperationResult
 	err := json.Unmarshal(response, &res)
 	if err != nil {

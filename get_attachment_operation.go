@@ -61,7 +61,7 @@ func NewGetAttachmentCommand(documentId string, name string, typ AttachmentType,
 	return cmd
 }
 
-func (c *GetAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	if c._type == AttachmentType_REVISION {

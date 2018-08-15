@@ -70,7 +70,7 @@ func NewGetCompareExchangeValuesCommand(operation *GetCompareExchangeValuesOpera
 	return cmd
 }
 
-func (c *GetCompareExchangeValuesCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetCompareExchangeValuesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/cmpxchg?"
 
 	if c._operation._keys != nil {
@@ -94,7 +94,7 @@ func (c *GetCompareExchangeValuesCommand) createRequest(node *ServerNode) (*http
 	return NewHttpGet(url)
 }
 
-func (c *GetCompareExchangeValuesCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetCompareExchangeValuesCommand) SetResponse(response []byte, fromCache bool) error {
 	res, err := CompareExchangeValueResultParser_getValues(c._operation._clazz, response, c._conventions)
 	if err != nil {
 		return err

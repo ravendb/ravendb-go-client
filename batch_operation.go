@@ -12,7 +12,7 @@ func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperati
 	}
 }
 
-func (b *BatchOperation) createRequest() (*BatchCommand, error) {
+func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
 	result, err := b._session.prepareForSaveChanges()
 	if err != nil {
 		return nil, err

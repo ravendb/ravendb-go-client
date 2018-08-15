@@ -57,7 +57,7 @@ func NewPutCompareExchangeValueCommand(key string, value interface{}, index int,
 	return cmd
 }
 
-func (c *PutCompareExchangeValueCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/cmpxchg?key=" + c._key + "&index=" + strconv.Itoa(c._index)
 
 	m := map[string]interface{}{
@@ -71,7 +71,7 @@ func (c *PutCompareExchangeValueCommand) createRequest(node *ServerNode) (*http.
 
 }
 
-func (c *PutCompareExchangeValueCommand) setResponse(response []byte, fromCache bool) error {
+func (c *PutCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
 	res, err := CompareExchangeResult_parseFromString(GetTypeOf(c._value), response, c._conventions)
 	if err != nil {
 		return err

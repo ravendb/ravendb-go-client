@@ -56,7 +56,7 @@ func NewGetStatisticsCommandWithDebugTag(debugTag string) *GetStatisticsCommand 
 	return cmd
 }
 
-func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/stats"
 	if c.debugTag != "" {
 		url += "?" + c.debugTag
@@ -65,7 +65,7 @@ func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetStatisticsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

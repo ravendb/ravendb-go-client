@@ -47,7 +47,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	for _, indexToAdd := range indexesToAdd {
 		// Note: unlike java, Type is not calculated on demand. This is a decent
 		// place to ensure it. Assumes that indexToAdd will not be modified
-		// between now an createRequest()
+		// between now an CreateRequest()
 		indexToAdd.updateIndexType()
 
 		panicIf(indexToAdd.getName() == "", "Index name cannot be null")
@@ -58,7 +58,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	return cmd
 }
 
-func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/indexes"
 
 	m := map[string]interface{}{
@@ -68,15 +68,15 @@ func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, erro
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Printf("\nPutIndexesCommand.createRequest:\n%s\n\n", string(d))
+	//fmt.Printf("\nPutIndexesCommand.CreateRequest:\n%s\n\n", string(d))
 	return NewHttpPut(url, d)
 }
 
-func (c *PutIndexesCommand) setResponse(response []byte, fromCache bool) error {
+func (c *PutIndexesCommand) SetResponse(response []byte, fromCache bool) error {
 	var res PutIndexesResponse
 	err := json.Unmarshal(response, &res)
 	if err != nil {
-		dbg("PutIndexesCommand.setResponse: json.Unmarshal failed with %s. JSON:\n%s\n\n", err, string(response))
+		dbg("PutIndexesCommand.SetResponse: json.Unmarshal failed with %s. JSON:\n%s\n\n", err, string(response))
 		return err
 	}
 	c.Result = res.Results

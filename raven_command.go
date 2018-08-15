@@ -13,12 +13,12 @@ var (
 
 type RavenCommand interface {
 	// those are meant to be over-written
-	createRequest(node *ServerNode) (*http.Request, error)
-	setResponse(response []byte, fromCache bool) error
-	setResponseRaw(response *http.Response, body io.Reader) error
+	CreateRequest(node *ServerNode) (*http.Request, error)
+	SetResponse(response []byte, fromCache bool) error
+	SetResponseRaw(response *http.Response, body io.Reader) error
 
 	// for all other functions, get access to underlying RavenCommandBase
-	getBase() *RavenCommandBase
+	GetBase() *RavenCommandBase
 }
 
 type RavenCommandBase struct {
@@ -42,7 +42,7 @@ func NewRavenCommandBase() *RavenCommandBase {
 	return res
 }
 
-func (c *RavenCommandBase) getBase() *RavenCommandBase {
+func (c *RavenCommandBase) GetBase() *RavenCommandBase {
 	return c
 }
 
@@ -52,41 +52,41 @@ func (c *RavenCommandBase) isReadRequest() bool {
 	return c.IsReadRequest
 }
 
-func (c *RavenCommandBase) getResponseType() RavenCommandResponseType {
+func (c *RavenCommandBase) GetResponseType() RavenCommandResponseType {
 	return c.responseType
 }
 
-func (c *RavenCommandBase) getStatusCode() int {
+func (c *RavenCommandBase) GetStatusCode() int {
 	return c.statusCode
 }
 
-func (c *RavenCommandBase) setStatusCode(statusCode int) {
+func (c *RavenCommandBase) SetStatusCode(statusCode int) {
 	c.statusCode = statusCode
 }
 
-func (c *RavenCommandBase) canCache() bool {
+func (c *RavenCommandBase) CanCache() bool {
 	return c._canCache
 }
 
-func (c *RavenCommandBase) canCacheAggressively() bool {
+func (c *RavenCommandBase) CanCacheAggressively() bool {
 	return c._canCacheAggressively
 }
 
-func (c *RavenCommandBase) setResponse(response []byte, fromCache bool) error {
+func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
 	if c.responseType == RavenCommandResponseType_EMPTY || c.responseType == RavenCommandResponseType_RAW {
 		return throwInvalidResponse()
 	}
 
-	return NewUnsupportedOperationException(c.responseType + " command must override the setResponse method which expects response with the following type: " + c.responseType)
+	return NewUnsupportedOperationException(c.responseType + " command must override the SetResponse method which expects response with the following type: " + c.responseType)
 }
 
 // TODO: this is only implemented on MultiGetCommand
-func (c *RavenCommandBase) setResponseRaw(response *http.Response, stream io.Reader) error {
+func (c *RavenCommandBase) SetResponseRaw(response *http.Response, stream io.Reader) error {
 	panicIf(true, "When "+c.responseType+" is set to Raw then please override this method to handle the response. ")
 	return nil
 }
 
-func (c *RavenCommandBase) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *RavenCommandBase) CreateRequest(node *ServerNode) (*http.Request, error) {
 	panicIf(true, "must over-write createRequestFunc")
 	return nil, nil
 }
@@ -95,7 +95,7 @@ func throwInvalidResponse() error {
 	return fmt.Errorf("Invalid response")
 }
 
-func (c *RavenCommandBase) send(client *http.Client, req *http.Request) (*http.Response, error) {
+func (c *RavenCommandBase) Send(client *http.Client, req *http.Request) (*http.Response, error) {
 	gHTTPRequestCount.incrementAndGet()
 	rsp, err := client.Do(req)
 	maybeDumpFailedResponse(req, rsp, err)
@@ -103,11 +103,11 @@ func (c *RavenCommandBase) send(client *http.Client, req *http.Request) (*http.R
 	return rsp, err
 }
 
-func (c *RavenCommandBase) getFailedNodes() map[*ServerNode]error {
+func (c *RavenCommandBase) GetFailedNodes() map[*ServerNode]error {
 	return c.failedNodes
 }
 
-func (c *RavenCommandBase) setFailedNodes(failedNodes map[*ServerNode]error) {
+func (c *RavenCommandBase) SetFailedNodes(failedNodes map[*ServerNode]error) {
 	c.failedNodes = failedNodes
 }
 
@@ -122,7 +122,7 @@ func ensureIsNotNullOrString(value string, name string) error {
 	return nil
 }
 
-func (c *RavenCommandBase) isFailedWithNode(node *ServerNode) bool {
+func (c *RavenCommandBase) IsFailedWithNode(node *ServerNode) bool {
 	if c.failedNodes == nil {
 		return false
 	}
@@ -135,7 +135,7 @@ func (c *RavenCommandBase) isFailedWithNode(node *ServerNode) bool {
 func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
 	// In Java this is overridden in HeadDocumentCommand, so hack it this way
 	if cmdHead, ok := cmd.(*HeadDocumentCommand); ok {
-		return cmdHead.processResponse(cache, response, url)
+		return cmdHead.ProcessResponse(cache, response, url)
 	}
 
 	if cmdHead, ok := cmd.(*HeadAttachmentCommand); ok {
@@ -154,7 +154,7 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return cmdStream.processResponse(cache, response, url)
 	}
 
-	c := cmd.getBase()
+	c := cmd.GetBase()
 
 	if response.Body == nil {
 		return ResponseDisposeHandling_AUTOMATIC, nil
@@ -178,19 +178,19 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 			return ResponseDisposeHandling_AUTOMATIC, err
 		}
 		if cache != nil {
-			c.cacheResponse(cache, url, response, string(js))
+			c.CacheResponse(cache, url, response, string(js))
 		}
-		err = cmd.setResponse(js, false)
+		err = cmd.SetResponse(js, false)
 		return ResponseDisposeHandling_AUTOMATIC, err
 	} else {
-		cmd.setResponseRaw(response, response.Body)
+		cmd.SetResponseRaw(response, response.Body)
 	}
 
 	return ResponseDisposeHandling_AUTOMATIC, nil
 }
 
-func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url string, response *http.Response, responseJson string) {
-	if !c.canCache() {
+func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response *http.Response, responseJson string) {
+	if !c.CanCache() {
 		return
 	}
 
@@ -202,13 +202,13 @@ func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url string, response 
 	cache.set(url, *changeVector, responseJson)
 }
 
-func (c *RavenCommandBase) addChangeVectorIfNotNull(changeVector *string, request *http.Request) {
+func (c *RavenCommandBase) AddChangeVectorIfNotNull(changeVector *string, request *http.Request) {
 	if changeVector != nil {
 		request.Header.Add("If-Match", `"`+*changeVector+`"`)
 	}
 }
 
-func (c *RavenCommandBase) onResponseFailure(response *http.Response) {
+func (c *RavenCommandBase) OnResponseFailure(response *http.Response) {
 	// TODO: it looks like it's meant to be virtual but there are no
 	// over-rides in Java code
 }

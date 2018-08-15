@@ -59,9 +59,9 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 	}
 
 	operation := NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
-	op, err := store.Operations().sendAsync(operation)
+	op, err := store.Operations().SendAsync(operation)
 	assert.NoError(t, err)
-	err = op.waitForCompletion()
+	err = op.WaitForCompletion()
 	assert.NoError(t, err)
 
 	{
@@ -93,10 +93,10 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 
 	operation := NewPatchByQueryOperation("from Users update {  throw 5 }")
 
-	op, err := store.Operations().sendAsync(operation)
+	op, err := store.Operations().SendAsync(operation)
 	assert.NoError(t, err)
 
-	err = op.waitForCompletion()
+	err = op.WaitForCompletion()
 	assert.Error(t, err)
 	// TODO: make sure it's an instance of JavaScriptException ? Currently is RavenException
 	assert.True(t, strings.Contains(err.Error(), "Raven.Client.Exceptions.Documents.Patching.JavaScriptException"))

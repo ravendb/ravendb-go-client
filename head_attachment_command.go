@@ -30,7 +30,7 @@ func NewHeadAttachmentCommand(documentId string, name string, changeVector *stri
 	return cmd
 }
 
-func (c *HeadAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *HeadAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	request, err := NewHttpGet(url)
@@ -68,7 +68,7 @@ func (c *HeadAttachmentCommand) processResponse(cache *HttpCache, response *http
 	return ResponseDisposeHandling_AUTOMATIC, nil
 }
 
-func (c *HeadAttachmentCommand) setResponse(response []byte, fromCache bool) error {
+func (c *HeadAttachmentCommand) SetResponse(response []byte, fromCache bool) error {
 	if response != nil {
 		return throwInvalidResponse()
 	}

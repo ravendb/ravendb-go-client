@@ -26,12 +26,12 @@ func NewGetNextOperationIdCommand() *GetNextOperationIdCommand {
 	return cmd
 }
 
-func (c *GetNextOperationIdCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetNextOperationIdCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/operations/next-operation-id"
 	return NewHttpGet(url)
 }
 
-func (c *GetNextOperationIdCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetNextOperationIdCommand) SetResponse(response []byte, fromCache bool) error {
 	var res _GetNextOperationIdCommandResponse
 	err := json.Unmarshal(response, &res)
 	if err != nil {

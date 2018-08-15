@@ -45,7 +45,7 @@ func (e *OperationExecutor) SendWithSessionInfo(operation IOperation, sessionInf
 	return e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
 }
 
-func (e *OperationExecutor) sendAsync(operation IOperation) (*Operation, error) {
+func (e *OperationExecutor) SendAsync(operation IOperation) (*Operation, error) {
 	return e.SendAsyncWithSessionInfo(operation, nil)
 }
 

@@ -31,7 +31,7 @@ func NewQueryStreamCommand(conventions *DocumentConventions, indexQuery *IndexQu
 	return cmd
 }
 
-func (c *QueryStreamCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *QueryStreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/streams/queries"
 
 	m := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
@@ -46,7 +46,7 @@ func (c *QueryStreamCommand) processResponse(cache *HttpCache, response *http.Re
 
 	// TODO: return an error if response.Body is nil
 	streamResponse := NewStreamResultResponse()
-	streamResponse.setResponse(response)
+	streamResponse.SetResponse(response)
 	streamResponse.setStream(response.Body)
 	c.Result = streamResponse
 

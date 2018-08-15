@@ -14,7 +14,7 @@ type Operation struct {
 	IsServerWide bool
 }
 
-func (o *Operation) getId() int {
+func (o *Operation) GetId() int {
 	return o._id
 }
 
@@ -51,7 +51,7 @@ func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, i
 	return NewGetOperationStateCommand(o._conventions, o._id)
 }
 
-func (o *Operation) waitForCompletion() error {
+func (o *Operation) WaitForCompletion() error {
 	for {
 		status, err := o.fetchOperationsStatus()
 		if err != nil {

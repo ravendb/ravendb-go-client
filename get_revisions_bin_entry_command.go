@@ -30,7 +30,7 @@ func NewGetRevisionsBinEntryCommand(etag int, pageSize int) *GetRevisionsBinEntr
 	return cmd
 }
 
-func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/revisions/bin?etag=" + strconv.Itoa(c._etag)
 
 	if c._pageSize > 0 {
@@ -40,7 +40,7 @@ func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Req
 	return NewHttpGet(url)
 }
 
-func (c *GetRevisionsBinEntryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetRevisionsBinEntryCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

@@ -33,7 +33,7 @@ func NewPutDocumentCommand(id string, changeVector *string, document ObjectNode)
 	return cmd
 }
 
-func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(c._id)
 
 	d, err := json.Marshal(c._document)
@@ -45,7 +45,7 @@ func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, err
 	return request, nil
 }
 
-func (c *PutDocumentCommand) setResponse(response []byte, fromCache bool) error {
+func (c *PutDocumentCommand) SetResponse(response []byte, fromCache bool) error {
 	var res PutResult
 	err := json.Unmarshal(response, &res)
 	if err != nil {

@@ -35,12 +35,12 @@ func NewGetOperationStateCommand(conventions *DocumentConventions, id int) *GetO
 	return cmd
 }
 
-func (c *GetOperationStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/operations/state?id=" + strconv.Itoa(c._id)
 	return NewHttpGet(url)
 }
 
-func (c *GetOperationStateCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetOperationStateCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

@@ -16,7 +16,7 @@ func NewLoadOperation(_session *InMemoryDocumentSessionOperations) *LoadOperatio
 	}
 }
 
-func (o *LoadOperation) createRequest() *GetDocumentsCommand {
+func (o *LoadOperation) CreateRequest() *GetDocumentsCommand {
 	if len(o._idsToCheckOnServer) == 0 {
 		return nil
 	}

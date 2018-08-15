@@ -24,7 +24,7 @@ func NewKillOperationCommand(id string) *KillOperationCommand {
 	return cmd
 }
 
-func (c *KillOperationCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *KillOperationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/operations/kill?id=" + c._id
 
 	return NewHttpPost(url, nil)

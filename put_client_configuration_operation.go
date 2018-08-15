@@ -52,7 +52,7 @@ func NewPutClientConfigurationCommand(conventions *DocumentConventions, configur
 	return cmd
 }
 
-func (c *PutClientConfigurationCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutClientConfigurationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/configuration/client"
 	return NewHttpPut(url, c.configuration)
 }

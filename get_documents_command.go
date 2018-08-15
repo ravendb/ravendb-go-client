@@ -64,7 +64,7 @@ func NewGetDocumentsCommandFull(startWith string, startAfter string, matches str
 	}
 }
 
-func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?"
 	if c._start > 0 {
 		url += "&start=" + strconv.Itoa(c._start)
@@ -143,7 +143,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	return NewHttpPost(url, d)
 }
 
-func (c *GetDocumentsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetDocumentsCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

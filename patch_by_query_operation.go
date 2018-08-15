@@ -55,7 +55,7 @@ func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *Ind
 	return cmd
 }
 
-func (c *PatchByQueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	_options := c._options
 
 	url := node.getUrl() + "/databases/" + node.getDatabase() + fmt.Sprintf("/queries?allowStale=%v", _options.isAllowStale())
@@ -85,7 +85,7 @@ func (c *PatchByQueryCommand) createRequest(node *ServerNode) (*http.Request, er
 	return request, nil
 }
 
-func (c *PatchByQueryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *PatchByQueryCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		throwInvalidResponse()
 	}

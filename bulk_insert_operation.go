@@ -38,14 +38,14 @@ func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkIn
 	return cmd
 }
 
-func (c *BulkInsertCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_insert?id=" + strconv.Itoa(c._id)
 	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)
 	return NewHttpPostReader(url, c._stream)
 }
 
-func (c *BulkInsertCommand) setResponse(response []byte, fromCache bool) error {
+func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 	return NewNotImplementedException("Not implemented")
 }
 

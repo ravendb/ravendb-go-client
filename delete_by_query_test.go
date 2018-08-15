@@ -31,10 +31,10 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 	{
 		indexQuery := NewIndexQuery("from users where age == 5")
 		operation := NewDeleteByQueryOperation(indexQuery)
-		asyncOp, err := store.Operations().sendAsync(operation)
+		asyncOp, err := store.Operations().SendAsync(operation)
 		assert.NoError(t, err)
 
-		err = asyncOp.waitForCompletion()
+		err = asyncOp.WaitForCompletion()
 		assert.NoError(t, err)
 
 		{

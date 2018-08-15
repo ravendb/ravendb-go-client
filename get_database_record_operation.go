@@ -47,12 +47,12 @@ func NewGetDatabaseRecordCommand(conventions *DocumentConventions, database stri
 	return cmd
 }
 
-func (c *GetDatabaseRecordCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetDatabaseRecordCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/admin/databases?name=" + c._database
 	return NewHttpGet(url)
 }
 
-func (c *GetDatabaseRecordCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetDatabaseRecordCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		c.Result = nil
 		return nil

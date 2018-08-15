@@ -46,7 +46,7 @@ func NewResetIndexCommand(indexName string) *ResetIndexCommand {
 	return cmd
 }
 
-func (c *ResetIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *ResetIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes?name=" + UrlUtils_escapeDataString(c._indexName)
 
 	return NewHttpReset(url)

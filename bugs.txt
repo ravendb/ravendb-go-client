@@ -115,7 +115,7 @@ X-Content-Type-Options: nosniff
 
 ExceptionDispatcher_throwException. schema: ravendb.ExceptionSchema{URL:"", Type:"", Message:"", Error:""}
 NewGetClusterTopologyCommand()
-NewGetClusterTopologyCommand.createRequest()
+NewGetClusterTopologyCommand.CreateRequest()
 PROXY PUT /databases/test_db_1/attachments?id=users%2F1&name=profile.png&contentType=image%2Fpng HTTP/1.1
 HTTP REQUEST:
 

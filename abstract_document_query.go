@@ -1584,7 +1584,7 @@ func (q *AbstractDocumentQuery) initSync() error {
 func (q *AbstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
-		command := q.queryOperation.createRequest()
+		command := q.queryOperation.CreateRequest()
 		err := q.theSession.getRequestExecutor().executeCommandWithSessionInfo(command, q.theSession.sessionInfo)
 		q.queryOperation.setResult(command.Result)
 		context.Close()

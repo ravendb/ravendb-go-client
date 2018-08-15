@@ -30,7 +30,7 @@ func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName str
 	return res
 }
 
-func (o *QueryOperation) createRequest() *QueryCommand {
+func (o *QueryOperation) CreateRequest() *QueryCommand {
 	o._session.incrementRequestCount()
 
 	//o.logQuery();

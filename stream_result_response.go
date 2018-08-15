@@ -18,7 +18,7 @@ func (r *StreamResultResponse) getResponse() *http.Response {
 	return r.Response
 }
 
-func (r *StreamResultResponse) setResponse(response *http.Response) {
+func (r *StreamResultResponse) SetResponse(response *http.Response) {
 	r.Response = response
 }
 

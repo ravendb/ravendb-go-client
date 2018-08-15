@@ -36,14 +36,14 @@ func NewGetIdentitiesCommand() *GetIdentitiesCommand {
 	return cmd
 }
 
-func (c *GetIdentitiesCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIdentitiesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/debug/identities"
 
 	return NewHttpGet(url)
 
 }
 
-func (c *GetIdentitiesCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIdentitiesCommand) SetResponse(response []byte, fromCache bool) error {
 	var res map[string]int
 	err := json.Unmarshal(response, &res)
 	if err != nil {

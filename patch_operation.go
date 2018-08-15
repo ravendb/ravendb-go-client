@@ -116,7 +116,7 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 	return cmd
 }
 
-func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + UrlUtils_escapeDataString(c._id)
 
 	if c._skipPatchIfChangeVectorMismatch {
@@ -156,7 +156,7 @@ func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return request, nil
 }
 
-func (c *PatchCommand) setResponse(response []byte, fromCache bool) error {
+func (c *PatchCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

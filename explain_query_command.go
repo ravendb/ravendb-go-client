@@ -52,7 +52,7 @@ func NewExplainQueryCommand(conventions *DocumentConventions, indexQuery *IndexQ
 	return cmd
 }
 
-func (c *ExplainQueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *ExplainQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/queries?debug=explain"
 
 	v := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
@@ -61,7 +61,7 @@ func (c *ExplainQueryCommand) createRequest(node *ServerNode) (*http.Request, er
 	return NewHttpPost(url, d)
 }
 
-func (c *ExplainQueryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *ExplainQueryCommand) SetResponse(response []byte, fromCache bool) error {
 	var res struct {
 		Results []*ExplainQueryResult
 	}

@@ -29,7 +29,7 @@ func NewHeadDocumentCommand(id string, changeVector *string) *HeadDocumentComman
 	return cmd
 }
 
-func (c *HeadDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *HeadDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + UrlUtils_escapeDataString(c._id)
 
 	request, err := NewHttpHead(url)
@@ -44,7 +44,7 @@ func (c *HeadDocumentCommand) createRequest(node *ServerNode) (*http.Request, er
 	return request, nil
 }
 
-func (c *HeadDocumentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
+func (c *HeadDocumentCommand) ProcessResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
 	statusCode := response.StatusCode
 	if statusCode == http.StatusNotModified {
 		c.Result = c._changeVector
@@ -61,7 +61,7 @@ func (c *HeadDocumentCommand) processResponse(cache *HttpCache, response *http.R
 	return ResponseDisposeHandling_AUTOMATIC, err
 }
 
-func (c *HeadDocumentCommand) setResponse(response []byte, fromCache bool) error {
+func (c *HeadDocumentCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) != 0 {
 		return throwInvalidResponse()
 	}
@@ -71,6 +71,6 @@ func (c *HeadDocumentCommand) setResponse(response []byte, fromCache bool) error
 	return nil
 }
 
-func (c *HeadDocumentCommand) exists() bool {
+func (c *HeadDocumentCommand) Exists() bool {
 	return c.Result != nil
 }

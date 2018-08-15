@@ -50,7 +50,7 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 func (s *DocumentSession) SaveChanges() error {
 	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)
 
-	command, err := saveChangeOperation.createRequest()
+	command, err := saveChangeOperation.CreateRequest()
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 		return false, err
 	}
 
-	ok := command.exists()
+	ok := command.Exists()
 	return ok, nil
 }
 
@@ -120,7 +120,7 @@ func (s *DocumentSession) Load(clazz reflect.Type, id string) (interface{}, erro
 
 	loadOperation.byId(id)
 
-	command := loadOperation.createRequest()
+	command := loadOperation.CreateRequest()
 
 	if command != nil {
 		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
@@ -146,7 +146,7 @@ func (s *DocumentSession) LoadMulti(clazz reflect.Type, ids []string) (map[strin
 func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {
 	operation.byIds(ids)
 
-	command := operation.createRequest()
+	command := operation.CreateRequest()
 	if command != nil {
 		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
@@ -170,7 +170,7 @@ func (s *DocumentSession) LoadInternalMulti(clazz reflect.Type, ids []string, in
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
 
-	command := loadOperation.createRequest()
+	command := loadOperation.CreateRequest()
 	if command != nil {
 		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
@@ -226,7 +226,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 
 	operation.withStartWithFull(idPrefix, matches, start, pageSize, exclude, startAfter)
 
-	command := operation.createRequest()
+	command := operation.CreateRequest()
 	if command != nil {
 		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {

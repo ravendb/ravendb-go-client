@@ -102,10 +102,10 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	}
 
 	op2 := NewPatchByQueryOperation("FROM INDEX 'TestIndex' WHERE value = 1 update { put('NewItem/3', {'copiedValue': this.value });}")
-	operation, err := store.Operations().sendAsync(op2)
+	operation, err := store.Operations().SendAsync(op2)
 	assert.NoError(t, err)
 
-	operation.waitForCompletion()
+	operation.WaitForCompletion()
 
 	{
 		session := openSessionMust(t, store)

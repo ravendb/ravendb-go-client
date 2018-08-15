@@ -37,7 +37,7 @@ func NewSeedIdentityForCommandWithForced(id string, value int, forced bool) *See
 	return res
 }
 
-func (c *SeedIdentityForCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *SeedIdentityForCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	err := ensureIsNotNullOrString(c._id, "ID")
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (c *SeedIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, nil)
 }
 
-func (c *SeedIdentityForCommand) setResponse(response []byte, fromCache bool) error {
+func (c *SeedIdentityForCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

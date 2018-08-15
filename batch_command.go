@@ -66,7 +66,7 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_docs"
 	url = c.appendOptions(url)
 
@@ -123,7 +123,7 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return req, nil
 }
 
-func (c *BatchCommand) setResponse(response []byte, fromCache bool) error {
+func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}

@@ -36,14 +36,14 @@ func NewGetClientConfigurationCommand() *GetClientConfigurationCommand {
 	return cmd
 }
 
-func (c *GetClientConfigurationCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetClientConfigurationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/configuration/client"
 
 	return NewHttpGet(url)
 }
 
-func (c *GetClientConfigurationCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetClientConfigurationCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

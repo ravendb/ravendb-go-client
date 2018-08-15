@@ -35,12 +35,12 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 	return cmd
 }
 
-func (c *GetServerWideOperationStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetServerWideOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/operations/state?id=" + strconv.Itoa(c._id)
 	return NewHttpGet(url)
 }
 
-func (c *GetServerWideOperationStateCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetServerWideOperationStateCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

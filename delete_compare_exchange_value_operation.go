@@ -58,13 +58,13 @@ func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index 
 	return cmd
 }
 
-func (c *RemoveCompareExchangeValueCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *RemoveCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/databases/" + node.getDatabase() + "/cmpxchg?key=" + c._key + "&index=" + strconv.Itoa(c._index)
 
 	return NewHttpDelete(url, nil)
 }
 
-func (c *RemoveCompareExchangeValueCommand) setResponse(response []byte, fromCache bool) error {
+func (c *RemoveCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
 	res, err := CompareExchangeResult_parseFromString(c._clazz, response, c._conventions)
 	if err != nil {
 		return err

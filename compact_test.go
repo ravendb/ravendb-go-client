@@ -32,7 +32,7 @@ func compactTest_canCompactDatabase(t *testing.T) {
 	assert.NoError(t, err)
 
 	// we can't compact in memory database but here we just test is request was send successfully
-	err = operation.waitForCompletion()
+	err = operation.WaitForCompletion()
 	msg := err.Error()
 	assert.True(t, strings.Contains(msg, "Unable to cast object of type 'PureMemoryStorageEnvironmentOptions' to type 'DirectoryStorageEnvironmentOptions'"))
 }

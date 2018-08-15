@@ -54,7 +54,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 	return cmd
 }
 
-func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.getUrl() + "/admin/databases?name=" + c.databaseName
 	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
 
@@ -65,7 +65,7 @@ func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, 
 	return NewHttpPut(url, js)
 }
 
-func (c *CreateDatabaseCommand) setResponse(response []byte, fromCache bool) error {
+func (c *CreateDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
