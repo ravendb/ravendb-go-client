@@ -53,7 +53,7 @@ func (q *RawDocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *IR
 	return q
 }
 
-func (q *RawDocumentQuery) Statistics(stats *QueryStatistics) *IRawDocumentQuery {
+func (q *RawDocumentQuery) Statistics(stats **QueryStatistics) *IRawDocumentQuery {
 	q._statistics(stats)
 	return q
 }

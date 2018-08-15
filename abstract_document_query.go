@@ -831,10 +831,8 @@ func (q *AbstractDocumentQuery) _orderByScoreDescending() {
 	q.orderByTokens = append(q.orderByTokens, OrderByToken_scoreDescending)
 }
 
-func (q *AbstractDocumentQuery) _statistics(stats *QueryStatistics) {
-	if q.queryStats != nil {
-		*stats = *q.queryStats.Clone()
-	}
+func (q *AbstractDocumentQuery) _statistics(stats **QueryStatistics) {
+	*stats = q.queryStats
 }
 
 func (q *AbstractDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
@@ -1030,7 +1028,7 @@ func (q *AbstractDocumentQuery) _distinct() {
 }
 
 func (q *AbstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
-	q.queryStats.UpdateQueryStats(queryResult)
+	q.queryStats.updateQueryStats(queryResult)
 	//TBD 4.1 Highlightings.Update(queryResult);
 }
 

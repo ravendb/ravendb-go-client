@@ -297,7 +297,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		var stats QueryStatistics
+		var stats *QueryStatistics
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
@@ -305,7 +305,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 		_, err := q.ToList()
 		assert.NoError(t, err)
 
-		indexName = stats.GetIndexName()
+		indexName = stats.getIndexName()
 
 		session.Close()
 	}
@@ -348,7 +348,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		var stats QueryStatistics
+		var stats *QueryStatistics
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
@@ -356,7 +356,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 		_, err := q.ToList()
 		assert.NoError(t, err)
 
-		indexName = stats.GetIndexName()
+		indexName = stats.getIndexName()
 
 		session.Close()
 	}
@@ -402,7 +402,7 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		var statsRef QueryStatistics
+		var statsRef *QueryStatistics
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
