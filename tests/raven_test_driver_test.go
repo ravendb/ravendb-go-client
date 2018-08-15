@@ -517,7 +517,15 @@ func getRavendbExePath() string {
 	cwd, err := os.Getwd()
 	must(err)
 
-	path := filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
+	path := filepath.Join(cwd, "..", "RavenDB", "Server", "Raven.Server")
+	if ravendb.IsWindows() {
+		path += ".exe"
+	}
+	if ravendb.FileExists(path) {
+		return path
+	}
+
+	path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
 	if ravendb.IsWindows() {
 		path += ".exe"
 	}

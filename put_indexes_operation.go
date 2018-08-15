@@ -50,7 +50,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 		// between now an CreateRequest()
 		indexToAdd.updateIndexType()
 
-		panicIf(indexToAdd.getName() == "", "Index name cannot be null")
+		panicIf(indexToAdd.GetName() == "", "Index name cannot be null")
 		objectNode := EntityToJson_convertEntityToJson(indexToAdd, nil)
 		cmd._indexToAdd = append(cmd._indexToAdd, objectNode)
 	}

@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 type CustomType struct {
@@ -34,19 +35,19 @@ func advancedPatching_testWithVariables(t *testing.T) {
 		session.Close()
 	}
 
-	patchRequest := NewPatchRequest()
+	patchRequest := ravendb.NewPatchRequest()
 	patchRequest.SetScript("this.owner = args.v1")
-	m := map[string]Object{
+	m := map[string]ravendb.Object{
 		"v1": "not-me",
 	}
 	patchRequest.SetValues(m)
-	patchOperation := NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
+	patchOperation := ravendb.NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
 	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.Load(GetTypeOf(&CustomType{}), "customTypes/1")
+		loadedI, err := session.Load(ravendb.GetTypeOf(&CustomType{}), "customTypes/1")
 		assert.NoError(t, err)
 		loaded := loadedI.(*CustomType)
 		assert.Equal(t, loaded.Owner, "not-me")
@@ -83,17 +84,17 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 		newSession.Close()
 	}
 
-	def1 := NewIndexDefinition()
-	def1.setName("TestIndex")
-	def1.setMaps(NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }"))
+	def1 := ravendb.NewIndexDefinition()
+	def1.SetName("TestIndex")
+	def1.SetMaps(ravendb.NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }"))
 
-	op := NewPutIndexesOperation(def1)
+	op := ravendb.NewPutIndexesOperation(def1)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
-		q := session.Advanced().DocumentQueryAll(GetTypeOf(&CustomType{}), "TestIndex", "", false)
+		q := session.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&CustomType{}), "TestIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
 		_, err = q.ToList()
 		assert.NoError(t, err)
@@ -101,7 +102,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 		session.Close()
 	}
 
-	op2 := NewPatchByQueryOperation("FROM INDEX 'TestIndex' WHERE value = 1 update { put('NewItem/3', {'copiedValue': this.value });}")
+	op2 := ravendb.NewPatchByQueryOperation("FROM INDEX 'TestIndex' WHERE value = 1 update { put('NewItem/3', {'copiedValue': this.value });}")
 	operation, err := store.Operations().SendAsync(op2)
 	assert.NoError(t, err)
 
@@ -110,9 +111,9 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		jsonDocument, err := session.Load(GetTypeOf(ObjectNode{}), "NewItem/3")
+		jsonDocument, err := session.Load(ravendb.GetTypeOf(ravendb.ObjectNode{}), "NewItem/3")
 		assert.NoError(t, err)
-		jsonDoc := jsonDocument.(ObjectNode)
+		jsonDoc := jsonDocument.(ravendb.ObjectNode)
 		assert.Equal(t, jsonDoc["copiedValue"], "1")
 
 		session.Close()
@@ -129,7 +130,7 @@ func TestAdvancedPatching(t *testing.T) {
 
 	// matches order of Java tests
 	advancedPatching_testWithVariables(t)
-	if EnableFailingTests {
+	if ravendb.EnableFailingTests {
 		// TODO: fails because documentsByEntity cannot handle map[string]interface{}
 		advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t)
 	}

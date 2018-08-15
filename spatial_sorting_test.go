@@ -68,31 +68,31 @@ var (
 func spatialSorting_createData(t *testing.T, store *IDocumentStore) {
 	var err error
 	indexDefinition := NewIndexDefinition()
-	indexDefinition.setName("eventsByLatLng")
+	indexDefinition.SetName("eventsByLatLng")
 	maps := NewStringSetFromStrings("from e in docs.Shops select new { e.venue, coordinates = CreateSpatialField(e.latitude, e.longitude) }")
-	indexDefinition.setMaps(maps)
+	indexDefinition.SetMaps(maps)
 
 	fields := make(map[string]*IndexFieldOptions)
 	options := NewIndexFieldOptions()
 	options.setIndexing(FieldIndexing_EXACT)
 	fields["tag"] = options
-	indexDefinition.setFields(fields)
+	indexDefinition.SetFields(fields)
 
 	op := NewPutIndexesOperation(indexDefinition)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	indexDefinition2 := NewIndexDefinition()
-	indexDefinition2.setName("eventsByLatLngWSpecialField")
+	indexDefinition2.SetName("eventsByLatLngWSpecialField")
 	maps = NewStringSetFromStrings("from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }")
-	indexDefinition2.setMaps(maps)
+	indexDefinition2.SetMaps(maps)
 
 	indexFieldOptions := NewIndexFieldOptions()
 	indexFieldOptions.setIndexing(FieldIndexing_EXACT)
 	fields = map[string]*IndexFieldOptions{
 		"tag": indexFieldOptions,
 	}
-	indexDefinition2.setFields(fields)
+	indexDefinition2.SetFields(fields)
 
 	op = NewPutIndexesOperation(indexDefinition2)
 	err = store.Maintenance().Send(op)

@@ -33,38 +33,38 @@ func NewIndexDefinition() *IndexDefinition {
 	return res
 }
 
-func (d *IndexDefinition) getName() string {
+func (d *IndexDefinition) GetName() string {
 	return d.Name
 }
 
-func (d *IndexDefinition) setName(name string) {
+func (d *IndexDefinition) SetName(name string) {
 	d.Name = name
 }
 
-func (d *IndexDefinition) getPriority() *IndexPriority {
+func (d *IndexDefinition) GetPriority() *IndexPriority {
 	return d.Priority
 }
 
-func (d *IndexDefinition) setPriority(priority IndexPriority) {
+func (d *IndexDefinition) SetPriority(priority IndexPriority) {
 	d.Priority = toStrPtr(priority)
 }
 
-func (d *IndexDefinition) getLockMode() *IndexLockMode {
+func (d *IndexDefinition) GetLockMode() *IndexLockMode {
 	return d.LockMode
 }
 
-func (d *IndexDefinition) setLockMode(lockMode IndexLockMode) {
+func (d *IndexDefinition) SetLockMode(lockMode IndexLockMode) {
 	d.LockMode = toStrPtr(lockMode)
 }
 
-func (d *IndexDefinition) getAdditionalSources() map[string]string {
+func (d *IndexDefinition) GetAdditionalSources() map[string]string {
 	if d.AdditionalSources == nil {
 		d.AdditionalSources = make(map[string]string)
 	}
 	return d.AdditionalSources
 }
 
-func (d *IndexDefinition) setAdditionalSources(additionalSources map[string]string) {
+func (d *IndexDefinition) SetAdditionalSources(additionalSources map[string]string) {
 	// preserve additionalSources being always non-nil
 	// to JSON serialize as {} and not nil
 	if additionalSources == nil {
@@ -76,22 +76,22 @@ func (d *IndexDefinition) setAdditionalSources(additionalSources map[string]stri
 	d.AdditionalSources = additionalSources
 }
 
-func (d *IndexDefinition) getMaps() *StringSet {
+func (d *IndexDefinition) GetMaps() *StringSet {
 	if d.Maps == nil {
 		d.Maps = NewStringSet()
 	}
 	return d.Maps
 }
 
-func (d *IndexDefinition) setMaps(maps *StringSet) {
+func (d *IndexDefinition) SetMaps(maps *StringSet) {
 	d.Maps = maps
 }
 
-func (d *IndexDefinition) getReduce() *string {
+func (d *IndexDefinition) GetReduce() *string {
 	return d.Reduce
 }
 
-func (d *IndexDefinition) setReduce(reduce string) {
+func (d *IndexDefinition) SetReduce(reduce string) {
 	d.Reduce = toStrPtr(reduce)
 }
 
@@ -99,25 +99,25 @@ func (d *IndexDefinition) String() string {
 	return d.Name
 }
 
-func (d *IndexDefinition) getFields() map[string]*IndexFieldOptions {
+func (d *IndexDefinition) GetFields() map[string]*IndexFieldOptions {
 	if d.Fields == nil {
 		d.Fields = make(map[string]*IndexFieldOptions)
 	}
 	return d.Fields
 }
 
-func (d *IndexDefinition) setFields(fields map[string]*IndexFieldOptions) {
+func (d *IndexDefinition) SetFields(fields map[string]*IndexFieldOptions) {
 	d.Fields = fields
 }
 
-func (d *IndexDefinition) getConfiguration() IndexConfiguration {
+func (d *IndexDefinition) GetConfiguration() IndexConfiguration {
 	if d.Configuration == nil {
 		d.Configuration = NewIndexConfiguration()
 	}
 	return d.Configuration
 }
 
-func (d *IndexDefinition) setConfiguration(configuration IndexConfiguration) {
+func (d *IndexDefinition) SetConfiguration(configuration IndexConfiguration) {
 	d.Configuration = configuration
 }
 
@@ -129,7 +129,7 @@ func (d *IndexDefinition) updateIndexType() {
 	}
 }
 
-func (d *IndexDefinition) getType() IndexType {
+func (d *IndexDefinition) GetType() IndexType {
 	if d.IndexType == "" || d.IndexType == IndexType_NONE {
 		d.IndexType = d.detectStaticIndexType()
 	}
@@ -137,7 +137,7 @@ func (d *IndexDefinition) getType() IndexType {
 	return d.IndexType
 }
 
-func (d *IndexDefinition) setType(indexType IndexType) {
+func (d *IndexDefinition) SetType(indexType IndexType) {
 	if indexType == "" {
 		indexType = IndexType_NONE
 	}
@@ -155,10 +155,10 @@ func (d *IndexDefinition) detectStaticIndexType() IndexType {
 
 //TBD 4.1   setTestIndex(bool testIndex)
 
-func (d *IndexDefinition) getOutputReduceToCollection() *string {
+func (d *IndexDefinition) GetOutputReduceToCollection() *string {
 	return d.OutputReduceToCollection
 }
 
-func (d *IndexDefinition) setOutputReduceToCollection(outputReduceToCollection string) {
+func (d *IndexDefinition) SetOutputReduceToCollection(outputReduceToCollection string) {
 	d.OutputReduceToCollection = toStrPtr(outputReduceToCollection)
 }

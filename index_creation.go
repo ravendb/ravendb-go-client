@@ -28,12 +28,12 @@ func IndexCreation_createIndexesToAdd(indexCreationTasks []*AbstractIndexCreatio
 	for _, x := range indexCreationTasks {
 		x.setConventions(conventions)
 		definition := x.createIndexDefinition()
-		definition.setName(x.getIndexName())
+		definition.SetName(x.getIndexName())
 		pri := x.getPriority()
 		if pri == "" {
 			pri = IndexPriority_NORMAL
 		}
-		definition.setPriority(pri)
+		definition.SetPriority(pri)
 		res = append(res, definition)
 	}
 	return res

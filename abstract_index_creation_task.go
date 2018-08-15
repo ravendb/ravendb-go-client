@@ -128,14 +128,14 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 	t.setConventions(conv)
 
 	indexDefinition := t.createIndexDefinition()
-	indexDefinition.setName(t.getIndexName())
+	indexDefinition.SetName(t.getIndexName())
 
 	if t.LockMode != "" {
-		indexDefinition.setLockMode(t.LockMode)
+		indexDefinition.SetLockMode(t.LockMode)
 	}
 
 	if t.Priority != "" {
-		indexDefinition.setPriority(t.Priority)
+		indexDefinition.SetPriority(t.Priority)
 	}
 
 	op := NewPutIndexesOperation(indexDefinition)

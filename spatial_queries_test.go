@@ -88,9 +88,9 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		assert.NoError(t, err)
 
 		indexDefinition := NewIndexDefinition()
-		indexDefinition.setName("FindByLatLng")
+		indexDefinition.SetName("FindByLatLng")
 		maps := NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
-		indexDefinition.setMaps(maps)
+		indexDefinition.SetMaps(maps)
 
 		op := NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)
@@ -138,9 +138,9 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		assert.NoError(t, err)
 
 		indexDefinition := NewIndexDefinition()
-		indexDefinition.setName("FindByLatLng")
+		indexDefinition.SetName("FindByLatLng")
 		maps := NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
-		indexDefinition.setMaps(maps)
+		indexDefinition.SetMaps(maps)
 
 		op := NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)

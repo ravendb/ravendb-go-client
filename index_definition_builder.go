@@ -42,11 +42,11 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	}
 
 	indexDefinition := NewIndexDefinition()
-	indexDefinition.setName(d._indexName)
-	indexDefinition.setReduce(d.reduce)
-	indexDefinition.setLockMode(d.lockMode)
-	indexDefinition.setPriority(d.priority)
-	indexDefinition.setOutputReduceToCollection(d.outputReduceToCollection)
+	indexDefinition.SetName(d._indexName)
+	indexDefinition.SetReduce(d.reduce)
+	indexDefinition.SetLockMode(d.lockMode)
+	indexDefinition.SetPriority(d.priority)
+	indexDefinition.SetOutputReduceToCollection(d.outputReduceToCollection)
 	indexDefinition.updateIndexType()
 
 	suggestions := make(map[string]bool)
@@ -98,16 +98,16 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	}
 
 	if d.smap != "" {
-		indexDefinition.getMaps().add(d.smap)
+		indexDefinition.GetMaps().add(d.smap)
 	}
 
-	indexDefinition.setAdditionalSources(d.additionalSources)
+	indexDefinition.SetAdditionalSources(d.additionalSources)
 	return indexDefinition
 }
 
 func (d *IndexDefinitionBuilder) applyFieldIndexingValues(indexDefinition *IndexDefinition, values map[string]FieldIndexing, action func(*IndexFieldOptions, FieldIndexing)) {
 	for key, value := range values {
-		fields := indexDefinition.getFields()
+		fields := indexDefinition.GetFields()
 		field, ok := fields[key]
 		if !ok {
 			field = NewIndexFieldOptions()
@@ -119,7 +119,7 @@ func (d *IndexDefinitionBuilder) applyFieldIndexingValues(indexDefinition *Index
 
 func (d *IndexDefinitionBuilder) applyFieldStorageValues(indexDefinition *IndexDefinition, values map[string]FieldStorage, action func(*IndexFieldOptions, FieldStorage)) {
 	for key, value := range values {
-		fields := indexDefinition.getFields()
+		fields := indexDefinition.GetFields()
 		field, ok := fields[key]
 		if !ok {
 			field = NewIndexFieldOptions()
@@ -131,7 +131,7 @@ func (d *IndexDefinitionBuilder) applyFieldStorageValues(indexDefinition *IndexD
 
 func (d *IndexDefinitionBuilder) applyStringValues(indexDefinition *IndexDefinition, values map[string]string, action func(*IndexFieldOptions, string)) {
 	for key, value := range values {
-		fields := indexDefinition.getFields()
+		fields := indexDefinition.GetFields()
 		field, ok := fields[key]
 		if !ok {
 			field = NewIndexFieldOptions()
@@ -143,7 +143,7 @@ func (d *IndexDefinitionBuilder) applyStringValues(indexDefinition *IndexDefinit
 
 func (d *IndexDefinitionBuilder) applyFieldTermVectorValues(indexDefinition *IndexDefinition, values map[string]FieldTermVector, action func(*IndexFieldOptions, FieldTermVector)) {
 	for key, value := range values {
-		fields := indexDefinition.getFields()
+		fields := indexDefinition.GetFields()
 		field, ok := fields[key]
 		if !ok {
 			field = NewIndexFieldOptions()
@@ -155,7 +155,7 @@ func (d *IndexDefinitionBuilder) applyFieldTermVectorValues(indexDefinition *Ind
 
 func (d *IndexDefinitionBuilder) applySpatialOptionsValues(indexDefinition *IndexDefinition, values map[string]*SpatialOptions, action func(*IndexFieldOptions, *SpatialOptions)) {
 	for key, value := range values {
-		fields := indexDefinition.getFields()
+		fields := indexDefinition.GetFields()
 		field, ok := fields[key]
 		if !ok {
 			field = NewIndexFieldOptions()
@@ -167,7 +167,7 @@ func (d *IndexDefinitionBuilder) applySpatialOptionsValues(indexDefinition *Inde
 
 func (d *IndexDefinitionBuilder) applyBoolValues(indexDefinition *IndexDefinition, values map[string]bool, action func(*IndexFieldOptions, bool)) {
 	for key, value := range values {
-		fields := indexDefinition.getFields()
+		fields := indexDefinition.GetFields()
 		field, ok := fields[key]
 		if !ok {
 			field = NewIndexFieldOptions()

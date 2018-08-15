@@ -239,7 +239,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	index := indexes[0]
 
 	{
-		op := NewGetIndexStatisticsOperation(index.getName())
+		op := NewGetIndexStatisticsOperation(index.GetName())
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
@@ -248,18 +248,18 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	}
 
 	{
-		op := NewSetIndexesLockOperation(index.getName(), IndexLockMode_LOCKED_IGNORE)
+		op := NewSetIndexesLockOperation(index.GetName(), IndexLockMode_LOCKED_IGNORE)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewSetIndexesPriorityOperation(index.getName(), IndexPriority_LOW)
+		op := NewSetIndexesPriorityOperation(index.GetName(), IndexPriority_LOW)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 	{
-		op := NewGetIndexStatisticsOperation(index.getName())
+		op := NewGetIndexStatisticsOperation(index.GetName())
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result

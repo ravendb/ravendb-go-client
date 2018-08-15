@@ -169,7 +169,7 @@ func testIndexHasIndexChanged(t *testing.T) {
 		assert.False(t, cmd.Result)
 	}
 	m := NewStringSetFromStrings("from users")
-	indexDef.setMaps(m)
+	indexDef.SetMaps(m)
 
 	op3 := NewIndexHasChangedOperation(indexDef)
 	err = store.Maintenance().Send(op3)
@@ -238,7 +238,7 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	}
 
 	{
-		op := NewStopIndexOperation(indexDef.getName())
+		op := NewStopIndexOperation(indexDef.GetName())
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -254,7 +254,7 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	}
 
 	{
-		op := NewStartIndexOperation(indexDef.getName())
+		op := NewStartIndexOperation(indexDef.GetName())
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -284,16 +284,16 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 	}
 
 	{
-		op := NewSetIndexesLockOperation(indexDef.getName(), IndexLockMode_LOCKED_ERROR)
+		op := NewSetIndexesLockOperation(indexDef.GetName(), IndexLockMode_LOCKED_ERROR)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexOperation(indexDef.getName())
+		op := NewGetIndexOperation(indexDef.GetName())
 		err = store.Maintenance().Send(op)
 		newIndexDef := op.Command.Result
-		assert.Equal(t, *newIndexDef.getLockMode(), IndexLockMode_LOCKED_ERROR)
+		assert.Equal(t, *newIndexDef.GetLockMode(), IndexLockMode_LOCKED_ERROR)
 	}
 }
 
@@ -308,14 +308,14 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	op2 := NewSetIndexesPriorityOperation(indexDef.getName(), IndexPriority_HIGH)
+	op2 := NewSetIndexesPriorityOperation(indexDef.GetName(), IndexPriority_HIGH)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 
-	op3 := NewGetIndexOperation(indexDef.getName())
+	op3 := NewGetIndexOperation(indexDef.GetName())
 	err = store.Maintenance().Send(op3)
 	newIndexDef := op3.Command.Result
-	assert.Equal(t, *newIndexDef.getPriority(), IndexPriority_HIGH)
+	assert.Equal(t, *newIndexDef.GetPriority(), IndexPriority_HIGH)
 }
 
 func testIndexCanListErrors(t *testing.T) {
@@ -350,7 +350,7 @@ func testIndexCanListErrors(t *testing.T) {
 	indexErrors := op2.Command.Result
 	assert.Equal(t, len(indexErrors), 1)
 
-	op3 := NewGetIndexErrorsOperation([]string{indexDef.getName()})
+	op3 := NewGetIndexErrorsOperation([]string{indexDef.GetName()})
 	err = store.Maintenance().Send(op3)
 	assert.NoError(t, err)
 	perIndexErrors := op3.Command.Result
