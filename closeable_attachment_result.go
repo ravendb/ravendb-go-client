@@ -21,7 +21,7 @@ func (r *CloseableAttachmentResult) GetData() io.Reader {
 	return r.response.Body
 }
 
-func (r *CloseableAttachmentResult) getDetails() *AttachmentDetails {
+func (r *CloseableAttachmentResult) GetDetails() *AttachmentDetails {
 	return r.details
 }
 

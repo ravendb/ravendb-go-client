@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func attachmentsSession_putAttachments(t *testing.T) {
@@ -44,25 +45,25 @@ func attachmentsSession_putAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*User)
 		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
-		v, ok := metadata.Get(Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
 		vStr := v.(string)
 		assert.Equal(t, vStr, "HasAttachments")
 
-		attachmentsI, ok := metadata.Get(Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
-		attachments := attachmentsI.([]Object)
+		attachments := attachmentsI.([]ravendb.Object)
 		assert.Equal(t, len(attachments), 3)
 
 		sort.Strings(names)
 		var gotNames []string
 		for _, v := range attachments {
-			attachment := v.(*IMetadataDictionary)
+			attachment := v.(*ravendb.IMetadataDictionary)
 			name, ok := attachment.Get("Name")
 			assert.True(t, ok)
 			gotNames = append(gotNames, name.(string))
@@ -95,7 +96,7 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
 
 		err = session.SaveChanges()
 		assert.Error(t, err)
-		_, ok := err.(*IllegalStateException)
+		_, ok := err.(*ravendb.IllegalStateException)
 		assert.True(t, ok)
 
 		session.Close()
@@ -123,7 +124,7 @@ func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testi
 
 		err = session.Advanced().Attachments().StoreEntity(user, "profile", stream2, "")
 		assert.Error(t, err)
-		_, ok := err.(*IllegalStateException)
+		_, ok := err.(*ravendb.IllegalStateException)
 		assert.True(t, ok)
 
 		session.Close()
@@ -151,7 +152,7 @@ func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.
 
 		err = session.SaveChanges()
 		assert.Error(t, err)
-		_, ok := err.(*IllegalStateException)
+		_, ok := err.(*ravendb.IllegalStateException)
 		assert.True(t, ok)
 
 		session.Close()
@@ -193,14 +194,14 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		// test get attachment by its name
 		{
 			attachmentResult, err := session.Advanced().Attachments().Get("users/1", "file2")
 			assert.NoError(t, err)
-			name := attachmentResult.getDetails().GetName()
+			name := attachmentResult.GetDetails().GetName()
 			assert.Equal(t, name, "file2")
 			attachmentResult.Close()
 		}
@@ -218,19 +219,19 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		metadata, err := session.Advanced().GetMetadataFor(userI)
 		assert.NoError(t, err)
 
-		v, ok := metadata.Get(Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
 		assert.Equal(t, v, "HasAttachments")
 
-		attachmentsI, ok := metadata.Get(Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
-		attachments := attachmentsI.([]Object)
+		attachments := attachmentsI.([]ravendb.Object)
 
 		assert.Equal(t, len(attachments), 2)
 
@@ -276,26 +277,26 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 		session.Close()
 	}
 
-	op := NewDeleteAttachmentOperation("users/1", "file2", nil)
+	op := ravendb.NewDeleteAttachmentOperation("users/1", "file2", nil)
 	err = store.Operations().Send(op)
 	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		metadata, err := session.Advanced().GetMetadataFor(userI)
 		assert.NoError(t, err)
 
-		v, ok := metadata.Get(Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
 		assert.Equal(t, v, "HasAttachments")
 
-		attachmentsI, ok := metadata.Get(Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
-		attachments := attachmentsI.([]Object)
+		attachments := attachmentsI.([]ravendb.Object)
 		assert.Equal(t, len(attachments), 1)
 
 		{
@@ -380,7 +381,7 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		err = session.DeleteEntity(userI)
@@ -422,7 +423,7 @@ func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpB
 	{
 		session := openSessionMust(t, store)
 
-		cd := NewDeleteCommandData("users/1", nil)
+		cd := ravendb.NewDeleteCommandData("users/1", nil)
 		session.Advanced().Defer(cd)
 		err = session.Advanced().Attachments().Delete("users/1", "file")
 		assert.NoError(t, err)
@@ -465,7 +466,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		attachments, err := session.Advanced().Attachments().GetNames(userI)
@@ -538,13 +539,13 @@ func TestAttachmentsSession(t *testing.T) {
 	// matches order of Java tests
 
 	// TODO: re-eneable when not flaky
-	if EnableFlakyTests {
+	if ravendb.EnableFlakyTests {
 		attachmentsSession_putAttachments(t)
 	}
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t)
 
 	// TODO: re-eneable when not flaky
-	if EnableFlakyTests {
+	if ravendb.EnableFlakyTests {
 		attachmentsSession_getAttachmentNames(t)
 	}
 	attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
