@@ -106,7 +106,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 		fn := func(sender interface{}, event *AfterSaveChangesEventArgs) {
 			sessionLevelCallback[0] = event.getDocumentMetadata()
 		}
-		session.Advanced().addAfterSaveChangesListener(fn)
+		session.Advanced().AddAfterSaveChangesListener(fn)
 
 		user1 := NewUser()
 		user1.setName("RavenDB")

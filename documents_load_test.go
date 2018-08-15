@@ -88,7 +88,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 			assert.NotNil(t, v)
 		}
 
-		numOfRequests := newSession.Advanced().getNumberOfRequests()
+		numOfRequests := newSession.Advanced().GetNumberOfRequests()
 
 		barV := bar[barId].(*Bar)
 		foo, err := newSession.Load(GetTypeOf(&Foo{}), barV.getFooId())
@@ -97,7 +97,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		fooV := foo.(*Foo)
 		assert.Equal(t, fooV.GetName(), "Beginning")
 
-		assert.Equal(t, newSession.Advanced().getNumberOfRequests(), numOfRequests)
+		assert.Equal(t, newSession.Advanced().GetNumberOfRequests(), numOfRequests)
 		newSession.Close()
 	}
 }

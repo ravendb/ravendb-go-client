@@ -33,7 +33,7 @@ func NewDocumentsChanges() *DocumentsChanges {
 	return &DocumentsChanges{}
 }
 
-func (c *DocumentsChanges) getFieldOldValue() interface{} {
+func (c *DocumentsChanges) GetFieldOldValue() interface{} {
 	return c.fieldOldValue
 }
 
@@ -41,7 +41,7 @@ func (c *DocumentsChanges) setFieldOldValue(fieldOldValue interface{}) {
 	c.fieldOldValue = fieldOldValue
 }
 
-func (c *DocumentsChanges) getFieldNewValue() interface{} {
+func (c *DocumentsChanges) GetFieldNewValue() interface{} {
 	return c.fieldNewValue
 }
 
@@ -65,7 +65,7 @@ func (c *DocumentsChanges) setFieldNewType(fieldNewType JsonNodeType) {
 	c.fieldNewType = fieldNewType
 }
 
-func (c *DocumentsChanges) getChange() ChangeType {
+func (c *DocumentsChanges) GetChange() ChangeType {
 	return c.change
 }
 
@@ -73,7 +73,7 @@ func (c *DocumentsChanges) setChange(change ChangeType) {
 	c.change = change
 }
 
-func (c *DocumentsChanges) getFieldName() string {
+func (c *DocumentsChanges) GetFieldName() string {
 	return c.fieldName
 }
 

@@ -123,7 +123,7 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 	if session == nil {
 		res._conventions = NewDocumentConventions()
 	} else {
-		res._conventions = session.getConventions()
+		res._conventions = session.GetConventions()
 	}
 	return res
 }
@@ -373,7 +373,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 		return
 	}
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
@@ -384,7 +384,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 
 	transformToEqualValue := q.transformValue(whereParams)
 	addQueryParameter := q.addQueryParameter(transformToEqualValue)
-	whereToken := WhereToken_createWithOptions(WhereOperator_EQUALS, whereParams.getFieldName(), addQueryParameter, NewWhereOptionsWithExact(whereParams.isExact()))
+	whereToken := WhereToken_createWithOptions(WhereOperator_EQUALS, whereParams.GetFieldName(), addQueryParameter, NewWhereOptionsWithExact(whereParams.isExact()))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -400,7 +400,7 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *W
 		}
 
 		opts := NewWhereOptionsWithMethod(MethodsType_CMP_X_CHG, args, mc.accessPath, whereParams.isExact())
-		token := WhereToken_createWithOptions(op, whereParams.getFieldName(), "", opts)
+		token := WhereToken_createWithOptions(op, whereParams.GetFieldName(), "", opts)
 
 		tokens := *tokensRef
 		tokens = append(tokens, token)
@@ -447,13 +447,13 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WherePara
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
 
 	if q.ifValueIsMethod(WhereOperator_NOT_EQUALS, whereParams, tokensRef) {
 		return
 	}
 
-	whereToken := WhereToken_createWithOptions(WhereOperator_NOT_EQUALS, whereParams.getFieldName(), q.addQueryParameter(transformToEqualValue), NewWhereOptionsWithExact(whereParams.isExact()))
+	whereToken := WhereToken_createWithOptions(WhereOperator_NOT_EQUALS, whereParams.GetFieldName(), q.addQueryParameter(transformToEqualValue), NewWhereOptionsWithExact(whereParams.isExact()))
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
@@ -492,10 +492,10 @@ func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object)
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
-	q.negateIfNeeded(tokensRef, whereParams.getFieldName())
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
+	q.negateIfNeeded(tokensRef, whereParams.GetFieldName())
 
-	whereToken := WhereToken_create(WhereOperator_STARTS_WITH, whereParams.getFieldName(), q.addQueryParameter(transformToEqualValue))
+	whereToken := WhereToken_create(WhereOperator_STARTS_WITH, whereParams.GetFieldName(), q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -513,10 +513,10 @@ func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.getFieldName(), whereParams.isNestedPath()))
-	q.negateIfNeeded(tokensRef, whereParams.getFieldName())
+	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
+	q.negateIfNeeded(tokensRef, whereParams.GetFieldName())
 
-	whereToken := WhereToken_create(WhereOperator_ENDS_WITH, whereParams.getFieldName(), q.addQueryParameter(transformToEqualValue))
+	whereToken := WhereToken_create(WhereOperator_ENDS_WITH, whereParams.GetFieldName(), q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -1271,7 +1271,7 @@ func assertValidFieldName(fieldName string) {
 
 func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
 	assertValidFieldName(fieldName)
-	if q.theSession == nil || q.theSession.getConventions() == nil || isNestedPath || q.isGroupBy {
+	if q.theSession == nil || q.theSession.GetConventions() == nil || isNestedPath || q.isGroupBy {
 		return QueryFieldUtil_escapeIfNecessary(fieldName)
 	}
 
@@ -1296,7 +1296,7 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams
 	}
 
 	var stringValueReference string
-	if q._conventions.TryConvertValueForQuery(whereParams.getFieldName(), whereParams.getValue(), forRange, &stringValueReference) {
+	if q._conventions.TryConvertValueForQuery(whereParams.GetFieldName(), whereParams.getValue(), forRange, &stringValueReference) {
 		return stringValueReference
 	}
 
@@ -1575,7 +1575,7 @@ func (q *AbstractDocumentQuery) initSync() error {
 
 	delegate := NewDocumentQueryCustomizationDelegate(q)
 	beforeQueryEventArgs := NewBeforeQueryEventArgs(q.theSession, delegate)
-	q.theSession.onBeforeQueryInvoke(beforeQueryEventArgs)
+	q.theSession.OnBeforeQueryInvoke(beforeQueryEventArgs)
 
 	q.queryOperation = q.initializeQueryOperation()
 	return q.executeActualQuery()
@@ -1585,7 +1585,7 @@ func (q *AbstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
 		command := q.queryOperation.CreateRequest()
-		err := q.theSession.getRequestExecutor().ExecuteCommandWithSessionInfo(command, q.theSession.sessionInfo)
+		err := q.theSession.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, q.theSession.sessionInfo)
 		q.queryOperation.setResult(command.Result)
 		context.Close()
 		// make sure context.Close() is executed

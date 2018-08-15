@@ -13,25 +13,25 @@ func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperati
 }
 
 func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
-	result, err := b._session.prepareForSaveChanges()
+	result, err := b._session.PrepareForSaveChanges()
 	if err != nil {
 		return nil, err
 	}
 
-	b._sessionCommandsCount = len(result.getSessionCommands())
-	result.sessionCommands = append(result.sessionCommands, result.getDeferredCommands()...)
-	if len(result.getSessionCommands()) == 0 {
+	b._sessionCommandsCount = len(result.GetSessionCommands())
+	result.sessionCommands = append(result.sessionCommands, result.GetDeferredCommands()...)
+	if len(result.GetSessionCommands()) == 0 {
 		return nil, nil
 	}
 
-	err = b._session.incrementRequestCount()
+	err = b._session.IncrementRequestCount()
 	if err != nil {
 		return nil, err
 	}
 
-	b._entities = result.getEntities()
+	b._entities = result.GetEntities()
 
-	return NewBatchCommandWithOptions(b._session.getConventions(), result.getSessionCommands(), result.GetOptions())
+	return NewBatchCommandWithOptions(b._session.GetConventions(), result.GetSessionCommands(), result.GetOptions())
 }
 
 func (b *BatchOperation) setResult(result ArrayNode) {
@@ -81,9 +81,9 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		documentInfo.setMetadataInstance(nil)
 
 		b._session.documentsById.add(documentInfo)
-		b._session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id)
+		b._session.GetGenerateEntityIdOnTheClient().trySetIdentity(entity, id)
 
 		afterSaveChangesEventArgs := NewAfterSaveChangesEventArgs(b._session, documentInfo.getId(), documentInfo.getEntity())
-		b._session.onAfterSaveChangesInvoke(afterSaveChangesEventArgs)
+		b._session.OnAfterSaveChangesInvoke(afterSaveChangesEventArgs)
 	}
 }

@@ -87,7 +87,7 @@ func (s *DocumentSession) Refresh(entity Object) error {
 	if documentInfo == nil {
 		return NewIllegalStateException("Cannot refresh a transient instance")
 	}
-	if err := s.incrementRequestCount(); err != nil {
+	if err := s.IncrementRequestCount(); err != nil {
 		return err
 	}
 
@@ -268,7 +268,7 @@ func (s *DocumentSession) DocumentQuery(clazz reflect.Type) *DocumentQuery {
 }
 
 func (s *DocumentSession) DocumentQueryAll(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
-	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.getConventions())
+	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 
 	return NewDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }

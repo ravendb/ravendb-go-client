@@ -29,14 +29,14 @@ func (q *GroupByDocumentQuery) SelectSum(field *GroupByField, fields ...*GroupBy
 		//throw new IllegalArgumentException("Field cannot be null");
 	}
 
-	q._query._groupBySum(field.getFieldName(), field.getProjectedName())
+	q._query._groupBySum(field.GetFieldName(), field.getProjectedName())
 
 	if len(fields) == 0 {
 		return q._query
 	}
 
 	for _, f := range fields {
-		q._query._groupBySum(f.getFieldName(), f.getProjectedName())
+		q._query._groupBySum(f.GetFieldName(), f.getProjectedName())
 	}
 
 	return q._query

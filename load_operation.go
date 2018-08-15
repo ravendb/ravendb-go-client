@@ -26,7 +26,7 @@ func (o *LoadOperation) CreateRequest() *GetDocumentsCommand {
 	}
 
 	// TODO: should propagate error
-	o._session.incrementRequestCount()
+	o._session.IncrementRequestCount()
 
 	return NewGetDocumentsCommand(o._idsToCheckOnServer, o._includes, false)
 }
@@ -124,7 +124,7 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		return
 	}
 
-	o._session.registerIncludes(result.GetIncludes())
+	o._session.RegisterIncludes(result.GetIncludes())
 
 	results := result.GetResults()
 	for _, document := range results {
@@ -136,5 +136,5 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		o._session.documentsById.add(newDocumentInfo)
 	}
 
-	o._session.registerMissingIncludes(result.GetResults(), result.GetIncludes(), o._includes)
+	o._session.RegisterMissingIncludes(result.GetResults(), result.GetIncludes(), o._includes)
 }

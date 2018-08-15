@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 type Family struct {
@@ -114,7 +115,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 		newSession.Close()
 	}
 
-	documentsCommand := NewGetDocumentsCommand([]string{"users/1"}, nil, false)
+	documentsCommand := ravendb.NewGetDocumentsCommand([]string{"users/1"}, nil, false)
 	err = store.GetRequestExecutor().ExecuteCommand(documentsCommand)
 	assert.NoError(t, err)
 
@@ -125,7 +126,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		users, err := newSession.Advanced().RawQuery(GetTypeOf(&User{}), "from Users where lastName = 'user1'").ToList()
+		users, err := newSession.Advanced().RawQuery(ravendb.GetTypeOf(&User{}), "from Users where lastName = 'user1'").ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -175,20 +176,20 @@ func crudTest_crudOperations(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err := newSession.Load(GetTypeOf(&User{}), "users/2")
+		tempUserI, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		tempUser := tempUserI.(*User)
 		assert.Nil(t, tempUser)
 
-		tempUserI, err = newSession.Load(GetTypeOf(&User{}), "users/3")
+		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 3)
 
-		user1I, err := newSession.Load(GetTypeOf(&User{}), "users/1")
+		user1I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
-		user4I, err := newSession.Load(GetTypeOf(&User{}), "users/4")
+		user4I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		user4 = user4I.(*User)
 
@@ -198,10 +199,10 @@ func crudTest_crudOperations(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err = newSession.Load(GetTypeOf(&User{}), "users/4")
+		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/4")
 		tempUser = tempUserI.(*User)
 		assert.Nil(t, tempUser)
-		tempUserI, err = newSession.Load(GetTypeOf(&User{}), "users/1")
+		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 10)
 		newSession.Close()
@@ -242,27 +243,27 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		assert.NoError(t, err)
 		user3.setAge(3)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 4)
 
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err := newSession.Load(GetTypeOf(&User{}), "users/2")
+		tempUserI, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		tempUser := tempUserI.(*User)
 		assert.Nil(t, tempUser)
 
-		tempUserI, err = newSession.Load(GetTypeOf(&User{}), "users/3")
+		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 3)
 
-		user1I, err := newSession.Load(GetTypeOf(&User{}), "users/1")
+		user1I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
 
-		user4I, err := newSession.Load(GetTypeOf(&User{}), "users/4")
+		user4I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		user4 = user4I.(*User)
 
@@ -271,10 +272,10 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 
 		user1.setAge(10)
 
-		if EnableFailingTests {
+		if ravendb.EnableFailingTests {
 			// TODO: this returns 3 changes, showing user/2 as added
 			// which is probably wrong. Need to figure out why.
-			changes, err := newSession.Advanced().whatChanged()
+			changes, err := newSession.Advanced().WhatChanged()
 			assert.NoError(t, err)
 			assert.Equal(t, len(changes), 2)
 		}
@@ -282,12 +283,12 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		tempUserI, err = newSession.Load(GetTypeOf(&User{}), "users/4")
+		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/4")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Nil(t, tempUser)
 
-		tempUserI, err = newSession.Load(GetTypeOf(&User{}), "users/1")
+		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
 		assert.Equal(t, tempUser.getAge(), 10)
@@ -309,11 +310,11 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.Load(GetTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(ravendb.GetTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Toli", "Mitzi", "Boki"})
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -335,15 +336,15 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.Load(GetTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(ravendb.GetTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"Hibernating Rhinos", "RavenDB"})
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 0)
 
 		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos"})
-		changes, _ = newSession.Advanced().whatChanged()
+		changes, _ = newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -366,11 +367,11 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.Load(GetTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(ravendb.GetTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"RavenDB"})
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -393,11 +394,11 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newFamilyI, err := newSession.Load(GetTypeOf(&Family{}), "family/1")
+		newFamilyI, err := newSession.Load(ravendb.GetTypeOf(&Family{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*Family)
 		newFamily.setNames([]string{"RavenDB", "Hibernating Rhinos", "Toli", "Mitzi", "Boki"})
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -420,15 +421,15 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		user2I, err := newSession.Load(GetTypeOf(&User{}), "users/1")
+		user2I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
-		whatChanged, _ := newSession.Advanced().whatChanged()
-		assert.Equal(t, len(whatChanged), 0)
+		WhatChanged, _ := newSession.Advanced().WhatChanged()
+		assert.Equal(t, len(WhatChanged), 0)
 
 		user2 := user2I.(*User)
 		user2.setAge(3)
-		whatChanged, _ = newSession.Advanced().whatChanged()
-		assert.Equal(t, len(whatChanged), 1)
+		WhatChanged, _ = newSession.Advanced().WhatChanged()
+		assert.Equal(t, len(WhatChanged), 1)
 		newSession.Close()
 	}
 }
@@ -465,12 +466,12 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		member2.setName("Hibernating Rhinos")
 		member2.setAge(8)
 
-		newFamilyI, err := newSession.Load(GetTypeOf(&FamilyMembers{}), "family/1")
+		newFamilyI, err := newSession.Load(ravendb.GetTypeOf(&FamilyMembers{}), "family/1")
 		assert.NoError(t, err)
 		newFamily := newFamilyI.(*FamilyMembers)
 		newFamily.setMembers([]*Member{member1, member2})
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		family1Changes := changes["family/1"]
@@ -480,41 +481,41 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		// of declaration in a class. In Go it's alphabetical
 		{
 			change := family1Changes[0]
-			assert.Equal(t, change.getFieldName(), "Age")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Age")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "8")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "4")
 		}
 
 		{
 			change := family1Changes[1]
-			assert.Equal(t, change.getFieldName(), "Name")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Name")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "\"Hibernating Rhinos\"")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "\"RavenDB\"")
 		}
 
 		{
 			change := family1Changes[2]
-			assert.Equal(t, change.getFieldName(), "Age")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Age")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "4")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "8")
 		}
 
 		{
 			change := family1Changes[3]
-			assert.Equal(t, change.getFieldName(), "Name")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Name")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "\"RavenDB\"")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "\"Hibernating Rhinos\"")
 		}
 
@@ -527,7 +528,7 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		member2.setAge(15)
 
 		newFamily.setMembers([]*Member{member1, member2})
-		changes, _ = newSession.Advanced().whatChanged()
+		changes, _ = newSession.Advanced().WhatChanged()
 
 		assert.Equal(t, len(changes), 1)
 
@@ -537,41 +538,41 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 		// Note: the order of fields in Go is different than in Java. In Go it's alphabetic.
 		{
 			change := family1Changes[0]
-			assert.Equal(t, change.getFieldName(), "Age")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Age")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "8")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "5")
 		}
 
 		{
 			change := family1Changes[1]
-			assert.Equal(t, change.getFieldName(), "Name")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Name")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "\"Hibernating Rhinos\"")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "\"Toli\"")
 		}
 
 		{
 			change := family1Changes[2]
-			assert.Equal(t, change.getFieldName(), "Age")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Age")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "4")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "15")
 		}
 
 		{
 			change := family1Changes[3]
-			assert.Equal(t, change.getFieldName(), "Name")
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			assert.Equal(t, change.GetFieldName(), "Name")
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "\"RavenDB\"")
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "\"Boki\"")
 		}
 		newSession.Close()
@@ -599,7 +600,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		newArrI, err := newSession.Load(GetTypeOf(&Arr2{}), "arr/1")
+		newArrI, err := newSession.Load(ravendb.GetTypeOf(&Arr2{}), "arr/1")
 		assert.NoError(t, err)
 		newArr := newArrI.(*Arr2)
 
@@ -611,37 +612,37 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 		newArr.setArr1([]*Arr1{a1, a2})
 
-		whatChanged, _ := newSession.Advanced().whatChanged()
-		assert.Equal(t, 1, len(whatChanged))
+		WhatChanged, _ := newSession.Advanced().WhatChanged()
+		assert.Equal(t, 1, len(WhatChanged))
 
-		change := whatChanged["arr/1"]
+		change := WhatChanged["arr/1"]
 		assert.Equal(t, len(change), 4)
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[0].getFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[0].GetFieldOldValue())
 			assert.Equal(t, oldValueStr, "\"a\"")
-			newValueStr := fmt.Sprintf("%#v", change[0].getFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[0].GetFieldNewValue())
 			assert.Equal(t, newValueStr, "\"d\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[1].getFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[1].GetFieldOldValue())
 			assert.Equal(t, oldValueStr, "\"b\"")
-			newValueStr := fmt.Sprintf("%#v", change[1].getFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[1].GetFieldNewValue())
 			assert.Equal(t, newValueStr, "\"c\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[2].getFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[2].GetFieldOldValue())
 			assert.Equal(t, oldValueStr, "\"c\"")
-			newValueStr := fmt.Sprintf("%#v", change[2].getFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[2].GetFieldNewValue())
 			assert.Equal(t, newValueStr, "\"a\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[3].getFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[3].GetFieldOldValue())
 			assert.Equal(t, oldValueStr, "\"d\"")
-			newValueStr := fmt.Sprintf("%#v", change[3].getFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[3].GetFieldNewValue())
 			assert.Equal(t, newValueStr, "\"b\"")
 		}
 
@@ -652,7 +653,7 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		newArrI, err := newSession.Load(GetTypeOf(&Arr2{}), "arr/1")
+		newArrI, err := newSession.Load(ravendb.GetTypeOf(&Arr2{}), "arr/1")
 		assert.NoError(t, err)
 		newArr := newArrI.(*Arr2)
 		a1 := &Arr1{}
@@ -662,23 +663,23 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 		a2.setStr([]string{"a", "b"})
 		newArr.setArr1([]*Arr1{a1, a2})
 
-		whatChanged, _ := newSession.Advanced().whatChanged()
-		assert.Equal(t, len(whatChanged), 1)
+		WhatChanged, _ := newSession.Advanced().WhatChanged()
+		assert.Equal(t, len(WhatChanged), 1)
 
-		change := whatChanged["arr/1"]
+		change := WhatChanged["arr/1"]
 		assert.Equal(t, len(change), 2)
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[0].getFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[0].GetFieldOldValue())
 			assert.Equal(t, oldValueStr, "\"d\"")
-			newValueStr := fmt.Sprintf("%#v", change[0].getFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[0].GetFieldNewValue())
 			assert.Equal(t, newValueStr, "\"q\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[1].getFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[1].GetFieldOldValue())
 			assert.Equal(t, oldValueStr, "\"c\"")
-			newValueStr := fmt.Sprintf("%#v", change[1].getFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[1].GetFieldNewValue())
 			assert.Equal(t, newValueStr, "\"w\"")
 		}
 
@@ -707,7 +708,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			userI, err := newSession.Load(GetTypeOf(&User{}), "users/1")
+			userI, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 			user := userI.(*User)
 			user.Name = nil
@@ -718,7 +719,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			userI, err := newSession.Load(GetTypeOf(&User{}), "users/1")
+			userI, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 			user := userI.(*User)
 			assert.Nil(t, user.Name)
@@ -746,7 +747,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		pocI, err := session.Load(GetTypeOf(&Poc{}), "pocs/1")
+		pocI, err := session.Load(ravendb.GetTypeOf(&Poc{}), "pocs/1")
 		assert.NoError(t, err)
 		poc := pocI.(*Poc)
 		assert.Nil(t, poc.getObj())
@@ -760,7 +761,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		pocI, err := session.Load(GetTypeOf(&Poc{}), "pocs/1")
+		pocI, err := session.Load(ravendb.GetTypeOf(&Poc{}), "pocs/1")
 		assert.NoError(t, err)
 		poc := pocI.(*Poc)
 		assert.NotNil(t, poc.getObj())

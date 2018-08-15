@@ -22,7 +22,7 @@ func (s *DocumentSessionAttachments) Exists(documentId string, name string) (boo
 
 func (s *DocumentSessionAttachments) Get(documentId string, name string) (*CloseableAttachmentResult, error) {
 	operation := NewGetAttachmentOperation(documentId, name, AttachmentType_DOCUMENT, "", nil)
-	err := s.session.getOperations().SendWithSessionInfo(operation, s.sessionInfo)
+	err := s.session.GetOperations().SendWithSessionInfo(operation, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (s *DocumentSessionAttachments) GetEntity(entity Object, name string) (*Clo
 
 func (s *DocumentSessionAttachments) GetRevision(documentId string, name string, changeVector *string) (*CloseableAttachmentResult, error) {
 	operation := NewGetAttachmentOperation(documentId, name, AttachmentType_REVISION, "", changeVector)
-	err := s.session.getOperations().SendWithSessionInfo(operation, s.sessionInfo)
+	err := s.session.GetOperations().SendWithSessionInfo(operation, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}

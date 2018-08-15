@@ -19,7 +19,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 		err = newSession.StoreWithID(basicName, "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
@@ -33,13 +33,13 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 		user := userI.(*NameAndAge)
 		user.setAge(5)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		change := changes["users/1"]
 		assert.Equal(t, len(change), 1)
 
 		{
 			change := change[0]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_NEW_FIELD)
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_NEW_FIELD)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
 		}
@@ -61,7 +61,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 		err = newSession.StoreWithID(nameAndAge, "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -74,13 +74,13 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 		_, err = newSession.Load(GetTypeOf(&BasicAge{}), "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		change := changes["users/1"]
 		assert.Equal(t, len(change), 1)
 
 		{
 			change := change[0]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
 		}
 
 		err = newSession.SaveChanges()
@@ -101,7 +101,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 		err = newSession.StoreWithID(basicAge, "users/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		err = newSession.SaveChanges()
@@ -113,18 +113,18 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		_, err = newSession.Load(GetTypeOf(&Int{}), "users/1")
 		assert.NoError(t, err)
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		change := changes["users/1"]
 		assert.Equal(t, len(change), 2)
 
 		{
 			change := change[0]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
 		}
 
 		{
 			change := change[1]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_NEW_FIELD)
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_NEW_FIELD)
 		}
 
 		err = newSession.SaveChanges()
@@ -145,7 +145,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		err = newSession.StoreWithID(arr, "users/1")
 		assert.NoError(t, err)
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 
 		change := changes["users/1"]
@@ -153,7 +153,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_DOCUMENT_ADDED)
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_DOCUMENT_ADDED)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
 		}
@@ -166,7 +166,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 			arr.setArray([]Object{"a", 2, "c"})
 
-			changes, _ := newSession.Advanced().whatChanged()
+			changes, _ := newSession.Advanced().WhatChanged()
 			assert.Equal(t, len(changes), 1)
 
 			change := changes["users/1"]
@@ -174,19 +174,19 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 			{
 				change := change[0]
-				assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
-				oldValueStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+				assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+				oldValueStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 				assert.Equal(t, oldValueStr, "1")
-				newValue := change.getFieldNewValue()
+				newValue := change.GetFieldNewValue()
 				assert.Equal(t, newValue, float64(2))
 			}
 
 			{
 				change := change[1]
-				assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
-				oldValueStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+				assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+				oldValueStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 				assert.Equal(t, oldValueStr, "\"b\"")
-				newValueStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+				newValueStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 				assert.Equal(t, newValueStr, "\"c\"")
 			}
 			newSession.Close()
@@ -219,23 +219,23 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 		arr := arrI.(*Arr)
 		arr.setArray([]Object{"a", 1, "b", "c", 2})
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 		change := changes["arr/1"]
 		assert.Equal(t, len(change), 2)
 
 		{
 			change := change[0]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
-			newValStr := fmt.Sprintf("%#v", change.getFieldNewValue())
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "\"c\"")
-			assert.Nil(t, change.getFieldOldValue())
+			assert.Nil(t, change.GetFieldOldValue())
 		}
 		{
 			change := change[1]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
-			assert.Equal(t, change.getFieldNewValue(), float64(2))
-			assert.Nil(t, change.getFieldOldValue())
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+			assert.Equal(t, change.GetFieldNewValue(), float64(2))
+			assert.Nil(t, change.GetFieldOldValue())
 		}
 		newSession.Close()
 	}
@@ -265,25 +265,25 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 		arr := arrI.(*Arr)
 		arr.setArray([]Object{"a"})
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
 		change := changes["arr/1"]
 		assert.Equal(t, len(change), 2)
 
 		{
 			change := change[0]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
-			assert.Equal(t, change.getFieldOldValue(), float64(1))
-			assert.Nil(t, change.getFieldNewValue())
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+			assert.Equal(t, change.GetFieldOldValue(), float64(1))
+			assert.Nil(t, change.GetFieldNewValue())
 		}
 
 		{
 			change := change[1]
-			assert.Equal(t, change.getChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
 
-			oldValStr := fmt.Sprintf("%#v", change.getFieldOldValue())
+			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "\"b\"")
-			assert.Nil(t, change.getFieldNewValue())
+			assert.Nil(t, change.GetFieldNewValue())
 		}
 		newSession.Close()
 	}
@@ -321,7 +321,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 		_, err = newSession.Load(GetTypeOf(&Double{}), "num/1")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 0)
 		newSession.Close()
 	}
@@ -331,7 +331,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 		_, err = newSession.Load(GetTypeOf(&Int{}), "num/2")
 		assert.NoError(t, err)
 
-		changes, _ := newSession.Advanced().whatChanged()
+		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 0)
 		newSession.Close()
 	}
@@ -364,7 +364,7 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
-		changes, _ := session.Advanced().whatChanged()
+		changes, _ := session.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 3)
 
 		err = session.SaveChanges()
@@ -381,9 +381,9 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		user1.setAge(10)
 		err = session.DeleteEntity(user2)
 
-		changes, _ = session.Advanced().whatChanged()
+		changes, _ = session.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 2)
-		changes, _ = session.Advanced().whatChanged()
+		changes, _ = session.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 2)
 		session.Close()
 	}

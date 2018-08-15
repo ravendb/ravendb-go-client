@@ -107,19 +107,19 @@ func (s *DocumentStore) RemoveBeforeQueryListener(handler func(interface{}, *Bef
 
 func (s *DocumentStore) RegisterEvents(session *InMemoryDocumentSessionOperations) {
 	for _, handler := range s.onBeforeStore {
-		session.addBeforeStoreListener(handler)
+		session.AddBeforeStoreListener(handler)
 	}
 
 	for _, handler := range s.onAfterSaveChanges {
-		session.addAfterSaveChangesListener(handler)
+		session.AddAfterSaveChangesListener(handler)
 	}
 
 	for _, handler := range s.onBeforeDelete {
-		session.addBeforeDeleteListener(handler)
+		session.AddBeforeDeleteListener(handler)
 	}
 
 	for _, handler := range s.onBeforeQuery {
-		session.addBeforeQueryListener(handler)
+		session.AddBeforeQueryListener(handler)
 	}
 }
 

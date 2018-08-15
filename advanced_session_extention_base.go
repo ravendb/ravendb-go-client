@@ -16,9 +16,9 @@ func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations)
 	return &AdvancedSessionExtentionBase{
 		session:             session,
 		documentsByEntity:   session.documentsByEntity,
-		requestExecutor:     session.getRequestExecutor(),
+		requestExecutor:     session.GetRequestExecutor(),
 		sessionInfo:         session.sessionInfo,
-		documentStore:       session.getDocumentStore(),
+		documentStore:       session.GetDocumentStore(),
 		deferredCommandsMap: session.deferredCommandsMap,
 		deletedEntities:     session.deletedEntities,
 		documentsById:       session.documentsById,

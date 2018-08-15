@@ -605,16 +605,17 @@ func createTestDriver(t *testing.T) func() {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	var pcapPath string
 
-	ravendb.HTTPLoggerWriter = nil
+	ravendb.HTTPLoggerWriter.Store(nil)
 	if ravendb.LogAllRequests {
 		var err error
 		path := httpLogPathFromTestName(t)
-		ravendb.HTTPLoggerWriter, err = os.Create(path)
+		f, err := os.Create(path)
 		if err != nil {
 			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
 		} else {
 			fmt.Printf("Logging HTTP traffic to %s\n", path)
 		}
+		ravendb.HTTPLoggerWriter.Store(io.WriteCloser(f))
 	}
 
 	ravendb.HTTPFailedRequestsLogger = nil
@@ -640,9 +641,10 @@ func createTestDriver(t *testing.T) func() {
 		}
 		deleteTestDriver()
 		maybeConvertPcapToTxt(pcapPath)
-		if ravendb.HTTPLoggerWriter != nil {
-			ravendb.HTTPLoggerWriter.Close()
-			ravendb.HTTPLoggerWriter = nil
+		w :=ravendb.HTTPLoggerWriter.Load()
+		if w != nil {
+			w.(io.WriteCloser).Close()
+			ravendb.HTTPLoggerWriter.Store(nil)
 		}
 	}
 }

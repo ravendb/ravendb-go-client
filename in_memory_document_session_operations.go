@@ -99,54 +99,51 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	}
 
 	genIDFunc := func(entity Object) string {
-		return res.generateId(entity)
+		return res.GenerateId(entity)
 	}
 	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.conventions, genIDFunc)
 	res.entityToJson = NewEntityToJson(res)
 	return res
 }
 
-func (s *InMemoryDocumentSessionOperations) getNumberOfEntitiesInUnitOfWork() int {
-	return len(s.documentsByEntity)
-}
 
-func (s *InMemoryDocumentSessionOperations) addBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
 
 }
-func (s *InMemoryDocumentSessionOperations) removeBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
 	panic("NYI")
 	//this.onBeforeStore.remove(handler);
 }
 
-func (s *InMemoryDocumentSessionOperations) addAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 }
 
-func (s *InMemoryDocumentSessionOperations) removeAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
 	panic("NYI")
 	//this.onAfterSaveChanges.remove(handler);
 }
 
-func (s *InMemoryDocumentSessionOperations) addBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 }
 
-func (s *InMemoryDocumentSessionOperations) removeBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
 	panic("NYI")
 	//this.onBeforeDelete.remove(handler);
 }
 
-func (s *InMemoryDocumentSessionOperations) addBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 }
 
-func (s *InMemoryDocumentSessionOperations) removeBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
 	panic("NYI")
 	//this.onBeforeQuery.remove(handler);
 }
 
-func (s *InMemoryDocumentSessionOperations) getGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
+func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
 	return s.generateEntityIdOnTheClient
 }
 
@@ -159,35 +156,35 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() in
 	return len(s.documentsByEntity)
 }
 
-func (s *InMemoryDocumentSessionOperations) getConventions() *DocumentConventions {
+func (s *InMemoryDocumentSessionOperations) GetConventions() *DocumentConventions {
 	return s._requestExecutor.conventions
 }
 
-func (s *InMemoryDocumentSessionOperations) getDatabaseName() string {
+func (s *InMemoryDocumentSessionOperations) GetDatabaseName() string {
 	return s.databaseName
 }
 
-func (s *InMemoryDocumentSessionOperations) generateId(entity Object) string {
-	return s.getConventions().GenerateDocumentId(s.getDatabaseName(), entity)
+func (s *InMemoryDocumentSessionOperations) GenerateId(entity Object) string {
+	return s.GetConventions().GenerateDocumentId(s.GetDatabaseName(), entity)
 }
 
-func (s *InMemoryDocumentSessionOperations) getDocumentStore() *IDocumentStore {
+func (s *InMemoryDocumentSessionOperations) GetDocumentStore() *IDocumentStore {
 	return s._documentStore
 }
 
-func (s *InMemoryDocumentSessionOperations) getRequestExecutor() *RequestExecutor {
+func (s *InMemoryDocumentSessionOperations) GetRequestExecutor() *RequestExecutor {
 	return s._requestExecutor
 }
 
-func (s *InMemoryDocumentSessionOperations) getOperations() *OperationExecutor {
+func (s *InMemoryDocumentSessionOperations) GetOperations() *OperationExecutor {
 	if s._operationExecutor == nil {
-		dbName := s.getDatabaseName()
-		s._operationExecutor = s.getDocumentStore().Operations().ForDatabase(dbName)
+		dbName := s.GetDatabaseName()
+		s._operationExecutor = s.GetDocumentStore().Operations().ForDatabase(dbName)
 	}
 	return s._operationExecutor
 }
 
-func (s *InMemoryDocumentSessionOperations) getNumberOfRequests() int {
+func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 	return s.numberOfRequests
 }
 
@@ -197,7 +194,7 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
 
-	documentInfo, err := s.getDocumentInfo(instance)
+	documentInfo, err := s.GetDocumentInfo(instance)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +215,7 @@ func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interfac
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
 
-	documentInfo, err := s.getDocumentInfo(instance)
+	documentInfo, err := s.GetDocumentInfo(instance)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +233,7 @@ func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interfac
 
 // GetDocumentInfo returns DocumentInfo for a given instance
 // Returns nil if not found
-func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}) (*DocumentInfo, error) {
+func (s *InMemoryDocumentSessionOperations) GetDocumentInfo(instance interface{}) (*DocumentInfo, error) {
 	documentInfo := s.documentsByEntity[instance]
 	if documentInfo != nil {
 		return documentInfo, nil
@@ -292,7 +289,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 }
 
 // IncrementRequetsCount increments requests count
-func (s *InMemoryDocumentSessionOperations) incrementRequestCount() error {
+func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
 		return NewIllegalStateException("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
@@ -308,7 +305,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(clazz refl
 // TrackEntity tracks entity
 func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
 	if id == "" {
-		return s.deserializeFromTransformer(entityType, "", document), nil
+		return s.DeserializeFromTransformer(entityType, "", document), nil
 	}
 
 	docInfo := s.documentsByEntity[id]
@@ -396,7 +393,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil {
 		newObj := EntityToJson_convertEntityToJson(documentInfo.getEntity(), documentInfo)
-		if documentInfo.getEntity() != nil && s.entityChanged(newObj, documentInfo, nil) {
+		if documentInfo.getEntity() != nil && s.EntityChanged(newObj, documentInfo, nil) {
 			return NewIllegalStateException("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
 
@@ -443,7 +440,7 @@ func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity Ob
 }
 
 // TODO: should this return an error?
-func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneration(entity Object) {
+func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneration(entity Object) {
 	err := NewNotImplementedException("You cannot set GenerateDocumentIdsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
 	must(err)
 }
@@ -464,7 +461,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		if s.generateDocumentKeysOnStore {
 			id = s.generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity)
 		} else {
-			s.rememberEntityForDocumentIdGeneration(entity)
+			s.RememberEntityForDocumentIdGeneration(entity)
 		}
 	} else {
 		// Store it back into the Id field so the client has access to it
@@ -501,11 +498,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		s._knownMissingIds.remove(id)
 	}
 
-	s.storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
+	s.StoreEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
 		s._knownMissingIds.remove(id)
@@ -538,17 +535,17 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Obj
 	return NewNonUniqueObjectException("Attempted to associate a different object with id '" + id + "'.")
 }
 
-func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() (*SaveChangesData, error) {
+func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*SaveChangesData, error) {
 	result := NewSaveChangesData(s)
 
 	s.deferredCommands = nil
 	s.deferredCommandsMap = make(map[IdTypeAndName]ICommandData)
 
-	err := s.prepareForEntitiesDeletion(result, nil)
+	err := s.PrepareForEntitiesDeletion(result, nil)
 	if err != nil {
 		return nil, err
 	}
-	err = s.prepareForEntitiesPuts(result)
+	err = s.PrepareForEntitiesPuts(result)
 	if err != nil {
 		return nil, err
 	}
@@ -566,7 +563,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() (*SaveChange
 	return result, nil
 }
 
-func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(documentInfo *DocumentInfo) bool {
+func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(documentInfo *DocumentInfo) bool {
 	dirty := false
 	metadataInstance := documentInfo.getMetadataInstance()
 	metadata := documentInfo.getMetadata()
@@ -592,7 +589,7 @@ func (s *InMemoryDocumentSessionOperations) updateMetadataModifications(document
 	return dirty
 }
 
-func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) error {
+func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) error {
 	for deletedEntity := range s.deletedEntities.items {
 		documentInfo := s.documentsByEntity[deletedEntity]
 		if documentInfo == nil {
@@ -609,7 +606,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			changes[documentInfo.getId()] = docChanges
 		} else {
 			idType := NewIdTypeAndName(documentInfo.getId(), CommandType_CLIENT_ANY_COMMAND, "")
-			command := result.getDeferredCommandsMap()[idType]
+			command := result.GetDeferredCommandsMap()[idType]
 			if command != nil {
 				err := s.throwInvalidDeletedDocumentWithDeferredCommand(command)
 				if err != nil {
@@ -625,7 +622,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 
 				if documentInfo.getEntity() != nil {
 					delete(s.documentsByEntity, documentInfo.getEntity())
-					result.addEntity(documentInfo.getEntity())
+					result.AddEntity(documentInfo.getEntity())
 				}
 
 				s.documentsById.remove(documentInfo.getId())
@@ -641,7 +638,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			}
 
 			cmdData := NewDeleteCommandData(documentInfo.getId(), changeVector)
-			result.addSessionCommandData(cmdData)
+			result.AddSessionCommandData(cmdData)
 		}
 
 		if len(changes) == 0 {
@@ -651,17 +648,17 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveChangesData) error {
+func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveChangesData) error {
 	for entityKey, entityValue := range s.documentsByEntity {
 		if entityValue.isIgnoreChanges() {
 			continue
 		}
 
-		dirtyMetadata := s.updateMetadataModifications(entityValue)
+		dirtyMetadata := s.UpdateMetadataModifications(entityValue)
 
 		document := EntityToJson_convertEntityToJson(entityKey, entityValue)
 
-		if !s.entityChanged(document, entityValue, nil) && !dirtyMetadata {
+		if !s.EntityChanged(document, entityValue, nil) && !dirtyMetadata {
 			continue
 		}
 
@@ -680,15 +677,15 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 				handler(s, beforeStoreEventArgs)
 			}
 			if beforeStoreEventArgs.isMetadataAccessed() {
-				s.updateMetadataModifications(entityValue)
+				s.UpdateMetadataModifications(entityValue)
 			}
-			if beforeStoreEventArgs.isMetadataAccessed() || s.entityChanged(document, entityValue, nil) {
+			if beforeStoreEventArgs.isMetadataAccessed() || s.EntityChanged(document, entityValue, nil) {
 				document = EntityToJson_convertEntityToJson(entityKey, entityValue)
 			}
 		}
 
 		entityValue.setNewDocument(false)
-		result.addEntity(entityKey)
+		result.AddEntity(entityKey)
 
 		if entityValue.getId() != "" {
 			s.documentsById.remove(entityValue.getId())
@@ -711,7 +708,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			changeVector = nil // TODO: redundant
 		}
 		cmdData := NewPutCommandDataWithJson(entityValue.getId(), changeVector, document)
-		result.addSessionCommandData(cmdData)
+		result.AddSessionCommandData(cmdData)
 	}
 	return nil
 }
@@ -726,22 +723,22 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 	return err
 }
 
-func (s *InMemoryDocumentSessionOperations) entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
+func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	return JsonOperation_entityChanged(newObj, documentInfo, changes)
 }
 
-func (s *InMemoryDocumentSessionOperations) whatChanged() (map[string][]*DocumentsChanges, error) {
+func (s *InMemoryDocumentSessionOperations) WhatChanged() (map[string][]*DocumentsChanges, error) {
 	changes := map[string][]*DocumentsChanges{}
-	err := s.prepareForEntitiesDeletion(nil, changes)
+	err := s.PrepareForEntitiesDeletion(nil, changes)
 	if err != nil {
 		return nil, err
 	}
-	s.getAllEntitiesChanges(changes)
+	s.GetAllEntitiesChanges(changes)
 	return changes, nil
 }
 
 // Gets a value indicating whether any of the entities tracked by the session has changes.
-func (s *InMemoryDocumentSessionOperations) hasChanges() bool {
+func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 	panic("NYI")
 	/*
 		for (Map.Entry<Object, DocumentInfo> entity : documentsByEntity.entrySet()) {
@@ -757,7 +754,7 @@ func (s *InMemoryDocumentSessionOperations) hasChanges() bool {
 }
 
 // Determines whether the specified entity has changed.
-func (s *InMemoryDocumentSessionOperations) hasChanged(entity Object) bool {
+func (s *InMemoryDocumentSessionOperations) HasChanged(entity Object) bool {
 	documentInfo := s.documentsByEntity[entity]
 
 	if documentInfo == nil {
@@ -765,28 +762,28 @@ func (s *InMemoryDocumentSessionOperations) hasChanged(entity Object) bool {
 	}
 
 	document := EntityToJson_convertEntityToJson(entity, documentInfo)
-	return s.entityChanged(document, documentInfo, nil)
+	return s.EntityChanged(document, documentInfo, nil)
 }
 
-func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
+func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
 	for _, docInfo := range s.documentsById.inner {
-		s.updateMetadataModifications(docInfo)
+		s.UpdateMetadataModifications(docInfo)
 		entity := docInfo.getEntity()
 		newObj := EntityToJson_convertEntityToJson(entity, docInfo)
-		s.entityChanged(newObj, docInfo, changes)
+		s.EntityChanged(newObj, docInfo, changes)
 	}
 }
 
 // Mark the entity as one that should be ignore for change tracking purposes,
 // it still takes part in the session, but is ignored for SaveChanges.
-func (s *InMemoryDocumentSessionOperations) ignoreChangesFor(entity Object) {
-	docInfo, _ := s.getDocumentInfo(entity)
+func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity Object) {
+	docInfo, _ := s.GetDocumentInfo(entity)
 	docInfo.setIgnoreChanges(true)
 }
 
 // Evicts the specified entity from the session.
 // Remove the entity from the delete queue and stops tracking changes for this entity.
-func (s *InMemoryDocumentSessionOperations) evict(entity Object) {
+func (s *InMemoryDocumentSessionOperations) Evict(entity Object) {
 	documentInfo := s.documentsByEntity[entity]
 	if documentInfo != nil {
 		delete(s.documentsByEntity, entity)
@@ -857,7 +854,7 @@ func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
 	s._knownMissingIds.remove(id)
 }
 
-func (s *InMemoryDocumentSessionOperations) registerIncludes(includes ObjectNode) {
+func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode) {
 	if includes == nil {
 		return
 	}
@@ -878,7 +875,7 @@ func (s *InMemoryDocumentSessionOperations) registerIncludes(includes ObjectNode
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results ArrayNode, includes ObjectNode, includePaths []string) {
+func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results ArrayNode, includes ObjectNode, includePaths []string) {
 	if len(includePaths) == 0 {
 		return
 	}
@@ -895,7 +892,7 @@ func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results Arra
 	*/
 }
 
-func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
+func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
 	return s.entityToJson.ConvertToEntity(clazz, id, document)
 }
 
@@ -966,13 +963,13 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 
 //TODO: protected static <T> T getOperationResult(Class<T> clazz, Object result) {
 
-func (s *InMemoryDocumentSessionOperations) onAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
+func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
 	for _, handler := range s.onAfterSaveChanges {
 		handler(s, afterSaveChangesEventArgs)
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) onBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
+func (s *InMemoryDocumentSessionOperations) OnBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
 	for _, handler := range s.onBeforeQuery {
 		handler(s, beforeQueryEventArgs)
 	}
@@ -1010,15 +1007,15 @@ func NewSaveChangesData(session *InMemoryDocumentSessionOperations) *SaveChanges
 	}
 }
 
-func (d *SaveChangesData) getDeferredCommands() []ICommandData {
+func (d *SaveChangesData) GetDeferredCommands() []ICommandData {
 	return d.deferredCommands
 }
 
-func (d *SaveChangesData) getSessionCommands() []ICommandData {
+func (d *SaveChangesData) GetSessionCommands() []ICommandData {
 	return d.sessionCommands
 }
 
-func (d *SaveChangesData) getEntities() []Object {
+func (d *SaveChangesData) GetEntities() []Object {
 	return d.entities
 }
 
@@ -1026,15 +1023,15 @@ func (d *SaveChangesData) GetOptions() *BatchOptions {
 	return d.options
 }
 
-func (d *SaveChangesData) getDeferredCommandsMap() map[IdTypeAndName]ICommandData {
+func (d *SaveChangesData) GetDeferredCommandsMap() map[IdTypeAndName]ICommandData {
 	return d.deferredCommandsMap
 }
 
-func (d *SaveChangesData) addSessionCommandData(cmd ICommandData) {
+func (d *SaveChangesData) AddSessionCommandData(cmd ICommandData) {
 	d.sessionCommands = append(d.sessionCommands, cmd)
 }
 
-func (d *SaveChangesData) addEntity(entity Object) {
+func (d *SaveChangesData) AddEntity(entity Object) {
 	d.entities = append(d.entities, entity)
 }
 

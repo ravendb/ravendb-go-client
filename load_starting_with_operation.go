@@ -25,7 +25,7 @@ func NewLoadStartingWithOperation(session *InMemoryDocumentSessionOperations) *L
 
 func (o *LoadStartingWithOperation) CreateRequest() *GetDocumentsCommand {
 	// TODO: should propagate error
-	o._session.incrementRequestCount()
+	o._session.IncrementRequestCount()
 
 	o.Command = NewGetDocumentsCommandFull(o._startWith, o._startAfter, o._matches, o._exclude, o._start, o._pageSize, false)
 	return o.Command

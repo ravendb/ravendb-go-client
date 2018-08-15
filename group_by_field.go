@@ -22,7 +22,7 @@ func NewGroupByFieldWithNameAndProjectedName(fieldName string, projectedName str
 	}
 }
 
-func (f *GroupByField) getFieldName() string {
+func (f *GroupByField) GetFieldName() string {
 	return f.fieldName
 }
 

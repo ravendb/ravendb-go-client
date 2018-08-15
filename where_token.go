@@ -191,7 +191,7 @@ func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterN
 	return token
 }
 
-func (t *WhereToken) getFieldName() string {
+func (t *WhereToken) GetFieldName() string {
 	return t.fieldName
 }
 

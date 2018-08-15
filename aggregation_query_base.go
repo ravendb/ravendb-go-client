@@ -26,12 +26,12 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 
 	q._duration = Stopwatch_createStarted()
 
-	q._session.incrementRequestCount()
-	err := q._session.getRequestExecutor().ExecuteCommand(command)
+	q._session.IncrementRequestCount()
+	err := q._session.GetRequestExecutor().ExecuteCommand(command)
 	if err != nil {
 		return nil, err
 	}
-	return q.processResults(command.Result, q._session.getConventions())
+	return q.processResults(command.Result, q._session.GetConventions())
 }
 
 /* TODO:
@@ -80,7 +80,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 func (q *AggregationQueryBase) GetCommand() *QueryCommand {
 	q._query = q.GetIndexQuery()
 
-	return NewQueryCommand(q._session.getConventions(), q._query, false, false)
+	return NewQueryCommand(q._session.GetConventions(), q._query, false, false)
 }
 
 func (q *AggregationQueryBase) String() string {

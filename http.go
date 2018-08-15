@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"sync/atomic"
 )
 
 var (
 	// HTTPLoggerWriter is where we log all http requests and responses
-	HTTPLoggerWriter io.WriteCloser
+	HTTPLoggerWriter atomic.Value // io.WriteCloser
 	// HTTPFailedRequestsLogger is where we log failed http requests.
 	// it's either os.Stdout for immediate logging or bytes.Buffer for delayed logging
 	HTTPFailedRequestsLogger io.Writer
@@ -81,10 +82,11 @@ func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Res
 }
 
 func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
-	if HTTPLoggerWriter == nil {
+
+	if HTTPLoggerWriter.Load() == nil {
 		return
 	}
-	logRequestAndResponseToWriter(HTTPLoggerWriter, req, rsp, err)
+	logRequestAndResponseToWriter(HTTPLoggerWriter.Load().(io.WriteCloser), req, rsp, err)
 }
 
 func maybeLogFailedResponse(req *http.Request, rsp *http.Response, err error) {
@@ -115,7 +117,7 @@ func addCommonHeaders(req *http.Request) {
 // to be able to print request body for failed requests, we must replace
 // body with one that captures data read from original body.
 func maybeCaptureRequestBody(req *http.Request) {
-	shouldCapture := LogFailedRequests || (HTTPLoggerWriter != nil)
+	shouldCapture := LogFailedRequests || (HTTPLoggerWriter.Load() != nil)
 	if !shouldCapture {
 		return
 	}

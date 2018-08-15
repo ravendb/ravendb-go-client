@@ -31,11 +31,11 @@ func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName str
 }
 
 func (o *QueryOperation) CreateRequest() *QueryCommand {
-	o._session.incrementRequestCount()
+	o._session.IncrementRequestCount()
 
 	//o.logQuery();
 
-	return NewQueryCommand(o._session.getConventions(), o._indexQuery, o._metadataOnly, o._indexEntriesOnly)
+	return NewQueryCommand(o._session.GetConventions(), o._indexQuery, o._metadataOnly, o._indexEntriesOnly)
 }
 
 func (o *QueryOperation) getCurrentQueryResults() *QueryResult {
@@ -47,7 +47,7 @@ func (o *QueryOperation) setResult(queryResult *QueryResult) {
 }
 
 func (o *QueryOperation) assertPageSizeSet() {
-	if !o._session.getConventions().IsThrowIfQueryPageSizeIsNotSet() {
+	if !o._session.GetConventions().IsThrowIfQueryPageSizeIsNotSet() {
 		return
 	}
 
@@ -81,14 +81,14 @@ func (o *QueryOperation) enterQueryContext() CleanCloseable {
 		return res
 	}
 
-	return o._session.getDocumentStore().DisableAggressiveCachingWithDatabase(o._session.getDatabaseName())
+	return o._session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o._session.GetDatabaseName())
 }
 
 func (o *QueryOperation) complete(clazz reflect.Type) ([]interface{}, error) {
 	queryResult := o._currentQueryResults.createSnapshot()
 
 	if !o._disableEntitiesTracking {
-		o._session.registerIncludes(queryResult.getIncludes())
+		o._session.RegisterIncludes(queryResult.getIncludes())
 	}
 
 	var list []interface{}
@@ -108,7 +108,7 @@ func (o *QueryOperation) complete(clazz reflect.Type) ([]interface{}, error) {
 	}
 
 	if !o._disableEntitiesTracking {
-		o._session.registerMissingIncludes(queryResult.getResults(), queryResult.getIncludes(), queryResult.getIncludedPaths())
+		o._session.RegisterMissingIncludes(queryResult.getResults(), queryResult.getIncludes(), queryResult.getIncludedPaths())
 	}
 
 	return list, nil
@@ -137,7 +137,7 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 			projectField := fieldsToFetch.projections[0]
 			jsonNode, ok := document[projectField]
 			if ok && jsonIsValueNode(jsonNode) {
-				res, err := session.getConventions().DeserializeEntityFromJson(clazz, jsonNode)
+				res, err := session.GetConventions().DeserializeEntityFromJson(clazz, jsonNode)
 				if err != nil {
 					return nil, err
 				}
@@ -171,10 +171,10 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 		// we need to make an additional check, since it is possible that a value was explicitly stated
 		// for the identity property, in which case we don't want to override it.
 
-		identityProperty := session.getConventions().GetIdentityProperty(clazz)
+		identityProperty := session.GetConventions().GetIdentityProperty(clazz)
 		if identityProperty != "" {
 			if _, ok := document[identityProperty]; !ok {
-				session.getGenerateEntityIdOnTheClient().trySetIdentity(result, id)
+				session.GetGenerateEntityIdOnTheClient().trySetIdentity(result, id)
 			}
 		}
 	}

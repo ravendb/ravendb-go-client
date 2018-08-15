@@ -16,7 +16,7 @@ func NewWhereParams() *WhereParams {
 	}
 }
 
-func (p *WhereParams) getFieldName() string {
+func (p *WhereParams) GetFieldName() string {
 	return p.fieldName
 }
 

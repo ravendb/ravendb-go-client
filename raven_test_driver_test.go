@@ -583,16 +583,17 @@ func createTestDriver(t *testing.T) func() {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	var pcapPath string
 
-	HTTPLoggerWriter = nil
+	HTTPLoggerWriter.Store(nil)
 	if LogAllRequests {
 		var err error
 		path := httpLogPathFromTestName(t)
-		HTTPLoggerWriter, err = os.Create(path)
+		f, err := os.Create(path)
 		if err != nil {
 			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
 		} else {
 			fmt.Printf("Logging HTTP traffic to %s\n", path)
 		}
+		HTTPLoggerWriter.Store(io.WriteCloser(f))
 	}
 
 	HTTPFailedRequestsLogger = nil
@@ -618,9 +619,10 @@ func createTestDriver(t *testing.T) func() {
 		}
 		deleteTestDriver()
 		maybeConvertPcapToTxt(pcapPath)
-		if HTTPLoggerWriter != nil {
-			HTTPLoggerWriter.Close()
-			HTTPLoggerWriter = nil
+		w := HTTPLoggerWriter.Load()
+		if w != nil {
+			w.(io.WriteCloser).Close()
+			HTTPLoggerWriter.Store(nil)
 		}
 	}
 }
