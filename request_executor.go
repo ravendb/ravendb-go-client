@@ -140,11 +140,11 @@ func getGlobalHTTPClientNoKeepAlive() *http.Client {
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
-			DisableKeepAlives: true,
+			DisableKeepAlives:     true,
 		}
 
 		client := &http.Client{
-			Timeout: time.Second * 15,
+			Timeout:   time.Second * 15,
 			Transport: tr,
 		}
 		globalHTTPClient = client
@@ -914,9 +914,6 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		err = RequestExecutor_handleConflict(response)
 		break
 	default:
-		if gLogHTTP {
-			dumpRequestAndResponse(request, response, err)
-		}
 		command.GetBase().OnResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)
 		break

@@ -8,16 +8,17 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 )
 
 var (
-	// if true, prints requests and their responses to stdout
-	gLogHTTP = false
-	// if not nil, we write all http requests and responses here
-	gHTTPLogger io.WriteCloser
-	// numbering of requests helps match http traffic from java client with go client
-	gHTTPRequestCount AtomicInteger
+	// HTTPLoggerWriter is where we log all http requests and responses
+	HTTPLoggerWriter io.WriteCloser
+	// HTTPFailedRequestsLogger is where we log failed http requests.
+	// it's either os.Stdout for immediate logging or bytes.Buffer for delayed logging
+	HTTPFailedRequestsLogger io.Writer
+	// HTTPRequestCount numbers http requests which helps to match http
+	// traffic from java client with go client
+	HTTPRequestCount AtomicInteger
 )
 
 // retruns copy of resp.Body but also makes it available for subsequent reads
@@ -33,8 +34,8 @@ func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 	return d, nil
 }
 
-func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Response, reqErr error) {
-	n := gHTTPRequestCount.Get()
+func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Response, reqErr error) {
+	n := HTTPRequestCount.Get()
 
 	fmt.Fprintf(w, "=========== %d:\n", n)
 	if reqErr != nil {
@@ -80,17 +81,13 @@ func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Re
 }
 
 func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
-	if gHTTPLogger == nil {
+	if HTTPLoggerWriter == nil {
 		return
 	}
-	dumpRequestAndResponseToWriter(gHTTPLogger, req, rsp, err)
+	logRequestAndResponseToWriter(HTTPLoggerWriter, req, rsp, err)
 }
 
-func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
-	dumpRequestAndResponseToWriter(os.Stdout, req, rsp, err)
-}
-
-func maybeDumpFailedResponse(req *http.Request, rsp *http.Response, err error) {
+func maybeLogFailedResponse(req *http.Request, rsp *http.Response, err error) {
 	if !LogFailedRequests {
 		return
 	}
@@ -98,7 +95,7 @@ func maybeDumpFailedResponse(req *http.Request, rsp *http.Response, err error) {
 		// not failed
 		return
 	}
-	dumpRequestAndResponse(req, rsp, err)
+	logRequestAndResponseToWriter(HTTPFailedRequestsLogger, req, rsp, err)
 }
 
 func urlEncode(s string) string {
@@ -118,7 +115,7 @@ func addCommonHeaders(req *http.Request) {
 // to be able to print request body for failed requests, we must replace
 // body with one that captures data read from original body.
 func maybeCaptureRequestBody(req *http.Request) {
-	shouldCapture := LogFailedRequests || gLogHTTP || (gHTTPLogger != nil)
+	shouldCapture := LogFailedRequests || (HTTPLoggerWriter != nil)
 	if !shouldCapture {
 		return
 	}

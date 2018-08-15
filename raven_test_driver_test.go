@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -561,6 +562,14 @@ func detectServerPath() {
 	fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
 }
 
+func maybePrintFailedRequestsLog() {
+	if LogFailedRequests && LogFailedRequestsDelayed {
+		buf := HTTPFailedRequestsLogger.(*bytes.Buffer)
+		os.Stdout.Write(buf.Bytes())
+		buf.Reset()
+	}
+}
+
 // returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
@@ -574,14 +583,24 @@ func createTestDriver(t *testing.T) func() {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	var pcapPath string
 
+	HTTPLoggerWriter = nil
 	if LogAllRequests {
 		var err error
 		path := httpLogPathFromTestName(t)
-		gHTTPLogger, err = os.Create(path)
+		HTTPLoggerWriter, err = os.Create(path)
 		if err != nil {
 			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
 		} else {
 			fmt.Printf("Logging HTTP traffic to %s\n", path)
+		}
+	}
+
+	HTTPFailedRequestsLogger = nil
+	if LogFailedRequests {
+		if LogFailedRequestsDelayed {
+			HTTPFailedRequestsLogger = bytes.NewBuffer(nil)
+		} else {
+			HTTPFailedRequestsLogger = os.Stdout
 		}
 	}
 
@@ -594,11 +613,14 @@ func createTestDriver(t *testing.T) func() {
 	}
 
 	return func() {
+		if t.Failed() {
+			maybePrintFailedRequestsLog()
+		}
 		deleteTestDriver()
 		maybeConvertPcapToTxt(pcapPath)
-		if gHTTPLogger != nil {
-			gHTTPLogger.Close()
-			gHTTPLogger = nil
+		if HTTPLoggerWriter != nil {
+			HTTPLoggerWriter.Close()
+			HTTPLoggerWriter = nil
 		}
 	}
 }

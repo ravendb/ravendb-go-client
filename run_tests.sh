@@ -21,6 +21,7 @@ export VERBOSE_LOG=true
 export LOG_FAILED_HTTP_REQUESTS=true
 #export PCAP_CAPTURE=true
 export LOG_ALL_REQUESTS=true
+export LOG_FAILED_HTTP_REQUESTS_DELAYED=true
 #export ENABLE_FAILING_TESTS=true
 #export ENABLE_FLAKY_TESTS=true
 

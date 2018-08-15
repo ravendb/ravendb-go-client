@@ -96,9 +96,9 @@ func throwInvalidResponse() error {
 }
 
 func (c *RavenCommandBase) Send(client *http.Client, req *http.Request) (*http.Response, error) {
-	gHTTPRequestCount.IncrementAndGet()
+	HTTPRequestCount.IncrementAndGet()
 	rsp, err := client.Do(req)
-	maybeDumpFailedResponse(req, rsp, err)
+	maybeLogFailedResponse(req, rsp, err)
 	maybeLogHTTPRequest(req, rsp, err)
 	return rsp, err
 }

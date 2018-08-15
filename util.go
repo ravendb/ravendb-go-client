@@ -33,6 +33,11 @@ var (
 	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS env variable to "true"
 	LogFailedRequests = false
 
+	// if true, printing of failed reqeusts is delayed until PrintFailedRequests
+	// is called.
+	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS_DELAYED env variable to "true"
+	LogFailedRequestsDelayed = false
+
 	// if true, logs all http requests/responses to a file for further inspection
 	// this is for use in tests so the file has a fixed location:
 	// logs/trace_${test_name}_go.txt
@@ -71,6 +76,11 @@ func SetStateFromEnv() {
 	if !LogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
 		LogFailedRequests = true
 		fmt.Printf("Setting LogFailedRequests to true\n")
+	}
+
+	if !LogFailedRequestsDelayed && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS_DELAYED") {
+		LogFailedRequestsDelayed = true
+		fmt.Printf("Setting LogFailedRequestsDelayed to true\n")
 	}
 
 	if !LogAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
