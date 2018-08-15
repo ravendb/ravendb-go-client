@@ -79,7 +79,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 		builder := func(f IFacetBuilder) {
 			f.byField("region").maxOn("total").minOn("total")
 		}
-		q2 := q.aggregateBy(builder)
+		q2 := q.AggregateBy(builder)
 		result, err := q2.execute()
 		assert.NoError(t, err)
 
@@ -163,7 +163,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 		builder := func(f IFacetBuilder) {
 			f.byField("product").sumOn("total")
 		}
-		q2 := q.aggregateBy(builder)
+		q2 := q.AggregateBy(builder)
 		builder2 := func(f IFacetBuilder) {
 			f.byField("currency").sumOn("total")
 		}
@@ -247,7 +247,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 		builder := func(f IFacetBuilder) {
 			f.byField("product").maxOn("total").minOn("total")
 		}
-		q2 := q.aggregateBy(builder)
+		q2 := q.AggregateBy(builder)
 		r, err := q2.execute()
 		assert.NoError(t, err)
 
@@ -318,7 +318,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 		builder := func(f IFacetBuilder) {
 			f.byField("product").withDisplayName("productMax").maxOn("total")
 		}
-		q2 := q.aggregateBy(builder)
+		q2 := q.AggregateBy(builder)
 		builder2 := func(f IFacetBuilder) {
 			f.byField("product").withDisplayName("productMin")
 		}
@@ -387,7 +387,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 			f.byField("product").sumOn("total")
 		}
 
-		q2 := q.aggregateBy(builder)
+		q2 := q.AggregateBy(builder)
 		builder2 := func(f IFacetBuilder) {
 			fop := f.byRanges(
 				_range.isLessThan(100),
@@ -487,14 +487,14 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 	{
 		session := openSessionMust(t, store)
 		q := session.QueryInIndex(GetTypeOf(&ItemsOrder{}), index)
-		q = q.whereGreaterThanOrEqual("at", end0)
+		q = q.WhereGreaterThanOrEqual("at", end0)
 		fn := func(f IFacetBuilder) {
 			r1 := builder.isGreaterThanOrEqualTo(minValue)              // all - 4
 			r2 := builder.isGreaterThanOrEqualTo(end0).isLessThan(end1) // 0
 			r3 := builder.isGreaterThanOrEqualTo(end1).isLessThan(end2) // 1
 			f.byRanges(r1, r2, r3)
 		}
-		q2 := q.aggregateBy(fn)
+		q2 := q.AggregateBy(fn)
 		r, err := q2.execute()
 		assert.NoError(t, err)
 

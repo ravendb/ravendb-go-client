@@ -134,8 +134,8 @@ func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQu
 			return res
 		}
 
-		q = q.spatial3("coordinates", fn)
-		q = q.orderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
+		q = q.Spatial3("coordinates", fn)
+		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
 		shops, err := q.toList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
@@ -167,7 +167,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
-		q = q.orderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
+		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
 
 		shops, err := q.toList()
 		assert.NoError(t, err)
@@ -190,7 +190,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 		session := openSessionMust(t, store)
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
-		q = q.orderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
+		q = q.OrderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
 		shops, err := q.toList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
@@ -211,7 +211,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
-		q = q.orderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
+		q = q.OrderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.toList()
 
 		assert.NoError(t, err)
@@ -251,7 +251,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
-		q = q.orderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
+		q = q.OrderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.toList()
 
 		assert.NoError(t, err)

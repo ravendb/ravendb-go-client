@@ -98,7 +98,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 
 		// Wait until the index is built
 		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.waitForNonStaleResults(0)
+		q = q.WaitForNonStaleResults(0)
 		_, err := q.toList()
 		assert.NoError(t, err)
 
@@ -107,8 +107,8 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		radius := float64(5.0)
 
 		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.withinRadiusOf("coordinates", radius, lat, lng)
-		q = q.waitForNonStaleResults(0)
+		q = q.WithinRadiusOf("coordinates", radius, lat, lng)
+		q = q.WaitForNonStaleResults(0)
 		nearbyDocs, err := q.toList()
 		assert.NoError(t, err)
 
@@ -148,7 +148,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 
 		// Wait until the index is built
 		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.waitForNonStaleResults(0)
+		q = q.WaitForNonStaleResults(0)
 		_, err = q.toList()
 		assert.NoError(t, err)
 
@@ -158,8 +158,8 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// We should find both my house and the gym.
 
 		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.withinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_MILES)
-		q = q.waitForNonStaleResults(0)
+		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_MILES)
+		q = q.WaitForNonStaleResults(0)
 		matchesWithinMiles, err := q.toList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinMiles), 2)
@@ -168,8 +168,8 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// We should find only my house, since the gym is ~11 kilometers out.
 
 		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.withinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_KILOMETERS)
-		q = q.waitForNonStaleResults(0)
+		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_KILOMETERS)
+		q = q.WaitForNonStaleResults(0)
 		matchesWithinKilometers, err := q.toList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinKilometers), 1)
