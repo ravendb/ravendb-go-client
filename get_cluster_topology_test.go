@@ -12,7 +12,7 @@ func getClusterTopologyTest_canGetTopology(t *testing.T) {
 	defer store.Close()
 
 	command := NewGetClusterTopologyCommand()
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)

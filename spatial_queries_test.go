@@ -22,7 +22,7 @@ func spatialQueries_canRunSpatialQueriesInMemory(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = NewSpatialQueriesInMemoryTestIdx().execute(store)
+	err = NewSpatialQueriesInMemoryTestIdx().Execute(store)
 	assert.NoError(t, err)
 }
 

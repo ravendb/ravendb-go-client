@@ -15,7 +15,7 @@ func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *ID
 
 	// For old servers that don't have the new endpoint for executing multiple indexes
 	for _, index := range indexes {
-		err = index.execute2(store, conventions, "")
+		err = index.Execute2(store, conventions, "")
 		if err != nil {
 			return err
 		}
@@ -26,10 +26,10 @@ func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *ID
 func IndexCreation_createIndexesToAdd(indexCreationTasks []*AbstractIndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
 	var res []*IndexDefinition
 	for _, x := range indexCreationTasks {
-		x.setConventions(conventions)
-		definition := x.createIndexDefinition()
-		definition.SetName(x.getIndexName())
-		pri := x.getPriority()
+		x.SetConventions(conventions)
+		definition := x.CreateIndexDefinition()
+		definition.SetName(x.GetIndexName())
+		pri := x.GetPriority()
 		if pri == "" {
 			pri = IndexPriority_NORMAL
 		}

@@ -1,14 +1,14 @@
 package ravendb
 
 type IFacetOperations interface {
-	withDisplayName(displayName string) IFacetOperations
+	WithDisplayName(displayName string) IFacetOperations
 
-	withOptions(options *FacetOptions) IFacetOperations
+	WithOptions(options *FacetOptions) IFacetOperations
 
-	sumOn(path string) IFacetOperations
-	minOn(path string) IFacetOperations
-	maxOn(path string) IFacetOperations
-	averageOn(path string) IFacetOperations
+	SumOn(path string) IFacetOperations
+	MinOn(path string) IFacetOperations
+	MaxOn(path string) IFacetOperations
+	AverageOn(path string) IFacetOperations
 
 	//TBD expr overloads with expression
 }

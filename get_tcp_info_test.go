@@ -11,7 +11,7 @@ func getTcpInfoTest_canGetTcpInfo(t *testing.T) {
 	defer store.Close()
 
 	command := NewGetTcpInfoCommand("test")
-	err := store.GetRequestExecutor().executeCommand(command)
+	err := store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)

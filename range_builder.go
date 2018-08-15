@@ -22,64 +22,64 @@ func RangeBuilder_forPath(path string) *RangeBuilder {
 	return NewRangeBuilder(path)
 }
 
-func (b *RangeBuilder) createClone() *RangeBuilder {
+func (b *RangeBuilder) CreateClone() *RangeBuilder {
 	builder := *b
 	return &builder
 }
 
-func (b *RangeBuilder) isLessThan(value interface{}) *RangeBuilder {
+func (b *RangeBuilder) IsLessThan(value interface{}) *RangeBuilder {
 	if b.lessSet {
 		//throw new IllegalStateException("Less bound was already set")
 		panic("Less bound was already set")
 	}
 
-	clone := b.createClone()
+	clone := b.CreateClone()
 	clone.lessBound = value
 	clone.lessInclusive = false
 	clone.lessSet = true
 	return clone
 }
 
-func (b *RangeBuilder) isLessThanOrEqualTo(value interface{}) *RangeBuilder {
+func (b *RangeBuilder) IsLessThanOrEqualTo(value interface{}) *RangeBuilder {
 	if b.lessSet {
 		//throw new IllegalStateException("Less bound was already set")
 		panic("Less bound was already set")
 	}
 
-	clone := b.createClone()
+	clone := b.CreateClone()
 	clone.lessBound = value
 	clone.lessInclusive = true
 	clone.lessSet = true
 	return clone
 }
 
-func (b *RangeBuilder) isGreaterThan(value interface{}) *RangeBuilder {
+func (b *RangeBuilder) IsGreaterThan(value interface{}) *RangeBuilder {
 	if b.greaterSet {
 		//throw new IllegalStateException("Greater bound was already set")
 		panic("Greater bound was already set")
 	}
 
-	clone := b.createClone()
+	clone := b.CreateClone()
 	clone.greaterBound = value
 	clone.greaterInclusive = false
 	clone.greaterSet = true
 	return clone
 }
 
-func (b *RangeBuilder) isGreaterThanOrEqualTo(value interface{}) *RangeBuilder {
+func (b *RangeBuilder) IsGreaterThanOrEqualTo(value interface{}) *RangeBuilder {
 	if b.greaterSet {
 		//throw new IllegalStateException("Greater bound was already set")
 		panic("Greater bound was already set")
 	}
 
-	clone := b.createClone()
+	clone := b.CreateClone()
 	clone.greaterBound = value
 	clone.greaterInclusive = true
 	clone.greaterSet = true
 	return clone
 }
 
-func (b *RangeBuilder) getStringRepresentation(addQueryParameter func(Object) string) string {
+func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(Object) string) string {
 	var less string
 	var greater string
 

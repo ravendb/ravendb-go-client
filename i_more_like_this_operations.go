@@ -1,5 +1,5 @@
 package ravendb
 
 type IMoreLikeThisOperations interface {
-	withOptions(options *MoreLikeThisOptions) IMoreLikeThisOperations
+	WithOptions(options *MoreLikeThisOptions) IMoreLikeThisOperations
 }

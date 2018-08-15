@@ -15,7 +15,7 @@ func NewGenericRangeFacet(parent FacetBase) *GenericRangeFacet {
 }
 
 func GenericRangeFacet_parse(rangeBuilder *RangeBuilder, addQueryParameter func(Object) string) string {
-	return rangeBuilder.getStringRepresentation(addQueryParameter)
+	return rangeBuilder.GetStringRepresentation(addQueryParameter)
 }
 
 func (f *GenericRangeFacet) getRanges() []*RangeBuilder {

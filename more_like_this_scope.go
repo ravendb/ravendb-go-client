@@ -20,7 +20,7 @@ func (s *MoreLikeThisScope) Close() {
 	}
 }
 
-func (s *MoreLikeThisScope) withOptions(options *MoreLikeThisOptions) {
+func (s *MoreLikeThisScope) WithOptions(options *MoreLikeThisOptions) {
 	if options == nil {
 		return
 	}

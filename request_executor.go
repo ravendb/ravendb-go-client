@@ -318,7 +318,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 		if err != nil {
 			return
 		}
-		err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, nil)
+		err = re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, nil)
 		if err != nil {
 			return
 		}
@@ -371,7 +371,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		}
 
 		command := NewGetClusterTopologyCommand()
-		err = re.execute(node, -1, command, false, nil)
+		err = re.Execute(node, -1, command, false, nil)
 		if err != nil {
 			return
 		}
@@ -430,7 +430,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		re._updateDatabaseTopologySemaphore.acquire()
 		defer re._updateDatabaseTopologySemaphore.release()
 		command := NewGetDatabaseTopologyCommand()
-		err = re.execute(node, 0, command, false, nil)
+		err = re.Execute(node, 0, command, false, nil)
 		if err != nil {
 			return
 		}
@@ -465,19 +465,19 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 }
 
 // execute(command) in java
-func (re *RequestExecutor) executeCommand(command RavenCommand) error {
-	return re.executeCommandWithSessionInfo(command, nil)
+func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
+	return re.ExecuteCommandWithSessionInfo(command, nil)
 }
 
 // execute(command, session) in java
-func (re *RequestExecutor) executeCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
+func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
 	if (topologyUpdate != nil && topologyUpdate.isDone()) || re._disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return err
 		}
-		return re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
+		return re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
 	} else {
 		return re.unlikelyExecute(command, topologyUpdate, sessionInfo)
 	}
@@ -541,7 +541,7 @@ func (re *RequestExecutor) unlikelyExecute(command RavenCommand, topologyUpdate 
 	if err != nil {
 		return err
 	}
-	err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
+	err = re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, true, sessionInfo)
 	return err
 }
 
@@ -683,8 +683,8 @@ func isNetworkTimeoutError(err error) bool {
 	return false
 }
 
-func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
-	//fmt.Printf("RequestExecutor.execute cmd: %#v\n", command)
+func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
+	//fmt.Printf("RequestExecutor.Execute cmd: %#v\n", command)
 	request, err := re.CreateRequest(chosenNode, command)
 	if err != nil {
 		return err
@@ -904,7 +904,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		if err != nil {
 			return false, err
 		}
-		err = re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
+		err = re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
 		return false, err
 	case http.StatusGatewayTimeout, http.StatusRequestTimeout,
 		http.StatusBadGateway, http.StatusServiceUnavailable:
@@ -960,7 +960,7 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 	}
 
 	// TODO: propagate error?
-	re.execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
+	re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
 
 	return true
 }
@@ -1013,7 +1013,7 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 func (re *RequestExecutor) clusterPerformHealthCheck(serverNode *ServerNode, nodeIndex int) error {
 	panicIf(!re.isCluster, "clusterPerformHealthCheck() called on non-cluster RequestExector")
 	command := NewGetTcpInfoCommand("health-check")
-	return re.execute(serverNode, nodeIndex, command, false, nil)
+	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 
 func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex int) error {
@@ -1022,7 +1022,7 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 		return re.clusterPerformHealthCheck(serverNode, nodeIndex)
 	}
 	command := RequestExecutor_failureCheckOperation.getCommand(re.conventions)
-	return re.execute(serverNode, nodeIndex, command, false, nil)
+	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 
 // TODO: this is static

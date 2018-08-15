@@ -25,7 +25,7 @@ func (r *DocumentSessionRevisions) getForPaged(clazz reflect.Type, id string, st
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
 
 	command := operation.CreateRequest()
-	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
+	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (r *DocumentSessionRevisions) getMetadataForStartAt(id string, start int) (
 func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
 	command := operation.CreateRequest()
-	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
+	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (r *DocumentSessionRevisions) getMetadataForPaged(id string, start int, pag
 func (r *DocumentSessionRevisions) get(clazz reflect.Type, changeVector string) (interface{}, error) {
 	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)
 	command := operation.CreateRequest()
-	err := r.requestExecutor.executeCommandWithSessionInfo(command, r.sessionInfo)
+	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
 	}

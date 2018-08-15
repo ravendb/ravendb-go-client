@@ -80,7 +80,7 @@ func basicDocuments_get(t *testing.T) {
 	}
 	requestExecutor := store.GetRequestExecutor()
 	getDocumentsCommand := NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
-	err = requestExecutor.executeCommand(getDocumentsCommand)
+	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	assert.NoError(t, err)
 	docs := getDocumentsCommand.Result
 	assert.Equal(t, len(docs.getResults()), 2)
@@ -110,7 +110,7 @@ func basicDocuments_get(t *testing.T) {
 		session.Close()
 	}
 	getDocumentsCommand = NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
-	err = requestExecutor.executeCommand(getDocumentsCommand)
+	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	docs = getDocumentsCommand.Result
 	assert.Equal(t, len(docs.getResults()), 2)
 	doc1 = docs.getResults()[0]

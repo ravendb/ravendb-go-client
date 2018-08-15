@@ -16,7 +16,7 @@ func NewSpatialIdx() *AbstractIndexCreationTask {
 		"    coordinates = this.CreateSpatialField(((double ? ) e.latitude), ((double ? ) e.longitude))\n" +
 		"})"
 
-	res.index("venue", FieldIndexing_SEARCH)
+	res.Index("venue", FieldIndexing_SEARCH)
 	return res
 }
 
@@ -25,7 +25,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = NewSpatialIdx().execute(store)
+	err = NewSpatialIdx().Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -75,7 +75,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 	defer store.Close()
 
 	index := NewSpatialIdx()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -104,7 +104,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 	defer store.Close()
 
 	index := NewSpatialIdx()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -164,7 +164,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	defer store.Close()
 
 	index := NewSpatialIdx()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{

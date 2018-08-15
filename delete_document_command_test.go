@@ -22,7 +22,7 @@ func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 		session.Close()
 	}
 	command := NewDeleteDocumentCommand("users/1", nil)
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	{
 		session := openSessionMust(t, store)
@@ -66,7 +66,7 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 	}
 
 	command := NewDeleteDocumentCommand("users/1", changeVector)
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.Error(t, err)
 	_ = err.(*ConcurrencyException)
 }

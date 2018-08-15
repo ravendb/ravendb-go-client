@@ -42,7 +42,7 @@ func (e *OperationExecutor) Send(operation IOperation) error {
 // command and its result
 func (e *OperationExecutor) SendWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) error {
 	command := operation.getCommand(e.store, e.requestExecutor.getConventions(), e.requestExecutor.getCache())
-	return e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
+	return e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
 }
 
 func (e *OperationExecutor) SendAsync(operation IOperation) (*Operation, error) {
@@ -52,7 +52,7 @@ func (e *OperationExecutor) SendAsync(operation IOperation) (*Operation, error) 
 func (e *OperationExecutor) SendAsyncWithSessionInfo(operation IOperation, sessionInfo *SessionInfo) (*Operation, error) {
 	command := operation.getCommand(e.store, e.requestExecutor.getConventions(), e.requestExecutor.getCache())
 
-	err := e.requestExecutor.executeCommandWithSessionInfo(command, sessionInfo)
+	err := e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
 	if err != nil {
 		return nil, err
 	}

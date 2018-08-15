@@ -34,7 +34,7 @@ func (b *MoreLikeThisBuilder) usingDocumentWithBuilder(builder func(*IFilterDocu
 	return b
 }
 
-func (b *MoreLikeThisBuilder) withOptions(options *MoreLikeThisOptions) IMoreLikeThisOperations {
+func (b *MoreLikeThisBuilder) WithOptions(options *MoreLikeThisOptions) IMoreLikeThisOperations {
 	b.moreLikeThis.setOptions(options)
 
 	return b

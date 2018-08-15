@@ -45,7 +45,7 @@ func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) err
 		return err
 	}
 	command := operation.getCommand(e.requestExecutor.getConventions())
-	err = e.requestExecutor.executeCommand(command)
+	err = e.requestExecutor.ExecuteCommand(command)
 	return err
 }
 

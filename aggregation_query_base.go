@@ -21,13 +21,13 @@ func NewAggregationDocumentQuery(source *DocumentQuery) *AggregationDocumentQuer
 	return NewAggregationQueryBase(source)
 }
 
-func (q *AggregationQueryBase) execute() (map[string]*FacetResult, error) {
-	command := q.getCommand()
+func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
+	command := q.GetCommand()
 
 	q._duration = Stopwatch_createStarted()
 
 	q._session.incrementRequestCount()
-	err := q._session.getRequestExecutor().executeCommand(command)
+	err := q._session.getRequestExecutor().ExecuteCommand(command)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 			return nil, err
 		}
 		facetResult := res.(*FacetResult)
-		results[facetResult.getName()] = facetResult
+		results[facetResult.GetName()] = facetResult
 	}
 
 	err := QueryOperation_ensureIsAcceptable(queryResult, q._query.isWaitForNonStaleResults(), q._duration, q._session)
@@ -77,30 +77,30 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 	return results, nil
 }
 
-func (q *AggregationQueryBase) getCommand() *QueryCommand {
-	q._query = q.getIndexQuery()
+func (q *AggregationQueryBase) GetCommand() *QueryCommand {
+	q._query = q.GetIndexQuery()
 
 	return NewQueryCommand(q._session.getConventions(), q._query, false, false)
 }
 
 func (q *AggregationQueryBase) String() string {
-	return q.getIndexQuery().String()
+	return q.GetIndexQuery().String()
 }
 
 // from AggregationDocumentQuery
-func (q *AggregationDocumentQuery) andAggregateBy(builder func(IFacetBuilder)) *IAggregationDocumentQuery {
+func (q *AggregationDocumentQuery) AndAggregateBy(builder func(IFacetBuilder)) *IAggregationDocumentQuery {
 	f := NewFacetBuilder()
 	builder(f)
 
-	return q.andAggregateByFacet(f.getFacet())
+	return q.AndAggregateByFacet(f.getFacet())
 }
 
-func (q *AggregationDocumentQuery) andAggregateByFacet(facet FacetBase) *IAggregationDocumentQuery {
+func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) *IAggregationDocumentQuery {
 	q._source._aggregateBy(facet)
 	return q
 }
 
-func (q *AggregationDocumentQuery) getIndexQuery() *IndexQuery {
+func (q *AggregationDocumentQuery) GetIndexQuery() *IndexQuery {
 	return q._source.GetIndexQuery()
 }
 

@@ -124,7 +124,7 @@ func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) err
 
 func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedException {
 	stateRequest := NewGetOperationStateCommand(o._requestExecutor.getConventions(), o._operationId)
-	err := o._requestExecutor.executeCommand(stateRequest)
+	err := o._requestExecutor.ExecuteCommand(stateRequest)
 	if err != nil {
 		return nil // TODO: return an error?
 	}
@@ -147,7 +147,7 @@ func (o *BulkInsertOperation) WaitForId() error {
 	}
 
 	bulkInsertGetIdRequest := NewGetNextOperationIdCommand()
-	o.err = o._requestExecutor.executeCommand(bulkInsertGetIdRequest)
+	o.err = o._requestExecutor.ExecuteCommand(bulkInsertGetIdRequest)
 	if o.err != nil {
 		return o.err
 	}
@@ -246,7 +246,7 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	panicIf(o._bulkInsertExecuteTask != nil, "already started _bulkInsertExecuteTask")
 	o._bulkInsertExecuteTask = NewCompletableFuture()
 	go func() {
-		err := o._requestExecutor.executeCommand(bulkCommand)
+		err := o._requestExecutor.ExecuteCommand(bulkCommand)
 		if err != nil {
 			o._bulkInsertExecuteTask.markAsDoneWithError(err)
 		} else {
@@ -269,7 +269,7 @@ func (o *BulkInsertOperation) Abort() error {
 	}
 
 	command := NewKillOperationCommand(strconv.Itoa(o._operationId))
-	err = o._requestExecutor.executeCommand(command)
+	err = o._requestExecutor.ExecuteCommand(command)
 	//o._currentWriter.Close()
 	if err != nil {
 		return NewBulkInsertAbortedException("%s", "Unable to kill ths bulk insert operation, because it was not found on the server.")

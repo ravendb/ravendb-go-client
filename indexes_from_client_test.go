@@ -18,11 +18,11 @@ func NewUsers_ByName() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("NewUsers_ByName")
 	res.Map = "from u in docs.Users select new { u.name }"
 
-	res.index("name", FieldIndexing_SEARCH)
+	res.Index("name", FieldIndexing_SEARCH)
 
 	res.IndexSuggestions.add("name")
 
-	res.store("name", FieldStorage_YES)
+	res.Store("name", FieldStorage_YES)
 
 	return res
 }
@@ -30,13 +30,13 @@ func NewUsers_ByName() *AbstractIndexCreationTask {
 func Posts_ByTitleAndDesc() *AbstractIndexCreationTask {
 	res := NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
 	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
-	res.index("title", FieldIndexing_SEARCH)
-	res.store("title", FieldStorage_YES)
-	res.analyze("title", "Lucene.Net.Analysis.SimpleAnalyzer")
+	res.Index("title", FieldIndexing_SEARCH)
+	res.Store("title", FieldStorage_YES)
+	res.Analyze("title", "Lucene.Net.Analysis.SimpleAnalyzer")
 
-	res.index("desc", FieldIndexing_SEARCH)
-	res.store("desc", FieldStorage_YES)
-	res.analyze("desc", "Lucene.Net.Analysis.SimpleAnalyzer")
+	res.Index("desc", FieldIndexing_SEARCH)
+	res.Store("desc", FieldStorage_YES)
+	res.Analyze("desc", "Lucene.Net.Analysis.SimpleAnalyzer")
 
 	return res
 }
@@ -65,12 +65,12 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	assert.NoError(t, err)
 
 	command := NewGetStatisticsCommand()
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
 	firstIndexingTime := statistics.getIndexes()[0].GetLastIndexingTime()
 
-	indexName := NewUsersIndex().getIndexName()
+	indexName := NewUsersIndex().GetIndexName()
 	// now reset index
 	time.Sleep(time.Millisecond * 2)
 	{
@@ -83,7 +83,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	assert.NoError(t, err)
 
 	command = NewGetStatisticsCommand()
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics = command.Result
 	secondIndexingTime := statistics.getLastIndexingTime()
@@ -115,12 +115,12 @@ func indexesFromClientTest_canDelete(t *testing.T) {
 	err = store.ExecuteIndex(userIndex)
 	assert.NoError(t, err)
 
-	op := NewDeleteIndexOperation(NewUsersIndex().getIndexName())
+	op := NewDeleteIndexOperation(NewUsersIndex().GetIndexName())
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	command := NewGetStatisticsCommand()
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
 	assert.Equal(t, len(statistics.getIndexes()), 0)
@@ -131,7 +131,7 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = NewUsers_ByName().execute(store)
+	err = NewUsers_ByName().Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -420,7 +420,7 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 
 	indexQuery := NewIndexQuery("from users")
 	command := NewExplainQueryCommand(store.GetConventions(), indexQuery)
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 
 	explanations := command.Result
@@ -480,7 +480,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		session.Close()
 	}
 
-	err = Posts_ByTitleAndDesc().execute(store)
+	err = Posts_ByTitleAndDesc().Execute(store)
 	assert.NoError(t, err)
 
 	err = gRavenTestDriver.waitForIndexing(store, "", 0)
@@ -504,7 +504,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 			   }
 
 			   fn2 := func(f) *DocumentQuery {
-				   return f.usingDocumentWithBuilder(fn1).withOptions(options)
+				   return f.usingDocumentWithBuilder(fn1).WithOptions(options)
 			   }
 
 			   q = q.moreLikeThisWithBuilder(fn2)
@@ -512,7 +512,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 
 		/*
 		   List<Post> list = session.query(Post.class, Posts_ByTitleAndDesc.class)
-		           .moreLikeThis(f -> f.usingDocument(x -> x.whereEquals("id()", "posts/1")).withOptions(options))
+		           .moreLikeThis(f -> f.usingDocument(x -> x.whereEquals("id()", "posts/1")).WithOptions(options))
 		           .toList();
 		*/
 

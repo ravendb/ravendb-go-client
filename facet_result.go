@@ -12,42 +12,42 @@ func NewFacetResult() *FacetResult {
 	return &FacetResult{}
 }
 
-func (r *FacetResult) getName() string {
+func (r *FacetResult) GetName() string {
 	return r.Name
 }
 
-func (r *FacetResult) setName(name string) {
+func (r *FacetResult) SetName(name string) {
 	r.Name = name
 }
 
-func (r *FacetResult) getValues() []*FacetValue {
+func (r *FacetResult) GetValues() []*FacetValue {
 	return r.Values
 }
 
-func (r *FacetResult) setValues(values []*FacetValue) {
+func (r *FacetResult) SetValues(values []*FacetValue) {
 	r.Values = values
 }
 
-func (r *FacetResult) getRemainingTerms() []string {
+func (r *FacetResult) GetRemainingTerms() []string {
 	return r.RemainingTerms
 }
 
-func (r *FacetResult) setRemainingTerms(remainingTerms []string) {
+func (r *FacetResult) SetRemainingTerms(remainingTerms []string) {
 	r.RemainingTerms = remainingTerms
 }
 
-func (r *FacetResult) getRemainingTermsCount() int {
+func (r *FacetResult) GetRemainingTermsCount() int {
 	return r.RemainingTermsCount
 }
 
-func (r *FacetResult) setRemainingTermsCount(remainingTermsCount int) {
+func (r *FacetResult) SetRemainingTermsCount(remainingTermsCount int) {
 	r.RemainingTermsCount = remainingTermsCount
 }
 
-func (r *FacetResult) getRemainingHits() int {
+func (r *FacetResult) GetRemainingHits() int {
 	return r.RemainingHits
 }
 
-func (r *FacetResult) setRemainingHits(remainingHits int) {
+func (r *FacetResult) SetRemainingHits(remainingHits int) {
 	r.RemainingHits = remainingHits
 }

@@ -645,7 +645,7 @@ func (q *DocumentQuery) MoreLikeThis(moreLikeThis MoreLikeThisBase) *DocumentQue
 	mlt := q._moreLikeThis()
 	defer mlt.Close()
 
-	mlt.withOptions(moreLikeThis.getOptions())
+	mlt.WithOptions(moreLikeThis.getOptions())
 
 	if mltud, ok := moreLikeThis.(*MoreLikeThisUsingDocument); ok {
 		mlt.withDocument(mltud.getDocumentJson())
@@ -662,7 +662,7 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	moreLikeThis := q._moreLikeThis()
 	defer moreLikeThis.Close()
 
-	moreLikeThis.withOptions(f.getMoreLikeThis().getOptions())
+	moreLikeThis.WithOptions(f.getMoreLikeThis().getOptions())
 
 	tmp := f.getMoreLikeThis()
 	if mlt, ok := tmp.(*MoreLikeThisUsingDocument); ok {

@@ -56,7 +56,7 @@ In Java, the pattern is:
 ```java
     GetDatabaseNamesOperation databaseNamesOperation = new GetDatabaseNamesOperation(0, 20);
     RavenCommand<string[]> command = databaseNamesOperation.getCommand(conventions);
-    string[] databaseNames = executor.execute(command);
+    string[] databaseNames = executor.Execute(command);
 ```
 
 Result is statically typed because we can encode type of the result via generic

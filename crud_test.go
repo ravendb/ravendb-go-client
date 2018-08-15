@@ -115,7 +115,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 	}
 
 	documentsCommand := NewGetDocumentsCommand([]string{"users/1"}, nil, false)
-	err = store.GetRequestExecutor().executeCommand(documentsCommand)
+	err = store.GetRequestExecutor().ExecuteCommand(documentsCommand)
 	assert.NoError(t, err)
 
 	result := documentsCommand.Result

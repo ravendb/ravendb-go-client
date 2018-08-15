@@ -1,14 +1,15 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
-func NewOrders_All() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("Orders_All")
+func NewOrders_All() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("Orders_All")
 	res.Map = "docs.AggOrders.Select(order => new { order.currency,\n" +
 		"                          order.product,\n" +
 		"                          order.total,\n" +
@@ -41,7 +42,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 	defer store.Close()
 
 	index := NewOrders_All()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -75,25 +76,25 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(GetTypeOf(&Order{}), index)
-		builder := func(f IFacetBuilder) {
-			f.byField("region").maxOn("total").minOn("total")
+		q := session.QueryInIndex(ravendb.GetTypeOf(&Order{}), index)
+		builder := func(f ravendb.IFacetBuilder) {
+			f.ByField("region").MaxOn("total").MinOn("total")
 		}
 		q2 := q.AggregateBy(builder)
-		result, err := q2.execute()
+		result, err := q2.Execute()
 		assert.NoError(t, err)
 
 		facetResult := result["region"]
 
-		values := facetResult.getValues()
+		values := facetResult.GetValues()
 		val := values[0]
-		assert.Equal(t, val.getCount(), 2)
-		assert.Equal(t, *val.getMin(), float64(1))
-		assert.Equal(t, *val.getMax(), float64(1.1))
+		assert.Equal(t, val.GetCount(), 2)
+		assert.Equal(t, *val.GetMin(), float64(1))
+		assert.Equal(t, *val.GetMax(), float64(1.1))
 
 		n := 0
 		for _, x := range values {
-			if x.getRange() == "1" {
+			if x.GetRange() == "1" {
 				n++
 			}
 		}
@@ -103,9 +104,9 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 	}
 }
 
-func getFirstFacetValueOfRange(values []*FacetValue, rang string) *FacetValue {
+func getFirstFacetValueOfRange(values []*ravendb.FacetValue, rang string) *ravendb.FacetValue {
 	for _, x := range values {
-		if x.getRange() == rang {
+		if x.GetRange() == rang {
 			return x
 		}
 	}
@@ -118,7 +119,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 	defer store.Close()
 
 	index := NewOrders_All()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -159,38 +160,38 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(GetTypeOf(&AggOrder{}), index)
-		builder := func(f IFacetBuilder) {
-			f.byField("product").sumOn("total")
+		q := session.QueryInIndex(ravendb.GetTypeOf(&AggOrder{}), index)
+		builder := func(f ravendb.IFacetBuilder) {
+			f.ByField("product").SumOn("total")
 		}
 		q2 := q.AggregateBy(builder)
-		builder2 := func(f IFacetBuilder) {
-			f.byField("currency").sumOn("total")
+		builder2 := func(f ravendb.IFacetBuilder) {
+			f.ByField("currency").SumOn("total")
 		}
-		q2 = q2.andAggregateBy(builder2)
-		r, err := q2.execute()
+		q2 = q2.AndAggregateBy(builder2)
+		r, err := q2.Execute()
 		assert.NoError(t, err)
 
 		facetResult := r["product"]
 
-		values := facetResult.getValues()
+		values := facetResult.GetValues()
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
-		assert.Equal(t, *x.getSum(), float64(12))
+		assert.Equal(t, *x.GetSum(), float64(12))
 
 		x = getFirstFacetValueOfRange(values, "iphone")
-		assert.Equal(t, *x.getSum(), float64(3333))
+		assert.Equal(t, *x.GetSum(), float64(3333))
 
 		facetResult = r["currency"]
-		values = facetResult.getValues()
+		values = facetResult.GetValues()
 		assert.Equal(t, len(values), 2)
 
 		x = getFirstFacetValueOfRange(values, "eur")
-		assert.Equal(t, *x.getSum(), float64(3336))
+		assert.Equal(t, *x.GetSum(), float64(3336))
 
 		x = getFirstFacetValueOfRange(values, "nis")
-		assert.Equal(t, *x.getSum(), float64(9))
+		assert.Equal(t, *x.GetSum(), float64(9))
 
 		session.Close()
 	}
@@ -202,7 +203,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 	defer store.Close()
 
 	index := NewOrders_All()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -243,25 +244,25 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(GetTypeOf(&AggOrder{}), index)
-		builder := func(f IFacetBuilder) {
-			f.byField("product").maxOn("total").minOn("total")
+		q := session.QueryInIndex(ravendb.GetTypeOf(&AggOrder{}), index)
+		builder := func(f ravendb.IFacetBuilder) {
+			f.ByField("product").MaxOn("total").MinOn("total")
 		}
 		q2 := q.AggregateBy(builder)
-		r, err := q2.execute()
+		r, err := q2.Execute()
 		assert.NoError(t, err)
 
 		facetResult := r["product"]
-		values := facetResult.getValues()
+		values := facetResult.GetValues()
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
-		assert.Equal(t, *x.getMax(), float64(9))
-		assert.Equal(t, *x.getMin(), float64(3))
+		assert.Equal(t, *x.GetMax(), float64(9))
+		assert.Equal(t, *x.GetMin(), float64(3))
 
 		x = getFirstFacetValueOfRange(values, "iphone")
-		assert.Equal(t, *x.getMax(), float64(3333))
-		assert.Equal(t, *x.getMin(), float64(3333))
+		assert.Equal(t, *x.GetMax(), float64(3333))
+		assert.Equal(t, *x.GetMin(), float64(3333))
 
 		session.Close()
 	}
@@ -273,7 +274,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 	defer store.Close()
 
 	index := NewOrders_All()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -314,21 +315,21 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(GetTypeOf(&AggOrder{}), index)
-		builder := func(f IFacetBuilder) {
-			f.byField("product").withDisplayName("productMax").maxOn("total")
+		q := session.QueryInIndex(ravendb.GetTypeOf(&AggOrder{}), index)
+		builder := func(f ravendb.IFacetBuilder) {
+			f.ByField("product").WithDisplayName("productMax").MaxOn("total")
 		}
 		q2 := q.AggregateBy(builder)
-		builder2 := func(f IFacetBuilder) {
-			f.byField("product").withDisplayName("productMin")
+		builder2 := func(f ravendb.IFacetBuilder) {
+			f.ByField("product").WithDisplayName("productMin")
 		}
-		q2 = q2.andAggregateBy(builder2)
-		r, err := q2.execute()
+		q2 = q2.AndAggregateBy(builder2)
+		r, err := q2.Execute()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(r), 2)
-		assert.Equal(t, *r["productMax"].getValues()[0].getMax(), float64(3333))
-		assert.Equal(t, r["productMin"].getValues()[1].getCount(), 2)
+		assert.Equal(t, *r["productMax"].GetValues()[0].GetMax(), float64(3333))
+		assert.Equal(t, r["productMin"].GetValues()[1].GetCount(), 2)
 
 		session.Close()
 	}
@@ -340,7 +341,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 	defer store.Close()
 
 	index := NewOrders_All()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -380,47 +381,47 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		_range := RangeBuilder_forPath("total")
+		_range := ravendb.RangeBuilder_forPath("total")
 
-		q := session.QueryInIndex(GetTypeOf(&Order{}), index)
-		builder := func(f IFacetBuilder) {
-			f.byField("product").sumOn("total")
+		q := session.QueryInIndex(ravendb.GetTypeOf(&Order{}), index)
+		builder := func(f ravendb.IFacetBuilder) {
+			f.ByField("product").SumOn("total")
 		}
 
 		q2 := q.AggregateBy(builder)
-		builder2 := func(f IFacetBuilder) {
-			fop := f.byRanges(
-				_range.isLessThan(100),
-				_range.isGreaterThanOrEqualTo(100).isLessThan(500),
-				_range.isGreaterThanOrEqualTo(500).isLessThan(1500),
-				_range.isGreaterThanOrEqualTo(1500))
-			fop.sumOn("total")
+		builder2 := func(f ravendb.IFacetBuilder) {
+			fop := f.ByRanges(
+				_range.IsLessThan(100),
+				_range.IsGreaterThanOrEqualTo(100).IsLessThan(500),
+				_range.IsGreaterThanOrEqualTo(500).IsLessThan(1500),
+				_range.IsGreaterThanOrEqualTo(1500))
+			fop.SumOn("total")
 
 		}
-		q2 = q2.andAggregateBy(builder2)
-		r, err := q2.execute()
+		q2 = q2.AndAggregateBy(builder2)
+		r, err := q2.Execute()
 		assert.NoError(t, err)
 
 		// Map<String, FacetResult> r = session
 		facetResult := r["product"]
-		values := facetResult.getValues()
+		values := facetResult.GetValues()
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
-		assert.Equal(t, *x.getSum(), float64(12))
+		assert.Equal(t, *x.GetSum(), float64(12))
 
 		x = getFirstFacetValueOfRange(values, "iphone")
-		assert.Equal(t, *x.getSum(), float64(3333))
+		assert.Equal(t, *x.GetSum(), float64(3333))
 
 		facetResult = r["total"]
-		values = facetResult.getValues()
+		values = facetResult.GetValues()
 		assert.Equal(t, len(values), 4)
 
 		x = getFirstFacetValueOfRange(values, "total < 100")
-		assert.Equal(t, *x.getSum(), float64(12))
+		assert.Equal(t, *x.GetSum(), float64(12))
 
 		x = getFirstFacetValueOfRange(values, "total >= 1500")
-		assert.Equal(t, *x.getSum(), float64(3333))
+		assert.Equal(t, *x.GetSum(), float64(3333))
 
 		session.Close()
 	}
@@ -431,7 +432,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 	defer store.Close()
 
 	index := NewItemsOrders_All()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -444,7 +445,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 		item2 := &ItemsOrder{
 			Items: []string{"first", "second"},
-			At:    DateUtils_addDays(time.Now(), -1),
+			At:    ravendb.DateUtils_addDays(time.Now(), -1),
 		}
 
 		item3 := &ItemsOrder{
@@ -473,40 +474,40 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 	// items := []string{"second"}
 
-	minValue := DateUtils_setYears(time.Now(), 1980)
+	minValue := ravendb.DateUtils_setYears(time.Now(), 1980)
 
-	end0 := DateUtils_addDays(time.Now(), -2)
-	end1 := DateUtils_addDays(time.Now(), -1)
+	end0 := ravendb.DateUtils_addDays(time.Now(), -2)
+	end1 := ravendb.DateUtils_addDays(time.Now(), -1)
 	end2 := time.Now()
 
 	err = gRavenTestDriver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
-	builder := RangeBuilder_forPath("at")
+	builder := ravendb.RangeBuilder_forPath("at")
 
 	{
 		session := openSessionMust(t, store)
-		q := session.QueryInIndex(GetTypeOf(&ItemsOrder{}), index)
+		q := session.QueryInIndex(ravendb.GetTypeOf(&ItemsOrder{}), index)
 		q = q.WhereGreaterThanOrEqual("at", end0)
-		fn := func(f IFacetBuilder) {
-			r1 := builder.isGreaterThanOrEqualTo(minValue)              // all - 4
-			r2 := builder.isGreaterThanOrEqualTo(end0).isLessThan(end1) // 0
-			r3 := builder.isGreaterThanOrEqualTo(end1).isLessThan(end2) // 1
-			f.byRanges(r1, r2, r3)
+		fn := func(f ravendb.IFacetBuilder) {
+			r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4
+			r2 := builder.IsGreaterThanOrEqualTo(end0).IsLessThan(end1) // 0
+			r3 := builder.IsGreaterThanOrEqualTo(end1).IsLessThan(end2) // 1
+			f.ByRanges(r1, r2, r3)
 		}
 		q2 := q.AggregateBy(fn)
-		r, err := q2.execute()
+		r, err := q2.Execute()
 		assert.NoError(t, err)
 
-		facetResults := r["at"].getValues()
-		assert.Equal(t, facetResults[0].getCount(), 4)
+		facetResults := r["at"].GetValues()
+		assert.Equal(t, facetResults[0].GetCount(), 4)
 
 		// TODO: comments in java code don't match the results
 		// The times are serialized differently.
 		// Go:   "2018-08-12T13:35:05.575851-07:00"
 		// Java: "2018-08-13T19:32:16.7240000Z"
-		assert.Equal(t, facetResults[1].getCount(), 1) // we get 0
-		assert.Equal(t, facetResults[2].getCount(), 3) // we get 1
+		assert.Equal(t, facetResults[1].GetCount(), 1) // we get 0
+		assert.Equal(t, facetResults[2].GetCount(), 3) // we get 1
 
 		session.Close()
 	}
@@ -517,8 +518,8 @@ type ItemsOrder struct {
 	At    time.Time `json:"at"`
 }
 
-func NewItemsOrders_All() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("ItemsOrders_All")
+func NewItemsOrders_All() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("ItemsOrders_All")
 	res.Map = "docs.ItemsOrders.Select(order => new { order.at,\n" +
 		"                          order.items })"
 	return res
@@ -537,7 +538,7 @@ func TestAggregation(t *testing.T) {
 	aggregation_canCorrectlyAggregate_Ranges(t)
 	aggregation_canCorrectlyAggregate_MultipleItems(t)
 	aggregation_canCorrectlyAggregate_MultipleAggregations(t)
-	if EnableFailingTests {
+	if ravendb.EnableFailingTests {
 		aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t)
 	}
 	aggregation_canCorrectlyAggregate_DisplayName(t)

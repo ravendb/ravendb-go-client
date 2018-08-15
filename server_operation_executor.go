@@ -23,14 +23,14 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 
 func (e *ServerOperationExecutor) Send(operation IServerOperation) error {
 	command := operation.getCommand(e.requestExecutor.getConventions())
-	err := e.requestExecutor.executeCommand(command)
+	err := e.requestExecutor.ExecuteCommand(command)
 	return err
 }
 
 func (e *ServerOperationExecutor) SendAsync(operation IServerOperation) (*Operation, error) {
 	requestExecutor := e.requestExecutor
 	command := operation.getCommand(requestExecutor.getConventions())
-	err := requestExecutor.executeCommand(command)
+	err := requestExecutor.ExecuteCommand(command)
 	if err != nil {
 		return nil, err
 	}

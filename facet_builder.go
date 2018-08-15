@@ -25,7 +25,7 @@ func NewFacetBuilder() *FacetBuilder {
 	return &FacetBuilder{}
 }
 
-func (b *FacetBuilder) byRanges(rng *RangeBuilder, ranges ...*RangeBuilder) IFacetOperations {
+func (b *FacetBuilder) ByRanges(rng *RangeBuilder, ranges ...*RangeBuilder) IFacetOperations {
 	if rng == nil {
 		//throw new IllegalArgumentException("Range cannot be null")
 		panic("Range cannot be null")
@@ -44,7 +44,7 @@ func (b *FacetBuilder) byRanges(rng *RangeBuilder, ranges ...*RangeBuilder) IFac
 	return b
 }
 
-func (b *FacetBuilder) byField(fieldName string) IFacetOperations {
+func (b *FacetBuilder) ByField(fieldName string) IFacetOperations {
 	if b._default == nil {
 		b._default = NewFacet()
 	}
@@ -58,7 +58,7 @@ func (b *FacetBuilder) byField(fieldName string) IFacetOperations {
 	return b
 }
 
-func (b *FacetBuilder) allResults() IFacetOperations {
+func (b *FacetBuilder) AllResults() IFacetOperations {
 	if b._default == nil {
 		b._default = NewFacet()
 	}
@@ -67,32 +67,32 @@ func (b *FacetBuilder) allResults() IFacetOperations {
 	return b
 }
 
-func (b *FacetBuilder) withOptions(options *FacetOptions) IFacetOperations {
+func (b *FacetBuilder) WithOptions(options *FacetOptions) IFacetOperations {
 	b.getFacet().setOptions(options)
 	return b
 }
 
-func (b *FacetBuilder) withDisplayName(displayName string) IFacetOperations {
+func (b *FacetBuilder) WithDisplayName(displayName string) IFacetOperations {
 	b.getFacet().setDisplayFieldName(displayName)
 	return b
 }
 
-func (b *FacetBuilder) sumOn(path string) IFacetOperations {
+func (b *FacetBuilder) SumOn(path string) IFacetOperations {
 	b.getFacet().getAggregations()[FacetAggregation_SUM] = path
 	return b
 }
 
-func (b *FacetBuilder) minOn(path string) IFacetOperations {
+func (b *FacetBuilder) MinOn(path string) IFacetOperations {
 	b.getFacet().getAggregations()[FacetAggregation_MIN] = path
 	return b
 }
 
-func (b *FacetBuilder) maxOn(path string) IFacetOperations {
+func (b *FacetBuilder) MaxOn(path string) IFacetOperations {
 	b.getFacet().getAggregations()[FacetAggregation_MAX] = path
 	return b
 }
 
-func (b *FacetBuilder) averageOn(path string) IFacetOperations {
+func (b *FacetBuilder) AverageOn(path string) IFacetOperations {
 	b.getFacet().getAggregations()[FacetAggregation_AVERAGE] = path
 	return b
 }

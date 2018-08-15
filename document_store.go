@@ -268,7 +268,7 @@ func (s *DocumentStore) ExecuteIndex(task *AbstractIndexCreationTask) error {
 
 func (s *DocumentStore) ExecuteIndexWithDatabase(task *AbstractIndexCreationTask, database string) error {
 	s.assertInitialized()
-	return task.execute2(s, s.conventions, database)
+	return task.Execute2(s, s.conventions, database)
 }
 
 func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask) error {

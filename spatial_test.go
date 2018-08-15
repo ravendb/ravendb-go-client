@@ -115,11 +115,11 @@ func NewMyIndex() *AbstractIndexCreationTask {
 		"    longitude = this2.lng,\n" +
 		"    coordinates = this.CreateSpatialField(((double ? ) this2.this1.lat), ((double ? ) this2.lng))\n" +
 		"})"
-	res.store("id", FieldStorage_YES)
-	res.store("date", FieldStorage_YES)
+	res.Store("id", FieldStorage_YES)
+	res.Store("date", FieldStorage_YES)
 
-	res.store("latitude", FieldStorage_YES)
-	res.store("longitude", FieldStorage_YES)
+	res.Store("latitude", FieldStorage_YES)
+	res.Store("longitude", FieldStorage_YES)
 	return res
 }
 
@@ -151,7 +151,7 @@ func spatial_weirdSpatialResults(t *testing.T) {
 	}
 
 	index := NewMyIndex()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{
@@ -205,7 +205,7 @@ func spatial_matchSpatialResults(t *testing.T) {
 	}
 
 	index := NewMyIndex()
-	err = index.execute(store)
+	err = index.Execute(store)
 	assert.NoError(t, err)
 
 	{

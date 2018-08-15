@@ -24,7 +24,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 	}
 
 	command := NewNextIdentityForCommand("users")
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 
 	{
@@ -83,7 +83,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 	}
 
 	command := NewSeedIdentityForCommand("users", 1990)
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.Equal(t, result, 1990)
@@ -135,7 +135,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 	}
 
 	command = NewSeedIdentityForCommand("users", 1975)
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	assert.Equal(t, command.Result, 1991)
 

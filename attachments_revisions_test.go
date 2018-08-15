@@ -39,7 +39,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			}
 
 			cmd := NewDeleteDocumentCommand("users/1", nil)
-			err = store.GetRequestExecutor().executeCommand(cmd)
+			err = store.GetRequestExecutor().ExecuteCommand(cmd)
 			assert.NoError(t, err)
 			assertRevisions2(t, store, names, f, 6, 0, 3)
 		}

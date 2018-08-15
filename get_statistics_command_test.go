@@ -20,7 +20,7 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 	command := NewGetStatisticsCommand()
-	err = executor.executeCommand(command)
+	err = executor.ExecuteCommand(command)
 	assert.NoError(t, err)
 	stats := command.Result
 	assert.NotNil(t, stats)

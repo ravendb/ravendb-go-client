@@ -25,7 +25,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 
 		for i := 0; i < 40; i++ {
 			command := NewGetNextOperationIdCommand()
-			err := executor.executeCommand(command)
+			err := executor.ExecuteCommand(command)
 			if err != nil {
 				errorsCount++
 			}
@@ -34,7 +34,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 
 		databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.getCommand(conventions)
-		err := executor.executeCommand(command)
+		err := executor.ExecuteCommand(command)
 		_ = err.(*DatabaseDoesNotExistException)
 	}
 	if dbgRequestExecutorTests {
@@ -55,7 +55,7 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 		for i := 0; i < 50; i++ {
 			databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
 			command := databaseNamesOperation.getCommand(conventions)
-			err := executor.executeCommand(command)
+			err := executor.ExecuteCommand(command)
 			assert.NoError(t, err)
 		}
 	}
@@ -77,7 +77,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 
 		databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.getCommand(conventions)
-		err := executor.executeCommand(command)
+		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
 
 		dbNames := command.Result
@@ -121,7 +121,7 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 	{
 		executor := RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
 		command := NewGetNextOperationIdCommand()
-		err := executor.executeCommand(command)
+		err := executor.ExecuteCommand(command)
 		_ = err.(*DatabaseDoesNotExistException)
 	}
 	if dbgRequestExecutorTests {
@@ -147,7 +147,7 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 		assert.Equal(t, serverNode.getDatabase(), store.GetDatabase())
 
 		command := NewGetNextOperationIdCommand()
-		err := executor.executeCommand(command)
+		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
 	}
@@ -169,7 +169,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 	{
 		executor := RequestExecutor_create([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, documentConventions)
 		command := NewGetNextOperationIdCommand()
-		err := executor.executeCommand(command)
+		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
 		topologyNodes := executor.getTopologyNodes()
@@ -190,7 +190,7 @@ func requestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
 	documentConventions := NewDocumentConventions()
 	executor := RequestExecutor_create([]string{"http://no_such_host:8081"}, "db1", nil, documentConventions)
 	command := NewGetNextOperationIdCommand()
-	err := executor.executeCommand(command)
+	err := executor.ExecuteCommand(command)
 	assert.Error(t, err)
 
 	_ = err.(*AllTopologyNodesDownException)

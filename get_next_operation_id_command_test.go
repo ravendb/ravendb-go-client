@@ -12,7 +12,7 @@ func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T) {
 	defer store.Close()
 
 	command := NewGetNextOperationIdCommand()
-	err = store.GetRequestExecutor().executeCommand(command)
+	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	assert.NotNil(t, command.Result)
 }

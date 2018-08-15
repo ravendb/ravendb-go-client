@@ -15,51 +15,51 @@ type FacetValue struct {
 	Average *float64
 }
 
-func (v *FacetValue) getRange() string {
+func (v *FacetValue) GetRange() string {
 	return v.Range
 }
 
-func (v *FacetValue) setRange(rang string) {
+func (v *FacetValue) SetRange(rang string) {
 	v.Range = rang
 }
 
-func (v *FacetValue) getCount() int {
+func (v *FacetValue) GetCount() int {
 	return v.Count
 }
 
-func (v *FacetValue) setCount(count int) {
+func (v *FacetValue) SetCount(count int) {
 	v.Count = count
 }
 
-func (v *FacetValue) getSum() *float64 {
+func (v *FacetValue) GetSum() *float64 {
 	return v.Sum
 }
 
-func (v *FacetValue) setSum(sum float64) {
+func (v *FacetValue) SetSum(sum float64) {
 	v.Sum = &sum
 }
 
-func (v *FacetValue) getMax() *float64 {
+func (v *FacetValue) GetMax() *float64 {
 	return v.Max
 }
 
-func (v *FacetValue) setMax(max float64) {
+func (v *FacetValue) SetMax(max float64) {
 	v.Max = &max
 }
 
-func (v *FacetValue) getMin() *float64 {
+func (v *FacetValue) GetMin() *float64 {
 	return v.Min
 }
 
-func (v *FacetValue) setMin(min float64) {
+func (v *FacetValue) SetMin(min float64) {
 	v.Min = &min
 }
 
-func (v *FacetValue) getAverage() *float64 {
+func (v *FacetValue) GetAverage() *float64 {
 	return v.Average
 }
 
-func (v *FacetValue) setAverage(average float64) {
+func (v *FacetValue) SetAverage(average float64) {
 	v.Average = &average
 }
 

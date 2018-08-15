@@ -45,20 +45,20 @@ func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
 	}
 }
 
-func (t *AbstractIndexCreationTask) getAdditionalSources() map[string]string {
+func (t *AbstractIndexCreationTask) GetAdditionalSources() map[string]string {
 	return t.AdditionalSources
 }
 
-func (t *AbstractIndexCreationTask) setAdditionalSources(additionalSources map[string]string) {
+func (t *AbstractIndexCreationTask) SetAdditionalSources(additionalSources map[string]string) {
 	t.AdditionalSources = additionalSources
 }
 
-func (t *AbstractIndexCreationTask) createIndexDefinition() *IndexDefinition {
+func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	if t.Conventions == nil {
 		t.Conventions = NewDocumentConventions()
 	}
 
-	indexDefinitionBuilder := NewIndexDefinitionBuilder(t.getIndexName())
+	indexDefinitionBuilder := NewIndexDefinitionBuilder(t.GetIndexName())
 	indexDefinitionBuilder.setIndexesStrings(t.IndexesStrings)
 	indexDefinitionBuilder.setAnalyzersStrings(t.AnalyzersStrings)
 	indexDefinitionBuilder.setMap(t.Map)
@@ -68,67 +68,67 @@ func (t *AbstractIndexCreationTask) createIndexDefinition() *IndexDefinition {
 	indexDefinitionBuilder.setTermVectorsStrings(t.TermVectorsStrings)
 	indexDefinitionBuilder.setSpatialIndexesStrings(t.SpatialOptionsStrings)
 	indexDefinitionBuilder.setOutputReduceToCollection(t.OutputReduceToCollection)
-	indexDefinitionBuilder.setAdditionalSources(t.getAdditionalSources())
+	indexDefinitionBuilder.setAdditionalSources(t.GetAdditionalSources())
 
 	return indexDefinitionBuilder.toIndexDefinition(t.Conventions, false)
 }
 
-func (t *AbstractIndexCreationTask) isMapReduce() bool {
+func (t *AbstractIndexCreationTask) IsMapReduce() bool {
 	return t.Reduce != ""
 }
 
-func (t *AbstractIndexCreationTask) getIndexName() string {
+func (t *AbstractIndexCreationTask) GetIndexName() string {
 	panicIf(t.IndexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName()")
 	return strings.Replace(t.IndexName, "_", "/", -1)
 }
 
-func (t *AbstractIndexCreationTask) getConventions() *DocumentConventions {
+func (t *AbstractIndexCreationTask) GetConventions() *DocumentConventions {
 	return t.Conventions
 }
 
-func (t *AbstractIndexCreationTask) setConventions(conventions *DocumentConventions) {
+func (t *AbstractIndexCreationTask) SetConventions(conventions *DocumentConventions) {
 	t.Conventions = conventions
 }
 
-func (t *AbstractIndexCreationTask) getPriority() IndexPriority {
+func (t *AbstractIndexCreationTask) GetPriority() IndexPriority {
 	return t.Priority
 }
 
-func (t *AbstractIndexCreationTask) setPriority(priority IndexPriority) {
+func (t *AbstractIndexCreationTask) SetPriority(priority IndexPriority) {
 	t.Priority = priority
 }
 
-func (t *AbstractIndexCreationTask) getLockMode() IndexLockMode {
+func (t *AbstractIndexCreationTask) GetLockMode() IndexLockMode {
 	return t.LockMode
 }
 
-func (t *AbstractIndexCreationTask) setLockMode(lockMode IndexLockMode) {
+func (t *AbstractIndexCreationTask) SetLockMode(lockMode IndexLockMode) {
 	t.LockMode = lockMode
 }
 
-func (t *AbstractIndexCreationTask) execute(store *IDocumentStore) error {
+func (t *AbstractIndexCreationTask) Execute(store *IDocumentStore) error {
 	return store.ExecuteIndex(t)
 }
 
-func (t *AbstractIndexCreationTask) execute2(store *IDocumentStore, conventions *DocumentConventions, database string) error {
-	return t.putIndex(store, conventions, database)
+func (t *AbstractIndexCreationTask) Execute2(store *IDocumentStore, conventions *DocumentConventions, database string) error {
+	return t.PutIndex(store, conventions, database)
 }
 
-func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions *DocumentConventions, database string) error {
-	oldConventions := t.getConventions()
-	defer t.setConventions(oldConventions)
+func (t *AbstractIndexCreationTask) PutIndex(store *IDocumentStore, conventions *DocumentConventions, database string) error {
+	oldConventions := t.GetConventions()
+	defer t.SetConventions(oldConventions)
 
 	conv := conventions
 	if conv == nil {
-		conv = t.getConventions()
+		conv = t.GetConventions()
 	}
 	if conv == nil {
 		conv = store.GetConventions()
 	}
-	t.setConventions(conv)
+	t.SetConventions(conv)
 
-	indexDefinition := t.createIndexDefinition()
-	indexDefinition.SetName(t.getIndexName())
+	indexDefinition := t.CreateIndexDefinition()
+	indexDefinition.SetName(t.GetIndexName())
 
 	if t.LockMode != "" {
 		indexDefinition.SetLockMode(t.LockMode)
@@ -145,31 +145,31 @@ func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions 
 	return store.Maintenance().ForDatabase(database).Send(op)
 }
 
-func (t *AbstractIndexCreationTask) index(field string, indexing FieldIndexing) {
+func (t *AbstractIndexCreationTask) Index(field string, indexing FieldIndexing) {
 	t.IndexesStrings[field] = indexing
 }
 
-func (t *AbstractIndexCreationTask) spatial(field string, indexing func(*SpatialOptionsFactory) *SpatialOptions) {
+func (t *AbstractIndexCreationTask) Spatial(field string, indexing func(*SpatialOptionsFactory) *SpatialOptions) {
 	v := indexing(NewSpatialOptionsFactory())
 	t.SpatialOptionsStrings[field] = v
 }
 
-func (t *AbstractIndexCreationTask) storeAllFields(storage FieldStorage) {
+func (t *AbstractIndexCreationTask) StoreAllFields(storage FieldStorage) {
 	t.StoresStrings[Constants_Documents_Indexing_Fields_ALL_FIELDS] = storage
 }
 
-func (t *AbstractIndexCreationTask) store(field string, storage FieldStorage) {
+func (t *AbstractIndexCreationTask) Store(field string, storage FieldStorage) {
 	t.StoresStrings[field] = storage
 }
 
-func (t *AbstractIndexCreationTask) analyze(field string, analyzer string) {
+func (t *AbstractIndexCreationTask) Analyze(field string, analyzer string) {
 	t.AnalyzersStrings[field] = analyzer
 }
 
-func (t *AbstractIndexCreationTask) termVector(field string, termVector FieldTermVector) {
+func (t *AbstractIndexCreationTask) TermVector(field string, termVector FieldTermVector) {
 	t.TermVectorsStrings[field] = termVector
 }
 
-func (t *AbstractIndexCreationTask) suggestion(field string) {
+func (t *AbstractIndexCreationTask) Suggestion(field string) {
 	t.IndexSuggestions.add(field)
 }

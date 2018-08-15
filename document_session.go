@@ -58,7 +58,7 @@ func (s *DocumentSession) SaveChanges() error {
 		return nil
 	}
 	defer command.Close()
-	err = s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	err = s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	}
 	command := NewHeadDocumentCommand(id, nil)
 
-	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return false, err
 	}
@@ -92,7 +92,7 @@ func (s *DocumentSession) Refresh(entity Object) error {
 	}
 
 	command := NewGetDocumentsCommand([]string{documentInfo.getId()}, nil, false)
-	err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+	err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,8 @@ func (s *DocumentSession) Refresh(entity Object) error {
 }
 
 // TODO:    protected string generateId(Object entity) {
-// TODO:    public ResponseTimeInformation executeAllPendingLazyOperations() {
-// TODO:    private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
+// TODO:    public ResponseTimeInformation ExecuteAllPendingLazyOperations() {
+// TODO:    private boolean ExecuteLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
 
 func (s *DocumentSession) Include(path string) ILoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).include(path)
@@ -123,7 +123,7 @@ func (s *DocumentSession) Load(clazz reflect.Type, id string) (interface{}, erro
 	command := loadOperation.CreateRequest()
 
 	if command != nil {
-		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 
 	command := operation.CreateRequest()
 	if command != nil {
-		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -172,7 +172,7 @@ func (s *DocumentSession) LoadInternalMulti(clazz reflect.Type, ids []string, in
 
 	command := loadOperation.CreateRequest()
 	if command != nil {
-		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -228,7 +228,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 
 	command := operation.CreateRequest()
 	if command != nil {
-		err := s._requestExecutor.executeCommandWithSessionInfo(command, s.sessionInfo)
+		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -260,7 +260,7 @@ func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
 func (s *DocumentSession) DocumentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAll(clazz, index.getIndexName(), "", index.isMapReduce())
+	return s.DocumentQueryAll(clazz, index.GetIndexName(), "", index.IsMapReduce())
 }
 
 func (s *DocumentSession) DocumentQuery(clazz reflect.Type) *DocumentQuery {
