@@ -166,7 +166,7 @@ func spatial_weirdSpatialResults(t *testing.T) {
 		q = q.SelectFields(GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
-		result, err := q.toList()
+		result, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.getTotalResults(), 0)
@@ -220,7 +220,7 @@ func spatial_matchSpatialResults(t *testing.T) {
 		q = q.SelectFields(GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
-		result, err := q.toList()
+		result, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.getTotalResults(), 1)

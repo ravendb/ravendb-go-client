@@ -60,7 +60,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 		q = q.WhereLessThanOrEqual("date", DateUtils_addYears(time.Now(), 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
-		events, err := q.toList()
+		events, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.True(t, len(events) > 0)
@@ -87,7 +87,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 		}
 		q = q.Spatial3("coordinates", fn)
 		matchingVenues := q.WaitForNonStaleResults(0)
-		iq := matchingVenues.getIndexQuery()
+		iq := matchingVenues.GetIndexQuery()
 
 		assert.Equal(t, iq.getQuery(), "from index 'SpatialIdx' where spatial.within(coordinates, spatial.circle($p0, $p1, $p2))")
 		assert.Equal(t, iq.getQueryParameters()["p0"], 5.0)
@@ -142,7 +142,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		q = q.CloseSubclause()
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
-		events, err := q.toList()
+		events, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, queryStats.getTotalResults(), 2)
@@ -205,7 +205,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
-		events, err := q.toList()
+		events, err := q.ToList()
 		assert.NoError(t, err)
 
 		var a []string
@@ -224,7 +224,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
-		events, err := q.toList()
+		events, err := q.ToList()
 		assert.NoError(t, err)
 
 		var a []string

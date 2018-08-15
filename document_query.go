@@ -174,7 +174,7 @@ func (q *DocumentQuery) Include(path string) *IDocumentQuery {
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Include(Expression<Func<T, object>> path)
 
 func (q *DocumentQuery) Not() *DocumentQuery {
-	q.negateNext()
+	q.NegateNext()
 	return q
 }
 
@@ -438,7 +438,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	if queryData != nil && len(queryData.getFields()) > 0 {
 		fields := queryData.getFields()
 
-		identityProperty := q.getConventions().getIdentityProperty(resultClass)
+		identityProperty := q.GetConventions().getIdentityProperty(resultClass)
 
 		if identityProperty != "" {
 			// make a copy, just in case, because we might modify it
@@ -468,8 +468,8 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	}
 	query := NewDocumentQueryWithToken(resultClass,
 		q.theSession,
-		q.getIndexName(),
-		q.getCollectionName(),
+		q.GetIndexName(),
+		q.GetCollectionName(),
 		q.isGroupBy,
 		declareToken,
 		loadTokens,

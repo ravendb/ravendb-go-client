@@ -99,7 +99,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		// Wait until the index is built
 		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.WaitForNonStaleResults(0)
-		_, err := q.toList()
+		_, err := q.ToList()
 		assert.NoError(t, err)
 
 		lat := float64(55.6836422426)
@@ -109,7 +109,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.WithinRadiusOf("coordinates", radius, lat, lng)
 		q = q.WaitForNonStaleResults(0)
-		nearbyDocs, err := q.toList()
+		nearbyDocs, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(nearbyDocs), 3)
@@ -149,7 +149,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// Wait until the index is built
 		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.WaitForNonStaleResults(0)
-		_, err = q.toList()
+		_, err = q.ToList()
 		assert.NoError(t, err)
 
 		radius := float64(8)
@@ -160,7 +160,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_MILES)
 		q = q.WaitForNonStaleResults(0)
-		matchesWithinMiles, err := q.toList()
+		matchesWithinMiles, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinMiles), 2)
 
@@ -170,7 +170,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_KILOMETERS)
 		q = q.WaitForNonStaleResults(0)
-		matchesWithinKilometers, err := q.toList()
+		matchesWithinKilometers, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinKilometers), 1)
 

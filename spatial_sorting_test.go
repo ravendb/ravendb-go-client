@@ -136,7 +136,7 @@ func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQu
 
 		q = q.Spatial3("coordinates", fn)
 		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
-		shops, err := q.toList()
+		shops, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
 
@@ -169,7 +169,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T) {
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
 
-		shops, err := q.toList()
+		shops, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
 
@@ -191,7 +191,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
 		q = q.OrderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
-		shops, err := q.toList()
+		shops, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
 
@@ -212,7 +212,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 		session := openSessionMust(t, store)
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		q = q.OrderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
-		shops, err := q.toList()
+		shops, err := q.ToList()
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
@@ -228,7 +228,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
 		q = q.orderByDistanceDescendingLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
-		shops, err := q.toList()
+		shops, err := q.ToList()
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
@@ -252,7 +252,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
 		q = q.OrderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
-		shops, err := q.toList()
+		shops, err := q.ToList()
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
@@ -268,7 +268,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 
 		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
 		q = q.orderByDistanceDescendingLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
-		shops, err := q.toList()
+		shops, err := q.ToList()
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))

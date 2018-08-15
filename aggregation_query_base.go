@@ -12,7 +12,7 @@ type AggregationQueryBase struct {
 
 func NewAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
 	return &AggregationQueryBase{
-		_session: source.getSession(),
+		_session: source.GetSession(),
 		_source:  source.AbstractDocumentQuery,
 	}
 
@@ -101,9 +101,9 @@ func (q *AggregationDocumentQuery) andAggregateByFacet(facet FacetBase) *IAggreg
 }
 
 func (q *AggregationDocumentQuery) getIndexQuery() *IndexQuery {
-	return q._source.getIndexQuery()
+	return q._source.GetIndexQuery()
 }
 
 func (q *AggregationDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
-	q._source.invokeAfterQueryExecuted(result)
+	q._source.InvokeAfterQueryExecuted(result)
 }

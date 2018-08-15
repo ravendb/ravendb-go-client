@@ -67,15 +67,15 @@ type AbstractDocumentQuery struct {
 	queryOperation *QueryOperation
 }
 
-func (q *AbstractDocumentQuery) getIndexName() string {
+func (q *AbstractDocumentQuery) GetIndexName() string {
 	return q.indexName
 }
 
-func (q *AbstractDocumentQuery) getCollectionName() string {
+func (q *AbstractDocumentQuery) GetCollectionName() string {
 	return q.collectionName
 }
 
-func (q *AbstractDocumentQuery) isDistinct() bool {
+func (q *AbstractDocumentQuery) IsDistinct() bool {
 	if len(q.selectTokens) == 0 {
 		return false
 	}
@@ -83,15 +83,15 @@ func (q *AbstractDocumentQuery) isDistinct() bool {
 	return ok
 }
 
-func (q *AbstractDocumentQuery) getConventions() *DocumentConventions {
+func (q *AbstractDocumentQuery) GetConventions() *DocumentConventions {
 	return q._conventions
 }
 
-func (q *AbstractDocumentQuery) getSession() *InMemoryDocumentSessionOperations {
+func (q *AbstractDocumentQuery) GetSession() *InMemoryDocumentSessionOperations {
 	return q.theSession
 }
 
-func (q *AbstractDocumentQuery) isDynamicMapReduce() bool {
+func (q *AbstractDocumentQuery) IsDynamicMapReduce() bool {
 	return len(q.groupByTokens) > 0
 }
 
@@ -128,7 +128,7 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 	return res
 }
 
-func (q *AbstractDocumentQuery) getQueryClass() reflect.Type {
+func (q *AbstractDocumentQuery) GetQueryClass() reflect.Type {
 	return q.clazz
 }
 
@@ -150,19 +150,19 @@ func (q *AbstractDocumentQuery) _waitForNonStaleResults(waitTimeout time.Duratio
 }
 
 func (q *AbstractDocumentQuery) initializeQueryOperation() *QueryOperation {
-	indexQuery := q.getIndexQuery()
+	indexQuery := q.GetIndexQuery()
 
 	return NewQueryOperation(q.theSession, q.indexName, indexQuery, q.fieldsToFetchToken, q.disableEntitiesTracking, false, false)
 }
 
-func (q *AbstractDocumentQuery) getIndexQuery() *IndexQuery {
+func (q *AbstractDocumentQuery) GetIndexQuery() *IndexQuery {
 	query := q.String()
-	indexQuery := q.generateIndexQuery(query)
-	q.invokeBeforeQueryExecuted(indexQuery)
+	indexQuery := q.GenerateIndexQuery(query)
+	q.InvokeBeforeQueryExecuted(indexQuery)
 	return indexQuery
 }
 
-func (q *AbstractDocumentQuery) getProjectionFields() []string {
+func (q *AbstractDocumentQuery) GetProjectionFields() []string {
 
 	if q.fieldsToFetchToken != nil && q.fieldsToFetchToken.projections != nil {
 		return q.fieldsToFetchToken.projections
@@ -186,7 +186,7 @@ func (q *AbstractDocumentQuery) _randomOrderingWithSeed(seed string) {
 	q.orderByTokens = append(q.orderByTokens, OrderByToken_createRandom(seed))
 }
 
-func (q *AbstractDocumentQuery) addGroupByAlias(fieldName string, projectedName string) {
+func (q *AbstractDocumentQuery) AddGroupByAlias(fieldName string, projectedName string) {
 	q._aliasToGroupByFieldName[projectedName] = fieldName
 }
 
@@ -459,7 +459,7 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WherePara
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) negateNext() {
+func (q *AbstractDocumentQuery) NegateNext() {
 	q.negate = !q.negate
 }
 
@@ -835,7 +835,7 @@ func (q *AbstractDocumentQuery) _statistics(stats **QueryStatistics) {
 	*stats = q.queryStats
 }
 
-func (q *AbstractDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
+func (q *AbstractDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
 	for _, cb := range q.afterQueryExecutedCallback {
 		if cb != nil {
 			cb(result)
@@ -843,7 +843,7 @@ func (q *AbstractDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
 	}
 }
 
-func (q *AbstractDocumentQuery) invokeBeforeQueryExecuted(query *IndexQuery) {
+func (q *AbstractDocumentQuery) InvokeBeforeQueryExecuted(query *IndexQuery) {
 	for _, cb := range q.beforeQueryExecutedCallback {
 		if cb != nil {
 			cb(query)
@@ -851,7 +851,7 @@ func (q *AbstractDocumentQuery) invokeBeforeQueryExecuted(query *IndexQuery) {
 	}
 }
 
-func (q *AbstractDocumentQuery) invokeAfterStreamExecuted(result ObjectNode) {
+func (q *AbstractDocumentQuery) InvokeAfterStreamExecuted(result ObjectNode) {
 	for _, cb := range q.afterStreamExecutedCallback {
 		if cb != nil {
 			cb(result)
@@ -859,7 +859,7 @@ func (q *AbstractDocumentQuery) invokeAfterStreamExecuted(result ObjectNode) {
 	}
 }
 
-func (q *AbstractDocumentQuery) generateIndexQuery(query string) *IndexQuery {
+func (q *AbstractDocumentQuery) GenerateIndexQuery(query string) *IndexQuery {
 	indexQuery := NewIndexQuery("")
 	indexQuery.setQuery(query)
 	indexQuery.setStart(q.start)
@@ -1017,7 +1017,7 @@ func (q *AbstractDocumentQuery) _addRootType(clazz reflect.Type) {
 }
 
 func (q *AbstractDocumentQuery) _distinct() {
-	panicIf(q.isDistinct(), "The is already a distinct query")
+	panicIf(q.IsDistinct(), "The is already a distinct query")
 	//throw new IllegalStateException("The is already a distinct query");
 
 	if len(q.selectTokens) == 0 {
@@ -1384,7 +1384,7 @@ func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *FieldsTo
 	}
 }
 
-func (q *AbstractDocumentQuery) getQueryOperation() *QueryOperation {
+func (q *AbstractDocumentQuery) GetQueryOperation() *QueryOperation {
 	return q.queryOperation
 }
 
@@ -1593,11 +1593,11 @@ func (q *AbstractDocumentQuery) executeActualQuery() error {
 			return err
 		}
 	}
-	q.invokeAfterQueryExecuted(q.queryOperation.getCurrentQueryResults())
+	q.InvokeAfterQueryExecuted(q.queryOperation.getCurrentQueryResults())
 	return nil
 }
 
-func (q *AbstractDocumentQuery) getQueryResult() (*QueryResult, error) {
+func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 	err := q.initSync()
 	if err != nil {
 		return nil, err
@@ -1607,17 +1607,17 @@ func (q *AbstractDocumentQuery) getQueryResult() (*QueryResult, error) {
 }
 
 // TODO: Go has no interatos so for better API, rename to getResult() or sth.
-func (q *AbstractDocumentQuery) iterator() ([]interface{}, error) {
+func (q *AbstractDocumentQuery) Iterator() ([]interface{}, error) {
 	tmp := 0
 	return q.executeQueryOperation(&tmp)
 }
 
 // Note: toList() is the same as iterator() becuase Go has no iterators
-func (q *AbstractDocumentQuery) toList() ([]interface{}, error) {
+func (q *AbstractDocumentQuery) ToList() ([]interface{}, error) {
 	return q.executeQueryOperation(nil)
 }
 
-func (q *AbstractDocumentQuery) first() (interface{}, error) {
+func (q *AbstractDocumentQuery) First() (interface{}, error) {
 	tmp := 1
 	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
@@ -1629,7 +1629,7 @@ func (q *AbstractDocumentQuery) first() (interface{}, error) {
 	return result[0], nil
 }
 
-func (q *AbstractDocumentQuery) firstOrDefault() (interface{}, error) {
+func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 	tmp := 1
 	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
@@ -1641,7 +1641,7 @@ func (q *AbstractDocumentQuery) firstOrDefault() (interface{}, error) {
 	return result[0], nil
 }
 
-func (q *AbstractDocumentQuery) single() (interface{}, error) {
+func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 	tmp := 2
 	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
@@ -1655,7 +1655,7 @@ func (q *AbstractDocumentQuery) single() (interface{}, error) {
 	return result[0], nil
 }
 
-func (q *AbstractDocumentQuery) singleOrDefault() (interface{}, error) {
+func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
 	tmp := 2
 	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
@@ -1671,20 +1671,20 @@ func (q *AbstractDocumentQuery) singleOrDefault() (interface{}, error) {
 	return result[0], nil
 }
 
-func (q *AbstractDocumentQuery) count() (int, error) {
+func (q *AbstractDocumentQuery) Count() (int, error) {
 	{
 		var tmp = 0
 		q._take(&tmp)
 	}
-	queryResult, err := q.getQueryResult()
+	queryResult, err := q.GetQueryResult()
 	if err != nil {
 		return 0, err
 	}
 	return queryResult.getTotalResults(), nil
 }
 
-func (q *AbstractDocumentQuery) any() (bool, error) {
-	if q.isDistinct() {
+func (q *AbstractDocumentQuery) Any() (bool, error) {
+	if q.IsDistinct() {
 		// for distinct it is cheaper to do count 1
 		var tmp = 1
 		res, err := q.executeQueryOperation(&tmp)
@@ -1698,7 +1698,7 @@ func (q *AbstractDocumentQuery) any() (bool, error) {
 		var tmp = 0
 		q._take(&tmp)
 	}
-	queryResult, err := q.getQueryResult()
+	queryResult, err := q.GetQueryResult()
 	if err != nil {
 		return false, err
 	}

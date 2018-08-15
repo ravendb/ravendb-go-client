@@ -13,7 +13,7 @@ func NewDocumentQueryCustomizationDelegate(query *AbstractDocumentQuery) *Docume
 }
 
 func (d *DocumentQueryCustomizationDelegate) getQueryOperation() *QueryOperation {
-	return d.query.getQueryOperation()
+	return d.query.GetQueryOperation()
 }
 
 func (d *DocumentQueryCustomizationDelegate) addBeforeQueryExecutedListener(action func(*IndexQuery)) *IDocumentQueryCustomization {

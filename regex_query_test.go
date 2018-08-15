@@ -37,12 +37,12 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 		query := session.Advanced().DocumentQuery(GetTypeOf(&RegexMe{}))
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
-		iq := query.getIndexQuery()
+		iq := query.GetIndexQuery()
 		assert.Equal(t, iq.getQuery(), "from RegexMes where regex(text, $p0)")
 
 		assert.Equal(t, iq.getQueryParameters()["p0"], "^[a-z ]{2,4}love")
 
-		result, err := query.toList()
+		result, err := query.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(result), 4)
 

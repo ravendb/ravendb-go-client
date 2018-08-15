@@ -36,7 +36,7 @@ func query_querySimple(t *testing.T) {
 		assert.NoError(t, err)
 
 		q := session.Advanced().DocumentQueryAll(GetTypeOf(&User{}), "", "users", false)
-		queryResult, err := q.toList()
+		queryResult, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 3)
 
@@ -107,17 +107,17 @@ func query_queryWithWhereClause(t *testing.T) {
 
 		q := session.QueryWithQuery(GetTypeOf(&User{}), Query_collection("users"))
 		q = q.WhereStartsWith("name", "J")
-		queryResult, err := q.toList()
+		queryResult, err := q.ToList()
 		assert.NoError(t, err)
 
 		q2 := session.QueryWithQuery(GetTypeOf(&User{}), Query_collection("users"))
 		q2 = q2.WhereEquals("name", "Tarzan")
-		queryResult2, err := q2.toList()
+		queryResult2, err := q2.ToList()
 		assert.NoError(t, err)
 
 		q3 := session.QueryWithQuery(GetTypeOf(&User{}), Query_collection("users"))
 		q3 = q3.WhereEndsWith("name", "n")
-		queryResult3, err := q3.toList()
+		queryResult3, err := q3.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 2)
@@ -143,7 +143,7 @@ func query_queryMapReduceWithCount(t *testing.T) {
 		q = q2.selectCount()
 		q = q.OrderByDescending("count")
 		q = q.OfType(GetTypeOf(&ReduceResult{}))
-		results, err := q.toList()
+		results, err := q.ToList()
 		assert.NoError(t, err)
 
 		{
@@ -177,7 +177,7 @@ func query_queryMapReduceWithSum(t *testing.T) {
 		q = q2.selectSum(NewGroupByFieldWithName("age"))
 		q = q.OrderByDescending("age")
 		q = q.OfType(GetTypeOf(&ReduceResult{}))
-		results, err := q.toList()
+		results, err := q.ToList()
 		assert.NoError(t, err)
 
 		{
@@ -207,7 +207,7 @@ func query_queryMapReduceIndex(t *testing.T) {
 
 		q := session.QueryWithQuery(GetTypeOf(&ReduceResult{}), Query_index("UsersByName"))
 		q = q.OrderByDescending("count")
-		results, err := q.toList()
+		results, err := q.ToList()
 		assert.NoError(t, err)
 
 		{
@@ -238,7 +238,7 @@ func query_querySingleProperty(t *testing.T) {
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.AddOrderWithOrdering("age", true, OrderingType_LONG)
 		q = q.SelectFields(GetTypeOf(int(0)), "age")
-		ages, err := q.toList()
+		ages, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(ages), 3)
@@ -262,7 +262,7 @@ func query_queryWithSelect(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.SelectFields(GetTypeOf(&User{}), "age")
-		usersAge, err := q.toList()
+		usersAge, err := q.ToList()
 		assert.NoError(t, err)
 
 		for _, u := range usersAge {
@@ -287,7 +287,7 @@ func query_queryWithWhereIn(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereIn("name", []Object{"Tarzan", "no_such"})
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -307,7 +307,7 @@ func query_queryWithWhereBetween(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereBetween("age", 4, 5)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -330,7 +330,7 @@ func query_queryWithWhereLessThan(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereLessThan("age", 3)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -353,7 +353,7 @@ func query_queryWithWhereLessThanOrEqual(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereLessThanOrEqual("age", 3)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -373,7 +373,7 @@ func query_queryWithWhereGreaterThan(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereGreaterThan("age", 3)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -396,7 +396,7 @@ func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereGreaterThanOrEqual("age", 3)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -437,7 +437,7 @@ func query_queryWithProjection(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.SelectFields(GetTypeOf(&UserProjection{}))
-		projections, err := q.toList()
+		projections, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -464,7 +464,7 @@ func query_queryWithProjection2(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.SelectFields(GetTypeOf(&UserProjection{}), "lastName")
-		projections, err := q.toList()
+		projections, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -492,7 +492,7 @@ func query_queryDistinct(t *testing.T) {
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.SelectFields(GetTypeOf(""), "name")
 		q = q.Distinct()
-		uniqueNames, err := q.toList()
+		uniqueNames, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 2)
@@ -514,7 +514,7 @@ func query_querySearchWithOr(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.SearchWithOperator("name", "Tarzan John", SearchOperator_OR)
-		uniqueNames, err := q.toList()
+		uniqueNames, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 3)
@@ -534,7 +534,7 @@ func query_queryNoTracking(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.NoTracking()
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -562,7 +562,7 @@ func query_querySkipTake(t *testing.T) {
 		q = q.OrderBy("name")
 		q = q.Skip(2)
 		q = q.Take(1)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -586,7 +586,7 @@ func query_rawQuerySkipTake(t *testing.T) {
 		q := session.RawQuery(GetTypeOf(&User{}), "from users")
 		q = q.skip(2)
 		q = q.take(1)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -608,7 +608,7 @@ func query_parametersInRawQuery(t *testing.T) {
 
 		q := session.RawQuery(GetTypeOf(&User{}), "from users where age == $p0")
 		q = q.addParameter("p0", 5)
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -630,7 +630,7 @@ func query_queryLucene(t *testing.T) {
 
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.WhereLucene("name", "Tarzan")
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -656,7 +656,7 @@ func query_queryWhereExact(t *testing.T) {
 		{
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.WhereEquals("name", "tarzan")
-			users, err := q.toList()
+			users, err := q.ToList()
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1)
@@ -665,7 +665,7 @@ func query_queryWhereExact(t *testing.T) {
 		{
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.WhereEqualsWithExact("name", "tarzan", true)
-			users, err := q.toList()
+			users, err := q.ToList()
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 0) // we queried for tarzan with exact
@@ -674,7 +674,7 @@ func query_queryWhereExact(t *testing.T) {
 		{
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.WhereEqualsWithExact("name", "Tarzan", true)
-			users, err := q.toList()
+			users, err := q.ToList()
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1) // we queried for Tarzan with exact
@@ -697,7 +697,7 @@ func query_queryWhereNot(t *testing.T) {
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.Not()
 			q = q.WhereEquals("name", "tarzan")
-			res, err := q.toList()
+			res, err := q.ToList()
 
 			assert.NoError(t, err)
 
@@ -707,7 +707,7 @@ func query_queryWhereNot(t *testing.T) {
 		{
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.WhereNotEquals("name", "tarzan")
-			res, err := q.toList()
+			res, err := q.ToList()
 
 			assert.NoError(t, err)
 
@@ -717,7 +717,7 @@ func query_queryWhereNot(t *testing.T) {
 		{
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.WhereNotEqualsWithExact("name", "Tarzan", true)
-			res, err := q.toList()
+			res, err := q.ToList()
 
 			assert.NoError(t, err)
 
@@ -801,7 +801,7 @@ func query_queryWithDuration(t *testing.T) {
 		{
 			q := session.QueryInIndex(GetTypeOf(&Order{}), NewOrderTime())
 			q = q.WhereLessThan("delay", time.Hour*3)
-			orders, err := q.toList()
+			orders, err := q.ToList()
 			assert.NoError(t, err)
 
 			var delay []string
@@ -817,7 +817,7 @@ func query_queryWithDuration(t *testing.T) {
 		{
 			q := session.QueryInIndex(GetTypeOf(&Order{}), NewOrderTime())
 			q = q.WhereGreaterThan("delay", time.Hour*3)
-			orders, err := q.toList()
+			orders, err := q.ToList()
 			assert.NoError(t, err)
 
 			var delay2 []string
@@ -843,15 +843,15 @@ func query_queryFirst(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		first, err := session.Query(GetTypeOf(&User{})).first()
+		first, err := session.Query(GetTypeOf(&User{})).First()
 		assert.NoError(t, err)
 		assert.NotNil(t, first)
 
-		single, err := session.Query(GetTypeOf(&User{})).WhereEquals("name", "Tarzan").single()
+		single, err := session.Query(GetTypeOf(&User{})).WhereEquals("name", "Tarzan").Single()
 		assert.NoError(t, err)
 		assert.NotNil(t, single)
 
-		_, err = session.Query(GetTypeOf(&User{})).single()
+		_, err = session.Query(GetTypeOf(&User{})).Single()
 		_ = err.(*IllegalStateException)
 
 		session.Close()
@@ -868,7 +868,7 @@ func query_queryParameters(t *testing.T) {
 
 		q := session.RawQuery(GetTypeOf(&User{}), "from Users where name = $name")
 		q = q.addParameter("name", "Tarzan")
-		count, err := q.count()
+		count, err := q.Count()
 		assert.NoError(t, err)
 
 		assert.Equal(t, count, 1)
@@ -886,14 +886,14 @@ func query_queryRandomOrder(t *testing.T) {
 		session := openSessionMust(t, store)
 		{
 			q := session.Query(GetTypeOf(&User{})).RandomOrdering()
-			res, err := q.toList()
+			res, err := q.ToList()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
 			q := session.Query(GetTypeOf(&User{})).RandomOrderingWithSeed("123")
-			res, err := q.toList()
+			res, err := q.ToList()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -913,7 +913,7 @@ func query_queryWhereExists(t *testing.T) {
 		{
 			q := session.Query(GetTypeOf(&User{}))
 			q = q.WhereExists("name")
-			res, err := q.toList()
+			res, err := q.ToList()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -924,7 +924,7 @@ func query_queryWhereExists(t *testing.T) {
 			q = q.AndAlso()
 			q = q.Not()
 			q = q.WhereExists("no_such_field")
-			res, err := q.toList()
+			res, err := q.ToList()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -948,7 +948,7 @@ func query_queryWithBoost(t *testing.T) {
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(2)
 		q = q.OrderByScore()
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -967,7 +967,7 @@ func query_queryWithBoost(t *testing.T) {
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(5)
 		q = q.OrderByScore()
-		users, err = q.toList()
+		users, err = q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -1060,7 +1060,7 @@ func query_queryWithCustomize(t *testing.T) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.OrderByWithOrdering("name", OrderingType_ALPHA_NUMERIC)
 		q = q.WhereGreaterThan("age", 2)
-		queryResult, err := q.toList()
+		queryResult, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 4)
@@ -1281,7 +1281,7 @@ func query_queryLongRequest(t *testing.T) {
 
 		q := newSession.Advanced().DocumentQueryAll(GetTypeOf(&User{}), "", "Users", false)
 		q = q.WhereEquals("name", longName)
-		queryResult, err := q.toList()
+		queryResult, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 1)
 
@@ -1317,7 +1317,7 @@ func query_queryByIndex(t *testing.T) {
 		q = q.WhereGreaterThan("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
-		queryResult, err := q.toList()
+		queryResult, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 1)
@@ -1328,7 +1328,7 @@ func query_queryByIndex(t *testing.T) {
 		q = q.WhereLessThanOrEqual("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
-		queryResult2, err := q.toList()
+		queryResult2, err := q.ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult2), 3)

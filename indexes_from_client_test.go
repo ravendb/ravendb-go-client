@@ -225,7 +225,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
 		q = q.WhereEquals("name", "Arek")
-		users, err := q.toList()
+		users, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 1)
 	}
@@ -302,7 +302,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
-		_, err := q.toList()
+		_, err := q.ToList()
 		assert.NoError(t, err)
 
 		indexName = stats.getIndexName()
@@ -353,7 +353,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
-		_, err := q.toList()
+		_, err := q.ToList()
 		assert.NoError(t, err)
 
 		indexName = stats.getIndexName()
@@ -406,13 +406,13 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 		q := session.Query(GetTypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
-		_, err = q.toList()
+		_, err = q.ToList()
 		assert.NoError(t, err)
 
 		q = session.Query(GetTypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereGreaterThan("age", 10)
-		_, err = q.toList()
+		_, err = q.ToList()
 		assert.NoError(t, err)
 
 		session.Close()
@@ -516,7 +516,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		           .toList();
 		*/
 
-		_, err = q.toList()
+		_, err = q.ToList()
 		assert.NoError(t, err)
 
 		/*
