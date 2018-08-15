@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestAtomicInteger(t *testing.T) {
-	var i AtomicInteger
+	var i ravendb.AtomicInteger
 	v := i.Get()
 	assert.Equal(t, 0, v)
 	i.Set(5)
