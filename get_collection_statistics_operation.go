@@ -17,7 +17,7 @@ func NewGetCollectionStatisticsOperation() *GetCollectionStatisticsOperation {
 	return &GetCollectionStatisticsOperation{}
 }
 
-func (o *GetCollectionStatisticsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetCollectionStatisticsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetCollectionStatisticsCommand()
 	return o.Command
 }

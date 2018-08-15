@@ -10,7 +10,7 @@ type GetServerWideOperationStateOperation struct {
 	_id int
 }
 
-func (o *GetServerWideOperationStateOperation) getCommand(conventions *DocumentConventions) *GetServerWideOperationStateCommand {
+func (o *GetServerWideOperationStateOperation) GetCommand(conventions *DocumentConventions) *GetServerWideOperationStateCommand {
 	return NewGetServerWideOperationStateCommand(DocumentConventions_defaultConventions(), o._id)
 }
 

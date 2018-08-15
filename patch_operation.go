@@ -75,7 +75,7 @@ func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, pat
 	}
 }
 
-func (o *PatchOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *PatchOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewPatchCommand(conventions, o._id, o._changeVector, o._patch, o._patchIfMissing, o._skipPatchIfChangeVectorMismatch, false, false)
 	return o.Command
 }

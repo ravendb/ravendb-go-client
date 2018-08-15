@@ -21,7 +21,7 @@ func NewGetIndexErrorsOperation(indexNames []string) *GetIndexErrorsOperation {
 	}
 }
 
-func (o *GetIndexErrorsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetIndexErrorsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetIndexErrorsCommand(o._indexNames)
 	return o.Command
 }

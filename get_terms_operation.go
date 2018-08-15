@@ -32,7 +32,7 @@ func NewGetTermsOperationWithPageSize(indexName string, field string, fromValue 
 	}
 }
 
-func (o *GetTermsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetTermsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetTermsCommand(o._indexName, o._field, o._fromValue, o._pageSize)
 	return o.Command
 }

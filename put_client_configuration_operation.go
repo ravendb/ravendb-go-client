@@ -22,7 +22,7 @@ func NewPutClientConfigurationOperation(configuration *ClientConfiguration) (*Pu
 	}, nil
 }
 
-func (o *PutClientConfigurationOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *PutClientConfigurationOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewPutClientConfigurationCommand(conventions, o.configuration)
 	return o.Command
 }

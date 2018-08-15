@@ -55,7 +55,7 @@ In Java, the pattern is:
 
 ```java
     GetDatabaseNamesOperation databaseNamesOperation = new GetDatabaseNamesOperation(0, 20);
-    RavenCommand<string[]> command = databaseNamesOperation.getCommand(conventions);
+    RavenCommand<string[]> command = databaseNamesOperation.GetCommand(conventions);
     string[] databaseNames = executor.Execute(command);
 ```
 

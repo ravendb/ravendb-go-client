@@ -25,7 +25,7 @@ func NewGetStatisticsOperationWithDebugTag(debugTag string) *GetStatisticsOperat
 	}
 }
 
-func (o *GetStatisticsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetStatisticsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetStatisticsCommandWithDebugTag(o._debugTag)
 	return o.Command
 }

@@ -10,7 +10,7 @@ type GetOperationStateOperation struct {
 	_id int
 }
 
-func (o *GetOperationStateOperation) getCommand(conventions *DocumentConventions) *GetOperationStateCommand {
+func (o *GetOperationStateOperation) GetCommand(conventions *DocumentConventions) *GetOperationStateCommand {
 	return NewGetOperationStateCommand(DocumentConventions_defaultConventions(), o._id)
 }
 

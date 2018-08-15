@@ -21,7 +21,7 @@ func NewUpdateExternalReplicationOperation(newWatcher *ExternalReplication) *Upd
 	}
 }
 
-func (o *UpdateExternalReplicationOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *UpdateExternalReplicationOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewUpdateExternalReplicationCommand(o._newWatcher)
 	return o.Command
 }

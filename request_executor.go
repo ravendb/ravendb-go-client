@@ -328,8 +328,8 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 			return
 		}
 
-		re.conventions.UpdateFrom(result.getConfiguration())
-		re.clientConfigurationEtag = result.getEtag()
+		re.conventions.UpdateFrom(result.GetConfiguration())
+		re.clientConfigurationEtag = result.GetEtag()
 
 		if re._disposed {
 			return
@@ -1021,7 +1021,7 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 	if re.isCluster {
 		return re.clusterPerformHealthCheck(serverNode, nodeIndex)
 	}
-	command := RequestExecutor_failureCheckOperation.getCommand(re.conventions)
+	command := RequestExecutor_failureCheckOperation.GetCommand(re.conventions)
 	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 

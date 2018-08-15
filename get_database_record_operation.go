@@ -21,7 +21,7 @@ func NewGetDatabaseRecordOperation(database string) *GetDatabaseRecordOperation 
 	}
 }
 
-func (o *GetDatabaseRecordOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetDatabaseRecordOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetDatabaseRecordCommand(conventions, o._database)
 	return o.Command
 }

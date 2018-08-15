@@ -21,7 +21,7 @@ func NewPutIndexesOperation(indexToAdd ...*IndexDefinition) *PutIndexesOperation
 	}
 }
 
-func (o *PutIndexesOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *PutIndexesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewPutIndexesCommand(conventions, o._indexToAdd)
 	return o.Command
 }

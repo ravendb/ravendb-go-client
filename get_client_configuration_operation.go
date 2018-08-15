@@ -18,7 +18,7 @@ func NewGetClientConfigurationOperation() *GetClientConfigurationOperation {
 	return &GetClientConfigurationOperation{}
 }
 
-func (o *GetClientConfigurationOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetClientConfigurationOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetClientConfigurationCommand()
 	return o.Command
 }
@@ -62,18 +62,18 @@ type GetClientConfigurationCommandResult struct {
 	Configuration *ClientConfiguration `json:"Configuration"`
 }
 
-func (r *GetClientConfigurationCommandResult) getEtag() int {
+func (r *GetClientConfigurationCommandResult) GetEtag() int {
 	return r.Etag
 }
 
-func (r *GetClientConfigurationCommandResult) setEtag(etag int) {
+func (r *GetClientConfigurationCommandResult) SetEtag(etag int) {
 	r.Etag = etag
 }
 
-func (r *GetClientConfigurationCommandResult) getConfiguration() *ClientConfiguration {
+func (r *GetClientConfigurationCommandResult) GetConfiguration() *ClientConfiguration {
 	return r.Configuration
 }
 
-func (r *GetClientConfigurationCommandResult) setConfiguration(configuration *ClientConfiguration) {
+func (r *GetClientConfigurationCommandResult) SetConfiguration(configuration *ClientConfiguration) {
 	r.Configuration = configuration
 }

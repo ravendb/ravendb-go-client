@@ -20,7 +20,7 @@ func NewConfigureRevisionsOperation(configuration *RevisionsConfiguration) *Conf
 	}
 }
 
-func (o *ConfigureRevisionsOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *ConfigureRevisionsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewConfigureRevisionsCommand(conventions, o._configuration)
 	return o.Command
 }

@@ -30,7 +30,7 @@ func NewSetIndexesLockOperationWithParameters(parameters *SetIndexesLockParamete
 	}
 }
 
-func (o *SetIndexesLockOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *SetIndexesLockOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewSetIndexesLockCommand(conventions, o._parameters)
 	return o.Command
 }

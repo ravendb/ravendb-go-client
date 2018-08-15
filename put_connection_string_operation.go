@@ -21,7 +21,7 @@ func NewPutConnectionStringOperation(connectionString interface{}) *PutConnectio
 	}
 }
 
-func (o *PutConnectionStringOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *PutConnectionStringOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewPutConnectionStringCommand(o._connectionString)
 	return o.Command
 }

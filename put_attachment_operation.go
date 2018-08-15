@@ -31,7 +31,7 @@ func NewPutAttachmentOperation(documentId string, name string, stream io.Reader,
 	}
 }
 
-func (o *PutAttachmentOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *PutAttachmentOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewPutAttachmentCommand(o._documentId, o._name, o._stream, o._contentType, o._changeVector)
 	return o.Command
 }

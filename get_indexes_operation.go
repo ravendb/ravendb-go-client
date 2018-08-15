@@ -22,7 +22,7 @@ func NewGetIndexesOperation(_start int, _pageSize int) *GetIndexesOperation {
 	}
 }
 
-func (o *GetIndexesOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetIndexesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetIndexesCommand(o._start, o._pageSize)
 	return o.Command
 }

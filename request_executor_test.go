@@ -33,7 +33,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 		assert.Equal(t, 40, errorsCount)
 
 		databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
-		command := databaseNamesOperation.getCommand(conventions)
+		command := databaseNamesOperation.GetCommand(conventions)
 		err := executor.ExecuteCommand(command)
 		_ = err.(*DatabaseDoesNotExistException)
 	}
@@ -54,7 +54,7 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 		executor := RequestExecutor_create(store.GetUrls(), store.GetDatabase(), nil, conventions)
 		for i := 0; i < 50; i++ {
 			databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
-			command := databaseNamesOperation.getCommand(conventions)
+			command := databaseNamesOperation.GetCommand(conventions)
 			err := executor.ExecuteCommand(command)
 			assert.NoError(t, err)
 		}
@@ -76,7 +76,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 		executor := RequestExecutor_create(store.GetUrls(), store.GetDatabase(), nil, conventions)
 
 		databaseNamesOperation := NewGetDatabaseNamesOperation(0, 20)
-		command := databaseNamesOperation.getCommand(conventions)
+		command := databaseNamesOperation.GetCommand(conventions)
 		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
 

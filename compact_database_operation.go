@@ -21,7 +21,7 @@ func NewCompactDatabaseOperation(compactSettings *CompactSettings) *CompactDatab
 	}
 }
 
-func (o *CompactDatabaseOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *CompactDatabaseOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewCompactDatabaseCommand(conventions, o._compactSettings)
 	return o.Command
 }

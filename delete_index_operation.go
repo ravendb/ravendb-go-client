@@ -20,7 +20,7 @@ func NewDeleteIndexOperation(indexName string) *DeleteIndexOperation {
 	}
 }
 
-func (o *DeleteIndexOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *DeleteIndexOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewDeleteIndexCommand(o._indexName)
 	return o.Command
 }

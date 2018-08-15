@@ -47,7 +47,7 @@ func NewDeleteDatabasesOperationWithParameters(parameters *DeleteDatabaseParamet
 	}
 }
 
-func (o *DeleteDatabasesOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *DeleteDatabasesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewDeleteDatabaseCommand(conventions, o.parameters)
 	return o.Command
 }

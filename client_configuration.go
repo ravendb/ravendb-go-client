@@ -12,34 +12,34 @@ func NewClientConfiguration() *ClientConfiguration {
 	return &ClientConfiguration{}
 }
 
-func (c *ClientConfiguration) getEtag() int {
+func (c *ClientConfiguration) GetEtag() int {
 	return c.Etag
 }
 
-func (c *ClientConfiguration) setEtag(etag int) {
+func (c *ClientConfiguration) SetEtag(etag int) {
 	c.Etag = etag
 }
 
-func (c *ClientConfiguration) isDisabled() bool {
+func (c *ClientConfiguration) IsDisabled() bool {
 	return c.Disabled
 }
 
-func (c *ClientConfiguration) setDisabled(disabled bool) {
+func (c *ClientConfiguration) SetDisabled(disabled bool) {
 	c.Disabled = disabled
 }
 
-func (c *ClientConfiguration) getMaxNumberOfRequestsPerSession() int {
+func (c *ClientConfiguration) GetMaxNumberOfRequestsPerSession() int {
 	return c.MaxNumberOfRequestsPerSession
 }
 
-func (c *ClientConfiguration) setMaxNumberOfRequestsPerSession(maxNumberOfRequestsPerSession int) {
+func (c *ClientConfiguration) SetMaxNumberOfRequestsPerSession(maxNumberOfRequestsPerSession int) {
 	c.MaxNumberOfRequestsPerSession = maxNumberOfRequestsPerSession
 }
 
-func (c *ClientConfiguration) getReadBalanceBehavior() ReadBalanceBehavior {
+func (c *ClientConfiguration) GetReadBalanceBehavior() ReadBalanceBehavior {
 	return c.ReadBalanceBehavior
 }
 
-func (c *ClientConfiguration) setReadBalanceBehavior(readBalanceBehavior ReadBalanceBehavior) {
+func (c *ClientConfiguration) SetReadBalanceBehavior(readBalanceBehavior ReadBalanceBehavior) {
 	c.ReadBalanceBehavior = readBalanceBehavior
 }

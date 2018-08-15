@@ -17,7 +17,7 @@ func NewGetIdentitiesOperation() *GetIdentitiesOperation {
 	return &GetIdentitiesOperation{}
 }
 
-func (o *GetIdentitiesOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetIdentitiesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetIdentitiesCommand()
 	return o.Command
 }

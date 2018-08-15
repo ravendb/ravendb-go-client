@@ -19,7 +19,7 @@ func NewEnableIndexOperation(indexName string) *EnableIndexOperation {
 	}
 }
 
-func (o *EnableIndexOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *EnableIndexOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewEnableIndexCommand(o._indexName)
 	return o.Command
 }

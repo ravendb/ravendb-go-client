@@ -22,7 +22,7 @@ func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRec
 	}
 }
 
-func (o *CreateDatabaseOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *CreateDatabaseOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	return NewCreateDatabaseCommand(conventions, o.databaseRecord, o.replicationFactor)
 }
 

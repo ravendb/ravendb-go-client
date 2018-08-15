@@ -1,20 +1,21 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func clientConfiguration_canHandleNoConfiguration(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	operation := NewGetClientConfigurationOperation()
+	operation := ravendb.NewGetClientConfigurationOperation()
 	err := store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
-	assert.Nil(t, result.getConfiguration())
+	assert.Nil(t, result.GetConfiguration())
 	//TODO: java checks that result.getEtag() is not nil, which does not apply
 }
 
@@ -22,26 +23,26 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	configurationToSave := NewClientConfiguration()
-	configurationToSave.setEtag(123)
-	configurationToSave.setMaxNumberOfRequestsPerSession(80)
-	configurationToSave.setReadBalanceBehavior(ReadBalanceBehavior_FASTEST_NODE)
-	configurationToSave.setDisabled(true)
+	configurationToSave := ravendb.NewClientConfiguration()
+	configurationToSave.SetEtag(123)
+	configurationToSave.SetMaxNumberOfRequestsPerSession(80)
+	configurationToSave.SetReadBalanceBehavior(ravendb.ReadBalanceBehavior_FASTEST_NODE)
+	configurationToSave.SetDisabled(true)
 
-	saveOperation, err := NewPutClientConfigurationOperation(configurationToSave)
+	saveOperation, err := ravendb.NewPutClientConfigurationOperation(configurationToSave)
 	assert.NoError(t, err)
 	store.Maintenance().Send(saveOperation)
-	operation := NewGetClientConfigurationOperation()
+	operation := ravendb.NewGetClientConfigurationOperation()
 	err = store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
-	assert.True(t, result.getEtag() > 0)
-	newConfiguration := result.getConfiguration()
+	assert.True(t, result.GetEtag() > 0)
+	newConfiguration := result.GetConfiguration()
 	assert.NotNil(t, newConfiguration)
-	assert.True(t, newConfiguration.getEtag() > configurationToSave.getEtag())
-	assert.True(t, newConfiguration.isDisabled())
-	assert.Equal(t, newConfiguration.getMaxNumberOfRequestsPerSession(), 80)
-	assert.Equal(t, newConfiguration.getReadBalanceBehavior(), ReadBalanceBehavior_FASTEST_NODE)
+	assert.True(t, newConfiguration.GetEtag() > configurationToSave.GetEtag())
+	assert.True(t, newConfiguration.IsDisabled())
+	assert.Equal(t, newConfiguration.GetMaxNumberOfRequestsPerSession(), 80)
+	assert.Equal(t, newConfiguration.GetReadBalanceBehavior(), ravendb.ReadBalanceBehavior_FASTEST_NODE)
 }
 
 func TestClientConfiguration(t *testing.T) {

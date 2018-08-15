@@ -26,7 +26,7 @@ func NewPutCompareExchangeValueOperation(key string, value interface{}, index in
 	}
 }
 
-func (o *PutCompareExchangeValueOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *PutCompareExchangeValueOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewPutCompareExchangeValueCommand(o._key, o._value, o._index, conventions)
 	return o.Command
 }

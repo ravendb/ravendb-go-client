@@ -28,7 +28,7 @@ func NewGetAttachmentOperation(documentId string, name string, typ AttachmentTyp
 	}
 }
 
-func (o *GetAttachmentOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *GetAttachmentOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewGetAttachmentCommand(o._documentId, o._name, o._type, o._changeVector)
 	return o.Command
 }

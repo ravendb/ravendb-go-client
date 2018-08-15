@@ -30,7 +30,7 @@ func NewSetIndexesPriorityOperationWithParameters(parameters *SetIndexesPriority
 	}
 }
 
-func (o *SetIndexesPriorityOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *SetIndexesPriorityOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewSetIndexesPriorityCommand(conventions, o._parameters)
 	return o.Command
 }

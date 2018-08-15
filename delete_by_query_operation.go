@@ -31,7 +31,7 @@ func NewDeleteByQueryOperationWithOptions(queryToDelete *IndexQuery, options *Qu
 	}
 }
 
-func (o *DeleteByQueryOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *DeleteByQueryOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewDeleteByIndexCommand(conventions, o._queryToDelete, o._options)
 	return o.Command
 }

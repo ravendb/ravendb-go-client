@@ -46,7 +46,7 @@ func NewGetCompareExchangeValuesOperation(clazz reflect.Type, startWith string, 
 
 var _ RavenCommand = &GetCompareExchangeValuesCommand{}
 
-func (o *GetCompareExchangeValuesOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *GetCompareExchangeValuesOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewGetCompareExchangeValuesCommand(o, conventions)
 	return o.Command
 }

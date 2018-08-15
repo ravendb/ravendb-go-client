@@ -24,7 +24,7 @@ func NewDeleteAttachmentOperation(documentId string, name string, changeVector *
 	}
 }
 
-func (o *DeleteAttachmentOperation) getCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *DeleteAttachmentOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewDeleteAttachmentCommand(o._documentId, o._name, o._changeVector)
 	return o.Command
 }

@@ -18,7 +18,7 @@ func NewGetDatabaseNamesOperation(_start int, _pageSize int) *GetDatabaseNamesOp
 	}
 }
 
-func (o *GetDatabaseNamesOperation) getCommand(conventions *DocumentConventions) *GetDatabaseNamesCommand {
+func (o *GetDatabaseNamesOperation) GetCommand(conventions *DocumentConventions) *GetDatabaseNamesCommand {
 	return NewGetDatabaseNamesCommand(o._start, o._pageSize)
 }
 

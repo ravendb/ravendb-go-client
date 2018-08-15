@@ -19,7 +19,7 @@ func NewIndexHasChangedOperation(definition *IndexDefinition) *IndexHasChangedOp
 	}
 }
 
-func (o *IndexHasChangedOperation) getCommand(conventions *DocumentConventions) RavenCommand {
+func (o *IndexHasChangedOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewIndexHasChangedCommand(conventions, o._definition)
 	return o.Command
 }

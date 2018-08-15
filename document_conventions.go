@@ -90,15 +90,15 @@ func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if configuration.isDisabled() && c._originalConfiguration == nil {
+	if configuration.IsDisabled() && c._originalConfiguration == nil {
 		// nothing to do
 		return
 	}
 
-	if configuration.isDisabled() && c._originalConfiguration != nil {
+	if configuration.IsDisabled() && c._originalConfiguration != nil {
 		// need to revert to original values
-		c._maxNumberOfRequestsPerSession = c._originalConfiguration.getMaxNumberOfRequestsPerSession()
-		c._readBalanceBehavior = c._originalConfiguration.getReadBalanceBehavior()
+		c._maxNumberOfRequestsPerSession = c._originalConfiguration.GetMaxNumberOfRequestsPerSession()
+		c._readBalanceBehavior = c._originalConfiguration.GetReadBalanceBehavior()
 
 		c._originalConfiguration = nil
 		return
@@ -106,14 +106,14 @@ func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 
 	if c._originalConfiguration == nil {
 		c._originalConfiguration = NewClientConfiguration()
-		c._originalConfiguration.setEtag(-1)
-		c._originalConfiguration.setMaxNumberOfRequestsPerSession(c._maxNumberOfRequestsPerSession)
-		c._originalConfiguration.setReadBalanceBehavior(c._readBalanceBehavior)
+		c._originalConfiguration.SetEtag(-1)
+		c._originalConfiguration.SetMaxNumberOfRequestsPerSession(c._maxNumberOfRequestsPerSession)
+		c._originalConfiguration.SetReadBalanceBehavior(c._readBalanceBehavior)
 	}
 
-	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.getMaxNumberOfRequestsPerSession(), c._originalConfiguration.getMaxNumberOfRequestsPerSession())
+	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.GetMaxNumberOfRequestsPerSession(), c._originalConfiguration.GetMaxNumberOfRequestsPerSession())
 
-	c._readBalanceBehavior = firstNonEmptyString(configuration.getReadBalanceBehavior(), c._originalConfiguration.getReadBalanceBehavior())
+	c._readBalanceBehavior = firstNonEmptyString(configuration.GetReadBalanceBehavior(), c._originalConfiguration.GetReadBalanceBehavior())
 }
 
 func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName string) string {
