@@ -88,7 +88,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	databaseRecord.DatabaseName = name
 
 	createDatabaseOperation := NewCreateDatabaseOperation(databaseRecord)
-	err := documentStore.Maintenance().Server().send(createDatabaseOperation)
+	err := documentStore.Maintenance().Server().Send(createDatabaseOperation)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 		}
 
 		operation := NewDeleteDatabasesOperation(store.GetDatabase(), true)
-		store.Maintenance().Server().send(operation)
+		store.Maintenance().Server().Send(operation)
 	}
 
 	store.AddAfterCloseListener(fn)
@@ -217,7 +217,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 			break
 		}
 		s := scanner.Text()
-		if gRavenServerVerbose {
+		if RavenServerVerbose {
 			fmt.Printf("%s\n", s)
 		}
 		if !strings.HasPrefix(s, wantedPrefix) {
@@ -246,7 +246,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		}
 	}
 
-	if gRavenServerVerbose {
+	if RavenServerVerbose {
 		go func() {
 			_, err := io.Copy(os.Stdout, proc.stdoutReader)
 			if !(err == nil || err == io.EOF) {
@@ -566,7 +566,7 @@ func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 	downloadServerIfNeeded()
 
-	setStateFromEnv()
+	SetStateFromEnv()
 	detectServerPath()
 
 	gRavenLogsDir = ravenLogsDirFromTestName(t)
@@ -574,7 +574,7 @@ func createTestDriver(t *testing.T) func() {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	var pcapPath string
 
-	if gLogAllRequests {
+	if LogAllRequests {
 		var err error
 		path := httpLogPathFromTestName(t)
 		gHTTPLogger, err = os.Create(path)
@@ -585,7 +585,7 @@ func createTestDriver(t *testing.T) func() {
 		}
 	}
 
-	if gPcapCapture {
+	if PcapCapture {
 		pcapPath = pcapPathFromTestName(t)
 		panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
 		gRavenTestDriver = NewRavenTestDriverWithPacketCapture(pcapPath)

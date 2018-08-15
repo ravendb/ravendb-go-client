@@ -358,10 +358,10 @@ func TestAttachmentsRevisions(t *testing.T) {
 	// Note: it also fails in Java on mac pro
 	// The bytes sent seem to be exactly the same, Go fails with EOF
 	// Is it issue with not closing the request?
-	if gEnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsRevisions_putAttachments(t)
 	}
-	if gEnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsRevisions_attachmentRevision(t)
 	}
 }

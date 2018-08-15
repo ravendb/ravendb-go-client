@@ -28,7 +28,7 @@ func compactTest_canCompactDatabase(t *testing.T) {
 	compactSettings.setDocuments(true)
 
 	compactOp := NewCompactDatabaseOperation(compactSettings)
-	operation, err := store.Maintenance().Server().sendAsync(compactOp)
+	operation, err := store.Maintenance().Server().SendAsync(compactOp)
 	assert.NoError(t, err)
 
 	// we can't compact in memory database but here we just test is request was send successfully

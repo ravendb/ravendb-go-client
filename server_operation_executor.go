@@ -21,13 +21,13 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	return res
 }
 
-func (e *ServerOperationExecutor) send(operation IServerOperation) error {
+func (e *ServerOperationExecutor) Send(operation IServerOperation) error {
 	command := operation.getCommand(e.requestExecutor.getConventions())
 	err := e.requestExecutor.executeCommand(command)
 	return err
 }
 
-func (e *ServerOperationExecutor) sendAsync(operation IServerOperation) (*Operation, error) {
+func (e *ServerOperationExecutor) SendAsync(operation IServerOperation) (*Operation, error) {
 	requestExecutor := e.requestExecutor
 	command := operation.getCommand(requestExecutor.getConventions())
 	err := requestExecutor.executeCommand(command)

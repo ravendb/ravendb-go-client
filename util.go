@@ -22,80 +22,80 @@ type String = string
 var (
 	// if true, does verbose logging.
 	// can be enabled by setting VERBOSE_LOG env variable to "true"
-	gLogVerbose = false
+	LogVerbose = false
 
 	// if true, logs summary of all HTTP requests i.e. "GET /foo" to stdout
 	// can be enabled by setting LOG_HTTP_REQUEST_SUMMARY env variable to "true"
-	gLogRequestSummary = false
+	LogRequestSummary = false
 
 	// if true, logs request and response of failed http requests (i.e. those returning
 	// status code >= 400) to stdout
 	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS env variable to "true"
-	gLogFailedRequests = false
+	LogFailedRequests = false
 
 	// if true, logs all http requests/responses to a file for further inspection
 	// this is for use in tests so the file has a fixed location:
 	// logs/trace_${test_name}_go.txt
 	// can be enabled by setting LOG_ALL_REQUESTS env variable to "true"
-	gLogAllRequests = false
+	LogAllRequests = false
 
 	// if true, enables flaky tests
 	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
-	gEnableFlakyTests = false
+	EnableFlakyTests = false
 
 	// if true, enable failing tests
 	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
-	gEnableFailingTests = false
+	EnableFailingTests = false
 
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
-	gRavenServerVerbose = false
+	RavenServerVerbose = false
 
 	// if true, we use ./capturer executable to capture http trafic packets
 	// between client and server
 	// can be enabled by setting PCAP_CAPTURE env variable to "true"
-	gPcapCapture = false
+	PcapCapture = false
 )
 
-func setStateFromEnv() {
-	if !gLogVerbose && isEnvVarTrue("VERBOSE_LOG") {
-		gLogVerbose = true
-		fmt.Printf("Setting gLogVerbose to true\n")
+func SetStateFromEnv() {
+	if !LogVerbose && isEnvVarTrue("VERBOSE_LOG") {
+		LogVerbose = true
+		fmt.Printf("Setting LogVerbose to true\n")
 	}
 
-	if !gLogRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
-		gLogRequestSummary = true
-		fmt.Printf("Setting gLogRequestSummary to true\n")
+	if !LogRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
+		LogRequestSummary = true
+		fmt.Printf("Setting LogRequestSummary to true\n")
 	}
 
-	if !gLogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
-		gLogFailedRequests = true
-		fmt.Printf("Setting gLogFailedRequests to true\n")
+	if !LogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
+		LogFailedRequests = true
+		fmt.Printf("Setting LogFailedRequests to true\n")
 	}
 
-	if !gLogAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
-		gLogAllRequests = true
-		fmt.Printf("Setting gLogAllRequests to true\n")
+	if !LogAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
+		LogAllRequests = true
+		fmt.Printf("Setting LogAllRequests to true\n")
 	}
 
-	if !gRavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
-		gRavenServerVerbose = true
-		fmt.Printf("Setting gRavenServerVerbose to true\n")
+	if !RavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
+		RavenServerVerbose = true
+		fmt.Printf("Setting RavenServerVerbose to true\n")
 	}
 
-	if !gEnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
-		gEnableFlakyTests = true
-		fmt.Printf("Setting gEnableFlakyTests to true\n")
+	if !EnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
+		EnableFlakyTests = true
+		fmt.Printf("Setting EnableFlakyTests to true\n")
 	}
 
-	if !gEnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
-		gEnableFailingTests = true
-		fmt.Printf("Setting gEnableFailingTests to true\n")
+	if !EnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
+		EnableFailingTests = true
+		fmt.Printf("Setting EnableFailingTests to true\n")
 	}
 
-	if !gPcapCapture && isEnvVarTrue("PCAP_CAPTURE") {
-		gPcapCapture = true
-		fmt.Printf("Setting gPcapCapture to true\n")
+	if !PcapCapture && isEnvVarTrue("PCAP_CAPTURE") {
+		PcapCapture = true
+		fmt.Printf("Setting PcapCapture to true\n")
 	}
 }
 
@@ -109,7 +109,7 @@ func isEnvVarTrue(name string) bool {
 }
 
 func dbg(format string, args ...interface{}) {
-	if gLogVerbose {
+	if LogVerbose {
 		fmt.Printf(format, args...)
 	}
 }

@@ -91,7 +91,7 @@ func dumpRequestAndResponse(req *http.Request, rsp *http.Response, err error) {
 }
 
 func maybeDumpFailedResponse(req *http.Request, rsp *http.Response, err error) {
-	if !gLogFailedRequests {
+	if !LogFailedRequests {
 		return
 	}
 	if err == nil && rsp.StatusCode < 400 {
@@ -118,7 +118,7 @@ func addCommonHeaders(req *http.Request) {
 // to be able to print request body for failed requests, we must replace
 // body with one that captures data read from original body.
 func maybeCaptureRequestBody(req *http.Request) {
-	shouldCapture := gLogFailedRequests || gLogHTTP || (gHTTPLogger != nil)
+	shouldCapture := LogFailedRequests || gLogHTTP || (gHTTPLogger != nil)
 	if !shouldCapture {
 		return
 	}
@@ -128,7 +128,7 @@ func maybeCaptureRequestBody(req *http.Request) {
 }
 
 func maybeLogRequestSummary(req *http.Request) {
-	if !gLogRequestSummary {
+	if !LogRequestSummary {
 		return
 	}
 	method := req.Method

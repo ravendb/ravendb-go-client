@@ -271,7 +271,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 
 		user1.setAge(10)
 
-		if gEnableFailingTests {
+		if EnableFailingTests {
 			// TODO: this returns 3 changes, showing user/2 as added
 			// which is probably wrong. Need to figure out why.
 			changes, err := newSession.Advanced().whatChanged()

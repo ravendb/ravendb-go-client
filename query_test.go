@@ -1388,7 +1388,7 @@ func TestQuery(t *testing.T) {
 	query_queryWhereExists(t)
 	query_querySearchWithOr(t)
 	//TODO: this test is flaky
-	if gEnableFlakyTests {
+	if EnableFlakyTests {
 		query_rawQuerySkipTake(t)
 	}
 	query_queryWithDuration(t)
@@ -1411,7 +1411,7 @@ func TestQuery(t *testing.T) {
 	query_queryFirst(t)
 	query_querySingleProperty(t)
 	//TODO: this test is flaky
-	if gEnableFlakyTests {
+	if EnableFlakyTests {
 		query_parametersInRawQuery(t)
 	}
 	query_queryWithWhereLessThan(t)
