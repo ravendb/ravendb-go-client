@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"strings"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
@@ -46,13 +47,13 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		doc1I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/1-A")
+		doc1I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
-		doc2I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/2-A")
+		doc2I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/2-A")
 		assert.NoError(t, err)
-		doc3I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/3-A")
+		doc3I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/3-A")
 		assert.NoError(t, err)
-		doc4I, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/4-A")
+		doc4I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/4-A")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, doc1I)
@@ -89,7 +90,7 @@ func bulkInsertsTest_killedToEarly(t *testing.T) {
 		_, err = bulkInsert.Store(&FooBar{})
 		assert.Error(t, err)
 
-		_, ok := err.(*BulkInsertAbortedException)
+		_, ok := err.(*ravendb.BulkInsertAbortedException)
 		assert.True(t, ok)
 
 		err = bulkInsert.Close()
@@ -105,7 +106,7 @@ func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T) {
 		bulkInsert := store.BulkInsert()
 		err = bulkInsert.StoreWithID(&FooBar{}, "foobars|", nil)
 		assert.Error(t, err)
-		_, ok := err.(*UnsupportedOperationException)
+		_, ok := err.(*ravendb.UnsupportedOperationException)
 		assert.True(t, ok)
 		ok = strings.Contains(err.Error(), "Document ids cannot end with '|', but was called with foobars|")
 		assert.True(t, ok)
@@ -121,15 +122,15 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 	defer store.Close()
 
 	et := time.Now().Add(time.Hour * 24 * 365)
-	expirationDate := NetISO8601Utils_format(et)
+	expirationDate := ravendb.NetISO8601Utils_format(et)
 
 	{
 		bulkInsert := store.BulkInsert()
 
 		fooBar := &FooBar{}
 		fooBar.setName("Jon Show")
-		metadata := &MetadataAsDictionary{}
-		metadata.Put(Constants_Documents_Metadata_EXPIRES, expirationDate)
+		metadata := &ravendb.MetadataAsDictionary{}
+		metadata.Put(ravendb.Constants_Documents_Metadata_EXPIRES, expirationDate)
 
 		_, err = bulkInsert.StoreWithMetadata(fooBar, metadata)
 		assert.NoError(t, err)
@@ -140,13 +141,13 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entity, err := session.Load(GetTypeOf(&FooBar{}), "FooBars/1-A")
+		entity, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
 
 		meta, err := session.Advanced().GetMetadataFor(entity)
 		assert.NoError(t, err)
 
-		metadataExpirationDate, ok := meta.Get(Constants_Documents_Metadata_EXPIRES)
+		metadataExpirationDate, ok := meta.Get(ravendb.Constants_Documents_Metadata_EXPIRES)
 		assert.True(t, ok)
 		assert.Equal(t, metadataExpirationDate, expirationDate)
 	}
@@ -180,7 +181,7 @@ func TestBulkInserts(t *testing.T) {
 	// it fails oftent if we comment out all other tests here.
 	// Looks like timing issue where the server doesn't yet see the command
 	// that we're trying to kill
-	if EnableFlakyTests {
+	if ravendb.EnableFlakyTests {
 		bulkInsertsTest_killedToEarly(t)
 	}
 	bulkInsertsTest_canModifyMetadataWithBulkInsert(t)
