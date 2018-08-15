@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 type UserWithFavs struct {
@@ -69,14 +70,14 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(GetTypeOf(&UserWithFavs{}))
-		q = q.ContainsAny("Favourites", []Object{"pascal", "go"})
-		q = q.SelectFields(GetTypeOf(""), "Name")
+		q := session.Query(ravendb.GetTypeOf(&UserWithFavs{}))
+		q = q.ContainsAny("Favourites", []ravendb.Object{"pascal", "go"})
+		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
 		pascalOrGoDeveloperNames, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
-		assert.True(t, InterfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
-		assert.True(t, InterfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
+		assert.True(t, ravendb.InterfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
+		assert.True(t, ravendb.InterfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
 
 		session.Close()
 	}
@@ -84,14 +85,14 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(GetTypeOf(&UserWithFavs{}))
-		q = q.ContainsAll("Favourites", []Object{"java"})
-		q = q.SelectFields(GetTypeOf(""), "Name")
+		q := session.Query(ravendb.GetTypeOf(&UserWithFavs{}))
+		q = q.ContainsAll("Favourites", []ravendb.Object{"java"})
+		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
 		javaDevelopers, err := q.ToList()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(javaDevelopers))
-		assert.True(t, InterfaceArrayContains(javaDevelopers, "John"))
-		assert.True(t, InterfaceArrayContains(javaDevelopers, "Tarzan"))
+		assert.True(t, ravendb.InterfaceArrayContains(javaDevelopers, "John"))
+		assert.True(t, ravendb.InterfaceArrayContains(javaDevelopers, "Tarzan"))
 
 		session.Close()
 	}
