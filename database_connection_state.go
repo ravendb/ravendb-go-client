@@ -29,11 +29,11 @@ func (s *DatabaseConnectionState) removeOnError(idx int) {
 }
 
 func (s *DatabaseConnectionState) inc() {
-	s._value.incrementAndGet()
+	s._value.IncrementAndGet()
 }
 
 func (s *DatabaseConnectionState) dec() {
-	if s._value.decrementAndGet() == 0 {
+	if s._value.DecrementAndGet() == 0 {
 		s._onDisconnect.run()
 	}
 }

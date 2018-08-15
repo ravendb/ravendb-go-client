@@ -72,7 +72,7 @@ func (d *RavenTestDriver) getDocumentStoreWithName(dbName string) (*DocumentStor
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*DocumentStore, error) {
 	//fmt.Printf("getDocumentStore2\n")
 
-	n := index.incrementAndGet()
+	n := index.IncrementAndGet()
 	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := d.getGlobalServer(secured)
 	if documentStore == nil {

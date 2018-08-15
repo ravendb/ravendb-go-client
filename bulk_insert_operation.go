@@ -156,10 +156,10 @@ func (o *BulkInsertOperation) WaitForId() error {
 }
 
 func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IMetadataDictionary) error {
-	if !o._concurrentCheck.compareAndSet(0, 1) {
+	if !o._concurrentCheck.CompareAndSet(0, 1) {
 		return NewIllegalStateException("Bulk Insert Store methods cannot be executed concurrently.")
 	}
-	defer o._concurrentCheck.set(0)
+	defer o._concurrentCheck.Set(0)
 
 	// early exit if we failed previously
 	if o.err != nil {

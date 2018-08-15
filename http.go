@@ -34,7 +34,7 @@ func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 }
 
 func dumpRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Response, reqErr error) {
-	n := gHTTPRequestCount.get()
+	n := gHTTPRequestCount.Get()
 
 	fmt.Fprintf(w, "=========== %d:\n", n)
 	if reqErr != nil {

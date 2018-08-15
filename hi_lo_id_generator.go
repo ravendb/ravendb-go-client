@@ -19,7 +19,7 @@ func NewRangeValue(min int, max int) *RangeValue {
 		Min: min,
 		Max: max,
 	}
-	res.Current.set(min - 1)
+	res.Current.Set(min - 1)
 	return res
 }
 
@@ -63,7 +63,7 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 	for {
 		// local range is not exhausted yet
 		rangev := g._range
-		id := rangev.Current.incrementAndGet()
+		id := rangev.Current.IncrementAndGet()
 		if id <= rangev.Max {
 			return id, nil
 		}
@@ -72,7 +72,7 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 		g.generatorLock.Lock()
 		defer g.generatorLock.Unlock()
 
-		id = rangev.Current.get()
+		id = rangev.Current.Get()
 		if id <= rangev.Max {
 			return id, nil
 		}
@@ -102,7 +102,7 @@ func (g *HiLoIDGenerator) getNextRange() error {
 
 // ReturnUnusedRange returns unused range to the server
 func (g *HiLoIDGenerator) ReturnUnusedRange() error {
-	returnCommand := NewHiLoReturnCommand(g._tag, g._range.Current.get(), g._range.Max)
+	returnCommand := NewHiLoReturnCommand(g._tag, g._range.Current.Get(), g._range.Max)
 	re := g._store.GetRequestExecutorWithDatabase(g._dbName)
 	return re.executeCommand(returnCommand)
 }

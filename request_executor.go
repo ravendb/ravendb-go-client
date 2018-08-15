@@ -706,7 +706,7 @@ func (re *RequestExecutor) execute(chosenNode *ServerNode, nodeIndex int, comman
 	//sp := time.Now()
 	responseDispose := ResponseDisposeHandling_AUTOMATIC
 	var response *http.Response
-	re.numberOfServerRequests.incrementAndGet()
+	re.numberOfServerRequests.IncrementAndGet()
 	if re.shouldExecuteOnAll(chosenNode, command) {
 		response, err = re.executeOnAllToFigureOutTheFastest(chosenNode, command)
 	} else {
