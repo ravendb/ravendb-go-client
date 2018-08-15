@@ -31,7 +31,7 @@ func NewGetRevisionsBinEntryCommand(etag int, pageSize int) *GetRevisionsBinEntr
 }
 
 func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/revisions/bin?etag=" + strconv.Itoa(c._etag)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/revisions/bin?etag=" + strconv.Itoa(c._etag)
 
 	if c._pageSize > 0 {
 		url += "&pageSize=" + strconv.Itoa(c._pageSize)

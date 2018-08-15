@@ -59,12 +59,12 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 
 		_parameters: d,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *SetIndexesPriorityCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes/set-priority"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes/set-priority"
 
 	return NewHttpPost(url, c._parameters)
 }

@@ -42,12 +42,12 @@ func NewStopIndexCommand(indexName string) *StopIndexCommand {
 
 		_indexName: indexName,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *StopIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/indexes/stop?name=" + UrlUtils_escapeDataString(c._indexName)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/indexes/stop?name=" + UrlUtils_escapeDataString(c._indexName)
 
 	return NewHttpPost(url, nil)
 }

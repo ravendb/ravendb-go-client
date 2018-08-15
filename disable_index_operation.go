@@ -42,12 +42,12 @@ func NewDisableIndexCommand(indexName string) *DisableIndexCommand {
 
 		_indexName: indexName,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *DisableIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/indexes/disable?name=" + UrlUtils_escapeDataString(c._indexName)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/indexes/disable?name=" + UrlUtils_escapeDataString(c._indexName)
 
 	return NewHttpPost(url, nil)
 }

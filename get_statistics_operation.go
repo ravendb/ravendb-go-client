@@ -57,7 +57,7 @@ func NewGetStatisticsCommandWithDebugTag(debugTag string) *GetStatisticsCommand 
 }
 
 func (c *GetStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/stats"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/stats"
 	if c.debugTag != "" {
 		url += "?" + c.debugTag
 	}

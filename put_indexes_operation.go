@@ -59,7 +59,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 }
 
 func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/indexes"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/indexes"
 
 	m := map[string]interface{}{
 		"Indexes": c._indexToAdd,

@@ -45,7 +45,7 @@ func NewPutConnectionStringCommand(connectionString interface{}) *PutConnectionS
 }
 
 func (c *PutConnectionStringCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/connection-strings"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/connection-strings"
 
 	d, err := json.Marshal(c._connectionString)
 	if err != nil {

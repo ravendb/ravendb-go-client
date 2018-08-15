@@ -47,7 +47,7 @@ func NewGetIndexErrorsCommand(indexNames []string) *GetIndexErrorsCommand {
 }
 
 func (c *GetIndexErrorsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes/errors"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes/errors"
 
 	if len(c._indexNames) > 0 {
 		url += "?"

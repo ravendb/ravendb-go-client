@@ -25,11 +25,11 @@ func NewGetDatabaseTopologyCommand() *GetDatabaseTopologyCommand {
 }
 
 func (c *GetDatabaseTopologyCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/topology?name=" + node.getDatabase()
-	if strings.Contains(strings.ToLower(node.getUrl()), ".fiddler") {
+	url := node.GetUrl() + "/topology?name=" + node.GetDatabase()
+	if strings.Contains(strings.ToLower(node.GetUrl()), ".fiddler") {
 		// we want to keep the '.fiddler' stuff there so we'll keep tracking request
 		// so we are going to ask the server to respect it
-		url += "&localUrl=" + UrlUtils_escapeDataString(node.getUrl())
+		url += "&localUrl=" + UrlUtils_escapeDataString(node.GetUrl())
 	}
 	return NewHttpGet(url)
 }

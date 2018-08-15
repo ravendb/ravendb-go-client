@@ -47,7 +47,7 @@ func NewGetDatabaseNamesCommand(_start int, _pageSize int) *GetDatabaseNamesComm
 }
 
 func (c *GetDatabaseNamesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases?start=" + strconv.Itoa(c._start) + "&pageSize=" + strconv.Itoa(c._pageSize) + "&namesOnly=true"
+	url := node.GetUrl() + "/databases?start=" + strconv.Itoa(c._start) + "&pageSize=" + strconv.Itoa(c._pageSize) + "&namesOnly=true"
 
 	return NewHttpGet(url)
 }

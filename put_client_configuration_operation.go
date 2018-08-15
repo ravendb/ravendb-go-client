@@ -48,11 +48,11 @@ func NewPutClientConfigurationCommand(conventions *DocumentConventions, configur
 
 		configuration: d,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *PutClientConfigurationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/configuration/client"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/configuration/client"
 	return NewHttpPut(url, c.configuration)
 }

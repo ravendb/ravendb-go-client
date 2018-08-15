@@ -43,7 +43,7 @@ func (c *SeedIdentityForCommand) CreateRequest(node *ServerNode) (*http.Request,
 		return nil, err
 	}
 
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/identity/seed?name=" + urlEncode(c._id) + "&value=" + strconv.Itoa(c._value)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/identity/seed?name=" + urlEncode(c._id) + "&value=" + strconv.Itoa(c._value)
 
 	if c._forced {
 		url += "&force=true"

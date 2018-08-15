@@ -42,12 +42,12 @@ func NewEnableIndexCommand(indexName string) *EnableIndexCommand {
 
 		_indexName: indexName,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *EnableIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/indexes/enable?name=" + UrlUtils_escapeDataString(c._indexName)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/indexes/enable?name=" + UrlUtils_escapeDataString(c._indexName)
 
 	return NewHttpPost(url, nil)
 }

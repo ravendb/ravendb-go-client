@@ -39,7 +39,7 @@ func NewGetIndexingStatusCommand() *GetIndexingStatusCommand {
 }
 
 func (c *GetIndexingStatusCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes/status"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes/status"
 
 	return NewHttpGet(url)
 }

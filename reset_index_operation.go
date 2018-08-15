@@ -42,12 +42,12 @@ func NewResetIndexCommand(indexName string) *ResetIndexCommand {
 
 		_indexName: indexName,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *ResetIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes?name=" + UrlUtils_escapeDataString(c._indexName)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes?name=" + UrlUtils_escapeDataString(c._indexName)
 
 	return NewHttpReset(url)
 }

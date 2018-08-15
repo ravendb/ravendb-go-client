@@ -68,7 +68,7 @@ func NewPutAttachmentCommand(documentId string, name string, stream io.Reader, c
 var noReader = true
 
 func (c *PutAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	if StringUtils_isNotEmpty(c._contentType) {
 		url += "&contentType=" + UrlUtils_escapeDataString(c._contentType)

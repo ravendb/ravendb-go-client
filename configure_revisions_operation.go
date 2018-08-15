@@ -47,7 +47,7 @@ func NewConfigureRevisionsCommand(conventions *DocumentConventions, configuratio
 }
 
 func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/revisions/config"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/revisions/config"
 
 	d, err := json.Marshal(c._configuration)
 	if err != nil {

@@ -46,7 +46,7 @@ func NewUpdateExternalReplicationCommand(newWatcher *ExternalReplication) *Updat
 }
 
 func (c *UpdateExternalReplicationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/tasks/external-replication"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/tasks/external-replication"
 
 	m := map[string]interface{}{
 		"Watcher": c._newWatcher,

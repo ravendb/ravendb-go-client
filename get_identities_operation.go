@@ -37,7 +37,7 @@ func NewGetIdentitiesCommand() *GetIdentitiesCommand {
 }
 
 func (c *GetIdentitiesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/debug/identities"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/debug/identities"
 
 	return NewHttpGet(url)
 

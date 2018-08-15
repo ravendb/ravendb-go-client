@@ -39,7 +39,7 @@ func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkIn
 }
 
 func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_insert?id=" + strconv.Itoa(c._id)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/bulk_insert?id=" + strconv.Itoa(c._id)
 	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)
 	return NewHttpPostReader(url, c._stream)

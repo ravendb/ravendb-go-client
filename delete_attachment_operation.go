@@ -47,12 +47,12 @@ func NewDeleteAttachmentCommand(documentId string, name string, changeVector *st
 		_name:            name,
 		_changeVector:    changeVector,
 	}
-	cmd.RavenCommandBase.responseType = RavenCommandResponseType_EMPTY
+	cmd.RavenCommandBase.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *DeleteAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	request, err := NewHttpDelete(url, nil)
 	if err != nil {

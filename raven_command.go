@@ -23,7 +23,7 @@ type RavenCommand interface {
 
 type RavenCommandBase struct {
 	statusCode            int
-	responseType          RavenCommandResponseType
+	ResponseType          RavenCommandResponseType
 	_canCache             bool
 	_canCacheAggressively bool
 
@@ -35,7 +35,7 @@ type RavenCommandBase struct {
 
 func NewRavenCommandBase() *RavenCommandBase {
 	res := &RavenCommandBase{
-		responseType:          RavenCommandResponseType_OBJECT,
+		ResponseType:          RavenCommandResponseType_OBJECT,
 		_canCache:             true,
 		_canCacheAggressively: true,
 	}
@@ -53,7 +53,7 @@ func (c *RavenCommandBase) isReadRequest() bool {
 }
 
 func (c *RavenCommandBase) GetResponseType() RavenCommandResponseType {
-	return c.responseType
+	return c.ResponseType
 }
 
 func (c *RavenCommandBase) GetStatusCode() int {
@@ -73,16 +73,16 @@ func (c *RavenCommandBase) CanCacheAggressively() bool {
 }
 
 func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
-	if c.responseType == RavenCommandResponseType_EMPTY || c.responseType == RavenCommandResponseType_RAW {
+	if c.ResponseType == RavenCommandResponseType_EMPTY || c.ResponseType == RavenCommandResponseType_RAW {
 		return throwInvalidResponse()
 	}
 
-	return NewUnsupportedOperationException(c.responseType + " command must override the SetResponse method which expects response with the following type: " + c.responseType)
+	return NewUnsupportedOperationException(c.ResponseType + " command must override the SetResponse method which expects response with the following type: " + c.ResponseType)
 }
 
 // TODO: this is only implemented on MultiGetCommand
 func (c *RavenCommandBase) SetResponseRaw(response *http.Response, stream io.Reader) error {
-	panicIf(true, "When "+c.responseType+" is set to Raw then please override this method to handle the response. ")
+	panicIf(true, "When "+c.ResponseType+" is set to Raw then please override this method to handle the response. ")
 	return nil
 }
 
@@ -161,11 +161,11 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 	}
 
 	statusCode := response.StatusCode
-	if c.responseType == RavenCommandResponseType_EMPTY || statusCode == http.StatusNoContent {
+	if c.ResponseType == RavenCommandResponseType_EMPTY || statusCode == http.StatusNoContent {
 		return ResponseDisposeHandling_AUTOMATIC, nil
 	}
 
-	if c.responseType == RavenCommandResponseType_OBJECT {
+	if c.ResponseType == RavenCommandResponseType_OBJECT {
 		contentLength := response.ContentLength
 		if contentLength == 0 {
 			return ResponseDisposeHandling_AUTOMATIC, nil

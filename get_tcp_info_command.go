@@ -37,9 +37,9 @@ func NewGetTcpInfoCommandWithDatbase(tag, dbName string) *GetTcpInfoCommand {
 func (c *GetTcpInfoCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := ""
 	if c.dbName == "" {
-		url = node.getUrl() + "/info/tcp?tcp=" + c.tag
+		url = node.GetUrl() + "/info/tcp?tcp=" + c.tag
 	} else {
-		url = node.getUrl() + "/databases/" + c.dbName + "/info/tcp?tag=" + c.tag
+		url = node.GetUrl() + "/databases/" + c.dbName + "/info/tcp?tag=" + c.tag
 	}
 	c.requestedNode = node
 	return NewHttpGet(url)

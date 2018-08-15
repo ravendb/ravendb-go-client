@@ -30,7 +30,7 @@ func NewGetConflictsCommand(id string) *GetConflictsCommand {
 }
 
 func (c *GetConflictsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/replication/conflicts?docId=" + c._id
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/replication/conflicts?docId=" + c._id
 
 	return NewHttpGet(url)
 }

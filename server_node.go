@@ -23,30 +23,30 @@ func NewServerNode() *ServerNode {
 	}
 }
 
-func (n *ServerNode) getUrl() string {
+func (n *ServerNode) GetUrl() string {
 	return n.URL
 }
 
-func (n *ServerNode) getDatabase() string {
+func (n *ServerNode) GetDatabase() string {
 	return n.Database
 }
 
-func (n *ServerNode) getServerRole() string {
+func (n *ServerNode) GetServerRole() string {
 	return n.ServerRole
 }
 
-func (n *ServerNode) getClusterTag() string {
+func (n *ServerNode) GetClusterTag() string {
 	return n.ClusterTag
 }
 
-func (n *ServerNode) setDatabase(database string) {
+func (n *ServerNode) SetDatabase(database string) {
 	n.Database = database
 }
 
-func (n *ServerNode) setUrl(url string) {
+func (n *ServerNode) SetUrl(url string) {
 	n.URL = url
 }
 
-func (n *ServerNode) setClusterTag(clusterTag string) {
+func (n *ServerNode) SetClusterTag(clusterTag string) {
 	n.ClusterTag = clusterTag
 }

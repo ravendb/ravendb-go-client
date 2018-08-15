@@ -36,7 +36,7 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 }
 
 func (c *GetServerWideOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/operations/state?id=" + strconv.Itoa(c._id)
+	url := node.GetUrl() + "/operations/state?id=" + strconv.Itoa(c._id)
 	return NewHttpGet(url)
 }
 

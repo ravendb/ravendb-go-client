@@ -72,7 +72,7 @@ func (c *GetTermsCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 	if c._pageSize > 0 {
 		pageSize = strconv.Itoa(c._pageSize)
 	}
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes/terms?name=" + UrlUtils_escapeDataString(c._indexName) + "&field=" + UrlUtils_escapeDataString(c._field) + "&fromValue=" + c._fromValue + "&pageSize=" + pageSize
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes/terms?name=" + UrlUtils_escapeDataString(c._indexName) + "&field=" + UrlUtils_escapeDataString(c._field) + "&fromValue=" + c._fromValue + "&pageSize=" + pageSize
 
 	return NewHttpGet(url)
 }

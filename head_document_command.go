@@ -30,7 +30,7 @@ func NewHeadDocumentCommand(id string, changeVector *string) *HeadDocumentComman
 }
 
 func (c *HeadDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + UrlUtils_escapeDataString(c._id)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/docs?id=" + UrlUtils_escapeDataString(c._id)
 
 	request, err := NewHttpHead(url)
 	if err != nil {

@@ -34,7 +34,7 @@ func (c *NextIdentityForCommand) CreateRequest(node *ServerNode) (*http.Request,
 		return nil, err
 	}
 
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/identity/next?name=" + urlEncode(c._id)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/identity/next?name=" + urlEncode(c._id)
 
 	return NewHttpPost(url, nil)
 }

@@ -43,7 +43,7 @@ func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	// we need to add a query hash because we are using POST queries
 	// so we need to unique parameter per query so the query cache will
 	// work properly
-	path := node.getUrl() + "/databases/" + node.getDatabase() + "/queries?queryHash=" + c._indexQuery.getQueryHash()
+	path := node.GetUrl() + "/databases/" + node.GetDatabase() + "/queries?queryHash=" + c._indexQuery.getQueryHash()
 
 	if c._metadataOnly {
 		path += "&metadataOnly=true"

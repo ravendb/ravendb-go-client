@@ -55,7 +55,7 @@ func (c *GetIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	start := strconv.Itoa(c._start)
 	pageSize := strconv.Itoa(c._pageSize)
 
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/indexes?start=" + start + "&pageSize=" + pageSize
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes?start=" + start + "&pageSize=" + pageSize
 
 	return NewHttpGet(url)
 }

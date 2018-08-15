@@ -67,7 +67,7 @@ func escapeQuotes(s string) string {
 }
 
 func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/bulk_docs"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/bulk_docs"
 	url = c.appendOptions(url)
 
 	var a []interface{}

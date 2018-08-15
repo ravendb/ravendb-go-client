@@ -58,7 +58,7 @@ func NewPutCompareExchangeValueCommand(key string, value interface{}, index int,
 }
 
 func (c *PutCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/cmpxchg?key=" + c._key + "&index=" + strconv.Itoa(c._index)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/cmpxchg?key=" + c._key + "&index=" + strconv.Itoa(c._index)
 
 	m := map[string]interface{}{
 		"Object": c._value,

@@ -52,7 +52,7 @@ func (c *GetRevisionsCommand) GetChangeVectors() []string {
 }
 
 func (c *GetRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/revisions?"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/revisions?"
 
 	if c._id != "" {
 		url += "&id=" + UrlUtils_escapeDataString(c._id)

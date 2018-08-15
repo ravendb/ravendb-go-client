@@ -54,7 +54,7 @@ func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
 	serverNodes := state.nodes
 	n := min(len(serverNodes), len(stateFailures))
 	for i := 0; i < n; i++ {
-		if stateFailures[i].Get() == 0 && serverNodes[i].getUrl() != "" {
+		if stateFailures[i].Get() == 0 && serverNodes[i].GetUrl() != "" {
 			return NewCurrentIndexAndNode(i, serverNodes[i]), nil
 		}
 	}
@@ -76,13 +76,13 @@ func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, 
 	index := sessionId % len(state.topology.getNodes())
 
 	for i := index; i < len(state.failures); i++ {
-		if state.failures[i].Get() == 0 && state.nodes[i].getServerRole() == ServerNode_Role_MEMBER {
+		if state.failures[i].Get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
 
 	for i := 0; i < index; i++ {
-		if state.failures[i].Get() == 0 && state.nodes[i].getServerRole() == ServerNode_Role_MEMBER {
+		if state.failures[i].Get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
@@ -92,7 +92,7 @@ func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, 
 
 func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 	state := s._state
-	if state.failures[state.fastest].Get() == 0 && state.nodes[state.fastest].getServerRole() == ServerNode_Role_MEMBER {
+	if state.failures[state.fastest].Get() == 0 && state.nodes[state.fastest].GetServerRole() == ServerNode_Role_MEMBER {
 		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest]), nil
 	}
 

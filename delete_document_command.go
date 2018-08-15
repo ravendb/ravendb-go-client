@@ -20,12 +20,12 @@ func NewDeleteDocumentCommand(id string, changeVector *string) *DeleteDocumentCo
 		_id:           id,
 		_changeVector: changeVector,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *DeleteDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/docs?id=" + urlEncode(c._id)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/docs?id=" + urlEncode(c._id)
 
 	request, err := NewHttpDelete(url, nil)
 	if err != nil {

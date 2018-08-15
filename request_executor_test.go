@@ -99,8 +99,8 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 	{
 		executor := RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
 		serverNode := NewServerNode()
-		serverNode.setUrl(store.GetUrls()[0])
-		serverNode.setDatabase("no_such")
+		serverNode.SetUrl(store.GetUrls()[0])
+		serverNode.SetDatabase("no_such")
 		future := executor.updateTopologyAsync(serverNode, 5000)
 		_, err := future.get()
 		_ = err.(*DatabaseDoesNotExistException)
@@ -143,8 +143,8 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 		assert.Equal(t, 1, len(nodes))
 
 		serverNode := nodes[0]
-		assert.Equal(t, serverNode.getUrl(), store.GetUrls()[0])
-		assert.Equal(t, serverNode.getDatabase(), store.GetDatabase())
+		assert.Equal(t, serverNode.GetUrl(), store.GetUrls()[0])
+		assert.Equal(t, serverNode.GetDatabase(), store.GetDatabase())
 
 		command := NewGetNextOperationIdCommand()
 		err := executor.ExecuteCommand(command)
@@ -174,7 +174,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 		assert.NotNil(t, command.Result)
 		topologyNodes := executor.getTopologyNodes()
 		assert.Equal(t, len(topologyNodes), 1)
-		assert.Equal(t, url, topologyNodes[0].getUrl())
+		assert.Equal(t, url, topologyNodes[0].GetUrl())
 		assert.Equal(t, url, executor.getUrl())
 	}
 	if dbgRequestExecutorTests {

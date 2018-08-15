@@ -19,13 +19,13 @@ func NewKillOperationCommand(id string) *KillOperationCommand {
 
 		_id: id,
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 
 	return cmd
 }
 
 func (c *KillOperationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/operations/kill?id=" + c._id
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/operations/kill?id=" + c._id
 
 	return NewHttpPost(url, nil)
 }

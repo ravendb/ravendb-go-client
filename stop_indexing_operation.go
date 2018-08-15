@@ -31,12 +31,12 @@ func NewStopIndexingCommand() *StopIndexingCommand {
 	cmd := &StopIndexingCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 	}
-	cmd.responseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseType_EMPTY
 	return cmd
 }
 
 func (c *StopIndexingCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.getUrl() + "/databases/" + node.getDatabase() + "/admin/indexes/stop"
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/indexes/stop"
 
 	return NewHttpPost(url, nil)
 }

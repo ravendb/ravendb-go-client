@@ -6,11 +6,11 @@ type Size struct {
 	HumaneSize  string `json:"HumaneSize"`
 }
 
-func (s *Size) getSizeInBytes() int {
+func (s *Size) GetSizeInBytes() int {
 	return s.SizeInBytes
 }
 
-func (s *Size) getHumaneSize() string {
+func (s *Size) GetHumaneSize() string {
 	return s.HumaneSize
 }
 

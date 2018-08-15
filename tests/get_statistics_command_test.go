@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func getStatisticsCommandTest_canGetStats(t *testing.T) {
@@ -19,7 +20,7 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
-	command := NewGetStatisticsCommand()
+	command := ravendb.NewGetStatisticsCommand()
 	err = executor.ExecuteCommand(command)
 	assert.NoError(t, err)
 	stats := command.Result
@@ -36,8 +37,8 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	assert.NotNil(t, stats.GetPager())
 	assert.NotNil(t, stats.GetLastIndexingTime())
 	assert.NotNil(t, stats.GetIndexes())
-	assert.NotEqual(t, stats.GetSizeOnDisk().getHumaneSize(), "")
-	assert.NotEqual(t, stats.GetSizeOnDisk().getSizeInBytes(), 0)
+	assert.NotEqual(t, stats.GetSizeOnDisk().GetHumaneSize(), "")
+	assert.NotEqual(t, stats.GetSizeOnDisk().GetSizeInBytes(), 0)
 
 	indexes := stats.GetIndexes()
 	for _, indexInformation := range indexes {

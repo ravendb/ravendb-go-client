@@ -99,7 +99,7 @@ func (re *RequestExecutor) getUrl() string {
 	// TODO: propagate error
 	preferredNode, _ := re.getPreferredNode()
 	if preferredNode != nil {
-		return preferredNode.currentNode.getUrl()
+		return preferredNode.currentNode.GetUrl()
 	}
 	return ""
 }
@@ -217,8 +217,8 @@ func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, 
 	topology.setEtag(-1)
 
 	serverNode := NewServerNode()
-	serverNode.setDatabase(databaseName)
-	serverNode.setUrl(initialUrls[0])
+	serverNode.SetDatabase(databaseName)
+	serverNode.SetUrl(initialUrls[0])
 	// TODO: is Collections.singletonList in Java code subtly significant?
 	topology.setNodes([]*ServerNode{serverNode})
 
@@ -242,7 +242,7 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 	executor.makeCluster()
 
 	serverNode := NewServerNode()
-	serverNode.setUrl(url)
+	serverNode.SetUrl(url)
 
 	topology := NewTopology()
 	topology.setEtag(-1)
@@ -380,8 +380,8 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		var nodes []*ServerNode
 		for key, value := range members {
 			serverNode := NewServerNode()
-			serverNode.setUrl(value)
-			serverNode.setClusterTag(key)
+			serverNode.SetUrl(value)
+			serverNode.SetClusterTag(key)
 			nodes = append(nodes, serverNode)
 		}
 		newTopology := NewTopology()
@@ -587,8 +587,8 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		for _, url := range initialUrls {
 			{
 				serverNode := NewServerNode()
-				serverNode.setUrl(url)
-				serverNode.setDatabase(re._databaseName)
+				serverNode.SetUrl(url)
+				serverNode.SetDatabase(re._databaseName)
 
 				res := re.updateTopologyAsync(serverNode, math.MaxInt32)
 				_, err = res.get()
@@ -619,9 +619,9 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		if len(topologyNodes) == 0 {
 			for _, uri := range initialUrls {
 				serverNode := NewServerNode()
-				serverNode.setUrl(uri)
-				serverNode.setDatabase(re._databaseName)
-				serverNode.setClusterTag("!")
+				serverNode.SetUrl(uri)
+				serverNode.SetDatabase(re._databaseName)
+				serverNode.SetClusterTag("!")
 				topologyNodes = append(topologyNodes, serverNode)
 			}
 		}
@@ -778,8 +778,8 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	if refreshTopology || refreshClientConfiguration {
 
 		serverNode := NewServerNode()
-		serverNode.setUrl(chosenNode.getUrl())
-		serverNode.setDatabase(re._databaseName)
+		serverNode.SetUrl(chosenNode.GetUrl())
+		serverNode.SetDatabase(re._databaseName)
 
 		var topologyTask *CompletableFuture
 		if refreshTopology {
@@ -815,7 +815,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 	var urls []string
 	if re._nodeSelector != nil {
 		for _, node := range re._nodeSelector.getTopology().getNodes() {
-			url := node.getUrl()
+			url := node.GetUrl()
 			urls = append(urls, url)
 		}
 	}
@@ -825,12 +825,12 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 		nodes := re._nodeSelector.getTopology().getNodes()
 		var a []string
 		for _, n := range nodes {
-			s := "( url: " + n.getUrl() + ", clusterTag: " + n.getClusterTag() + ", serverRole: " + n.getServerRole() + ")"
+			s := "( url: " + n.GetUrl() + ", clusterTag: " + n.GetClusterTag() + ", serverRole: " + n.GetServerRole() + ")"
 			a = append(a, s)
 		}
 		nodesStr := strings.Join(a, ", ")
 
-		message += "\nI was able to fetch " + re._topologyTakenFromNode.getDatabase() + " topology from " + re._topologyTakenFromNode.getUrl() + ".\n" + "Fetched topology: " + nodesStr
+		message += "\nI was able to fetch " + re._topologyTakenFromNode.GetDatabase() + " topology from " + re._topologyTakenFromNode.GetUrl() + ".\n" + "Fetched topology: " + nodesStr
 	}
 
 	return NewAllTopologyNodesDownException("%s", message)
@@ -888,7 +888,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		}
 		return true, nil
 	case http.StatusForbidden:
-		err = NewAuthorizationException("Forbidden access to " + chosenNode.getDatabase() + "@" + chosenNode.getUrl() + ", " + request.Method + " " + request.URL.String())
+		err = NewAuthorizationException("Forbidden access to " + chosenNode.GetDatabase() + "@" + chosenNode.GetUrl() + ", " + request.Method + " " + request.URL.String())
 	case http.StatusGone: // request not relevant for the chosen node - the database has been moved to a different one
 		if !shouldRetry {
 			return false, nil
