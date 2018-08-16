@@ -83,9 +83,17 @@ func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Res
 	}
 }
 
-func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
+func LogsLock() {
 	muLog.Lock()
-	defer muLog.Unlock()
+}
+
+func LogsUnlock() {
+	muLog.Unlock()
+}
+
+func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
+	LogsLock()
+	defer LogsUnlock()
 
 	if HTTPLoggerWriter == nil {
 		return
@@ -94,8 +102,8 @@ func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
 }
 
 func maybeLogFailedResponse(req *http.Request, rsp *http.Response, err error) {
-	muLog.Lock()
-	defer muLog.Unlock()
+	LogsLock()
+	defer LogsUnlock()
 
 	if !LogFailedRequests {
 		return

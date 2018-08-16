@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/ravendb/ravendb-go-client/pkg/capture"
 	"github.com/stretchr/testify/assert"
-	"github.com/ravendb/ravendb-go-client"
 )
 
 var (
@@ -605,6 +605,9 @@ func createTestDriver(t *testing.T) func() {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	var pcapPath string
 
+	ravendb.LogsLock()
+	defer ravendb.LogsUnlock()
+
 	ravendb.HTTPLoggerWriter = nil
 	if ravendb.LogAllRequests {
 		var err error
@@ -641,7 +644,9 @@ func createTestDriver(t *testing.T) func() {
 		}
 		deleteTestDriver()
 		maybeConvertPcapToTxt(pcapPath)
-		w :=ravendb.HTTPLoggerWriter
+		ravendb.LogsLock()
+		defer ravendb.LogsUnlock()
+		w := ravendb.HTTPLoggerWriter
 		if w != nil {
 			w.Close()
 			ravendb.HTTPLoggerWriter = nil
