@@ -252,12 +252,14 @@ func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 
 // public <T, U> void increment(T entity, string path, U valueToAdd) {
 // public <T, U> void increment(string id, string path, U valueToAdd) {
-// public <T, U> void patch(T entity, string path, U value) {
+
+	// public <T, U> void patch(T entity, string path, U value) {
 // public <T, U> void patch(string id, string path, U value) {
 // public <T, U> void patch(T entity, string pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
 // public <T, U> void patch(string id, string pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
-// private boolean tryMergePatches(string id, PatchRequest patchRequest) {
-// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
+	// private boolean tryMergePatches(string id, PatchRequest patchRequest) {
+
+		// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
 func (s *DocumentSession) DocumentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryAll(clazz, index.GetIndexName(), "", index.IsMapReduce())

@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
+	"path/filepath"
 )
 
 const (
@@ -19,8 +20,9 @@ func must(err error) {
 	}
 }
 
-func runSingleJavaTest(className string, logFileTmpl string) {
-	go proxy.Run(logFileTmpl)
+func runSingleJavaTest(className string, logFileName string) {
+	logFilePath := filepath.Join("tests", "logs", logFileName)
+	go proxy.Run(logFilePath)
 	defer proxy.CloseLogFile()
 
 	// Running just one maven test: https://stackoverflow.com/a/18136440/2898

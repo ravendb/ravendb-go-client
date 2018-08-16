@@ -35,7 +35,62 @@ type Pet struct {
 	Kind string `json:"kind"`
 }
 
-func firstClassPatch_canPatch(t *testing.T)              {}
+func firstClassPatch_canPatch(t *testing.T) {
+	/*
+		stuff := []*Stuff{nil, nil, nil}
+		stuff[0] = &Stuff{}
+		stuff[0].Key = 6
+
+		user := &User2{}
+		user.Numbers = []int{66}
+		user.Stuff = stuff
+
+		var err error
+		store := getDocumentStoreMust(t)
+		defer store.Close()
+
+		{
+			session := openSessionMust(t, store)
+			err = session.Store(user)
+			assert.NoError(t, err)
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		now := time.Now()
+		{
+			session := openSessionMust(t, store)
+			session.Advanced().Patch(_docId, "numbers[0]", 31)
+			session.Advanced().Patch(_docId, "lastLogin", now)
+			session.SaveChanges()
+
+			session.Close()
+		}
+	*/
+
+	// TODO: port this
+
+	/*
+	   try (IDocumentSession session = store.openSession()) {
+	       User loaded = session.load(User.class, _docId);
+	       assertThat(loaded.getNumbers()[0])
+	               .isEqualTo(31);
+	       assertThat(loaded.getLastLogin())
+	               .isEqualTo(now);
+
+	       session.advanced().patch(loaded, "stuff[0].phone", "123456");
+	       session.saveChanges();
+	   }
+
+	   try (IDocumentSession session = store.openSession()) {
+	       User loaded = session.load(User.class, _docId);
+	       assertThat(loaded.getStuff()[0].getPhone())
+	               .isEqualTo("123456");
+	   }
+	*/
+}
 func firstClassPatch_canPatchAndModify(t *testing.T)     {}
 func firstClassPatch_canPatchComplex(t *testing.T)       {}
 func firstClassPatch_canAddToArray(t *testing.T)         {}

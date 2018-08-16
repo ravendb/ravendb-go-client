@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"sync"
 )
 
 var (
@@ -19,6 +20,8 @@ var (
 	// HTTPRequestCount numbers http requests which helps to match http
 	// traffic from java client with go client
 	HTTPRequestCount AtomicInteger
+
+	muLog sync.Mutex
 )
 
 // retruns copy of resp.Body but also makes it available for subsequent reads
@@ -81,6 +84,9 @@ func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Res
 }
 
 func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
+	muLog.Lock()
+	defer muLog.Unlock()
+
 	if HTTPLoggerWriter == nil {
 		return
 	}
@@ -88,6 +94,9 @@ func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
 }
 
 func maybeLogFailedResponse(req *http.Request, rsp *http.Response, err error) {
+	muLog.Lock()
+	defer muLog.Unlock()
+
 	if !LogFailedRequests {
 		return
 	}

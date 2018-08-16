@@ -3,17 +3,19 @@
 # Helper for running a test I'm currently working on
 # Faster than running all tests
 
-if [ ! -f ./capturer ]; then
-    echo "./capturer not found!"
-    echo "Run ./build_capturer.sh to create it"
-    exit 1
-fi
+function check() {
+    if [ ! -f ./capturer ]; then
+        echo "./capturer not found!"
+        echo "Run ./build_capturer.sh to create it"
+        exit 1
+    fi
 
-if [ ! -f ./pcap_convert ]; then
-    echo "./pcap_convert not found!"
-    echo "Run ./build_capturer.sh to create it"
-    exit 1
-fi
+    if [ ! -f ./pcap_convert ]; then
+        echo "./pcap_convert not found!"
+        echo "Run ./build_capturer.sh to create it"
+        exit 1
+    fi
+}
 
 set -o xtrace
 
@@ -32,6 +34,6 @@ cd tests
 # force running tests even if code didn't change
 go clean -testcache
 
-# go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestCrud$
+# go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestCrud$
 
-go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client -run ^TestSpatial$
+go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^FirstClassPatchTest$

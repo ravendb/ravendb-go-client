@@ -23,13 +23,9 @@ import (
 	"github.com/elazarl/goproxy/transport"
 )
 
-const (
-	logDir = "logs"
-)
-
 var (
-	tr               = transport.Transport{Proxy: transport.ProxyFromEnvironment}
-	proxyLogFileName string
+	tr                              = transport.Transport{Proxy: transport.ProxyFromEnvironment}
+	proxyLogFilePath string
 	proxyLogFile     *os.File
 	sessionID        int32
 	muLog            sync.Mutex
@@ -64,17 +60,17 @@ func valueOrDefault(value, def string) string {
 	return def
 }
 
-func openLogFile(logFile string) {
-	if logFile == "" {
+func openLogFile(logPath string) {
+	if logPath == "" {
 		return
 	}
-	err := os.MkdirAll(logDir, 0755)
+	dir := filepath.Dir(logPath)
+	err := os.MkdirAll(dir, 0755)
 	must(err)
-	logPath := filepath.Join(logDir, logFile)
 	f, err := os.Create(logPath)
 	must(err)
 	proxyLogFile = f
-	proxyLogFileName = logFile
+	proxyLogFilePath = logPath
 	fmt.Printf("Logging to %s\n", logPath)
 	clearSessionID()
 }
@@ -97,15 +93,15 @@ func CloseLogFile() {
 }
 
 // ChangeLogFile changes name of log file
-func ChangeLogFile(logFile string) {
+func ChangeLogFile(logPath string) {
 	muLog.Lock()
 	defer muLog.Unlock()
 
-	if proxyLogFileName == logFile {
+	if proxyLogFilePath == logPath {
 		return
 	}
 	closeLogFile()
-	openLogFile(logFile)
+	openLogFile(logPath)
 }
 
 func lg(d []byte) {
@@ -386,8 +382,8 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 }
 
 // Run starts a proxy
-func Run(logFile string) {
-	ChangeLogFile(logFile)
+func Run(logPath string) {
+	ChangeLogFile(logPath)
 
 	addr := ":8888"
 	proxy := goproxy.NewProxyHttpServer()
