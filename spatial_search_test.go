@@ -83,7 +83,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 
 		q := session.Advanced().DocumentQueryInIndex(GetTypeOf(&Event{}), index)
 		fn := func(f *SpatialCriteriaFactory) SpatialCriteria {
-			return f.withinRadius(5, 38.9103000, -77.3942)
+			return f.WithinRadius(5, 38.9103000, -77.3942)
 		}
 		q = q.Spatial3("coordinates", fn)
 		matchingVenues := q.WaitForNonStaleResults(0)

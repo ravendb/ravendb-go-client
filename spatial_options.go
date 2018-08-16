@@ -38,66 +38,66 @@ func SpatialOptionsDup(options *SpatialOptions) *SpatialOptions {
 	return &res
 }
 
-func (o *SpatialOptions) getType() SpatialFieldType {
+func (o *SpatialOptions) GetType() SpatialFieldType {
 	return o.typ
 }
 
-func (o *SpatialOptions) setType(typ SpatialFieldType) {
+func (o *SpatialOptions) SetType(typ SpatialFieldType) {
 	o.typ = typ
 }
 
-func (o *SpatialOptions) getStrategy() SpatialSearchStrategy {
+func (o *SpatialOptions) GetStrategy() SpatialSearchStrategy {
 	return o.strategy
 }
 
-func (o *SpatialOptions) setStrategy(strategy SpatialSearchStrategy) {
+func (o *SpatialOptions) SetStrategy(strategy SpatialSearchStrategy) {
 	o.strategy = strategy
 }
 
-func (o *SpatialOptions) getMaxTreeLevel() int {
+func (o *SpatialOptions) GetMaxTreeLevel() int {
 	return o.maxTreeLevel
 }
 
-func (o *SpatialOptions) setMaxTreeLevel(maxTreeLevel int) {
+func (o *SpatialOptions) SetMaxTreeLevel(maxTreeLevel int) {
 	o.maxTreeLevel = maxTreeLevel
 }
 
-func (o *SpatialOptions) getMinX() float64 {
+func (o *SpatialOptions) GetMinX() float64 {
 	return o.minX
 }
 
-func (o *SpatialOptions) setMinX(minX float64) {
+func (o *SpatialOptions) SetMinX(minX float64) {
 	o.minX = minX
 }
 
-func (o *SpatialOptions) getMaxX() float64 {
+func (o *SpatialOptions) GetMaxX() float64 {
 	return o.maxX
 }
 
-func (o *SpatialOptions) setMaxX(maxX float64) {
+func (o *SpatialOptions) SetMaxX(maxX float64) {
 	o.maxX = maxX
 }
 
-func (o *SpatialOptions) getMinY() float64 {
+func (o *SpatialOptions) GetMinY() float64 {
 	return o.minY
 }
 
-func (o *SpatialOptions) setMinY(minY float64) {
+func (o *SpatialOptions) SetMinY(minY float64) {
 	o.minY = minY
 }
 
-func (o *SpatialOptions) getMaxY() float64 {
+func (o *SpatialOptions) GetMaxY() float64 {
 	return o.maxY
 }
 
-func (o *SpatialOptions) setMaxY(maxY float64) {
+func (o *SpatialOptions) SetMaxY(maxY float64) {
 	o.maxY = maxY
 }
 
-func (o *SpatialOptions) getUnits() SpatialUnits {
+func (o *SpatialOptions) GetUnits() SpatialUnits {
 	return o.units
 }
 
-func (o *SpatialOptions) setUnits(units SpatialUnits) {
+func (o *SpatialOptions) SetUnits(units SpatialUnits) {
 	o.units = units
 }

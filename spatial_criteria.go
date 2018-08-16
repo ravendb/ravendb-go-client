@@ -1,8 +1,8 @@
 package ravendb
 
 type SpatialCriteria interface {
-	getShapeToken(addQueryParameter func(Object) string) *ShapeToken
-	toQueryToken(fieldName string, addQueryParameter func(Object) string) QueryToken
+	GetShapeToken(addQueryParameter func(Object) string) *ShapeToken
+	ToQueryToken(fieldName string, addQueryParameter func(Object) string) QueryToken
 }
 
 type SpatialCriteriaCommon struct {
@@ -19,7 +19,7 @@ func NewSpatialCriteria(relation SpatialRelation, distanceErrorPct float64) Spat
 
 // Note: hacky way to emulate Java's inheritance
 func (c *SpatialCriteriaCommon) toQueryTokenCommon(sc SpatialCriteria, fieldName string, addQueryParameter func(Object) string) QueryToken {
-	shapeToken := sc.getShapeToken(addQueryParameter)
+	shapeToken := sc.GetShapeToken(addQueryParameter)
 
 	var whereOperator WhereOperator
 

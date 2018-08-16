@@ -57,42 +57,42 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	// TODO: figure out a better way to do it. In Java applyValues() is templated function
 	{
 		f := func(options *IndexFieldOptions, value FieldIndexing) {
-			options.setIndexing(value)
+			options.SetIndexing(value)
 		}
 		d.applyFieldIndexingValues(indexDefinition, d.indexesStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value FieldStorage) {
-			options.setStorage(value)
+			options.SetStorage(value)
 		}
 		d.applyFieldStorageValues(indexDefinition, d.storesStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value string) {
-			options.setAnalyzer(value)
+			options.SetAnalyzer(value)
 		}
 		d.applyStringValues(indexDefinition, d.analyzersStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value FieldTermVector) {
-			options.setTermVector(value)
+			options.SetTermVector(value)
 		}
 		d.applyFieldTermVectorValues(indexDefinition, d.termVectorsStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value *SpatialOptions) {
-			options.setSpatial(value)
+			options.SetSpatial(value)
 		}
 		d.applySpatialOptionsValues(indexDefinition, d.spatialIndexesStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value bool) {
-			options.setSuggestions(value)
+			options.SetSuggestions(value)
 		}
 		d.applyBoolValues(indexDefinition, suggestions, f)
 	}

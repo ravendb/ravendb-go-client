@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 type MyDocumentItem struct {
@@ -97,8 +98,8 @@ func (p *MyProjection) setLongitude(longitude float64) {
 	p.Longitude = longitude
 }
 
-func NewMyIndex() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("MyIndex")
+func NewMyIndex() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("MyIndex")
 	res.Map = "docs.MyDocuments.SelectMany(doc => doc.items, (doc, item) => new {\n" +
 		"    doc = doc,\n" +
 		"    item = item\n" +
@@ -115,11 +116,11 @@ func NewMyIndex() *AbstractIndexCreationTask {
 		"    longitude = this2.lng,\n" +
 		"    coordinates = this.CreateSpatialField(((double ? ) this2.this1.lat), ((double ? ) this2.lng))\n" +
 		"})"
-	res.Store("id", FieldStorage_YES)
-	res.Store("date", FieldStorage_YES)
+	res.Store("id", ravendb.FieldStorage_YES)
+	res.Store("date", ravendb.FieldStorage_YES)
 
-	res.Store("latitude", FieldStorage_YES)
-	res.Store("longitude", FieldStorage_YES)
+	res.Store("latitude", ravendb.FieldStorage_YES)
+	res.Store("longitude", ravendb.FieldStorage_YES)
 	return res
 }
 
@@ -157,13 +158,13 @@ func spatial_weirdSpatialResults(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		var statsRef *QueryStatistics
+		var statsRef *ravendb.QueryStatistics
 
-		q := session.Advanced().DocumentQueryInIndex(GetTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndex(ravendb.GetTypeOf(&MyDocument{}), index)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
 		q = q.Statistics(&statsRef)
-		q = q.SelectFields(GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
+		q = q.SelectFields(ravendb.GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
 		result, err := q.ToList()
@@ -211,13 +212,13 @@ func spatial_matchSpatialResults(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		var statsRef *QueryStatistics
+		var statsRef *ravendb.QueryStatistics
 
-		q := session.Advanced().DocumentQueryInIndex(GetTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndex(ravendb.GetTypeOf(&MyDocument{}), index)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 10, 10)
 		q = q.Statistics(&statsRef)
-		q = q.SelectFields(GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
+		q = q.SelectFields(ravendb.GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
 		result, err := q.ToList()
@@ -241,7 +242,7 @@ func TestSpatial(t *testing.T) {
 
 	// matches order of Java tests
 	spatial_weirdSpatialResults(t)
-	if EnableFlakyTests {
+	if ravendb.EnableFlakyTests {
 		// is flaky on CI e.g. https://travis-ci.org/kjk/ravendb-go-client/builds/416175659?utm_source=email&utm_medium=notification
 		// works on my mak
 		spatial_matchSpatialResults(t)

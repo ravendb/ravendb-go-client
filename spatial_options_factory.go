@@ -22,9 +22,9 @@ func (f *GeographySpatialOptionsFactory) boundingBoxIndex() *SpatialOptions {
 
 func (f *GeographySpatialOptionsFactory) boundingBoxIndexWithRadius(circleRadiusUnits SpatialUnits) *SpatialOptions {
 	ops := NewSpatialOptions()
-	ops.setType(SpatialFieldType_GEOGRAPHY)
-	ops.setStrategy(SpatialSearchStrategy_BOUNDING_BOX)
-	ops.setUnits(circleRadiusUnits)
+	ops.SetType(SpatialFieldType_GEOGRAPHY)
+	ops.SetStrategy(SpatialSearchStrategy_BOUNDING_BOX)
+	ops.SetUnits(circleRadiusUnits)
 	return ops
 }
 
@@ -38,10 +38,10 @@ func (f *GeographySpatialOptionsFactory) geohashPrefixTreeIndexWithRadius(maxTre
 	}
 
 	opts := NewSpatialOptions()
-	opts.setType(SpatialFieldType_GEOGRAPHY)
-	opts.setMaxTreeLevel(maxTreeLevel)
-	opts.setStrategy(SpatialSearchStrategy_GEOHASH_PREFIX_TREE)
-	opts.setUnits(circleRadiusUnits)
+	opts.SetType(SpatialFieldType_GEOGRAPHY)
+	opts.SetMaxTreeLevel(maxTreeLevel)
+	opts.SetStrategy(SpatialSearchStrategy_GEOHASH_PREFIX_TREE)
+	opts.SetUnits(circleRadiusUnits)
 	return opts
 }
 
@@ -55,10 +55,10 @@ func (f *GeographySpatialOptionsFactory) quadPrefixTreeIndexWithRadius(maxTreeLe
 	}
 
 	opts := NewSpatialOptions()
-	opts.setType(SpatialFieldType_GEOGRAPHY)
-	opts.setMaxTreeLevel(maxTreeLevel)
-	opts.setStrategy(SpatialSearchStrategy_QUAD_PREFIX_TREE)
-	opts.setUnits(circleRadiusUnits)
+	opts.SetType(SpatialFieldType_GEOGRAPHY)
+	opts.SetMaxTreeLevel(maxTreeLevel)
+	opts.SetStrategy(SpatialSearchStrategy_QUAD_PREFIX_TREE)
+	opts.SetUnits(circleRadiusUnits)
 	return opts
 }
 
@@ -72,8 +72,8 @@ func NewCartesianSpatialOptionsFactory() *CartesianSpatialOptionsFactory {
 
 func (f *CartesianSpatialOptionsFactory) boundingBoxIndex() *SpatialOptions {
 	opts := NewSpatialOptions()
-	opts.setType(SpatialFieldType_CARTESIAN)
-	opts.setStrategy(SpatialSearchStrategy_BOUNDING_BOX)
+	opts.SetType(SpatialFieldType_CARTESIAN)
+	opts.SetStrategy(SpatialSearchStrategy_BOUNDING_BOX)
 	return opts
 }
 
@@ -81,13 +81,13 @@ func (f *CartesianSpatialOptionsFactory) quadPrefixTreeIndex(maxTreeLevel int, b
 	panicIf(maxTreeLevel == 0, "maxTreeLevel cannot be 0")
 
 	opts := NewSpatialOptions()
-	opts.setType(SpatialFieldType_CARTESIAN)
-	opts.setMaxTreeLevel(maxTreeLevel)
-	opts.setStrategy(SpatialSearchStrategy_QUAD_PREFIX_TREE)
-	opts.setMinX(bounds.getMinX())
-	opts.setMinY(bounds.getMinY())
-	opts.setMaxX(bounds.getMaxX())
-	opts.setMaxY(bounds.getMaxY())
+	opts.SetType(SpatialFieldType_CARTESIAN)
+	opts.SetMaxTreeLevel(maxTreeLevel)
+	opts.SetStrategy(SpatialSearchStrategy_QUAD_PREFIX_TREE)
+	opts.SetMinX(bounds.getMinX())
+	opts.SetMinY(bounds.getMinY())
+	opts.SetMaxX(bounds.getMaxX())
+	opts.SetMaxY(bounds.getMaxY())
 
 	return opts
 }

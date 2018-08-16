@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 const (
@@ -65,36 +66,36 @@ var (
 	filteredExpectedOrder = []string{"shops/2-A", "shops/3-A", "shops/1-A"}
 )
 
-func spatialSorting_createData(t *testing.T, store *IDocumentStore) {
+func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
-	indexDefinition := NewIndexDefinition()
+	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.SetName("eventsByLatLng")
-	maps := NewStringSetFromStrings("from e in docs.Shops select new { e.venue, coordinates = CreateSpatialField(e.latitude, e.longitude) }")
+	maps := ravendb.NewStringSetFromStrings("from e in docs.Shops select new { e.venue, coordinates = CreateSpatialField(e.latitude, e.longitude) }")
 	indexDefinition.SetMaps(maps)
 
-	fields := make(map[string]*IndexFieldOptions)
-	options := NewIndexFieldOptions()
-	options.setIndexing(FieldIndexing_EXACT)
+	fields := make(map[string]*ravendb.IndexFieldOptions)
+	options := ravendb.NewIndexFieldOptions()
+	options.SetIndexing(ravendb.FieldIndexing_EXACT)
 	fields["tag"] = options
 	indexDefinition.SetFields(fields)
 
-	op := NewPutIndexesOperation(indexDefinition)
+	op := ravendb.NewPutIndexesOperation(indexDefinition)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	indexDefinition2 := NewIndexDefinition()
+	indexDefinition2 := ravendb.NewIndexDefinition()
 	indexDefinition2.SetName("eventsByLatLngWSpecialField")
-	maps = NewStringSetFromStrings("from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }")
+	maps = ravendb.NewStringSetFromStrings("from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }")
 	indexDefinition2.SetMaps(maps)
 
-	indexFieldOptions := NewIndexFieldOptions()
-	indexFieldOptions.setIndexing(FieldIndexing_EXACT)
-	fields = map[string]*IndexFieldOptions{
+	indexFieldOptions := ravendb.NewIndexFieldOptions()
+	indexFieldOptions.SetIndexing(ravendb.FieldIndexing_EXACT)
+	fields = map[string]*ravendb.IndexFieldOptions{
 		"tag": indexFieldOptions,
 	}
 	indexDefinition2.SetFields(fields)
 
-	op = NewPutIndexesOperation(indexDefinition2)
+	op = ravendb.NewPutIndexesOperation(indexDefinition2)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
@@ -115,7 +116,7 @@ func spatialSorting_createData(t *testing.T, store *IDocumentStore) {
 }
 
 func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string) {
-	ok := StringArrayContainsExactly(resultIDs, expectedOrder)
+	ok := ravendb.StringArrayContainsExactly(resultIDs, expectedOrder)
 	assert.True(t, ok)
 }
 
@@ -128,9 +129,9 @@ func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQu
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
-		fn := func(f *SpatialCriteriaFactory) SpatialCriteria {
-			res := f.within(getQueryShapeFromLatLon(FILTERED_LAT, FILTERED_LNG, FILTERED_RADIUS))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLng"))
+		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
+			res := f.Within(getQueryShapeFromLatLon(FILTERED_LAT, FILTERED_LNG, FILTERED_RADIUS))
 			return res
 		}
 
@@ -166,7 +167,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLng"))
 		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
 
 		shops, err := q.ToList()
@@ -189,7 +190,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLngWSpecialField"))
 		q = q.OrderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
 		shops, err := q.ToList()
 		assert.NoError(t, err)
@@ -210,7 +211,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLng"))
 		q = q.OrderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.ToList()
 
@@ -226,15 +227,15 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLng"))
-		q = q.orderByDistanceDescendingLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLng"))
+		q = q.OrderByDistanceDescendingLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.ToList()
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
 
 		ids := getShopIDs(shops)
-		StringArrayReverse(ids)
+		ravendb.StringArrayReverse(ids)
 		assertResultsOrder(t, ids, filteredExpectedOrder)
 
 		session.Close()
@@ -250,7 +251,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLngWSpecialField"))
 		q = q.OrderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.ToList()
 
@@ -266,15 +267,15 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(GetTypeOf(&Shop{}), Query_index("eventsByLatLngWSpecialField"))
-		q = q.orderByDistanceDescendingLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&Shop{}), ravendb.Query_index("eventsByLatLngWSpecialField"))
+		q = q.OrderByDistanceDescendingLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		shops, err := q.ToList()
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
 
 		ids := getShopIDs(shops)
-		StringArrayReverse(ids)
+		ravendb.StringArrayReverse(ids)
 		assertResultsOrder(t, ids, filteredExpectedOrder)
 
 		session.Close()

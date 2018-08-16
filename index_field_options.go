@@ -13,50 +13,50 @@ func NewIndexFieldOptions() *IndexFieldOptions {
 	return &IndexFieldOptions{}
 }
 
-func (o *IndexFieldOptions) getStorage() FieldStorage {
+func (o *IndexFieldOptions) GetStorage() FieldStorage {
 	return o.storage
 }
 
-func (o *IndexFieldOptions) setStorage(storage FieldStorage) {
+func (o *IndexFieldOptions) SetStorage(storage FieldStorage) {
 	o.storage = storage
 }
 
-func (o *IndexFieldOptions) getIndexing() FieldIndexing {
+func (o *IndexFieldOptions) GetIndexing() FieldIndexing {
 	return o.indexing
 }
 
-func (o *IndexFieldOptions) setIndexing(indexing FieldIndexing) {
+func (o *IndexFieldOptions) SetIndexing(indexing FieldIndexing) {
 	o.indexing = indexing
 }
 
-func (o *IndexFieldOptions) getTermVector() FieldTermVector {
+func (o *IndexFieldOptions) GetTermVector() FieldTermVector {
 	return o.termVector
 }
 
-func (o *IndexFieldOptions) setTermVector(termVector FieldTermVector) {
+func (o *IndexFieldOptions) SetTermVector(termVector FieldTermVector) {
 	o.termVector = termVector
 }
 
-func (o *IndexFieldOptions) getSpatial() *SpatialOptions {
+func (o *IndexFieldOptions) GetSpatial() *SpatialOptions {
 	return o.spatial
 }
 
-func (o *IndexFieldOptions) setSpatial(spatial *SpatialOptions) {
+func (o *IndexFieldOptions) SetSpatial(spatial *SpatialOptions) {
 	o.spatial = spatial
 }
 
-func (o *IndexFieldOptions) getAnalyzer() string {
+func (o *IndexFieldOptions) GetAnalyzer() string {
 	return o.analyzer
 }
 
-func (o *IndexFieldOptions) setAnalyzer(analyzer string) {
+func (o *IndexFieldOptions) SetAnalyzer(analyzer string) {
 	o.analyzer = analyzer
 }
 
-func (o *IndexFieldOptions) isSuggestions() bool {
+func (o *IndexFieldOptions) IsSuggestions() bool {
 	return o.suggestions
 }
 
-func (o *IndexFieldOptions) setSuggestions(suggestions bool) {
+func (o *IndexFieldOptions) SetSuggestions(suggestions bool) {
 	o.suggestions = suggestions
 }

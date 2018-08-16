@@ -1481,7 +1481,7 @@ func (q *AbstractDocumentQuery) _spatial2(dynamicField DynamicSpatialField, crit
 	add := func(value interface{}) string {
 		return q.addQueryParameter(value)
 	}
-	tok := criteria.toQueryToken(dynamicField.toField(ensure), add)
+	tok := criteria.ToQueryToken(dynamicField.toField(ensure), add)
 	tokens := *tokensRef
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
@@ -1498,7 +1498,7 @@ func (q *AbstractDocumentQuery) _spatial3(fieldName string, criteria SpatialCrit
 	add := func(value interface{}) string {
 		return q.addQueryParameter(value)
 	}
-	tok := criteria.toQueryToken(fieldName, add)
+	tok := criteria.ToQueryToken(fieldName, add)
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
 }

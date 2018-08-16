@@ -629,7 +629,7 @@ func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, sh
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
 	q._orderByDistanceDescendingLatLong(fieldName, latitude, longitude)
 	return q
 }
