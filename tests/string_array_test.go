@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func TestStringArraySubtract(t *testing.T) {
@@ -18,9 +19,9 @@ func TestStringArraySubtract(t *testing.T) {
 		{[]string{"a", "b"}, []string{"a"}, []string{"b"}},
 	}
 	for _, test := range tests {
-		got := StringArraySubtract(test.a1, test.a2)
+		got := ravendb.StringArraySubtract(test.a1, test.a2)
 		sort.Strings(got)
-		if !StringArrayEq(test.exp, got) {
+		if !ravendb.StringArrayEq(test.exp, got) {
 			t.Fatalf("got: %#v, exp: %#v", got, test.exp)
 		}
 	}
@@ -43,7 +44,7 @@ func TestStringArrayContains(t *testing.T) {
 		{[]string{}, "", false},
 	}
 	for _, test := range tests {
-		got := StringArrayContains(test.a, test.s)
+		got := ravendb.StringArrayContains(test.a, test.s)
 		assert.Equal(t, test.exp, got)
 	}
 }

@@ -42,6 +42,7 @@ build_script:
   - go build
 
 test_script:
+  - ps: cd tests
   - go test -vet=off
 
 deploy: off
