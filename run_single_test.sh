@@ -29,13 +29,13 @@ export LOG_ALL_REQUESTS=true
 #export ENABLE_FAILING_TESTS=true
 #export ENABLE_FLAKY_TESTS=true
 
-cd tests
+# cd tests
 
 # force running tests even if code didn't change
 go clean -testcache
 
 # go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestCrud$
 
-go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestCrud$
+go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestFirstClassPatch$ ./tests
 
-# go test -v -race -vet=off -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt -run ^TestCrud$ ./tests
+#go test -v -race -vet=off -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt -run ^TestCrud$ ./tests

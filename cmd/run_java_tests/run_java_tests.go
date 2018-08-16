@@ -5,9 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
+
+	"path/filepath"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
-	"path/filepath"
 )
 
 const (
@@ -20,8 +22,29 @@ func must(err error) {
 	}
 }
 
-func runSingleJavaTest(className string, logFileName string) {
-	logFilePath := filepath.Join("tests", "logs", logFileName)
+func isUpper(c byte) bool {
+	return c >= 'A' && c <= 'Z'
+}
+
+// converts "IndexesFromClientTest" => "indexes_from_client"
+func testNameToFileName(s string) string {
+	s = strings.TrimSuffix(s, "Test")
+	lower := strings.ToLower(s)
+	var res []byte
+	n := len(s)
+	for i := 0; i < n; i++ {
+		c := s[i]
+		if i > 0 && isUpper(c) {
+			res = append(res, '_')
+		}
+		res = append(res, lower[i])
+	}
+	return string(res)
+}
+
+func runSingleJavaTest(className string) {
+	logFileName := "trace_" + testNameToFileName(className) + "_java.txt"
+	logFilePath := filepath.Join("logs", logFileName)
 	go proxy.Run(logFilePath)
 	defer proxy.CloseLogFile()
 
@@ -42,51 +65,51 @@ func runJava() {
 	// the second one fails. Possibly because the server fails
 	// to start the second time
 
-	//runSingleJavaTest("AdvancedPatchingTest", "trace_advanced_patching_java.txt")
-	//runSingleJavaTest("AggregationTest", "trace_aggregation_java.txt")
+	//runSingleJavaTest("AdvancedPatchingTest")
+	//runSingleJavaTest("AggregationTest")
 	// fails on mac pro with 4.0.6
-	//runSingleJavaTest("AttachmentsSessionTest", "trace_attachments_session_java.txt")
+	//runSingleJavaTest("AttachmentsSessionTest")
 	// sometimes fails on mac pro
-	// runSingleJavaTest("AttachmentsRevisionsTest", "trace_attachments_revisions_java.txt")
-	//runSingleJavaTest("BasicDocumentsTest", "trace_basic_documents_java.txt")
-	//runSingleJavaTest("BulkInsertsTest", "trace_bulk_inserts_java.txt")
-	//runSingleJavaTest("ClientConfigurationTest", "trace_client_configuration_java.txt")
-	//runSingleJavaTest("CompactTest", "trace_compact_java.txt")
-	//runSingleJavaTest("ContainsTest", "trace_contains_java.txt")
-	//runSingleJavaTest("CrudTest", "trace_crud_java.txt")
-	//runSingleJavaTest("DeleteTest", "trace_delete_java.txt")
-	//runSingleJavaTest("DeleteDocumentCommandTest", "trace_delete_document_command_java.txt")
-	//runSingleJavaTest("DocumentsLoadTest", "trace_documents_load_java.txt")
-	//runSingleJavaTest("DeleteByQueryTest", "trace_delete_by_query_java.txt")
-	//runSingleJavaTest("ExistsTest", "trace_exists_java.txt")
-	//runSingleJavaTest("GetTopologyTest", "trace_get_topology_java.txt")
-	//runSingleJavaTest("GetTcpInfoTest", "trace_get_tcp_info_java.txt")
-	//runSingleJavaTest("GetClusterTopologyTest", "trace_get_cluster_topology_java.txt")
-	//runSingleJavaTest("GetStatisticsCommandTest", "trace_get_statistics_java.txt")
-	//runSingleJavaTest("GetNextOperationIdCommandTest", "trace_get_next_operation_id_java.txt")
-	//runSingleJavaTest("HiLoTest", "trace_hilo_java.txt")
-	//runSingleJavaTest("IndexOperationsTest", "trace_index_operations_java.txt")
-	//runSingleJavaTest("IndexesFromClientTest", "trace_indexes_from_client_java.txt")
-	//runSingleJavaTest("LoadIntoStreamTest", "trace_load_into_stream_java.txt")
-	//runSingleJavaTest("LoadTest", "trace_load_java.txt")
-	//runSingleJavaTest("NextAndSeedIdentitiesTest", "trace_next_and_seed_identities_java.txt")
-	//runSingleJavaTest("PatchTest", "trace_patch_java.txt")
-	//runSingleJavaTest("PutDocumentCommandTest", "trace_put_document_command_java.txt")
-	//runSingleJavaTest("QueryTest", "trace_query_java.txt")
-	//runSingleJavaTest("RegexQueryTest", "trace_regex_query_java.txt")
-	//runSingleJavaTest("RequestExecutorTest", "trace_request_executor_java.txt")
-	//runSingleJavaTest("RevisionsTest", "trace_revisions_java.txt")
-	//runSingleJavaTest("StoreTest", "trace_store_java.txt")
-	//runSingleJavaTest("TrackEntityTest", "trace_track_entity_java.txt")
-	//runSingleJavaTest("UniqueValuesTest", "trace_unique_values_java.txt")
-	//runSingleJavaTest("SpatialSortingTest", "trace_spatial_sorting_java.txt")
-	//runSingleJavaTest("SpatialTest", "trace_spatial_java.txt")
-	//runSingleJavaTest("SpatialQueriesTest", "trace_spatial_queries_java.txt")
-	//runSingleJavaTest("SpatialSearchTest", "trace_spatial_search_java.txt")
-	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
-	//runSingleJavaTest("WhatChangedTest", "trace_what_changed_java.txt")
+	// runSingleJavaTest("AttachmentsRevisionsTest")
+	//runSingleJavaTest("BasicDocumentsTest")
+	//runSingleJavaTest("BulkInsertsTest")
+	//runSingleJavaTest("ClientConfigurationTest")
+	//runSingleJavaTest("CompactTest")
+	//runSingleJavaTest("ContainsTest")
+	//runSingleJavaTest("CrudTest")
+	//runSingleJavaTest("DeleteTest")
+	//runSingleJavaTest("DeleteDocumentCommandTest")
+	//runSingleJavaTest("DocumentsLoadTest")
+	//runSingleJavaTest("DeleteByQueryTest")
+	//runSingleJavaTest("ExistsTest")
+	//runSingleJavaTest("GetTopologyTest")
+	//runSingleJavaTest("GetTcpInfoTest")
+	//runSingleJavaTest("GetClusterTopologyTest")
+	//runSingleJavaTest("GetStatisticsCommandTest")
+	//runSingleJavaTest("GetNextOperationIdCommandTest")
+	//runSingleJavaTest("HiLoTest")
+	//runSingleJavaTest("IndexOperationsTest")
+	//runSingleJavaTest("IndexesFromClientTest")
+	//runSingleJavaTest("LoadIntoStreamTest")
+	//runSingleJavaTest("LoadTest")
+	//runSingleJavaTest("NextAndSeedIdentitiesTest")
+	//runSingleJavaTest("PatchTest")
+	//runSingleJavaTest("PutDocumentCommandTest")
+	//runSingleJavaTest("QueryTest")
+	//runSingleJavaTest("RegexQueryTest")
+	//runSingleJavaTest("RequestExecutorTest")
+	//runSingleJavaTest("RevisionsTest")
+	//runSingleJavaTest("StoreTest")
+	//runSingleJavaTest("TrackEntityTest")
+	//runSingleJavaTest("UniqueValuesTest")
+	//runSingleJavaTest("SpatialSortingTest")
+	//runSingleJavaTest("SpatialTest")
+	//runSingleJavaTest("SpatialQueriesTest")
+	//runSingleJavaTest("SpatialSearchTest")
+	//runSingleJavaTest("WhatChangedTest")
+	//runSingleJavaTest("WhatChangedTest")
 
-	runSingleJavaTest("FirstClassPatchTest", "trace_first_class_patch_java.txt")
+	runSingleJavaTest("FirstClassPatchTest")
 }
 
 func main() {

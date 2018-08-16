@@ -431,9 +431,6 @@ func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.Docume
 	return session
 }
 
-// In Java, RavenTestDriver is created/destroyed for each test
-// In Go we have to do it manually
-
 func isUpper(c byte) bool {
 	return c >= 'A' && c <= 'Z'
 }
@@ -454,26 +451,32 @@ func testNameToFileName(s string) string {
 	return string(res)
 }
 
+func getLogDir() string {
+	// if this is not full path, raven will put it in it's own Logs directory
+	// next to server executable
+	cwd, _ := os.Getwd()
+	dir, file := filepath.Split(cwd)
+	if file != "tests" {
+		dir = cwd
+	}
+	dir = filepath.Join(dir, "logs")
+	os.MkdirAll(dir, 0755)
+	return dir
+}
+
 func pcapPathFromTestName(t *testing.T) string {
 	name := "trace_" + testNameToFileName(t.Name()) + "_go.pcap"
-	path := filepath.Join("logs", name)
-	os.Mkdir("logs", 0755)
-	return path
+	return filepath.Join(getLogDir(), name)
 }
 
 func httpLogPathFromTestName(t *testing.T) string {
 	name := "trace_" + testNameToFileName(t.Name()) + "_go.txt"
-	path := filepath.Join("logs", name)
-	os.Mkdir("logs", 0755)
-	return path
+	return filepath.Join(getLogDir(), name)
 }
 
 func ravenLogsDirFromTestName(t *testing.T) string {
-	// if this is not full path, raven will put it in it's own Logs directory
-	// next to server executable
-	cwd, _ := os.Getwd()
-	name := testNameToFileName(t.Name()) + ".log.txt"
-	path := filepath.Join(cwd, "logs", "server", "go", name)
+	name := testNameToFileName(t.Name())
+	path := filepath.Join(getLogDir(), "server", "go", name)
 	// recreate dir for clean logs
 	os.RemoveAll(path)
 	os.MkdirAll(path, 0755)
@@ -592,6 +595,8 @@ func maybePrintFailedRequestsLog() {
 	}
 }
 
+// In Java, RavenTestDriver is created/destroyed for each test
+// In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) func() {
 	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")

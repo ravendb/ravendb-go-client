@@ -7,16 +7,19 @@ import (
 
 const (
 	// time format returned by the server which looks like:
-	// 2018-05-08T05:20:31.5233900Z or 2018-07-29T23:50:57.9998240
-	serverTimeFormat  = "2006-01-02T15:04:05.9999999Z"
+	// 2018-05-08T05:20:31.5233900Z or 
+	// 2018-07-29T23:50:57.9998240 or
+	// 2018-08-16T13:56:59.355664-07:00
+	serverTimeFormat = "2006-01-02T15:04:05.9999999Z"
 	serverTimeFormat2 = "2006-01-02T15:04:05.9999999"
+	serverTimeFormat3 = "2006-01-02T15:04:05.9999999-07:00"
 )
 
 type ServerTime time.Time
 
 func (t ServerTime) MarshalJSON() ([]byte, error) {
 	s := time.Time(t).Format(serverTimeFormat)
-	return []byte(s), nil
+	return []byte(`"` + s + `"`), nil
 }
 
 func (t *ServerTime) UnmarshalJSON(d []byte) error {
@@ -27,16 +30,20 @@ func (t *ServerTime) UnmarshalJSON(d []byte) error {
 	if s == "null" {
 		return nil
 	}
-	format := serverTimeFormat
-	if !strings.HasSuffix(s, "Z") {
-		format = serverTimeFormat2
+
+	tt, err := time.Parse(serverTimeFormat, s)
+	if err != nil {
+		tt , err = time.Parse(serverTimeFormat2, s)
+		if err != nil {
+			tt, err = time.Parse(serverTimeFormat3, s)
+		}
 	}
-	tt, err := time.Parse(format, s)
 	if err != nil {
 		// TODO: for now make it a fatal error to catch bugs early
 		must(err)
 		return err
 	}
+
 	*t = ServerTime(tt)
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"reflect"
+	"strconv"
 )
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
@@ -253,13 +254,88 @@ func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 // public <T, U> void increment(T entity, string path, U valueToAdd) {
 // public <T, U> void increment(string id, string path, U valueToAdd) {
 
-	// public <T, U> void patch(T entity, string path, U value) {
-// public <T, U> void patch(string id, string path, U value) {
+func (s *DocumentSession) PatchEntity(entity interface{}, path string, value interface{}) error {
+	metadata, err := s.GetMetadataFor(entity)
+	if err != nil {
+		return err
+	}
+	// TODO: return an error if no id or id not string
+	id, _ := metadata.Get(Constants_Documents_Metadata_ID)
+	return s.PatchByID(id.(string), path, value)
+}
+
+func (s *DocumentSession) PatchByID(id string, path string, value interface{}) error {
+	patchRequest := NewPatchRequest()
+	valsCountStr := strconv.Itoa(s._valsCount)
+	patchRequest.SetScript("this." + path + " = args.val_" + valsCountStr + ";")
+	m := map[string]interface{}{
+		"val_" + valsCountStr: value,
+	}
+	patchRequest.SetValues(m)
+
+	s._valsCount++
+
+	if !s.tryMergePatches(id, patchRequest) {
+		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
+		s.Defer(cmdData)
+	}
+	return nil
+}
+
 // public <T, U> void patch(T entity, string pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
 // public <T, U> void patch(string id, string pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
-	// private boolean tryMergePatches(string id, PatchRequest patchRequest) {
 
-		// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
+func removeDeferredCommand(a []ICommandData, el ICommandData) []ICommandData {
+	idx := -1
+	n := len(a)
+	for i := 0; i < n; i++ {
+		if a[i] == el {
+			idx = i
+			break
+		}
+	}
+	panicIf(idx == -1, "didn't find el in a")
+	return append(a[:idx], a[idx+1:]...)
+}
+
+func (s *DocumentSession) tryMergePatches(id string, patchRequest *PatchRequest) bool {
+	idType := IdTypeAndName_create(id, CommandType_PATCH, "")
+	command := s.deferredCommandsMap[idType]
+	if command == nil {
+		return false
+	}
+
+	s.deferredCommands = removeDeferredCommand(s.deferredCommands, command)
+
+	// We'll overwrite the deferredCommandsMap when calling Defer
+	// No need to call deferredCommandsMap.remove((id, CommandType.PATCH, null));
+
+	oldPatch := command.(*PatchCommandData)
+	newScript := oldPatch.getPatch().GetScript() + "\n" + patchRequest.GetScript()
+	newVals := cloneMapStringObject(oldPatch.getPatch().GetValues())
+
+	for k, v := range patchRequest.GetValues() {
+		newVals[k] = v
+	}
+
+	newPatchRequest := NewPatchRequest()
+	newPatchRequest.SetScript(newScript)
+	newPatchRequest.SetValues(newVals)
+
+	cmdData := NewPatchCommandData(id, nil, newPatchRequest, nil)
+	s.Defer(cmdData)
+	return true
+}
+
+func cloneMapStringObject(m map[string]Object) map[string]Object {
+	res := map[string]Object{}
+	for k, v := range m {
+		res[k] = v
+	}
+	return res
+}
+
+// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
 func (s *DocumentSession) DocumentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryAll(clazz, index.GetIndexName(), "", index.IsMapReduce())
