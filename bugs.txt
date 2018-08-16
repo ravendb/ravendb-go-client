@@ -1,0 +1,127 @@
+attachmentsRevisions_putAttachments() flaky.
+
+When it fails, we have the following request log:
+
+=========== 6:
+PUT /databases/test_db_1/attachments?id=users%2F1&name=profile.png&contentType=image%2Fpng HTTP/1.1
+Host: 127.0.0.1:55863
+Client-Configuration-Etag: "1100310647005720893"
+Content-Length: 3
+Raven-Client-Version: 4.0.0
+Topology-Etag: "-1"
+User-Agent: ravendb-go-client/1.0
+
+
+--------
+=========== 7:
+GET /cluster/topology HTTP/1.1
+Host: 127.0.0.1:55863
+Raven-Client-Version: 4.0.0
+Topology-Etag: "0"
+User-Agent: ravendb-go-client/1.0
+
+
+--------
+
+
+When it works, we get:
+=========== 6:
+PUT /databases/test_db_1/attachments?id=users%2F1&name=profile.png&contentType=image%2Fpng HTTP/1.1
+Host: 127.0.0.1:55845
+Client-Configuration-Etag: "1100310647005720893"
+Content-Length: 3
+Raven-Client-Version: 4.0.0
+Topology-Etag: "-1"
+User-Agent: ravendb-go-client/1.0
+
+
+--------
+HTTP/1.1 201 Created
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+Date: Mon, 09 Jul 2018 00:58:45 GMT
+Server: Kestrel
+Vary: Accept-Encoding
+
+{
+  "ChangeVector": "A:3-JNMBl51Avk+BmRpgcTI8AQ",
+  "ContentType": "image/png",
+  "DocumentId": "users/1",
+  "Hash": "EcDnm3HDl2zNDALRMQ4lFsCO3J2Lb1fM1oDWOk2Octo=",
+  "Name": "profile.png",
+  "Size": 3
+}
+=========== 7:
+PUT /databases/test_db_1/attachments?id=users%2F1&name=background-photo.jpg&contentType=ImGgE%2FjPeG HTTP/1.1
+
+
+In Java traces GET /cluster/topology happens much faster.
+Seems like /cluster/topology is racing and failing.
+
+Console logs:
+PROXY POST /databases/test_db_1/bulk_docs HTTP/1.1
+ExceptionDispatcher_throwException. schema: ravendb.ExceptionSchema{URL:"", Type:"", Message:"", Error:""}
+PROXY PUT /databases/test_db_1/attachments?id=users%2F1&name=profile.png&contentType=image%2Fpng HTTP/1.1
+ExceptionDispatcher_throwException. schema: ravendb.ExceptionSchema{URL:"", Type:"", Message:"", Error:""}
+--- FAIL: TestAttachmentsRevisions (4.30s)
+	assertions.go:254:
+			Error Trace:	attachments_revisions_test.go:163
+			            				attachments_revisions_test.go:20
+			            				attachments_revisions_test.go:309
+			Error:      	Received unexpected error:
+			            	ExceptionDispatcher_throwException: http response exception
+			Test:       	TestAttachmentsRevisions
+panic: runtime error: invalid memory address or nil pointer dereference [recovered]
+	panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x38 pc=0x151cb2c]
+
+goroutine 4 [running]:
+testing.tRunner.func1(0xc4201ea0f0)
+	/usr/local/Cellar/go/1.10.3/libexec/src/testing/testing.go:742 +0x567
+panic(0x15f67e0, 0x19506b0)
+	/usr/local/Cellar/go/1.10.3/libexec/src/runtime/panic.go:502 +0x24a
+github.com/ravendb/ravendb-go-client.(*AttachmentDetails).GetChangeVector(...)
+	/Users/kjk/src/go/src/github.com/ravendb/ravendb-go-client/attachment_details.go:14
+github.com/ravendb/ravendb-go-client.createDocumentWithAttachments(0xc4201ea0f0, 0xc420302000, 0x0, 0x0, 0x0)
+	/Users/kjk/src/go/src/github.com/ravendb/ravendb-go-client/attachments_revisions_test.go:165 +0x61c
+github.com/ravendb/ravendb-go-client.attachmentsRevisions_putAttachments(0xc4201ea0f0)
+	/Users/kjk/src/go/src/github.com/ravendb/ravendb-go-client/attachments_revisions_test.go:20 +0xd2
+github.com/ravendb/ravendb-go-client.TestAttachmentsRevisions(0xc4201ea0f0)
+	/Users/kjk/src/go/src/github.com/ravendb/ravendb-go-client/attachments_revisions_test.go:309 +0x7c
+testing.tRunner(0xc4201ea0f0, 0x169a810)
+	/usr/local/Cellar/go/1.10.3/libexec/src/testing/testing.go:777 +0x16e
+created by testing.(*T).Run
+	/usr/local/Cellar/go/1.10.3/libexec/src/testing/testing.go:824 +0x565
+
+Trying to set a breakpoint on ExceptionDispatcher_throwException() in vs doesn't work
+i.e. breakpoint is not hit.
+
+Add more logging in ExceptionDispatcher_throwException() including callstack?
+
+Add more logging to networking code to make it easier to figure those out in
+the future?
+
+... after adding some logging
+
+Server returns 500:
+PROXY POST /databases/test_db_1/bulk_docs HTTP/1.1
+handleUnsuccessfulResponse default case
+HTTP RESPONSE:
+HTTP/1.1 500 Internal Server Error
+Content-Length: 4
+Content-Type: text/plain; charset=utf-8
+Date: Mon, 09 Jul 2018 01:24:03 GMT
+X-Content-Type-Options: nosniff
+
+ExceptionDispatcher_throwException. schema: ravendb.ExceptionSchema{URL:"", Type:"", Message:"", Error:""}
+NewGetClusterTopologyCommand()
+NewGetClusterTopologyCommand.CreateRequest()
+PROXY PUT /databases/test_db_1/attachments?id=users%2F1&name=profile.png&contentType=image%2Fpng HTTP/1.1
+HTTP REQUEST:
+
+GetClusterTopology is a result of this error.
+
+Q: why only happens sometimes? Need also log from the server.
+
+Q: is it about closing attachment reader?
+---------------------------------

@@ -1,0 +1,25 @@
+package ravendb
+
+type WhereOperator int
+
+const (
+	WhereOperator_EQUALS WhereOperator = iota
+	WhereOperator_NOT_EQUALS
+	WhereOperator_GREATER_THAN
+	WhereOperator_GREATER_THAN_OR_EQUAL
+	WhereOperator_LESS_THAN
+	WhereOperator_LESS_THAN_OR_EQUAL
+	WhereOperator_IN
+	WhereOperator_ALL_IN
+	WhereOperator_BETWEEN
+	WhereOperator_SEARCH
+	WhereOperator_LUCENE
+	WhereOperator_STARTS_WITH
+	WhereOperator_ENDS_WITH
+	WhereOperator_EXISTS
+	WhereOperator_SPATIAL_WITHIN
+	WhereOperator_SPATIAL_CONTAINS
+	WhereOperator_SPATIAL_DISJOINT
+	WhereOperator_SPATIAL_INTERSECTS
+	WhereOperator_REGEX
+)

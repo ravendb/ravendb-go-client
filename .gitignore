@@ -13,3 +13,18 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 /.idea
+
+responses.log
+.vscode/
+main
+cmd/test/debug
+cmd/loggingproxy/db
+logs/
+RavenDB/
+coverage.txt
+RavenDB.tar.bz2
+capturer
+foo.pcap
+pcap_convert
+netgraph
+*.zip
