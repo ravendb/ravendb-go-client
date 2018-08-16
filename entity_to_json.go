@@ -24,7 +24,7 @@ func EntityToJson_convertEntityToJson(entity Object, documentInfo *DocumentInfo)
 	if v, ok := entity.(ObjectNode); ok {
 		return v
 	}
-	jsonNode := structToJSONMap(entity)
+	jsonNode := StructToJSONMap(entity)
 
 	EntityToJson_writeMetadata(jsonNode, documentInfo)
 
@@ -46,7 +46,7 @@ func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, docum
 		return document
 	}
 	// TODO: deal with default values
-	entity, _ := makeStructFromJSONMap(entityType, document)
+	entity, _ := MakeStructFromJSONMap(entityType, document)
 	TrySetIDOnEntity(entity, id)
 	return entity
 	/*

@@ -105,7 +105,7 @@ func jsonGetAsBool(doc ObjectNode, key string) (bool, bool) {
 
 // converts a struct to JSON representations as map of string to value
 // TODO: could be faster
-func structToJSONMap(v interface{}) map[string]interface{} {
+func StructToJSONMap(v interface{}) map[string]interface{} {
 	d, err := json.Marshal(v)
 	must(err)
 	var res map[string]interface{}
@@ -126,7 +126,7 @@ func structFromJSONMap(js ObjectNode, v interface{}) error {
 
 // matches a Java naming from EnityMapper
 func ValueToTree(v interface{}) ObjectNode {
-	return structToJSONMap(v)
+	return StructToJSONMap(v)
 }
 
 // copyJSONMap makes a deep copy of map[string]interface{}

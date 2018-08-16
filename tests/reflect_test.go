@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 type FooStruct struct {
@@ -17,19 +18,19 @@ type FooStruct struct {
 
 func TestTypeName(t *testing.T) {
 	v := FooStruct{}
-	name := getFullTypeName(v)
+	name := ravendb.GetFullTypeName(v)
 	if name != "ravendb.FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "ravendb.FooStruct", name)
 	}
-	name = getFullTypeName(&v)
+	name = ravendb.GetFullTypeName(&v)
 	if name != "ravendb.FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "ravendb.FooStruct", name)
 	}
-	name = getShortTypeName(v)
+	name = ravendb.GetShortTypeNameName(v)
 	if name != "FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "FooStruct", name)
 	}
-	name = getShortTypeName(&v)
+	name = ravendb.GetShortTypeNameName(&v)
 	if name != "FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "FooStruct", name)
 	}
@@ -40,11 +41,11 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 		S: "str",
 		N: 5,
 	}
-	jsmap := structToJSONMap(s)
+	jsmap := ravendb.StructToJSONMap(s)
 	vd, err := json.Marshal(s)
 	assert.NoError(t, err)
-	typ := GetTypeOf(s)
-	v2, err := makeStructFromJSONMap(typ, jsmap)
+	typ := ravendb.GetTypeOf(s)
+	v2, err := ravendb.MakeStructFromJSONMap(typ, jsmap)
 	assert.NoError(t, err)
 	vTyp := fmt.Sprintf("%T", s)
 	v2Typ := fmt.Sprintf("%T", v2)
@@ -63,27 +64,27 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 
 func TestIsStructy(t *testing.T) {
 	v := FooStruct{}
-	typ, ok := getStructTypeOfValue(v)
+	typ, ok := ravendb.GetStructTypeOfValue(v)
 	if !ok || typ.Kind() != reflect.Struct {
-		t.Fatalf("getStructTypeOfValue(%T) returned false", v)
+		t.Fatalf("GetStructTypeOfValue(%T) returned false", v)
 	}
-	typ, ok = getStructTypeOfValue(&v)
+	typ, ok = ravendb.GetStructTypeOfValue(&v)
 	if !ok || typ.Kind() != reflect.Struct {
-		t.Fatalf("getStructTypeOfValue(%T) returned false", v)
+		t.Fatalf("GetStructTypeOfValue(%T) returned false", v)
 	}
 	v2 := "str"
-	typ, ok = getStructTypeOfValue(v2)
+	typ, ok = ravendb.GetStructTypeOfValue(v2)
 	if ok {
-		t.Fatalf("getStructTypeOfValue(%T) returned true", v2)
+		t.Fatalf("GetStructTypeOfValue(%T) returned true", v2)
 	}
 }
 
 func TestGetIdentityProperty(t *testing.T) {
-	got := getIdentityProperty(GetTypeOf(""))
+	got := ravendb.GetIdentityProperty(ravendb.GetTypeOf(""))
 	assert.Equal(t, "", got)
-	got = getIdentityProperty(GetTypeOf(User{}))
+	got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(User{}))
 	assert.Equal(t, "ID", got)
-	got = getIdentityProperty(GetTypeOf(&User{}))
+	got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(&User{}))
 	assert.Equal(t, "ID", got)
 
 	{
@@ -91,7 +92,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			Id string
 		}{}
-		got = getIdentityProperty(GetTypeOf(v))
+		got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(v))
 		assert.Equal(t, "", got)
 	}
 
@@ -100,7 +101,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			ID int
 		}{}
-		got = getIdentityProperty(GetTypeOf(v))
+		got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(v))
 		assert.Equal(t, "", got)
 	}
 

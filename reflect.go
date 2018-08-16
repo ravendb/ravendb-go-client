@@ -17,10 +17,10 @@ func Defaults_defaultValue(clazz reflect.Type) interface{} {
 	return rv.Interface()
 }
 
-// getFullTypeName returns fully qualified (including package) name of the type,
+// GetFullTypeName returns fully qualified (including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo
-func getFullTypeName(v interface{}) string {
+func GetFullTypeName(v interface{}) string {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
@@ -29,14 +29,14 @@ func getFullTypeName(v interface{}) string {
 	return typ.String()
 }
 
-// getShortTypeName returns a short (not including package) name of the type,
+// GetShortTypeNameName returns a short (not including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo, the type of Foo and *Foo is "Foo"
 // This is equivalent to Python's v.__class__.__name__
 // Note: this emulates Java's operator over-loading to support
 // GefaultGetCollectionName.
 // We should have separate functions for reflect.Type and regular value
-func getShortTypeName(v interface{}) string {
+func GetShortTypeNameName(v interface{}) string {
 	var typ reflect.Type
 	var ok bool
 	if typ, ok = v.(reflect.Type); ok {
@@ -55,7 +55,7 @@ func getShortTypeName(v interface{}) string {
 }
 
 // identity property is field of type string with name ID
-func getIdentityProperty(typ reflect.Type) string {
+func GetIdentityProperty(typ reflect.Type) string {
 	for typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
@@ -104,7 +104,7 @@ func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
 	return typ, false
 }
 
-func getStructTypeOfValue(v interface{}) (reflect.Type, bool) {
+func GetStructTypeOfValue(v interface{}) (reflect.Type, bool) {
 	rv := reflect.ValueOf(v)
 	return getStructTypeOfReflectValue(rv)
 }
@@ -163,7 +163,7 @@ func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 	case []interface{}:
 		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
 	case ObjectNode:
-		return makeStructFromJSONMap(typ, v)
+		return MakeStructFromJSONMap(typ, v)
 	}
 	panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
 	return nil, fmt.Errorf("don't know how to convert value of type %v to reflect type %s", js, typ.Name())
@@ -206,7 +206,7 @@ func getJSONStructFieldNames(typ reflect.Type) []string {
 }
 
 // given a json represented as map and type of a struct
-func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
+func MakeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
 	if typ == GetTypeOf(ObjectNode{}) {
 		return js, nil
 	}
@@ -241,7 +241,7 @@ func dbglog(format string, args ...interface{}) string {
 // or map[string]interface{}
 // TODO: not sure about nil
 // for simple types (int, bool, string) it should be just pass-through
-// for structs decode ObjectNode => struct using makeStructFromJSONMap
+// for structs decode ObjectNode => struct using MakeStructFromJSONMap
 func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 	// TODO: implement every possible type. Need more comprehensive tests
 	// to exercise those code paths
@@ -271,7 +271,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 			if !ok {
 				return nil, NewRavenException("can't convert value of type '%s' to a struct", val)
 			}
-			v, err := makeStructFromJSONMap(clazz, valIn)
+			v, err := MakeStructFromJSONMap(clazz, valIn)
 			return v, err
 		default:
 			panicIf(true, "%s", dbglog("converting to pointer of '%s' NYI", clazz.Kind().String()))

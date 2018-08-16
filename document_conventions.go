@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	// Note: helps find places that in Java code used DocumentConventsion.getIdentityProperty()
+	// Note: helps find places that in Java code used DocumentConventsion.GetIdentityProperty()
 	// if we add support for that
 	DocumentConventions_identityPropertyName = "ID"
 )
@@ -78,7 +78,7 @@ func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 
 func GefaultGetCollectionName(entityOrClazz interface{}) string {
 	// TODO: caching
-	name := getShortTypeName(entityOrClazz)
+	name := GetShortTypeNameName(entityOrClazz)
 	return pluralize(name)
 }
 
@@ -147,12 +147,12 @@ func (c *DocumentConventions) Clone() *DocumentConventions {
 }
 
 func (c *DocumentConventions) GetGoTypeName(entity interface{}) string {
-	return getFullTypeName(entity)
+	return GetFullTypeName(entity)
 }
 
 // returns "" if no identity property
 func (c *DocumentConventions) GetIdentityProperty(clazz reflect.Type) string {
-	return getIdentityProperty(clazz)
+	return GetIdentityProperty(clazz)
 }
 
 func (c *DocumentConventions) GetDocumentIdGenerator() DocumentIDGeneratorFunc {
