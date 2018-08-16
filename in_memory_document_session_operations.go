@@ -485,12 +485,12 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		return err
 	}
 
-	collectionName := s._requestExecutor.getConventions().GetCollectionName(entity)
+	collectionName := s._requestExecutor.GetConventions().GetCollectionName(entity)
 	metadata := ObjectNode{}
 	if collectionName != "" {
 		metadata[Constants_Documents_Metadata_COLLECTION] = collectionName
 	}
-	goType := s._requestExecutor.getConventions().GetGoTypeName(entity)
+	goType := s._requestExecutor.GetConventions().GetGoTypeName(entity)
 	if goType != "" {
 		metadata[Constants_Documents_Metadata_RAVEN_GO_TYPE] = goType
 	}

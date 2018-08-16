@@ -22,20 +22,20 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 }
 
 func (e *ServerOperationExecutor) Send(operation IServerOperation) error {
-	command := operation.GetCommand(e.requestExecutor.getConventions())
+	command := operation.GetCommand(e.requestExecutor.GetConventions())
 	err := e.requestExecutor.ExecuteCommand(command)
 	return err
 }
 
 func (e *ServerOperationExecutor) SendAsync(operation IServerOperation) (*Operation, error) {
 	requestExecutor := e.requestExecutor
-	command := operation.GetCommand(requestExecutor.getConventions())
+	command := operation.GetCommand(requestExecutor.GetConventions())
 	err := requestExecutor.ExecuteCommand(command)
 	if err != nil {
 		return nil, err
 	}
 	result := getCommandOperationIdResult(command)
-	return NewServerWideOperation(requestExecutor, requestExecutor.getConventions(), result.getOperationId()), nil
+	return NewServerWideOperation(requestExecutor, requestExecutor.GetConventions(), result.getOperationId()), nil
 }
 
 func (e *ServerOperationExecutor) Close() {

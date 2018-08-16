@@ -44,7 +44,7 @@ func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) err
 	if err != nil {
 		return err
 	}
-	command := operation.GetCommand(e.requestExecutor.getConventions())
+	command := operation.GetCommand(e.requestExecutor.GetConventions())
 	err = e.requestExecutor.ExecuteCommand(command)
 	return err
 }

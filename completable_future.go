@@ -25,25 +25,25 @@ func NewCompletableFuture() *CompletableFuture {
 
 func NewCompletableFutureAlreadyCompleted(result interface{}) *CompletableFuture {
 	res := NewCompletableFuture()
-	res.markAsDone(result)
+	res.MarkAsDone(result)
 	return res
 }
 
-func (f *CompletableFuture) isDone() bool {
+func (f *CompletableFuture) IsDone() bool {
 	f.mu.Lock()
 	res := f.done
 	f.mu.Unlock()
 	return res
 }
 
-func (f *CompletableFuture) isCompletedExceptionally() bool {
+func (f *CompletableFuture) IsCompletedExceptionally() bool {
 	f.mu.Lock()
 	res := f.err != nil // implies f.done
 	f.mu.Unlock()
 	return res
 }
 
-func (f *CompletableFuture) markAsDone(result interface{}) {
+func (f *CompletableFuture) MarkAsDone(result interface{}) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.done {
@@ -54,7 +54,7 @@ func (f *CompletableFuture) markAsDone(result interface{}) {
 	f.chDone <- true
 }
 
-func (f *CompletableFuture) markAsDoneWithError(err error) {
+func (f *CompletableFuture) MarkAsDoneWithError(err error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.done {
@@ -65,7 +65,7 @@ func (f *CompletableFuture) markAsDoneWithError(err error) {
 	f.chDone <- true
 }
 
-func (f *CompletableFuture) get() (interface{}, error) {
+func (f *CompletableFuture) Get() (interface{}, error) {
 	f.mu.Lock()
 	if f.done {
 		res, err := f.result, f.err

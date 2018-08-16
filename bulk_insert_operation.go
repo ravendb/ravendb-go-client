@@ -86,7 +86,7 @@ type BulkInsertOperation struct {
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
 	re := store.GetRequestExecutorWithDatabase(database)
 	f := func(entity Object) string {
-		return re.getConventions().GenerateDocumentId(database, entity)
+		return re.GetConventions().GenerateDocumentId(database, entity)
 	}
 
 	reader, writer := io.Pipe()
@@ -94,7 +94,7 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 	res := &BulkInsertOperation{
 		_conventions:                 store.GetConventions(),
 		_requestExecutor:             re,
-		_generateEntityIdOnTheClient: NewGenerateEntityIdOnTheClient(re.getConventions(), f),
+		_generateEntityIdOnTheClient: NewGenerateEntityIdOnTheClient(re.GetConventions(), f),
 		_reader:                      reader,
 		_currentWriter:               writer,
 		_operationId:                 -1,
@@ -123,7 +123,7 @@ func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) err
 }
 
 func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedException {
-	stateRequest := NewGetOperationStateCommand(o._requestExecutor.getConventions(), o._operationId)
+	stateRequest := NewGetOperationStateCommand(o._requestExecutor.GetConventions(), o._operationId)
 	err := o._requestExecutor.ExecuteCommand(stateRequest)
 	if err != nil {
 		return nil // TODO: return an error?
@@ -179,8 +179,8 @@ func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IM
 		return o.err
 	}
 
-	if o._bulkInsertExecuteTask.isCompletedExceptionally() {
-		_, err := o._bulkInsertExecuteTask.get()
+	if o._bulkInsertExecuteTask.IsCompletedExceptionally() {
+		_, err := o._bulkInsertExecuteTask.Get()
 		panicIf(err == nil, "err should not be nil")
 		return o.throwBulkInsertAborted(err, nil)
 	}
@@ -190,13 +190,13 @@ func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IM
 	}
 
 	if !metadata.ContainsKey(Constants_Documents_Metadata_COLLECTION) {
-		collection := o._requestExecutor.getConventions().GetCollectionName(entity)
+		collection := o._requestExecutor.GetConventions().GetCollectionName(entity)
 		if collection != "" {
 			metadata.Put(Constants_Documents_Metadata_COLLECTION, collection)
 		}
 	}
 	if !metadata.ContainsKey(Constants_Documents_Metadata_RAVEN_GO_TYPE) {
-		goType := o._requestExecutor.getConventions().GetGoTypeName(entity)
+		goType := o._requestExecutor.GetConventions().GetGoTypeName(entity)
 		if goType != "" {
 			metadata.Put(Constants_Documents_Metadata_RAVEN_GO_TYPE, goType)
 		}
@@ -248,9 +248,9 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	go func() {
 		err := o._requestExecutor.ExecuteCommand(bulkCommand)
 		if err != nil {
-			o._bulkInsertExecuteTask.markAsDoneWithError(err)
+			o._bulkInsertExecuteTask.MarkAsDoneWithError(err)
 		} else {
-			o._bulkInsertExecuteTask.markAsDone(nil)
+			o._bulkInsertExecuteTask.MarkAsDone(nil)
 		}
 	}()
 
@@ -288,7 +288,7 @@ func (o *BulkInsertOperation) Close() error {
 	_, err := o._currentWriter.Write(d)
 	errClose := o._currentWriter.Close()
 	if o._bulkInsertExecuteTask != nil {
-		_, err2 := o._bulkInsertExecuteTask.get()
+		_, err2 := o._bulkInsertExecuteTask.Get()
 		if err2 != nil && err == nil {
 			err = o.throwBulkInsertAborted(err, errClose)
 		}
@@ -335,7 +335,7 @@ func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error)
 	// TODO: not sure how this translates
 	//_streamExposerContent.errorOnProcessingRequest(new BulkInsertAbortedException("Write to stream failed at document with id " + id, innerEx))
 
-	_, err := o._bulkInsertExecuteTask.get()
+	_, err := o._bulkInsertExecuteTask.Get()
 	if err != nil {
 		return ExceptionsUtils_unwrapException(err)
 	}

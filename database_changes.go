@@ -34,7 +34,7 @@ type DatabaseChanges struct {
 func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *DatabaseChanges {
 	res := &DatabaseChanges{
 		_requestExecutor: requestExecutor,
-		_conventions:     requestExecutor.getConventions(),
+		_conventions:     requestExecutor.GetConventions(),
 		_database:        databaseName,
 		_tcs:             NewCompletableFuture(),
 		_cts:             NewCancellationTokenSource(),

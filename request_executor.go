@@ -68,30 +68,30 @@ type RequestExecutor struct {
 	aggressiveCaching *AggressiveCacheOptions
 }
 
-func (re *RequestExecutor) getCache() *HttpCache {
+func (re *RequestExecutor) GetCache() *HttpCache {
 	return re.cache
 }
 
-func (re *RequestExecutor) getTopology() *Topology {
+func (re *RequestExecutor) GetTopology() *Topology {
 	if re._nodeSelector != nil {
 		return re._nodeSelector.getTopology()
 	}
 	return nil
 }
 
-func (re *RequestExecutor) getTopologyNodes() []*ServerNode {
-	if re.getTopology() == nil {
+func (re *RequestExecutor) GetTopologyNodes() []*ServerNode {
+	if re.GetTopology() == nil {
 		return nil
 	}
 	var res []*ServerNode
-	nodes := re.getTopology().GetNodes()
+	nodes := re.GetTopology().GetNodes()
 	for _, n := range nodes {
 		res = append(res, n)
 	}
 	return res
 }
 
-func (re *RequestExecutor) getUrl() string {
+func (re *RequestExecutor) GetUrl() string {
 	if re._nodeSelector == nil {
 		return ""
 	}
@@ -104,15 +104,15 @@ func (re *RequestExecutor) getUrl() string {
 	return ""
 }
 
-func (re *RequestExecutor) getTopologyEtag() int {
+func (re *RequestExecutor) GetTopologyEtag() int {
 	return re.topologyEtag
 }
 
-func (re *RequestExecutor) getClientConfigurationEtag() int {
+func (re *RequestExecutor) GetClientConfigurationEtag() int {
 	return re.clientConfigurationEtag
 }
 
-func (re *RequestExecutor) getConventions() *DocumentConventions {
+func (re *RequestExecutor) GetConventions() *DocumentConventions {
 	return re.conventions
 }
 
@@ -189,7 +189,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 
 func NewClusterRequestExecutor(certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	res := NewRequestExecutor("", certificate, conventions, initialUrls)
-	res.makeCluster()
+	res.MakeCluster()
 
 	return res
 }
@@ -239,7 +239,7 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 		conventions = DocumentConventions_defaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
-	executor.makeCluster()
+	executor.MakeCluster()
 
 	serverNode := NewServerNode()
 	serverNode.SetUrl(url)
@@ -258,7 +258,7 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 	return executor
 }
 
-func (re *RequestExecutor) makeCluster() {
+func (re *RequestExecutor) MakeCluster() {
 	re.isCluster = true
 	re.clusterTopologySemaphore = NewSemaphore(1)
 }
@@ -268,7 +268,7 @@ func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, 
 		conventions = DocumentConventions_defaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
-	executor.makeCluster()
+	executor.MakeCluster()
 
 	executor._disableClientConfigurationUpdates = true
 	executor._firstTopologyUpdate = executor.firstTopologyUpdate(initialUrls)
@@ -297,9 +297,9 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 
 		defer func() {
 			if err != nil {
-				future.markAsDoneWithError(err)
+				future.MarkAsDoneWithError(err)
 			} else {
-				future.markAsDone(nil)
+				future.MarkAsDone(nil)
 			}
 		}()
 
@@ -340,7 +340,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 	return future
 }
 
-func (re *RequestExecutor) updateTopologyAsync(node *ServerNode, timeout int) *CompletableFuture {
+func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) *CompletableFuture {
 	return re.updateTopologyAsyncWithForceUpdate(node, timeout, false)
 }
 
@@ -357,9 +357,9 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		var res bool
 		defer func() {
 			if err != nil {
-				future.markAsDoneWithError(err)
+				future.MarkAsDoneWithError(err)
 			} else {
-				future.markAsDone(res)
+				future.MarkAsDone(res)
 			}
 			re.clusterTopologySemaphore.release()
 		}()
@@ -418,9 +418,9 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		var res bool
 		defer func() {
 			if err != nil {
-				future.markAsDoneWithError(err)
+				future.MarkAsDoneWithError(err)
 			} else {
-				future.markAsDone(res)
+				future.MarkAsDone(res)
 			}
 		}()
 		if re._disposed {
@@ -472,7 +472,7 @@ func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
 // execute(command, session) in java
 func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
-	if (topologyUpdate != nil && topologyUpdate.isDone()) || re._disableTopologyUpdates {
+	if (topologyUpdate != nil && topologyUpdate.IsDone()) || re._disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return err
@@ -521,7 +521,7 @@ func (re *RequestExecutor) unlikelyExecuteInner(command RavenCommand, topologyUp
 		re.mu.Unlock()
 	}
 
-	_, err := topologyUpdate.get()
+	_, err := topologyUpdate.Get()
 	return topologyUpdate, err
 }
 
@@ -561,7 +561,7 @@ func (re *RequestExecutor) updateTopologyCallback() {
 	}
 	serverNode = preferredNode.currentNode
 
-	re.updateTopologyAsync(serverNode, 0)
+	re.UpdateTopologyAsync(serverNode, 0)
 }
 
 type Tuple_String_Error struct {
@@ -578,9 +578,9 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		var err error
 		defer func() {
 			if err != nil {
-				future.markAsDoneWithError(err)
+				future.MarkAsDoneWithError(err)
 			} else {
-				future.markAsDone(nil)
+				future.MarkAsDone(nil)
 			}
 		}()
 
@@ -590,8 +590,8 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 				serverNode.SetUrl(url)
 				serverNode.SetDatabase(re._databaseName)
 
-				res := re.updateTopologyAsync(serverNode, math.MaxInt32)
-				_, err = res.get()
+				res := re.UpdateTopologyAsync(serverNode, math.MaxInt32)
+				_, err = res.Get()
 				if err == nil {
 					re.initializeUpdateTopologyTimer()
 					re._topologyTakenFromNode = serverNode
@@ -615,7 +615,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		}
 		topology := NewTopology()
 		topology.SetEtag(re.topologyEtag)
-		topologyNodes := re.getTopologyNodes()
+		topologyNodes := re.GetTopologyNodes()
 		if len(topologyNodes) == 0 {
 			for _, uri := range initialUrls {
 				serverNode := NewServerNode()
@@ -783,7 +783,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 
 		var topologyTask *CompletableFuture
 		if refreshTopology {
-			topologyTask = re.updateTopologyAsync(serverNode, 0)
+			topologyTask = re.UpdateTopologyAsync(serverNode, 0)
 		} else {
 			topologyTask = NewCompletableFutureAlreadyCompleted(false)
 		}
@@ -793,8 +793,8 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		} else {
 			clientConfiguration = NewCompletableFutureAlreadyCompleted(nil)
 		}
-		_, err1 := topologyTask.get()
-		_, err2 := clientConfiguration.get()
+		_, err1 := topologyTask.Get()
+		_, err2 := clientConfiguration.Get()
 		if err1 != nil {
 			return err1
 		}
@@ -895,7 +895,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		}
 
 		updateFuture := re.updateTopologyAsyncWithForceUpdate(chosenNode, int(math.MaxInt32), true)
-		_, err := updateFuture.get()
+		_, err := updateFuture.Get()
 		if err != nil {
 			return false, err
 		}
@@ -974,7 +974,7 @@ func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex i
 }
 
 func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
-	nodesCopy := re.getTopologyNodes()
+	nodesCopy := re.GetTopologyNodes()
 	idx := nodeStatus.nodeIndex
 	// TODO: idx < 0 probably shouldn't happen but it's the only cause of
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/404760557
@@ -1079,7 +1079,7 @@ func (re *RequestExecutor) Close() {
 	}
 
 	if re.isCluster {
-		// make sure that a potentially pending updateTopologyAsync() has
+		// make sure that a potentially pending UpdateTopologyAsync() has
 		// finished
 		re.clusterTopologySemaphore.acquire()
 	}
@@ -1162,8 +1162,8 @@ func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
 }
 
 func (re *RequestExecutor) ensureNodeSelector() error {
-	if re._firstTopologyUpdate != nil && !re._firstTopologyUpdate.isDone() {
-		_, err := re._firstTopologyUpdate.get()
+	if re._firstTopologyUpdate != nil && !re._firstTopologyUpdate.IsDone() {
+		_, err := re._firstTopologyUpdate.Get()
 		if err != nil {
 			return err
 		}
@@ -1172,7 +1172,7 @@ func (re *RequestExecutor) ensureNodeSelector() error {
 	if re._nodeSelector == nil {
 		topology := NewTopology()
 
-		topology.SetNodes(re.getTopologyNodes())
+		topology.SetNodes(re.GetTopologyNodes())
 		topology.SetEtag(re.topologyEtag)
 
 		re._nodeSelector = NewNodeSelector(topology)
