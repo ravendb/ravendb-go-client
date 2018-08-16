@@ -27,7 +27,5 @@ export LOG_FAILED_HTTP_REQUESTS_DELAYED=true
 #export ENABLE_FAILING_TESTS=true
 #export ENABLE_FLAKY_TESTS=true
 
-cd tests
-
 # go test -race
-go test -race -covermode=atomic -coverprofile=coverage.txt
+go test -v -race -covermode=atomic -coverprofile=coverage.txt ./tests

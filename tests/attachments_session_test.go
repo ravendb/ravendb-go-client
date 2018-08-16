@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func attachmentsSession_putAttachments(t *testing.T) {
@@ -535,21 +535,23 @@ func TestAttachmentsSession(t *testing.T) {
 	defer recoverTest(t, destroyDriver)
 
 	// TODO: those tests are flaky. Not often but they sometimes fail
+	// re-enable them when no longer flaky
 
 	// matches order of Java tests
-
-	// TODO: re-eneable when not flaky
 	if ravendb.EnableFlakyTests {
 		attachmentsSession_putAttachments(t)
 	}
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t)
 
-	// TODO: re-eneable when not flaky
 	if ravendb.EnableFlakyTests {
 		attachmentsSession_getAttachmentNames(t)
 	}
-	attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
-	attachmentsSession_deleteAttachments(t)
+	if ravendb.EnableFlakyTests {
+		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
+	}
+	if ravendb.EnableFlakyTests {
+		attachmentsSession_deleteAttachments(t)
+	}
 	attachmentsSession_attachmentExists(t)
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t)
 	attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
