@@ -2,7 +2,7 @@ package ravendb
 
 import "sort"
 
-func intArrayHasDuplicates(a []int) bool {
+func IntArrayHasDuplicates(a []int) bool {
 	if len(a) == 0 {
 		return false
 	}
@@ -18,7 +18,7 @@ func intArrayHasDuplicates(a []int) bool {
 	return false
 }
 
-func intArrayContains(a []int, n int) bool {
+func IntArrayContains(a []int, n int) bool {
 	for _, el := range a {
 		if el == n {
 			return true

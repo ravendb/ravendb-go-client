@@ -1,19 +1,20 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
-func NewUsersInvalidIndex() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("UsersInvalidIndex")
+func NewUsersInvalidIndex() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("UsersInvalidIndex")
 	res.Map = "from u in docs.Users select new { a = 5 / u.Age }"
 	return res
 }
 
-func NewUsers_Index() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("Users_Index")
+func NewUsers_Index() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("Users_Index")
 	res.Map = "from u in docs.Users select new { u.name }"
 	return res
 }
@@ -27,17 +28,17 @@ func testIndexCanDeleteIndex(t *testing.T) {
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
-	op := NewGetIndexNamesOperation(0, 10)
+	op := ravendb.NewGetIndexNamesOperation(0, 10)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	indexNames := op.Command.Result
-	assert.True(t, StringArrayContains(indexNames, "UsersIndex"))
+	assert.True(t, ravendb.StringArrayContains(indexNames, "UsersIndex"))
 
-	op2 := NewDeleteIndexOperation("UsersIndex")
+	op2 := ravendb.NewDeleteIndexOperation("UsersIndex")
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 
-	op3 := NewGetIndexNamesOperation(0, 10)
+	op3 := ravendb.NewGetIndexNamesOperation(0, 10)
 	err = store.Maintenance().Send(op3)
 	assert.NoError(t, err)
 	indexNames = op3.Command.Result
@@ -54,33 +55,33 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		op := NewDisableIndexOperation("UsersIndex")
+		op := ravendb.NewDisableIndexOperation("UsersIndex")
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexingStatusOperation()
+		op := ravendb.NewGetIndexingStatusOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.getIndexes()[0]
-		assert.Equal(t, indexStatus.getStatus(), IndexRunningStatus_DISABLED)
+		indexStatus := indexingStatus.GetIndexes()[0]
+		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_DISABLED)
 	}
 
 	{
-		op := NewEnableIndexOperation("UsersIndex")
+		op := ravendb.NewEnableIndexOperation("UsersIndex")
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexingStatusOperation()
+		op := ravendb.NewGetIndexingStatusOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.getIndexes()[0]
-		assert.Equal(t, indexStatus.getStatus(), IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.GetIndexes()[0]
+		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
 	}
 }
 
@@ -94,7 +95,7 @@ func testIndexGetCanIndexes(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		op := NewGetIndexesOperation(0, 10)
+		op := ravendb.NewGetIndexesOperation(0, 10)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexDefinitions := op.Command.Result
@@ -110,7 +111,7 @@ func testIndexGetCanIndexesStats(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		op := NewGetIndexesStatisticsOperation()
+		op := ravendb.NewGetIndexesStatisticsOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexStats := op.Command.Result
@@ -142,7 +143,7 @@ func testIndexGetTerms(t *testing.T) {
 	assert.NoError(t, err)
 
 	{
-		op := NewGetTermsOperation("UsersIndex", "name", "")
+		op := ravendb.NewGetTermsOperation("UsersIndex", "name", "")
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		terms := op.Command.Result
@@ -158,20 +159,20 @@ func testIndexHasIndexChanged(t *testing.T) {
 
 	index := NewUsersIndex()
 	indexDef := index.CreateIndexDefinition()
-	op := NewPutIndexesOperation(indexDef)
+	op := ravendb.NewPutIndexesOperation(indexDef)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
-	op2 := NewIndexHasChangedOperation(indexDef)
+	op2 := ravendb.NewIndexHasChangedOperation(indexDef)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 	{
 		cmd := op2.Command
 		assert.False(t, cmd.Result)
 	}
-	m := NewStringSetFromStrings("from users")
+	m := ravendb.NewStringSetFromStrings("from users")
 	indexDef.SetMaps(m)
 
-	op3 := NewIndexHasChangedOperation(indexDef)
+	op3 := ravendb.NewIndexHasChangedOperation(indexDef)
 	err = store.Maintenance().Send(op3)
 	assert.NoError(t, err)
 	{
@@ -188,39 +189,39 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 	index := NewUsersIndex()
 	indexDef := index.CreateIndexDefinition()
 	{
-		op := NewPutIndexesOperation(indexDef)
+		op := ravendb.NewPutIndexesOperation(indexDef)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewStopIndexingOperation()
+		op := ravendb.NewStopIndexingOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexingStatusOperation()
+		op := ravendb.NewGetIndexingStatusOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.getIndexes()[0]
-		assert.Equal(t, indexStatus.getStatus(), IndexRunningStatus_PAUSED)
+		indexStatus := indexingStatus.GetIndexes()[0]
+		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_PAUSED)
 	}
 
 	{
-		op := NewStartIndexingOperation()
+		op := ravendb.NewStartIndexingOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexingStatusOperation()
+		op := ravendb.NewGetIndexingStatusOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.getIndexes()[0]
-		assert.Equal(t, indexStatus.getStatus(), IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.GetIndexes()[0]
+		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
 	}
 }
 
@@ -232,41 +233,41 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	index := NewUsersIndex()
 	indexDef := index.CreateIndexDefinition()
 	{
-		op := NewPutIndexesOperation(indexDef)
+		op := ravendb.NewPutIndexesOperation(indexDef)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewStopIndexOperation(indexDef.GetName())
+		op := ravendb.NewStopIndexOperation(indexDef.GetName())
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexingStatusOperation()
+		op := ravendb.NewGetIndexingStatusOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		assert.Equal(t, indexingStatus.getStatus(), IndexRunningStatus_RUNNING)
-		indexStatus := indexingStatus.getIndexes()[0]
-		assert.Equal(t, indexStatus.getStatus(), IndexRunningStatus_PAUSED)
+		assert.Equal(t, indexingStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.GetIndexes()[0]
+		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_PAUSED)
 	}
 
 	{
-		op := NewStartIndexOperation(indexDef.GetName())
+		op := ravendb.NewStartIndexOperation(indexDef.GetName())
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexingStatusOperation()
+		op := ravendb.NewGetIndexingStatusOperation()
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		assert.Equal(t, indexingStatus.getStatus(), IndexRunningStatus_RUNNING)
-		indexStatus := indexingStatus.getIndexes()[0]
-		assert.Equal(t, indexStatus.getStatus(), IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexingStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.GetIndexes()[0]
+		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
 	}
 }
 
@@ -278,22 +279,22 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 	index := NewUsersIndex()
 	indexDef := index.CreateIndexDefinition()
 	{
-		op := NewPutIndexesOperation(indexDef)
+		op := ravendb.NewPutIndexesOperation(indexDef)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewSetIndexesLockOperation(indexDef.GetName(), IndexLockMode_LOCKED_ERROR)
+		op := ravendb.NewSetIndexesLockOperation(indexDef.GetName(), ravendb.IndexLockMode_LOCKED_ERROR)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := NewGetIndexOperation(indexDef.GetName())
+		op := ravendb.NewGetIndexOperation(indexDef.GetName())
 		err = store.Maintenance().Send(op)
 		newIndexDef := op.Command.Result
-		assert.Equal(t, *newIndexDef.GetLockMode(), IndexLockMode_LOCKED_ERROR)
+		assert.Equal(t, *newIndexDef.GetLockMode(), ravendb.IndexLockMode_LOCKED_ERROR)
 	}
 }
 
@@ -304,18 +305,18 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 
 	index := NewUsersIndex()
 	indexDef := index.CreateIndexDefinition()
-	op := NewPutIndexesOperation(indexDef)
+	op := ravendb.NewPutIndexesOperation(indexDef)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	op2 := NewSetIndexesPriorityOperation(indexDef.GetName(), IndexPriority_HIGH)
+	op2 := ravendb.NewSetIndexesPriorityOperation(indexDef.GetName(), ravendb.IndexPriority_HIGH)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 
-	op3 := NewGetIndexOperation(indexDef.GetName())
+	op3 := ravendb.NewGetIndexOperation(indexDef.GetName())
 	err = store.Maintenance().Send(op3)
 	newIndexDef := op3.Command.Result
-	assert.Equal(t, *newIndexDef.GetPriority(), IndexPriority_HIGH)
+	assert.Equal(t, *newIndexDef.GetPriority(), ravendb.IndexPriority_HIGH)
 }
 
 func testIndexCanListErrors(t *testing.T) {
@@ -325,7 +326,7 @@ func testIndexCanListErrors(t *testing.T) {
 
 	index := NewUsersInvalidIndex()
 	indexDef := index.CreateIndexDefinition()
-	op := NewPutIndexesOperation(indexDef)
+	op := ravendb.NewPutIndexesOperation(indexDef)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
@@ -344,13 +345,13 @@ func testIndexCanListErrors(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	op2 := NewGetIndexErrorsOperation(nil)
+	op2 := ravendb.NewGetIndexErrorsOperation(nil)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 	indexErrors := op2.Command.Result
 	assert.Equal(t, len(indexErrors), 1)
 
-	op3 := NewGetIndexErrorsOperation([]string{indexDef.GetName()})
+	op3 := ravendb.NewGetIndexErrorsOperation([]string{indexDef.GetName()})
 	err = store.Maintenance().Send(op3)
 	assert.NoError(t, err)
 	perIndexErrors := op3.Command.Result
@@ -367,7 +368,7 @@ func testIndexCanGetIndexStatistics(t *testing.T) {
 	err = userIndex.Execute(store)
 	assert.NoError(t, err)
 
-	op := NewGetIndexesStatisticsOperation()
+	op := ravendb.NewGetIndexesStatisticsOperation()
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 

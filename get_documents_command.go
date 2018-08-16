@@ -117,7 +117,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	ids := c._ids
 	uniqueIds := NewStringSet()
 	for _, id := range ids {
-		uniqueIds.add(id)
+		uniqueIds.Add(id)
 	}
 	totalLen := 0
 	for _, s := range uniqueIds.strings {

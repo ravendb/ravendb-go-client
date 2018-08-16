@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import "time"
 

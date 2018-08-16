@@ -98,7 +98,7 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	}
 
 	if d.smap != "" {
-		indexDefinition.GetMaps().add(d.smap)
+		indexDefinition.GetMaps().Add(d.smap)
 	}
 
 	indexDefinition.SetAdditionalSources(d.additionalSources)

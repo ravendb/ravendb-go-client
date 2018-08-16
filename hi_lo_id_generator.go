@@ -48,18 +48,18 @@ func NewHiLoIdGenerator(tag string, store *DocumentStore, dbName string, identit
 	}
 }
 
-func (g *HiLoIDGenerator) getDocumentIDFromID(nextID int) string {
+func (g *HiLoIDGenerator) GetDocumentIDFromID(nextID int) string {
 	return fmt.Sprintf("%s%d-%s", g.prefix, nextID, g.serverTag)
 }
 
 // GenerateDocumentID returns next key
 func (g *HiLoIDGenerator) GenerateDocumentID(entity Object) string {
 	// TODO: propagate error
-	id, _ := g.nextID()
-	return g.getDocumentIDFromID(id)
+	id, _ := g.NextID()
+	return g.GetDocumentIDFromID(id)
 }
 
-func (g *HiLoIDGenerator) nextID() (int, error) {
+func (g *HiLoIDGenerator) NextID() (int, error) {
 	for {
 		// local range is not exhausted yet
 		rangev := g._range
@@ -76,14 +76,14 @@ func (g *HiLoIDGenerator) nextID() (int, error) {
 		if id <= rangev.Max {
 			return id, nil
 		}
-		err := g.getNextRange()
+		err := g.GetNextRange()
 		if err != nil {
 			return 0, err
 		}
 	}
 }
 
-func (g *HiLoIDGenerator) getNextRange() error {
+func (g *HiLoIDGenerator) GetNextRange() error {
 	hiloCommand := NewNextHiLoCommand(g._tag, g._lastBatchSize, &g._lastRangeDate,
 		g._identityPartsSeparator, g._range.Max)
 	re := g._store.GetRequestExecutor()

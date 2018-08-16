@@ -301,7 +301,7 @@ func (q *AbstractDocumentQuery) _moreLikeThis() *MoreLikeThisScope {
 }
 
 func (q *AbstractDocumentQuery) _include(path string) {
-	q.includes.add(path)
+	q.includes.Add(path)
 }
 
 func (q *AbstractDocumentQuery) _take(count *int) {
@@ -1028,7 +1028,7 @@ func (q *AbstractDocumentQuery) _distinct() {
 }
 
 func (q *AbstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
-	q.queryStats.updateQueryStats(queryResult)
+	q.queryStats.UpdateQueryStats(queryResult)
 	//TBD 4.1 Highlightings.Update(queryResult);
 }
 

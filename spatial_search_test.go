@@ -145,7 +145,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		events, err := q.ToList()
 		assert.NoError(t, err)
 
-		assert.Equal(t, queryStats.getTotalResults(), 2)
+		assert.Equal(t, queryStats.GetTotalResults(), 2)
 
 		var a []string
 		for _, event := range events {

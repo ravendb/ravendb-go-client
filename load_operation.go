@@ -61,7 +61,7 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 
 	for _, id := range ids {
 		if id != "" {
-			distinct.add(id)
+			distinct.Add(id)
 		}
 	}
 
@@ -106,7 +106,7 @@ func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}
 		if id == "" {
 			continue
 		}
-		uniqueIds.add(id)
+		uniqueIds.Add(id)
 	}
 	res := make(map[string]interface{})
 	for _, id := range uniqueIds.strings {

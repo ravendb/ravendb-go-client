@@ -25,191 +25,191 @@ type IndexStats struct {
 	Status           IndexRunningStatus `json:"Status"`
 	EntriesCount     int                `json:"EntriesCount"`
 	ErrorsCount      int                `json:"ErrorsCount"`
-	IsTestIndex      bool               `json:"IsTestIndex"`
+	TestIndex        bool               `json:"IsTestIndex"`
 }
 
 func (s *IndexStats) GetName() string {
 	return s.Name
 }
 
-func (s *IndexStats) setName(name string) {
+func (s *IndexStats) SetName(name string) {
 	s.Name = name
 }
 
-func (s *IndexStats) getMapAttempts() int {
+func (s *IndexStats) GetMapAttempts() int {
 	return s.MapAttempts
 }
 
-func (s *IndexStats) setMapAttempts(mapAttempts int) {
+func (s *IndexStats) SetMapAttempts(mapAttempts int) {
 	s.MapAttempts = mapAttempts
 }
 
-func (s *IndexStats) getMapSuccesses() int {
+func (s *IndexStats) GetMapSuccesses() int {
 	return s.MapSuccesses
 }
 
-func (s *IndexStats) setMapSuccesses(mapSuccesses int) {
+func (s *IndexStats) SetMapSuccesses(mapSuccesses int) {
 	s.MapSuccesses = mapSuccesses
 }
 
-func (s *IndexStats) getMapErrors() int {
+func (s *IndexStats) GetMapErrors() int {
 	return s.MapErrors
 }
 
-func (s *IndexStats) setMapErrors(mapErrors int) {
+func (s *IndexStats) SetMapErrors(mapErrors int) {
 	s.MapErrors = mapErrors
 }
 
-func (s *IndexStats) getReduceAttempts() *int {
+func (s *IndexStats) GetReduceAttempts() *int {
 	return s.ReduceAttempts
 }
 
-func (s *IndexStats) setReduceAttempts(reduceAttempts *int) {
+func (s *IndexStats) SetReduceAttempts(reduceAttempts *int) {
 	s.ReduceAttempts = reduceAttempts
 }
 
-func (s *IndexStats) getReduceSuccesses() *int {
+func (s *IndexStats) GetReduceSuccesses() *int {
 	return s.ReduceSuccesses
 }
 
-func (s *IndexStats) setReduceSuccesses(reduceSuccesses *int) {
+func (s *IndexStats) SetReduceSuccesses(reduceSuccesses *int) {
 	s.ReduceSuccesses = reduceSuccesses
 }
 
-func (s *IndexStats) getReduceErrors() *int {
+func (s *IndexStats) GetReduceErrors() *int {
 	return s.ReduceErrors
 }
 
-func (s *IndexStats) setReduceErrors(reduceErrors *int) {
+func (s *IndexStats) SetReduceErrors(reduceErrors *int) {
 	s.ReduceErrors = reduceErrors
 }
 
-func (s *IndexStats) getMappedPerSecondRate() float64 {
+func (s *IndexStats) GetMappedPerSecondRate() float64 {
 	return s.MappedPerSecondRate
 }
 
-func (s *IndexStats) setMappedPerSecondRate(mappedPerSecondRate float64) {
+func (s *IndexStats) SetMappedPerSecondRate(mappedPerSecondRate float64) {
 	s.MappedPerSecondRate = mappedPerSecondRate
 }
 
-func (s *IndexStats) getReducedPerSecondRate() float64 {
+func (s *IndexStats) GetReducedPerSecondRate() float64 {
 	return s.ReducedPerSecondRate
 }
 
-func (s *IndexStats) setReducedPerSecondRate(reducedPerSecondRate float64) {
+func (s *IndexStats) SetReducedPerSecondRate(reducedPerSecondRate float64) {
 	s.ReducedPerSecondRate = reducedPerSecondRate
 }
 
-func (s *IndexStats) getMaxNumberOfOutputsPerDocument() int {
+func (s *IndexStats) GetMaxNumberOfOutputsPerDocument() int {
 	return s.MaxNumberOfOutputsPerDocument
 }
 
-func (s *IndexStats) setMaxNumberOfOutputsPerDocument(maxNumberOfOutputsPerDocument int) {
+func (s *IndexStats) SetMaxNumberOfOutputsPerDocument(maxNumberOfOutputsPerDocument int) {
 	s.MaxNumberOfOutputsPerDocument = maxNumberOfOutputsPerDocument
 }
 
-func (s *IndexStats) getCollections() map[string]*CollectionStats {
+func (s *IndexStats) GetCollections() map[string]*CollectionStats {
 	return s.Collections
 }
 
-func (s *IndexStats) setCollections(collections map[string]*CollectionStats) {
+func (s *IndexStats) SetCollections(collections map[string]*CollectionStats) {
 	s.Collections = collections
 }
 
-func (s *IndexStats) getLastQueryingTime() ServerTime {
+func (s *IndexStats) GetLastQueryingTime() ServerTime {
 	return s.LastQueryingTime
 }
 
-func (s *IndexStats) setLastQueryingTime(lastQueryingTime ServerTime) {
+func (s *IndexStats) SetLastQueryingTime(lastQueryingTime ServerTime) {
 	s.LastQueryingTime = lastQueryingTime
 }
 
-func (s *IndexStats) getState() IndexState {
+func (s *IndexStats) GetState() IndexState {
 	return s.State
 }
 
-func (s *IndexStats) setState(state IndexState) {
+func (s *IndexStats) SetState(state IndexState) {
 	s.State = state
 }
 
-func (s *IndexStats) getPriority() IndexPriority {
+func (s *IndexStats) GetPriority() IndexPriority {
 	return s.Priority
 }
 
-func (s *IndexStats) setPriority(priority IndexPriority) {
+func (s *IndexStats) SetPriority(priority IndexPriority) {
 	s.Priority = priority
 }
 
-func (s *IndexStats) getCreatedTimestamp() ServerTime {
+func (s *IndexStats) GetCreatedTimestamp() ServerTime {
 	return s.CreatedTimestamp
 }
 
-func (s *IndexStats) setCreatedTimestamp(createdTimestamp ServerTime) {
+func (s *IndexStats) SetCreatedTimestamp(createdTimestamp ServerTime) {
 	s.CreatedTimestamp = createdTimestamp
 }
 
-func (s *IndexStats) getLastIndexingTime() ServerTime {
+func (s *IndexStats) GetLastIndexingTime() ServerTime {
 	return s.LastIndexingTime
 }
 
-func (s *IndexStats) setLastIndexingTime(lastIndexingTime ServerTime) {
+func (s *IndexStats) SetLastIndexingTime(lastIndexingTime ServerTime) {
 	s.LastIndexingTime = lastIndexingTime
 }
 
-func (s *IndexStats) isStale() bool {
+func (s *IndexStats) SsStale() bool {
 	return s.Stale
 }
 
-func (s *IndexStats) setStale(stale bool) {
+func (s *IndexStats) SetStale(stale bool) {
 	s.Stale = stale
 }
 
-func (s *IndexStats) getLockMode() IndexLockMode {
+func (s *IndexStats) GetLockMode() IndexLockMode {
 	return s.LockMode
 }
 
-func (s *IndexStats) setLockMode(lockMode IndexLockMode) {
+func (s *IndexStats) SetLockMode(lockMode IndexLockMode) {
 	s.LockMode = lockMode
 }
 
-func (s *IndexStats) getType() IndexType {
+func (s *IndexStats) GetType() IndexType {
 	return s.Type
 }
 
-func (s *IndexStats) setType(typ IndexType) {
+func (s *IndexStats) SetType(typ IndexType) {
 	s.Type = typ
 }
 
-func (s *IndexStats) getStatus() IndexRunningStatus {
+func (s *IndexStats) GetStatus() IndexRunningStatus {
 	return s.Status
 }
 
-func (s *IndexStats) setStatus(status IndexRunningStatus) {
+func (s *IndexStats) SetStatus(status IndexRunningStatus) {
 	s.Status = status
 }
 
-func (s *IndexStats) getEntriesCount() int {
+func (s *IndexStats) GetEntriesCount() int {
 	return s.EntriesCount
 }
 
-func (s *IndexStats) setEntriesCount(entriesCount int) {
+func (s *IndexStats) SetEntriesCount(entriesCount int) {
 	s.EntriesCount = entriesCount
 }
 
-func (s *IndexStats) getErrorsCount() int {
+func (s *IndexStats) GetErrorsCount() int {
 	return s.ErrorsCount
 }
 
-func (s *IndexStats) setErrorsCount(errorsCount int) {
+func (s *IndexStats) SetErrorsCount(errorsCount int) {
 	s.ErrorsCount = errorsCount
 }
 
-func (s *IndexStats) isTestIndex() bool {
-	return s.IsTestIndex
+func (s *IndexStats) IsTestIndex() bool {
+	return s.TestIndex
 }
 
-func (s *IndexStats) setTestIndex(testIndex bool) {
-	s.IsTestIndex = testIndex
+func (s *IndexStats) SetTestIndex(testIndex bool) {
+	s.TestIndex = testIndex
 }
 
 type CollectionStats struct {
@@ -226,34 +226,34 @@ func NewCollectionStats() *CollectionStats {
 	}
 }
 
-func (s *CollectionStats) getLastProcessedDocumentEtag() int {
+func (s *CollectionStats) GetLastProcessedDocumentEtag() int {
 	return s.LastProcessedDocumentEtag
 }
 
-func (s *CollectionStats) setLastProcessedDocumentEtag(lastProcessedDocumentEtag int) {
+func (s *CollectionStats) SetLastProcessedDocumentEtag(lastProcessedDocumentEtag int) {
 	s.LastProcessedDocumentEtag = lastProcessedDocumentEtag
 }
 
-func (s *CollectionStats) getLastProcessedTombstoneEtag() int {
+func (s *CollectionStats) GetLastProcessedTombstoneEtag() int {
 	return s.LastProcessedTombstoneEtag
 }
 
-func (s *CollectionStats) setLastProcessedTombstoneEtag(lastProcessedTombstoneEtag int) {
+func (s *CollectionStats) SetLastProcessedTombstoneEtag(lastProcessedTombstoneEtag int) {
 	s.LastProcessedTombstoneEtag = lastProcessedTombstoneEtag
 }
 
-func (s *CollectionStats) getDocumentLag() int {
+func (s *CollectionStats) GetDocumentLag() int {
 	return s.DocumentLag
 }
 
-func (s *CollectionStats) setDocumentLag(documentLag int) {
+func (s *CollectionStats) SetDocumentLag(documentLag int) {
 	s.DocumentLag = documentLag
 }
 
-func (s *CollectionStats) getTombstoneLag() int {
+func (s *CollectionStats) GetTombstoneLag() int {
 	return s.TombstoneLag
 }
 
-func (s *CollectionStats) setTombstoneLag(tombstoneLag int) {
+func (s *CollectionStats) SetTombstoneLag(tombstoneLag int) {
 	s.TombstoneLag = tombstoneLag
 }

@@ -14,19 +14,19 @@ type ExplainQueryResult struct {
 	Reason string `json:"Reason"`
 }
 
-func (r *ExplainQueryResult) getIndex() string {
+func (r *ExplainQueryResult) GetIndex() string {
 	return r.Index
 }
 
-func (r *ExplainQueryResult) setIndex(index string) {
+func (r *ExplainQueryResult) SetIndex(index string) {
 	r.Index = index
 }
 
-func (r *ExplainQueryResult) getReason() string {
+func (r *ExplainQueryResult) GetReason() string {
 	return r.Reason
 }
 
-func (r *ExplainQueryResult) setReason(reason string) {
+func (r *ExplainQueryResult) SetReason(reason string) {
 	r.Reason = reason
 }
 

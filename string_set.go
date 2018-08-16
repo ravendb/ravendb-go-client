@@ -32,7 +32,7 @@ func NewStringSet() *StringSet {
 func NewStringSetFromStrings(strings ...string) *StringSet {
 	set := NewStringSet()
 	for _, s := range strings {
-		set.add(s)
+		set.Add(s)
 	}
 	return set
 }
@@ -44,7 +44,7 @@ func NewStringSetNoCase() *StringSet {
 	}
 }
 
-func (s *StringSet) contains(str string) bool {
+func (s *StringSet) Contains(str string) bool {
 	for _, el := range s.strings {
 		if s.cmp(el, str) {
 			return true
@@ -73,18 +73,18 @@ func (s *StringSet) Strings() []string {
 	return s.strings
 }
 
-func (s *StringSet) add(str string) {
-	if s.contains(str) {
+func (s *StringSet) Add(str string) {
+	if s.Contains(str) {
 		return
 	}
 	s.strings = append(s.strings, str)
 }
 
-func (s *StringSet) remove(str string) {
+func (s *StringSet) Remove(str string) {
 	StringArrayRemoveCustomCompare(&s.strings, str, s.cmp)
 }
 
-func (s *StringSet) clear() {
+func (s *StringSet) Clear() {
 	s.strings = nil
 }
 

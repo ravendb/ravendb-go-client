@@ -171,5 +171,5 @@ func (t *AbstractIndexCreationTask) TermVector(field string, termVector FieldTer
 }
 
 func (t *AbstractIndexCreationTask) Suggestion(field string) {
-	t.IndexSuggestions.add(field)
+	t.IndexSuggestions.Add(field)
 }

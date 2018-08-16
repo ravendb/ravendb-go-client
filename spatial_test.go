@@ -169,7 +169,7 @@ func spatial_weirdSpatialResults(t *testing.T) {
 		result, err := q.ToList()
 		assert.NoError(t, err)
 
-		assert.Equal(t, statsRef.getTotalResults(), 0)
+		assert.Equal(t, statsRef.GetTotalResults(), 0)
 
 		assert.Equal(t, len(result), 0)
 
@@ -223,7 +223,7 @@ func spatial_matchSpatialResults(t *testing.T) {
 		result, err := q.ToList()
 		assert.NoError(t, err)
 
-		assert.Equal(t, statsRef.getTotalResults(), 1)
+		assert.Equal(t, statsRef.GetTotalResults(), 1)
 
 		assert.Equal(t, len(result), 1)
 

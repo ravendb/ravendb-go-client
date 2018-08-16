@@ -5,19 +5,19 @@ type IndexingStatus struct {
 	Indexes []*IndexStatus     `json:"Indexes"`
 }
 
-func (s *IndexingStatus) getStatus() IndexRunningStatus {
+func (s *IndexingStatus) GetStatus() IndexRunningStatus {
 	return s.Status
 }
 
-func (s *IndexingStatus) setStatus(status IndexRunningStatus) {
+func (s *IndexingStatus) SetStatus(status IndexRunningStatus) {
 	s.Status = status
 }
 
-func (s *IndexingStatus) getIndexes() []*IndexStatus {
+func (s *IndexingStatus) GetIndexes() []*IndexStatus {
 	return s.Indexes
 }
 
-func (s *IndexingStatus) setIndexes(indexes []*IndexStatus) {
+func (s *IndexingStatus) SetIndexes(indexes []*IndexStatus) {
 	s.Indexes = indexes
 }
 
@@ -30,14 +30,14 @@ func (s *IndexStatus) GetName() string {
 	return s.Name
 }
 
-func (s *IndexStatus) setName(name string) {
+func (s *IndexStatus) SetName(name string) {
 	s.Name = name
 }
 
-func (s *IndexStatus) getStatus() IndexRunningStatus {
+func (s *IndexStatus) GetStatus() IndexRunningStatus {
 	return s.Status
 }
 
-func (s *IndexStatus) setStatus(status IndexRunningStatus) {
+func (s *IndexStatus) SetStatus(status IndexRunningStatus) {
 	s.Status = status
 }

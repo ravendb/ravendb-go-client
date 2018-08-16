@@ -37,98 +37,98 @@ func NewMoreLikeThisOptions() *MoreLikeThisOptions {
 	return &MoreLikeThisOptions{}
 }
 
-func (o *MoreLikeThisOptions) getMinimumTermFrequency() *int {
+func (o *MoreLikeThisOptions) GetMinimumTermFrequency() *int {
 	return o.minimumTermFrequency
 }
 
-func (o *MoreLikeThisOptions) setMinimumTermFrequency(minimumTermFrequency int) {
+func (o *MoreLikeThisOptions) SetMinimumTermFrequency(minimumTermFrequency int) {
 	o.minimumTermFrequency = &minimumTermFrequency
 }
 
-func (o *MoreLikeThisOptions) getMaximumQueryTerms() *int {
+func (o *MoreLikeThisOptions) GetMaximumQueryTerms() *int {
 	return o.maximumQueryTerms
 }
 
-func (o *MoreLikeThisOptions) setMaximumQueryTerms(maximumQueryTerms int) {
+func (o *MoreLikeThisOptions) SetMaximumQueryTerms(maximumQueryTerms int) {
 	o.maximumQueryTerms = &maximumQueryTerms
 }
 
-func (o *MoreLikeThisOptions) getMaximumNumberOfTokensParsed() *int {
+func (o *MoreLikeThisOptions) GetMaximumNumberOfTokensParsed() *int {
 	return o.maximumNumberOfTokensParsed
 }
 
-func (o *MoreLikeThisOptions) setMaximumNumberOfTokensParsed(maximumNumberOfTokensParsed int) {
+func (o *MoreLikeThisOptions) SetMaximumNumberOfTokensParsed(maximumNumberOfTokensParsed int) {
 	o.maximumNumberOfTokensParsed = &maximumNumberOfTokensParsed
 }
 
-func (o *MoreLikeThisOptions) getMinimumWordLength() *int {
+func (o *MoreLikeThisOptions) GetMinimumWordLength() *int {
 	return o.minimumWordLength
 }
 
-func (o *MoreLikeThisOptions) setMinimumWordLength(minimumWordLength int) {
+func (o *MoreLikeThisOptions) SetMinimumWordLength(minimumWordLength int) {
 	o.minimumWordLength = &minimumWordLength
 }
 
-func (o *MoreLikeThisOptions) getMaximumWordLength() *int {
+func (o *MoreLikeThisOptions) GetMaximumWordLength() *int {
 	return o.maximumWordLength
 }
 
-func (o *MoreLikeThisOptions) setMaximumWordLength(maximumWordLength int) {
+func (o *MoreLikeThisOptions) SetMaximumWordLength(maximumWordLength int) {
 	o.maximumWordLength = &maximumWordLength
 }
 
-func (o *MoreLikeThisOptions) getMinimumDocumentFrequency() *int {
+func (o *MoreLikeThisOptions) GetMinimumDocumentFrequency() *int {
 	return o.minimumDocumentFrequency
 }
 
-func (o *MoreLikeThisOptions) setMinimumDocumentFrequency(minimumDocumentFrequency int) {
+func (o *MoreLikeThisOptions) SetMinimumDocumentFrequency(minimumDocumentFrequency int) {
 	o.minimumDocumentFrequency = &minimumDocumentFrequency
 }
 
-func (o *MoreLikeThisOptions) getMaximumDocumentFrequency() *int {
+func (o *MoreLikeThisOptions) GetMaximumDocumentFrequency() *int {
 	return o.maximumDocumentFrequency
 }
 
-func (o *MoreLikeThisOptions) setMaximumDocumentFrequency(maximumDocumentFrequency int) {
+func (o *MoreLikeThisOptions) SetMaximumDocumentFrequency(maximumDocumentFrequency int) {
 	o.maximumDocumentFrequency = &maximumDocumentFrequency
 }
 
-func (o *MoreLikeThisOptions) getMaximumDocumentFrequencyPercentage() *int {
+func (o *MoreLikeThisOptions) GetMaximumDocumentFrequencyPercentage() *int {
 	return o.maximumDocumentFrequencyPercentage
 }
 
-func (o *MoreLikeThisOptions) setMaximumDocumentFrequencyPercentage(maximumDocumentFrequencyPercentage int) {
+func (o *MoreLikeThisOptions) SetMaximumDocumentFrequencyPercentage(maximumDocumentFrequencyPercentage int) {
 	o.maximumDocumentFrequencyPercentage = &maximumDocumentFrequencyPercentage
 }
 
-func (o *MoreLikeThisOptions) getBoost() bool {
+func (o *MoreLikeThisOptions) GetBoost() bool {
 	return o.boost
 }
 
-func (o *MoreLikeThisOptions) setBoost(boost bool) {
+func (o *MoreLikeThisOptions) SetBoost(boost bool) {
 	o.boost = boost
 }
 
-func (o *MoreLikeThisOptions) getBoostFactor() float32 {
+func (o *MoreLikeThisOptions) GetBoostFactor() float32 {
 	return o.boostFactor
 }
 
-func (o *MoreLikeThisOptions) setBoostFactor(boostFactor float32) {
+func (o *MoreLikeThisOptions) SetBoostFactor(boostFactor float32) {
 	o.boostFactor = boostFactor
 }
 
-func (o *MoreLikeThisOptions) getStopWordsDocumentId() string {
+func (o *MoreLikeThisOptions) GetStopWordsDocumentID() string {
 	return o.stopWordsDocumentId
 }
 
-func (o *MoreLikeThisOptions) setStopWordsDocumentId(stopWordsDocumentId string) {
+func (o *MoreLikeThisOptions) SetStopWordsDocumentID(stopWordsDocumentId string) {
 	o.stopWordsDocumentId = stopWordsDocumentId
 }
 
-func (o *MoreLikeThisOptions) getFields() []string {
+func (o *MoreLikeThisOptions) GetFields() []string {
 	return o.fields
 }
 
-func (o *MoreLikeThisOptions) setFields(fields []string) {
+func (o *MoreLikeThisOptions) SetFields(fields []string) {
 	o.fields = fields
 }
