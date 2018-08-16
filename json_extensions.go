@@ -3,32 +3,32 @@ package ravendb
 // TODO: change the name to better reflect what it does
 func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *IndexQuery) map[string]interface{} {
 	res := map[string]interface{}{}
-	res["Query"] = query.getQuery()
-	if query.isPageSizeSet() && query.getPageSize() > 0 {
-		res["PageSize"] = query.getPageSize()
+	res["Query"] = query.GetQuery()
+	if query.IsPageSizeSet() && query.GetPageSize() > 0 {
+		res["PageSize"] = query.GetPageSize()
 	}
 
-	if query.isWaitForNonStaleResults() {
-		res["WaitForNonStaleResults"] = query.isWaitForNonStaleResults()
+	if query.IsWaitForNonStaleResults() {
+		res["WaitForNonStaleResults"] = query.IsWaitForNonStaleResults()
 	}
 
-	if query.getStart() > 0 {
-		res["Start"] = query.getStart()
+	if query.GetStart() > 0 {
+		res["Start"] = query.GetStart()
 	}
 
-	if query.getWaitForNonStaleResultsTimeout() != 0 {
-		s := TimeUtils_durationToTimeSpan(query.getWaitForNonStaleResultsTimeout())
+	if query.GetWaitForNonStaleResultsTimeout() != 0 {
+		s := TimeUtils_durationToTimeSpan(query.GetWaitForNonStaleResultsTimeout())
 		res["WaitForNonStaleResultsTimeout"] = s
 	}
 
-	if query.isDisableCaching() {
-		res["DisableCaching"] = query.isDisableCaching()
+	if query.IsDisableCaching() {
+		res["DisableCaching"] = query.IsDisableCaching()
 	}
 
-	if query.isSkipDuplicateChecking() {
-		res["SkipDuplicateChecking"] = query.isSkipDuplicateChecking()
+	if query.IsSkipDuplicateChecking() {
+		res["SkipDuplicateChecking"] = query.IsSkipDuplicateChecking()
 	}
-	params := query.getQueryParameters()
+	params := query.GetQueryParameters()
 	if params != nil {
 		res["QueryParameters"] = EntityToJson_convertEntityToJson(params, nil)
 	} else {

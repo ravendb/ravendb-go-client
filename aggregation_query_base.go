@@ -70,7 +70,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 		results[facetResult.GetName()] = facetResult
 	}
 
-	err := QueryOperation_ensureIsAcceptable(queryResult, q._query.isWaitForNonStaleResults(), q._duration, q._session)
+	err := QueryOperation_ensureIsAcceptable(queryResult, q._query.IsWaitForNonStaleResults(), q._duration, q._session)
 	if err != nil {
 		return nil, err
 	}

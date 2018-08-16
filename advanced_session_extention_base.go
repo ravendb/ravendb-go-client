@@ -25,6 +25,6 @@ func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations)
 	}
 }
 
-func (e *AdvancedSessionExtentionBase) deferMany(commands []ICommandData) {
+func (e *AdvancedSessionExtentionBase) DeferMany(commands []ICommandData) {
 	e.session.DeferMany(commands)
 }

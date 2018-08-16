@@ -89,10 +89,10 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 		matchingVenues := q.WaitForNonStaleResults(0)
 		iq := matchingVenues.GetIndexQuery()
 
-		assert.Equal(t, iq.getQuery(), "from index 'SpatialIdx' where spatial.within(coordinates, spatial.circle($p0, $p1, $p2))")
-		assert.Equal(t, iq.getQueryParameters()["p0"], 5.0)
-		assert.Equal(t, iq.getQueryParameters()["p1"], 38.9103)
-		assert.Equal(t, iq.getQueryParameters()["p2"], -77.3942)
+		assert.Equal(t, iq.GetQuery(), "from index 'SpatialIdx' where spatial.within(coordinates, spatial.circle($p0, $p1, $p2))")
+		assert.Equal(t, iq.GetQueryParameters()["p0"], 5.0)
+		assert.Equal(t, iq.GetQueryParameters()["p1"], 38.9103)
+		assert.Equal(t, iq.GetQueryParameters()["p2"], -77.3942)
 
 		session.Close()
 	}

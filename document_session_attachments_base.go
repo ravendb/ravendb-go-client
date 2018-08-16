@@ -76,7 +76,7 @@ func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, s
 	}
 
 	cmdData := NewPutAttachmentCommandData(documentId, name, stream, contentType, nil)
-	s.deferMany([]ICommandData{cmdData})
+	s.DeferMany([]ICommandData{cmdData})
 	return nil
 }
 
@@ -124,7 +124,7 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) 
 	}
 
 	cmdData := NewDeleteAttachmentCommandData(documentId, name, nil)
-	s.deferMany([]ICommandData{cmdData})
+	s.DeferMany([]ICommandData{cmdData})
 	return nil
 }
 

@@ -32,88 +32,88 @@ func NewIndexQuery(query string) *IndexQuery {
 }
 
 // from IndexQueryBase<T>
-func (q *IndexQuery) isPageSizeSet() bool {
+func (q *IndexQuery) IsPageSizeSet() bool {
 	return q.pageSizeSet
 }
 
-func (q *IndexQuery) getQuery() string {
+func (q *IndexQuery) GetQuery() string {
 	return q.query
 }
 
-func (q *IndexQuery) setQuery(query string) {
+func (q *IndexQuery) SetQuery(query string) {
 	q.query = query
 }
 
-func (q *IndexQuery) getQueryParameters() Parameters {
+func (q *IndexQuery) GetQueryParameters() Parameters {
 	return q.queryParameters
 }
 
-func (q *IndexQuery) setQueryParameters(queryParameters Parameters) {
+func (q *IndexQuery) SetQueryParameters(queryParameters Parameters) {
 	q.queryParameters = queryParameters
 }
 
-func (q *IndexQuery) getStart() int {
+func (q *IndexQuery) GetStart() int {
 	return q.start
 }
 
-func (q *IndexQuery) setStart(start int) {
+func (q *IndexQuery) SetStart(start int) {
 	q.start = start
 }
 
-func (q *IndexQuery) getPageSize() int {
+func (q *IndexQuery) GetPageSize() int {
 	return q._pageSize
 }
 
-func (q *IndexQuery) setPageSize(pageSize int) {
+func (q *IndexQuery) SetPageSize(pageSize int) {
 	q._pageSize = pageSize
 	q.pageSizeSet = true
 }
 
-func (q *IndexQuery) isWaitForNonStaleResults() bool {
+func (q *IndexQuery) IsWaitForNonStaleResults() bool {
 	return q.waitForNonStaleResults
 }
 
-func (q *IndexQuery) setWaitForNonStaleResults(waitForNonStaleResults bool) {
+func (q *IndexQuery) SetWaitForNonStaleResults(waitForNonStaleResults bool) {
 	q.waitForNonStaleResults = waitForNonStaleResults
 }
 
-func (q *IndexQuery) getWaitForNonStaleResultsTimeout() time.Duration {
+func (q *IndexQuery) GetWaitForNonStaleResultsTimeout() time.Duration {
 	return q.waitForNonStaleResultsTimeout
 }
 
-func (q *IndexQuery) setWaitForNonStaleResultsTimeout(waitForNonStaleResultsTimeout time.Duration) {
+func (q *IndexQuery) SetWaitForNonStaleResultsTimeout(waitForNonStaleResultsTimeout time.Duration) {
 	q.waitForNonStaleResultsTimeout = waitForNonStaleResultsTimeout
 }
 
 // from IndexQueryWithParameters
-func (q *IndexQuery) isSkipDuplicateChecking() bool {
+func (q *IndexQuery) IsSkipDuplicateChecking() bool {
 	return q.skipDuplicateChecking
 }
 
-func (q *IndexQuery) setSkipDuplicateChecking(skipDuplicateChecking bool) {
+func (q *IndexQuery) SetSkipDuplicateChecking(skipDuplicateChecking bool) {
 	q.skipDuplicateChecking = skipDuplicateChecking
 }
 
-func (q *IndexQuery) isDisableCaching() bool {
+func (q *IndexQuery) IsDisableCaching() bool {
 	return q.disableCaching
 }
 
-func (q *IndexQuery) setDisableCaching(disableCaching bool) {
+func (q *IndexQuery) SetDisableCaching(disableCaching bool) {
 	q.disableCaching = disableCaching
 }
 
-func (q *IndexQuery) getQueryHash() string {
+func (q *IndexQuery) GetQueryHash() string {
 	hasher := NewQueryHashCalculator()
-	hasher.write(q.getQuery())
-	hasher.write(q.isWaitForNonStaleResults())
-	hasher.write(q.isSkipDuplicateChecking())
+	hasher.write(q.GetQuery())
+	hasher.write(q.IsWaitForNonStaleResults())
+	hasher.write(q.IsSkipDuplicateChecking())
 	//TBD 4.1 hasher.write(isShowTimings());
 	//TBD 4.1 hasher.write(isExplainScores());
-	n := int64(q.getWaitForNonStaleResultsTimeout())
+	n := int64(q.GetWaitForNonStaleResultsTimeout())
 	hasher.write(n)
-	hasher.write(q.getStart())
-	hasher.write(q.getPageSize())
-	hasher.write(q.getQueryParameters())
+	hasher.write(q.GetStart())
+	hasher.write(q.GetPageSize())
+	hasher.write(q.GetQueryParameters())
 	return hasher.getHash()
 }
 

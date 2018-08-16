@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func patchTestcanPatchSingleDocument(t *testing.T) {
@@ -24,16 +25,16 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 		session.Close()
 	}
 
-	patchOperation := NewPatchOperation("users/1", nil,
-		PatchRequest_forScript("this.name = \"Patched\""), nil, false)
+	patchOperation := ravendb.NewPatchOperation("users/1", nil,
+		ravendb.PatchRequest_forScript("this.name = \"Patched\""), nil, false)
 	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
 	status := patchOperation.Command.Result
-	assert.Equal(t, status.getStatus(), PatchStatus_PATCHED)
+	assert.Equal(t, status.GetStatus(), ravendb.PatchStatus_PATCHED)
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.GetName(), "Patched")
@@ -58,7 +59,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 		session.Close()
 	}
 
-	operation := NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
+	operation := ravendb.NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
 	op, err := store.Operations().SendAsync(operation)
 	assert.NoError(t, err)
 	err = op.WaitForCompletion()
@@ -66,7 +67,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.GetName(), "Patched")
@@ -91,7 +92,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 		session.Close()
 	}
 
-	operation := NewPatchByQueryOperation("from Users update {  throw 5 }")
+	operation := ravendb.NewPatchByQueryOperation("from Users update {  throw 5 }")
 
 	op, err := store.Operations().SendAsync(operation)
 	assert.NoError(t, err)

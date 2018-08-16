@@ -1,13 +1,14 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
-func NewSpatialQueriesInMemoryTestIdx() *AbstractIndexCreationTask {
-	res := NewAbstractIndexCreationTask("SpatialQueriesInMemoryTestIdx")
+func NewSpatialQueriesInMemoryTestIdx() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("SpatialQueriesInMemoryTestIdx")
 	res.Map = "docs.Listings.Select(listingItem => new {\n" +
 		"    classCodes = listingItem.classCodes,\n" +
 		"    latitude = listingItem.latitude,\n" +
@@ -87,17 +88,17 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		indexDefinition := NewIndexDefinition()
+		indexDefinition := ravendb.NewIndexDefinition()
 		indexDefinition.SetName("FindByLatLng")
-		maps := NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
+		maps := ravendb.NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
 		indexDefinition.SetMaps(maps)
 
-		op := NewPutIndexesOperation(indexDefinition)
+		op := ravendb.NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 
 		// Wait until the index is built
-		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WaitForNonStaleResults(0)
 		_, err := q.ToList()
 		assert.NoError(t, err)
@@ -106,7 +107,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		lng := float64(13.5871808352) // in the middle of AreaOne
 		radius := float64(5.0)
 
-		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q = session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WithinRadiusOf("coordinates", radius, lat, lng)
 		q = q.WaitForNonStaleResults(0)
 		nearbyDocs, err := q.ToList()
@@ -137,17 +138,17 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		indexDefinition := NewIndexDefinition()
+		indexDefinition := ravendb.NewIndexDefinition()
 		indexDefinition.SetName("FindByLatLng")
-		maps := NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
+		maps := ravendb.NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
 		indexDefinition.SetMaps(maps)
 
-		op := NewPutIndexesOperation(indexDefinition)
+		op := ravendb.NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 
 		// Wait until the index is built
-		q := session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
+		q := session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WaitForNonStaleResults(0)
 		_, err = q.ToList()
 		assert.NoError(t, err)
@@ -157,8 +158,8 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// Find within 8 miles.
 		// We should find both my house and the gym.
 
-		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_MILES)
+		q = session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), ravendb.SpatialUnits_MILES)
 		q = q.WaitForNonStaleResults(0)
 		matchesWithinMiles, err := q.ToList()
 		assert.NoError(t, err)
@@ -167,8 +168,8 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// Find within 8 kilometers.
 		// We should find only my house, since the gym is ~11 kilometers out.
 
-		q = session.QueryWithQuery(GetTypeOf(&DummyGeoDoc{}), Query_index("FindByLatLng"))
-		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), SpatialUnits_KILOMETERS)
+		q = session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), ravendb.SpatialUnits_KILOMETERS)
 		q = q.WaitForNonStaleResults(0)
 		matchesWithinKilometers, err := q.ToList()
 		assert.NoError(t, err)

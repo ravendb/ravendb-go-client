@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"sort"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func collectUserNamesSorted(a []interface{}) []string {
@@ -41,20 +42,20 @@ func revisionsTest_revisions(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		allRevisions, err := session.Advanced().Revisions().GetFor(GetTypeOf(&User{}), "users/1")
+		allRevisions, err := session.Advanced().Revisions().GetFor(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		assert.Equal(t, len(allRevisions), 4)
 
 		names := collectUserNamesSorted(allRevisions)
 		assert.Equal(t, names, []string{"user1", "user2", "user3", "user4"})
 
-		revisionsSkipFirst, err := session.Advanced().Revisions().GetForStartAt(GetTypeOf(&User{}), "users/1", 1)
+		revisionsSkipFirst, err := session.Advanced().Revisions().GetForStartAt(ravendb.GetTypeOf(&User{}), "users/1", 1)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirst), 3)
 		names = collectUserNamesSorted(revisionsSkipFirst)
 		assert.Equal(t, names, []string{"user1", "user2", "user3"})
 
-		revisionsSkipFirstTakeTwo, err := session.Advanced().Revisions().GetForPaged(GetTypeOf(&User{}), "users/1", 1, 2)
+		revisionsSkipFirstTakeTwo, err := session.Advanced().Revisions().GetForPaged(ravendb.GetTypeOf(&User{}), "users/1", 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirstTakeTwo), 2)
 		names = collectUserNamesSorted(revisionsSkipFirstTakeTwo)
@@ -74,11 +75,11 @@ func revisionsTest_revisions(t *testing.T) {
 
 		dict := metadataSkipFirst[0]
 		var changeVector string
-		chvi, ok := dict.Get(Constants_Documents_Metadata_CHANGE_VECTOR)
+		chvi, ok := dict.Get(ravendb.Constants_Documents_Metadata_CHANGE_VECTOR)
 		if ok {
 			changeVector = chvi.(string)
 		}
-		userI, err := session.Advanced().Revisions().get(GetTypeOf(&User{}), changeVector)
+		userI, err := session.Advanced().Revisions().Get(ravendb.GetTypeOf(&User{}), changeVector)
 		assert.NoError(t, err)
 		user := userI.(*User)
 		assert.Equal(t, *user.GetName(), "user3")

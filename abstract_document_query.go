@@ -117,7 +117,7 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 	res.rootTypes.add(clazz)
 	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
 	f := func(queryResult *QueryResult) {
-		res.updateStatsAndHighlightings(queryResult)
+		res.UpdateStatsAndHighlightings(queryResult)
 	}
 	res._addAfterQueryExecutedListener(f)
 	if session == nil {
@@ -861,15 +861,15 @@ func (q *AbstractDocumentQuery) InvokeAfterStreamExecuted(result ObjectNode) {
 
 func (q *AbstractDocumentQuery) GenerateIndexQuery(query string) *IndexQuery {
 	indexQuery := NewIndexQuery("")
-	indexQuery.setQuery(query)
-	indexQuery.setStart(q.start)
-	indexQuery.setWaitForNonStaleResults(q.theWaitForNonStaleResults)
-	indexQuery.setWaitForNonStaleResultsTimeout(q.timeout)
-	indexQuery.setQueryParameters(q.queryParameters)
-	indexQuery.setDisableCaching(q.disableCaching)
+	indexQuery.SetQuery(query)
+	indexQuery.SetStart(q.start)
+	indexQuery.SetWaitForNonStaleResults(q.theWaitForNonStaleResults)
+	indexQuery.SetWaitForNonStaleResultsTimeout(q.timeout)
+	indexQuery.SetQueryParameters(q.queryParameters)
+	indexQuery.SetDisableCaching(q.disableCaching)
 
 	if q.pageSize != nil {
-		indexQuery.setPageSize(*q.pageSize)
+		indexQuery.SetPageSize(*q.pageSize)
 	}
 	return indexQuery
 }
@@ -1027,7 +1027,7 @@ func (q *AbstractDocumentQuery) _distinct() {
 	q.selectTokens = append([]QueryToken{DistinctToken_INSTANCE}, q.selectTokens...)
 }
 
-func (q *AbstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
+func (q *AbstractDocumentQuery) UpdateStatsAndHighlightings(queryResult *QueryResult) {
 	q.queryStats.UpdateQueryStats(queryResult)
 	//TBD 4.1 Highlightings.Update(queryResult);
 }

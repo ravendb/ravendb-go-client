@@ -35,15 +35,15 @@ func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, m
 }
 
 func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	c._canCache = !c._indexQuery.isDisableCaching()
+	c._canCache = !c._indexQuery.IsDisableCaching()
 
 	// we won't allow aggressive caching of queries with WaitForNonStaleResults
-	c._canCacheAggressively = c.CanCache() && !c._indexQuery.isWaitForNonStaleResults()
+	c._canCacheAggressively = c.CanCache() && !c._indexQuery.IsWaitForNonStaleResults()
 
 	// we need to add a query hash because we are using POST queries
 	// so we need to unique parameter per query so the query cache will
 	// work properly
-	path := node.GetUrl() + "/databases/" + node.GetDatabase() + "/queries?queryHash=" + c._indexQuery.getQueryHash()
+	path := node.GetUrl() + "/databases/" + node.GetDatabase() + "/queries?queryHash=" + c._indexQuery.GetQueryHash()
 
 	if c._metadataOnly {
 		path += "&metadataOnly=true"

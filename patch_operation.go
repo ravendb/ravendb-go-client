@@ -36,19 +36,19 @@ type PatchOperationResult struct {
 	Document interface{} `json:"Document"`
 }
 
-func (r *PatchOperationResult) getStatus() PatchStatus {
+func (r *PatchOperationResult) GetStatus() PatchStatus {
 	return r.Status
 }
 
-func (r *PatchOperationResult) setStatus(status PatchStatus) {
+func (r *PatchOperationResult) SetStatus(status PatchStatus) {
 	r.Status = status
 }
 
-func (r *PatchOperationResult) getDocument() interface{} {
+func (r *PatchOperationResult) GetDocument() interface{} {
 	return r.Document
 }
 
-func (r *PatchOperationResult) setDocument(document interface{}) {
+func (r *PatchOperationResult) SetDocument(document interface{}) {
 	r.Document = document
 }
 

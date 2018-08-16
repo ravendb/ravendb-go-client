@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
@@ -15,19 +16,19 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 	user.setName("Marcin")
 	user.setAge(30)
 
-	node := ValueToTree(user)
-	command := NewPutDocumentCommand("users/1", nil, node)
+	node := ravendb.ValueToTree(user)
+	command := ravendb.NewPutDocumentCommand("users/1", nil, node)
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 
 	result := command.Result
-	assert.Equal(t, "users/1", result.getId())
+	assert.Equal(t, "users/1", result.GetID())
 
 	assert.NotNil(t, result.GetChangeVector())
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, "Marcin", *loadedUser.GetName())

@@ -6,7 +6,7 @@ type PutResult struct {
 	ChangeVector *string `json:"ChangeVector"`
 }
 
-func (r *PutResult) getId() string {
+func (r *PutResult) GetID() string {
 	return r.ID
 }
 

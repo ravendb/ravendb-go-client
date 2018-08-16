@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
@@ -34,13 +35,13 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		query := session.Advanced().DocumentQuery(GetTypeOf(&RegexMe{}))
+		query := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&RegexMe{}))
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
 		iq := query.GetIndexQuery()
-		assert.Equal(t, iq.getQuery(), "from RegexMes where regex(text, $p0)")
+		assert.Equal(t, iq.GetQuery(), "from RegexMes where regex(text, $p0)")
 
-		assert.Equal(t, iq.getQueryParameters()["p0"], "^[a-z ]{2,4}love")
+		assert.Equal(t, iq.GetQueryParameters()["p0"], "^[a-z ]{2,4}love")
 
 		result, err := query.ToList()
 		assert.NoError(t, err)
