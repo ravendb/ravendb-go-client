@@ -116,7 +116,7 @@ func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 
 	// TODO: return an error?
 
-	id, ok := jsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+	id, ok := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
 	// TODO: return an error?
 	panicIf(!ok || id == "", "Document must have an id")
 

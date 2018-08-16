@@ -43,7 +43,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	id := ""
 	if v, ok := document[Constants_Documents_Metadata_KEY]; ok {
 		metadata = v.(ObjectNode)
-		id, _ = jsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+		id, _ = JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
 	}
 	var changeVector *string
 

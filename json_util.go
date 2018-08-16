@@ -46,10 +46,10 @@ func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
 }
 
 func jsonGetAsString(doc ObjectNode, key string) (string, bool) {
-	return jsonGetAsText(doc, key)
+	return JsonGetAsText(doc, key)
 }
 
-func jsonGetAsText(doc ObjectNode, key string) (string, bool) {
+func JsonGetAsText(doc ObjectNode, key string) (string, bool) {
 	v, ok := doc[key]
 	if !ok {
 		return "", false

@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
@@ -38,9 +39,9 @@ func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
 		names := []string{"Aviv", "Maxim", "Michael"}
 
 		for _, v := range a {
-			v2 := v.(ObjectNode)
-			s, _ := jsonGetAsText(v2, "firstName")
-			assert.True(t, StringArrayContains(names, s))
+			v2 := v.(ravendb.ObjectNode)
+			s, _ := ravendb.JsonGetAsText(v2, "firstName")
+			assert.True(t, ravendb.StringArrayContains(names, s))
 		}
 
 		session.Close()
@@ -73,16 +74,16 @@ func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
 
 		names := []string{"Aviv", "Iftah", "Tal", "Maxim", "Karmel", "Grisha", "Michael"}
 		for _, v := range a {
-			v2 := v.(ObjectNode)
-			s, _ := jsonGetAsText(v2, "firstName")
-			assert.True(t, StringArrayContains(names, s))
+			v2 := v.(ravendb.ObjectNode)
+			s, _ := ravendb.JsonGetAsText(v2, "firstName")
+			assert.True(t, ravendb.StringArrayContains(names, s))
 		}
 
 		session.Close()
 	}
 }
 
-func insertData(t *testing.T, store *IDocumentStore) {
+func insertData(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
 	{
 		session := openSessionMust(t, store)

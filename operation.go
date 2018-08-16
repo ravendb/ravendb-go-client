@@ -58,7 +58,7 @@ func (o *Operation) WaitForCompletion() error {
 			return err
 		}
 
-		operationStatus, ok := jsonGetAsText(status, "Status")
+		operationStatus, ok := JsonGetAsText(status, "Status")
 		if !ok {
 			return NewRavenException("missing 'Status' field in response")
 		}

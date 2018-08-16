@@ -26,8 +26,8 @@ func NewDocumentConflictExceptionFromJSON(js string) error {
 	if err != nil {
 		return NewBadResponseException("Unable to parse server response: %s", err)
 	}
-	docID, _ := jsonGetAsText(jsonNode, "DocId")
-	message, _ := jsonGetAsText(jsonNode, "Message")
+	docID, _ := JsonGetAsText(jsonNode, "DocId")
+	message, _ := JsonGetAsText(jsonNode, "Message")
 	largestEtag, _ := jsonGetAsInt(jsonNode, "LargestEtag")
 
 	return NewDocumentConflictException(message, docID, largestEtag)

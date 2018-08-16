@@ -98,7 +98,7 @@ func (o *QueryOperation) complete(clazz reflect.Type) ([]interface{}, error) {
 			metadataI, ok := document[Constants_Documents_Metadata_KEY]
 			panicIf(!ok, "missing metadata")
 			metadata := metadataI.(ObjectNode)
-			id, _ := jsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+			id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
 			el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
 			if err != nil {
 				return nil, NewRuntimeException("Unable to read json: %s", err)
