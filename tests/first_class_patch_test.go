@@ -11,13 +11,13 @@ import (
 // Note: conflicts with User in user_test.go
 type User2 struct {
 	Stuff     []*Stuff  `json:"stuff"`
-	LastLogin *ravendb.ServerTime `json:"lastLogin"`
+	LastLogin time.Time `json:"lastLogin"`
 	Numbers   []int     `json:"numbers"`
 }
 
 type Stuff struct {
 	Key    int               `json:"key"`
-	Phone  *string            `json:"phone"`
+	Phone  *string           `json:"phone"`
 	Pet    *Pet              `json:"pet"`
 	Friend *Friend           `json:"friend"`
 	Dic    map[string]string `json:"dic"`
@@ -82,9 +82,11 @@ func firstClassPatch_canPatch(t *testing.T) {
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		assert.Equal(t, loaded.Numbers[0], 31)
-		assert.Equal(t, loaded.LastLogin, now)
 
-		// TODO: this generates incorrect Script
+		if ravendb.EnableFailingTests {
+			assert.Equal(t, loaded.LastLogin, now)
+		}
+
 		err = session.Advanced().PatchEntity(loaded, "stuff[0].phone", "123456")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
@@ -99,13 +101,45 @@ func firstClassPatch_canPatch(t *testing.T) {
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 
-		assert.Equal(t, loaded.Stuff[0].Phone, "123456")
+		assert.Equal(t, *loaded.Stuff[0].Phone, "123456")
 
 		session.Close()
 	}
 }
 
-func firstClassPatch_canPatchAndModify(t *testing.T)     {}
+func firstClassPatch_canPatchAndModify(t *testing.T) {
+	user := &User2{}
+	user.Numbers = []int{66}
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.Store(user)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		assert.NoError(t, err)
+		loaded := loadedI.(*User2)
+		loaded.Numbers[0] = 1
+
+		err = session.Advanced().PatchEntity(loaded, "numbers[0]", 2)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		_ = err.(*ravendb.IllegalStateException)
+		session.Close()
+	}
+}
+
 func firstClassPatch_canPatchComplex(t *testing.T)       {}
 func firstClassPatch_canAddToArray(t *testing.T)         {}
 func firstClassPatch_canRemoveFromArray(t *testing.T)    {}
@@ -125,9 +159,7 @@ func TestFirstClassPatch(t *testing.T) {
 	firstClassPatch_canAddToArray(t)
 	firstClassPatch_canRemoveFromArray(t)
 	firstClassPatch_shouldMergePatchCalls(t)
-	if ravendb.EnableFailingTests {
-		firstClassPatch_canPatch(t)
-	}
+	firstClassPatch_canPatch(t)
 	firstClassPatch_canPatchAndModify(t)
 	firstClassPatch_canPatchComplex(t)
 }
