@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 type FooStruct struct {
@@ -19,11 +19,11 @@ type FooStruct struct {
 func TestTypeName(t *testing.T) {
 	v := FooStruct{}
 	name := ravendb.GetFullTypeName(v)
-	if name != "ravendb.FooStruct" {
+	if name != "tests.FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "ravendb.FooStruct", name)
 	}
 	name = ravendb.GetFullTypeName(&v)
-	if name != "ravendb.FooStruct" {
+	if name != "tests.FooStruct" {
 		t.Fatalf("expected '%s', got '%s'", "ravendb.FooStruct", name)
 	}
 	name = ravendb.GetShortTypeNameName(v)
