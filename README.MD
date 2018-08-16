@@ -2,24 +2,12 @@
 
 # How to install and run
 
-Before this code is marged into github.com/ravendb/ravendb-go-client, the way to
-install it on your computer and run the code:
-
 ```
-mkdir -p $GOPATH/src/github.com/ravendb
-cd $GOPATH/src/github.com/ravendb
-rm -rf ravendb-go-client
-git clone github.com/kjk/ravendb-go-client
-cd ravendb-go-client
+go get github.com/ravendb/ravendb-go-client
+cd $GOPATH/src/ravendb-go-client
+# get dependencies
 go get -v -u .\...
 ```
-
-In order to avoid renaming imports between `github.com/ravendb/ravendb-go-client`
-and `github.com/kjk/ravendb-go-client`, my repo acts as if it is `github.com/ravendb/ravendb-go-client`.
-
-It means you can't use `go get github.com/kjk/ravendb-go-client`.
-
-You have to manually place it in `$GOPATH/src/github.com/ravendb/ravendb-go-client`.
 
 # Running tests
 
