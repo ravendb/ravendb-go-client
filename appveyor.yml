@@ -20,6 +20,7 @@ environment:
   GOVERSION: 1.11beta3
   LOG_HTTP_REQUEST_SUMMARY: true
   LOG_FAILED_HTTP_REQUESTS: true
+  LOG_FAILED_HTTP_REQUESTS_DELAYED: true
 
 clone_folder: c:\gopath\src\github.com\ravendb\ravendb-go-client
 
