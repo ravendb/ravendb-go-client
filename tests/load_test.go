@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func loadTest_loadCanUseCache(t *testing.T) {
@@ -26,7 +27,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(GetTypeOf(NewUser()), "users/1")
+		result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -35,7 +36,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(GetTypeOf(NewUser()), "users/1")
+		result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -62,7 +63,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(GetTypeOf(NewUser()), "users/1")
+		result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -95,7 +96,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		users, err := newSession.LoadMulti(GetTypeOf(NewUser()), []string{"users/1", "users/2"})
+		users, err := newSession.LoadMulti(ravendb.GetTypeOf(NewUser()), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
 		newSession.Close()
@@ -127,7 +128,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user1, err := newSession.Load(GetTypeOf(&User{}), "")
+		user1, err := newSession.Load(ravendb.GetTypeOf(&User{}), "")
 		assert.NoError(t, err)
 		assert.Nil(t, user1)
 		newSession.Close()
@@ -158,7 +159,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 	{
 		newSession := openSessionMust(t, store)
 		orderedArrayOfIdsWithNull := []string{"users/1", "", "users/2", ""}
-		users1, err := newSession.LoadMulti(GetTypeOf(&User{}), orderedArrayOfIdsWithNull)
+		users1, err := newSession.LoadMulti(ravendb.GetTypeOf(&User{}), orderedArrayOfIdsWithNull)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users1))
 
@@ -202,11 +203,11 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		geek1i, err := newSession.Load(GetTypeOf(&GeekPerson{}), "geeks/1")
+		geek1i, err := newSession.Load(ravendb.GetTypeOf(&GeekPerson{}), "geeks/1")
 		assert.NoError(t, err)
 		geek1 := geek1i.(*GeekPerson)
 
-		geek2i, err := newSession.Load(GetTypeOf(&GeekPerson{}), "geeks/2")
+		geek2i, err := newSession.Load(ravendb.GetTypeOf(&GeekPerson{}), "geeks/2")
 		assert.NoError(t, err)
 		geek2 := geek2i.(*GeekPerson)
 
@@ -246,7 +247,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		users, err := session.LoadMulti(GetTypeOf(&User{}), ids)
+		users, err := session.LoadMulti(ravendb.GetTypeOf(&User{}), ids)
 		assert.NoError(t, err)
 		assert.NotNil(t, users)
 		result := users["users/77"]
@@ -287,21 +288,21 @@ func loadTest_loadStartsWith(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		usersi, err := newSession.Advanced().LoadStartingWith(GetTypeOf(&User{}), "A")
+		usersi, err := newSession.Advanced().LoadStartingWith(ravendb.GetTypeOf(&User{}), "A")
 		assert.NoError(t, err)
 
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
 		for _, useri := range usersi {
 			user := useri.(*User)
-			assert.True(t, StringArrayContains(userIDs, user.ID))
+			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
 		}
 
-		usersi, err = newSession.Advanced().LoadStartingWithFull(GetTypeOf(&User{}), "A", "", 1, 2, "", "")
+		usersi, err = newSession.Advanced().LoadStartingWithFull(ravendb.GetTypeOf(&User{}), "A", "", 1, 2, "", "")
 
 		userIDs = []string{"Abc", "Afa"}
 		for _, useri := range usersi {
 			user := useri.(*User)
-			assert.True(t, StringArrayContains(userIDs, user.ID))
+			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
 		}
 		newSession.Close()
 	}

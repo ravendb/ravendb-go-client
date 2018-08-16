@@ -11,14 +11,14 @@ type ClusterTopologyResponse struct {
 	// see https://app.quicktype.io?share=pzquGxXJcXyMncfA9JPa for fuller definition
 }
 
-func (r *ClusterTopologyResponse) getLeader() string {
+func (r *ClusterTopologyResponse) GetLeader() string {
 	return r.Leader
 }
 
-func (r *ClusterTopologyResponse) getNodeTag() string {
+func (r *ClusterTopologyResponse) GetNodeTag() string {
 	return r.NodeTag
 }
 
-func (r *ClusterTopologyResponse) getTopology() *ClusterTopology {
+func (r *ClusterTopologyResponse) GetTopology() *ClusterTopology {
 	return r.Topology
 }

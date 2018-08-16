@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T) {
@@ -11,7 +12,7 @@ func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	command := NewGetNextOperationIdCommand()
+	command := ravendb.NewGetNextOperationIdCommand()
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	assert.NotNil(t, command.Result)

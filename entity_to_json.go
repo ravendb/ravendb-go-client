@@ -47,7 +47,7 @@ func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, docum
 	}
 	// TODO: deal with default values
 	entity, _ := makeStructFromJSONMap(entityType, document)
-	trySetIDOnEntity(entity, id)
+	TrySetIDOnEntity(entity, id)
 	return entity
 	/*
 		try {

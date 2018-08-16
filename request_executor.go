@@ -84,7 +84,7 @@ func (re *RequestExecutor) getTopologyNodes() []*ServerNode {
 		return nil
 	}
 	var res []*ServerNode
-	nodes := re.getTopology().getNodes()
+	nodes := re.getTopology().GetNodes()
 	for _, n := range nodes {
 		res = append(res, n)
 	}
@@ -116,7 +116,7 @@ func (re *RequestExecutor) getConventions() *DocumentConventions {
 	return re.conventions
 }
 
-func (re *RequestExecutor) getCertificate() *KeyStore {
+func (re *RequestExecutor) GetCertificate() *KeyStore {
 	return re.certificate
 }
 
@@ -214,13 +214,13 @@ func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, 
 	executor := NewRequestExecutor(databaseName, certificate, conventions, initialUrls)
 
 	topology := NewTopology()
-	topology.setEtag(-1)
+	topology.SetEtag(-1)
 
 	serverNode := NewServerNode()
 	serverNode.SetDatabase(databaseName)
 	serverNode.SetUrl(initialUrls[0])
 	// TODO: is Collections.singletonList in Java code subtly significant?
-	topology.setNodes([]*ServerNode{serverNode})
+	topology.SetNodes([]*ServerNode{serverNode})
 
 	executor._nodeSelector = NewNodeSelector(topology)
 	executor.topologyEtag = -2
@@ -245,8 +245,8 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 	serverNode.SetUrl(url)
 
 	topology := NewTopology()
-	topology.setEtag(-1)
-	topology.setNodes([]*ServerNode{serverNode})
+	topology.SetEtag(-1)
+	topology.SetNodes([]*ServerNode{serverNode})
 
 	nodeSelector := NewNodeSelector(topology)
 
@@ -376,7 +376,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			return
 		}
 		results := command.Result
-		members := results.getTopology().Members
+		members := results.GetTopology().Members
 		var nodes []*ServerNode
 		for key, value := range members {
 			serverNode := NewServerNode()
@@ -385,7 +385,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			nodes = append(nodes, serverNode)
 		}
 		newTopology := NewTopology()
-		newTopology.setNodes(nodes)
+		newTopology.SetNodes(nodes)
 
 		if re._nodeSelector == nil {
 			re._nodeSelector = NewNodeSelector(newTopology)
@@ -446,7 +446,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 				re._nodeSelector.scheduleSpeedTest()
 			}
 		}
-		re.topologyEtag = re._nodeSelector.getTopology().getEtag()
+		re.topologyEtag = re._nodeSelector.getTopology().GetEtag()
 		res = true
 	}
 
@@ -614,7 +614,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 			list = append(list, &Tuple_String_Error{url, err})
 		}
 		topology := NewTopology()
-		topology.setEtag(re.topologyEtag)
+		topology.SetEtag(re.topologyEtag)
 		topologyNodes := re.getTopologyNodes()
 		if len(topologyNodes) == 0 {
 			for _, uri := range initialUrls {
@@ -625,7 +625,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 				topologyNodes = append(topologyNodes, serverNode)
 			}
 		}
-		topology.setNodes(topologyNodes)
+		topology.SetNodes(topologyNodes)
 		re._nodeSelector = NewNodeSelector(topology)
 		if len(initialUrls) > 0 {
 			re.initializeUpdateTopologyTimer()
@@ -814,7 +814,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 
 	var urls []string
 	if re._nodeSelector != nil {
-		for _, node := range re._nodeSelector.getTopology().getNodes() {
+		for _, node := range re._nodeSelector.getTopology().GetNodes() {
 			url := node.GetUrl()
 			urls = append(urls, url)
 		}
@@ -822,7 +822,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 	message += strings.Join(urls, ", ")
 
 	if re._topologyTakenFromNode != nil {
-		nodes := re._nodeSelector.getTopology().getNodes()
+		nodes := re._nodeSelector.getTopology().GetNodes()
 		var a []string
 		for _, n := range nodes {
 			s := "( url: " + n.GetUrl() + ", clusterTag: " + n.GetClusterTag() + ", serverRole: " + n.GetServerRole() + ")"
@@ -841,7 +841,7 @@ func (re *RequestExecutor) inSpeedTestPhase() bool {
 }
 
 func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command RavenCommand) bool {
-	multipleNodes := (re._nodeSelector != nil) && (len(re._nodeSelector.getTopology().getNodes()) > 1)
+	multipleNodes := (re._nodeSelector != nil) && (len(re._nodeSelector.getTopology().GetNodes()) > 1)
 
 	return re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE &&
 		re._nodeSelector != nil &&
@@ -1172,8 +1172,8 @@ func (re *RequestExecutor) ensureNodeSelector() error {
 	if re._nodeSelector == nil {
 		topology := NewTopology()
 
-		topology.setNodes(re.getTopologyNodes())
-		topology.setEtag(re.topologyEtag)
+		topology.SetNodes(re.getTopologyNodes())
+		topology.SetEtag(re.topologyEtag)
 
 		re._nodeSelector = NewNodeSelector(topology)
 	}

@@ -43,5 +43,5 @@ func (g *GenerateEntityIdOnTheClient) generateDocumentKeyForStorage(entity Objec
 
 // Tries to set the identity property
 func (g *GenerateEntityIdOnTheClient) trySetIdentity(entity Object, id string) {
-	trySetIDOnEntity(entity, id)
+	TrySetIDOnEntity(entity, id)
 }

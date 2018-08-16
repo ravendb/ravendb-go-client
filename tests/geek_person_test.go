@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 type GeekPerson struct {
 	Name                    string  `json:"Name"`

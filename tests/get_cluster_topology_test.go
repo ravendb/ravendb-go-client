@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func getClusterTopologyTest_canGetTopology(t *testing.T) {
@@ -11,16 +12,16 @@ func getClusterTopologyTest_canGetTopology(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	command := NewGetClusterTopologyCommand()
+	command := ravendb.NewGetClusterTopologyCommand()
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)
 
-	assert.NotEmpty(t, result.getLeader())
-	assert.NotEmpty(t, result.getNodeTag())
+	assert.NotEmpty(t, result.GetLeader())
+	assert.NotEmpty(t, result.GetNodeTag())
 
-	topology := result.getTopology()
+	topology := result.GetTopology()
 	assert.NotNil(t, topology)
 	assert.NotEmpty(t, topology.TopologyID)
 	assert.Equal(t, 1, len(topology.Members))

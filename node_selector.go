@@ -36,8 +36,8 @@ func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bo
 		return false
 	}
 
-	stateEtag := s._state.topology.getEtag()
-	topologyEtag := topology.getEtag()
+	stateEtag := s._state.topology.GetEtag()
+	topologyEtag := topology.GetEtag()
 
 	if stateEtag >= topologyEtag && !forceUpdate {
 		return false
@@ -73,7 +73,7 @@ func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*Curr
 
 func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, error) {
 	state := s._state
-	index := sessionId % len(state.topology.getNodes())
+	index := sessionId % len(state.topology.GetNodes())
 
 	for i := index; i < len(state.failures); i++ {
 		if state.failures[i].Get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
@@ -221,7 +221,7 @@ type NodeSelectorState struct {
 }
 
 func NewNodeSelectorState(currentNodeIndex int, topology *Topology) *NodeSelectorState {
-	nodes := topology.getNodes()
+	nodes := topology.GetNodes()
 	res := &NodeSelectorState{
 		topology:         topology,
 		currentNodeIndex: currentNodeIndex,

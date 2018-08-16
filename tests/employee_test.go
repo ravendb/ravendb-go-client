@@ -1,4 +1,4 @@
-package ravendb
+package tests
 
 type Employee struct {
 	ID        string

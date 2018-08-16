@@ -5,12 +5,12 @@ import (
 )
 
 func tryGetIdFromInstance(entity interface{}) (string, bool) {
-	return tryGetIDFromInstance(entity)
+	return TryGetIDFromInstance(entity)
 }
 
-// tryGetIDFromInstance returns value of ID field on struct if it's of type
+// TryGetIDFromInstance returns value of ID field on struct if it's of type
 // string. Returns empty string if there's no ID field or it's not string
-func tryGetIDFromInstance(entity interface{}) (string, bool) {
+func TryGetIDFromInstance(entity interface{}) (string, bool) {
 	rv := reflect.ValueOf(entity)
 	for rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
@@ -37,7 +37,7 @@ func tryGetIDFromInstance(entity interface{}) (string, bool) {
 
 // trySetIDOnEnity tries to set value of ID field on struct to id
 // returns false if entity has no ID field or if it's not string
-func trySetIDOnEntity(entity interface{}, id string) bool {
+func TrySetIDOnEntity(entity interface{}, id string) bool {
 	rv := reflect.ValueOf(entity)
 	for rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()

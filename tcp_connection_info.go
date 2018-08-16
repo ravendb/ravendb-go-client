@@ -6,15 +6,15 @@ type TcpConnectionInfo struct {
 	Certificate *string `json:"Certificate"`
 }
 
-func (i *TcpConnectionInfo) getPort() int {
+func (i *TcpConnectionInfo) GetPort() int {
 	return i.Port
 }
 
-func (i *TcpConnectionInfo) getUrl() string {
+func (i *TcpConnectionInfo) GetUrl() string {
 	return i.Url
 }
 
-func (i *TcpConnectionInfo) getCertificate() *string {
+func (i *TcpConnectionInfo) GetCertificate() *string {
 	return i.Certificate
 }
 

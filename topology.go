@@ -13,18 +13,18 @@ func NewTopology() *Topology {
 	return &Topology{}
 }
 
-func (t *Topology) getEtag() int {
+func (t *Topology) GetEtag() int {
 	return t.Etag
 }
 
-func (t *Topology) setEtag(etag int) {
+func (t *Topology) SetEtag(etag int) {
 	t.Etag = etag
 }
 
-func (t *Topology) getNodes() []*ServerNode {
+func (t *Topology) GetNodes() []*ServerNode {
 	return t.Nodes
 }
 
-func (t *Topology) setNodes(nodes []*ServerNode) {
+func (t *Topology) SetNodes(nodes []*ServerNode) {
 	t.Nodes = nodes
 }
