@@ -53,26 +53,26 @@ func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []
 	return exchangeResult, nil
 }
 
-func (r *CompareExchangeResult) getValue() interface{} {
+func (r *CompareExchangeResult) GetValue() interface{} {
 	return r.value
 }
 
-func (r *CompareExchangeResult) setValue(value interface{}) {
+func (r *CompareExchangeResult) SetValue(value interface{}) {
 	r.value = value
 }
 
-func (r *CompareExchangeResult) getIndex() int {
+func (r *CompareExchangeResult) GetIndex() int {
 	return r.index
 }
 
-func (r *CompareExchangeResult) setIndex(index int) {
+func (r *CompareExchangeResult) SetIndex(index int) {
 	r.index = index
 }
 
-func (r *CompareExchangeResult) isSuccessful() bool {
+func (r *CompareExchangeResult) IsSuccessful() bool {
 	return r.successful
 }
 
-func (r *CompareExchangeResult) setSuccessful(successful bool) {
+func (r *CompareExchangeResult) SetSuccessful(successful bool) {
 	r.successful = successful
 }

@@ -14,26 +14,26 @@ func NewCompareExchangeValue(key string, index int, value interface{}) *CompareE
 	}
 }
 
-func (v *CompareExchangeValue) getKey() string {
+func (v *CompareExchangeValue) GetKey() string {
 	return v.key
 }
 
-func (v *CompareExchangeValue) setKey(key string) {
+func (v *CompareExchangeValue) SetKey(key string) {
 	v.key = key
 }
 
-func (v *CompareExchangeValue) getIndex() int {
+func (v *CompareExchangeValue) GetIndex() int {
 	return v.index
 }
 
-func (v *CompareExchangeValue) setIndex(index int) {
+func (v *CompareExchangeValue) SetIndex(index int) {
 	v.index = index
 }
 
-func (v *CompareExchangeValue) getValue() interface{} {
+func (v *CompareExchangeValue) GetValue() interface{} {
 	return v.value
 }
 
-func (v *CompareExchangeValue) setValue(value interface{}) {
+func (v *CompareExchangeValue) SetValue(value interface{}) {
 	v.value = value
 }

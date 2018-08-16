@@ -16,7 +16,7 @@ func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, do
 	}
 }
 
-func (a *AfterSaveChangesEventArgs) getSession() *InMemoryDocumentSessionOperations {
+func (a *AfterSaveChangesEventArgs) GetSession() *InMemoryDocumentSessionOperations {
 	return a.session
 }
 
@@ -24,11 +24,11 @@ func (a *AfterSaveChangesEventArgs) GetDocumentID() string {
 	return a.documentId
 }
 
-func (a *AfterSaveChangesEventArgs) getEntity() Object {
+func (a *AfterSaveChangesEventArgs) GetEntity() Object {
 	return a.entity
 }
 
-func (a *AfterSaveChangesEventArgs) getDocumentMetadata() *IMetadataDictionary {
+func (a *AfterSaveChangesEventArgs) GetDocumentMetadata() *IMetadataDictionary {
 	if a._documentMetadata == nil {
 		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
 	}

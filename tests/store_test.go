@@ -1,9 +1,10 @@
-package ravendb
+package tests
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func storeTestRefreshTest(t *testing.T) {
@@ -22,7 +23,7 @@ func storeTestRefreshTest(t *testing.T) {
 
 		{
 			innerSession := openSessionMust(t, store)
-			innerUserI, err := innerSession.Load(GetTypeOf(&User{}), "users/1")
+			innerUserI, err := innerSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 			innerUser := innerUserI.(*User)
 			innerUser.setName("RavenDB 4.0")
 			err = innerSession.SaveChanges()
@@ -51,7 +52,7 @@ func storeTestStoreDocument(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		userI, err := session.Load(GetTypeOf(&User{}), "users/1")
+		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user = userI.(*User)
 		assert.NotNil(t, user)
@@ -81,7 +82,7 @@ func storeTestStoreDocuments(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		users, err := session.LoadMulti(GetTypeOf(&User{}), []string{"users/1", "users/2"})
+		users, err := session.LoadMulti(ravendb.GetTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
 		session.Close()
@@ -93,18 +94,18 @@ func storeTestNotifyAfterStore(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	storeLevelCallBack := []*IMetadataDictionary{nil}
-	sessionLevelCallback := []*IMetadataDictionary{nil}
+	storeLevelCallBack := []*ravendb.IMetadataDictionary{nil}
+	sessionLevelCallback := []*ravendb.IMetadataDictionary{nil}
 
-	fn := func(sender interface{}, event *AfterSaveChangesEventArgs) {
-		storeLevelCallBack[0] = event.getDocumentMetadata()
+	fn := func(sender interface{}, event *ravendb.AfterSaveChangesEventArgs) {
+		storeLevelCallBack[0] = event.GetDocumentMetadata()
 	}
 	store.AddAfterSaveChangesListener(fn)
 
 	{
 		session := openSessionMust(t, store)
-		fn := func(sender interface{}, event *AfterSaveChangesEventArgs) {
-			sessionLevelCallback[0] = event.getDocumentMetadata()
+		fn := func(sender interface{}, event *ravendb.AfterSaveChangesEventArgs) {
+			sessionLevelCallback[0] = event.GetDocumentMetadata()
 		}
 		session.Advanced().AddAfterSaveChangesListener(fn)
 

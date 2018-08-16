@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
@@ -16,7 +17,7 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
 		session := openSessionMust(t, store)
 		err = session.DeleteEntity(NewUser())
 		assert.Error(t, err)
-		_ = err.(*IllegalStateException)
+		_ = err.(*ravendb.IllegalStateException)
 		msg := err.Error()
 		assert.True(t, strings.HasSuffix(msg, "is not associated with the session, cannot delete unknown entity instance"))
 		session.Close()
@@ -59,9 +60,9 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		_, err = session.Load(GetTypeOf(&User{}), "users/1")
+		_, err = session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
-		_, err = session.Load(GetTypeOf(&User{}), "users/2")
+		_, err = session.Load(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		session.Close()
 	}
@@ -88,7 +89,7 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 		newUser.setId("users/1")
 
 		err = session.Store(newUser)
-		_ = err.(*NonUniqueObjectException)
+		_ = err.(*ravendb.NonUniqueObjectException)
 		msg := err.Error()
 		assert.True(t, strings.HasPrefix(msg, "Attempted to associate a different object with id 'users/1'"))
 		session.Close()

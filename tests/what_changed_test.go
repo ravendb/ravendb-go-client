@@ -1,10 +1,11 @@
-package ravendb
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/ravendb/ravendb-go-client"
 )
 
 func whatChanged_whatChangedNewField(t *testing.T) {
@@ -28,7 +29,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		userI, err := newSession.Load(GetTypeOf(&NameAndAge{}), "users/1")
+		userI, err := newSession.Load(ravendb.GetTypeOf(&NameAndAge{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*NameAndAge)
 		user.setAge(5)
@@ -39,7 +40,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_NEW_FIELD)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_NEW_FIELD)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
 		}
@@ -71,7 +72,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(GetTypeOf(&BasicAge{}), "users/1")
+		_, err = newSession.Load(ravendb.GetTypeOf(&BasicAge{}), "users/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -80,7 +81,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_REMOVED_FIELD)
 		}
 
 		err = newSession.SaveChanges()
@@ -111,7 +112,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(GetTypeOf(&Int{}), "users/1")
+		_, err = newSession.Load(ravendb.GetTypeOf(&Int{}), "users/1")
 		assert.NoError(t, err)
 		changes, _ := newSession.Advanced().WhatChanged()
 		change := changes["users/1"]
@@ -119,12 +120,12 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_REMOVED_FIELD)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_REMOVED_FIELD)
 		}
 
 		{
 			change := change[1]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_NEW_FIELD)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_NEW_FIELD)
 		}
 
 		err = newSession.SaveChanges()
@@ -141,7 +142,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.setArray([]Object{"a", 1, "b"})
+		arr.setArray([]ravendb.Object{"a", 1, "b"})
 
 		err = newSession.StoreWithID(arr, "users/1")
 		assert.NoError(t, err)
@@ -153,18 +154,18 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_DOCUMENT_ADDED)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_DOCUMENT_ADDED)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
 		}
 
 		{
 			newSession := openSessionMust(t, store)
-			arrI, err := newSession.Load(GetTypeOf(&Arr{}), "users/1")
+			arrI, err := newSession.Load(ravendb.GetTypeOf(&Arr{}), "users/1")
 			assert.NoError(t, err)
 			arr := arrI.(*Arr)
 
-			arr.setArray([]Object{"a", 2, "c"})
+			arr.setArray([]ravendb.Object{"a", 2, "c"})
 
 			changes, _ := newSession.Advanced().WhatChanged()
 			assert.Equal(t, len(changes), 1)
@@ -174,7 +175,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 			{
 				change := change[0]
-				assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+				assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
 				oldValueStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 				assert.Equal(t, oldValueStr, "1")
 				newValue := change.GetFieldNewValue()
@@ -183,7 +184,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 			{
 				change := change[1]
-				assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+				assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
 				oldValueStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 				assert.Equal(t, oldValueStr, "\"b\"")
 				newValueStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
@@ -203,7 +204,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.setArray([]Object{"a", 1, "b"})
+		arr.setArray([]ravendb.Object{"a", 1, "b"})
 		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
@@ -213,11 +214,11 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.Load(GetTypeOf(&Arr{}), "arr/1")
+		arrI, err := newSession.Load(ravendb.GetTypeOf(&Arr{}), "arr/1")
 		assert.NoError(t, err)
 
 		arr := arrI.(*Arr)
-		arr.setArray([]Object{"a", 1, "b", "c", 2})
+		arr.setArray([]ravendb.Object{"a", 1, "b", "c", 2})
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -226,14 +227,14 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
 			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
 			assert.Equal(t, newValStr, "\"c\"")
 			assert.Nil(t, change.GetFieldOldValue())
 		}
 		{
 			change := change[1]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
 			assert.Equal(t, change.GetFieldNewValue(), float64(2))
 			assert.Nil(t, change.GetFieldOldValue())
 		}
@@ -249,7 +250,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.setArray([]Object{"a", 1, "b"})
+		arr.setArray([]ravendb.Object{"a", 1, "b"})
 		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
@@ -259,11 +260,11 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.Load(GetTypeOf(&Arr{}), "arr/1")
+		arrI, err := newSession.Load(ravendb.GetTypeOf(&Arr{}), "arr/1")
 		assert.NoError(t, err)
 
 		arr := arrI.(*Arr)
-		arr.setArray([]Object{"a"})
+		arr.setArray([]ravendb.Object{"a"})
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -272,14 +273,14 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 
 		{
 			change := change[0]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
 			assert.Equal(t, change.GetFieldOldValue(), float64(1))
 			assert.Nil(t, change.GetFieldNewValue())
 		}
 
 		{
 			change := change[1]
-			assert.Equal(t, change.GetChange(), DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
 
 			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
 			assert.Equal(t, oldValStr, "\"b\"")
@@ -318,7 +319,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(GetTypeOf(&Double{}), "num/1")
+		_, err = newSession.Load(ravendb.GetTypeOf(&Double{}), "num/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -328,7 +329,7 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.Load(GetTypeOf(&Int{}), "num/2")
+		_, err = newSession.Load(ravendb.GetTypeOf(&Int{}), "num/2")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -370,11 +371,11 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		user1I, err := session.Load(GetTypeOf(&User{}), "users/1")
+		user1I, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user1 = user1I.(*User)
 
-		user2I, err := session.Load(GetTypeOf(&User{}), "users/2")
+		user2I, err := session.Load(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		user2 = user2I.(*User)
 
@@ -459,14 +460,14 @@ func (d *Double) setNumber(Number float64) {
 }
 
 type Arr struct {
-	Array []Object
+	Array []ravendb.Object
 }
 
-func (a *Arr) getArray() []Object {
+func (a *Arr) getArray() []ravendb.Object {
 	return a.Array
 }
 
-func (a *Arr) setArray(Array []Object) {
+func (a *Arr) setArray(Array []ravendb.Object) {
 	a.Array = Array
 }
 
