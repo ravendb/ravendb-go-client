@@ -43,6 +43,6 @@ build_script:
   - go build
 
 test_script:
-  - go test -vet=off ./tests
+  - go test -v -vet=off ./tests
 
 deploy: off
