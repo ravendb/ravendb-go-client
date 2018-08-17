@@ -3,6 +3,10 @@ sudo: required
 dist: trusty
 language: go
 
+notifications:
+  email:
+    - kkowalczyk@gmail.com
+
 go:
   - "1.10.3"
 
