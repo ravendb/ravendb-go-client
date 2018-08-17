@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func NewOrders_All() *ravendb.AbstractIndexCreationTask {
@@ -426,6 +426,11 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 		session.Close()
 	}
 }
+
+func now() time.Time {
+	return time.Now()
+}
+
 func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -440,22 +445,22 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 		item1 := &ItemsOrder{
 			Items: []string{"first", "second"},
-			At:    time.Now(),
+			At:    now(),
 		}
 
 		item2 := &ItemsOrder{
 			Items: []string{"first", "second"},
-			At:    ravendb.DateUtils_addDays(time.Now(), -1),
+			At:    ravendb.DateUtils_addDays(now(), -1),
 		}
 
 		item3 := &ItemsOrder{
 			Items: []string{"first", "second"},
-			At:    time.Now(),
+			At:    now(),
 		}
 
 		item4 := &ItemsOrder{
 			Items: []string{"first"},
-			At:    time.Now(),
+			At:    now(),
 		}
 
 		err = session.Store(item1)
@@ -472,13 +477,11 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 		session.Close()
 	}
 
-	// items := []string{"second"}
+	minValue := ravendb.DateUtils_setYears(now(), 1980)
 
-	minValue := ravendb.DateUtils_setYears(time.Now(), 1980)
-
-	end0 := ravendb.DateUtils_addDays(time.Now(), -2)
-	end1 := ravendb.DateUtils_addDays(time.Now(), -1)
-	end2 := time.Now()
+	end0 := ravendb.DateUtils_addDays(now(), -2)
+	end1 := ravendb.DateUtils_addDays(now(), -1)
+	end2 := now()
 
 	err = gRavenTestDriver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
