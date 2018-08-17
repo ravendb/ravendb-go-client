@@ -758,7 +758,8 @@ func query_queryWithDuration(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	now := time.Now()
+	// TODO: it fails with time.Now()
+	now := time.Now().UTC()
 
 	index := NewOrderTime()
 	err = store.ExecuteIndex(index)

@@ -7,7 +7,7 @@ type Order struct {
 	Company   string       `json:"company"`
 	Employee  string       `json:"employee"`
 	OrderedAt time.Time    `json:"orderedAt"`
-	RequireAt time.Time    `json:"requiredAt"`
+	RequireAt time.Time    `json:"requireAt"`
 	ShippedAt time.Time    `json:"shippedAt"`
 	ShipTo    *Address     `json:"shipTo"`
 	ShipVia   string       `json:"shipVia"`
