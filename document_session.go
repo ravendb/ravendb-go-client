@@ -251,8 +251,35 @@ func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 	return s.loadInternalWithOperation(ids, op, output)
 }
 
-// public <T, U> void increment(T entity, string path, U valueToAdd) {
-// public <T, U> void increment(string id, string path, U valueToAdd) {
+func (s *DocumentSession) IncrementEntity(entity interface{}, path string, valueToAdd interface{}) error {
+	metadata, err := s.GetMetadataFor(entity)
+	if err != nil {
+		return err
+	}
+	// TODO: return an error if no id or id not string
+	id, _ := metadata.Get(Constants_Documents_Metadata_ID)
+	return s.IncrementByID(id.(string), path, valueToAdd)
+}
+
+func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd interface{}) error {
+	patchRequest := NewPatchRequest()
+
+	valsCountStr := strconv.Itoa(s._valsCount)
+	patchRequest.SetScript("this." + path + " += args.val_" + valsCountStr + ";")
+
+	m := map[string]interface{}{
+		"val_" + valsCountStr: valueToAdd,
+	}
+	patchRequest.SetValues(m)
+
+	s._valsCount++
+
+	if !s.tryMergePatches(id, patchRequest) {
+		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
+		s.Defer(cmdData)
+	}
+	return nil
+}
 
 func (s *DocumentSession) PatchEntity(entity interface{}, path string, value interface{}) error {
 	metadata, err := s.GetMetadataFor(entity)
