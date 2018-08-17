@@ -253,7 +253,133 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	}
 }
 
-func firstClassPatch_canAddToArray(t *testing.T)         {}
+func firstClassPatch_canAddToArray(t *testing.T) {
+	stuff := []*Stuff{nil}
+
+	stuff[0] = &Stuff{}
+	stuff[0].Key = 6
+
+	user := &User2{
+		Stuff:   stuff,
+		Numbers: []int{1, 2},
+	}
+
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.Store(user)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		//push
+		adder := func(roles *ravendb.JavaScriptArray) {
+			roles.Add(3)
+		}
+		err = session.Advanced().PatchArrayByID(_docId, "numbers", adder)
+		assert.NoError(t, err)
+
+		adder = func(roles *ravendb.JavaScriptArray) {
+			stuff1 := &Stuff{
+				Key: 75,
+			}
+			roles.Add(stuff1)
+		}
+		err = session.Advanced().PatchArrayByID(_docId, "stuff", adder)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		assert.NoError(t, err)
+		loaded := loadedI.(*User2)
+
+		assert.Equal(t, loaded.Numbers[2], 3)
+		assert.Equal(t, loaded.Stuff[1].Key, 75)
+		//concat
+
+		adder := func(roles *ravendb.JavaScriptArray) {
+			roles.Add(101, 102, 103)
+		}
+		err = session.Advanced().PatchArrayInEntity(loaded, "numbers", adder)
+		assert.NoError(t, err)
+		adder = func(roles *ravendb.JavaScriptArray) {
+			s1 := &Stuff{
+				Key: 102,
+			}
+
+			phone := "123456"
+			s2 := &Stuff{
+				Phone: &phone,
+			}
+
+			roles.Add(s1).Add(s2)
+		}
+		err = session.Advanced().PatchArrayInEntity(loaded, "stuff", adder)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		assert.NoError(t, err)
+		loaded := loadedI.(*User2)
+		assert.Equal(t, len(loaded.Numbers), 6)
+
+		assert.Equal(t, loaded.Numbers[5], 103)
+
+		assert.Equal(t, loaded.Stuff[2].Key, 102)
+
+		assert.Equal(t, *loaded.Stuff[3].Phone, "123456")
+
+		adder := func(roles *ravendb.JavaScriptArray) {
+			roles.Add(201, 202, 203)
+		}
+
+		err = session.Advanced().PatchArrayInEntity(loaded, "numbers", adder)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		assert.NoError(t, err)
+		loaded := loadedI.(*User2)
+
+		assert.Equal(t, len(loaded.Numbers), 9)
+		assert.Equal(t, loaded.Numbers[7], 202)
+
+		session.Close()
+	}
+}
+
 func firstClassPatch_canRemoveFromArray(t *testing.T)    {}
 func firstClassPatch_canIncrement(t *testing.T)          {}
 func firstClassPatch_shouldMergePatchCalls(t *testing.T) {}

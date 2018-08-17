@@ -282,8 +282,32 @@ func (s *DocumentSession) PatchByID(id string, path string, value interface{}) e
 	return nil
 }
 
-// public <T, U> void patch(T entity, string pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
-// public <T, U> void patch(string id, string pathToArray, Consumer<JavaScriptArray<U>> arrayAdder) {
+func (s *DocumentSession) PatchArrayInEntity(entity interface{}, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
+	metadata, err := s.GetMetadataFor(entity)
+	if err != nil {
+		return err
+	}
+	// TODO: return an error if no id or id not string
+	id, _ := metadata.Get(Constants_Documents_Metadata_ID)
+	return s.PatchArrayByID(id.(string), pathToArray, arrayAdder)
+}
+
+func (s *DocumentSession) PatchArrayByID(id string, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
+	s._customCount++
+	scriptArray := NewJavaScriptArray(s._customCount, pathToArray)
+
+	arrayAdder(scriptArray)
+
+	patchRequest := NewPatchRequest()
+	patchRequest.SetScript(scriptArray.getScript())
+	patchRequest.SetValues(scriptArray.Parameters)
+
+	if !s.tryMergePatches(id, patchRequest) {
+		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
+		s.Defer(cmdData)
+	}
+	return nil
+}
 
 func removeDeferredCommand(a []ICommandData, el ICommandData) []ICommandData {
 	idx := -1
