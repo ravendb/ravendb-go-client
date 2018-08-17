@@ -12,6 +12,6 @@ func NewWktField(wkt string) *WktField {
 	}
 }
 
-func (f *WktField) toField(ensureValidFieldName func(string, bool) string) string {
+func (f *WktField) ToField(ensureValidFieldName func(string, bool) string) string {
 	return "spatial.wkt(" + ensureValidFieldName(f.wkt, false) + ")"
 }

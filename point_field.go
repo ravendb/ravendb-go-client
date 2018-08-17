@@ -14,6 +14,6 @@ func NewPointField(latitude string, longitude string) *PointField {
 	}
 }
 
-func (f *PointField) toField(ensureValidFieldName func(string, bool) string) string {
+func (f *PointField) ToField(ensureValidFieldName func(string, bool) string) string {
 	return "spatial.point(" + ensureValidFieldName(f.latitude, false) + ", " + ensureValidFieldName(f.longitude, false) + ")"
 }

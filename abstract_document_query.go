@@ -1481,7 +1481,7 @@ func (q *AbstractDocumentQuery) _spatial2(dynamicField DynamicSpatialField, crit
 	add := func(value interface{}) string {
 		return q.addQueryParameter(value)
 	}
-	tok := criteria.ToQueryToken(dynamicField.toField(ensure), add)
+	tok := criteria.ToQueryToken(dynamicField.ToField(ensure), add)
 	tokens := *tokensRef
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
@@ -1512,7 +1512,7 @@ func (q *AbstractDocumentQuery) _orderByDistance(field DynamicSpatialField, lati
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
 
-	q._orderByDistanceLatLong("'"+field.toField(ensure)+"'", latitude, longitude)
+	q._orderByDistanceLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
 }
 
 func (q *AbstractDocumentQuery) _orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) {
@@ -1528,7 +1528,7 @@ func (q *AbstractDocumentQuery) _orderByDistance2(field DynamicSpatialField, sha
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-	q._orderByDistance3("'"+field.toField(ensure)+"'", shapeWkt)
+	q._orderByDistance3("'"+field.ToField(ensure)+"'", shapeWkt)
 }
 
 func (q *AbstractDocumentQuery) _orderByDistance3(fieldName string, shapeWkt string) {
@@ -1544,7 +1544,7 @@ func (q *AbstractDocumentQuery) _orderByDistanceDescending(field DynamicSpatialF
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-	q._orderByDistanceDescendingLatLong("'"+field.toField(ensure)+"'", latitude, longitude)
+	q._orderByDistanceDescendingLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
 }
 
 func (q *AbstractDocumentQuery) _orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) {
@@ -1560,7 +1560,7 @@ func (q *AbstractDocumentQuery) _orderByDistanceDescending2(field DynamicSpatial
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-	q._orderByDistanceDescending3("'"+field.toField(ensure)+"'", shapeWkt)
+	q._orderByDistanceDescending3("'"+field.ToField(ensure)+"'", shapeWkt)
 }
 
 func (q *AbstractDocumentQuery) _orderByDistanceDescending3(fieldName string, shapeWkt string) {
