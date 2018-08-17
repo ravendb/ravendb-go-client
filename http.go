@@ -126,7 +126,7 @@ func addChangeVectorIfNotNull(changeVector *string, req *http.Request) {
 }
 
 func addCommonHeaders(req *http.Request) {
-	req.Header.Add("User-Agent", "ravendb-go-client/1.0")
+	req.Header.Add("User-Agent", "ravendb-go-client/4.0.0")
 }
 
 // to be able to print request body for failed requests, we must replace
