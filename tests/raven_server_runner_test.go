@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+
 	"github.com/ravendb/ravendb-go-client"
 )
 
@@ -48,7 +49,7 @@ func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
 func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error) {
 	path := locator.serverPath
 	if !ravendb.FileExists(path) {
-		return nil, fmt.Errorf("Serer file was not found: %s", path)
+		return nil, fmt.Errorf("Server file was not found: %s", path)
 	}
 	commandArguments := []string{
 		"--RunInMemory=true",

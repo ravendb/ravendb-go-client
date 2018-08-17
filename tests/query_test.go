@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func query_querySimple(t *testing.T) {
@@ -767,24 +767,29 @@ func query_queryWithDuration(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		order1 := NewOrder()
-		order1.setCompany("hours")
-		order1.setOrderedAt(ravendb.DateUtils_addHours(now, -2))
-		order1.setShippedAt(now)
+		order1 := &Order{
+			Company:   "hours",
+			OrderedAt: ravendb.DateUtils_addHours(now, -2),
+			ShippedAt: now,
+		}
+
 		err = session.Store(order1)
 		assert.NoError(t, err)
 
-		order2 := NewOrder()
-		order2.setCompany("days")
-		order2.setOrderedAt(ravendb.DateUtils_addDays(now, -2))
-		order2.setShippedAt(now)
+		order2 := &Order{
+			Company:   "days",
+			OrderedAt: ravendb.DateUtils_addDays(now, -2),
+			ShippedAt: now,
+		}
 		err = session.Store(order2)
 		assert.NoError(t, err)
 
-		order3 := NewOrder()
-		order3.setCompany("minutes")
-		order3.setOrderedAt(ravendb.DateUtils_addMinutes(now, -2))
-		order3.setShippedAt(now)
+		order3 := &Order{
+			Company:   "minutes",
+			OrderedAt: ravendb.DateUtils_addMinutes(now, -2),
+			ShippedAt: now,
+		}
+
 		err = session.Store(order3)
 		assert.NoError(t, err)
 
@@ -808,7 +813,7 @@ func query_queryWithDuration(t *testing.T) {
 			var delay []string
 			for _, o := range orders {
 				order := o.(*Order)
-				company := order.getCompany()
+				company := order.Company
 				delay = append(delay, company)
 			}
 			sort.Strings(delay)
@@ -824,7 +829,7 @@ func query_queryWithDuration(t *testing.T) {
 			var delay2 []string
 			for _, o := range orders {
 				order := o.(*Order)
-				company := order.getCompany()
+				company := order.Company
 				delay2 = append(delay2, company)
 			}
 			sort.Strings(delay2)
