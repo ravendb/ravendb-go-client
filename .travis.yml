@@ -35,7 +35,7 @@ before_install:
   - sudo cp ca.crt /usr/local/share/ca-certificates/ca.crt
   - sudo update-ca-certificates
   - cd ..
-  - wget -O RavenDB.tar.bz https://daily-builds.s3.amazonaws.com/RavenDB-4.0.6-linux-x64.tar.bz2
+  - wget -O RavenDB.tar.bz2 https://daily-builds.s3.amazonaws.com/RavenDB-4.0.6-linux-x64.tar.bz2
   - tar xvjf RavenDB.tar.bz2
   - rm RavenDB.tar.bz2
   - ls -lah RavenDB
