@@ -61,7 +61,10 @@ func firstClassPatch_canPatch(t *testing.T) {
 		session.Close()
 	}
 
-	now := time.Now()
+	// TODO: test will fail if this is just time.Now() i.e. with timezone
+	// It looks like Java's new Date() is equivalent to UTC() but we still should
+	// decide if this should work with times that include a timezone
+	now := time.Now().UTC()
 	{
 		session := openSessionMust(t, store)
 
@@ -83,9 +86,7 @@ func firstClassPatch_canPatch(t *testing.T) {
 		loaded := loadedI.(*User2)
 		assert.Equal(t, loaded.Numbers[0], 31)
 
-		if ravendb.EnableFailingTests {
-			assert.Equal(t, loaded.LastLogin, now)
-		}
+		assert.Equal(t, loaded.LastLogin, now)
 
 		err = session.Advanced().PatchEntity(loaded, "stuff[0].phone", "123456")
 		assert.NoError(t, err)
