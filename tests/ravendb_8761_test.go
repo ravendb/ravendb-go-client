@@ -120,12 +120,166 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 			assert.Equal(t, product.Count, 1)
 			assert.Equal(t, product.Quantity, 3)
 		}
+
 		session.Close()
 	}
 }
 
 func ravendb_8761_can_group_by_array_content(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
 
+	ravendb_8761_putDocs(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		orderLine1 := &OrderLine{
+			Product:  "products/1",
+			Quantity: 1,
+		}
+
+		orderLine2 := &OrderLine{
+			Product:  "products/2",
+			Quantity: 2,
+		}
+
+		address := &Address{
+			Country: "USA",
+		}
+
+		order := &Order{
+			ShipTo: address,
+			Lines:  []*OrderLine{orderLine1, orderLine2},
+		}
+
+		err = session.Store(order)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders group by array(lines[].product)\n"+
+			" order by count()\n"+
+			" select key() as products, count() as count")
+		q = q.WaitForNonStaleResults()
+		productCounts1, err := q.ToList()
+		assert.NoError(t, err)
+
+		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"))
+		q3 = q3.SelectKeyWithNameAndProjectedName("", "products")
+		q2 = q3.SelectCount()
+		q2 = q2.OrderBy("count")
+		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
+		productCounts2, err := q2.ToList()
+		assert.NoError(t, err)
+
+		combined := [][]interface{}{productCounts1, productCounts2}
+		for _, products := range combined {
+			assert.Equal(t, len(products), 2)
+
+			product := products[0].(*ProductCount)
+			assert.Equal(t, len(product.Products), 1)
+			assert.True(t, ravendb.StringArrayContains(product.Products, "products/2"))
+			assert.Equal(t, product.Count, 1)
+
+			product = products[1].(*ProductCount)
+			assert.Equal(t, len(product.Products), 2)
+			assert.True(t, ravendb.StringArrayContainsExactly(product.Products, []string{"products/1", "products/2"}))
+
+			assert.Equal(t, product.Count, 2)
+		}
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
+			" group by array(lines[].product), shipTo.country\n"+
+			" order by count()\n"+
+			" select lines[].product as products, shipTo.country as country, count() as count")
+		q = q.WaitForNonStaleResults()
+		productCounts1, err := q.ToList()
+		assert.NoError(t, err)
+
+		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"), ravendb.GroupBy_field("shipTo.country"))
+		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
+		q2 = q3.SelectCount()
+		q2 = q2.OrderBy("count")
+		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
+		productCounts2, err := q2.ToList()
+		assert.NoError(t, err)
+
+		combined := [][]interface{}{productCounts1, productCounts2}
+		for _, products := range combined {
+			assert.Equal(t, len(products), 2)
+
+			product := products[0].(*ProductCount)
+			assert.Equal(t, len(product.Products), 1)
+			assert.True(t, ravendb.StringArrayContains(product.Products, "products/2"))
+			assert.Equal(t, product.Count, 1)
+
+			product = products[1].(*ProductCount)
+			assert.Equal(t, len(product.Products), 2)
+			assert.True(t, ravendb.StringArrayContainsExactly(product.Products, []string{"products/1", "products/2"}))
+
+			assert.Equal(t, product.Count, 2)
+		}
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
+			" group by array(lines[].product), array(lines[].quantity)\n"+
+			" order by lines[].quantity\n"+
+			" select lines[].product as products, lines[].quantity as quantities, count() as count")
+		q = q.WaitForNonStaleResults()
+		productCounts1, err := q.ToList()
+		assert.NoError(t, err)
+
+		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"), ravendb.GroupBy_array("lines[].quantity"))
+		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
+		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantities")
+		q2 = q3.SelectCount()
+		q2 = q2.OrderBy("count")
+		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
+		productCounts2, err := q2.ToList()
+		assert.NoError(t, err)
+
+		combined := [][]interface{}{productCounts1, productCounts2}
+		for _, products := range combined {
+			assert.Equal(t, len(products), 2)
+
+			product := products[0].(*ProductCount)
+			assert.Equal(t, len(product.Products), 1)
+			assert.True(t, ravendb.StringArrayContains(product.Products, "products/2"))
+
+			assert.Equal(t, product.Count, 1)
+			assert.Equal(t, product.Quantities, []int{3})
+
+			product = products[1].(*ProductCount)
+			assert.Equal(t, len(product.Products), 2)
+			assert.True(t, ravendb.StringArrayContainsExactly(product.Products, []string{"products/1", "products/2"}))
+			assert.Equal(t, product.Count, 2)
+			assert.Equal(t, product.Quantities, []int{1, 2})
+
+		}
+		session.Close()
+	}
 }
 
 type ProductCount struct {
