@@ -11,6 +11,9 @@ export LOG_FAILED_HTTP_REQUESTS_DELAYED=true
 #export ENABLE_FAILING_TESTS=true
 #export ENABLE_FLAKY_TESTS=true
 
+echo "TRAVIS_BUILD_DIR: $TRAVIS_BUILD_DIR"
+echo "pwd:              `pwd`"
+
 go test -v -race -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt ./tests
 
 # This reports much lower test coverage
