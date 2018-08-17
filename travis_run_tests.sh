@@ -15,7 +15,9 @@ echo "TRAVIS_BUILD_DIR: $TRAVIS_BUILD_DIR"
 echo "pwd:              `pwd`"
 echo "GOPATH:           $GOPATH"
 
-go test -v -race -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt github.com/ravendb/ravendb-go-client/tests
+#go test -v -race -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt github.com/ravendb/ravendb-go-client/tests
+
+go test -v -race -coverpkg . -covermode=atomic -coverprofile=coverage.txt ./tests
 
 # This reports much lower test coverage
 # go test -v -coverpkg=all -covermode=atomic -coverprofile=coverage.txt ./tests
