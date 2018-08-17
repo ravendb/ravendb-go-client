@@ -186,13 +186,11 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 			assert.Equal(t, len(products), 2)
 
 			product := products[0].(*ProductCount)
-			assert.Equal(t, len(product.Products), 1)
-			assert.True(t, ravendb.StringArrayContains(product.Products, "products/2"))
+			assert.Equal(t, product.Products, []string{"products/2"})
 			assert.Equal(t, product.Count, 1)
 
 			product = products[1].(*ProductCount)
-			assert.Equal(t, len(product.Products), 2)
-			assert.True(t, ravendb.StringArrayContainsExactly(product.Products, []string{"products/1", "products/2"}))
+			assert.Equal(t, product.Products, []string{"products/1", "products/2"})
 
 			assert.Equal(t, product.Count, 2)
 		}
@@ -225,13 +223,11 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 			assert.Equal(t, len(products), 2)
 
 			product := products[0].(*ProductCount)
-			assert.Equal(t, len(product.Products), 1)
-			assert.True(t, ravendb.StringArrayContains(product.Products, "products/2"))
+			assert.Equal(t, product.Products, []string{"products/2"})
 			assert.Equal(t, product.Count, 1)
 
 			product = products[1].(*ProductCount)
-			assert.Equal(t, len(product.Products), 2)
-			assert.True(t, ravendb.StringArrayContainsExactly(product.Products, []string{"products/1", "products/2"}))
+			assert.Equal(t, product.Products, []string{"products/1", "products/2"})
 
 			assert.Equal(t, product.Count, 2)
 		}
@@ -265,15 +261,13 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 			assert.Equal(t, len(products), 2)
 
 			product := products[0].(*ProductCount)
-			assert.Equal(t, len(product.Products), 1)
-			assert.True(t, ravendb.StringArrayContains(product.Products, "products/2"))
+			assert.Equal(t, product.Products, []string{"products/2"})
 
 			assert.Equal(t, product.Count, 1)
 			assert.Equal(t, product.Quantities, []int{3})
 
 			product = products[1].(*ProductCount)
-			assert.Equal(t, len(product.Products), 2)
-			assert.True(t, ravendb.StringArrayContainsExactly(product.Products, []string{"products/1", "products/2"}))
+			assert.Equal(t, product.Products, []string{"products/1", "products/2"})
 			assert.Equal(t, product.Count, 2)
 			assert.Equal(t, product.Quantities, []int{1, 2})
 
