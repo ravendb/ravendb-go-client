@@ -509,7 +509,102 @@ func firstClassPatch_canIncrement(t *testing.T) {
 	}
 }
 
-func firstClassPatch_shouldMergePatchCalls(t *testing.T) {}
+func firstClassPatch_shouldMergePatchCalls(t *testing.T) {
+	stuff := []*Stuff{nil, nil, nil}
+	stuff[0] = &Stuff{
+		Key: 6,
+	}
+
+	user := &User2{
+		Stuff:   stuff,
+		Numbers: []int{66},
+	}
+
+	user2 := &User2{
+		Numbers: []int{1, 2, 3},
+		Stuff:   stuff,
+	}
+
+	docId2 := "user2s/2-A"
+
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.Store(user)
+		assert.NoError(t, err)
+		err = session.StoreWithID(user2, docId2)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	now := time.Now()
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.Advanced().PatchByID(_docId, "numbers[0]", 31)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
+
+		err = session.Advanced().PatchByID(_docId, "lastLogin", now)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
+
+		err = session.Advanced().PatchByID(docId2, "numbers[0]", 123)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 2)
+
+		err = session.Advanced().PatchByID(docId2, "lastLogin", now)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 2)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.Advanced().IncrementByID(_docId, "numbers[0]", 1)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
+
+		adder := func(r *ravendb.JavaScriptArray) {
+			r.Add(77)
+		}
+		err = session.Advanced().PatchArrayByID(_docId, "numbers", adder)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
+
+		adder = func(r *ravendb.JavaScriptArray) {
+			r.Add(88)
+		}
+		err = session.Advanced().PatchArrayByID(_docId, "numbers", adder)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
+
+		adder = func(r *ravendb.JavaScriptArray) {
+			r.RemoveAt(1)
+		}
+		err = session.Advanced().PatchArrayByID(_docId, "numbers", adder)
+		assert.NoError(t, err)
+		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+}
 
 func TestFirstClassPatch(t *testing.T) {
 	if dbTestsDisabled() {

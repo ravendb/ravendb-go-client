@@ -106,6 +106,9 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	return res
 }
 
+func (s *InMemoryDocumentSessionOperations) GetDeferredCommandsCount() int {
+	return len(s.deferredCommands)
+}
 
 func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
