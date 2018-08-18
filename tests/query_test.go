@@ -1398,7 +1398,9 @@ func TestQuery(t *testing.T) {
 	if ravendb.EnableFlakyTests {
 		query_rawQuerySkipTake(t)
 	}
-	query_queryWithDuration(t)
+	if ravendb.EnableFlakyTests {
+		query_queryWithDuration(t)
+	}
 	query_queryWithWhereClause(t)
 	query_queryMapReduceIndex(t)
 	query_queryLazily(t)
