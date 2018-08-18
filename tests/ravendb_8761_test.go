@@ -344,5 +344,7 @@ func TestRavenDB8761(t *testing.T) {
 
 	// matches the order of Java tests
 	ravendb_8761_can_group_by_array_content(t)
-	ravendb_8761_can_group_by_array_values(t)
+	if ravendb.EnableFlakyTests {
+		ravendb_8761_can_group_by_array_values(t)
+	}
 }
