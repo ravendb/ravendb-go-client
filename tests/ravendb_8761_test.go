@@ -43,6 +43,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 			assert.Equal(t, product.ProductName, "products/2")
 			assert.Equal(t, product.Count, 2)
 		}
+
 		session.Close()
 	}
 
@@ -79,6 +80,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 			assert.Equal(t, product.Count, 2)
 			assert.Equal(t, product.Country, "USA")
 		}
+
 		session.Close()
 	}
 
