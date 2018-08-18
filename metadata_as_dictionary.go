@@ -39,6 +39,10 @@ func NewMetadataAsDictionary(metadata ObjectNode, parent *IMetadataDictionary, p
 	}
 }
 
+func (d *MetadataAsDictionary) MarkDirty() {
+	d.dirty = true
+}
+
 func (d *MetadataAsDictionary) IsDirty() bool {
 	return d.dirty
 }
@@ -88,7 +92,9 @@ func (d *MetadataAsDictionary) ConvertValue(key string, value Object) Object {
 	case int, bool, string, float32, float64: // TODO: more int types?
 		return value
 	case ObjectNode:
-		return NewMetadataAsDictionary(v, d, key)
+		// TODO: not sure what to do here. Relevant test case: TestRavenDB10641
+		//return NewMetadataAsDictionary(v, d, key)
+		return v
 	case []interface{}:
 		n := len(v)
 		res := make([]interface{}, n, n)
@@ -163,22 +169,28 @@ func (d *MetadataAsDictionary) GetObjects(key string) []*IMetadataDictionary {
 	return list
 }
 
+func (d *MetadataAsDictionary) Size() int {
+	if d._metadata != nil {
+		return len(d._metadata)
+	}
+
+	return len(d._source)
+}
+
+func (d *MetadataAsDictionary) IsEmpty() bool {
+	return d.Size() == 0
+}
+
+func (d *MetadataAsDictionary) Remove(key string) {
+	if d._metadata == nil {
+		return
+	}
+	d.dirty = true
+
+	delete(d._metadata, key)
+}
+
 /*
-    @Override
-    public int size() {
-        if (_metadata != null) {
-            return _metadata.size();
-        }
-
-        return _source.size();
-    }
-
-
-    @Override
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
     @Override
     public void putAll(Map<? extends string, ?> m) {
         if (_metadata == null) {
@@ -187,16 +199,6 @@ func (d *MetadataAsDictionary) GetObjects(key string) []*IMetadataDictionary {
         dirty = true;
 
         _metadata.putAll(m);
-    }
-
-    @Override
-    public Object remove(Object key) {
-        if (_metadata == null) {
-            init();
-        }
-        dirty = true;
-
-        return _metadata.remove(key);
     }
 
     @Override

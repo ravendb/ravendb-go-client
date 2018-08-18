@@ -109,7 +109,8 @@ func runJava() {
 	//runSingleJavaTest("WhatChangedTest")
 	//runSingleJavaTest("WhatChangedTest")
 	//runSingleJavaTest("FirstClassPatchTest")
-	runSingleJavaTest("RavenDB_8761")
+	//runSingleJavaTest("RavenDB_8761")
+	runSingleJavaTest("RavenDB_10641Test")
 }
 
 func main() {
