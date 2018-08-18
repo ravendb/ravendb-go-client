@@ -36,6 +36,6 @@ go clean -testcache
 
 # go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestCrud$
 
-go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestSimonBartlett$ ./tests
+go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestRavenDB9676$ ./tests
 
 #go test -v -race -vet=off -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt -run ^TestCrud$ ./tests
