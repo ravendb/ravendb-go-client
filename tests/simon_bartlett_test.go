@@ -125,7 +125,7 @@ func NewGeoIndex() *ravendb.AbstractIndexCreationTask {
 		"    WKT = this.CreateSpatialField(doc.WKT)\n" +
 		"})"
 	spatialOptions := ravendb.NewSpatialOptions()
-	spatialOptions.SetStrategy(ravendb.SpatialSearchStrategy_GEOHASH_PREFIX_TREE)
+	spatialOptions.Strategy = ravendb.SpatialSearchStrategy_GEOHASH_PREFIX_TREE
 	res.SpatialOptionsStrings["WKT"] = spatialOptions
 	return res
 }

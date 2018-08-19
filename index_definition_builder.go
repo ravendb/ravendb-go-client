@@ -42,8 +42,8 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	}
 
 	indexDefinition := NewIndexDefinition()
-	indexDefinition.SetName(d._indexName)
-	indexDefinition.SetReduce(d.reduce)
+	indexDefinition.Name = d._indexName
+	indexDefinition.Reduce = &d.reduce
 	indexDefinition.SetLockMode(d.lockMode)
 	indexDefinition.SetPriority(d.priority)
 	indexDefinition.SetOutputReduceToCollection(d.outputReduceToCollection)
@@ -57,42 +57,42 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	// TODO: figure out a better way to do it. In Java applyValues() is templated function
 	{
 		f := func(options *IndexFieldOptions, value FieldIndexing) {
-			options.SetIndexing(value)
+			options.Indexing = value
 		}
 		d.applyFieldIndexingValues(indexDefinition, d.indexesStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value FieldStorage) {
-			options.SetStorage(value)
+			options.Storage = value
 		}
 		d.applyFieldStorageValues(indexDefinition, d.storesStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value string) {
-			options.SetAnalyzer(value)
+			options.Analyzer = value
 		}
 		d.applyStringValues(indexDefinition, d.analyzersStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value FieldTermVector) {
-			options.SetTermVector(value)
+			options.TermVector = value
 		}
 		d.applyFieldTermVectorValues(indexDefinition, d.termVectorsStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value *SpatialOptions) {
-			options.SetSpatial(value)
+			options.Spatial = value
 		}
 		d.applySpatialOptionsValues(indexDefinition, d.spatialIndexesStrings, f)
 	}
 
 	{
 		f := func(options *IndexFieldOptions, value bool) {
-			options.SetSuggestions(value)
+			options.Suggestions = value
 		}
 		d.applyBoolValues(indexDefinition, suggestions, f)
 	}
@@ -183,92 +183,4 @@ func (d *IndexDefinitionBuilder) getMap() string {
 
 func (d *IndexDefinitionBuilder) setMap(smap string) {
 	d.smap = smap
-}
-
-func (d *IndexDefinitionBuilder) getReduce() string {
-	return d.reduce
-}
-
-func (d *IndexDefinitionBuilder) setReduce(reduce string) {
-	d.reduce = reduce
-}
-
-func (d *IndexDefinitionBuilder) getStoresStrings() map[string]FieldStorage {
-	return d.storesStrings
-}
-
-func (d *IndexDefinitionBuilder) setStoresStrings(storesStrings map[string]FieldStorage) {
-	d.storesStrings = storesStrings
-}
-
-func (d *IndexDefinitionBuilder) getIndexesStrings() map[string]FieldIndexing {
-	return d.indexesStrings
-}
-
-func (d *IndexDefinitionBuilder) setIndexesStrings(indexesStrings map[string]FieldIndexing) {
-	d.indexesStrings = indexesStrings
-}
-
-func (d *IndexDefinitionBuilder) getAnalyzersStrings() map[string]string {
-	return d.analyzersStrings
-}
-
-func (d *IndexDefinitionBuilder) setAnalyzersStrings(analyzersStrings map[string]string) {
-	d.analyzersStrings = analyzersStrings
-}
-
-func (d *IndexDefinitionBuilder) getSuggestionsOptions() *StringSet {
-	return d.suggestionsOptions
-}
-
-func (d *IndexDefinitionBuilder) setSuggestionsOptions(suggestionsOptions *StringSet) {
-	d.suggestionsOptions = suggestionsOptions
-}
-
-func (d *IndexDefinitionBuilder) getTermVectorsStrings() map[string]FieldTermVector {
-	return d.termVectorsStrings
-}
-
-func (d *IndexDefinitionBuilder) setTermVectorsStrings(termVectorsStrings map[string]FieldTermVector) {
-	d.termVectorsStrings = termVectorsStrings
-}
-
-func (d *IndexDefinitionBuilder) getSpatialIndexesStrings() map[string]*SpatialOptions {
-	return d.spatialIndexesStrings
-}
-
-func (d *IndexDefinitionBuilder) setSpatialIndexesStrings(spatialIndexesStrings map[string]*SpatialOptions) {
-	d.spatialIndexesStrings = spatialIndexesStrings
-}
-
-func (d *IndexDefinitionBuilder) getLockMode() IndexLockMode {
-	return d.lockMode
-}
-
-func (d *IndexDefinitionBuilder) setLockMode(lockMode IndexLockMode) {
-	d.lockMode = lockMode
-}
-
-func (d *IndexDefinitionBuilder) getPriority() IndexPriority {
-	return d.priority
-}
-
-func (d *IndexDefinitionBuilder) setPriority(priority IndexPriority) {
-	d.priority = priority
-}
-
-func (d *IndexDefinitionBuilder) getOutputReduceToCollection() string {
-	return d.outputReduceToCollection
-}
-
-func (d *IndexDefinitionBuilder) setOutputReduceToCollection(outputReduceToCollection string) {
-	d.outputReduceToCollection = outputReduceToCollection
-}
-
-func (d *IndexDefinitionBuilder) getAdditionalSources() map[string]string {
-	return d.additionalSources
-}
-
-func (d *IndexDefinitionBuilder) setAdditionalSources(additionalSources map[string]string) {
-	d.additionalSources = additionalSources
 }

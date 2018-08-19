@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 type CustomType struct {
@@ -85,8 +85,8 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	}
 
 	def1 := ravendb.NewIndexDefinition()
-	def1.SetName("TestIndex")
-	def1.SetMaps(ravendb.NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }"))
+	def1.Name = "TestIndex"
+	def1.Maps = ravendb.NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }")
 
 	op := ravendb.NewPutIndexesOperation(def1)
 	err = store.Maintenance().Send(op)

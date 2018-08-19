@@ -50,7 +50,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 		// between now an CreateRequest()
 		indexToAdd.updateIndexType()
 
-		panicIf(indexToAdd.GetName() == "", "Index name cannot be null")
+		panicIf(indexToAdd.Name == "", "Index name cannot be null")
 		objectNode := EntityToJson_convertEntityToJson(indexToAdd, nil)
 		cmd._indexToAdd = append(cmd._indexToAdd, objectNode)
 	}
@@ -76,7 +76,6 @@ func (c *PutIndexesCommand) SetResponse(response []byte, fromCache bool) error {
 	var res PutIndexesResponse
 	err := json.Unmarshal(response, &res)
 	if err != nil {
-		dbg("PutIndexesCommand.SetResponse: json.Unmarshal failed with %s. JSON:\n%s\n\n", err, string(response))
 		return err
 	}
 	c.Result = res.Results

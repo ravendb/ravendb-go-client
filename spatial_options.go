@@ -8,96 +8,32 @@ const (
 )
 
 type SpatialOptions struct {
-	typ          SpatialFieldType
-	strategy     SpatialSearchStrategy
-	maxTreeLevel int
-	minX         float64
-	maxX         float64
-	minY         float64
-	maxY         float64
+	Type         SpatialFieldType      `json:"Type"`
+	Strategy     SpatialSearchStrategy `json:"Strategy"`
+	MaxTreeLevel int                   `json:"MaxTreeLevel"`
+	MinX         float64               `json:"MinX"`
+	MaxX         float64               `json:"MaxX"`
+	MinY         float64               `json:"MinY"`
+	MaxY         float64               `json:"MaxY"`
 
 	// Circle radius units, only used for geography  indexes
-	units SpatialUnits
+	Units SpatialUnits `json:"Units"`
 }
 
 func NewSpatialOptions() *SpatialOptions {
 	return &SpatialOptions{
-		typ:          SpatialFieldType_GEOGRAPHY,
-		strategy:     SpatialSearchStrategy_GEOHASH_PREFIX_TREE,
-		maxTreeLevel: SpatialOptions_DEFAULT_GEOHASH_LEVEL,
-		minX:         -180,
-		maxX:         180,
-		minY:         -90,
-		maxY:         90,
-		units:        SpatialUnits_KILOMETERS,
+		Type:         SpatialFieldType_GEOGRAPHY,
+		Strategy:     SpatialSearchStrategy_GEOHASH_PREFIX_TREE,
+		MaxTreeLevel: SpatialOptions_DEFAULT_GEOHASH_LEVEL,
+		MinX:         -180,
+		MaxX:         180,
+		MinY:         -90,
+		MaxY:         90,
+		Units:        SpatialUnits_KILOMETERS,
 	}
 }
 
 func SpatialOptionsDup(options *SpatialOptions) *SpatialOptions {
 	var res SpatialOptions = *options
 	return &res
-}
-
-func (o *SpatialOptions) GetType() SpatialFieldType {
-	return o.typ
-}
-
-func (o *SpatialOptions) SetType(typ SpatialFieldType) {
-	o.typ = typ
-}
-
-func (o *SpatialOptions) GetStrategy() SpatialSearchStrategy {
-	return o.strategy
-}
-
-func (o *SpatialOptions) SetStrategy(strategy SpatialSearchStrategy) {
-	o.strategy = strategy
-}
-
-func (o *SpatialOptions) GetMaxTreeLevel() int {
-	return o.maxTreeLevel
-}
-
-func (o *SpatialOptions) SetMaxTreeLevel(maxTreeLevel int) {
-	o.maxTreeLevel = maxTreeLevel
-}
-
-func (o *SpatialOptions) GetMinX() float64 {
-	return o.minX
-}
-
-func (o *SpatialOptions) SetMinX(minX float64) {
-	o.minX = minX
-}
-
-func (o *SpatialOptions) GetMaxX() float64 {
-	return o.maxX
-}
-
-func (o *SpatialOptions) SetMaxX(maxX float64) {
-	o.maxX = maxX
-}
-
-func (o *SpatialOptions) GetMinY() float64 {
-	return o.minY
-}
-
-func (o *SpatialOptions) SetMinY(minY float64) {
-	o.minY = minY
-}
-
-func (o *SpatialOptions) GetMaxY() float64 {
-	return o.maxY
-}
-
-func (o *SpatialOptions) SetMaxY(maxY float64) {
-	o.maxY = maxY
-}
-
-func (o *SpatialOptions) GetUnits() SpatialUnits {
-	return o.units
-}
-
-func (o *SpatialOptions) SetUnits(units SpatialUnits) {
-	o.units = units
 }

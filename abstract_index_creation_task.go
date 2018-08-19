@@ -59,16 +59,16 @@ func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	}
 
 	indexDefinitionBuilder := NewIndexDefinitionBuilder(t.GetIndexName())
-	indexDefinitionBuilder.setIndexesStrings(t.IndexesStrings)
-	indexDefinitionBuilder.setAnalyzersStrings(t.AnalyzersStrings)
+	indexDefinitionBuilder.indexesStrings = t.IndexesStrings
+	indexDefinitionBuilder.analyzersStrings = t.AnalyzersStrings
 	indexDefinitionBuilder.setMap(t.Map)
-	indexDefinitionBuilder.setReduce(t.Reduce)
-	indexDefinitionBuilder.setStoresStrings(t.StoresStrings)
-	indexDefinitionBuilder.setSuggestionsOptions(t.IndexSuggestions)
-	indexDefinitionBuilder.setTermVectorsStrings(t.TermVectorsStrings)
-	indexDefinitionBuilder.setSpatialIndexesStrings(t.SpatialOptionsStrings)
-	indexDefinitionBuilder.setOutputReduceToCollection(t.OutputReduceToCollection)
-	indexDefinitionBuilder.setAdditionalSources(t.GetAdditionalSources())
+	indexDefinitionBuilder.reduce = t.Reduce
+	indexDefinitionBuilder.storesStrings = t.StoresStrings
+	indexDefinitionBuilder.suggestionsOptions = t.IndexSuggestions
+	indexDefinitionBuilder.termVectorsStrings = t.TermVectorsStrings
+	indexDefinitionBuilder.spatialIndexesStrings = t.SpatialOptionsStrings
+	indexDefinitionBuilder.outputReduceToCollection = t.OutputReduceToCollection
+	indexDefinitionBuilder.additionalSources = t.GetAdditionalSources()
 
 	return indexDefinitionBuilder.toIndexDefinition(t.Conventions, false)
 }
@@ -128,7 +128,7 @@ func (t *AbstractIndexCreationTask) PutIndex(store *IDocumentStore, conventions 
 	t.SetConventions(conv)
 
 	indexDefinition := t.CreateIndexDefinition()
-	indexDefinition.SetName(t.GetIndexName())
+	indexDefinition.Name = t.GetIndexName()
 
 	if t.LockMode != "" {
 		indexDefinition.SetLockMode(t.LockMode)

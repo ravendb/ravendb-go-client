@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func NewUsersInvalidIndex() *ravendb.AbstractIndexCreationTask {
@@ -170,7 +170,7 @@ func testIndexHasIndexChanged(t *testing.T) {
 		assert.False(t, cmd.Result)
 	}
 	m := ravendb.NewStringSetFromStrings("from users")
-	indexDef.SetMaps(m)
+	indexDef.Maps = m
 
 	op3 := ravendb.NewIndexHasChangedOperation(indexDef)
 	err = store.Maintenance().Send(op3)
@@ -239,7 +239,7 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	}
 
 	{
-		op := ravendb.NewStopIndexOperation(indexDef.GetName())
+		op := ravendb.NewStopIndexOperation(indexDef.Name)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -255,7 +255,7 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	}
 
 	{
-		op := ravendb.NewStartIndexOperation(indexDef.GetName())
+		op := ravendb.NewStartIndexOperation(indexDef.Name)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -285,13 +285,13 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 	}
 
 	{
-		op := ravendb.NewSetIndexesLockOperation(indexDef.GetName(), ravendb.IndexLockMode_LOCKED_ERROR)
+		op := ravendb.NewSetIndexesLockOperation(indexDef.Name, ravendb.IndexLockMode_LOCKED_ERROR)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := ravendb.NewGetIndexOperation(indexDef.GetName())
+		op := ravendb.NewGetIndexOperation(indexDef.Name)
 		err = store.Maintenance().Send(op)
 		newIndexDef := op.Command.Result
 		assert.Equal(t, *newIndexDef.GetLockMode(), ravendb.IndexLockMode_LOCKED_ERROR)
@@ -309,11 +309,11 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	op2 := ravendb.NewSetIndexesPriorityOperation(indexDef.GetName(), ravendb.IndexPriority_HIGH)
+	op2 := ravendb.NewSetIndexesPriorityOperation(indexDef.Name, ravendb.IndexPriority_HIGH)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 
-	op3 := ravendb.NewGetIndexOperation(indexDef.GetName())
+	op3 := ravendb.NewGetIndexOperation(indexDef.Name)
 	err = store.Maintenance().Send(op3)
 	newIndexDef := op3.Command.Result
 	assert.Equal(t, *newIndexDef.GetPriority(), ravendb.IndexPriority_HIGH)
@@ -351,7 +351,7 @@ func testIndexCanListErrors(t *testing.T) {
 	indexErrors := op2.Command.Result
 	assert.Equal(t, len(indexErrors), 1)
 
-	op3 := ravendb.NewGetIndexErrorsOperation([]string{indexDef.GetName()})
+	op3 := ravendb.NewGetIndexErrorsOperation([]string{indexDef.Name})
 	err = store.Maintenance().Send(op3)
 	assert.NoError(t, err)
 	perIndexErrors := op3.Command.Result

@@ -33,14 +33,6 @@ func NewIndexDefinition() *IndexDefinition {
 	return res
 }
 
-func (d *IndexDefinition) GetName() string {
-	return d.Name
-}
-
-func (d *IndexDefinition) SetName(name string) {
-	d.Name = name
-}
-
 func (d *IndexDefinition) GetPriority() *IndexPriority {
 	return d.Priority
 }
@@ -66,7 +58,7 @@ func (d *IndexDefinition) GetAdditionalSources() map[string]string {
 
 func (d *IndexDefinition) SetAdditionalSources(additionalSources map[string]string) {
 	// preserve additionalSources being always non-nil
-	// to JSON serialize as {} and not nil
+	// so that JSON serializes it as {} and not 'null'
 	if additionalSources == nil {
 		if len(d.AdditionalSources) == 0 {
 			return
@@ -83,18 +75,6 @@ func (d *IndexDefinition) GetMaps() *StringSet {
 	return d.Maps
 }
 
-func (d *IndexDefinition) SetMaps(maps *StringSet) {
-	d.Maps = maps
-}
-
-func (d *IndexDefinition) GetReduce() *string {
-	return d.Reduce
-}
-
-func (d *IndexDefinition) SetReduce(reduce string) {
-	d.Reduce = toStrPtr(reduce)
-}
-
 func (d *IndexDefinition) String() string {
 	return d.Name
 }
@@ -104,10 +84,6 @@ func (d *IndexDefinition) GetFields() map[string]*IndexFieldOptions {
 		d.Fields = make(map[string]*IndexFieldOptions)
 	}
 	return d.Fields
-}
-
-func (d *IndexDefinition) SetFields(fields map[string]*IndexFieldOptions) {
-	d.Fields = fields
 }
 
 func (d *IndexDefinition) GetConfiguration() IndexConfiguration {

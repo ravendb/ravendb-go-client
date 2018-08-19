@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func NewUsersIndex() *ravendb.AbstractIndexCreationTask {
@@ -240,7 +240,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	index := indexes[0]
 
 	{
-		op := ravendb.NewGetIndexStatisticsOperation(index.GetName())
+		op := ravendb.NewGetIndexStatisticsOperation(index.Name)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
@@ -249,18 +249,18 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	}
 
 	{
-		op := ravendb.NewSetIndexesLockOperation(index.GetName(), ravendb.IndexLockMode_LOCKED_IGNORE)
+		op := ravendb.NewSetIndexesLockOperation(index.Name, ravendb.IndexLockMode_LOCKED_IGNORE)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := ravendb.NewSetIndexesPriorityOperation(index.GetName(), ravendb.IndexPriority_LOW)
+		op := ravendb.NewSetIndexesPriorityOperation(index.Name, ravendb.IndexPriority_LOW)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 	{
-		op := ravendb.NewGetIndexStatisticsOperation(index.GetName())
+		op := ravendb.NewGetIndexStatisticsOperation(index.Name)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result

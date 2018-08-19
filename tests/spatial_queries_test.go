@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func NewSpatialQueriesInMemoryTestIdx() *ravendb.AbstractIndexCreationTask {
@@ -89,9 +89,9 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		assert.NoError(t, err)
 
 		indexDefinition := ravendb.NewIndexDefinition()
-		indexDefinition.SetName("FindByLatLng")
+		indexDefinition.Name = "FindByLatLng"
 		maps := ravendb.NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
-		indexDefinition.SetMaps(maps)
+		indexDefinition.Maps = maps
 
 		op := ravendb.NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)
@@ -139,9 +139,9 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		assert.NoError(t, err)
 
 		indexDefinition := ravendb.NewIndexDefinition()
-		indexDefinition.SetName("FindByLatLng")
+		indexDefinition.Name = "FindByLatLng"
 		maps := ravendb.NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
-		indexDefinition.SetMaps(maps)
+		indexDefinition.Maps = maps
 
 		op := ravendb.NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)

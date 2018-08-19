@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -69,31 +69,31 @@ var (
 func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
-	indexDefinition.SetName("eventsByLatLng")
+	indexDefinition.Name = "eventsByLatLng"
 	maps := ravendb.NewStringSetFromStrings("from e in docs.Shops select new { e.venue, coordinates = CreateSpatialField(e.latitude, e.longitude) }")
-	indexDefinition.SetMaps(maps)
+	indexDefinition.Maps = maps
 
 	fields := make(map[string]*ravendb.IndexFieldOptions)
 	options := ravendb.NewIndexFieldOptions()
-	options.SetIndexing(ravendb.FieldIndexing_EXACT)
+	options.Indexing = ravendb.FieldIndexing_EXACT
 	fields["tag"] = options
-	indexDefinition.SetFields(fields)
+	indexDefinition.Fields = fields
 
 	op := ravendb.NewPutIndexesOperation(indexDefinition)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
 	indexDefinition2 := ravendb.NewIndexDefinition()
-	indexDefinition2.SetName("eventsByLatLngWSpecialField")
+	indexDefinition2.Name = "eventsByLatLngWSpecialField"
 	maps = ravendb.NewStringSetFromStrings("from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }")
-	indexDefinition2.SetMaps(maps)
+	indexDefinition2.Maps = maps
 
 	indexFieldOptions := ravendb.NewIndexFieldOptions()
-	indexFieldOptions.SetIndexing(ravendb.FieldIndexing_EXACT)
+	indexFieldOptions.Indexing = ravendb.FieldIndexing_EXACT
 	fields = map[string]*ravendb.IndexFieldOptions{
 		"tag": indexFieldOptions,
 	}
-	indexDefinition2.SetFields(fields)
+	indexDefinition2.Fields = fields
 
 	op = ravendb.NewPutIndexesOperation(indexDefinition2)
 	err = store.Maintenance().Send(op)
