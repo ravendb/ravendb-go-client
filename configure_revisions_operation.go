@@ -57,13 +57,7 @@ func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Reque
 }
 
 func (c *ConfigureRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
-	var res ConfigureRevisionsOperationResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }
 
 type ConfigureRevisionsOperationResult struct {

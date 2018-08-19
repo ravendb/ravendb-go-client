@@ -48,11 +48,5 @@ func (c *GetCollectionStatisticsCommand) SetResponse(response []byte, fromCache 
 		return throwInvalidResponse()
 	}
 
-	var res CollectionStatistics
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

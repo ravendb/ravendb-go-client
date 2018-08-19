@@ -69,11 +69,5 @@ func (c *CreateDatabaseCommand) SetResponse(response []byte, fromCache bool) err
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	var res DatabasePutResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

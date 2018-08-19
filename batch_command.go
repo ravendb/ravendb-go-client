@@ -128,13 +128,7 @@ func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}
 
-	var res JSONArrayResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }
 
 func (c *BatchCommand) appendOptions(sb string) string {

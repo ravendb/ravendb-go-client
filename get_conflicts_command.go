@@ -39,11 +39,5 @@ func (c *GetConflictsCommand) SetResponse(response []byte, fromCache bool) error
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	var res GetConflictsResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

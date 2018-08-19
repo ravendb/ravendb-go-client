@@ -65,10 +65,7 @@ func (c *RemoveCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*ht
 }
 
 func (c *RemoveCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
-	res, err := CompareExchangeResult_parseFromString(c._clazz, response, c._conventions)
-	if err != nil {
-		return err
-	}
-	c.Result = res
-	return nil
+	var err error
+	c.Result, err = CompareExchangeResult_parseFromString(c._clazz, response, c._conventions)
+	return err
 }

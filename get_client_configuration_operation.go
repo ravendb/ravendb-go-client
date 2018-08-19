@@ -48,13 +48,7 @@ func (c *GetClientConfigurationCommand) SetResponse(response []byte, fromCache b
 		return nil
 	}
 
-	var res GetClientConfigurationCommandResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }
 
 type GetClientConfigurationCommandResult struct {

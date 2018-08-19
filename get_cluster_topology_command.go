@@ -31,11 +31,5 @@ func (c *GetClusterTopologyCommand) SetResponse(response []byte, fromCache bool)
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	var res ClusterTopologyResponse
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

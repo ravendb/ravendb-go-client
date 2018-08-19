@@ -94,11 +94,5 @@ func (c *DeleteByIndexCommand) SetResponse(response []byte, fromCache bool) erro
 		throwInvalidResponse()
 	}
 
-	var res OperationIdResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }
