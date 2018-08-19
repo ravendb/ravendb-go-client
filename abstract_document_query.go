@@ -1761,29 +1761,29 @@ func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
        LazyQueryOperation<T> lazyQueryOperation = new LazyQueryOperation<T>(clazz, theSession.getConventions(), queryOperation, afterQueryExecutedCallback);
        return ((DocumentSession)theSession).addLazyCountOperation(lazyQueryOperation);
    }
-
-     _suggestUsing(SuggestionBase suggestion) {
-       if (suggestion == null) {
-           throw new IllegalArgumentException("suggestion cannot be null");
-       }
-
-       assertCanSuggest();
-
-       SuggestToken token;
-
-       if (suggestion instanceof SuggestionWithTerm) {
-           SuggestionWithTerm term = (SuggestionWithTerm) suggestion;
-           token = SuggestToken.create(term.getField(), addQueryParameter(term.getTerm()), getOptionsParameterName(term.GetOptions()));
-       } else if (suggestion instanceof SuggestionWithTerms) {
-           SuggestionWithTerms terms = (SuggestionWithTerms) suggestion;
-           token = SuggestToken.create(terms.getField(), addQueryParameter(terms.getTerms()), getOptionsParameterName(terms.GetOptions()));
-       } else {
-           throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
-       }
-
-       selectTokens.add(token);
-   }
 */
+
+// SuggestUsing adds a query part for suggestions
+func (q *AbstractDocumentQuery) SuggestUsing(suggestion SuggestionBase) {
+	if suggestion == nil {
+		panic(NewIllegalArgumentException("suggestion cannot be null"))
+		// throw new IllegalArgumentException("suggestion cannot be null");
+	}
+
+	q.assertCanSuggest()
+
+	var token *SuggestToken
+
+	if term, ok := suggestion.(*SuggestionWithTerm); ok {
+		token = SuggestToken_create(term.Field, q.addQueryParameter(term.Term), q.getOptionsParameterName(term.Options))
+	} else if terms, ok := suggestion.(*SuggestionWithTerms); ok {
+		token = SuggestToken_create(terms.Field, q.addQueryParameter(terms.Terms), q.getOptionsParameterName(terms.Options))
+	} else {
+		// throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
+		panic(NewUnsupportedOperationException("Unknown type of suggestion: %T", suggestion))
+	}
+	q.selectTokens = append(q.selectTokens, token)
+}
 
 func (q *AbstractDocumentQuery) getOptionsParameterName(options *SuggestionOptions) string {
 	optionsParameterName := ""

@@ -42,7 +42,6 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		// List<Item> items =
 		q := session.Query(ravendb.GetTypeOf(&Item{}))
 		q = q.WaitForNonStaleResults(0)
 		f := ravendb.NewPointField("latitude", "longitude")
@@ -64,7 +63,6 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 		item = items[1].(*Item)
 		assert.Equal(t, item.Name, "Item2")
 
-		//items =
 		q = session.Query(ravendb.GetTypeOf(&Item{}))
 		q = q.WaitForNonStaleResults(0)
 		f = ravendb.NewPointField("latitude", "longitude")

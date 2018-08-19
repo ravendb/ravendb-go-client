@@ -674,17 +674,15 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	return q
 }
 
-/*
- ISuggestionDocumentQuery<T> suggestUsing(SuggestionBase suggestion) {
-	_suggestUsing(suggestion);
-	return new SuggestionDocumentQuery<>(this);
+func (q *DocumentQuery) SuggestUsing(suggestion SuggestionBase) *ISuggestionDocumentQuery {
+	q.SuggestUsing(suggestion)
+	return NewSuggestionDocumentQuery(q)
 }
 
- ISuggestionDocumentQuery<T> suggestUsing(Consumer<ISuggestionBuilder<T>> builder) {
-	SuggestionBuilder<T> f = new SuggestionBuilder<>();
-	builder.accept(f);
+func (q *DocumentQuery) suggestUsing(builder func(ISuggestionBuilder)) *ISuggestionDocumentQuery {
+	f := NewSuggestionBuilder()
+	builder(f)
 
-	suggestUsing(f.getSuggestion());
-	return new SuggestionDocumentQuery<>(this);
+	q.SuggestUsing(f.getSuggestion())
+	return NewSuggestionDocumentQuery(q)
 }
-*/
