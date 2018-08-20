@@ -3,32 +3,16 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 type HiLoDoc struct {
 	Max int `json:"Max"`
 }
 
-func (d *HiLoDoc) getMax() int {
-	return d.Max
-}
-
-func (d *HiLoDoc) setMax(max int) {
-	d.Max = max
-}
-
 type Product struct {
 	ProductName string `json:"ProductName"`
-}
-
-func (p *Product) getProductName() string {
-	return p.ProductName
-}
-
-func (p *Product) setProductName(productName string) {
-	p.ProductName = productName
 }
 
 func hiloTest_capacityShouldDouble(t *testing.T) {
@@ -40,8 +24,9 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		hiloDoc := &HiLoDoc{}
-		hiloDoc.setMax(64)
+		hiloDoc := &HiLoDoc{
+			Max: 64,
+		}
 
 		err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
@@ -64,7 +49,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		result, err := session.Load(ravendb.GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
 		assert.NoError(t, err)
 		hiloDoc := result.(*HiLoDoc)
-		max := hiloDoc.getMax()
+		max := hiloDoc.Max
 		assert.Equal(t, max, 96)
 
 		//we should be receiving a range of 64 now
@@ -78,7 +63,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		result, err := session.Load(ravendb.GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
 		assert.NoError(t, err)
 		hiloDoc := result.(*HiLoDoc)
-		max := hiloDoc.getMax()
+		max := hiloDoc.Max
 
 		// TODO: in Java it's 160. On Travis CI (linux) it's 160
 		// On my mac, it's 128.
@@ -110,8 +95,9 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 
-		hiloDoc := &HiLoDoc{}
-		hiloDoc.setMax(32)
+		hiloDoc := &HiLoDoc{
+			Max: 32,
+		}
 		err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
@@ -143,7 +129,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		hiloDocI, err := session.Load(ravendb.GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
 		assert.NoError(t, err)
 		hiloDoc := hiloDocI.(*HiLoDoc)
-		max := hiloDoc.getMax()
+		max := hiloDoc.Max
 		assert.Equal(t, max, 34)
 		session.Close()
 	}
@@ -158,8 +144,9 @@ func hiloTest_canNotGoDown(t *testing.T) {
 
 	session := openSessionMust(t, store)
 
-	hiloDoc := &HiLoDoc{}
-	hiloDoc.setMax(32)
+	hiloDoc := &HiLoDoc{
+		Max: 32,
+	}
 
 	err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 	assert.NoError(t, err)
@@ -173,7 +160,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	assert.Nil(t, err)
 	ids := []int{nextID}
 
-	hiloDoc.setMax(12)
+	hiloDoc.Max = 12
 	session.StoreWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
 	err = session.SaveChanges()
 	assert.Nil(t, err)
@@ -195,13 +182,15 @@ func hiloTest_multiDb(t *testing.T) {
 
 	session := openSessionMust(t, store)
 
-	hiloDoc := &HiLoDoc{}
-	hiloDoc.setMax(64)
+	hiloDoc := &HiLoDoc{
+		Max: 64,
+	}
 	err = session.StoreWithID(hiloDoc, "Raven/Hilo/users")
 	assert.NoError(t, err)
 
-	productsHilo := &HiLoDoc{}
-	productsHilo.setMax(128)
+	productsHilo := &HiLoDoc{
+		Max: 128,
+	}
 	err = session.StoreWithID(productsHilo, "Raven/Hilo/products")
 	assert.NoError(t, err)
 
