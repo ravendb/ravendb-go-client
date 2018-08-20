@@ -9,52 +9,20 @@ var (
 )
 
 type SuggestionOptions struct {
-	pageSize int
+	PageSize int
 
-	distance StringDistanceTypes
+	Distance StringDistanceTypes
 
-	accuracy float32
+	Accuracy float32
 
-	sortMode SuggestionSortMode
+	SortMode SuggestionSortMode
 }
 
 func NewSuggestionOptions() *SuggestionOptions {
 	return &SuggestionOptions{
-		sortMode: SuggestionOptions_DEFAULT_SORT_MODE,
-		distance: SuggestionOptions_DEFAULT_DISTANCE,
-		accuracy: SuggestionOptions_DEFAULT_ACCURACY,
-		pageSize: SuggestionOptions_DEFAULT_PAGE_SIZE,
+		SortMode: SuggestionOptions_DEFAULT_SORT_MODE,
+		Distance: SuggestionOptions_DEFAULT_DISTANCE,
+		Accuracy: SuggestionOptions_DEFAULT_ACCURACY,
+		PageSize: SuggestionOptions_DEFAULT_PAGE_SIZE,
 	}
-}
-
-func (o *SuggestionOptions) getPageSize() int {
-	return o.pageSize
-}
-
-func (o *SuggestionOptions) setPageSize(pageSize int) {
-	o.pageSize = pageSize
-}
-
-func (o *SuggestionOptions) getDistance() StringDistanceTypes {
-	return o.distance
-}
-
-func (o *SuggestionOptions) setDistance(distance StringDistanceTypes) {
-	o.distance = distance
-}
-
-func (o *SuggestionOptions) getAccuracy() float32 {
-	return o.accuracy
-}
-
-func (o *SuggestionOptions) setAccuracy(accuracy float32) {
-	o.accuracy = accuracy
-}
-
-func (o *SuggestionOptions) getSortMode() SuggestionSortMode {
-	return o.sortMode
-}
-
-func (o *SuggestionOptions) setSortMode(sortMode SuggestionSortMode) {
-	o.sortMode = sortMode
 }

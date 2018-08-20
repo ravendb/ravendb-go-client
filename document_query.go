@@ -675,11 +675,11 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 }
 
 func (q *DocumentQuery) SuggestUsing(suggestion SuggestionBase) *ISuggestionDocumentQuery {
-	q.SuggestUsing(suggestion)
+	q._suggestUsing(suggestion)
 	return NewSuggestionDocumentQuery(q)
 }
 
-func (q *DocumentQuery) suggestUsing(builder func(ISuggestionBuilder)) *ISuggestionDocumentQuery {
+func (q *DocumentQuery) SuggestUsingBuilder(builder func(ISuggestionBuilder)) *ISuggestionDocumentQuery {
 	f := NewSuggestionBuilder()
 	builder(f)
 

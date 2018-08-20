@@ -1764,7 +1764,7 @@ func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
 */
 
 // SuggestUsing adds a query part for suggestions
-func (q *AbstractDocumentQuery) SuggestUsing(suggestion SuggestionBase) {
+func (q *AbstractDocumentQuery) _suggestUsing(suggestion SuggestionBase) {
 	if suggestion == nil {
 		panic(NewIllegalArgumentException("suggestion cannot be null"))
 		// throw new IllegalArgumentException("suggestion cannot be null");

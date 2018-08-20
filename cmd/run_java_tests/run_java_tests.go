@@ -116,7 +116,8 @@ func runJava() {
 	//runSingleJavaTest("RavenDB_5669Test")
 	//runSingleJavaTest("RavenDB903Test")
 	//runSingleJavaTest("CustomSerializationTest")
-	runSingleJavaTest("QueriesWithCustomFunctionsTest")
+	//runSingleJavaTest("QueriesWithCustomFunctionsTest")
+	runSingleJavaTest("SuggestionsTest")
 }
 
 func main() {

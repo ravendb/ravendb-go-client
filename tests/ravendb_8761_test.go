@@ -274,6 +274,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 			assert.Equal(t, product.Quantities, []int{1, 2})
 
 		}
+
 		session.Close()
 	}
 }

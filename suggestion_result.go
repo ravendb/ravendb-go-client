@@ -1,6 +1,6 @@
 package ravendb
 
 type SuggestionResult struct {
-	Name        string
-	Suggestions []string
+	Name        string   `json:"Name"`
+	Suggestions []string `json:"Suggestions"`
 }
