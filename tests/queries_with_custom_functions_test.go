@@ -61,7 +61,7 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 		assert.Equal(t, len(queryResult), 1)
 
 		user := queryResult[0].(*User)
-		assert.Equal(t, user.Name, "Zeus")
+		assert.Equal(t, *user.Name, "Zeus")
 
 		q = session.Advanced().DocumentQuery(ravendb.GetTypeOf(&User{}))
 		q = q.WhereNotEquals("name", ravendb.CmpXchg_value("Hera"))
@@ -71,14 +71,14 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user = users[0].(*User)
-		assert.Equal(t, user.Name, "Jerry")
+		assert.Equal(t, *user.Name, "Jerry")
 
 		users, err = session.Advanced().RawQuery(ravendb.GetTypeOf(&User{}), "from Users where name = cmpxchg(\"Hera\")").ToList()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
 		user = users[0].(*User)
-		assert.Equal(t, user.Name, "Zeus")
+		assert.Equal(t, *user.Name, "Zeus")
 
 		session.Close()
 	}

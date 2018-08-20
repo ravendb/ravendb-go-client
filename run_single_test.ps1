@@ -9,6 +9,6 @@ $Env:ENABLE_FLAKY_TESTS = "false"
 $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$PSScriptRoot\RavenDB\Server\Raven.Server.exe"
 
 #go1.11beta3.exe test -v -vet=off -timeout 30s ./tests -run ^TestRavenDB8761$
-go1.11beta3.exe test -v -vet=off -timeout 30s ./tests -run ^TestCustomSerialization$
+go1.11beta3.exe test -v -vet=off -timeout 30s ./tests -run ^TestQueriesWithCustomFunctions$
 
 #go1.11beta3.exe test -vet=off -v -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
