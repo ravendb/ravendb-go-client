@@ -34,7 +34,7 @@ func (o *PutCompareExchangeValueOperation) GetCommand(store *IDocumentStore, con
 var _ RavenCommand = &PutCompareExchangeValueCommand{}
 
 type PutCompareExchangeValueCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_key         string
 	_value       interface{}

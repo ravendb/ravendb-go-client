@@ -9,7 +9,7 @@ var (
 )
 
 type HeadAttachmentCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_documentId   string
 	_name         string

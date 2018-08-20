@@ -29,7 +29,7 @@ var (
 )
 
 type StopIndexCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexName string
 }

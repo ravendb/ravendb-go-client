@@ -32,7 +32,7 @@ var (
 )
 
 type PutClientConfigurationCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	configuration []byte
 }

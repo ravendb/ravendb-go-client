@@ -15,7 +15,7 @@ func (o *GetOperationStateOperation) GetCommand(conventions *DocumentConventions
 }
 
 type GetOperationStateCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions *DocumentConventions
 	_id          int

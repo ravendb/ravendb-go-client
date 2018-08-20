@@ -10,7 +10,7 @@ var (
 )
 
 type NextIdentityForCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id string
 

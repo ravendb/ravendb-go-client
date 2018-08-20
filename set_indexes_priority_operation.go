@@ -40,7 +40,7 @@ var (
 )
 
 type SetIndexesPriorityCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_parameters []byte
 }

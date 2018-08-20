@@ -29,7 +29,7 @@ func (o *UpdateExternalReplicationOperation) GetCommand(conventions *DocumentCon
 var _ RavenCommand = &UpdateExternalReplicationCommand{}
 
 type UpdateExternalReplicationCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_newWatcher *ExternalReplication
 

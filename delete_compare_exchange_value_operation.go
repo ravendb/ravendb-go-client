@@ -34,7 +34,7 @@ func (o *DeleteCompareExchangeValueOperation) GetCommand(store *IDocumentStore, 
 var _ RavenCommand = &RemoveCompareExchangeValueCommand{}
 
 type RemoveCompareExchangeValueCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_clazz       reflect.Type
 	_key         string

@@ -11,7 +11,7 @@ var (
 )
 
 type GetDocumentsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id string
 

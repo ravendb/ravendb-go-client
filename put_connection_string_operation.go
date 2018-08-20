@@ -29,7 +29,7 @@ func (o *PutConnectionStringOperation) GetCommand(conventions *DocumentConventio
 var _ RavenCommand = &PutConnectionStringCommand{}
 
 type PutConnectionStringCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_connectionString interface{}
 

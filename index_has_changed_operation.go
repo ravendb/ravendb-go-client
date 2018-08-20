@@ -29,7 +29,7 @@ var (
 )
 
 type IndexHasChangedCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_definition []byte
 

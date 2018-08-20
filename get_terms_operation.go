@@ -42,7 +42,7 @@ var (
 )
 
 type GetTermsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexName string
 	_field     string

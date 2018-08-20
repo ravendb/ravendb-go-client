@@ -16,7 +16,7 @@ import (
 var _ RavenCommand = &BulkInsertCommand{}
 
 type BulkInsertCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_stream io.Reader
 

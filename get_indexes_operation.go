@@ -32,7 +32,7 @@ var (
 )
 
 type GetIndexesCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_start    int
 	_pageSize int

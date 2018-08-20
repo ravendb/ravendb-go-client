@@ -10,7 +10,7 @@ var (
 )
 
 type HiLoReturnCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_tag  string
 	_last int

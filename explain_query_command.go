@@ -31,7 +31,7 @@ func (r *ExplainQueryResult) SetReason(reason string) {
 }
 
 type ExplainQueryCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions *DocumentConventions
 	_indexQuery  *IndexQuery

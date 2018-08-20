@@ -28,7 +28,7 @@ func (o *ConfigureRevisionsOperation) GetCommand(conventions *DocumentConvention
 var _ RavenCommand = &ConfigureRevisionsCommand{}
 
 type ConfigureRevisionsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions   *DocumentConventions
 	_configuration *RevisionsConfiguration

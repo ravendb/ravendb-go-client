@@ -40,7 +40,7 @@ var (
 )
 
 type SetIndexesLockCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_parameters []byte
 }

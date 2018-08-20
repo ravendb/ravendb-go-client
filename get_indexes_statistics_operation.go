@@ -25,7 +25,7 @@ var (
 )
 
 type GetIndexesStatisticsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	Result []*IndexStats
 }

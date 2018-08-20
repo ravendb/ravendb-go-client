@@ -52,7 +52,7 @@ func (o *GetCompareExchangeValuesOperation) GetCommand(store *IDocumentStore, co
 }
 
 type GetCompareExchangeValuesCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_operation   *GetCompareExchangeValuesOperation
 	_conventions *DocumentConventions

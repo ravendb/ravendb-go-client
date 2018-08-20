@@ -17,7 +17,7 @@ var (
 )
 
 type BatchCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions       *DocumentConventions
 	_commands          []ICommandData

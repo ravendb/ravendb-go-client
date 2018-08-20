@@ -11,7 +11,7 @@ var (
 )
 
 type SeedIdentityForCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id     string
 	_value  int

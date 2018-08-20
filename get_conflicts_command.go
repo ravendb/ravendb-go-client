@@ -10,7 +10,7 @@ var (
 )
 
 type GetConflictsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id string
 

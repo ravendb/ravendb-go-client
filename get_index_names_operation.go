@@ -32,7 +32,7 @@ var (
 )
 
 type GetIndexNamesCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_start    int
 	_pageSize int // 0 for unset

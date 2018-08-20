@@ -11,7 +11,7 @@ var (
 )
 
 type GetRevisionsBinEntryCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_etag     int
 	_pageSize int

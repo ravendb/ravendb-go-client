@@ -32,7 +32,7 @@ func (o *PatchByQueryOperation) GetCommand(store *IDocumentStore, conventions *D
 var _ RavenCommand = &PatchByQueryCommand{}
 
 type PatchByQueryCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions   *DocumentConventions
 	_queryToUpdate *IndexQuery

@@ -30,7 +30,7 @@ var (
 )
 
 type GetIndexStatisticsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexName string
 

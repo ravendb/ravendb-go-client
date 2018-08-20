@@ -14,7 +14,7 @@ type _GetNextOperationIdCommandResponse struct {
 }
 
 type GetNextOperationIdCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	Result int
 }

@@ -21,6 +21,8 @@ type RavenCommand interface {
 	GetBase() *RavenCommandBase
 }
 
+// TODO: optimize so that zero-values are default values so that we
+// don't need NewRavenCommandBase()
 type RavenCommandBase struct {
 	statusCode            int
 	ResponseType          RavenCommandResponseType
@@ -33,8 +35,8 @@ type RavenCommandBase struct {
 	failedNodes map[*ServerNode]error
 }
 
-func NewRavenCommandBase() *RavenCommandBase {
-	res := &RavenCommandBase{
+func NewRavenCommandBase() RavenCommandBase {
+	res := RavenCommandBase{
 		ResponseType:          RavenCommandResponseType_OBJECT,
 		_canCache:             true,
 		_canCacheAggressively: true,

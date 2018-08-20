@@ -29,7 +29,7 @@ var (
 )
 
 type StartIndexCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexName string
 }

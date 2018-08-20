@@ -24,7 +24,7 @@ var (
 )
 
 type StopIndexingCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 }
 
 func NewStopIndexingCommand() *StopIndexingCommand {

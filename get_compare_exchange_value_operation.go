@@ -31,7 +31,7 @@ func (o *GetCompareExchangeValueOperation) GetCommand(store *IDocumentStore, con
 var _ RavenCommand = &GetCompareExchangeValueCommand{}
 
 type GetCompareExchangeValueCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_key         string
 	_clazz       reflect.Type

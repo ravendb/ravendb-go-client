@@ -10,7 +10,7 @@ var (
 )
 
 type GetClusterTopologyCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 	Result *ClusterTopologyResponse
 }
 

@@ -24,7 +24,7 @@ var (
 )
 
 type StartIndexingCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 }
 
 func NewStartIndexingCommand() *StartIndexingCommand {

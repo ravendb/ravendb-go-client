@@ -32,7 +32,7 @@ func (o *DeleteAttachmentOperation) GetCommand(store *IDocumentStore, convention
 var _ RavenCommand = &DeleteAttachmentCommand{}
 
 type DeleteAttachmentCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_documentId   string
 	_name         string

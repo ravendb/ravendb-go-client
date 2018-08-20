@@ -30,7 +30,7 @@ var (
 )
 
 type ResetIndexCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexName string
 }

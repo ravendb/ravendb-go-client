@@ -10,7 +10,7 @@ var (
 )
 
 type GetTcpInfoCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	tag           string
 	dbName        string

@@ -24,7 +24,7 @@ func (o *GetClientConfigurationOperation) GetCommand(conventions *DocumentConven
 }
 
 type GetClientConfigurationCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	Result *GetClientConfigurationCommandResult
 }

@@ -30,7 +30,7 @@ var (
 )
 
 type DeleteIndexCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexName string
 }

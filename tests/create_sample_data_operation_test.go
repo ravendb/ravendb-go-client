@@ -25,7 +25,7 @@ func (o *CreateSampleDataOperation) GetCommand(conventions *ravendb.DocumentConv
 var _ ravendb.RavenCommand = &CreateSampleDataCommand{}
 
 type CreateSampleDataCommand struct {
-	*ravendb.RavenCommandBase
+	ravendb.RavenCommandBase
 }
 
 func NewCreateSampleDataCommand(conventions *ravendb.DocumentConventions) *CreateSampleDataCommand {

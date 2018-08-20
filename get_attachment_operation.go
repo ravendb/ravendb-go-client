@@ -36,7 +36,7 @@ func (o *GetAttachmentOperation) GetCommand(store *IDocumentStore, conventions *
 var _ RavenCommand = &GetAttachmentCommand{}
 
 type GetAttachmentCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_documentId   string
 	_name         string

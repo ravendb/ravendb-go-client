@@ -27,7 +27,7 @@ var (
 )
 
 type GetDatabaseNamesCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_start    int
 	_pageSize int

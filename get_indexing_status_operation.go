@@ -25,7 +25,7 @@ var (
 )
 
 type GetIndexingStatusCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	Result *IndexingStatus
 }

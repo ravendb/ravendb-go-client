@@ -39,7 +39,7 @@ func (o *DeleteByQueryOperation) GetCommand(store *IDocumentStore, conventions *
 var _ RavenCommand = &DeleteByIndexCommand{}
 
 type DeleteByIndexCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions   *DocumentConventions
 	_queryToDelete *IndexQuery

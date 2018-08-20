@@ -83,7 +83,7 @@ func (o *PatchOperation) GetCommand(store *IDocumentStore, conventions *Document
 var _ RavenCommand = &PatchCommand{}
 
 type PatchCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions                     *DocumentConventions
 	_id                              string

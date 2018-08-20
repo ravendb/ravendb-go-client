@@ -12,7 +12,7 @@ var (
 )
 
 type NextHiLoCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_tag                    string
 	_lastBatchSize          int

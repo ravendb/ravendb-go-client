@@ -7,7 +7,7 @@ var (
 )
 
 type DeleteDocumentCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id           string
 	_changeVector *string

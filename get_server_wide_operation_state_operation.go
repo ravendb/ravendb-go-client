@@ -15,7 +15,7 @@ func (o *GetServerWideOperationStateOperation) GetCommand(conventions *DocumentC
 }
 
 type GetServerWideOperationStateCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions *DocumentConventions
 	_id          int

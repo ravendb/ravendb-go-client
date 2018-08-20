@@ -10,7 +10,7 @@ var (
 )
 
 type QueryStreamCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions *DocumentConventions
 	_indexQuery  *IndexQuery

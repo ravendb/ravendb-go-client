@@ -55,7 +55,7 @@ func (o *DeleteDatabasesOperation) GetCommand(conventions *DocumentConventions) 
 var _ RavenCommand = &DeleteDatabaseCommand{}
 
 type DeleteDatabaseCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	parameters []byte
 

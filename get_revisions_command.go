@@ -11,7 +11,7 @@ var (
 )
 
 type GetRevisionsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id            string
 	_start         int

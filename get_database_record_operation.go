@@ -29,7 +29,7 @@ func (o *GetDatabaseRecordOperation) GetCommand(conventions *DocumentConventions
 var _ RavenCommand = &GetDatabaseRecordCommand{}
 
 type GetDatabaseRecordCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_conventions *DocumentConventions
 	_database    string

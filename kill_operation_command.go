@@ -7,7 +7,7 @@ var (
 )
 
 type KillOperationCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id string
 }

@@ -29,7 +29,7 @@ func (o *PutIndexesOperation) GetCommand(conventions *DocumentConventions) Raven
 var _ RavenCommand = &PutIndexesCommand{}
 
 type PutIndexesCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexToAdd []ObjectNode
 
@@ -73,5 +73,11 @@ func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 }
 
 func (c *PutIndexesCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	var res PutIndexesResponse
+	err := json.Unmarshal(response, &res)
+	if err != nil {
+		return err
+	}
+	c.Result = res.Results
+	return nil
 }

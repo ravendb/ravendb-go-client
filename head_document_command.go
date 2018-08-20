@@ -9,7 +9,7 @@ var (
 )
 
 type HeadDocumentCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_id           string
 	_changeVector *string

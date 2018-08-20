@@ -25,7 +25,7 @@ func (o *GetCollectionStatisticsOperation) GetCommand(conventions *DocumentConve
 var _ RavenCommand = &GetCollectionStatisticsCommand{}
 
 type GetCollectionStatisticsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	Result *CollectionStatistics
 }

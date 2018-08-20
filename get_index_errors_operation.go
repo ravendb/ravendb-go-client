@@ -29,7 +29,7 @@ func (o *GetIndexErrorsOperation) GetCommand(conventions *DocumentConventions) R
 var _ RavenCommand = &GetIndexErrorsCommand{}
 
 type GetIndexErrorsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_indexNames []string
 

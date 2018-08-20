@@ -23,7 +23,7 @@ func (o *GetIdentitiesOperation) GetCommand(conventions *DocumentConventions) Ra
 }
 
 type GetIdentitiesCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	Result map[string]int
 }

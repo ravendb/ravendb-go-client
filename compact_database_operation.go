@@ -29,7 +29,7 @@ func (o *CompactDatabaseOperation) GetCommand(conventions *DocumentConventions) 
 var _ RavenCommand = &CompactDatabaseCommand{}
 
 type CompactDatabaseCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_compactSettings []byte // CompactSettings serialized to json
 

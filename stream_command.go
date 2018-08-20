@@ -9,7 +9,7 @@ var (
 )
 
 type StreamCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	_url string
 

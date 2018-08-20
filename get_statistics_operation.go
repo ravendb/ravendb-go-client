@@ -35,7 +35,7 @@ var (
 )
 
 type GetStatisticsCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	debugTag string
 

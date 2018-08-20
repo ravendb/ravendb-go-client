@@ -31,7 +31,7 @@ var (
 )
 
 type CreateDatabaseCommand struct {
-	*RavenCommandBase
+	RavenCommandBase
 
 	conventions       *DocumentConventions
 	databaseRecord    *DatabaseRecord
