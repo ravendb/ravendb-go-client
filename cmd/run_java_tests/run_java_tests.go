@@ -89,7 +89,7 @@ func runJava() {
 	//runSingleJavaTest("GetNextOperationIdCommandTest")
 	//runSingleJavaTest("HiLoTest")
 	//runSingleJavaTest("IndexOperationsTest")
-	runSingleJavaTest("IndexesFromClientTest")
+	//runSingleJavaTest("IndexesFromClientTest")
 	//runSingleJavaTest("LoadIntoStreamTest")
 	//runSingleJavaTest("LoadTest")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")
@@ -118,6 +118,7 @@ func runJava() {
 	//runSingleJavaTest("CustomSerializationTest")
 	//runSingleJavaTest("QueriesWithCustomFunctionsTest")
 	//runSingleJavaTest("SuggestionsTest")
+	runSingleJavaTest("MoreLikeThisTest")
 }
 
 func main() {
