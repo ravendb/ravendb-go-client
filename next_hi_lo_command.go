@@ -51,11 +51,5 @@ func (c *NextHiLoCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 }
 
 func (c *NextHiLoCommand) SetResponse(response []byte, fromCache bool) error {
-	var res HiLoResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

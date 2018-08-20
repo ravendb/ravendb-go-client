@@ -90,11 +90,5 @@ func (c *PatchByQueryCommand) SetResponse(response []byte, fromCache bool) error
 		throwInvalidResponse()
 	}
 
-	var res OperationIdResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

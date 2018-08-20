@@ -58,11 +58,5 @@ func (c *GetDatabaseRecordCommand) SetResponse(response []byte, fromCache bool) 
 		return nil
 	}
 
-	var res DatabaseRecordWithEtag
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

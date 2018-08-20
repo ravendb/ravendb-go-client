@@ -49,11 +49,6 @@ func (c *GetTcpInfoCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	var res TcpConnectionInfo
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+
+	return json.Unmarshal(response, &c.Result)
 }

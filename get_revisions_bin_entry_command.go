@@ -45,11 +45,5 @@ func (c *GetRevisionsBinEntryCommand) SetResponse(response []byte, fromCache boo
 		return throwInvalidResponse()
 	}
 
-	var res ArrayNode
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

@@ -46,11 +46,5 @@ func (c *PutDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, err
 }
 
 func (c *PutDocumentCommand) SetResponse(response []byte, fromCache bool) error {
-	var res PutResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

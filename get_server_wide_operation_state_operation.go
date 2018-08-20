@@ -45,11 +45,5 @@ func (c *GetServerWideOperationStateCommand) SetResponse(response []byte, fromCa
 		return nil
 	}
 
-	var res ObjectNode
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

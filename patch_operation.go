@@ -105,12 +105,12 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 	cmd := &PatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_id:                              id,
-		_changeVector:                    changeVector,
-		_patch:                           NewPatchOperationPayload(patch, patchIfMissing),
+		_id:           id,
+		_changeVector: changeVector,
+		_patch:        NewPatchOperationPayload(patch, patchIfMissing),
 		_skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
 		_returnDebugInformation:          returnDebugInformation,
-		_test:                            test,
+		_test: test,
 	}
 
 	return cmd
@@ -161,11 +161,5 @@ func (c *PatchCommand) SetResponse(response []byte, fromCache bool) error {
 		return nil
 	}
 
-	var res PatchOperationResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

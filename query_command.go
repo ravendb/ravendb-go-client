@@ -66,11 +66,5 @@ func (c *QueryCommand) SetResponse(response []byte, fromCache bool) error {
 		return nil
 	}
 
-	var res QueryResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

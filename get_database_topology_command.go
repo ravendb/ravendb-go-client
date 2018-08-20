@@ -35,11 +35,5 @@ func (c *GetDatabaseTopologyCommand) CreateRequest(node *ServerNode) (*http.Requ
 }
 
 func (c *GetDatabaseTopologyCommand) SetResponse(response []byte, fromCache bool) error {
-	var res Topology
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }

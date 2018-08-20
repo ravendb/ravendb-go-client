@@ -63,11 +63,5 @@ func (c *UpdateExternalReplicationCommand) SetResponse(response []byte, fromCach
 		return throwInvalidResponse()
 	}
 
-	var res ModifyOngoingTaskResult
-	err := json.Unmarshal(response, &res)
-	if err != nil {
-		return err
-	}
-	c.Result = &res
-	return nil
+	return json.Unmarshal(response, &c.Result)
 }
