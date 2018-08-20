@@ -28,4 +28,4 @@ export LOG_FAILED_HTTP_REQUESTS_DELAYED=true
 #export ENABLE_FLAKY_TESTS=true
 
 # go test -race
-go test -v -race -covermode=atomic -coverprofile=coverage.txt ./tests
+go test -v -race -vet=off -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt ./tests
