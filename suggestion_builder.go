@@ -16,11 +16,11 @@ func (b *SuggestionBuilder) ByField(fieldName string, term string, terms ...stri
 	panicIf(fieldName == "", "fieldName cannot be empty")
 	panicIf(term == "", "term cannot be empty")
 	if len(terms) > 0 {
-		b._term = NewSUggestionWithTerm(fieldName)
-		b._term.Term = term
-	} else {
-		b._terms = NewSUggestionWithTerms(fieldName)
+		b._terms = NewSuggestionWithTerms(fieldName)
 		b._terms.Terms = append([]string{term}, terms...)
+	} else {
+		b._term = NewSuggestionWithTerm(fieldName)
+		b._term.Term = term
 	}
 	return b
 }

@@ -18,7 +18,7 @@ func suggestions_setup(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "test"
-	indexDefinition.Maps = ravendb.NewStringSetFromStrings("from doc in docs.Users select new { doc.name }")
+	indexDefinition.Maps = ravendb.NewStringSetFromStrings("from doc in docs.User4s select new { doc.name }")
 	indexFieldOptions := ravendb.NewIndexFieldOptions()
 	indexFieldOptions.Suggestions = true
 	indexDefinition.Fields["name"] = indexFieldOptions
@@ -80,11 +80,195 @@ func suggestions_exactMatch(t *testing.T) {
 	}
 }
 
-func suggestions_usingLinq(t *testing.T)                {}
-func suggestions_usingLinq_WithOptions(t *testing.T)    {}
-func suggestions_usingLinq_Multiple_words(t *testing.T) {}
-func suggestions_withTypo(t *testing.T)                 {}
-func suggestions_canGetSuggestions(t *testing.T)        {}
+func suggestions_usingLinq(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	suggestions_setup(t, store)
+	{
+		s := openSessionMust(t, store)
+
+		q := s.QueryWithQuery(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		fn := func(x ravendb.ISuggestionBuilder) {
+			x.ByField("name", "Owen")
+		}
+		q2 := q.SuggestUsingBuilder(fn)
+		suggestionQueryResult, err := q2.Execute()
+		assert.NoError(t, err)
+
+		su := suggestionQueryResult["name"].Suggestions
+		assert.Equal(t, len(su), 1)
+		assert.Equal(t, su[0], "oren")
+
+		s.Close()
+	}
+}
+
+func suggestions_usingLinq_WithOptions(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	suggestions_setup(t, store)
+	{
+		s := openSessionMust(t, store)
+
+		options := ravendb.NewSuggestionOptions()
+		options.Accuracy = 0.4
+		q := s.QueryWithQuery(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		fn := func(x ravendb.ISuggestionBuilder) {
+			x.ByField("name", "Owen").WithOptions(options)
+		}
+		q2 := q.SuggestUsingBuilder(fn)
+		suggestionQueryResult, err := q2.Execute()
+		assert.NoError(t, err)
+
+		su := suggestionQueryResult["name"].Suggestions
+		assert.Equal(t, len(su), 1)
+		assert.Equal(t, su[0], "oren")
+
+		s.Close()
+	}
+}
+
+func suggestions_usingLinq_Multiple_words(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	suggestions_setup(t, store)
+	{
+		s := openSessionMust(t, store)
+
+		options := ravendb.NewSuggestionOptions()
+		options.Accuracy = 0.4
+		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
+
+		q := s.QueryWithQuery(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		fn := func(x ravendb.ISuggestionBuilder) {
+			x.ByField("name", "John Steinback").WithOptions(options)
+		}
+		q2 := q.SuggestUsingBuilder(fn)
+		suggestionQueryResult, err := q2.Execute()
+		assert.NoError(t, err)
+
+		su := suggestionQueryResult["name"].Suggestions
+		assert.Equal(t, len(su), 1)
+		assert.Equal(t, su[0], "john steinbeck")
+
+		s.Close()
+	}
+}
+
+func suggestions_withTypo(t *testing.T) {
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	suggestions_setup(t, store)
+	{
+		s := openSessionMust(t, store)
+
+		options := ravendb.NewSuggestionOptions()
+		options.Accuracy = 0.2
+		options.PageSize = 10
+		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
+
+		q := s.QueryWithQuery(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		fn := func(x ravendb.ISuggestionBuilder) {
+			x.ByField("name", "Oern").WithOptions(options)
+		}
+		q2 := q.SuggestUsingBuilder(fn)
+		suggestionQueryResult, err := q2.Execute()
+		assert.NoError(t, err)
+
+		su := suggestionQueryResult["name"].Suggestions
+		assert.Equal(t, len(su), 1)
+		assert.Equal(t, su[0], "oren")
+
+		s.Close()
+	}
+}
+
+func NewUsers4_ByName() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
+	res.Map = "from u in docs.User4s select new { u.name }"
+
+	res.Index("name", ravendb.FieldIndexing_SEARCH)
+
+	res.IndexSuggestions.Add("name")
+
+	res.Store("name", ravendb.FieldStorage_YES)
+
+	return res
+}
+
+func suggestions_canGetSuggestions(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	index := NewUsers4_ByName()
+	err = index.Execute(store)
+	assert.NoError(t, err)
+
+	{
+		s := openSessionMust(t, store)
+
+		user1 := &User4{
+			Name: "John Smith",
+		}
+		err = s.StoreWithID(user1, "users/1")
+		assert.NoError(t, err)
+
+		user2 := &User4{
+			Name: "Jack Johnson",
+		}
+		err = s.StoreWithID(user2, "users/2")
+		assert.NoError(t, err)
+
+		user3 := &User4{
+			Name: "Robery Jones",
+		}
+		err = s.StoreWithID(user3, "users/3")
+		assert.NoError(t, err)
+
+		user4 := &User4{
+			Name: "David Jones",
+		}
+		err = s.StoreWithID(user4, "users/4")
+		assert.NoError(t, err)
+
+		err = s.SaveChanges()
+		assert.NoError(t, err)
+
+		s.Close()
+	}
+
+	gRavenTestDriver.waitForIndexing(store, "", 0)
+
+	{
+		session := openSessionMust(t, store)
+
+		options := ravendb.NewSuggestionOptions()
+		options.Accuracy = 0.4
+		options.PageSize = 5
+		options.Distance = ravendb.StringDistanceTypes_JARO_WINKLER
+		options.SortMode = ravendb.SuggestionSortMode_POPULARITY
+
+		q := session.QueryInIndex(ravendb.GetTypeOf(&User4{}), index)
+		fn := func(x ravendb.ISuggestionBuilder) {
+			x.ByField("name", "johne", "davi").WithOptions(options)
+		}
+		q2 := q.SuggestUsingBuilder(fn)
+		suggestionQueryResult, err := q2.Execute()
+		assert.NoError(t, err)
+
+		su := suggestionQueryResult["name"].Suggestions
+		assert.Equal(t, len(su), 5)
+		ok := ravendb.StringArrayContainsSequence(su, []string{"john", "jones", "johnson", "david", "jack"})
+		assert.True(t, ok)
+
+		session.Close()
+	}
+}
 
 func TestSuggestions(t *testing.T) {
 	if dbTestsDisabled() {

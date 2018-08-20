@@ -7,7 +7,7 @@ type SuggestionWithTerms struct {
 	Terms []string
 }
 
-func NewSUggestionWithTerms(field string) *SuggestionWithTerms {
+func NewSuggestionWithTerms(field string) *SuggestionWithTerms {
 	res := &SuggestionWithTerms{}
 	res.Field = field
 	return res
