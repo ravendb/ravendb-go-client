@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
@@ -12,9 +12,9 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	user := NewUser()
+	user := &User{}
 	user.setName("Marcin")
-	user.setAge(30)
+	user.Age = 30
 
 	node := ravendb.ValueToTree(user)
 	command := ravendb.NewPutDocumentCommand("users/1", nil, node)
@@ -31,7 +31,7 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
-		assert.Equal(t, "Marcin", *loadedUser.GetName())
+		assert.Equal(t, "Marcin", *loadedUser.Name)
 		session.Close()
 	}
 }

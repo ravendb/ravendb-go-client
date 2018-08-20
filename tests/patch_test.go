@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func patchTestcanPatchSingleDocument(t *testing.T) {
@@ -15,7 +15,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 
 		err = session.StoreWithID(user, "users/1")
@@ -37,7 +37,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
-		assert.Equal(t, *loadedUser.GetName(), "Patched")
+		assert.Equal(t, *loadedUser.Name, "Patched")
 		session.Close()
 	}
 }
@@ -49,7 +49,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 
 		err = session.StoreWithID(user, "users/1")
@@ -70,7 +70,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
-		assert.Equal(t, *loadedUser.GetName(), "Patched")
+		assert.Equal(t, *loadedUser.Name, "Patched")
 		session.Close()
 	}
 }
@@ -82,7 +82,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 
 		err = session.StoreWithID(user, "users/1")

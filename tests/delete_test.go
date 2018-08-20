@@ -13,7 +13,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 
 	newSession := openSessionMust(t, store)
 
-	user := NewUser()
+	user := &User{}
 	user.setName("RavenDB")
 
 	err := newSession.StoreWithID(user, "users/1")
@@ -21,7 +21,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+	result, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 	assert.NoError(t, err)
 	user = result.(*User)
 
@@ -32,7 +32,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err = newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+	result, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 	assert.NoError(t, err)
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)
@@ -45,7 +45,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 
 	newSession := openSessionMust(t, store)
 
-	user := NewUser()
+	user := &User{}
 	user.setName("RavenDB")
 
 	err := newSession.StoreWithID(user, "users/1")
@@ -53,7 +53,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+	result, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 	assert.NoError(t, err)
 	user = result.(*User)
 	assert.NotNil(t, user)
@@ -63,7 +63,7 @@ func deleteTest_deleteDocumentById(t *testing.T) {
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
 
-	result, err = newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+	result, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 	assert.NoError(t, err)
 	nilUser := result.(*User)
 	assert.Nil(t, nilUser)

@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
@@ -14,7 +14,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setLastName("Adi")
 
 		err = session.StoreWithID(user, "users|")
@@ -30,7 +30,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setLastName("Avivi")
 
 		err = session.StoreWithID(user, "users|")
@@ -60,8 +60,8 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 		assert.Nil(t, entityWithId2)
 		assert.Nil(t, entityWithId4)
 
-		assert.Equal(t, *entityWithId1.getLastName(), "Adi")
-		assert.Equal(t, *entityWithId3.getLastName(), "Avivi")
+		assert.Equal(t, *entityWithId1.LastName, "Adi")
+		assert.Equal(t, *entityWithId3.LastName, "Avivi")
 		session.Close()
 	}
 }
@@ -73,7 +73,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setLastName("Adi")
 
 		err = session.StoreWithID(user, "users|")
@@ -91,7 +91,7 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setLastName("Avivi")
 
 		err = session.StoreWithID(user, "users|")
@@ -130,8 +130,8 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 		assert.Nil(t, entityWithId1990)
 		assert.Nil(t, entityWithId1992)
 
-		assert.Equal(t, *entityWithId1.getLastName(), "Adi")
-		assert.Equal(t, *entityWithId1991.getLastName(), "Avivi")
+		assert.Equal(t, *entityWithId1.LastName, "Adi")
+		assert.Equal(t, *entityWithId1991.LastName, "Avivi")
 		session.Close()
 	}
 

@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func storeTestRefreshTest(t *testing.T) {
@@ -14,7 +14,7 @@ func storeTestRefreshTest(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -32,7 +32,7 @@ func storeTestRefreshTest(t *testing.T) {
 
 		session.Advanced().Refresh(user)
 
-		name := *user.GetName()
+		name := *user.Name
 		assert.Equal(t, name, "RavenDB 4.0")
 		session.Close()
 	}
@@ -45,7 +45,7 @@ func storeTestStoreDocument(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -56,7 +56,7 @@ func storeTestStoreDocument(t *testing.T) {
 		assert.NoError(t, err)
 		user = userI.(*User)
 		assert.NotNil(t, user)
-		name := *user.GetName()
+		name := *user.Name
 		assert.Equal(t, name, "RavenDB")
 		session.Close()
 	}
@@ -69,12 +69,12 @@ func storeTestStoreDocuments(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("RavenDB")
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Hibernating Rhinos")
 		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
@@ -109,7 +109,7 @@ func storeTestNotifyAfterStore(t *testing.T) {
 		}
 		session.Advanced().AddAfterSaveChangesListener(fn)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("RavenDB")
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)

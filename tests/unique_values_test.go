@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func uniqueValues_canReadNotExistingKey(t *testing.T) {
@@ -78,7 +78,7 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 	defer store.Close()
 
 	{
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Karmel")
 
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user1, 0)
@@ -86,7 +86,7 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 		assert.NoError(t, err)
 		res := op.Command.Result
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Karmel")
 
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test2", user2, 0)
@@ -95,11 +95,11 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 		res2 := op2.Command.Result
 
 		val := res.GetValue().(*User)
-		assert.Equal(t, *val.GetName(), "Karmel")
+		assert.Equal(t, *val.Name, "Karmel")
 		assert.True(t, res.IsSuccessful())
 
 		val2 := res2.GetValue().(*User)
-		assert.Equal(t, *val2.GetName(), "Karmel")
+		assert.Equal(t, *val2.Name, "Karmel")
 		assert.True(t, res.IsSuccessful())
 	}
 }
@@ -110,7 +110,7 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 	defer store.Close()
 
 	{
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Karmel")
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user1, 0)
 		err = store.Operations().Send(op)
@@ -118,7 +118,7 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		res1 := op.Command.Result
 		val1 := res1.GetValue().(*User)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Karmel")
 
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test2", user2, 0)
@@ -127,10 +127,10 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		res2 := op2.Command.Result
 		val2 := res2.GetValue().(*User)
 
-		assert.Equal(t, *val1.GetName(), "Karmel")
+		assert.Equal(t, *val1.Name, "Karmel")
 		assert.True(t, res1.IsSuccessful())
 
-		assert.Equal(t, *val2.GetName(), "Karmel")
+		assert.Equal(t, *val2.Name, "Karmel")
 		assert.True(t, res2.IsSuccessful())
 	}
 	{
@@ -141,10 +141,10 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		assert.Equal(t, len(values), 2)
 
 		v := values["test"].GetValue().(*User)
-		assert.Equal(t, *v.GetName(), "Karmel")
+		assert.Equal(t, *v.Name, "Karmel")
 
 		v = values["test2"].GetValue().(*User)
-		assert.Equal(t, *v.GetName(), "Karmel")
+		assert.Equal(t, *v.Name, "Karmel")
 
 	}
 }
@@ -208,10 +208,10 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 	defer store.Close()
 
 	{
-		user := NewUser()
+		user := &User{}
 		user.setName("Karmel")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Karmel2")
 
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user, 0)
@@ -228,12 +228,12 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 		assert.False(t, res2.IsSuccessful())
 
 		val := res.GetValue().(*User)
-		assert.Equal(t, *val.GetName(), "Karmel")
+		assert.Equal(t, *val.Name, "Karmel")
 
 		val2 := res2.GetValue().(*User)
-		assert.Equal(t, *val2.GetName(), "Karmel")
+		assert.Equal(t, *val2.Name, "Karmel")
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("Karmel2")
 
 		op3 := ravendb.NewPutCompareExchangeValueOperation("test", user3, res2.GetIndex())
@@ -242,7 +242,7 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 		res2 = op3.Command.Result
 		assert.True(t, res2.IsSuccessful())
 		val2 = res2.GetValue().(*User)
-		assert.Equal(t, *val2.GetName(), "Karmel2")
+		assert.Equal(t, *val2.Name, "Karmel2")
 	}
 }
 
@@ -252,7 +252,7 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 	defer store.Close()
 
 	{
-		user := NewUser()
+		user := &User{}
 		user.setName("Karmel")
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user, 0)
 		err = store.Operations().Send(op)
@@ -264,9 +264,9 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.GetValue().(*User)
-		assert.Equal(t, *val.GetName(), "Karmel")
+		assert.Equal(t, *val.Name, "Karmel")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Karmel2")
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test", user2, res.GetIndex())
 		err = store.Operations().Send(op2)
@@ -274,7 +274,7 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		res2 := op2.Command.Result
 		assert.True(t, res2.IsSuccessful())
 		val2 := res2.GetValue().(*User)
-		assert.Equal(t, *val2.GetName(), "Karmel2")
+		assert.Equal(t, *val2.Name, "Karmel2")
 	}
 }
 

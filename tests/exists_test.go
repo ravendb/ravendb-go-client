@@ -15,10 +15,10 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		assert.NoError(t, err)
-		idan := NewUser()
+		idan := &User{}
 		idan.setName("Idan")
 
-		shalom := NewUser()
+		shalom := &User{}
 		shalom.setName("Shalom")
 
 		err = session.StoreWithID(idan, "users/1")
@@ -41,7 +41,7 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		_, err = session.Load(ravendb.GetTypeOf(NewUser()), "users/2")
+		_, err = session.Load(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		ok, err = session.Advanced().Exists("users/2")
 		assert.NoError(t, err)

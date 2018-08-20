@@ -18,13 +18,13 @@ func query_querySimple(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("John")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Jane")
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("Tarzan")
 
 		err = session.StoreWithID(user1, "users/1")
@@ -55,10 +55,10 @@ func query_collectionsStats(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("John")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Jane")
 
 		err = session.StoreWithID(user1, "users/1")
@@ -88,13 +88,13 @@ func query_queryWithWhereClause(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("John")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Jane")
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("Tarzan")
 
 		err = session.StoreWithID(user1, "users/1")
@@ -150,13 +150,13 @@ func query_queryMapReduceWithCount(t *testing.T) {
 		{
 			result := results[0].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 2)
-			assert.Equal(t, result.GetName(), "John")
+			assert.Equal(t, result.Name, "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 1)
-			assert.Equal(t, result.GetName(), "Tarzan")
+			assert.Equal(t, result.Name, "Tarzan")
 		}
 
 		session.Close()
@@ -184,13 +184,13 @@ func query_queryMapReduceWithSum(t *testing.T) {
 		{
 			result := results[0].(*ReduceResult)
 			assert.Equal(t, result.getAge(), 8)
-			assert.Equal(t, result.GetName(), "John")
+			assert.Equal(t, result.Name, "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
 			assert.Equal(t, result.getAge(), 2)
-			assert.Equal(t, result.GetName(), "Tarzan")
+			assert.Equal(t, result.Name, "Tarzan")
 		}
 
 		session.Close()
@@ -214,13 +214,13 @@ func query_queryMapReduceIndex(t *testing.T) {
 		{
 			result := results[0].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 2)
-			assert.Equal(t, result.GetName(), "John")
+			assert.Equal(t, result.Name, "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
 			assert.Equal(t, result.getCount(), 1)
-			assert.Equal(t, result.GetName(), "Tarzan")
+			assert.Equal(t, result.Name, "Tarzan")
 		}
 
 		session.Close()
@@ -269,8 +269,8 @@ func query_queryWithSelect(t *testing.T) {
 		for _, u := range usersAge {
 			user := u.(*User)
 
-			assert.True(t, user.getAge() >= 0)
-			assert.NotEmpty(t, user.getId())
+			assert.True(t, user.Age >= 0)
+			assert.NotEmpty(t, user.ID)
 		}
 
 		session.Close()
@@ -314,7 +314,7 @@ func query_queryWithWhereBetween(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.GetName(), "John")
+		assert.Equal(t, *user.Name, "John")
 
 		session.Close()
 	}
@@ -337,7 +337,7 @@ func query_queryWithWhereLessThan(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.GetName(), "Tarzan")
+		assert.Equal(t, *user.Name, "Tarzan")
 
 		session.Close()
 	}
@@ -380,7 +380,7 @@ func query_queryWithWhereGreaterThan(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.GetName(), "John")
+		assert.Equal(t, *user.Name, "John")
 
 		session.Close()
 	}
@@ -447,7 +447,7 @@ func query_queryWithProjection(t *testing.T) {
 			projection := p.(*UserProjection)
 			assert.NotEmpty(t, projection.getId())
 
-			assert.NotEmpty(t, projection.GetName())
+			assert.NotEmpty(t, projection.Name)
 		}
 
 		session.Close()
@@ -474,7 +474,7 @@ func query_queryWithProjection2(t *testing.T) {
 			projection := p.(*UserProjection)
 			assert.NotEmpty(t, projection.getId())
 
-			assert.Empty(t, projection.GetName()) // we didn't specify this field in mapping
+			assert.Empty(t, projection.Name) // we didn't specify this field in mapping
 		}
 
 		session.Close()
@@ -542,7 +542,7 @@ func query_queryNoTracking(t *testing.T) {
 
 		for _, u := range users {
 			user := u.(*User)
-			isLoaded := session.IsLoaded(user.getId())
+			isLoaded := session.IsLoaded(user.ID)
 			assert.False(t, isLoaded)
 		}
 
@@ -569,7 +569,7 @@ func query_querySkipTake(t *testing.T) {
 		assert.Equal(t, len(users), 1)
 
 		user := users[0].(*User)
-		assert.Equal(t, *user.GetName(), "Tarzan")
+		assert.Equal(t, *user.Name, "Tarzan")
 
 		session.Close()
 	}
@@ -592,7 +592,7 @@ func query_rawQuerySkipTake(t *testing.T) {
 
 		assert.Equal(t, len(users), 1)
 		user := users[0].(*User)
-		assert.Equal(t, *user.GetName(), "Tarzan")
+		assert.Equal(t, *user.Name, "Tarzan")
 
 		session.Close()
 	}
@@ -614,7 +614,7 @@ func query_parametersInRawQuery(t *testing.T) {
 
 		assert.Equal(t, len(users), 1)
 		user := users[0].(*User)
-		assert.Equal(t, *user.GetName(), "John")
+		assert.Equal(t, *user.Name, "John")
 
 		session.Close()
 	}
@@ -638,7 +638,7 @@ func query_queryLucene(t *testing.T) {
 
 		for _, u := range users {
 			user := u.(*User)
-			assert.Equal(t, *user.GetName(), "Tarzan")
+			assert.Equal(t, *user.Name, "Tarzan")
 		}
 
 		session.Close()
@@ -963,7 +963,7 @@ func query_queryWithBoost(t *testing.T) {
 		var names []string
 		for _, u := range users {
 			user := u.(*User)
-			names = append(names, *user.GetName())
+			names = append(names, *user.Name)
 		}
 		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
@@ -982,7 +982,7 @@ func query_queryWithBoost(t *testing.T) {
 		names = nil
 		for _, u := range users {
 			user := u.(*User)
-			names = append(names, *user.GetName())
+			names = append(names, *user.Name)
 		}
 
 		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"John", "John", "Tarzan"}))
@@ -1014,17 +1014,17 @@ func query_addUsers(t *testing.T, store *ravendb.IDocumentStore) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("John")
-		user1.setAge(3)
+		user1.Age = 3
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("John")
-		user2.setAge(5)
+		user2.Age = 5
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("Tarzan")
-		user3.setAge(2)
+		user3.Age = 2
 
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
@@ -1073,16 +1073,16 @@ func query_queryWithCustomize(t *testing.T) {
 		assert.Equal(t, len(queryResult), 4)
 
 		r := queryResult[0].(*DogsIndex_Result)
-		assert.Equal(t, r.GetName(), "Brian")
+		assert.Equal(t, r.Name, "Brian")
 
 		r = queryResult[1].(*DogsIndex_Result)
-		assert.Equal(t, r.GetName(), "Django")
+		assert.Equal(t, r.Name, "Django")
 
 		r = queryResult[2].(*DogsIndex_Result)
-		assert.Equal(t, r.GetName(), "Lassie")
+		assert.Equal(t, r.Name, "Lassie")
 
 		r = queryResult[3].(*DogsIndex_Result)
-		assert.Equal(t, r.GetName(), "Snoopy")
+		assert.Equal(t, r.Name, "Snoopy")
 
 		newSession.Close()
 	}
@@ -1095,7 +1095,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog1.setName("Snoopy")
 	dog1.setBreed("Beagle")
 	dog1.setColor("White")
-	dog1.setAge(6)
+	dog1.Age = 6
 	dog1.setVaccinated(true)
 
 	err = newSession.StoreWithID(dog1, "docs/1")
@@ -1105,7 +1105,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog2.setName("Brian")
 	dog2.setBreed("Labrador")
 	dog2.setColor("White")
-	dog2.setAge(12)
+	dog2.Age = 12
 	dog2.setVaccinated(false)
 
 	err = newSession.StoreWithID(dog2, "docs/2")
@@ -1115,7 +1115,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog3.setName("Django")
 	dog3.setBreed("Jack Russel")
 	dog3.setColor("Black")
-	dog3.setAge(3)
+	dog3.Age = 3
 	dog3.setVaccinated(true)
 
 	err = newSession.StoreWithID(dog3, "docs/3")
@@ -1125,7 +1125,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog4.setName("Beethoven")
 	dog4.setBreed("St. Bernard")
 	dog4.setColor("Brown")
-	dog4.setAge(1)
+	dog4.Age = 1
 	dog4.setVaccinated(false)
 
 	err = newSession.StoreWithID(dog4, "docs/4")
@@ -1135,7 +1135,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog5.setName("Scooby Doo")
 	dog5.setBreed("Great Dane")
 	dog5.setColor("Brown")
-	dog5.setAge(0)
+	dog5.Age = 0
 	dog5.setVaccinated(false)
 
 	err = newSession.StoreWithID(dog5, "docs/5")
@@ -1145,7 +1145,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog6.setName("Old Yeller")
 	dog6.setBreed("Black Mouth Cur")
 	dog6.setColor("White")
-	dog6.setAge(2)
+	dog6.Age = 2
 	dog6.setVaccinated(true)
 
 	err = newSession.StoreWithID(dog6, "docs/6")
@@ -1155,7 +1155,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog7.setName("Benji")
 	dog7.setBreed("Mixed")
 	dog7.setColor("White")
-	dog7.setAge(0)
+	dog7.Age = 0
 	dog7.setVaccinated(false)
 
 	err = newSession.StoreWithID(dog7, "docs/7")
@@ -1165,7 +1165,7 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	dog8.setName("Lassie")
 	dog8.setBreed("Collie")
 	dog8.setColor("Brown")
-	dog8.setAge(6)
+	dog8.Age = 6
 	dog8.setVaccinated(true)
 
 	err = newSession.StoreWithID(dog8, "docs/8")
@@ -1278,7 +1278,7 @@ func query_queryLongRequest(t *testing.T) {
 		newSession := openSessionMust(t, store)
 
 		longName := strings.Repeat("x", 2048)
-		user := NewUser()
+		user := &User{}
 		user.setName(longName)
 		err = newSession.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -1329,7 +1329,7 @@ func query_queryByIndex(t *testing.T) {
 
 		assert.Equal(t, len(queryResult), 1)
 		r := queryResult[0].(*DogsIndex_Result)
-		assert.Equal(t, r.GetName(), "Brian")
+		assert.Equal(t, r.Name, "Brian")
 
 		q = newSession.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WhereLessThanOrEqual("age", 2)
@@ -1343,7 +1343,7 @@ func query_queryByIndex(t *testing.T) {
 		var names []string
 		for _, r := range queryResult2 {
 			dir := r.(*DogsIndex_Result)
-			name := dir.GetName()
+			name := dir.Name
 			names = append(names, name)
 		}
 		sort.Strings(names)

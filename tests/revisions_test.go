@@ -5,15 +5,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func collectUserNamesSorted(a []interface{}) []string {
 	var names []string
 	for _, v := range a {
 		user := v.(*User)
-		names = append(names, *user.GetName())
+		names = append(names, *user.Name)
 	}
 	sort.Strings(names)
 	return names
@@ -30,7 +30,7 @@ func revisionsTest_revisions(t *testing.T) {
 
 	for i := 0; i < 4; i++ {
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("user" + strconv.Itoa(i+1))
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -82,7 +82,7 @@ func revisionsTest_revisions(t *testing.T) {
 		userI, err := session.Advanced().Revisions().Get(ravendb.GetTypeOf(&User{}), changeVector)
 		assert.NoError(t, err)
 		user := userI.(*User)
-		assert.Equal(t, *user.GetName(), "user3")
+		assert.Equal(t, *user.Name, "user3")
 		session.Close()
 	}
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func whatChanged_whatChangedNewField(t *testing.T) {
@@ -32,7 +32,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 		userI, err := newSession.Load(ravendb.GetTypeOf(&NameAndAge{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*NameAndAge)
-		user.setAge(5)
+		user.Age = 5
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		change := changes["users/1"]
@@ -56,7 +56,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		nameAndAge := &NameAndAge{}
-		nameAndAge.setAge(5)
+		nameAndAge.Age = 5
 		nameAndAge.setName("Toli")
 
 		err = newSession.StoreWithID(nameAndAge, "users/1")
@@ -98,7 +98,7 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		basicAge := &BasicAge{}
-		basicAge.setAge(5)
+		basicAge.Age = 5
 		err = newSession.StoreWithID(basicAge, "users/1")
 		assert.NoError(t, err)
 
@@ -347,16 +347,16 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("user1")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("user2")
-		user2.setAge(1)
+		user2.Age = 1
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("user3")
-		user3.setAge(1)
+		user3.Age = 1
 
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
@@ -379,7 +379,7 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		assert.NoError(t, err)
 		user2 = user2I.(*User)
 
-		user1.setAge(10)
+		user1.Age = 10
 		err = session.DeleteEntity(user2)
 
 		changes, _ = session.Advanced().WhatChanged()

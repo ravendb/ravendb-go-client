@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func attachmentsRevisions_putAttachments(t *testing.T) {
@@ -49,7 +49,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 			// Create another revision which should delete old revision
 			session := openSessionMust(t, store)
 			// This will delete the revision #1 which is without attachment
-			user := NewUser()
+			user := User{}
 			user.setName("Fitzchak 2")
 			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
@@ -72,7 +72,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		{
 			session := openSessionMust(t, store)
 			// This will delete the revision #2 which is with attachment
-			user := NewUser()
+			user := &User{}
 			user.setName("Fitzchak 3")
 			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
@@ -95,7 +95,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		{
 			session := openSessionMust(t, store)
 			// This will delete the revision #3 which is with attachment
-			user := NewUser()
+			user := &User{}
 			user.setName("Fitzchak 4")
 			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
@@ -118,7 +118,7 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 		{
 			session := openSessionMust(t, store)
 			// This will delete the revision #4 which is with attachment
-			user := NewUser()
+			user := &User{}
 			user.setName("Fitzchak 5")
 			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
@@ -197,7 +197,7 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 	{
 		session := openSessionMust(t, store)
 
-		user := NewUser()
+		user := &User{}
 		user.setName("Fitzchak")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)

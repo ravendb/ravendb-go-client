@@ -49,7 +49,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Marcin")
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
@@ -203,12 +203,12 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Fitzchak")
 		err = session.Store(user1)
 		assert.NoError(t, err)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Arek")
 		err = session.Store(user2)
 		assert.NoError(t, err)
@@ -277,12 +277,12 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Fitzchak")
 		err = session.Store(user1)
 		assert.NoError(t, err)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Arek")
 		err = session.Store(user2)
 		assert.NoError(t, err)
@@ -328,12 +328,12 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Fitzchak")
 		err = session.Store(user1)
 		assert.NoError(t, err)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Arek")
 		err = session.Store(user2)
 		assert.NoError(t, err)
@@ -381,10 +381,10 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	user1 := NewUser()
+	user1 := &User{}
 	user1.setName("Fitzchak")
 
-	user2 := NewUser()
+	user2 := &User{}
 	user2.setName("Arek")
 
 	{

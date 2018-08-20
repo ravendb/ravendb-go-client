@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 type Family struct {
@@ -105,7 +105,7 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setLastName("user1")
 
 		err = newSession.StoreWithID(user1, "users/1")
@@ -148,31 +148,31 @@ func crudTest_crudOperations(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setLastName("user1")
 		err = newSession.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("user2")
-		user1.setAge(1)
+		user1.Age = 1
 		err = newSession.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("user3")
-		user3.setAge(1)
+		user3.Age = 1
 		err = newSession.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
-		user4 := NewUser()
+		user4 := &User{}
 		user4.setName("user4")
 		err = newSession.StoreWithID(user4, "users/4")
 		assert.NoError(t, err)
 
 		err = newSession.DeleteEntity(user2)
 		assert.NoError(t, err)
-		user3.setAge(3)
+		user3.Age = 3
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
@@ -184,7 +184,7 @@ func crudTest_crudOperations(t *testing.T) {
 		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
-		assert.Equal(t, tempUser.getAge(), 3)
+		assert.Equal(t, tempUser.Age, 3)
 
 		user1I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
@@ -195,7 +195,7 @@ func crudTest_crudOperations(t *testing.T) {
 
 		err = newSession.DeleteEntity(user4)
 		assert.NoError(t, err)
-		user1.setAge(10)
+		user1.Age = 10
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
@@ -204,7 +204,7 @@ func crudTest_crudOperations(t *testing.T) {
 		assert.Nil(t, tempUser)
 		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		tempUser = tempUserI.(*User)
-		assert.Equal(t, tempUser.getAge(), 10)
+		assert.Equal(t, tempUser.Age, 10)
 		newSession.Close()
 	}
 }
@@ -217,31 +217,31 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setLastName("user1")
 		err = newSession.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("user2")
-		user1.setAge(1) // TODO: that's probably a bug in Java code
+		user1.Age = 1 // TODO: that's probably a bug in Java code
 		err = newSession.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
 
-		user3 := NewUser()
+		user3 := &User{}
 		user3.setName("user3")
-		user3.setAge(1)
+		user3.Age = 1
 		err = newSession.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 
-		user4 := NewUser()
+		user4 := &User{}
 		user4.setName("user4")
 		err = newSession.StoreWithID(user4, "users/4")
 		assert.NoError(t, err)
 
 		err = newSession.DeleteEntity(user2)
 		assert.NoError(t, err)
-		user3.setAge(3)
+		user3.Age = 3
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 4)
@@ -257,7 +257,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/3")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
-		assert.Equal(t, tempUser.getAge(), 3)
+		assert.Equal(t, tempUser.Age, 3)
 
 		user1I, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
@@ -270,7 +270,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		err = newSession.DeleteEntity(user4)
 		assert.NoError(t, err)
 
-		user1.setAge(10)
+		user1.Age = 10
 
 		if ravendb.EnableFailingTests {
 			// TODO: this returns 3 changes, showing user/2 as added
@@ -291,7 +291,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		tempUserI, err = newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		tempUser = tempUserI.(*User)
-		assert.Equal(t, tempUser.getAge(), 10)
+		assert.Equal(t, tempUser.Age, 10)
 		newSession.Close()
 	}
 }
@@ -414,7 +414,7 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 
 		err = newSession.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -427,7 +427,7 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 		assert.Equal(t, len(WhatChanged), 0)
 
 		user2 := user2I.(*User)
-		user2.setAge(3)
+		user2.Age = 3
 		WhatChanged, _ = newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(WhatChanged), 1)
 		newSession.Close()
@@ -444,11 +444,11 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 
 		member1 := &Member{}
 		member1.setName("Hibernating Rhinos")
-		member1.setAge(8)
+		member1.Age = 8
 
 		member2 := &Member{}
 		member2.setName("RavenDB")
-		member2.setAge(4)
+		member2.Age = 4
 
 		family := &FamilyMembers{}
 		family.setMembers([]*Member{member1, member2})
@@ -460,11 +460,11 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 
 		member1 = &Member{}
 		member1.setName("RavenDB")
-		member1.setAge(4)
+		member1.Age = 4
 
 		member2 = &Member{}
 		member2.setName("Hibernating Rhinos")
-		member2.setAge(8)
+		member2.Age = 8
 
 		newFamilyI, err := newSession.Load(ravendb.GetTypeOf(&FamilyMembers{}), "family/1")
 		assert.NoError(t, err)
@@ -521,11 +521,11 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 
 		member1 = &Member{}
 		member1.setName("Toli")
-		member1.setAge(5)
+		member1.Age = 5
 
 		member2 = &Member{}
 		member2.setName("Boki")
-		member2.setAge(15)
+		member2.Age = 15
 
 		newFamily.setMembers([]*Member{member1, member2})
 		changes, _ = newSession.Advanced().WhatChanged()
@@ -697,7 +697,7 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 	{
 		{
 			newSession := openSessionMust(t, store)
-			user1 := NewUser()
+			user1 := &User{}
 			user1.setLastName("user1")
 			err = newSession.StoreWithID(user1, "users/1")
 			assert.NoError(t, err)
@@ -752,7 +752,7 @@ func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
 		poc := pocI.(*Poc)
 		assert.Nil(t, poc.getObj())
 
-		user := NewUser()
+		user := &User{}
 		poc.setObj(user)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

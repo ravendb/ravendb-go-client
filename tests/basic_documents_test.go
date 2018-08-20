@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
@@ -15,7 +15,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 	documentId := "users/1"
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("Grisha")
 
 		err = session.StoreWithID(user, documentId)
@@ -59,15 +59,15 @@ func basicDocuments_get(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	dummy := ravendb.ValueToTree(NewUser())
+	dummy := ravendb.ValueToTree(&User{})
 	delete(dummy, "ID")
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Fitzchak")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Arek")
 
 		err = session.StoreWithID(user1, "users/1")
@@ -106,8 +106,8 @@ func basicDocuments_get(t *testing.T) {
 
 		user2I := etojs.ConvertToEntity(ravendb.GetTypeOf(&User{}), "users/2", doc2)
 		user2 := user2I.(*User)
-		assert.Equal(t, *user1.GetName(), "Fitzchak")
-		assert.Equal(t, *user2.GetName(), "Arek")
+		assert.Equal(t, *user1.Name, "Fitzchak")
+		assert.Equal(t, *user2.Name, "Arek")
 		session.Close()
 	}
 	getDocumentsCommand = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)

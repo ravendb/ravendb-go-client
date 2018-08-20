@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func loadTest_canDeleteByQuery(t *testing.T) {
@@ -14,13 +14,13 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
-		user1.setAge(5)
+		user1 := &User{}
+		user1.Age = 5
 		err = session.Store(user1)
 		assert.NoError(t, err)
 
-		user2 := NewUser()
-		user2.setAge(10)
+		user2 := &User{}
+		user2.Age = 10
 		err = session.Store(user2)
 		assert.NoError(t, err)
 

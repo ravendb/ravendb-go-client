@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
@@ -15,7 +15,7 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		err = session.DeleteEntity(NewUser())
+		err = session.DeleteEntity(&User{})
 		assert.Error(t, err)
 		_ = err.(*ravendb.IllegalStateException)
 		msg := err.Error()
@@ -31,13 +31,13 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("John")
-		user1.setId("users/1")
+		user1.ID = "users/1"
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Jonathan")
-		user2.setId("users/2")
+		user2.ID = "users/2"
 
 		err = session.Store(user1)
 		assert.NoError(t, err)
@@ -75,8 +75,8 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
-		user.setId("users/1")
+		user := &User{}
+		user.ID = "users/1"
 		user.setName("User1")
 
 		err = session.Store(user)
@@ -84,9 +84,9 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		newUser := NewUser()
+		newUser := &User{}
 		newUser.setName("User2")
-		newUser.setId("users/1")
+		newUser.ID = "users/1"
 
 		err = session.Store(newUser)
 		_ = err.(*ravendb.NonUniqueObjectException)

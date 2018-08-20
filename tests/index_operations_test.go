@@ -130,7 +130,7 @@ func testIndexGetTerms(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("Marcin")
 		err = session.Store(user)
 		assert.NoError(t, err)
@@ -332,9 +332,9 @@ func testIndexCanListErrors(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		//user.setName(null)
-		user.setAge(0)
+		user.Age = 0
 		err = session.Store(user)
 		assert.NoError(t, err)
 		err = session.SaveChanges()

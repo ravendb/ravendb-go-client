@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func loadTest_loadCanUseCache(t *testing.T) {
@@ -15,7 +15,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 
 		err = session.StoreWithID(user, "users/1")
@@ -27,7 +27,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+		result, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -36,7 +36,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+		result, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -51,7 +51,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("RavenDB")
 
 		err = session.StoreWithID(user, "users/1")
@@ -63,11 +63,11 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(ravendb.GetTypeOf(NewUser()), "users/1")
+		result, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
-		assert.Equal(t, "RavenDB", *user.GetName())
+		assert.Equal(t, "RavenDB", *user.Name)
 		newSession.Close()
 	}
 }
@@ -79,10 +79,10 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("RavenDB")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Hibernating Rhinos")
 
 		err = session.StoreWithID(user1, "users/1")
@@ -96,7 +96,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		users, err := newSession.LoadMulti(ravendb.GetTypeOf(NewUser()), []string{"users/1", "users/2"})
+		users, err := newSession.LoadMulti(ravendb.GetTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
 		newSession.Close()
@@ -110,10 +110,10 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Tony Montana")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Tony Soprano")
 
 		err = session.Store(user1)
@@ -142,10 +142,10 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 
 	{
 		session := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setName("Tony Montana")
 
-		user2 := NewUser()
+		user2 := &User{}
 		user2.setName("Tony Soprano")
 
 		err = session.StoreWithID(user1, "users/1")
@@ -234,7 +234,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 			id := "users/" + strconv.Itoa(i)
 			ids = append(ids, id)
 
-			user := NewUser()
+			user := &User{}
 			user.setName("Person " + strconv.Itoa(i))
 			err = session.StoreWithID(user, id)
 			assert.NoError(t, err)
@@ -268,8 +268,8 @@ func loadTest_loadStartsWith(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		createUser := func(id string) *User {
-			u := NewUser()
-			u.setId(id)
+			u := &User{}
+			u.ID = id
 			err = session.Store(u)
 			assert.NoError(t, err)
 			return u

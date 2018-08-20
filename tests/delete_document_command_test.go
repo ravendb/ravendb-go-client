@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
@@ -14,7 +14,7 @@ func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("Marcin")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -43,7 +43,7 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 	var changeVector *string
 	{
 		session := openSessionMust(t, store)
-		user := NewUser()
+		user := &User{}
 		user.setName("Marcin")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -60,7 +60,7 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.NotNil(t, loadedUser)
-		loadedUser.setAge(5)
+		loadedUser.Age = 5
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		session.Close()

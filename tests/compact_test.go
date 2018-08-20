@@ -15,7 +15,7 @@ func compactTest_canCompactDatabase(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user1 := NewUser()
+		user1 := &User{}
 		user1.setLastName("user1")
 		err = newSession.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)

@@ -34,7 +34,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		assert.NoError(t, err)
 
 		for i := 0; i < 32; i++ {
-			hiLoIdGenerator.GenerateDocumentID(NewUser())
+			hiLoIdGenerator.GenerateDocumentID(&User{})
 		}
 		session.Close()
 	}
@@ -53,7 +53,7 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 		assert.Equal(t, max, 96)
 
 		//we should be receiving a range of 64 now
-		hiLoIdGenerator.GenerateDocumentID(NewUser())
+		hiLoIdGenerator.GenerateDocumentID(&User{})
 		session.Close()
 	}
 
@@ -103,9 +103,9 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		err = session.Store(NewUser())
+		err = session.Store(&User{})
 		assert.NoError(t, err)
-		err = session.Store(NewUser())
+		err = session.Store(&User{})
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -198,7 +198,7 @@ func hiloTest_multiDb(t *testing.T) {
 	assert.NoError(t, err)
 
 	multiDbHilo := ravendb.NewMultiDatabaseHiLoIdGenerator(store, store.GetConventions())
-	generateDocumentKey := multiDbHilo.GenerateDocumentID("", NewUser())
+	generateDocumentKey := multiDbHilo.GenerateDocumentID("", &User{})
 	assert.Equal(t, generateDocumentKey, "users/65-A")
 	generateDocumentKey = multiDbHilo.GenerateDocumentID("", &Product{})
 	assert.Equal(t, generateDocumentKey, "products/129-A")
