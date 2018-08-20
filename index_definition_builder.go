@@ -43,7 +43,9 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 
 	indexDefinition := NewIndexDefinition()
 	indexDefinition.Name = d._indexName
-	indexDefinition.Reduce = &d.reduce
+	if d.reduce != "" {
+		indexDefinition.Reduce = &d.reduce
+	}
 	indexDefinition.SetLockMode(d.lockMode)
 	indexDefinition.SetPriority(d.priority)
 	indexDefinition.SetOutputReduceToCollection(d.outputReduceToCollection)

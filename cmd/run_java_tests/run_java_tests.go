@@ -89,7 +89,7 @@ func runJava() {
 	//runSingleJavaTest("GetNextOperationIdCommandTest")
 	//runSingleJavaTest("HiLoTest")
 	//runSingleJavaTest("IndexOperationsTest")
-	//runSingleJavaTest("IndexesFromClientTest")
+	runSingleJavaTest("IndexesFromClientTest")
 	//runSingleJavaTest("LoadIntoStreamTest")
 	//runSingleJavaTest("LoadTest")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")
@@ -117,7 +117,7 @@ func runJava() {
 	//runSingleJavaTest("RavenDB903Test")
 	//runSingleJavaTest("CustomSerializationTest")
 	//runSingleJavaTest("QueriesWithCustomFunctionsTest")
-	runSingleJavaTest("SuggestionsTest")
+	//runSingleJavaTest("SuggestionsTest")
 }
 
 func main() {

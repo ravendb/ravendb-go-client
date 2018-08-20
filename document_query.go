@@ -660,16 +660,16 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	builder(f)
 
 	moreLikeThis := q._moreLikeThis()
-	defer moreLikeThis.Close()
 
-	moreLikeThis.WithOptions(f.getMoreLikeThis().GetOptions())
+	moreLikeThis.WithOptions(f.GetMoreLikeThis().GetOptions())
 
-	tmp := f.getMoreLikeThis()
+	tmp := f.GetMoreLikeThis()
 	if mlt, ok := tmp.(*MoreLikeThisUsingDocument); ok {
 		moreLikeThis.withDocument(mlt.getDocumentJson())
 	} else if mlt, ok := tmp.(*MoreLikeThisUsingDocumentForDocumentQuery); ok {
 		mlt.GetForDocumentQuery()(q)
 	}
+	moreLikeThis.Close()
 
 	return q
 }

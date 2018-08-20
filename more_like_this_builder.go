@@ -12,22 +12,22 @@ func NewMoreLikeThisBuilder() *MoreLikeThisBuilder {
 	return &MoreLikeThisBuilder{}
 }
 
-func (b *MoreLikeThisBuilder) getMoreLikeThis() MoreLikeThisBase {
+func (b *MoreLikeThisBuilder) GetMoreLikeThis() MoreLikeThisBase {
 	return b.moreLikeThis
 }
 
-func (b *MoreLikeThisBuilder) usingAnyDocument() IMoreLikeThisOperations {
+func (b *MoreLikeThisBuilder) UsingAnyDocument() IMoreLikeThisOperations {
 	b.moreLikeThis = NewMoreLikeThisUsingAnyDocument()
 	return b
 }
 
-func (b *MoreLikeThisBuilder) usingDocument(documentJson string) IMoreLikeThisOperations {
+func (b *MoreLikeThisBuilder) UsingDocument(documentJson string) IMoreLikeThisOperations {
 	b.moreLikeThis = NewMoreLikeThisUsingDocument(documentJson)
 
 	return b
 }
 
-func (b *MoreLikeThisBuilder) usingDocumentWithBuilder(builder func(*IFilterDocumentQueryBase)) IMoreLikeThisOperations {
+func (b *MoreLikeThisBuilder) UsingDocumentWithBuilder(builder func(*IFilterDocumentQueryBase)) IMoreLikeThisOperations {
 	tmp := NewMoreLikeThisUsingDocumentForDocumentQuery()
 	tmp.setForDocumentQuery(builder)
 	b.moreLikeThis = tmp

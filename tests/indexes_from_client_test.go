@@ -440,38 +440,43 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		post1 := NewPost()
-		post1.setId("posts/1")
-		post1.setTitle("doduck")
-		post1.setDesc("prototype")
+		post1 := &Post{
+			ID:    "posts/1",
+			Title: "doduck",
+			Desc:  "prototype",
+		}
 		err = session.Store(post1)
 		assert.NoError(t, err)
 
-		post2 := NewPost()
-		post2.setId("posts/2")
-		post2.setTitle("doduck")
-		post2.setDesc("prototype your idea")
+		post2 := &Post{
+			ID:    "posts/2",
+			Title: "doduck",
+			Desc:  "prototype your idea",
+		}
 		err = session.Store(post2)
 		assert.NoError(t, err)
 
-		post3 := NewPost()
-		post3.setId("posts/3")
-		post3.setTitle("doduck")
-		post3.setDesc("love programming")
+		post3 := &Post{
+			ID:    "posts/3",
+			Title: "doduck",
+			Desc:  "love programming",
+		}
 		err = session.Store(post3)
 		assert.NoError(t, err)
 
-		post4 := NewPost()
-		post4.setId("posts/4")
-		post4.setTitle("We do")
-		post4.setDesc("prototype")
+		post4 := &Post{
+			ID:    "posts/4",
+			Title: "We do",
+			Desc:  "prototype",
+		}
 		err = session.Store(post4)
 		assert.NoError(t, err)
 
-		post5 := NewPost()
-		post5.setId("posts/5")
-		post5.setTitle("We love")
-		post5.setDesc("challange")
+		post5 := &Post{
+			ID:    "posts/5",
+			Title: "We love",
+			Desc:  "challange",
+		}
 		err = session.Store(post5)
 		assert.NoError(t, err)
 
@@ -496,53 +501,36 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 
 		q := session.QueryInIndex(ravendb.GetTypeOf(&Post{}), Posts_ByTitleAndDesc())
 
-		// TODO: finish this
-		/*
-			   session.query(Post.class, Posts_ByTitleAndDesc.class)
+		fn1 := func(x *ravendb.IFilterDocumentQueryBase) {
+			x.WhereEquals("id()", "posts/1")
+		}
 
-			   fn1 := func(x *IFilterDocumentQueryBase) IMoreLikeThisOperations {
-				   return x.whereEquals("id()", "posts/1")
-			   }
+		fn2 := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			f.UsingDocumentWithBuilder(fn1).WithOptions(options)
+		}
 
-			   fn2 := func(f) *DocumentQuery {
-				   return f.usingDocumentWithBuilder(fn1).WithOptions(options)
-			   }
+		q = q.MoreLikeThisWithBuilder(fn2)
 
-			   q = q.moreLikeThisWithBuilder(fn2)
-		*/
-
-		/*
-		   List<Post> list = session.query(Post.class, Posts_ByTitleAndDesc.class)
-		           .moreLikeThis(f -> f.usingDocument(x -> x.whereEquals("id()", "posts/1")).WithOptions(options))
-		           .toList();
-		*/
-
-		_, err = q.ToList()
+		list, err := q.ToList()
 		assert.NoError(t, err)
 
-		/*
-		   assertThat(list)
-		           .hasSize(3);
+		assert.Equal(t, len(list), 3)
 
-		   assertThat(list.get(0).getTitle())
-		           .isEqualTo("doduck");
-		   assertThat(list.get(0).getDesc())
-		           .isEqualTo("prototype your idea");
+		post := list[0].(*Post)
+		assert.Equal(t, post.Title, "doduck")
+		assert.Equal(t, post.Desc, "prototype your idea")
 
-		   assertThat(list.get(1).getTitle())
-		           .isEqualTo("doduck");
-		   assertThat(list.get(1).getDesc())
-		           .isEqualTo("love programming");
+		post = list[1].(*Post)
+		assert.Equal(t, post.Title, "doduck")
+		assert.Equal(t, post.Desc, "love programming")
 
-		   assertThat(list.get(2).getTitle())
-		           .isEqualTo("We do");
-		   assertThat(list.get(2).getDesc())
-		           .isEqualTo("prototype");
-		*/
+		post = list[2].(*Post)
+
+		assert.Equal(t, post.Title, "We do")
+		assert.Equal(t, post.Desc, "prototype")
 
 		session.Close()
 	}
-
 }
 
 func TestIndexesFromClient(t *testing.T) {

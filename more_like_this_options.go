@@ -19,116 +19,64 @@ var (
 )
 
 type MoreLikeThisOptions struct {
-	minimumTermFrequency               *int
-	maximumQueryTerms                  *int
-	maximumNumberOfTokensParsed        *int
-	minimumWordLength                  *int
-	maximumWordLength                  *int
-	minimumDocumentFrequency           *int
-	maximumDocumentFrequency           *int
-	maximumDocumentFrequencyPercentage *int
-	boost                              bool
-	boostFactor                        float32
-	stopWordsDocumentId                string
-	fields                             []string
+	MinimumTermFrequency               *int     `json:"MinimumTermFrequency"`
+	MaximumQueryTerms                  *int     `json:"MaximumQueryTerms"`
+	MaximumNumberOfTokensParsed        *int     `json:"MaximumNumberOfTokensParsed"`
+	MinimumWordLength                  *int     `json:"MinimumWordLength"`
+	MaximumWordLength                  *int     `json:"MaximumWordLength"`
+	MinimumDocumentFrequency           *int     `json:"MinimumDocumentFrequency"`
+	MaximumDocumentFrequency           *int     `json:"MaximumDocumentFrequency"`
+	MaximumDocumentFrequencyPercentage *int     `json:"MaximumDocumentFrequencyPercentage"`
+	Boost                              *bool    `json:"Boost"`
+	BoostFactor                        *float32 `json:"BoostFactor"`
+	StopWordsDocumentID                *string  `json:"StopWordsDocumentId"`
+	Fields                             []string `json:"Fields"`
 }
 
 func NewMoreLikeThisOptions() *MoreLikeThisOptions {
 	return &MoreLikeThisOptions{}
 }
 
-func (o *MoreLikeThisOptions) GetMinimumTermFrequency() *int {
-	return o.minimumTermFrequency
-}
-
 func (o *MoreLikeThisOptions) SetMinimumTermFrequency(minimumTermFrequency int) {
-	o.minimumTermFrequency = &minimumTermFrequency
-}
-
-func (o *MoreLikeThisOptions) GetMaximumQueryTerms() *int {
-	return o.maximumQueryTerms
+	o.MinimumTermFrequency = &minimumTermFrequency
 }
 
 func (o *MoreLikeThisOptions) SetMaximumQueryTerms(maximumQueryTerms int) {
-	o.maximumQueryTerms = &maximumQueryTerms
-}
-
-func (o *MoreLikeThisOptions) GetMaximumNumberOfTokensParsed() *int {
-	return o.maximumNumberOfTokensParsed
+	o.MaximumQueryTerms = &maximumQueryTerms
 }
 
 func (o *MoreLikeThisOptions) SetMaximumNumberOfTokensParsed(maximumNumberOfTokensParsed int) {
-	o.maximumNumberOfTokensParsed = &maximumNumberOfTokensParsed
-}
-
-func (o *MoreLikeThisOptions) GetMinimumWordLength() *int {
-	return o.minimumWordLength
+	o.MaximumNumberOfTokensParsed = &maximumNumberOfTokensParsed
 }
 
 func (o *MoreLikeThisOptions) SetMinimumWordLength(minimumWordLength int) {
-	o.minimumWordLength = &minimumWordLength
-}
-
-func (o *MoreLikeThisOptions) GetMaximumWordLength() *int {
-	return o.maximumWordLength
+	o.MinimumWordLength = &minimumWordLength
 }
 
 func (o *MoreLikeThisOptions) SetMaximumWordLength(maximumWordLength int) {
-	o.maximumWordLength = &maximumWordLength
-}
-
-func (o *MoreLikeThisOptions) GetMinimumDocumentFrequency() *int {
-	return o.minimumDocumentFrequency
+	o.MaximumWordLength = &maximumWordLength
 }
 
 func (o *MoreLikeThisOptions) SetMinimumDocumentFrequency(minimumDocumentFrequency int) {
-	o.minimumDocumentFrequency = &minimumDocumentFrequency
-}
-
-func (o *MoreLikeThisOptions) GetMaximumDocumentFrequency() *int {
-	return o.maximumDocumentFrequency
+	o.MinimumDocumentFrequency = &minimumDocumentFrequency
 }
 
 func (o *MoreLikeThisOptions) SetMaximumDocumentFrequency(maximumDocumentFrequency int) {
-	o.maximumDocumentFrequency = &maximumDocumentFrequency
-}
-
-func (o *MoreLikeThisOptions) GetMaximumDocumentFrequencyPercentage() *int {
-	return o.maximumDocumentFrequencyPercentage
+	o.MaximumDocumentFrequency = &maximumDocumentFrequency
 }
 
 func (o *MoreLikeThisOptions) SetMaximumDocumentFrequencyPercentage(maximumDocumentFrequencyPercentage int) {
-	o.maximumDocumentFrequencyPercentage = &maximumDocumentFrequencyPercentage
-}
-
-func (o *MoreLikeThisOptions) GetBoost() bool {
-	return o.boost
+	o.MaximumDocumentFrequencyPercentage = &maximumDocumentFrequencyPercentage
 }
 
 func (o *MoreLikeThisOptions) SetBoost(boost bool) {
-	o.boost = boost
-}
-
-func (o *MoreLikeThisOptions) GetBoostFactor() float32 {
-	return o.boostFactor
+	o.Boost = &boost
 }
 
 func (o *MoreLikeThisOptions) SetBoostFactor(boostFactor float32) {
-	o.boostFactor = boostFactor
-}
-
-func (o *MoreLikeThisOptions) GetStopWordsDocumentID() string {
-	return o.stopWordsDocumentId
+	o.BoostFactor = &boostFactor
 }
 
 func (o *MoreLikeThisOptions) SetStopWordsDocumentID(stopWordsDocumentId string) {
-	o.stopWordsDocumentId = stopWordsDocumentId
-}
-
-func (o *MoreLikeThisOptions) GetFields() []string {
-	return o.fields
-}
-
-func (o *MoreLikeThisOptions) SetFields(fields []string) {
-	o.fields = fields
+	o.StopWordsDocumentID = &stopWordsDocumentId
 }
