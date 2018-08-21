@@ -128,14 +128,8 @@ func (t *AbstractIndexCreationTask) PutIndex(store *IDocumentStore, conventions 
 
 	indexDefinition := t.CreateIndexDefinition()
 	indexDefinition.Name = t.GetIndexName()
-
-	if t.LockMode != "" {
-		indexDefinition.SetLockMode(t.LockMode)
-	}
-
-	if t.Priority != "" {
-		indexDefinition.SetPriority(t.Priority)
-	}
+	indexDefinition.LockMode = t.LockMode
+	indexDefinition.Priority = t.Priority
 
 	op := NewPutIndexesOperation(indexDefinition)
 	if database == "" {

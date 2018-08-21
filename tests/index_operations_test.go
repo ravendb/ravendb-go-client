@@ -293,7 +293,7 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 		op := ravendb.NewGetIndexOperation(indexDef.Name)
 		err = store.Maintenance().Send(op)
 		newIndexDef := op.Command.Result
-		assert.Equal(t, *newIndexDef.GetLockMode(), ravendb.IndexLockMode_LOCKED_ERROR)
+		assert.Equal(t, newIndexDef.LockMode, ravendb.IndexLockMode_LOCKED_ERROR)
 	}
 }
 
@@ -315,7 +315,7 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 	op3 := ravendb.NewGetIndexOperation(indexDef.Name)
 	err = store.Maintenance().Send(op3)
 	newIndexDef := op3.Command.Result
-	assert.Equal(t, *newIndexDef.GetPriority(), ravendb.IndexPriority_HIGH)
+	assert.Equal(t, newIndexDef.Priority, ravendb.IndexPriority_HIGH)
 }
 
 func testIndexCanListErrors(t *testing.T) {

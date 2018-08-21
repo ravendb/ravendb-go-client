@@ -2,8 +2,8 @@ package ravendb
 
 type IndexDefinition struct {
 	Name              string                        `json:"Name"`
-	Priority          *IndexPriority                `json:"Priority"`
-	LockMode          *IndexLockMode                `json:"LockMode"`
+	Priority          IndexPriority                 `json:"Priority,omitempty"`
+	LockMode          IndexLockMode                 `json:"LockMode,omitempty"`
 	AdditionalSources map[string]string             `json:"AdditionalSources"`
 	Maps              []string                      `json:"Maps"`
 	Reduce            *string                       `json:"Reduce"`
@@ -31,22 +31,6 @@ func NewIndexDefinition() *IndexDefinition {
 		AdditionalSources: make(map[string]string),
 	}
 	return res
-}
-
-func (d *IndexDefinition) GetPriority() *IndexPriority {
-	return d.Priority
-}
-
-func (d *IndexDefinition) SetPriority(priority IndexPriority) {
-	d.Priority = toStrPtr(priority)
-}
-
-func (d *IndexDefinition) GetLockMode() *IndexLockMode {
-	return d.LockMode
-}
-
-func (d *IndexDefinition) SetLockMode(lockMode IndexLockMode) {
-	d.LockMode = toStrPtr(lockMode)
 }
 
 func (d *IndexDefinition) GetAdditionalSources() map[string]string {
