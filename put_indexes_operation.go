@@ -37,8 +37,8 @@ type PutIndexesCommand struct {
 }
 
 func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*IndexDefinition) *PutIndexesCommand {
-	panicIf(conventions == nil, "conventions cannot be null")
-	panicIf(indexesToAdd == nil, "indexesToAdd cannot be null")
+	panicIf(conventions == nil, "conventions cannot be nil")
+	panicIf(indexesToAdd == nil, "indexesToAdd cannot be nil")
 
 	cmd := &PutIndexesCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -48,9 +48,9 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 		// Note: unlike java, Type is not calculated on demand. This is a decent
 		// place to ensure it. Assumes that indexToAdd will not be modified
 		// between now an CreateRequest()
-		indexToAdd.updateIndexType()
+		indexToAdd.updateIndexTypeAndMaps()
 
-		panicIf(indexToAdd.Name == "", "Index name cannot be null")
+		panicIf(indexToAdd.Name == "", "Index name cannot be empty")
 		objectNode := EntityToJson_convertEntityToJson(indexToAdd, nil)
 		cmd._indexToAdd = append(cmd._indexToAdd, objectNode)
 	}

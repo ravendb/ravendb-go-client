@@ -70,8 +70,7 @@ func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "eventsByLatLng"
-	maps := ravendb.NewStringSetFromStrings("from e in docs.Shops select new { e.venue, coordinates = CreateSpatialField(e.latitude, e.longitude) }")
-	indexDefinition.Maps = maps
+	indexDefinition.Maps = []string{"from e in docs.Shops select new { e.venue, coordinates = CreateSpatialField(e.latitude, e.longitude) }"}
 
 	fields := make(map[string]*ravendb.IndexFieldOptions)
 	options := ravendb.NewIndexFieldOptions()
@@ -85,8 +84,7 @@ func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
 
 	indexDefinition2 := ravendb.NewIndexDefinition()
 	indexDefinition2.Name = "eventsByLatLngWSpecialField"
-	maps = ravendb.NewStringSetFromStrings("from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }")
-	indexDefinition2.Maps = maps
+	indexDefinition2.Maps = []string{"from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }"}
 
 	indexFieldOptions := ravendb.NewIndexFieldOptions()
 	indexFieldOptions.Indexing = ravendb.FieldIndexing_EXACT

@@ -86,7 +86,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 
 	def1 := ravendb.NewIndexDefinition()
 	def1.Name = "TestIndex"
-	def1.Maps = ravendb.NewStringSetFromStrings("from doc in docs.CustomTypes select new { doc.value }")
+	def1.Maps = []string{"from doc in docs.CustomTypes select new { doc.value }"}
 
 	op := ravendb.NewPutIndexesOperation(def1)
 	err = store.Maintenance().Send(op)

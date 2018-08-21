@@ -49,7 +49,7 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	indexDefinition.SetLockMode(d.lockMode)
 	indexDefinition.SetPriority(d.priority)
 	indexDefinition.SetOutputReduceToCollection(d.outputReduceToCollection)
-	indexDefinition.updateIndexType()
+	indexDefinition.updateIndexTypeAndMaps()
 
 	suggestions := make(map[string]bool)
 	for _, suggestionsOption := range d.suggestionsOptions.strings {
@@ -100,7 +100,7 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	}
 
 	if d.smap != "" {
-		indexDefinition.GetMaps().Add(d.smap)
+		indexDefinition.Maps = append(indexDefinition.Maps, d.smap)
 	}
 
 	indexDefinition.SetAdditionalSources(d.additionalSources)

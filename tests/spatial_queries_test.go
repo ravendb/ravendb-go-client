@@ -90,8 +90,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 
 		indexDefinition := ravendb.NewIndexDefinition()
 		indexDefinition.Name = "FindByLatLng"
-		maps := ravendb.NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
-		indexDefinition.Maps = maps
+		indexDefinition.Maps = []string{"from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }"}
 
 		op := ravendb.NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)
@@ -140,8 +139,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 
 		indexDefinition := ravendb.NewIndexDefinition()
 		indexDefinition.Name = "FindByLatLng"
-		maps := ravendb.NewStringSetFromStrings("from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }")
-		indexDefinition.Maps = maps
+		indexDefinition.Maps = []string{"from doc in docs select new { coordinates = CreateSpatialField(doc.latitude, doc.longitude) }"}
 
 		op := ravendb.NewPutIndexesOperation(indexDefinition)
 		err = store.Maintenance().Send(op)

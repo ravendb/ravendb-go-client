@@ -169,8 +169,7 @@ func testIndexHasIndexChanged(t *testing.T) {
 		cmd := op2.Command
 		assert.False(t, cmd.Result)
 	}
-	m := ravendb.NewStringSetFromStrings("from users")
-	indexDef.Maps = m
+	indexDef.Maps = []string{"from users"}
 
 	op3 := ravendb.NewIndexHasChangedOperation(indexDef)
 	err = store.Maintenance().Send(op3)

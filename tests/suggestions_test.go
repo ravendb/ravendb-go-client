@@ -18,7 +18,7 @@ func suggestions_setup(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "test"
-	indexDefinition.Maps = ravendb.NewStringSetFromStrings("from doc in docs.User4s select new { doc.name }")
+	indexDefinition.Maps = []string{"from doc in docs.User4s select new { doc.name }"}
 	indexFieldOptions := ravendb.NewIndexFieldOptions()
 	indexFieldOptions.Suggestions = true
 	indexDefinition.Fields["name"] = indexFieldOptions

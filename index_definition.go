@@ -5,7 +5,7 @@ type IndexDefinition struct {
 	Priority          *IndexPriority                `json:"Priority"`
 	LockMode          *IndexLockMode                `json:"LockMode"`
 	AdditionalSources map[string]string             `json:"AdditionalSources"`
-	Maps              *StringSet                    `json:"Maps"`
+	Maps              []string                      `json:"Maps"`
 	Reduce            *string                       `json:"Reduce"`
 	Fields            map[string]*IndexFieldOptions `json:"Fields"`
 	Configuration     IndexConfiguration            `json:"Configuration"`
@@ -68,13 +68,6 @@ func (d *IndexDefinition) SetAdditionalSources(additionalSources map[string]stri
 	d.AdditionalSources = additionalSources
 }
 
-func (d *IndexDefinition) GetMaps() *StringSet {
-	if d.Maps == nil {
-		d.Maps = NewStringSet()
-	}
-	return d.Maps
-}
-
 func (d *IndexDefinition) String() string {
 	return d.Name
 }
@@ -99,10 +92,11 @@ func (d *IndexDefinition) SetConfiguration(configuration IndexConfiguration) {
 
 // Note: this must be called after finishing building index definition to set IndexType
 // In Java it's calculated on demand via getType
-func (d *IndexDefinition) updateIndexType() {
+func (d *IndexDefinition) updateIndexTypeAndMaps() {
 	if d.IndexType == "" || d.IndexType == IndexType_NONE {
 		d.IndexType = d.detectStaticIndexType()
 	}
+	d.Maps = StringArrayRemoveDuplicates(d.Maps)
 }
 
 func (d *IndexDefinition) GetType() IndexType {
