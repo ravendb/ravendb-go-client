@@ -5,40 +5,58 @@ import (
 	"strings"
 )
 
-// TODO: make it more efficient by modifying the array in-place
-func StringArrayRemove(pa *[]string, s string) bool {
-	if len(*pa) == 0 {
-		return false
+func StringArrayRemoveNoCase(a []string, s string) []string {
+	n := len(a)
+	if n == 0 {
+		return a
 	}
-	var res []string
-	removed := false
-	for _, s2 := range *pa {
-		if s2 == s {
-			removed = true
-			continue
+	var toRemove []int
+	for i, s1 := range a {
+		if strings.EqualFold(s1, s) {
+			toRemove = append(toRemove, i)
 		}
-		res = append(res, s2)
 	}
-	*pa = res
-	return removed
+	return stringArrayRemoveAtIndexes(a, toRemove)
 }
 
-// TODO: make it more efficient by modifying the array in-place
-func StringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, string) bool) bool {
-	if len(*pa) == 0 {
+func StringArrayRemove(pa *[]string, s string) bool {
+	a := *pa
+	n := len(a)
+	if n == 0 {
 		return false
 	}
-	var res []string
-	removed := false
-	for _, s2 := range *pa {
-		if cmp(s2, s) {
-			removed = true
-			continue
+
+	var toRemove []int
+	for i, s1 := range a {
+		if s1 == s {
+			toRemove = append(toRemove, i)
 		}
-		res = append(res, s2)
 	}
-	*pa = res
-	return removed
+	if len(toRemove) == 0 {
+		return false
+	}
+	*pa = stringArrayRemoveAtIndexes(a, toRemove)
+	return true
+}
+
+func StringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, string) bool) bool {
+	a := *pa
+	n := len(a)
+	if n == 0 {
+		return false
+	}
+
+	var toRemove []int
+	for i, s1 := range a {
+		if cmp(s1, s) {
+			toRemove = append(toRemove, i)
+		}
+	}
+	if len(toRemove) == 0 {
+		return false
+	}
+	*pa = stringArrayRemoveAtIndexes(a, toRemove)
+	return true
 }
 
 func StringArrayCopy(a []string) []string {
@@ -88,6 +106,17 @@ func StringArrayContains(a []string, s string) bool {
 	return false
 }
 
+// StringArrayContainsNoCase returns true if a contains s using case-insensitive
+// comparison
+func StringArrayContainsNoCase(a []string, s string) bool {
+	for _, el := range a {
+		if strings.EqualFold(el, s) {
+			return true
+		}
+	}
+	return false
+}
+
 // StringArrayEq returns true if arrays have the same content, ignoring order
 func StringArrayEq(a1, a2 []string) bool {
 	if len(a1) != len(a2) {
@@ -100,8 +129,8 @@ func StringArrayEq(a1, a2 []string) bool {
 	a2c := StringArrayCopy(a2)
 	sort.Strings(a1c)
 	sort.Strings(a2c)
-	for i := 0; i < len(a1c); i++ {
-		if a1c[i] != a2c[i] {
+	for i, s := range a1c {
+		if s != a2c[i] {
 			return false
 		}
 	}
@@ -141,6 +170,23 @@ func StringArrayReverse(a []string) {
 	}
 }
 
+func stringArrayRemoveAtIndexes(a []string, toRemove []int) []string {
+	if len(toRemove) == 0 {
+		return a
+	}
+	// remove from the end so that index in toRemove isn't invalidated
+	// by changing the array
+	n := len(a)
+	lastIdx := n - 1
+	for i := len(toRemove) - 1; i >= 0; i-- {
+		idx := toRemove[i]
+		// remove by replacing with element from end of array
+		a[idx] = a[lastIdx]
+		lastIdx--
+	}
+	return a[:n-len(toRemove)]
+}
+
 // StringArrayRemoveDuplicates removes duplicate strings from a
 func StringArrayRemoveDuplicates(a []string) []string {
 	n := len(a)
@@ -157,17 +203,5 @@ func StringArrayRemoveDuplicates(a []string) []string {
 		}
 		prev = a[i]
 	}
-	if len(toRemove) == 0 {
-		return a
-	}
-	// remove from the end so that index in toRemove isn't invalidated
-	// by changing the array
-	lastIdx := n - 1
-	for i := len(toRemove) - 1; i >= 0; i-- {
-		idx := toRemove[i]
-		// remove by replacing with element from end of array
-		a[idx] = a[lastIdx]
-		lastIdx--
-	}
-	return a[:n-len(toRemove)]
+	return stringArrayRemoveAtIndexes(a, toRemove)
 }

@@ -39,7 +39,7 @@ type InMemoryDocumentSessionOperations struct {
 	onBeforeQuery  []func(interface{}, *BeforeQueryEventArgs)
 
 	// ids of entities that were deleted
-	_knownMissingIds *StringSet
+	_knownMissingIds []string // case insensitive
 
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
@@ -94,7 +94,6 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		databaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
-		_knownMissingIds:              NewStringSetNoCase(),
 		deferredCommandsMap:           make(map[IdTypeAndName]ICommandData),
 	}
 
@@ -276,7 +275,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 
 // IsDeleted returns true if document with this id is deleted in this session
 func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
-	return s._knownMissingIds.Contains(id)
+	return StringArrayContainsNoCase(s._knownMissingIds, id)
 }
 
 // GetDocumentID returns id of a given instance
@@ -377,7 +376,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 
 	s.deletedEntities.add(entity)
 	delete(s.includedDocumentsById, value.getId())
-	s._knownMissingIds.Add(value.getId())
+	s._knownMissingIds = append(s._knownMissingIds, value.getId())
 	return nil
 }
 
@@ -408,7 +407,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 		changeVector = documentInfo.GetChangeVector()
 	}
 
-	s._knownMissingIds.Add(id)
+	s._knownMissingIds = append(s._knownMissingIds, id)
 	if !s.useOptimisticConcurrency {
 		changeVector = nil
 	}
@@ -498,7 +497,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 		metadata[Constants_Documents_Metadata_RAVEN_GO_TYPE] = goType
 	}
 	if id != "" {
-		s._knownMissingIds.Remove(id)
+		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
 
 	s.StoreEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
@@ -508,7 +507,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
-		s._knownMissingIds.Remove(id)
+		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
 	documentInfo := NewDocumentInfo()
 	documentInfo.setId(id)
@@ -800,7 +799,7 @@ func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.documentsByEntity = nil
 	s.deletedEntities.clear()
 	s.documentsById = nil
-	s._knownMissingIds.Clear()
+	s._knownMissingIds = nil
 	s.includedDocumentsById = nil
 }
 
@@ -850,11 +849,11 @@ func (s *InMemoryDocumentSessionOperations) Close() {
 }
 
 func (s *InMemoryDocumentSessionOperations) RegisterMissing(id string) {
-	s._knownMissingIds.Add(id)
+	s._knownMissingIds = append(s._knownMissingIds, id)
 }
 
 func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
-	s._knownMissingIds.Remove(id)
+	s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
 }
 
 func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode) {
@@ -901,7 +900,7 @@ func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz ref
 
 func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
 	for _, id := range ids {
-		if s._knownMissingIds.Contains(id) {
+		if StringArrayContainsNoCase(s._knownMissingIds, id) {
 			continue
 		}
 
