@@ -205,3 +205,27 @@ func StringArrayRemoveDuplicates(a []string) []string {
 	}
 	return stringArrayRemoveAtIndexes(a, toRemove)
 }
+
+// StringArrayRemoveDuplicatesNoCase removes duplicate strings from a, ignoring case
+func StringArrayRemoveDuplicatesNoCase(a []string) []string {
+	n := len(a)
+	if n < 2 {
+		return a
+	}
+	sort.Slice(a, func(i, j int) bool {
+		s1 := strings.ToLower(a[i])
+		s2 := strings.ToLower(a[j])
+		return s1 < s2
+	})
+	var toRemove []int
+	prev := strings.ToLower(a[0])
+	for i := 1; i < n; i++ {
+		s := strings.ToLower(a[i])
+		if s == prev {
+			toRemove = append(toRemove, i)
+			continue
+		}
+		prev = s
+	}
+	return stringArrayRemoveAtIndexes(a, toRemove)
+}

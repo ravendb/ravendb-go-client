@@ -1,6 +1,9 @@
 package ravendb
 
-import "reflect"
+import (
+	"reflect"
+	"strings"
+)
 
 type LoadOperation struct {
 	_session *InMemoryDocumentSessionOperations
@@ -54,21 +57,20 @@ func (o *LoadOperation) withIncludes(includes []string) *LoadOperation {
 }
 
 func (o *LoadOperation) byIds(ids []string) *LoadOperation {
-	// TODO: should this be a copy?
-	o._ids = ids
+	o._ids = nil
 
-	distinct := NewStringSetNoCase()
-
+	seen := map[string]struct{}{}
 	for _, id := range ids {
-		if id != "" {
-			distinct.Add(id)
+		if id == "" {
+			continue
 		}
-	}
-
-	for _, id := range distinct.strings {
+		idl := strings.ToLower(id)
+		if _, ok := seen[idl]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
 		o.byId(id)
 	}
-
 	return o
 }
 
@@ -101,15 +103,11 @@ func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interf
 }
 
 func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}, error) {
-	uniqueIds := NewStringSetNoCase()
-	for _, id := range o._ids {
-		if id == "" {
-			continue
-		}
-		uniqueIds.Add(id)
-	}
+	uniqueIds := StringArrayCopy(o._ids)
+	StringArrayRemove(&uniqueIds, "")
+	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
 	res := make(map[string]interface{})
-	for _, id := range uniqueIds.strings {
+	for _, id := range uniqueIds {
 		v, err := o.getDocumentWithID(clazz, id)
 		if err != nil {
 			return res, err

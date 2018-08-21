@@ -114,13 +114,10 @@ func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, er
 }
 
 func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
-	ids := c._ids
-	uniqueIds := NewStringSet()
-	for _, id := range ids {
-		uniqueIds.Add(id)
-	}
+	uniqueIds := StringArrayCopy(c._ids)
+	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
 	totalLen := 0
-	for _, s := range uniqueIds.strings {
+	for _, s := range uniqueIds {
 		totalLen += len(s)
 	}
 
@@ -129,14 +126,14 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	isGet := totalLen < 1024
 
 	if isGet {
-		for _, s := range uniqueIds.strings {
+		for _, s := range uniqueIds {
 			url += "&id=" + UrlUtils_escapeDataString(s)
 		}
 		return NewHttpGet(url)
 	}
 
 	m := map[string]interface{}{
-		"Ids": uniqueIds.strings,
+		"Ids": uniqueIds,
 	}
 	d, err := json.Marshal(m)
 	panicIf(err != nil, "json.Marshal() failed with %s", err)
