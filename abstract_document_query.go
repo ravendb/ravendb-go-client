@@ -46,7 +46,7 @@ type AbstractDocumentQuery struct {
 
 	theWaitForNonStaleResults bool
 
-	includes *StringSet
+	includes []string
 
 	queryStats *QueryStatistics
 
@@ -301,7 +301,7 @@ func (q *AbstractDocumentQuery) _moreLikeThis() *MoreLikeThisScope {
 }
 
 func (q *AbstractDocumentQuery) _include(path string) {
-	q.includes.Add(path)
+	q.includes = append(q.includes, path)
 }
 
 func (q *AbstractDocumentQuery) _take(count *int) {
@@ -917,12 +917,13 @@ func (q *AbstractDocumentQuery) String() string {
 }
 
 func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
-	if q.includes == nil || q.includes.IsEmpty() {
+	if len(q.includes) == 0 {
 		return
 	}
 
+	q.includes = StringArrayRemoveDuplicates(q.includes)
 	queryText.append(" include ")
-	for i, include := range q.includes.strings {
+	for i, include := range q.includes {
 		if i > 0 {
 			queryText.append(",")
 		}

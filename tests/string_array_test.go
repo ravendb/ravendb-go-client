@@ -4,8 +4,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStringArraySubtract(t *testing.T) {
@@ -46,5 +46,25 @@ func TestStringArrayContains(t *testing.T) {
 	for _, test := range tests {
 		got := ravendb.StringArrayContains(test.a, test.s)
 		assert.Equal(t, test.exp, got)
+	}
+}
+
+func TestStringArrayRemoveDuplicates(t *testing.T) {
+	var tests = []struct {
+		a   []string
+		exp []string
+	}{
+		{nil, nil},
+		{[]string{}, []string{}},
+		{[]string{"a"}, []string{"a"}},
+		{[]string{"a", "a"}, []string{"a"}},
+		{[]string{"a", "b"}, []string{"a", "b"}},
+		{[]string{"a", "b", "a"}, []string{"a", "b"}},
+		{[]string{"a", "A", "a", "z", "a"}, []string{"a", "z", "A"}},
+	}
+	for _, test := range tests {
+		got := ravendb.StringArrayRemoveDuplicates(test.a)
+		eq := ravendb.StringArrayEq(test.exp, got)
+		assert.True(t, eq, "Expected: %v, got: %v", test.exp, got)
 	}
 }

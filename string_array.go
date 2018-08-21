@@ -1,6 +1,9 @@
 package ravendb
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 // TODO: make it more efficient by modifying the array in-place
 func StringArrayRemove(pa *[]string, s string) bool {
@@ -85,6 +88,7 @@ func StringArrayContains(a []string, s string) bool {
 	return false
 }
 
+// StringArrayEq returns true if arrays have the same content, ignoring order
 func StringArrayEq(a1, a2 []string) bool {
 	if len(a1) != len(a2) {
 		return false
@@ -92,9 +96,12 @@ func StringArrayEq(a1, a2 []string) bool {
 	if len(a1) == 0 {
 		return true
 	}
-	// TODO: could be faster if used map
-	for _, s := range a1 {
-		if !StringArrayContains(a2, s) {
+	a1c := StringArrayCopy(a1)
+	a2c := StringArrayCopy(a2)
+	sort.Strings(a1c)
+	sort.Strings(a2c)
+	for i := 0; i < len(a1c); i++ {
+		if a1c[i] != a2c[i] {
 			return false
 		}
 	}
@@ -132,4 +139,35 @@ func StringArrayReverse(a []string) {
 	for i := 0; i < n/2; i++ {
 		a[i], a[n-1-i] = a[n-1-i], a[i]
 	}
+}
+
+// StringArrayRemoveDuplicates removes duplicate strings from a
+func StringArrayRemoveDuplicates(a []string) []string {
+	n := len(a)
+	if n < 2 {
+		return a
+	}
+	sort.Strings(a)
+	var toRemove []int
+	prev := a[0]
+	for i := 1; i < n; i++ {
+		if a[i] == prev {
+			toRemove = append(toRemove, i)
+			continue
+		}
+		prev = a[i]
+	}
+	if len(toRemove) == 0 {
+		return a
+	}
+	// remove from the end so that index in toRemove isn't invalidated
+	// by changing the array
+	lastIdx := n - 1
+	for i := len(toRemove) - 1; i >= 0; i-- {
+		idx := toRemove[i]
+		// remove by replacing with element from end of array
+		a[idx] = a[lastIdx]
+		lastIdx--
+	}
+	return a[:n-len(toRemove)]
 }
