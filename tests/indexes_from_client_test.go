@@ -21,7 +21,7 @@ func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
 
 	res.Index("name", ravendb.FieldIndexing_SEARCH)
 
-	res.IndexSuggestions.Add("name")
+	res.IndexSuggestions = append(res.IndexSuggestions, "name")
 
 	res.Store("name", ravendb.FieldStorage_YES)
 

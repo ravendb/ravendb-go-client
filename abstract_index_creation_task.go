@@ -16,7 +16,7 @@ type AbstractIndexCreationTask struct {
 	StoresStrings         map[string]FieldStorage
 	IndexesStrings        map[string]FieldIndexing
 	AnalyzersStrings      map[string]string
-	IndexSuggestions      *StringSet
+	IndexSuggestions      []string
 	TermVectorsStrings    map[string]FieldTermVector
 	SpatialOptionsStrings map[string]*SpatialOptions
 
@@ -37,7 +37,6 @@ func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
 		StoresStrings:         make(map[string]FieldStorage),
 		IndexesStrings:        make(map[string]FieldIndexing),
 		AnalyzersStrings:      make(map[string]string),
-		IndexSuggestions:      NewStringSet(),
 		TermVectorsStrings:    make(map[string]FieldTermVector),
 		SpatialOptionsStrings: make(map[string]*SpatialOptions),
 
@@ -171,5 +170,5 @@ func (t *AbstractIndexCreationTask) TermVector(field string, termVector FieldTer
 }
 
 func (t *AbstractIndexCreationTask) Suggestion(field string) {
-	t.IndexSuggestions.Add(field)
+	t.IndexSuggestions = append(t.IndexSuggestions, field)
 }

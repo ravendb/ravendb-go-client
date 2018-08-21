@@ -9,7 +9,7 @@ type IndexDefinitionBuilder struct {
 	storesStrings            map[string]FieldStorage
 	indexesStrings           map[string]FieldIndexing
 	analyzersStrings         map[string]string
-	suggestionsOptions       *StringSet
+	suggestionsOptions       []string
 	termVectorsStrings       map[string]FieldTermVector
 	spatialIndexesStrings    map[string]*SpatialOptions
 	lockMode                 IndexLockMode
@@ -28,7 +28,6 @@ func NewIndexDefinitionBuilder(indexName string) *IndexDefinitionBuilder {
 		_indexName:            indexName,
 		storesStrings:         make(map[string]FieldStorage),
 		indexesStrings:        make(map[string]FieldIndexing),
-		suggestionsOptions:    NewStringSet(),
 		analyzersStrings:      make(map[string]string),
 		termVectorsStrings:    make(map[string]FieldTermVector),
 		spatialIndexesStrings: make(map[string]*SpatialOptions),
@@ -52,7 +51,7 @@ func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventi
 	indexDefinition.updateIndexTypeAndMaps()
 
 	suggestions := make(map[string]bool)
-	for _, suggestionsOption := range d.suggestionsOptions.strings {
+	for _, suggestionsOption := range d.suggestionsOptions {
 		suggestions[suggestionsOption] = true
 	}
 
