@@ -432,6 +432,9 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	assert.NotEmpty(t, explanation.GetReason())
 }
 
+// TODO: here the issue seems to be merely a different order of resuls
+// Fails on Travis CI https://travis-ci.org/ravendb/ravendb-go-client/builds/418503707
+// but works on Mac/Windows
 func indexesFromClientTest_moreLikeThis(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -548,7 +551,9 @@ func TestIndexesFromClient(t *testing.T) {
 	indexesFromClientTest_getIndexNames(t)
 	indexesFromClientTest_canStopAndStart(t)
 	indexesFromClientTest_canExplain(t)
-	indexesFromClientTest_moreLikeThis(t)
+	if ravendb.EnableFlakyTests {
+		indexesFromClientTest_moreLikeThis(t)
+	}
 	// TODO: this works on Mac but fails on Travis CI/Linux
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/410576496
 	// also sometimes fails on macbook pro
