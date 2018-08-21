@@ -87,6 +87,6 @@ func (c *GetTermsCommand) SetResponse(response []byte, fromCache bool) error {
 	if err != nil {
 		return err
 	}
-	c.Result = res.getTerms()
+	c.Result = res.Terms
 	return nil
 }
