@@ -406,8 +406,17 @@ func shutdownTests() {
 
 var dbTestsDisabledAlreadyPrinted = false
 
+func isEnvVarTrue(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	switch v {
+	case "yes", "true":
+		return true
+	}
+	return false
+}
+
 func dbTestsDisabled() bool {
-	if os.Getenv("RAVEN_GO_NO_DB_TESTS") != "" {
+	if isEnvVarTrue("RAVEN_GO_NO_DB_TESTS") {
 		if !dbTestsDisabledAlreadyPrinted {
 			dbTestsDisabledAlreadyPrinted = true
 			fmt.Printf("DB tests are disabled\n")
@@ -569,8 +578,7 @@ func downloadServerIfNeeded() {
 func detectServerPath() {
 	// explicitly setting RAVEN_GO_NO_DB_TESTS=true disables database tests
 	// so no need for the server
-	noDB := os.Getenv("RAVEN_GO_NO_DB_TESTS")
-	if noDB != "" {
+	if isEnvVarTrue("RAVEN_GO_NO_DB_TESTS") {
 		return
 	}
 

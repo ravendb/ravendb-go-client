@@ -57,7 +57,7 @@ func (o *LoadOperation) withIncludes(includes []string) *LoadOperation {
 }
 
 func (o *LoadOperation) byIds(ids []string) *LoadOperation {
-	o._ids = nil
+	o._ids = StringArrayCopy(ids)
 
 	seen := map[string]struct{}{}
 	for _, id := range ids {
@@ -68,7 +68,7 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 		if _, ok := seen[idl]; ok {
 			continue
 		}
-		seen[id] = struct{}{}
+		seen[idl] = struct{}{}
 		o.byId(id)
 	}
 	return o
