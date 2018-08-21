@@ -3,34 +3,22 @@ package ravendb
 type AfterSaveChangesEventArgs struct {
 	_documentMetadata *IMetadataDictionary
 
-	session    *InMemoryDocumentSessionOperations
-	documentId string
-	entity     Object
+	Session    *InMemoryDocumentSessionOperations
+	DocumentId string
+	Entity     Object
 }
 
 func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity Object) *AfterSaveChangesEventArgs {
 	return &AfterSaveChangesEventArgs{
-		session:    session,
-		documentId: documentId,
-		entity:     entity,
+		Session:    session,
+		DocumentId: documentId,
+		Entity:     entity,
 	}
-}
-
-func (a *AfterSaveChangesEventArgs) GetSession() *InMemoryDocumentSessionOperations {
-	return a.session
-}
-
-func (a *AfterSaveChangesEventArgs) GetDocumentID() string {
-	return a.documentId
-}
-
-func (a *AfterSaveChangesEventArgs) GetEntity() Object {
-	return a.entity
 }
 
 func (a *AfterSaveChangesEventArgs) GetDocumentMetadata() *IMetadataDictionary {
 	if a._documentMetadata == nil {
-		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
+		a._documentMetadata, _ = a.Session.GetMetadataFor(a.Entity)
 	}
 
 	return a._documentMetadata
