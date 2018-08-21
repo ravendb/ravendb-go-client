@@ -2,10 +2,13 @@ package ravendb
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"reflect"
 	"strconv"
 )
+
+var ErrNotFound = errors.New("Not found")
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
 type DocumentSession struct {
@@ -111,6 +114,29 @@ func (s *DocumentSession) Include(path string) ILoaderWithInclude {
 // TODO:    public <T> Lazy<T> addLazyOperation(reflect.Type clazz, ILazyOperation operation, Consumer<T> onEval) {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(reflect.Type clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)
+
+func (s *DocumentSession) Load2(result interface{}, id string) error {
+	if id == "" {
+		// TODO: or should it return default value?
+		return ErrNotFound
+	}
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+
+	loadOperation.byId(id)
+
+	command := loadOperation.CreateRequest()
+
+	if command != nil {
+		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		if err != nil {
+			return err
+		}
+		result := command.Result
+		loadOperation.setResult(result)
+	}
+
+	return loadOperation.getDocument2(result)
+}
 
 func (s *DocumentSession) Load(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {

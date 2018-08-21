@@ -117,6 +117,28 @@ func isTypePointerToStruct(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Struct
 }
 
+
+// if typ is ptr-to-struct, return as is
+// if typ is ptr-to-ptr-to-struct, returns ptr-to-struct
+// otherwise returns nil
+func fixUpStructType(typ reflect.Type) reflect.Type {
+	if typ.Kind() != reflect.Ptr {
+		return nil
+	}
+	subtype := typ.Elem()
+	if subtype.Kind() == reflect.Struct {
+		return typ
+	}
+	if subtype.Kind() != reflect.Ptr {
+		return nil
+	}
+	if subtype.Elem().Kind() == reflect.Struct {
+		return subtype
+	}
+	return nil
+}
+
+
 func convertFloat64ToType(v float64, typ reflect.Type) interface{} {
 	switch typ.Kind() {
 	case reflect.Float32:
@@ -210,8 +232,10 @@ func MakeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error)
 	if typ == GetTypeOf(ObjectNode{}) {
 		return js, nil
 	}
-	panicIf(!isTypePointerToStruct(typ), "typ should be pointer to struct but is %s, %s", typ.String(), typ.Kind().String())
+	typ2 := fixUpStructType(typ)
+	panicIf(typ2 == nil, "typ should be pointer-to-struct or pointer-to-pointer-to-struct but is %s, %s", typ.String(), typ.Kind().String())
 
+	typ = typ2
 	// reflect.New() creates a pointer to type. if typ is already a pointer,
 	// we undo one level
 	if typ.Kind() == reflect.Ptr {
