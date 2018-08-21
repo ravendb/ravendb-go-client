@@ -144,7 +144,7 @@ func getGlobalHTTPClientNoKeepAlive() *http.Client {
 		}
 
 		client := &http.Client{
-			Timeout:   time.Second * 15,
+			Timeout:   time.Second * 30,
 			Transport: tr,
 		}
 		globalHTTPClient = client
@@ -156,7 +156,7 @@ func getGlobalHTTPClient() *http.Client {
 	if globalHTTPClient == nil {
 		// TODO: certificate
 		client := &http.Client{
-			Timeout: time.Second * 15,
+			Timeout: time.Second * 30,
 		}
 		globalHTTPClient = client
 	}
