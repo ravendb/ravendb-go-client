@@ -74,8 +74,34 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 	return o
 }
 
+func (o *LoadOperation) getDocument2(result interface{}) error {
+	return o.getDocumentWithID2(result, o._ids[0])
+}
+
 func (o *LoadOperation) getDocument(clazz reflect.Type) (interface{}, error) {
 	return o.getDocumentWithID(clazz, o._ids[0])
+}
+
+func (o *LoadOperation) getDocumentWithID2(result interface{}, id string) error {
+	if id == "" {
+		// TODO: should return default value?
+		return ErrNotFound
+	}
+
+	if o._session.IsDeleted(id) {
+		// TODO: return ErrDeleted?
+		return ErrNotFound
+	}
+
+	doc := o._session.documentsById.getValue(id)
+	if doc == nil {
+		doc, _ = o._session.includedDocumentsById[id]
+	}
+	if doc == nil {
+		return ErrNotFound
+	}
+
+	return o._session.TrackEntityInDocumentInfo2(result, doc)
 }
 
 func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interface{}, error) {
@@ -88,18 +114,14 @@ func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interf
 	}
 
 	doc := o._session.documentsById.getValue(id)
-	if doc != nil {
-		res, err := o._session.TrackEntityInDocumentInfo(clazz, doc)
-		return res, err
+	if doc == nil {
+		doc, _ = o._session.includedDocumentsById[id]
+	}
+	if doc == nil {
+		return Defaults_defaultValue(clazz), nil
 	}
 
-	doc, _ = o._session.includedDocumentsById[id]
-	if doc != nil {
-		res, err := o._session.TrackEntityInDocumentInfo(clazz, doc)
-		return res, err
-	}
-
-	return Defaults_defaultValue(clazz), nil
+	return o._session.TrackEntityInDocumentInfo(clazz, doc)
 }
 
 func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}, error) {

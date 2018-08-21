@@ -1,6 +1,8 @@
 package ravendb
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type EntityToJson struct {
 	_session           *InMemoryDocumentSessionOperations
@@ -38,6 +40,64 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 	var v ObjectNode
 	typ := reflect.ValueOf(v).Type()
 	return typ.String() == entityType.String()
+}
+
+// assumes v is ptr-to-struct and result is ptr-to-ptr-to-struct
+func setInterfaceToValue(result interface{}, v interface{}) {
+	out := reflect.ValueOf(result)
+	outt := out.Type()
+	outk := out.Kind()
+	//fmt.Printf("outt: %s, outk: %s\n", outt, outk)
+	if outk == reflect.Ptr && out.IsNil() {
+		out.Set(reflect.New(outt.Elem()))
+	}
+	if outk == reflect.Ptr {
+		out = out.Elem()
+		//outt = out.Type()
+		//outk = out.Kind()
+	}
+	//fmt.Printf("outt: %s, outk: %s\n", outt, outk)
+	vin := reflect.ValueOf(v)
+	//fmt.Printf("int: %s, ink: %s\n", vin.Type(), vin.Kind())
+	out.Set(vin)
+}
+
+func (e *EntityToJson) ConvertToEntity2(result interface{}, id string, document ObjectNode) {
+	entityType := reflect.TypeOf(result)
+	if isTypeObjectNode(entityType) {
+		setInterfaceToValue(result, document)
+		return
+	}
+	// TODO: deal with default values
+	entity, _ := MakeStructFromJSONMap(entityType, document)
+	TrySetIDOnEntity(entity, id)
+	setInterfaceToValue(result, entity)
+	/*
+		try {
+			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
+			Object entity = defaultValue;
+
+			string documentType =_session.getConventions().getJavaClass(id, document);
+			if (documentType != null) {
+				Class type = Class.forName(documentType);
+				if (entityType.isAssignableFrom(type)) {
+					entity = _session.getConventions().getEntityMapper().treeToValue(document, type);
+				}
+			}
+
+			if (entity == defaultValue) {
+				entity = _session.getConventions().getEntityMapper().treeToValue(document, entityType);
+			}
+
+			if (id != null) {
+				_session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id);
+			}
+
+			return entity;
+		} catch (Exception e) {
+			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.GetName(), e);
+		}
+	*/
 }
 
 // Converts a json object to an entity.

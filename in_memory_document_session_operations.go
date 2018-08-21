@@ -304,6 +304,71 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(clazz refl
 	return s.TrackEntity(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
+func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo2(result interface{}, documentFound *DocumentInfo) error {
+	return s.TrackEntity2(result, documentFound.id, documentFound.document, documentFound.metadata, false)
+}
+
+func (s *InMemoryDocumentSessionOperations) TrackEntity2(result interface{}, id string, document ObjectNode, metadata ObjectNode, noTracking bool) error {
+	if id == "" {
+		s.DeserializeFromTransformer2(result, "", document)
+		return nil
+	}
+
+	docInfo := s.documentsByEntity[id]
+	if docInfo != nil {
+		// the local instance may have been changed, we adhere to the current Unit of Work
+		// instance, and return that, ignoring anything new.
+
+		if docInfo.entity == nil {
+			 s.entityToJson.ConvertToEntity2(docInfo.entity, id, document)
+		}
+
+		if !noTracking {
+			delete(s.includedDocumentsById, id)
+			s.documentsByEntity[docInfo.entity] = docInfo
+		}
+		setInterfaceToValue(result, docInfo.entity)
+		return nil
+	}
+
+	docInfo = s.includedDocumentsById[id]
+	if docInfo != nil {
+		if docInfo.entity == nil {
+			 s.entityToJson.ConvertToEntity2(docInfo.entity, id, document)
+		}
+
+		if !noTracking {
+			delete(s.includedDocumentsById, id)
+			s.documentsById.add(docInfo)
+			s.documentsByEntity[docInfo.entity] = docInfo
+		}
+
+		setInterfaceToValue(result, docInfo.entity)
+		return nil
+	}
+
+	s.entityToJson.ConvertToEntity2(result, id, document)
+
+	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	if changeVector == nil {
+		return NewIllegalStateException("Document %s must have Change Vector", id)
+	}
+
+	if !noTracking {
+		newDocumentInfo := NewDocumentInfo()
+		newDocumentInfo.id = id
+		newDocumentInfo.setDocument(document)
+		newDocumentInfo.setMetadata(metadata)
+		newDocumentInfo.setEntity(result)
+		newDocumentInfo.setChangeVector(changeVector)
+
+		s.documentsById.add(newDocumentInfo)
+		s.documentsByEntity[result] = newDocumentInfo
+	}
+
+	return nil
+}
+
 // TrackEntity tracks entity
 func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
 	if id == "" {
@@ -892,6 +957,10 @@ func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results Arra
 			}
 		}
 	*/
+}
+
+func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer2(result interface{}, id string, document ObjectNode) {
+	s.entityToJson.ConvertToEntity2(result, id, document)
 }
 
 func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
