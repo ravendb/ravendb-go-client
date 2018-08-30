@@ -16,7 +16,7 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		basicName := &BasicName{}
-		basicName.setName("Toli")
+		basicName.Name = "Toli"
 		err = newSession.StoreWithID(basicName, "users/1")
 		assert.NoError(t, err)
 
@@ -28,10 +28,10 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 	}
 
 	{
+		var user *NameAndAge
 		newSession := openSessionMust(t, store)
-		userI, err := newSession.LoadOld(ravendb.GetTypeOf(&NameAndAge{}), "users/1")
+		err = newSession.Load(&user, "users/1")
 		assert.NoError(t, err)
-		user := userI.(*NameAndAge)
 		user.Age = 5
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -57,7 +57,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 		newSession := openSessionMust(t, store)
 		nameAndAge := &NameAndAge{}
 		nameAndAge.Age = 5
-		nameAndAge.setName("Toli")
+		nameAndAge.Name = "Toli"
 
 		err = newSession.StoreWithID(nameAndAge, "users/1")
 		assert.NoError(t, err)
@@ -72,7 +72,8 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.LoadOld(ravendb.GetTypeOf(&BasicAge{}), "users/1")
+		var unused *BasicAge
+		err = newSession.Load(&unused, "users/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -112,7 +113,8 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.LoadOld(ravendb.GetTypeOf(&Int{}), "users/1")
+		var unused *Int
+		err = newSession.Load(&unused, "users/1")
 		assert.NoError(t, err)
 		changes, _ := newSession.Advanced().WhatChanged()
 		change := changes["users/1"]
@@ -142,7 +144,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.setArray([]ravendb.Object{"a", 1, "b"})
+		arr.Array = []ravendb.Object{"a", 1, "b"}
 
 		err = newSession.StoreWithID(arr, "users/1")
 		assert.NoError(t, err)
@@ -161,11 +163,11 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 
 		{
 			newSession := openSessionMust(t, store)
-			arrI, err := newSession.LoadOld(ravendb.GetTypeOf(&Arr{}), "users/1")
+			var arr *Arr
+			err = newSession.Load(&arr, "users/1")
 			assert.NoError(t, err)
-			arr := arrI.(*Arr)
 
-			arr.setArray([]ravendb.Object{"a", 2, "c"})
+			arr.Array = []ravendb.Object{"a", 2, "c"}
 
 			changes, _ := newSession.Advanced().WhatChanged()
 			assert.Equal(t, len(changes), 1)
@@ -204,7 +206,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.setArray([]ravendb.Object{"a", 1, "b"})
+		arr.Array = []ravendb.Object{"a", 1, "b"}
 		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
@@ -214,11 +216,11 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.LoadOld(ravendb.GetTypeOf(&Arr{}), "arr/1")
+		var arr *Arr
+		err = newSession.Load(&arr, "arr/1")
 		assert.NoError(t, err)
 
-		arr := arrI.(*Arr)
-		arr.setArray([]ravendb.Object{"a", 1, "b", "c", 2})
+		arr.Array = []ravendb.Object{"a", 1, "b", "c", 2}
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -250,7 +252,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.setArray([]ravendb.Object{"a", 1, "b"})
+		arr.Array = []ravendb.Object{"a", 1, "b"}
 		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
@@ -260,11 +262,11 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		arrI, err := newSession.LoadOld(ravendb.GetTypeOf(&Arr{}), "arr/1")
+		var arr *Arr
+		err = newSession.Load(&arr, "arr/1")
 		assert.NoError(t, err)
 
-		arr := arrI.(*Arr)
-		arr.setArray([]ravendb.Object{"a"})
+		arr.Array = []ravendb.Object{"a"}
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -302,13 +304,13 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 		newSession := openSessionMust(t, store)
 
 		anInt := &Int{}
-		anInt.setNumber(1)
+		anInt.Number = 1
 
 		err = newSession.StoreWithID(anInt, "num/1")
 		assert.NoError(t, err)
 
 		aDouble := &Double{}
-		aDouble.setNumber(2.0)
+		aDouble.Number = 2.0
 		err = newSession.StoreWithID(aDouble, "num/2")
 		assert.NoError(t, err)
 
@@ -319,7 +321,8 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.LoadOld(ravendb.GetTypeOf(&Double{}), "num/1")
+		var unused *Double
+		err = newSession.Load(&unused, "num/1")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -329,7 +332,8 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		_, err = newSession.LoadOld(ravendb.GetTypeOf(&Int{}), "num/2")
+		var unused *Int
+		err = newSession.Load(&unused, "num/2")
 		assert.NoError(t, err)
 
 		changes, _ := newSession.Advanced().WhatChanged()
@@ -371,16 +375,16 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		user1I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		user1 = nil
+		err = session.Load(&user1, "users/1")
 		assert.NoError(t, err)
-		user1 = user1I.(*User)
 
-		user2I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/2")
+		user2 = nil
+		err = session.Load(&user2, "users/2")
 		assert.NoError(t, err)
-		user2 = user2I.(*User)
 
 		user1.Age = 10
-		err = session.DeleteEntity(user2)
+		err = session.DeleteEntity(&user2)
 
 		changes, _ = session.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 2)
@@ -394,81 +398,25 @@ type BasicName struct {
 	Name string
 }
 
-func (n *BasicName) GetName() string {
-	return n.Name
-}
-
-func (n *BasicName) setName(Name string) {
-	n.Name = Name
-}
-
 type NameAndAge struct {
 	Name string
 	Age  int
-}
-
-func (n *NameAndAge) GetName() string {
-	return n.Name
-}
-
-func (n *NameAndAge) setName(Name string) {
-	n.Name = Name
-}
-
-func (n *NameAndAge) getAge() int {
-	return n.Age
-}
-
-func (n *NameAndAge) setAge(Age int) {
-	n.Age = Age
 }
 
 type BasicAge struct {
 	Age int
 }
 
-func (a *BasicAge) getAge() int {
-	return a.Age
-}
-
-func (a *BasicAge) setAge(Age int) {
-	a.Age = Age
-}
-
 type Int struct {
 	Number int
-}
-
-func (i *Int) getNumber() int {
-	return i.Number
-}
-
-func (i *Int) setNumber(Number int) {
-	i.Number = Number
 }
 
 type Double struct {
 	Number float64
 }
 
-func (d *Double) getNumber() float64 {
-	return d.Number
-}
-
-func (d *Double) setNumber(Number float64) {
-	d.Number = Number
-}
-
 type Arr struct {
 	Array []ravendb.Object
-}
-
-func (a *Arr) getArray() []ravendb.Object {
-	return a.Array
-}
-
-func (a *Arr) setArray(Array []ravendb.Object) {
-	a.Array = Array
 }
 
 func TestWhatChanged(t *testing.T) {
