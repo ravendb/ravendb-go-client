@@ -128,7 +128,8 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user1, err := newSession.LoadOld(ravendb.GetTypeOf(&User{}), "")
+		var user1 *User
+		err = newSession.Load(&user1, "")
 		assert.NoError(t, err)
 		assert.Nil(t, user1)
 		newSession.Close()
@@ -318,11 +319,11 @@ func TestLoad(t *testing.T) {
 
 	// matches order of Java tests
 	//loadTest_loadDocumentById(t)
-	//loadTest_loadNullShouldReturnNull(t)
-	//loadTest_loadDocumentsByIds(t)
-	//loadTest_shouldLoadManyIdsAsPostRequest(t)
-	//loadTest_loadStartsWith(t)
-	//loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
+	loadTest_loadNullShouldReturnNull(t)
+	loadTest_loadDocumentsByIds(t)
+	loadTest_shouldLoadManyIdsAsPostRequest(t)
+	loadTest_loadStartsWith(t)
+	loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
 	loadTest_loadDocumentWithIntArrayAndLongArray(t)
 	loadTest_loadCanUseCache(t)
 }
