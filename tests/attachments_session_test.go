@@ -45,9 +45,9 @@ func attachmentsSession_putAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
-		user := userI.(*User)
 		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
 		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
@@ -194,7 +194,8 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
 		// test get attachment by its name
@@ -208,7 +209,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 
 		err = session.Advanced().Attachments().Delete("users/1", "file2")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(userI, "file4")
+		err = session.Advanced().Attachments().DeleteEntity(user, "file4")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -219,10 +220,11 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().GetMetadataFor(userI)
+		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
 
 		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
@@ -284,10 +286,11 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().GetMetadataFor(userI)
+		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
 
 		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
@@ -381,14 +384,15 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.DeleteEntity(userI)
+		err = session.DeleteEntity(user)
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(userI, "file")
+		err = session.Advanced().Attachments().DeleteEntity(user, "file")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(userI, "file") // this should be no-op
+		err = session.Advanced().Attachments().DeleteEntity(user, "file") // this should be no-op
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -466,10 +470,11 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		attachments, err := session.Advanced().Attachments().GetNames(userI)
+		attachments, err := session.Advanced().Attachments().GetNames(user)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(attachments), 1)
