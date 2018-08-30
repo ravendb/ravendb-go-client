@@ -320,7 +320,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			 s.entityToJson.ConvertToEntity2(docInfo.entity, id, document)
+			s.entityToJson.ConvertToEntity2(docInfo.entity, id, document)
 		}
 
 		if !noTracking {
@@ -333,8 +333,11 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 	docInfo = s.includedDocumentsById[id]
 	if docInfo != nil {
+		noSet := true
 		if docInfo.entity == nil {
-			 s.entityToJson.ConvertToEntity2(docInfo.entity, id, document)
+			s.entityToJson.ConvertToEntity2(result, id, document)
+			docInfo.setEntity(result)
+			noSet = false
 		}
 
 		if !noTracking {
@@ -342,8 +345,9 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 			s.documentsById.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
-
-		setInterfaceToValue(result, docInfo.entity)
+		if noSet {
+			setInterfaceToValue(result, docInfo.entity)
+		}
 		return nil
 	}
 

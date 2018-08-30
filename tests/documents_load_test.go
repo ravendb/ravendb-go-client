@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 // Note: client/documents/LoadTest.java
@@ -13,42 +13,10 @@ type Foo struct {
 	Name string
 }
 
-func (f *Foo) GetName() string {
-	return f.Name
-}
-
-func (f *Foo) setName(name string) {
-	f.Name = name
-}
-
 type Bar struct {
 	FooId  string
 	FooIDs []string
 	Name   string
-}
-
-func (b *Bar) getFooId() string {
-	return b.FooId
-}
-
-func (b *Bar) setFooId(fooId string) {
-	b.FooId = fooId
-}
-
-func (b *Bar) getFooIDs() []string {
-	return b.FooIDs
-}
-
-func (b *Bar) setFooIDs(fooIDs []string) {
-	b.FooIDs = fooIDs
-}
-
-func (b *Bar) GetName() string {
-	return b.Name
-}
-
-func (b *Bar) setName(name string) {
-	b.Name = name
 }
 
 func documentsLoadTest_loadWithIncludes(t *testing.T) {
@@ -60,14 +28,14 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		foo := &Foo{}
-		foo.setName("Beginning")
+		foo.Name = "Beginning"
 		err = session.Store(foo)
 		assert.NoError(t, err)
 
 		fooId := session.Advanced().GetDocumentID(foo)
 		bar := &Bar{}
-		bar.setName("End")
-		bar.setFooId(fooId)
+		bar.Name = "End"
+		bar.FooId = fooId
 
 		session.Store(bar)
 
@@ -92,11 +60,11 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		numOfRequests := newSession.Advanced().GetNumberOfRequests()
 
 		barV := bar[barId].(*Bar)
-		foo, err := newSession.LoadOld(ravendb.GetTypeOf(&Foo{}), barV.getFooId())
+		var foo *Foo
+		err = newSession.Load(&foo, barV.FooId)
 		assert.NoError(t, err)
 		assert.NotNil(t, foo)
-		fooV := foo.(*Foo)
-		assert.Equal(t, fooV.GetName(), "Beginning")
+		assert.Equal(t, foo.Name, "Beginning")
 
 		assert.Equal(t, newSession.Advanced().GetNumberOfRequests(), numOfRequests)
 		newSession.Close()
