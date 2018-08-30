@@ -23,8 +23,8 @@ func storeTestRefreshTest(t *testing.T) {
 
 		{
 			innerSession := openSessionMust(t, store)
-			innerUserI, err := innerSession.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
-			innerUser := innerUserI.(*User)
+			var innerUser *User
+			err = innerSession.Load(&innerUser, "users/1")
 			innerUser.setName("RavenDB 4.0")
 			err = innerSession.SaveChanges()
 			assert.NoError(t, err)
@@ -45,6 +45,7 @@ func storeTestStoreDocument(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
+
 		user := &User{}
 		user.setName("RavenDB")
 		err = session.StoreWithID(user, "users/1")
@@ -52,9 +53,9 @@ func storeTestStoreDocument(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		user = nil
+		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
-		user = userI.(*User)
 		assert.NotNil(t, user)
 		name := *user.Name
 		assert.Equal(t, name, "RavenDB")
