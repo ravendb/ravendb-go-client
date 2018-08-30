@@ -47,9 +47,9 @@ func advancedPatching_testWithVariables(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&CustomType{}), "customTypes/1")
+		var loaded *CustomType
+		err = session.Load(&loaded, "customTypes/1")
 		assert.NoError(t, err)
-		loaded := loadedI.(*CustomType)
 		assert.Equal(t, loaded.Owner, "not-me")
 
 		session.Close()
@@ -111,9 +111,9 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		jsonDocument, err := session.LoadOld(ravendb.GetTypeOf(ravendb.ObjectNode{}), "NewItem/3")
+		var jsonDoc ravendb.ObjectNode
+		err = session.Load(&jsonDoc, "NewItem/3")
 		assert.NoError(t, err)
-		jsonDoc := jsonDocument.(ravendb.ObjectNode)
 		assert.Equal(t, jsonDoc["copiedValue"], "1")
 
 		session.Close()
