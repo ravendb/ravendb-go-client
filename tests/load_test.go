@@ -174,7 +174,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 	}
 }
 
-func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
+func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
 	defer store.Close()
@@ -203,13 +203,13 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		geek1i, err := newSession.LoadOld(ravendb.GetTypeOf(&GeekPerson{}), "geeks/1")
+		var geek1 *GeekPerson
+		err = newSession.Load(&geek1, "geeks/1")
 		assert.NoError(t, err)
-		geek1 := geek1i.(*GeekPerson)
 
-		geek2i, err := newSession.LoadOld(ravendb.GetTypeOf(&GeekPerson{}), "geeks/2")
+		var geek2 *GeekPerson
+		err = newSession.Load(&geek2, "geeks/2")
 		assert.NoError(t, err)
-		geek2 := geek2i.(*GeekPerson)
 
 		assert.Equal(t, 43, geek1.getFavoritePrimes()[1])
 		assert.Equal(t, int64(5000000039), geek1.getFavoriteVeryLargePrimes()[1])
@@ -323,6 +323,6 @@ func TestLoad(t *testing.T) {
 	//loadTest_shouldLoadManyIdsAsPostRequest(t)
 	//loadTest_loadStartsWith(t)
 	//loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
-	//loadTest_loadDocumentWithINtArrayAndLongArray(t)
+	loadTest_loadDocumentWithIntArrayAndLongArray(t)
 	loadTest_loadCanUseCache(t)
 }
