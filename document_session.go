@@ -140,29 +140,6 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	return loadOperation.getDocument(result)
 }
 
-func (s *DocumentSession) LoadOld(clazz reflect.Type, id string) (interface{}, error) {
-	if id == "" {
-		return Defaults_defaultValue(clazz), nil
-	}
-
-	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-
-	loadOperation.byId(id)
-
-	command := loadOperation.CreateRequest()
-
-	if command != nil {
-		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
-		if err != nil {
-			return nil, err
-		}
-		result := command.Result
-		loadOperation.setResult(result)
-	}
-
-	return loadOperation.getDocumentOld(clazz)
-}
-
 func (s *DocumentSession) LoadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	err := s.loadInternalWithOperation(ids, loadOperation, nil)

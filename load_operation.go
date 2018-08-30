@@ -78,10 +78,6 @@ func (o *LoadOperation) getDocument(result interface{}) error {
 	return o.getDocumentWithID(result, o._ids[0])
 }
 
-func (o *LoadOperation) getDocumentOld(clazz reflect.Type) (interface{}, error) {
-	return o.getDocumentWithIDOld(clazz, o._ids[0])
-}
-
 func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 	if id == "" {
 		// TODO: should return default value?
