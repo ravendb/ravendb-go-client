@@ -42,13 +42,9 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		//var hiloDoc HiLoDoc
-		//err = session.load(&hiloDoc, "Raven/Hilo/users")
-		//assert.Nil(t, err)
-
-		result, err := session.LoadOld(ravendb.GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
+		var hiloDoc *HiLoDoc
+		err = session.Load(&hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
-		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.Max
 		assert.Equal(t, max, 96)
 
@@ -60,9 +56,9 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		result, err := session.LoadOld(ravendb.GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
+		var hiloDoc *HiLoDoc
+		err = session.Load(&hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
-		hiloDoc := result.(*HiLoDoc)
 		max := hiloDoc.Max
 
 		// TODO: in Java it's 160. On Travis CI (linux) it's 160
@@ -126,9 +122,9 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 
-		hiloDocI, err := session.LoadOld(ravendb.GetTypeOf(&HiLoDoc{}), "Raven/Hilo/users")
+		var hiloDoc *HiLoDoc
+		err = session.Load(&hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
-		hiloDoc := hiloDocI.(*HiLoDoc)
 		max := hiloDoc.Max
 		assert.Equal(t, max, 34)
 		session.Close()
