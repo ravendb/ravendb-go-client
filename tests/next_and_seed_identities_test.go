@@ -41,19 +41,16 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 	}
 
 	{
+		var entityWithId1, entityWithId2, entityWithId3, entityWithId4 *User
 		session := openSessionMust(t, store)
-		entityWithId1I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		err = session.Load(&entityWithId1, "users/1")
 		assert.NoError(t, err)
-		entityWithId1 := entityWithId1I.(*User)
-		entityWithId2I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/2")
+		err = session.Load(&entityWithId2, "users/2")
 		assert.NoError(t, err)
-		entityWithId2 := entityWithId2I.(*User)
-		entityWithId3I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/3")
+		err = session.Load(&entityWithId3, "users/3")
 		assert.NoError(t, err)
-		entityWithId3 := entityWithId3I.(*User)
-		entityWithId4I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/4")
+		err = session.Load(&entityWithId4, "users/4")
 		assert.NoError(t, err)
-		entityWithId4 := entityWithId4I.(*User)
 
 		assert.NotNil(t, entityWithId1)
 		assert.NotNil(t, entityWithId3)
@@ -103,25 +100,21 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entityWithId1I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var entityWithId1, entityWithId2, entityWithId1990, entityWithId1991, entityWithId1992 *User
+		err = session.Load(&entityWithId1, "users/1")
 		assert.NoError(t, err)
-		entityWithId1 := entityWithId1I.(*User)
 
-		entityWithId2I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/2")
+		err = session.Load(&entityWithId2, "users/2")
 		assert.NoError(t, err)
-		entityWithId2 := entityWithId2I.(*User)
 
-		entityWithId1990I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1990")
+		err = session.Load(&entityWithId1990, "users/1990")
 		assert.NoError(t, err)
-		entityWithId1990 := entityWithId1990I.(*User)
 
-		entityWithId1991I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1991")
+		err = session.Load(&entityWithId1991, "users/1991")
 		assert.NoError(t, err)
-		entityWithId1991 := entityWithId1991I.(*User)
 
-		entityWithId1992I, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1992")
+		err = session.Load(&entityWithId1992, "users/1992")
 		assert.NoError(t, err)
-		entityWithId1992 := entityWithId1992I.(*User)
 
 		assert.NotNil(t, entityWithId1)
 		assert.NotNil(t, entityWithId1991)

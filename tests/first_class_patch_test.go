@@ -81,14 +81,14 @@ func firstClassPatch_canPatch(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 		assert.Equal(t, loaded.Numbers[0], 31)
 
 		assert.Equal(t, loaded.LastLogin, now)
 
-		err = session.Advanced().PatchEntity(loaded, "stuff[0].phone", "123456")
+		err = session.Advanced().PatchEntity(&loaded, "stuff[0].phone", "123456")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -98,9 +98,9 @@ func firstClassPatch_canPatch(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 
 		assert.Equal(t, *loaded.Stuff[0].Phone, "123456")
 
@@ -129,12 +129,12 @@ func firstClassPatch_canPatchAndModify(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 		loaded.Numbers[0] = 1
 
-		err = session.Advanced().PatchEntity(loaded, "numbers[0]", 2)
+		err = session.Advanced().PatchEntity(&loaded, "numbers[0]", 2)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		_ = err.(*ravendb.IllegalStateException)
@@ -188,9 +188,9 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 		assert.Equal(t, *loaded.Stuff[1].Phone, "9255864406")
 
 		assert.Equal(t, loaded.Stuff[1].Key, 4)
@@ -229,7 +229,7 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 
 		secondStuff.Dic = m
 
-		err = session.Advanced().PatchEntity(loaded, "stuff[2]", secondStuff)
+		err = session.Advanced().PatchEntity(&loaded, "stuff[2]", secondStuff)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -240,9 +240,9 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 
 		assert.Equal(t, loaded.Stuff[2].Pet.Name, "Hanan")
 		assert.Equal(t, loaded.Stuff[2].Friend.Name, "Gonras")
@@ -307,18 +307,17 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 
 		assert.Equal(t, loaded.Numbers[2], 3)
 		assert.Equal(t, loaded.Stuff[1].Key, 75)
-		//concat
 
 		adder := func(roles *ravendb.JavaScriptArray) {
 			roles.Add(101, 102, 103)
 		}
-		err = session.Advanced().PatchArrayInEntity(loaded, "numbers", adder)
+		err = session.Advanced().PatchArrayInEntity(&loaded, "numbers", adder)
 		assert.NoError(t, err)
 		adder = func(roles *ravendb.JavaScriptArray) {
 			s1 := &Stuff{
@@ -332,7 +331,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 
 			roles.Add(s1).Add(s2)
 		}
-		err = session.Advanced().PatchArrayInEntity(loaded, "stuff", adder)
+		err = session.Advanced().PatchArrayInEntity(&loaded, "stuff", adder)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -343,9 +342,9 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 		assert.Equal(t, len(loaded.Numbers), 6)
 
 		assert.Equal(t, loaded.Numbers[5], 103)
@@ -358,7 +357,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 			roles.Add(201, 202, 203)
 		}
 
-		err = session.Advanced().PatchArrayInEntity(loaded, "numbers", adder)
+		err = session.Advanced().PatchArrayInEntity(&loaded, "numbers", adder)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -370,9 +369,9 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 
 		assert.Equal(t, len(loaded.Numbers), 9)
 		assert.Equal(t, loaded.Numbers[7], 202)
@@ -434,9 +433,9 @@ func firstClassPatch_canRemoveFromArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 		assert.Equal(t, len(loaded.Numbers), 2)
 		assert.Equal(t, loaded.Numbers[1], 3)
 
@@ -486,12 +485,12 @@ func firstClassPatch_canIncrement(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 		assert.Equal(t, loaded.Numbers[0], 67)
 
-		err = session.Advanced().IncrementEntity(loaded, "stuff[0].key", -3)
+		err = session.Advanced().IncrementEntity(&loaded, "stuff[0].key", -3)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -501,9 +500,9 @@ func firstClassPatch_canIncrement(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
+		var loaded *User2
+		err = session.Load(&loaded, _docId)
 		assert.NoError(t, err)
-		loaded := loadedI.(*User2)
 
 		assert.Equal(t, loaded.Stuff[0].Key, 3)
 		session.Close()
