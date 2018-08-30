@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/ravendb/ravendb-go-client"
 )
 
 func existsTest_checkIfDocumentExists(t *testing.T) {
@@ -41,8 +40,10 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		_, err = session.LoadOld(ravendb.GetTypeOf(&User{}), "users/2")
+		var user *User
+		err = session.Load(&user, "users/2")
 		assert.NoError(t, err)
+		assert.NotNil(t, user)
 		ok, err = session.Advanced().Exists("users/2")
 		assert.NoError(t, err)
 		assert.True(t, ok)
