@@ -27,9 +27,9 @@ func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 	assert.NoError(t, err)
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var loadedUser *User
+		err = session.Load(&loadedUser, "users/1")
 		assert.NoError(t, err)
-		loadedUser := loadedUserI.(*User)
 		assert.Nil(t, loadedUser)
 		session.Close()
 	}
@@ -56,9 +56,9 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var loadedUser *User
+		err = session.Load(&loadedUser, "users/1")
 		assert.NoError(t, err)
-		loadedUser := loadedUserI.(*User)
 		assert.NotNil(t, loadedUser)
 		loadedUser.Age = 5
 		err = session.SaveChanges()
