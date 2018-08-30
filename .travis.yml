@@ -7,9 +7,8 @@ notifications:
   email:
     - kkowalczyk@gmail.com
 
-# "1.10.3"
 go:
-  - master
+  - 1.11
 
 env:
   global:
