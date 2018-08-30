@@ -63,9 +63,9 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
+		var user *User
+		err = newSession.Load(&user, "users/1")
 		assert.NoError(t, err)
-		user := result.(*User)
 		assert.NotNil(t, user)
 		assert.Equal(t, "RavenDB", *user.Name)
 		newSession.Close()
@@ -318,7 +318,7 @@ func TestLoad(t *testing.T) {
 	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
-	//loadTest_loadDocumentById(t)
+	loadTest_loadDocumentById(t)
 	loadTest_loadNullShouldReturnNull(t)
 	loadTest_loadDocumentsByIds(t)
 	loadTest_shouldLoadManyIdsAsPostRequest(t)
