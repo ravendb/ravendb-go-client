@@ -3,7 +3,6 @@ package tests
 import (
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,10 +33,11 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
+		var v *Document
+		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
 
-		m, err := session.Advanced().GetMetadataFor(v)
+		m, err := session.Advanced().GetMetadataFor(&v)
 		assert.NoError(t, err)
 		metadataI, ok := m.Get("Items")
 		assert.True(t, ok)
@@ -55,8 +55,9 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
-		metadata, err := session.Advanced().GetMetadataFor(v)
+		var v *Document
+		err = session.Load(&v, "items/first")
+		metadata, err := session.Advanced().GetMetadataFor(&v)
 		assert.NoError(t, err)
 		metadata.Put("test", "123")
 
@@ -69,9 +70,10 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
+		var v *Document
+		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
-		_, err = session.Advanced().GetMetadataFor(v)
+		_, err = session.Advanced().GetMetadataFor(&v)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -83,9 +85,11 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
+		var v *Document
+		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
-		metadata, err := session.Advanced().GetMetadataFor(v)
+		metadata, err := session.Advanced().GetMetadataFor(&v)
+		assert.NoError(t, err)
 		mI, ok := metadata.Get("Items")
 		assert.True(t, ok)
 		m := mI.(map[string]interface{})
