@@ -420,10 +420,10 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 			change := family1Changes[0]
 			assert.Equal(t, change.GetFieldName(), "Age")
 			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
-			assert.Equal(t, oldValStr, "8")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
-			assert.Equal(t, newValStr, "4")
+			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, oldVal, 8.0)
+			newVal := change.GetFieldNewValue()
+			assert.Equal(t, newVal, 4.0)
 		}
 
 		{
@@ -440,10 +440,10 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 			change := family1Changes[2]
 			assert.Equal(t, change.GetFieldName(), "Age")
 			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
-			assert.Equal(t, oldValStr, "4")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
-			assert.Equal(t, newValStr, "8")
+			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, oldVal, 4.0)
+			newVal := change.GetFieldNewValue()
+			assert.Equal(t, newVal, 8.0)
 		}
 
 		{
@@ -477,10 +477,10 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 			change := family1Changes[0]
 			assert.Equal(t, change.GetFieldName(), "Age")
 			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
-			assert.Equal(t, oldValStr, "8")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
-			assert.Equal(t, newValStr, "5")
+			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, oldVal, 8.0)
+			newVal := change.GetFieldNewValue()
+			assert.Equal(t, newVal, 5.0)
 		}
 
 		{
@@ -497,10 +497,10 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 			change := family1Changes[2]
 			assert.Equal(t, change.GetFieldName(), "Age")
 			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
-			assert.Equal(t, oldValStr, "4")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
-			assert.Equal(t, newValStr, "15")
+			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, oldVal, 4.0)
+			newVal := change.GetFieldNewValue()
+			assert.Equal(t, newVal, 15.0)
 		}
 
 		{

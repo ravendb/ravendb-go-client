@@ -178,10 +178,10 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 			{
 				change := change[0]
 				assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
-				oldValueStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
-				assert.Equal(t, oldValueStr, "1")
+				oldValue := change.GetFieldOldValue()
+				assert.Equal(t, oldValue, 1.0)
 				newValue := change.GetFieldNewValue()
-				assert.Equal(t, newValue, float64(2))
+				assert.Equal(t, newValue, 2.0)
 			}
 
 			{
