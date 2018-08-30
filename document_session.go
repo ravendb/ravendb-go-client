@@ -2,13 +2,15 @@ package ravendb
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"reflect"
 	"strconv"
 )
 
-var ErrNotFound = errors.New("Not found")
+// TODO: decide if we want to return ErrNotFound or nil if the value is not found
+// Java returns nil (which, I guess, is default value for reference (i.e. all) types)
+// var ErrNotFound = errors.New("Not found")
+var ErrNotFound = error(nil)
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
 type DocumentSession struct {
