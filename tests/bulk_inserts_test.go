@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
@@ -47,24 +47,15 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		doc1I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
+		var doc1, doc2, doc3, doc4 *FooBar
+		err = session.Load(&doc1, "FooBars/1-A")
 		assert.NoError(t, err)
-		doc2I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/2-A")
+		err = session.Load(&doc2, "FooBars/2-A")
 		assert.NoError(t, err)
-		doc3I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/3-A")
+		err = session.Load(&doc3, "FooBars/3-A")
 		assert.NoError(t, err)
-		doc4I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/4-A")
+		err = session.Load(&doc4, "FooBars/4-A")
 		assert.NoError(t, err)
-
-		assert.NotNil(t, doc1I)
-		assert.NotNil(t, doc2I)
-		assert.NotNil(t, doc3I)
-		assert.NotNil(t, doc4I)
-
-		doc1 := doc1I.(*FooBar)
-		doc2 := doc2I.(*FooBar)
-		doc3 := doc3I.(*FooBar)
-		doc4 := doc4I.(*FooBar)
 
 		assert.Equal(t, doc1.GetName(), "John Doe")
 		assert.Equal(t, doc2.GetName(), "Jane Doe")
@@ -141,10 +132,12 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entity, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
+		var entity *FooBar
+		err = session.Load(&entity, "FooBars/1-A")
 		assert.NoError(t, err)
 
-		meta, err := session.Advanced().GetMetadataFor(entity)
+		// TODO: should this be GetMetadataFor(entity)? Should we support both?
+		meta, err := session.Advanced().GetMetadataFor(&entity)
 		assert.NoError(t, err)
 
 		metadataExpirationDate, ok := meta.Get(ravendb.Constants_Documents_Metadata_EXPIRES)
