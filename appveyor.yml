@@ -22,7 +22,7 @@ clone_depth: 5
 
 environment:
   GOPATH: c:\gopath
-  GOVERSION: 1.11beta3
+  GOVERSION: 1.11
   LOG_HTTP_REQUEST_SUMMARY: true
   LOG_FAILED_HTTP_REQUESTS: true
   LOG_FAILED_HTTP_REQUESTS_DELAYED: true
