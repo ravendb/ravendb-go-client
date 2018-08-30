@@ -11,16 +11,16 @@ import (
 
 func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 	fooBar1 := &FooBar{}
-	fooBar1.setName("John Doe")
+	fooBar1.Name = "John Doe"
 
 	fooBar2 := &FooBar{}
-	fooBar2.setName("Jane Doe")
+	fooBar2.Name = "Jane Doe"
 
 	fooBar3 := &FooBar{}
-	fooBar3.setName("Mega John")
+	fooBar3.Name = "Mega John"
 
 	fooBar4 := &FooBar{}
-	fooBar4.setName("Mega Jane")
+	fooBar4.Name = "Mega Jane"
 
 	var err error
 	store := getDocumentStoreMust(t)
@@ -57,10 +57,10 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 		err = session.Load(&doc4, "FooBars/4-A")
 		assert.NoError(t, err)
 
-		assert.Equal(t, doc1.GetName(), "John Doe")
-		assert.Equal(t, doc2.GetName(), "Jane Doe")
-		assert.Equal(t, doc3.GetName(), "Mega John")
-		assert.Equal(t, doc4.GetName(), "Mega Jane")
+		assert.Equal(t, doc1.Name, "John Doe")
+		assert.Equal(t, doc2.Name, "Jane Doe")
+		assert.Equal(t, doc3.Name, "Mega John")
+		assert.Equal(t, doc4.Name, "Mega Jane")
 
 		session.Close()
 	}
@@ -119,7 +119,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 		bulkInsert := store.BulkInsert()
 
 		fooBar := &FooBar{}
-		fooBar.setName("Jon Show")
+		fooBar.Name = "Jon Show"
 		metadata := &ravendb.MetadataAsDictionary{}
 		metadata.Put(ravendb.Constants_Documents_Metadata_EXPIRES, expirationDate)
 
@@ -148,14 +148,6 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 
 type FooBar struct {
 	Name string
-}
-
-func (f *FooBar) GetName() string {
-	return f.Name
-}
-
-func (f *FooBar) setName(name string) {
-	f.Name = name
 }
 
 func TestBulkInserts(t *testing.T) {
