@@ -28,7 +28,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		var user *User
-		err = newSession.Load2(&user, "users/1")
+		err = newSession.Load(&user, "users/1")
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		newSession.Close()
@@ -37,7 +37,7 @@ func loadTest_loadCanUseCache(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		var user *User
-		err = newSession.Load2(&user, "users/1")
+		err = newSession.Load(&user, "users/1")
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		newSession.Close()
@@ -63,7 +63,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		result, err := newSession.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		result, err := newSession.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := result.(*User)
 		assert.NotNil(t, user)
@@ -128,7 +128,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		user1, err := newSession.Load(ravendb.GetTypeOf(&User{}), "")
+		user1, err := newSession.LoadOld(ravendb.GetTypeOf(&User{}), "")
 		assert.NoError(t, err)
 		assert.Nil(t, user1)
 		newSession.Close()
@@ -203,11 +203,11 @@ func loadTest_loadDocumentWithINtArrayAndLongArray(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		geek1i, err := newSession.Load(ravendb.GetTypeOf(&GeekPerson{}), "geeks/1")
+		geek1i, err := newSession.LoadOld(ravendb.GetTypeOf(&GeekPerson{}), "geeks/1")
 		assert.NoError(t, err)
 		geek1 := geek1i.(*GeekPerson)
 
-		geek2i, err := newSession.Load(ravendb.GetTypeOf(&GeekPerson{}), "geeks/2")
+		geek2i, err := newSession.LoadOld(ravendb.GetTypeOf(&GeekPerson{}), "geeks/2")
 		assert.NoError(t, err)
 		geek2 := geek2i.(*GeekPerson)
 

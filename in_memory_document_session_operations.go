@@ -300,15 +300,15 @@ func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 }
 
 // TrackEntityInDocumentInfo tracks entity in DocumentInfo
-func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(clazz reflect.Type, documentFound *DocumentInfo) (interface{}, error) {
-	return s.TrackEntity(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
+func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfoOld(clazz reflect.Type, documentFound *DocumentInfo) (interface{}, error) {
+	return s.TrackEntityOld(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
-func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo2(result interface{}, documentFound *DocumentInfo) error {
-	return s.TrackEntity2(result, documentFound.id, documentFound.document, documentFound.metadata, false)
+func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result interface{}, documentFound *DocumentInfo) error {
+	return s.TrackEntity(result, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
-func (s *InMemoryDocumentSessionOperations) TrackEntity2(result interface{}, id string, document ObjectNode, metadata ObjectNode, noTracking bool) error {
+func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document ObjectNode, metadata ObjectNode, noTracking bool) error {
 	if id == "" {
 		s.DeserializeFromTransformer2(result, "", document)
 		return nil
@@ -370,7 +370,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity2(result interface{}, id 
 }
 
 // TrackEntity tracks entity
-func (s *InMemoryDocumentSessionOperations) TrackEntity(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
+func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
 	if id == "" {
 		return s.DeserializeFromTransformer(entityType, "", document), nil
 	}

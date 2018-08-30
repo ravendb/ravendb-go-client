@@ -47,13 +47,13 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		doc1I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
+		doc1I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
-		doc2I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/2-A")
+		doc2I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/2-A")
 		assert.NoError(t, err)
-		doc3I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/3-A")
+		doc3I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/3-A")
 		assert.NoError(t, err)
-		doc4I, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/4-A")
+		doc4I, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/4-A")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, doc1I)
@@ -141,7 +141,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		entity, err := session.Load(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
+		entity, err := session.LoadOld(ravendb.GetTypeOf(&FooBar{}), "FooBars/1-A")
 		assert.NoError(t, err)
 
 		meta, err := session.Advanced().GetMetadataFor(entity)

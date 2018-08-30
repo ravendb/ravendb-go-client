@@ -36,7 +36,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), documentId)
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), documentId)
 		assert.NoError(t, err)
 		assert.Nil(t, userI)
 		session.Close()

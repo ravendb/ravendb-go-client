@@ -28,7 +28,7 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, "Marcin", *loadedUser.Name)

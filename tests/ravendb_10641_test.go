@@ -34,7 +34,7 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.Load(ravendb.GetTypeOf(&Document{}), "items/first")
+		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
 		assert.NoError(t, err)
 
 		m, err := session.Advanced().GetMetadataFor(v)
@@ -55,7 +55,7 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.Load(ravendb.GetTypeOf(&Document{}), "items/first")
+		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
 		metadata, err := session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
 		metadata.Put("test", "123")
@@ -69,7 +69,7 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.Load(ravendb.GetTypeOf(&Document{}), "items/first")
+		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
 		assert.NoError(t, err)
 		_, err = session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
@@ -83,7 +83,7 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		v, err := session.Load(ravendb.GetTypeOf(&Document{}), "items/first")
+		v, err := session.LoadOld(ravendb.GetTypeOf(&Document{}), "items/first")
 		assert.NoError(t, err)
 		metadata, err := session.Advanced().GetMetadataFor(v)
 		mI, ok := metadata.Get("Items")

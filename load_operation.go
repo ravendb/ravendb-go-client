@@ -74,15 +74,15 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 	return o
 }
 
-func (o *LoadOperation) getDocument2(result interface{}) error {
-	return o.getDocumentWithID2(result, o._ids[0])
+func (o *LoadOperation) getDocument(result interface{}) error {
+	return o.getDocumentWithID(result, o._ids[0])
 }
 
-func (o *LoadOperation) getDocument(clazz reflect.Type) (interface{}, error) {
-	return o.getDocumentWithID(clazz, o._ids[0])
+func (o *LoadOperation) getDocumentOld(clazz reflect.Type) (interface{}, error) {
+	return o.getDocumentWithIDOld(clazz, o._ids[0])
 }
 
-func (o *LoadOperation) getDocumentWithID2(result interface{}, id string) error {
+func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 	if id == "" {
 		// TODO: should return default value?
 		return ErrNotFound
@@ -101,10 +101,10 @@ func (o *LoadOperation) getDocumentWithID2(result interface{}, id string) error 
 		return ErrNotFound
 	}
 
-	return o._session.TrackEntityInDocumentInfo2(result, doc)
+	return o._session.TrackEntityInDocumentInfo(result, doc)
 }
 
-func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interface{}, error) {
+func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
 		return Defaults_defaultValue(clazz), nil
 	}
@@ -121,7 +121,7 @@ func (o *LoadOperation) getDocumentWithID(clazz reflect.Type, id string) (interf
 		return Defaults_defaultValue(clazz), nil
 	}
 
-	return o._session.TrackEntityInDocumentInfo(clazz, doc)
+	return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
 }
 
 func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}, error) {
@@ -130,7 +130,7 @@ func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}
 	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
 	res := make(map[string]interface{})
 	for _, id := range uniqueIds {
-		v, err := o.getDocumentWithID(clazz, id)
+		v, err := o.getDocumentWithIDOld(clazz, id)
 		if err != nil {
 			return res, err
 		}

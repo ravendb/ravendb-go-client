@@ -92,7 +92,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 		numOfRequests := newSession.Advanced().GetNumberOfRequests()
 
 		barV := bar[barId].(*Bar)
-		foo, err := newSession.Load(ravendb.GetTypeOf(&Foo{}), barV.getFooId())
+		foo, err := newSession.LoadOld(ravendb.GetTypeOf(&Foo{}), barV.getFooId())
 		assert.NoError(t, err)
 		assert.NotNil(t, foo)
 		fooV := foo.(*Foo)

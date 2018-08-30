@@ -115,7 +115,7 @@ func (s *DocumentSession) Include(path string) ILoaderWithInclude {
 // TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(reflect.Type clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)
 
-func (s *DocumentSession) Load2(result interface{}, id string) error {
+func (s *DocumentSession) Load(result interface{}, id string) error {
 	if id == "" {
 		// TODO: or should it return default value?
 		return ErrNotFound
@@ -135,10 +135,10 @@ func (s *DocumentSession) Load2(result interface{}, id string) error {
 		loadOperation.setResult(result)
 	}
 
-	return loadOperation.getDocument2(result)
+	return loadOperation.getDocument(result)
 }
 
-func (s *DocumentSession) Load(clazz reflect.Type, id string) (interface{}, error) {
+func (s *DocumentSession) LoadOld(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
 		return Defaults_defaultValue(clazz), nil
 	}
@@ -158,7 +158,7 @@ func (s *DocumentSession) Load(clazz reflect.Type, id string) (interface{}, erro
 		loadOperation.setResult(result)
 	}
 
-	return loadOperation.getDocument(clazz)
+	return loadOperation.getDocumentOld(clazz)
 }
 
 func (s *DocumentSession) LoadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
