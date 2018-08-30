@@ -82,7 +82,7 @@ func (o *LoadStartingWithOperation) getDocument(clazz reflect.Type, id string) (
 
 	doc := o._session.documentsById.getValue(id)
 	if doc != nil {
-		return o._session.TrackEntityInDocumentInfo(clazz, doc)
+		return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
 	}
 
 	return Defaults_defaultValue(clazz), nil

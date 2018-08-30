@@ -60,9 +60,9 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		_, err = session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		_, err = session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
-		_, err = session.Load(ravendb.GetTypeOf(&User{}), "users/2")
+		_, err = session.LoadOld(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		session.Close()
 	}

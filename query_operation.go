@@ -128,7 +128,7 @@ func jsonIsValueNode(v interface{}) bool {
 func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *FieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
 	_, ok := jsonGetAsBool(metadata, "@projection")
 	if !ok {
-		return session.TrackEntity(clazz, id, document, metadata, disableEntitiesTracking)
+		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)
 	}
 	if fieldsToFetch != nil && len(fieldsToFetch.projections) == 1 {
 		// we only select a single field

@@ -45,7 +45,7 @@ func attachmentsSession_putAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		user := userI.(*User)
 		metadata, err := session.Advanced().GetMetadataFor(user)
@@ -194,7 +194,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		// test get attachment by its name
@@ -219,7 +219,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		metadata, err := session.Advanced().GetMetadataFor(userI)
@@ -284,7 +284,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		metadata, err := session.Advanced().GetMetadataFor(userI)
@@ -381,7 +381,7 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		err = session.DeleteEntity(userI)
@@ -466,7 +466,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		userI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		userI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 
 		attachments, err := session.Advanced().Attachments().GetNames(userI)

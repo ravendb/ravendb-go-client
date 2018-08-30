@@ -34,7 +34,7 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.Name, "Patched")
@@ -67,7 +67,7 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedUserI, err := session.Load(ravendb.GetTypeOf(&User{}), "users/1")
+		loadedUserI, err := session.LoadOld(ravendb.GetTypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		loadedUser := loadedUserI.(*User)
 		assert.Equal(t, *loadedUser.Name, "Patched")

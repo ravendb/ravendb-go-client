@@ -41,7 +41,7 @@ func existsTest_checkIfDocumentExists(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		_, err = session.Load(ravendb.GetTypeOf(&User{}), "users/2")
+		_, err = session.LoadOld(ravendb.GetTypeOf(&User{}), "users/2")
 		assert.NoError(t, err)
 		ok, err = session.Advanced().Exists("users/2")
 		assert.NoError(t, err)

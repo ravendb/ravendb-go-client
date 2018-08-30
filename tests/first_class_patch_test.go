@@ -81,7 +81,7 @@ func firstClassPatch_canPatch(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		assert.Equal(t, loaded.Numbers[0], 31)
@@ -98,7 +98,7 @@ func firstClassPatch_canPatch(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 
@@ -129,7 +129,7 @@ func firstClassPatch_canPatchAndModify(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		loaded.Numbers[0] = 1
@@ -188,7 +188,7 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		assert.Equal(t, *loaded.Stuff[1].Phone, "9255864406")
@@ -240,7 +240,7 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 
@@ -307,7 +307,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 
@@ -343,7 +343,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		assert.Equal(t, len(loaded.Numbers), 6)
@@ -370,7 +370,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 
@@ -434,7 +434,7 @@ func firstClassPatch_canRemoveFromArray(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		assert.Equal(t, len(loaded.Numbers), 2)
@@ -486,7 +486,7 @@ func firstClassPatch_canIncrement(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 		assert.Equal(t, loaded.Numbers[0], 67)
@@ -501,7 +501,7 @@ func firstClassPatch_canIncrement(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		loadedI, err := session.Load(ravendb.GetTypeOf(&User2{}), _docId)
+		loadedI, err := session.LoadOld(ravendb.GetTypeOf(&User2{}), _docId)
 		assert.NoError(t, err)
 		loaded := loadedI.(*User2)
 
