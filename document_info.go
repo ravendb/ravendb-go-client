@@ -31,33 +31,6 @@ func NewDocumentInfo() *DocumentInfo {
 }
 
 // TODO: remove those functions. Those are only to make porting faster, initially
-func (d *DocumentInfo) isIgnoreChanges() bool {
-	return d.ignoreChanges
-}
-
-func (d *DocumentInfo) GetChangeVector() *string {
-	return d.changeVector
-}
-
-func (d *DocumentInfo) getMetadata() ObjectNode {
-	return d.metadata
-}
-
-func (d *DocumentInfo) getDocument() ObjectNode {
-	return d.document
-}
-
-func (d *DocumentInfo) getCollection() string {
-	return d.collection
-}
-
-func (d *DocumentInfo) getMetadataInstance() *IMetadataDictionary {
-	return d.metadataInstance
-}
-
-func (d *DocumentInfo) getConcurrencyCheckMode() ConcurrencyCheckMode {
-	return d.concurrencyCheckMode
-}
 
 func (d *DocumentInfo) setMetadataInstance(metadataInstance *IMetadataDictionary) {
 	d.metadataInstance = metadataInstance

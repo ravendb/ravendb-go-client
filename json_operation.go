@@ -8,7 +8,7 @@ import (
 func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
 	var docChanges []*DocumentsChanges
 
-	doc := documentInfo.getDocument()
+	doc := documentInfo.document
 	if !documentInfo.isNewDocument() && doc != nil {
 		id := documentInfo.id
 		return JsonOperation_compareJson(id, doc, newObj, changes, &docChanges)
