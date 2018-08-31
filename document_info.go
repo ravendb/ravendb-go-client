@@ -31,9 +31,6 @@ func NewDocumentInfo() *DocumentInfo {
 }
 
 // TODO: remove those functions. Those are only to make porting faster, initially
-func (d *DocumentInfo) getId() string {
-	return d.id
-}
 
 func (d *DocumentInfo) getEntity() interface{} {
 	return d.entity
