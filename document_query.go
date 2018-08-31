@@ -490,7 +490,6 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	query.negate = q.negate
 	//noinspection unchecked
 	query.includes = StringArrayCopy(q.includes)
-	query.rootTypes = NewTypeSetWithType(q.clazz)
 	// TODO: should this be deep copy so that adding/removing in one
 	// doesn't affect the other?
 	query.beforeQueryExecutedCallback = q.beforeQueryExecutedCallback
