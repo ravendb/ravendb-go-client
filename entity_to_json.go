@@ -72,32 +72,6 @@ func (e *EntityToJson) ConvertToEntity2(result interface{}, id string, document 
 	entity, _ := MakeStructFromJSONMap(entityType, document)
 	TrySetIDOnEntity(entity, id)
 	setInterfaceToValue(result, entity)
-	/*
-		try {
-			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
-			Object entity = defaultValue;
-
-			string documentType =_session.getConventions().getJavaClass(id, document);
-			if (documentType != null) {
-				Class type = Class.forName(documentType);
-				if (entityType.isAssignableFrom(type)) {
-					entity = _session.getConventions().getEntityMapper().treeToValue(document, type);
-				}
-			}
-
-			if (entity == defaultValue) {
-				entity = _session.getConventions().getEntityMapper().treeToValue(document, entityType);
-			}
-
-			if (id != null) {
-				_session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id);
-			}
-
-			return entity;
-		} catch (Exception e) {
-			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.GetName(), e);
-		}
-	*/
 }
 
 // Converts a json object to an entity.
@@ -109,32 +83,6 @@ func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, docum
 	entity, _ := MakeStructFromJSONMap(entityType, document)
 	TrySetIDOnEntity(entity, id)
 	return entity
-	/*
-		try {
-			Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityType);
-			Object entity = defaultValue;
-
-			string documentType =_session.getConventions().getJavaClass(id, document);
-			if (documentType != null) {
-				Class type = Class.forName(documentType);
-				if (entityType.isAssignableFrom(type)) {
-					entity = _session.getConventions().getEntityMapper().treeToValue(document, type);
-				}
-			}
-
-			if (entity == defaultValue) {
-				entity = _session.getConventions().getEntityMapper().treeToValue(document, entityType);
-			}
-
-			if (id != null) {
-				_session.getGenerateEntityIdOnTheClient().trySetIdentity(entity, id);
-			}
-
-			return entity;
-		} catch (Exception e) {
-			throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityType.GetName(), e);
-		}
-	*/
 }
 
 func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo) {
