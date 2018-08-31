@@ -140,6 +140,15 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	return loadOperation.getDocument(result)
 }
 
+func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	err := s.loadInternalWithOperation(ids, loadOperation, nil)
+	if err != nil {
+		return err
+	}
+	return loadOperation.getDocuments(results)
+}
+
 func (s *DocumentSession) LoadMultiOld(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	err := s.loadInternalWithOperation(ids, loadOperation, nil)

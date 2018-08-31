@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -118,6 +119,44 @@ func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (int
 	}
 
 	return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
+}
+
+var stringType = reflect.TypeOf("")
+
+// TODO: also handle a pointer to a map?
+func (o *LoadOperation) getDocuments(results interface{}) error {
+	// results must be map[string]*struct
+	m := reflect.ValueOf(results)
+	if m.Type().Kind() != reflect.Map {
+		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+	mapKeyType := m.Type().Key()
+	if mapKeyType != stringType {
+		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+	mapElemPtrType := m.Type().Elem()
+	if mapElemPtrType.Kind() != reflect.Ptr {
+		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+	mapElemType := mapElemPtrType.Elem()
+	if mapElemType.Kind() != reflect.Struct {
+		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+
+	uniqueIds := StringArrayCopy(o._ids)
+	StringArrayRemove(&uniqueIds, "")
+	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
+	for _, id := range uniqueIds {
+		v, err := o.getDocumentWithIDOld(mapElemPtrType, id)
+		if err != nil {
+			return err
+		}
+		key := reflect.ValueOf(id)
+		v2 := reflect.ValueOf(v)
+		m.SetMapIndex(key, v2)
+	}
+
+	return nil
 }
 
 func (o *LoadOperation) getDocumentsOld(clazz reflect.Type) (map[string]interface{}, error) {
