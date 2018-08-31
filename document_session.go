@@ -173,6 +173,24 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 	return nil
 }
 
+// results should be map[string]*struct
+func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, includes []string) error {
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	loadOperation.byIds(ids)
+	loadOperation.withIncludes(includes)
+
+	command := loadOperation.CreateRequest()
+	if command != nil {
+		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		if err != nil {
+			return err
+		}
+		loadOperation.setResult(command.Result)
+	}
+
+	return loadOperation.getDocuments(results)
+}
+
 func (s *DocumentSession) loadInternalMultiOld(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	loadOperation.byIds(ids)
