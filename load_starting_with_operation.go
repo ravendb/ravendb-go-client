@@ -104,19 +104,6 @@ func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
 	return nil
 }
 
-func (o *LoadStartingWithOperation) getDocumentsOld(clazz reflect.Type) ([]interface{}, error) {
-	var finalResults []interface{}
-	for _, id := range o._returnedIds {
-		v, err := o.getDocumentOld(clazz, id)
-		if err != nil {
-			return nil, err
-		}
-		finalResults = append(finalResults, v)
-	}
-
-	return finalResults, nil
-}
-
 func (o *LoadStartingWithOperation) getDocumentOld(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
 		return Defaults_defaultValue(clazz), nil

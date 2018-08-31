@@ -1,6 +1,9 @@
 package ravendb
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type MultiLoaderWithInclude struct {
 	_session  *DocumentSession
@@ -23,15 +26,27 @@ func (l *MultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) er
 	return l._session.loadInternalMulti(results, ids, l._includes)
 }
 
-func (l *MultiLoaderWithInclude) LoadOld(clazz reflect.Type, id string) (interface{}, error) {
-	stringObjectMap, err := l._session.loadInternalMultiOld(clazz, []string{id}, l._includes)
+// TODO: needs a test
+// TODO: better implementation
+func (l *MultiLoaderWithInclude) Load(result interface{}, id string) error {
+	// create a map[string]typeof(result)
+	rt := reflect.TypeOf(result)
+	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("type of result should be pointer-to-struct but is %T", result)
+	}
+
+	mapType := reflect.MapOf(stringType, rt)
+	m := reflect.MakeMap(mapType)
+	ids := []string{id}
+	err := l._session.loadInternalMulti(m.Interface(), ids, l._includes)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	for _, v := range stringObjectMap {
-		if v != nil {
-			return v, nil
-		}
+	key := reflect.ValueOf(id)
+	res := m.MapIndex(key)
+	if res.IsNil() {
+		return ErrNotFound
 	}
-	return nil, nil
+	setInterfaceToValue(result, res.Interface())
+	return nil
 }
