@@ -52,11 +52,11 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	}
 	entity := o._session.GetEntityToJson().ConvertToEntity(clazz, id, document)
 	documentInfo := NewDocumentInfo()
-	documentInfo.setId(id)
-	documentInfo.setChangeVector(changeVector)
-	documentInfo.setDocument(document)
-	documentInfo.setMetadata(metadata)
-	documentInfo.setEntity(entity)
+	documentInfo.id = id
+	documentInfo.changeVector = changeVector
+	documentInfo.document = document
+	documentInfo.metadata = metadata
+	documentInfo.entity = entity
 	o._session.documentsByEntity[entity] = documentInfo
 	return entity
 }

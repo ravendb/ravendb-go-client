@@ -30,48 +30,6 @@ func NewDocumentInfo() *DocumentInfo {
 	return &DocumentInfo{}
 }
 
-// TODO: remove those functions. Those are only to make porting faster, initially
-
-func (d *DocumentInfo) setMetadataInstance(metadataInstance *IMetadataDictionary) {
-	d.metadataInstance = metadataInstance
-}
-
-func (d *DocumentInfo) isNewDocument() bool {
-	return d.newDocument
-}
-
-func (d *DocumentInfo) setId(id string) {
-	d.id = id
-}
-
-func (d *DocumentInfo) setNewDocument(isNew bool) {
-	d.newDocument = isNew
-}
-
-func (d *DocumentInfo) setDocument(document ObjectNode) {
-	d.document = document
-}
-
-func (d *DocumentInfo) setMetadata(metadata ObjectNode) {
-	d.metadata = metadata
-}
-
-func (d *DocumentInfo) setEntity(entity interface{}) {
-	d.entity = entity
-}
-
-func (d *DocumentInfo) setChangeVector(changeVector *string) {
-	d.changeVector = changeVector
-}
-
-func (d *DocumentInfo) setConcurrencyCheckMode(m ConcurrencyCheckMode) {
-	d.concurrencyCheckMode = m
-}
-
-func (d *DocumentInfo) setIgnoreChanges(ignoreChanges bool) {
-	d.ignoreChanges = ignoreChanges
-}
-
 func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 	metadataV, ok := document[Constants_Documents_Metadata_KEY]
 	// TODO: maybe convert to errors
@@ -90,10 +48,10 @@ func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 	panicIf(changeVector == nil, "Document must have a Change Vector")
 
 	newDocumentInfo := NewDocumentInfo()
-	newDocumentInfo.setId(id)
-	newDocumentInfo.setDocument(document)
-	newDocumentInfo.setMetadata(metadata)
-	newDocumentInfo.setEntity(nil)
-	newDocumentInfo.setChangeVector(changeVector)
+	newDocumentInfo.id = id
+	newDocumentInfo.document = document
+	newDocumentInfo.metadata = metadata
+
+	newDocumentInfo.changeVector = changeVector
 	return newDocumentInfo
 }

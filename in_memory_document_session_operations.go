@@ -206,7 +206,7 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 
 	metadataAsJson := documentInfo.metadata
 	metadata := NewMetadataAsDictionaryWithSource(metadataAsJson)
-	documentInfo.setMetadataInstance(metadata)
+	documentInfo.metadataInstance = metadata
 	return metadata, nil
 }
 
@@ -336,7 +336,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		noSet := true
 		if docInfo.entity == nil {
 			s.entityToJson.ConvertToEntity2(result, id, document)
-			docInfo.setEntity(result)
+			docInfo.entity = result
 			noSet = false
 		}
 
@@ -361,10 +361,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 	if !noTracking {
 		newDocumentInfo := NewDocumentInfo()
 		newDocumentInfo.id = id
-		newDocumentInfo.setDocument(document)
-		newDocumentInfo.setMetadata(metadata)
-		newDocumentInfo.setEntity(result)
-		newDocumentInfo.setChangeVector(changeVector)
+		newDocumentInfo.document = document
+		newDocumentInfo.metadata = metadata
+		newDocumentInfo.entity = result
+		newDocumentInfo.changeVector = changeVector
 
 		s.documentsById.add(newDocumentInfo)
 		s.documentsByEntity[result] = newDocumentInfo
@@ -420,10 +420,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	if !noTracking {
 		newDocumentInfo := NewDocumentInfo()
 		newDocumentInfo.id = id
-		newDocumentInfo.setDocument(document)
-		newDocumentInfo.setMetadata(metadata)
-		newDocumentInfo.setEntity(entity)
-		newDocumentInfo.setChangeVector(changeVector)
+		newDocumentInfo.document = document
+		newDocumentInfo.metadata = metadata
+		newDocumentInfo.entity = entity
+		newDocumentInfo.changeVector = changeVector
 
 		s.documentsById.add(newDocumentInfo)
 		s.documentsByEntity[entity] = newDocumentInfo
@@ -523,8 +523,8 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 
 	value := s.documentsByEntity[entity]
 	if value != nil {
-		value.setChangeVector(firstNonNilString(changeVector, value.changeVector))
-		value.setConcurrencyCheckMode(forceConcurrencyCheck)
+		value.changeVector = firstNonNilString(changeVector, value.changeVector)
+		value.concurrencyCheckMode = forceConcurrencyCheck
 		return nil
 	}
 
@@ -579,13 +579,13 @@ func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, e
 		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
 	documentInfo := NewDocumentInfo()
-	documentInfo.setId(id)
-	documentInfo.setMetadata(metadata)
-	documentInfo.setChangeVector(changeVector)
-	documentInfo.setConcurrencyCheckMode(forceConcurrencyCheck)
-	documentInfo.setEntity(entity)
-	documentInfo.setNewDocument(true)
-	documentInfo.setDocument(nil)
+	documentInfo.id = id
+	documentInfo.metadata = metadata
+	documentInfo.changeVector = changeVector
+	documentInfo.concurrencyCheckMode = forceConcurrencyCheck
+	documentInfo.entity = entity
+	documentInfo.newDocument = true
+	documentInfo.document = nil
 
 	s.documentsByEntity[entity] = documentInfo
 	if id != "" {
@@ -755,14 +755,14 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 			}
 		}
 
-		entityValue.setNewDocument(false)
+		entityValue.newDocument = false
 		result.AddEntity(entityKey)
 
 		if entityValue.id != "" {
 			s.documentsById.remove(entityValue.id)
 		}
 
-		entityValue.setDocument(document)
+		entityValue.document = document
 
 		var changeVector *string
 		if s.useOptimisticConcurrency {
@@ -849,7 +849,7 @@ func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[st
 // it still takes part in the session, but is ignored for SaveChanges.
 func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity Object) {
 	docInfo, _ := s.GetDocumentInfo(entity)
-	docInfo.setIgnoreChanges(true)
+	docInfo.ignoreChanges = true
 }
 
 // Evicts the specified entity from the session.
@@ -1020,14 +1020,14 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 
 	value := document[Constants_Documents_Metadata_KEY]
 	meta := value.(ObjectNode)
-	documentInfo.setMetadata(meta)
+	documentInfo.metadata = meta
 
 	if documentInfo.metadata != nil {
 		changeVector := jsonGetAsTextPointer(meta, Constants_Documents_Metadata_CHANGE_VECTOR)
-		documentInfo.setChangeVector(changeVector)
+		documentInfo.changeVector = changeVector
 	}
-	documentInfo.setDocument(document)
-	documentInfo.setEntity(s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.id, document))
+	documentInfo.document = document
+	documentInfo.entity = s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.id, document)
 
 	err := BeanUtils_copyProperties(entity, documentInfo.entity)
 	if err != nil {
