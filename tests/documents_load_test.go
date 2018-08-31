@@ -3,7 +3,6 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,20 +47,21 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		// Note: in Java it's fooId, we must match Go naming with FooId
-		bar, err := newSession.Include("FooId").LoadMultiOld(ravendb.GetTypeOf(&Bar{}), []string{barId})
+		bars := map[string]*Bar{}
+		err = newSession.Include("FooId").LoadMulti(bars, []string{barId})
 		assert.NoError(t, err)
 
-		assert.NotNil(t, bar)
-		assert.Equal(t, len(bar), 1)
-		for _, v := range bar {
+		assert.NotNil(t, bars)
+		assert.Equal(t, len(bars), 1)
+		for _, v := range bars {
 			assert.NotNil(t, v)
 		}
 
 		numOfRequests := newSession.Advanced().GetNumberOfRequests()
 
-		barV := bar[barId].(*Bar)
+		bar := bars[barId]
 		var foo *Foo
-		err = newSession.Load(&foo, barV.FooId)
+		err = newSession.Load(&foo, bar.FooId)
 		assert.NoError(t, err)
 		assert.NotNil(t, foo)
 		assert.Equal(t, foo.Name, "Beginning")

@@ -18,8 +18,9 @@ func (l *MultiLoaderWithInclude) Include(path string) *MultiLoaderWithInclude {
 	return l
 }
 
-func (l *MultiLoaderWithInclude) LoadMultiOld(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
-	return l._session.loadInternalMultiOld(clazz, ids, l._includes)
+// results should be map[string]*struct
+func (l *MultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) error {
+	return l._session.loadInternalMulti(results, ids, l._includes)
 }
 
 func (l *MultiLoaderWithInclude) LoadOld(clazz reflect.Type, id string) (interface{}, error) {
