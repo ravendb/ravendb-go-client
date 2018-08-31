@@ -37,7 +37,7 @@ func advancedPatching_testWithVariables(t *testing.T) {
 
 	patchRequest := ravendb.NewPatchRequest()
 	patchRequest.SetScript("this.owner = args.v1")
-	m := map[string]ravendb.Object{
+	m := map[string]interface{}{
 		"v1": "not-me",
 	}
 	patchRequest.SetValues(m)

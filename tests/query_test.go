@@ -287,7 +287,7 @@ func query_queryWithWhereIn(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.Query(ravendb.GetTypeOf(&User{}))
-		q = q.WhereIn("name", []ravendb.Object{"Tarzan", "no_such"})
+		q = q.WhereIn("name", []interface{}{"Tarzan", "no_such"})
 		users, err := q.ToList()
 		assert.NoError(t, err)
 

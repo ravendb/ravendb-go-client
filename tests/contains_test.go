@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 type UserWithFavs struct {
@@ -71,7 +71,7 @@ func containsTestcontainsTest(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.Query(ravendb.GetTypeOf(&UserWithFavs{}))
-		q = q.ContainsAny("Favourites", []ravendb.Object{"pascal", "go"})
+		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
 		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
 		pascalOrGoDeveloperNames, err := q.ToList()
 		assert.NoError(t, err)
@@ -86,7 +86,7 @@ func containsTestcontainsTest(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		q := session.Query(ravendb.GetTypeOf(&UserWithFavs{}))
-		q = q.ContainsAll("Favourites", []ravendb.Object{"java"})
+		q = q.ContainsAll("Favourites", []interface{}{"java"})
 		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
 		javaDevelopers, err := q.ToList()
 		assert.NoError(t, err)

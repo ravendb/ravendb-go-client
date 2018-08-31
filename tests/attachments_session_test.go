@@ -57,7 +57,7 @@ func attachmentsSession_putAttachments(t *testing.T) {
 
 		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
-		attachments := attachmentsI.([]ravendb.Object)
+		attachments := attachmentsI.([]interface{})
 		assert.Equal(t, len(attachments), 3)
 
 		sort.Strings(names)
@@ -233,7 +233,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 
 		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
-		attachments := attachmentsI.([]ravendb.Object)
+		attachments := attachmentsI.([]interface{})
 
 		assert.Equal(t, len(attachments), 2)
 
@@ -299,7 +299,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 
 		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
 		assert.True(t, ok)
-		attachments := attachmentsI.([]ravendb.Object)
+		attachments := attachmentsI.([]interface{})
 		assert.Equal(t, len(attachments), 1)
 
 		{

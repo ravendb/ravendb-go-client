@@ -144,7 +144,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.Array = []ravendb.Object{"a", 1, "b"}
+		arr.Array = []interface{}{"a", 1, "b"}
 
 		err = newSession.StoreWithID(arr, "users/1")
 		assert.NoError(t, err)
@@ -167,7 +167,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 			err = newSession.Load(&arr, "users/1")
 			assert.NoError(t, err)
 
-			arr.Array = []ravendb.Object{"a", 2, "c"}
+			arr.Array = []interface{}{"a", 2, "c"}
 
 			changes, _ := newSession.Advanced().WhatChanged()
 			assert.Equal(t, len(changes), 1)
@@ -206,7 +206,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.Array = []ravendb.Object{"a", 1, "b"}
+		arr.Array = []interface{}{"a", 1, "b"}
 		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
@@ -220,7 +220,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 		err = newSession.Load(&arr, "arr/1")
 		assert.NoError(t, err)
 
-		arr.Array = []ravendb.Object{"a", 1, "b", "c", 2}
+		arr.Array = []interface{}{"a", 1, "b", "c", 2}
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -252,7 +252,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		arr := &Arr{}
-		arr.Array = []ravendb.Object{"a", 1, "b"}
+		arr.Array = []interface{}{"a", 1, "b"}
 		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
@@ -266,7 +266,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 		err = newSession.Load(&arr, "arr/1")
 		assert.NoError(t, err)
 
-		arr.Array = []ravendb.Object{"a"}
+		arr.Array = []interface{}{"a"}
 
 		changes, _ := newSession.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 1)
@@ -416,7 +416,7 @@ type Double struct {
 }
 
 type Arr struct {
-	Array []ravendb.Object
+	Array []interface{}
 }
 
 func TestWhatChanged(t *testing.T) {
