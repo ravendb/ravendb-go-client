@@ -140,6 +140,8 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	return loadOperation.getDocument(result)
 }
 
+// LoadMulti loads multiple values with given ids into results, which should
+// be a map from string (id) to pointer to struct
 func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	err := s.loadInternalWithOperation(ids, loadOperation, nil)
@@ -147,15 +149,6 @@ func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
 		return err
 	}
 	return loadOperation.getDocuments(results)
-}
-
-func (s *DocumentSession) LoadMultiOld(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
-	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-	err := s.loadInternalWithOperation(ids, loadOperation, nil)
-	if err != nil {
-		return nil, err
-	}
-	return loadOperation.getDocumentsOld(clazz)
 }
 
 func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {
