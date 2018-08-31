@@ -188,17 +188,17 @@ func (s *DocumentSession) LoadInternalMultiOld(clazz reflect.Type, ids []string,
 	return loadOperation.getDocumentsOld(clazz)
 }
 
-func (s *DocumentSession) LoadStartingWithOld(clazz reflect.Type, idPrefix string) ([]interface{}, error) {
-	return s.LoadStartingWithFullOld(clazz, idPrefix, "", 0, 25, "", "")
+func (s *DocumentSession) LoadStartingWith(results interface{}, idPrefix string) error {
+	return s.LoadStartingWithFull(results, idPrefix, "", 0, 25, "", "")
 }
 
-func (s *DocumentSession) LoadStartingWithFullOld(clazz reflect.Type, idPrefix string, matches string, start int, pageSize int, exclude string, startAfter string) ([]interface{}, error) {
+func (s *DocumentSession) LoadStartingWithFull(results interface{}, idPrefix string, matches string, start int, pageSize int, exclude string, startAfter string) error {
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
 	_, err := s.loadStartingWithInternal(idPrefix, loadStartingWithOperation, nil, matches, start, pageSize, exclude, startAfter)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return loadStartingWithOperation.getDocumentsOld(clazz)
+	return loadStartingWithOperation.getDocuments(results)
 }
 
 func (s *DocumentSession) LoadStartingWithIntoStream(idPrefix string, output io.Writer) error {

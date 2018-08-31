@@ -1,6 +1,9 @@
 package ravendb
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type LoadStartingWithOperation struct {
 	_session *InMemoryDocumentSessionOperations
@@ -56,6 +59,49 @@ func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
 		o._session.documentsById.add(newDocumentInfo)
 		o._returnedIds = append(o._returnedIds, newDocumentInfo.id)
 	}
+}
+
+func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
+	rv := reflect.ValueOf(results)
+
+	if rv.Type().Kind() != reflect.Ptr {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. tp: %s", rv.Type().String(), rv.Type().String())
+	}
+	sliceV := rv.Elem()
+	if sliceV.Type().Kind() != reflect.Slice {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. sliceV.Type(): %s", rv.Type().String(), sliceV.Type().String())
+	}
+
+	// slice element should be a pointer to a struct
+	sliceElemPtrType := sliceV.Type().Elem()
+	if sliceElemPtrType.Kind() != reflect.Ptr {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. sliceElemPtrType: %s", rv.Type().String(), sliceElemPtrType.String())
+	}
+
+	sliceElemType := sliceElemPtrType.Elem()
+	if sliceElemType.Kind() != reflect.Struct {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. sliceElemType: %s", rv.Type().String(), sliceElemType.String())
+	}
+	// if this is a pointer to nil slice, create a new slice
+	// otherwise we use the slice that was provided by the caller
+	if sliceV.IsNil() {
+		sliceV.Set(reflect.MakeSlice(sliceV.Type(), 0, 0))
+	}
+
+	sliceV2 := sliceV
+	for _, id := range o._returnedIds {
+		v, err := o.getDocumentOld(sliceElemPtrType, id)
+		if err != nil {
+			return err
+		}
+		v2 := reflect.ValueOf(v)
+		sliceV2 = reflect.Append(sliceV2, v2)
+	}
+
+	if sliceV2 != sliceV {
+		sliceV.Set(sliceV2)
+	}
+	return nil
 }
 
 func (o *LoadStartingWithOperation) getDocumentsOld(clazz reflect.Type) ([]interface{}, error) {

@@ -289,20 +289,20 @@ func loadTest_loadStartsWith(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		usersi, err := newSession.Advanced().LoadStartingWithOld(ravendb.GetTypeOf(&User{}), "A")
+		var users []*User
+		err = newSession.Advanced().LoadStartingWith(&users, "A")
 		assert.NoError(t, err)
 
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
-		for _, useri := range usersi {
-			user := useri.(*User)
+		for _, user := range users {
 			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
 		}
 
-		usersi, err = newSession.Advanced().LoadStartingWithFullOld(ravendb.GetTypeOf(&User{}), "A", "", 1, 2, "", "")
+		users = nil
+		err = newSession.Advanced().LoadStartingWithFull(&users, "A", "", 1, 2, "", "")
 
 		userIDs = []string{"Abc", "Afa"}
-		for _, useri := range usersi {
-			user := useri.(*User)
+		for _, user := range users {
 			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
 		}
 		newSession.Close()
