@@ -1,3 +1,3 @@
 package ravendb
 
-type IDocumentSessionImpl = DocumentSession
+// type IDocumentSessionImpl = DocumentSession
