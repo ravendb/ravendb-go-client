@@ -86,7 +86,7 @@ func (s *DocumentSessionAttachmentsBase) StoreEntity(entity Object, name string,
 		return throwEntityNotInSession(entity)
 	}
 
-	return s.Store(document.getId(), name, stream, contentType)
+	return s.Store(document.id, name, stream, contentType)
 }
 
 func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity Object, name string) error {
@@ -95,7 +95,7 @@ func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity Object, name string
 		return throwEntityNotInSession(entity)
 	}
 
-	return s.Delete(document.getId(), name)
+	return s.Delete(document.id, name)
 }
 
 func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) error {

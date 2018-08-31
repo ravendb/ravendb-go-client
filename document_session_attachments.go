@@ -35,7 +35,7 @@ func (s *DocumentSessionAttachments) GetEntity(entity Object, name string) (*Clo
 	if document == nil {
 		return nil, throwEntityNotInSession(entity)
 	}
-	return s.Get(document.getId(), name)
+	return s.Get(document.id, name)
 }
 
 func (s *DocumentSessionAttachments) GetRevision(documentId string, name string, changeVector *string) (*CloseableAttachmentResult, error) {

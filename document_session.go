@@ -97,7 +97,7 @@ func (s *DocumentSession) Refresh(entity Object) error {
 		return err
 	}
 
-	command := NewGetDocumentsCommand([]string{documentInfo.getId()}, nil, false)
+	command := NewGetDocumentsCommand([]string{documentInfo.id}, nil, false)
 	err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err

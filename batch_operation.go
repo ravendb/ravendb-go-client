@@ -83,7 +83,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		b._session.documentsById.add(documentInfo)
 		b._session.GetGenerateEntityIdOnTheClient().trySetIdentity(entity, id)
 
-		afterSaveChangesEventArgs := NewAfterSaveChangesEventArgs(b._session, documentInfo.getId(), documentInfo.getEntity())
+		afterSaveChangesEventArgs := NewAfterSaveChangesEventArgs(b._session, documentInfo.id, documentInfo.getEntity())
 		b._session.OnAfterSaveChangesInvoke(afterSaveChangesEventArgs)
 	}
 }

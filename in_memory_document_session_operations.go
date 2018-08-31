@@ -287,7 +287,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 	if value == nil {
 		return ""
 	}
-	return value.getId()
+	return value.id
 }
 
 // IncrementRequetsCount increments requests count
@@ -444,8 +444,8 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 	}
 
 	s.deletedEntities.add(entity)
-	delete(s.includedDocumentsById, value.getId())
-	s._knownMissingIds = append(s._knownMissingIds, value.getId())
+	delete(s.includedDocumentsById, value.id)
+	s._knownMissingIds = append(s._knownMissingIds, value.id)
 	return nil
 }
 
@@ -674,9 +674,9 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 			change.setChange(DocumentsChanges_ChangeType_DOCUMENT_DELETED)
 
 			docChanges = append(docChanges, change)
-			changes[documentInfo.getId()] = docChanges
+			changes[documentInfo.id] = docChanges
 		} else {
-			idType := NewIdTypeAndName(documentInfo.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+			idType := NewIdTypeAndName(documentInfo.id, CommandType_CLIENT_ANY_COMMAND, "")
 			command := result.GetDeferredCommandsMap()[idType]
 			if command != nil {
 				err := s.throwInvalidDeletedDocumentWithDeferredCommand(command)
@@ -686,7 +686,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 			}
 
 			var changeVector *string
-			documentInfo = s.documentsById.getValue(documentInfo.getId())
+			documentInfo = s.documentsById.getValue(documentInfo.id)
 
 			if documentInfo != nil {
 				changeVector = documentInfo.GetChangeVector()
@@ -696,19 +696,19 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 					result.AddEntity(documentInfo.getEntity())
 				}
 
-				s.documentsById.remove(documentInfo.getId())
+				s.documentsById.remove(documentInfo.id)
 			}
 
 			if !s.useOptimisticConcurrency {
 				changeVector = nil
 			}
 
-			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.getId(), documentInfo.getEntity())
+			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.getEntity())
 			for _, handler := range s.onBeforeDelete {
 				handler(s, beforeDeleteEventArgs)
 			}
 
-			cmdData := NewDeleteCommandData(documentInfo.getId(), changeVector)
+			cmdData := NewDeleteCommandData(documentInfo.id, changeVector)
 			result.AddSessionCommandData(cmdData)
 		}
 
@@ -733,7 +733,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 			continue
 		}
 
-		idType := NewIdTypeAndName(entityValue.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
+		idType := NewIdTypeAndName(entityValue.id, CommandType_CLIENT_NOT_ATTACHMENT, "")
 		command := result.deferredCommandsMap[idType]
 		if command != nil {
 			err := s.throwInvalidModifiedDocumentWithDeferredCommand(command)
@@ -743,7 +743,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 		}
 
 		if len(s.onBeforeStore) > 0 {
-			beforeStoreEventArgs := NewBeforeStoreEventArgs(s, entityValue.getId(), entityKey)
+			beforeStoreEventArgs := NewBeforeStoreEventArgs(s, entityValue.id, entityKey)
 			for _, handler := range s.onBeforeStore {
 				handler(s, beforeStoreEventArgs)
 			}
@@ -758,8 +758,8 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 		entityValue.setNewDocument(false)
 		result.AddEntity(entityKey)
 
-		if entityValue.getId() != "" {
-			s.documentsById.remove(entityValue.getId())
+		if entityValue.id != "" {
+			s.documentsById.remove(entityValue.id)
 		}
 
 		entityValue.setDocument(document)
@@ -778,7 +778,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 		} else {
 			changeVector = nil // TODO: redundant
 		}
-		cmdData := NewPutCommandDataWithJson(entityValue.getId(), changeVector, document)
+		cmdData := NewPutCommandDataWithJson(entityValue.id, changeVector, document)
 		result.AddSessionCommandData(cmdData)
 	}
 	return nil
@@ -858,7 +858,7 @@ func (s *InMemoryDocumentSessionOperations) Evict(entity Object) {
 	documentInfo := s.documentsByEntity[entity]
 	if documentInfo != nil {
 		delete(s.documentsByEntity, entity)
-		s.documentsById.remove(documentInfo.getId())
+		s.documentsById.remove(documentInfo.id)
 	}
 
 	s.deletedEntities.remove(entity)
@@ -942,7 +942,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 			continue
 		}
 
-		s.includedDocumentsById[newDocumentInfo.getId()] = newDocumentInfo
+		s.includedDocumentsById[newDocumentInfo.id] = newDocumentInfo
 	}
 }
 
@@ -1015,7 +1015,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
 	document := cmd.Result.GetResults()[0]
 	if document == nil {
-		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.getId())
+		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.id)
 	}
 
 	value := document[Constants_Documents_Metadata_KEY]
@@ -1027,7 +1027,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 		documentInfo.setChangeVector(changeVector)
 	}
 	documentInfo.setDocument(document)
-	documentInfo.setEntity(s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.getId(), document))
+	documentInfo.setEntity(s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.id, document))
 
 	err := BeanUtils_copyProperties(entity, documentInfo.getEntity())
 	if err != nil {
