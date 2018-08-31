@@ -18,11 +18,11 @@ func (l *MultiLoaderWithInclude) Include(path string) *MultiLoaderWithInclude {
 	return l
 }
 
-func (l *MultiLoaderWithInclude) LoadMulti(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
+func (l *MultiLoaderWithInclude) LoadMultiOld(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
 	return l._session.loadInternalMultiOld(clazz, ids, l._includes)
 }
 
-func (l *MultiLoaderWithInclude) Load(clazz reflect.Type, id string) (interface{}, error) {
+func (l *MultiLoaderWithInclude) LoadOld(clazz reflect.Type, id string) (interface{}, error) {
 	stringObjectMap, err := l._session.loadInternalMultiOld(clazz, []string{id}, l._includes)
 	if err != nil {
 		return nil, err

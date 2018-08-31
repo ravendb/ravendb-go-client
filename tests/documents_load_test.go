@@ -48,7 +48,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		// Note: in Java it's fooId, we must match Go naming with FooId
-		bar, err := newSession.Include("FooId").LoadMulti(ravendb.GetTypeOf(&Bar{}), []string{barId})
+		bar, err := newSession.Include("FooId").LoadMultiOld(ravendb.GetTypeOf(&Bar{}), []string{barId})
 		assert.NoError(t, err)
 
 		assert.NotNil(t, bar)
