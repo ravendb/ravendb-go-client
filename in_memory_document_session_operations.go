@@ -463,13 +463,13 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	var changeVector *string
 	documentInfo := s.documentsById.getValue(id)
 	if documentInfo != nil {
-		newObj := EntityToJson_convertEntityToJson(documentInfo.getEntity(), documentInfo)
-		if documentInfo.getEntity() != nil && s.EntityChanged(newObj, documentInfo, nil) {
+		newObj := EntityToJson_convertEntityToJson(documentInfo.entity, documentInfo)
+		if documentInfo.entity != nil && s.EntityChanged(newObj, documentInfo, nil) {
 			return NewIllegalStateException("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
 
-		if documentInfo.getEntity() != nil {
-			delete(s.documentsByEntity, documentInfo.getEntity())
+		if documentInfo.entity != nil {
+			delete(s.documentsByEntity, documentInfo.entity)
 		}
 
 		s.documentsById.remove(id)
@@ -599,7 +599,7 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Obj
 		return nil
 	}
 	info := s.documentsById.getValue(id)
-	if info == nil || info.getEntity() == entity {
+	if info == nil || info.entity == entity {
 		return nil
 	}
 
@@ -691,9 +691,9 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 			if documentInfo != nil {
 				changeVector = documentInfo.GetChangeVector()
 
-				if documentInfo.getEntity() != nil {
-					delete(s.documentsByEntity, documentInfo.getEntity())
-					result.AddEntity(documentInfo.getEntity())
+				if documentInfo.entity != nil {
+					delete(s.documentsByEntity, documentInfo.entity)
+					result.AddEntity(documentInfo.entity)
 				}
 
 				s.documentsById.remove(documentInfo.id)
@@ -703,7 +703,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 				changeVector = nil
 			}
 
-			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.getEntity())
+			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.entity)
 			for _, handler := range s.onBeforeDelete {
 				handler(s, beforeDeleteEventArgs)
 			}
@@ -839,7 +839,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity Object) bool {
 func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
 	for _, docInfo := range s.documentsById.inner {
 		s.UpdateMetadataModifications(docInfo)
-		entity := docInfo.getEntity()
+		entity := docInfo.entity
 		newObj := EntityToJson_convertEntityToJson(entity, docInfo)
 		s.EntityChanged(newObj, docInfo, changes)
 	}
@@ -986,7 +986,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 			}
 		}
 
-		if documentInfo.getEntity() == nil {
+		if documentInfo.entity == nil {
 			return false
 		}
 
@@ -1029,7 +1029,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 	documentInfo.setDocument(document)
 	documentInfo.setEntity(s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.id, document))
 
-	err := BeanUtils_copyProperties(entity, documentInfo.getEntity())
+	err := BeanUtils_copyProperties(entity, documentInfo.entity)
 	if err != nil {
 		return NewRuntimeException("Unable to refresh entity: %s", err)
 	}

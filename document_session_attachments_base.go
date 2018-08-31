@@ -71,7 +71,7 @@ func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, s
 	}
 
 	documentInfo := s.documentsById.getValue(documentId)
-	if documentInfo != nil && s.deletedEntities.contains(documentInfo.getEntity()) {
+	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
 		return NewIllegalStateException("Cannot Store attachment " + name + " of document " + documentId + ", the document was already deleted in this session.")
 	}
 
@@ -114,7 +114,7 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) 
 	}
 
 	documentInfo := s.documentsById.getValue(documentId)
-	if documentInfo != nil && s.deletedEntities.contains(documentInfo.getEntity()) {
+	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
 		return nil //no-op
 	}
 
