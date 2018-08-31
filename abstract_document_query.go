@@ -13,7 +13,7 @@ type AbstractDocumentQuery struct {
 	_aliasToGroupByFieldName map[string]string
 	defaultOperator          QueryOperator
 
-	rootTypes *TypeSet
+	// Note: rootTypes don't seem to be used
 
 	negate              bool
 	indexName           string
@@ -102,7 +102,6 @@ func AbstractDocumentQuery_getDefaultTimeout() time.Duration {
 func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
 		clazz:                    clazz,
-		rootTypes:                NewTypeSet(),
 		defaultOperator:          QueryOperator_AND,
 		isGroupBy:                isGroupBy,
 		indexName:                indexName,
@@ -114,7 +113,6 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 		queryParameters:          make(map[string]Object),
 		queryStats:               NewQueryStatistics(),
 	}
-	res.rootTypes.add(clazz)
 	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
 	f := func(queryResult *QueryResult) {
 		res.UpdateStatsAndHighlightings(queryResult)
@@ -128,7 +126,7 @@ func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessi
 	return res
 }
 
-func (q *AbstractDocumentQuery) GetQueryClass() reflect.Type {
+func (q *AbstractDocumentQuery) getQueryClass() reflect.Type {
 	return q.clazz
 }
 
@@ -1011,10 +1009,6 @@ func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []Object) 
 		tokens = append(tokens, whereToken)
 	}
 	*tokensRef = tokens
-}
-
-func (q *AbstractDocumentQuery) _addRootType(clazz reflect.Type) {
-	q.rootTypes.add(clazz)
 }
 
 func (q *AbstractDocumentQuery) _distinct() {
