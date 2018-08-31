@@ -159,21 +159,6 @@ func (o *LoadOperation) getDocuments(results interface{}) error {
 	return nil
 }
 
-func (o *LoadOperation) getDocumentsOld(clazz reflect.Type) (map[string]interface{}, error) {
-	uniqueIds := StringArrayCopy(o._ids)
-	StringArrayRemove(&uniqueIds, "")
-	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
-	res := make(map[string]interface{})
-	for _, id := range uniqueIds {
-		v, err := o.getDocumentWithIDOld(clazz, id)
-		if err != nil {
-			return res, err
-		}
-		res[id] = v
-	}
-	return res, nil
-}
-
 func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 	if result == nil {
 		return

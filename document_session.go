@@ -191,23 +191,6 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 	return loadOperation.getDocuments(results)
 }
 
-func (s *DocumentSession) loadInternalMultiOld(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
-	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-	loadOperation.byIds(ids)
-	loadOperation.withIncludes(includes)
-
-	command := loadOperation.CreateRequest()
-	if command != nil {
-		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
-		if err != nil {
-			return nil, err
-		}
-		loadOperation.setResult(command.Result)
-	}
-
-	return loadOperation.getDocumentsOld(clazz)
-}
-
 func (s *DocumentSession) LoadStartingWith(results interface{}, idPrefix string) error {
 	return s.LoadStartingWithFull(results, idPrefix, "", 0, 25, "", "")
 }
