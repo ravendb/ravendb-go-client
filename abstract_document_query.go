@@ -13,7 +13,7 @@ type AbstractDocumentQuery struct {
 	_aliasToGroupByFieldName map[string]string
 	defaultOperator          QueryOperator
 
-	// Note: rootTypes don't seem to be used
+	// Note: rootTypes is not used in Go because we only have one ID property
 
 	negate              bool
 	indexName           string
@@ -1604,17 +1604,17 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 // TODO: Go has no interatos so for better API, rename to getResult() or sth.
 func (q *AbstractDocumentQuery) Iterator() ([]interface{}, error) {
 	tmp := 0
-	return q.ExecuteQueryOperation(&tmp)
+	return q.executeQueryOperation(&tmp)
 }
 
 // Note: toList() is the same as iterator() becuase Go has no iterators
 func (q *AbstractDocumentQuery) ToList() ([]interface{}, error) {
-	return q.ExecuteQueryOperation(nil)
+	return q.executeQueryOperation(nil)
 }
 
 func (q *AbstractDocumentQuery) First() (interface{}, error) {
 	tmp := 1
-	result, err := q.ExecuteQueryOperation(&tmp)
+	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1626,7 +1626,7 @@ func (q *AbstractDocumentQuery) First() (interface{}, error) {
 
 func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 	tmp := 1
-	result, err := q.ExecuteQueryOperation(&tmp)
+	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1638,7 +1638,7 @@ func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 
 func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 	tmp := 2
-	result, err := q.ExecuteQueryOperation(&tmp)
+	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1652,7 +1652,7 @@ func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 
 func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
 	tmp := 2
-	result, err := q.ExecuteQueryOperation(&tmp)
+	result, err := q.executeQueryOperation(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1682,7 +1682,7 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	if q.IsDistinct() {
 		// for distinct it is cheaper to do count 1
 		var tmp = 1
-		res, err := q.ExecuteQueryOperation(&tmp)
+		res, err := q.executeQueryOperation(&tmp)
 		if err != nil {
 			return false, err
 		}
@@ -1700,7 +1700,7 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	return queryResult.getTotalResults() > 0, nil
 }
 
-func (q *AbstractDocumentQuery) ExecuteQueryOperation(take *int) ([]interface{}, error) {
+func (q *AbstractDocumentQuery) executeQueryOperation(take *int) ([]interface{}, error) {
 	if take != nil && (q.pageSize == nil || *q.pageSize > *take) {
 		q._take(take)
 	}
