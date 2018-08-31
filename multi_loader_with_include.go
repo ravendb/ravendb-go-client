@@ -3,11 +3,11 @@ package ravendb
 import "reflect"
 
 type MultiLoaderWithInclude struct {
-	_session  *IDocumentSessionImpl
+	_session  *DocumentSession
 	_includes []string
 }
 
-func NewMultiLoaderWithInclude(session *IDocumentSessionImpl) *MultiLoaderWithInclude {
+func NewMultiLoaderWithInclude(session *DocumentSession) *MultiLoaderWithInclude {
 	return &MultiLoaderWithInclude{
 		_session: session,
 	}
