@@ -4,5 +4,4 @@
 # compiling tests will also compile the code
 
 cd tests
-go test -c
-
+go test -v -c

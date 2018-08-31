@@ -58,10 +58,10 @@ func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
 	}
 }
 
-func (o *LoadStartingWithOperation) getDocuments(clazz reflect.Type) ([]interface{}, error) {
+func (o *LoadStartingWithOperation) getDocumentsOld(clazz reflect.Type) ([]interface{}, error) {
 	var finalResults []interface{}
 	for _, id := range o._returnedIds {
-		v, err := o.getDocument(clazz, id)
+		v, err := o.getDocumentOld(clazz, id)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (o *LoadStartingWithOperation) getDocuments(clazz reflect.Type) ([]interfac
 	return finalResults, nil
 }
 
-func (o *LoadStartingWithOperation) getDocument(clazz reflect.Type, id string) (interface{}, error) {
+func (o *LoadStartingWithOperation) getDocumentOld(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
 		return Defaults_defaultValue(clazz), nil
 	}

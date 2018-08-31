@@ -96,7 +96,7 @@ func loadTest_loadDocumentsByIds(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		users, err := newSession.LoadMulti(ravendb.GetTypeOf(&User{}), []string{"users/1", "users/2"})
+		users, err := newSession.LoadMultiOld(ravendb.GetTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
 		newSession.Close()
@@ -160,7 +160,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 	{
 		newSession := openSessionMust(t, store)
 		orderedArrayOfIdsWithNull := []string{"users/1", "", "users/2", ""}
-		users1, err := newSession.LoadMulti(ravendb.GetTypeOf(&User{}), orderedArrayOfIdsWithNull)
+		users1, err := newSession.LoadMultiOld(ravendb.GetTypeOf(&User{}), orderedArrayOfIdsWithNull)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users1))
 
@@ -248,7 +248,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		users, err := session.LoadMulti(ravendb.GetTypeOf(&User{}), ids)
+		users, err := session.LoadMultiOld(ravendb.GetTypeOf(&User{}), ids)
 		assert.NoError(t, err)
 		assert.NotNil(t, users)
 		result := users["users/77"]
@@ -289,7 +289,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 
 	{
 		newSession := openSessionMust(t, store)
-		usersi, err := newSession.Advanced().LoadStartingWith(ravendb.GetTypeOf(&User{}), "A")
+		usersi, err := newSession.Advanced().LoadStartingWithOld(ravendb.GetTypeOf(&User{}), "A")
 		assert.NoError(t, err)
 
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
@@ -298,7 +298,7 @@ func loadTest_loadStartsWith(t *testing.T) {
 			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
 		}
 
-		usersi, err = newSession.Advanced().LoadStartingWithFull(ravendb.GetTypeOf(&User{}), "A", "", 1, 2, "", "")
+		usersi, err = newSession.Advanced().LoadStartingWithFullOld(ravendb.GetTypeOf(&User{}), "A", "", 1, 2, "", "")
 
 		userIDs = []string{"Abc", "Afa"}
 		for _, useri := range usersi {

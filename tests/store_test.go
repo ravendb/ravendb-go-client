@@ -83,7 +83,7 @@ func storeTestStoreDocuments(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		users, err := session.LoadMulti(ravendb.GetTypeOf(&User{}), []string{"users/1", "users/2"})
+		users, err := session.LoadMultiOld(ravendb.GetTypeOf(&User{}), []string{"users/1", "users/2"})
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
 		session.Close()

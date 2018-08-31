@@ -120,7 +120,7 @@ func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (int
 	return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
 }
 
-func (o *LoadOperation) getDocuments(clazz reflect.Type) (map[string]interface{}, error) {
+func (o *LoadOperation) getDocumentsOld(clazz reflect.Type) (map[string]interface{}, error) {
 	uniqueIds := StringArrayCopy(o._ids)
 	StringArrayRemove(&uniqueIds, "")
 	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
