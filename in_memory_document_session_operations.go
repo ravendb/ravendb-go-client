@@ -200,11 +200,11 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 	if err != nil {
 		return nil, err
 	}
-	if documentInfo.getMetadataInstance() != nil {
-		return documentInfo.getMetadataInstance(), nil
+	if documentInfo.metadataInstance != nil {
+		return documentInfo.metadataInstance, nil
 	}
 
-	metadataAsJson := documentInfo.getMetadata()
+	metadataAsJson := documentInfo.metadata
 	metadata := NewMetadataAsDictionaryWithSource(metadataAsJson)
 	documentInfo.setMetadataInstance(metadata)
 	return metadata, nil
@@ -221,7 +221,7 @@ func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interfac
 	if err != nil {
 		return nil, err
 	}
-	changeVector := jsonGetAsTextPointer(documentInfo.getMetadata(), Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(documentInfo.metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	return changeVector, nil
 }
 
@@ -473,7 +473,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 		}
 
 		s.documentsById.remove(id)
-		changeVector = documentInfo.GetChangeVector()
+		changeVector = documentInfo.changeVector
 	}
 
 	s._knownMissingIds = append(s._knownMissingIds, id)
@@ -523,7 +523,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 
 	value := s.documentsByEntity[entity]
 	if value != nil {
-		value.setChangeVector(firstNonNilString(changeVector, value.GetChangeVector()))
+		value.setChangeVector(firstNonNilString(changeVector, value.changeVector))
 		value.setConcurrencyCheckMode(forceConcurrencyCheck)
 		return nil
 	}
@@ -636,8 +636,8 @@ func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*SaveChange
 
 func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(documentInfo *DocumentInfo) bool {
 	dirty := false
-	metadataInstance := documentInfo.getMetadataInstance()
-	metadata := documentInfo.getMetadata()
+	metadataInstance := documentInfo.metadataInstance
+	metadata := documentInfo.metadata
 	if metadataInstance != nil {
 		if metadataInstance.IsDirty() {
 			dirty = true
@@ -689,7 +689,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 			documentInfo = s.documentsById.getValue(documentInfo.id)
 
 			if documentInfo != nil {
-				changeVector = documentInfo.GetChangeVector()
+				changeVector = documentInfo.changeVector
 
 				if documentInfo.entity != nil {
 					delete(s.documentsByEntity, documentInfo.entity)
@@ -721,7 +721,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 
 func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveChangesData) error {
 	for entityKey, entityValue := range s.documentsByEntity {
-		if entityValue.isIgnoreChanges() {
+		if entityValue.ignoreChanges {
 			continue
 		}
 
@@ -766,15 +766,15 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 
 		var changeVector *string
 		if s.useOptimisticConcurrency {
-			if entityValue.getConcurrencyCheckMode() != ConcurrencyCheck_DISABLED {
+			if entityValue.concurrencyCheckMode != ConcurrencyCheck_DISABLED {
 				// if the user didn't provide a change vector, we'll test for an empty one
 				tmp := ""
-				changeVector = firstNonNilString(entityValue.GetChangeVector(), &tmp)
+				changeVector = firstNonNilString(entityValue.changeVector, &tmp)
 			} else {
 				changeVector = nil // TODO: redundant
 			}
-		} else if entityValue.getConcurrencyCheckMode() == ConcurrencyCheck_FORCED {
-			changeVector = entityValue.GetChangeVector()
+		} else if entityValue.concurrencyCheckMode == ConcurrencyCheck_FORCED {
+			changeVector = entityValue.changeVector
 		} else {
 			changeVector = nil // TODO: redundant
 		}
@@ -938,7 +938,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 		json, ok := fieldValue.(ObjectNode)
 		panicIf(!ok, "fieldValue of unsupported type %T", fieldValue)
 		newDocumentInfo := DocumentInfo_getNewDocumentInfo(json)
-		if JsonExtensions_tryGetConflict(newDocumentInfo.getMetadata()) {
+		if JsonExtensions_tryGetConflict(newDocumentInfo.metadata) {
 			continue
 		}
 
@@ -1022,7 +1022,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 	meta := value.(ObjectNode)
 	documentInfo.setMetadata(meta)
 
-	if documentInfo.getMetadata() != nil {
+	if documentInfo.metadata != nil {
 		changeVector := jsonGetAsTextPointer(meta, Constants_Documents_Metadata_CHANGE_VECTOR)
 		documentInfo.setChangeVector(changeVector)
 	}

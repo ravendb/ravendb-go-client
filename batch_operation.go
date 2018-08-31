@@ -70,14 +70,14 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 				continue
 			}
 
-			meta := documentInfo.getMetadata()
+			meta := documentInfo.metadata
 			meta[propertyName] = v
 		}
 
 		documentInfo.setId(id)
 		documentInfo.setChangeVector(changeVector)
-		doc := documentInfo.getDocument()
-		doc[Constants_Documents_Metadata_KEY] = documentInfo.getMetadata()
+		doc := documentInfo.document
+		doc[Constants_Documents_Metadata_KEY] = documentInfo.metadata
 		documentInfo.setMetadataInstance(nil)
 
 		b._session.documentsById.add(documentInfo)

@@ -23,7 +23,7 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity Object) ([]*AttachmentN
 	if document == nil {
 		return nil, throwEntityNotInSession(entity)
 	}
-	meta := document.getMetadata()
+	meta := document.metadata
 	attachmentsI, ok := meta[Constants_Documents_Metadata_ATTACHMENTS]
 	if !ok {
 		return nil, nil

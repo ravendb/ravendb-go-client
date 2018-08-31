@@ -145,8 +145,8 @@ func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo)
 	setMetadata := false
 	metadataNode := ObjectNode{}
 
-	metadata := documentInfo.getMetadata()
-	metadataInstance := documentInfo.getMetadataInstance()
+	metadata := documentInfo.metadata
+	metadataInstance := documentInfo.metadataInstance
 	if len(metadata) > 0 {
 		setMetadata = true
 		for property, v := range metadata {
@@ -160,7 +160,7 @@ func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo)
 		}
 	}
 
-	collection := documentInfo.getCollection()
+	collection := documentInfo.collection
 	if collection != "" {
 		setMetadata = true
 
