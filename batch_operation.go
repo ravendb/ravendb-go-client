@@ -74,11 +74,11 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 			meta[propertyName] = v
 		}
 
-		documentInfo.setId(id)
-		documentInfo.setChangeVector(changeVector)
+		documentInfo.id = id
+		documentInfo.changeVector = changeVector
 		doc := documentInfo.document
 		doc[Constants_Documents_Metadata_KEY] = documentInfo.metadata
-		documentInfo.setMetadataInstance(nil)
+		documentInfo.metadataInstance = nil
 
 		b._session.documentsById.add(documentInfo)
 		b._session.GetGenerateEntityIdOnTheClient().trySetIdentity(entity, id)

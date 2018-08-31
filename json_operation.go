@@ -9,7 +9,7 @@ func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, 
 	var docChanges []*DocumentsChanges
 
 	doc := documentInfo.document
-	if !documentInfo.isNewDocument() && doc != nil {
+	if !documentInfo.newDocument && doc != nil {
 		id := documentInfo.id
 		return JsonOperation_compareJson(id, doc, newObj, changes, &docChanges)
 	}

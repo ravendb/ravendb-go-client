@@ -203,7 +203,7 @@ func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IM
 	}
 
 	documentInfo := NewDocumentInfo()
-	documentInfo.setMetadataInstance(metadata)
+	documentInfo.metadataInstance = metadata
 	jsNode := EntityToJson_convertEntityToJson(entity, documentInfo)
 
 	var b bytes.Buffer
