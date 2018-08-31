@@ -109,7 +109,7 @@ func (s *DocumentSession) Refresh(entity Object) error {
 // TODO:    public ResponseTimeInformation ExecuteAllPendingLazyOperations() {
 // TODO:    private boolean ExecuteLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
 
-func (s *DocumentSession) Include(path string) ILoaderWithInclude {
+func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
@@ -171,7 +171,7 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 	return nil
 }
 
-func (s *DocumentSession) LoadInternalMultiOld(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
+func (s *DocumentSession) loadInternalMultiOld(clazz reflect.Type, ids []string, includes []string) (map[string]interface{}, error) {
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
