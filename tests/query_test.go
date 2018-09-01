@@ -37,8 +37,9 @@ func query_querySimple(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
+		var queryResult []*User
 		q := session.Advanced().DocumentQueryAllOld(reflect.TypeOf(&User{}), "", "users", false)
-		queryResult, err := q.ToListOld()
+		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 3)
 
@@ -107,19 +108,22 @@ func query_queryWithWhereClause(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
+		var queryResult []*User
 		q := session.QueryWithQueryOld(reflect.TypeOf(&User{}), ravendb.Query_collection("users"))
 		q = q.WhereStartsWith("name", "J")
-		queryResult, err := q.ToListOld()
+		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 
+		var queryResult2 []*User
 		q2 := session.QueryWithQueryOld(reflect.TypeOf(&User{}), ravendb.Query_collection("users"))
 		q2 = q2.WhereEquals("name", "Tarzan")
-		queryResult2, err := q2.ToListOld()
+		err = q2.ToList(&queryResult2)
 		assert.NoError(t, err)
 
+		var queryResult3 []*User
 		q3 := session.QueryWithQueryOld(reflect.TypeOf(&User{}), ravendb.Query_collection("users"))
 		q3 = q3.WhereEndsWith("name", "n")
-		queryResult3, err := q3.ToListOld()
+		err = q3.ToList(&queryResult3)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 2)
@@ -808,14 +812,14 @@ func query_queryWithDuration(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
+			var orders []*Order
 			q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), NewOrderTime())
 			q = q.WhereLessThan("delay", time.Hour*3)
-			orders, err := q.ToListOld()
+			err := q.ToList(&orders)
 			assert.NoError(t, err)
 
 			var delay []string
-			for _, o := range orders {
-				order := o.(*Order)
+			for _, order := range orders {
 				company := order.Company
 				delay = append(delay, company)
 			}
@@ -824,14 +828,14 @@ func query_queryWithDuration(t *testing.T) {
 		}
 
 		{
+			var orders []*Order
 			q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), NewOrderTime())
 			q = q.WhereGreaterThan("delay", time.Hour*3)
-			orders, err := q.ToListOld()
+			err := q.ToList(&orders)
 			assert.NoError(t, err)
 
 			var delay2 []string
-			for _, o := range orders {
-				order := o.(*Order)
+			for _, order := range orders {
 				company := order.Company
 				delay2 = append(delay2, company)
 			}
@@ -894,15 +898,17 @@ func query_queryRandomOrder(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{})).RandomOrdering()
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{})).RandomOrderingWithSeed("123")
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -920,20 +926,22 @@ func query_queryWhereExists(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereExists("name")
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereExists("name")
 			q = q.AndAlso()
 			q = q.Not()
 			q = q.WhereExists("no_such_field")
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -950,6 +958,7 @@ func query_queryWithBoost(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(5)
@@ -957,18 +966,18 @@ func query_queryWithBoost(t *testing.T) {
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(2)
 		q = q.OrderByScore()
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
 
 		var names []string
-		for _, u := range users {
-			user := u.(*User)
+		for _, user := range users {
 			names = append(names, *user.Name)
 		}
 		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
+		users = nil
 		q = session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(2)
@@ -976,14 +985,13 @@ func query_queryWithBoost(t *testing.T) {
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(5)
 		q = q.OrderByScore()
-		users, err = q.ToListOld()
+		err = q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
 
 		names = nil
-		for _, u := range users {
-			user := u.(*User)
+		for _, user := range users {
 			names = append(names, *user.Name)
 		}
 
@@ -1065,25 +1073,26 @@ func query_queryWithCustomize(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 
+		var queryResult []*DogsIndex_Result
 		q := newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
 		q = q.OrderByWithOrdering("name", ravendb.OrderingType_ALPHA_NUMERIC)
 		q = q.WhereGreaterThan("age", 2)
-		queryResult, err := q.ToListOld()
+		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 4)
 
-		r := queryResult[0].(*DogsIndex_Result)
+		r := queryResult[0]
 		assert.Equal(t, r.Name, "Brian")
 
-		r = queryResult[1].(*DogsIndex_Result)
+		r = queryResult[1]
 		assert.Equal(t, r.Name, "Django")
 
-		r = queryResult[2].(*DogsIndex_Result)
+		r = queryResult[2]
 		assert.Equal(t, r.Name, "Lassie")
 
-		r = queryResult[3].(*DogsIndex_Result)
+		r = queryResult[3]
 		assert.Equal(t, r.Name, "Snoopy")
 
 		newSession.Close()
@@ -1216,9 +1225,10 @@ func query_queryLongRequest(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
+		var queryResult []*User
 		q := newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&User{}), "", "Users", false)
 		q = q.WhereEquals("name", longName)
-		queryResult, err := q.ToListOld()
+		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 1)
 
@@ -1250,29 +1260,30 @@ func query_queryByIndex(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 
+		var queryResult []*DogsIndex_Result
 		q := newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WhereGreaterThan("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
-		queryResult, err := q.ToListOld()
+		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 1)
-		r := queryResult[0].(*DogsIndex_Result)
+		r := queryResult[0]
 		assert.Equal(t, r.Name, "Brian")
 
+		var queryResult2 []*DogsIndex_Result
 		q = newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WhereLessThanOrEqual("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
-		queryResult2, err := q.ToListOld()
+		err = q.ToList(&queryResult2)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult2), 3)
 
 		var names []string
-		for _, r := range queryResult2 {
-			dir := r.(*DogsIndex_Result)
+		for _, dir := range queryResult2 {
 			name := dir.Name
 			names = append(names, name)
 		}
