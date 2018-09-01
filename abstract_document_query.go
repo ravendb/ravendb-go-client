@@ -1629,17 +1629,16 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 
 // Note: toList() is the same as iterator() becuase Go has no iterators
 func (q *AbstractDocumentQuery) ToListOld() ([]interface{}, error) {
-	return q.executeQueryOperationOld(nil)
+	return q.executeQueryOperationOld(0)
 }
 
 // results is *[]*struct
 func (q *AbstractDocumentQuery) ToList(results interface{}) error {
-	return q.executeQueryOperationNew(results, nil)
+	return q.executeQueryOperationNew(results, 0)
 }
 
 func (q *AbstractDocumentQuery) First() (interface{}, error) {
-	tmp := 1
-	result, err := q.executeQueryOperationOld(&tmp)
+	result, err := q.executeQueryOperationOld(1)
 	if err != nil {
 		return nil, err
 	}
@@ -1650,8 +1649,7 @@ func (q *AbstractDocumentQuery) First() (interface{}, error) {
 }
 
 func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
-	tmp := 1
-	result, err := q.executeQueryOperationOld(&tmp)
+	result, err := q.executeQueryOperationOld(1)
 	if err != nil {
 		return nil, err
 	}
@@ -1662,8 +1660,7 @@ func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 }
 
 func (q *AbstractDocumentQuery) Single() (interface{}, error) {
-	tmp := 2
-	result, err := q.executeQueryOperationOld(&tmp)
+	result, err := q.executeQueryOperationOld(2)
 	if err != nil {
 		return nil, err
 	}
@@ -1676,8 +1673,7 @@ func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 }
 
 func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
-	tmp := 2
-	result, err := q.executeQueryOperationOld(&tmp)
+	result, err := q.executeQueryOperationOld(2)
 	if err != nil {
 		return nil, err
 	}
@@ -1706,8 +1702,7 @@ func (q *AbstractDocumentQuery) Count() (int, error) {
 func (q *AbstractDocumentQuery) Any() (bool, error) {
 	if q.IsDistinct() {
 		// for distinct it is cheaper to do count 1
-		var tmp = 1
-		res, err := q.executeQueryOperationOld(&tmp)
+		res, err := q.executeQueryOperationOld(1)
 		if err != nil {
 			return false, err
 		}
@@ -1725,9 +1720,9 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	return queryResult.getTotalResults() > 0, nil
 }
 
-func (q *AbstractDocumentQuery) executeQueryOperationNew(results interface{}, take *int) error {
-	if take != nil && (q.pageSize == nil || *q.pageSize > *take) {
-		q._take(take)
+func (q *AbstractDocumentQuery) executeQueryOperationNew(results interface{}, take int) error {
+	if take != 0 && (q.pageSize == nil || *q.pageSize > take) {
+		q._take(&take)
 	}
 
 	err := q.initSync()
@@ -1738,9 +1733,9 @@ func (q *AbstractDocumentQuery) executeQueryOperationNew(results interface{}, ta
 	return q.queryOperation.completeNew(results)
 }
 
-func (q *AbstractDocumentQuery) executeQueryOperationOld(take *int) ([]interface{}, error) {
-	if take != nil && (q.pageSize == nil || *q.pageSize > *take) {
-		q._take(take)
+func (q *AbstractDocumentQuery) executeQueryOperationOld(take int) ([]interface{}, error) {
+	if take != 0 && (q.pageSize == nil || *q.pageSize > take) {
+		q._take(&take)
 	}
 
 	err := q.initSync()
