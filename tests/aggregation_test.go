@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -76,7 +77,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&Order{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("region").MaxOn("total").MinOn("total")
 		}
@@ -160,7 +161,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&AggOrder{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&AggOrder{}), index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").SumOn("total")
 		}
@@ -244,7 +245,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&AggOrder{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&AggOrder{}), index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").MaxOn("total").MinOn("total")
 		}
@@ -315,7 +316,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&AggOrder{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&AggOrder{}), index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").WithDisplayName("productMax").MaxOn("total")
 		}
@@ -383,7 +384,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 		session := openSessionMust(t, store)
 		_range := ravendb.RangeBuilder_forPath("total")
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&Order{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").SumOn("total")
 		}
@@ -490,7 +491,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 	{
 		session := openSessionMust(t, store)
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&ItemsOrder{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&ItemsOrder{}), index)
 		q = q.WhereGreaterThanOrEqual("at", end0)
 		fn := func(f ravendb.IFacetBuilder) {
 			r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4

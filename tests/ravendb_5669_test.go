@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -21,7 +22,7 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		query := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Animal{}), index)
+		query := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Animal{}), index)
 
 		query.OpenSubclause()
 
@@ -55,7 +56,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		query := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Animal{}), index)
+		query := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Animal{}), index)
 
 		query.OpenSubclause()
 

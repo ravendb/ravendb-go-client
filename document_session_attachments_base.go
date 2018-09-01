@@ -3,6 +3,7 @@ package ravendb
 import (
 	"fmt"
 	"io"
+	"reflect"
 )
 
 type DocumentSessionAttachmentsBase struct {
@@ -35,7 +36,7 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity Object) ([]*AttachmentN
 	}
 	n := len(attachments)
 	results := make([]*AttachmentName, n, n)
-	clazz := GetTypeOf(&AttachmentName{})
+	clazz := reflect.TypeOf(&AttachmentName{})
 	for i := 0; i < n; i++ {
 		jsonNode := attachments[i]
 		resI, err := convertValue(jsonNode, clazz)

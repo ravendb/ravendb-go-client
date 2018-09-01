@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -66,7 +67,7 @@ func suggestions_exactMatch(t *testing.T) {
 		options := ravendb.NewSuggestionOptions()
 		options.PageSize = 10
 
-		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		q := session.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Oren").WithOptions(options)
 		}
@@ -88,7 +89,7 @@ func suggestions_usingLinq(t *testing.T) {
 	{
 		s := openSessionMust(t, store)
 
-		q := s.QueryWithQueryOld(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Owen")
 		}
@@ -114,7 +115,7 @@ func suggestions_usingLinq_WithOptions(t *testing.T) {
 
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.4
-		q := s.QueryWithQueryOld(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Owen").WithOptions(options)
 		}
@@ -142,7 +143,7 @@ func suggestions_usingLinq_Multiple_words(t *testing.T) {
 		options.Accuracy = 0.4
 		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
 
-		q := s.QueryWithQueryOld(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "John Steinback").WithOptions(options)
 		}
@@ -171,7 +172,7 @@ func suggestions_withTypo(t *testing.T) {
 		options.PageSize = 10
 		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
 
-		q := s.QueryWithQueryOld(ravendb.GetTypeOf(&User4{}), ravendb.Query_index("test"))
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Oern").WithOptions(options)
 		}
@@ -253,7 +254,7 @@ func suggestions_canGetSuggestions(t *testing.T) {
 		options.Distance = ravendb.StringDistanceTypes_JARO_WINKLER
 		options.SortMode = ravendb.SuggestionSortMode_POPULARITY
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&User4{}), index)
+		q := session.QueryInIndexOld(reflect.TypeOf(&User4{}), index)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "johne", "davi").WithOptions(options)
 		}

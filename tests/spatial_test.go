@@ -1,11 +1,12 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 type MyDocumentItem struct {
@@ -14,49 +15,9 @@ type MyDocumentItem struct {
 	Longitude float64   `json:"longitude"`
 }
 
-func (i *MyDocumentItem) getDate() time.Time {
-	return i.Date
-}
-
-func (i *MyDocumentItem) setDate(date time.Time) {
-	i.Date = date
-}
-
-func (i *MyDocumentItem) getLatitude() float64 {
-	return i.Latitude
-}
-
-func (i *MyDocumentItem) setLatitude(latitude float64) {
-	i.Latitude = latitude
-}
-
-func (i *MyDocumentItem) getLongitude() float64 {
-	return i.Longitude
-}
-
-func (i *MyDocumentItem) setLongitude(longitude float64) {
-	i.Longitude = longitude
-}
-
 type MyDocument struct {
 	ID    string
 	Items []*MyDocumentItem `json:"items"`
-}
-
-func (d *MyDocument) getId() string {
-	return d.ID
-}
-
-func (d *MyDocument) setId(id string) {
-	d.ID = id
-}
-
-func (d *MyDocument) getItems() []*MyDocumentItem {
-	return d.Items
-}
-
-func (d *MyDocument) setItems(items []*MyDocumentItem) {
-	d.Items = items
 }
 
 type MyProjection struct {
@@ -64,38 +25,6 @@ type MyProjection struct {
 	Date      time.Time `json:"date"`
 	Latitude  float64   `json:"latitude"`
 	Longitude float64   `json:"longitude"`
-}
-
-func (p *MyProjection) getId() string {
-	return p.ID
-}
-
-func (p *MyProjection) setId(id string) {
-	p.ID = id
-}
-
-func (p *MyProjection) getDate() time.Time {
-	return p.Date
-}
-
-func (p *MyProjection) setDate(date time.Time) {
-	p.Date = date
-}
-
-func (p *MyProjection) getLatitude() float64 {
-	return p.Latitude
-}
-
-func (p *MyProjection) setLatitude(latitude float64) {
-	p.Latitude = latitude
-}
-
-func (p *MyProjection) getLongitude() float64 {
-	return p.Longitude
-}
-
-func (p *MyProjection) setLongitude(longitude float64) {
-	p.Longitude = longitude
 }
 
 func NewMyIndex() *ravendb.AbstractIndexCreationTask {
@@ -133,14 +62,14 @@ func spatial_weirdSpatialResults(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		myDocument := &MyDocument{}
-		myDocument.setId("First")
+		myDocument.ID = "First"
 
 		myDocumentItem := &MyDocumentItem{}
-		myDocumentItem.setDate(time.Now())
-		myDocumentItem.setLatitude(10.0)
-		myDocumentItem.setLongitude(10.0)
+		myDocumentItem.Date = time.Now()
+		myDocumentItem.Latitude = 10.0
+		myDocumentItem.Longitude = 10.0
 
-		myDocument.setItems([]*MyDocumentItem{myDocumentItem})
+		myDocument.Items = []*MyDocumentItem{myDocumentItem}
 
 		err = session.Store(myDocument)
 		assert.NoError(t, err)
@@ -160,11 +89,11 @@ func spatial_weirdSpatialResults(t *testing.T) {
 
 		var statsRef *ravendb.QueryStatistics
 
-		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&MyDocument{}), index)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
 		q = q.Statistics(&statsRef)
-		q = q.SelectFields(ravendb.GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
+		q = q.SelectFields(reflect.TypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
 		result, err := q.ToListOld()
@@ -187,14 +116,14 @@ func spatial_matchSpatialResults(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		myDocument := &MyDocument{}
-		myDocument.setId("First")
+		myDocument.ID = "First"
 
 		myDocumentItem := &MyDocumentItem{}
-		myDocumentItem.setDate(time.Now())
-		myDocumentItem.setLatitude(10.0)
-		myDocumentItem.setLongitude(10.0)
+		myDocumentItem.Date = time.Now()
+		myDocumentItem.Latitude = 10.0
+		myDocumentItem.Longitude = 10.0
 
-		myDocument.setItems([]*MyDocumentItem{myDocumentItem})
+		myDocument.Items = []*MyDocumentItem{myDocumentItem}
 
 		err = session.Store(myDocument)
 		assert.NoError(t, err)
@@ -214,11 +143,11 @@ func spatial_matchSpatialResults(t *testing.T) {
 
 		var statsRef *ravendb.QueryStatistics
 
-		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&MyDocument{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&MyDocument{}), index)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 10, 10)
 		q = q.Statistics(&statsRef)
-		q = q.SelectFields(ravendb.GetTypeOf(&MyProjection{}), "id", "latitude", "longitude")
+		q = q.SelectFields(reflect.TypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
 		result, err := q.ToListOld()

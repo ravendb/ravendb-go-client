@@ -1027,7 +1027,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 		documentInfo.changeVector = changeVector
 	}
 	documentInfo.document = document
-	documentInfo.entity = s.entityToJson.ConvertToEntity(GetTypeOf(entity), documentInfo.id, document)
+	documentInfo.entity = s.entityToJson.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
 
 	err := BeanUtils_copyProperties(entity, documentInfo.entity)
 	if err != nil {

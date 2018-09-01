@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -49,7 +50,7 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&User{}))
+		q := session.Advanced().DocumentQueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereEquals("name", ravendb.CmpXchg_value("Hera"))
 		q = q.WhereEquals("lastName", ravendb.CmpXchg_value("Tom"))
 
@@ -65,7 +66,7 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 		assert.Equal(t, *user.Name, "Zeus")
 
 		users = nil
-		q = session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&User{}))
+		q = session.Advanced().DocumentQueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereNotEquals("name", ravendb.CmpXchg_value("Hera"))
 		err = q.ToList(&users)
 		assert.NoError(t, err)

@@ -1,10 +1,10 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/ravendb/ravendb-go-client"
 )
 
 func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
@@ -35,7 +35,7 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		query := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&RegexMe{}))
+		query := session.Advanced().DocumentQueryOld(reflect.TypeOf(&RegexMe{}))
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
 		iq := query.GetIndexQuery()

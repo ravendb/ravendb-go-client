@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -17,30 +18,6 @@ func NewUserWithFavs() *UserWithFavs {
 	return &UserWithFavs{}
 }
 
-func (u *UserWithFavs) getId() string {
-	return u.ID
-}
-
-func (u *UserWithFavs) setId(id string) {
-	u.ID = id
-}
-
-func (u *UserWithFavs) GetName() string {
-	return u.Name
-}
-
-func (u *UserWithFavs) setName(name string) {
-	u.Name = name
-}
-
-func (u *UserWithFavs) getFavourites() []string {
-	return u.Favourites
-}
-
-func (u *UserWithFavs) setFavourites(favourites []string) {
-	u.Favourites = favourites
-}
-
 func containsTestcontainsTest(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -50,8 +27,8 @@ func containsTestcontainsTest(t *testing.T) {
 		session := openSessionMust(t, store)
 		userCreator := func(name string, favs []string) {
 			user := NewUserWithFavs()
-			user.setName(name)
-			user.setFavourites(favs)
+			user.Name = name
+			user.Favourites = favs
 
 			err = session.Store(user)
 			assert.NoError(t, err)
@@ -70,9 +47,9 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryOld(ravendb.GetTypeOf(&UserWithFavs{}))
+		q := session.QueryOld(reflect.TypeOf(&UserWithFavs{}))
 		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
-		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
+		q = q.SelectFields(reflect.TypeOf(""), "Name")
 		pascalOrGoDeveloperNames, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
@@ -85,9 +62,9 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryOld(ravendb.GetTypeOf(&UserWithFavs{}))
+		q := session.QueryOld(reflect.TypeOf(&UserWithFavs{}))
 		q = q.ContainsAll("Favourites", []interface{}{"java"})
-		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
+		q = q.SelectFields(reflect.TypeOf(""), "Name")
 		javaDevelopers, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(javaDevelopers))

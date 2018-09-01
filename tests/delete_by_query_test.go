@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -40,7 +41,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(reflect.TypeOf(&User{}))
 			count, err := q.Count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)

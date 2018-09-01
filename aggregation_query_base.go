@@ -1,5 +1,7 @@
 package ravendb
 
+import "reflect"
+
 // Note: AggregationQueryBase also includes AggregationDocumentQuery
 type AggregationQueryBase struct {
 	_session  *InMemoryDocumentSessionOperations
@@ -62,7 +64,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 
 	results := map[string]*FacetResult{}
 	for _, result := range queryResult.Results {
-		res, err := convertValue(result, GetTypeOf(&FacetResult{}))
+		res, err := convertValue(result, reflect.TypeOf(&FacetResult{}))
 		if err != nil {
 			return nil, err
 		}

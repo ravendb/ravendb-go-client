@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"runtime"
 	"testing"
 	"time"
@@ -221,7 +222,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
@@ -299,7 +300,7 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *ravendb.QueryStatistics
-		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
@@ -350,7 +351,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *ravendb.QueryStatistics
-		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
@@ -404,13 +405,13 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var statsRef *ravendb.QueryStatistics
-		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
 		_, err = q.ToListOld()
 		assert.NoError(t, err)
 
-		q = session.QueryOld(ravendb.GetTypeOf(&User{}))
+		q = session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereGreaterThan("age", 10)
 		_, err = q.ToListOld()
@@ -502,7 +503,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		options.SetMinimumDocumentFrequency(1)
 		options.SetMinimumTermFrequency(0)
 
-		q := session.QueryInIndexOld(ravendb.GetTypeOf(&Post{}), Posts_ByTitleAndDesc())
+		q := session.QueryInIndexOld(reflect.TypeOf(&Post{}), Posts_ByTitleAndDesc())
 
 		fn1 := func(x *ravendb.IFilterDocumentQueryBase) {
 			x.WhereEquals("id()", "posts/1")

@@ -3,6 +3,7 @@ package ravendb
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
@@ -72,7 +73,8 @@ func (c *PutCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.
 }
 
 func (c *PutCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
-	res, err := CompareExchangeResult_parseFromString(GetTypeOf(c._value), response, c._conventions)
+	tp := reflect.TypeOf(c._value)
+	res, err := CompareExchangeResult_parseFromString(tp, response, c._conventions)
 	if err != nil {
 		return err
 	}
