@@ -226,7 +226,7 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 		return nil, err
 	}
 
-	if StringUtils_isNotEmpty(id) {
+	if stringIsNotEmpty(id) {
 		// we need to make an additional check, since it is possible that a value was explicitly stated
 		// for the identity property, in which case we don't want to override it.
 

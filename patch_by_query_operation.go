@@ -67,7 +67,7 @@ func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, er
 	url += fmt.Sprintf("&details=%v", _options.isRetrieveDetails())
 
 	if _options.getStaleTimeout() != 0 {
-		url += "&staleTimeout=" + TimeUtils_durationToTimeSpan(_options.getStaleTimeout())
+		url += "&staleTimeout=" + durationToTimeSpan(_options.getStaleTimeout())
 	}
 
 	q := JsonExtensions_writeIndexQuery(c._conventions, c._queryToUpdate)

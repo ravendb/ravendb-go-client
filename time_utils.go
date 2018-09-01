@@ -6,7 +6,7 @@ import (
 )
 
 // TODO: implementation could be improved
-func TimeUtils_durationToTimeSpan(duration time.Duration) string {
+func durationToTimeSpan(duration time.Duration) string {
 	tm := int64(duration / time.Millisecond)
 	millis := tm % 1000
 	tm = tm / 1000 // seconds

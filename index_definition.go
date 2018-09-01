@@ -99,7 +99,7 @@ func (d *IndexDefinition) SetType(indexType IndexType) {
 }
 
 func (d *IndexDefinition) detectStaticIndexType() IndexType {
-	if d.Reduce == nil || StringUtils_isBlank(*d.Reduce) {
+	if d.Reduce == nil || stringIsBlank(*d.Reduce) {
 		return IndexType_MAP
 	}
 	return IndexType_MAP_REDUCE
