@@ -429,13 +429,13 @@ func query_queryWithProjection(t *testing.T) {
 
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.SelectFields(reflect.TypeOf(&UserProjection{}))
-		projections, err := q.ToListOld()
+		var projections []*UserProjection
+		err := q.ToList(&projections)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
 
-		for _, p := range projections {
-			projection := p.(*UserProjection)
+		for _, projection := range projections {
 			assert.NotEmpty(t, projection.ID)
 
 			assert.NotEmpty(t, projection.Name)
@@ -456,13 +456,13 @@ func query_queryWithProjection2(t *testing.T) {
 
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.SelectFields(reflect.TypeOf(&UserProjection{}), "lastName")
-		projections, err := q.ToListOld()
+		var projections []*UserProjection
+		err := q.ToList(&projections)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
 
-		for _, p := range projections {
-			projection := p.(*UserProjection)
+		for _, projection := range projections {
 			assert.NotEmpty(t, projection.ID)
 
 			assert.Empty(t, projection.Name) // we didn't specify this field in mapping
@@ -524,15 +524,15 @@ func query_queryNoTracking(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.NoTracking()
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
 
-		for _, u := range users {
-			user := u.(*User)
+		for _, user := range users {
 			isLoaded := session.IsLoaded(user.ID)
 			assert.False(t, isLoaded)
 		}
@@ -550,16 +550,17 @@ func query_querySkipTake(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.OrderBy("name")
 		q = q.Skip(2)
 		q = q.Take(1)
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
 
-		user := users[0].(*User)
+		user := users[0]
 		assert.Equal(t, *user.Name, "Tarzan")
 
 		session.Close()
@@ -624,15 +625,15 @@ func query_queryLucene(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereLucene("name", "Tarzan")
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
 
-		for _, u := range users {
-			user := u.(*User)
+		for _, user := range users {
 			assert.Equal(t, *user.Name, "Tarzan")
 		}
 
@@ -650,27 +651,30 @@ func query_queryWhereExact(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
+			var users []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereEquals("name", "tarzan")
-			users, err := q.ToListOld()
+			err := q.ToList(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1)
 		}
 
 		{
+			var users []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereEqualsWithExact("name", "tarzan", true)
-			users, err := q.ToListOld()
+			err := q.ToList(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 0) // we queried for tarzan with exact
 		}
 
 		{
+			var users []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereEqualsWithExact("name", "Tarzan", true)
-			users, err := q.ToListOld()
+			err := q.ToList(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1) // we queried for Tarzan with exact
@@ -690,10 +694,11 @@ func query_queryWhereNot(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.Not()
 			q = q.WhereEquals("name", "tarzan")
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 
 			assert.NoError(t, err)
 
@@ -701,9 +706,10 @@ func query_queryWhereNot(t *testing.T) {
 		}
 
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereNotEquals("name", "tarzan")
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 
 			assert.NoError(t, err)
 
@@ -711,9 +717,10 @@ func query_queryWhereNot(t *testing.T) {
 		}
 
 		{
+			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WhereNotEqualsWithExact("name", "Tarzan", true)
-			res, err := q.ToListOld()
+			err := q.ToList(&res)
 
 			assert.NoError(t, err)
 
