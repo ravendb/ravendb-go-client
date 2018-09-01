@@ -17,7 +17,7 @@ func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *Ind
 	}
 
 	if query.waitForNonStaleResultsTimeout != 0 {
-		s := TimeUtils_durationToTimeSpan(query.waitForNonStaleResultsTimeout)
+		s := durationToTimeSpan(query.waitForNonStaleResultsTimeout)
 		res["WaitForNonStaleResultsTimeout"] = s
 	}
 

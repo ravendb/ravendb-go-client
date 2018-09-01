@@ -64,8 +64,8 @@ type PatchOperation struct {
 
 func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, patchIfMissing *PatchRequest, skipPatchIfChangeVectorMismatch bool) *PatchOperation {
 	panicIf(patch == nil, "Patch cannot be nil")
-	panicIf(StringUtils_isWhitespace(patch.GetScript()), "Patch script cannot be empty")
-	panicIf(patchIfMissing != nil && StringUtils_isWhitespace(patchIfMissing.GetScript()), "PatchIfMissing script cannot be empty")
+	panicIf(stringIsWhitespace(patch.GetScript()), "Patch script cannot be empty")
+	panicIf(patchIfMissing != nil && stringIsWhitespace(patchIfMissing.GetScript()), "PatchIfMissing script cannot be empty")
 	return &PatchOperation{
 		_id:                              id,
 		_changeVector:                    changeVector,

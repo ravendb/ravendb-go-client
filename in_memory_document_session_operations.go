@@ -1051,8 +1051,8 @@ func (s *InMemoryDocumentSessionOperations) OnBeforeQueryInvoke(beforeQueryEvent
 }
 
 func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect.Type, indexName string, collectionName string, conventions *DocumentConventions) (string, string) {
-	isIndex := StringUtils_isNotBlank(indexName)
-	isCollection := StringUtils_isNotEmpty(collectionName)
+	isIndex := stringIsNotBlank(indexName)
+	isCollection := stringIsNotEmpty(collectionName)
 
 	if isIndex && isCollection {
 		//throw new IllegalStateException("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.");

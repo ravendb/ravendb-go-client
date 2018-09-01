@@ -343,7 +343,7 @@ func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error)
 }
 
 func BulkInsertOperation_verifyValidId(id string) error {
-	if StringUtils_isEmpty(id) {
+	if stringIsEmpty(id) {
 		return NewIllegalStateException("Document id must have a non empty value")
 	}
 

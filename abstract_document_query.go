@@ -202,7 +202,7 @@ func (q *AbstractDocumentQuery) _randomOrdering() {
 func (q *AbstractDocumentQuery) _randomOrderingWithSeed(seed string) {
 	q.assertNoRawQuery()
 
-	if StringUtils_isBlank(seed) {
+	if stringIsBlank(seed) {
 		q._randomOrdering()
 		return
 	}

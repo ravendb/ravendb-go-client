@@ -70,7 +70,7 @@ var noReader = true
 func (c *PutAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
 
-	if StringUtils_isNotEmpty(c._contentType) {
+	if stringIsNotEmpty(c._contentType) {
 		url += "&contentType=" + UrlUtils_escapeDataString(c._contentType)
 	}
 

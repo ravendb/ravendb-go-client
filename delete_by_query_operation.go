@@ -74,7 +74,7 @@ func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, e
 	url += fmt.Sprintf("&details=%v", _options.isRetrieveDetails())
 
 	if _options.getStaleTimeout() != 0 {
-		url += "&staleTimeout=" + TimeUtils_durationToTimeSpan(_options.getStaleTimeout())
+		url += "&staleTimeout=" + durationToTimeSpan(_options.getStaleTimeout())
 	}
 
 	m := JsonExtensions_writeIndexQuery(c._conventions, c._queryToDelete)

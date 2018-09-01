@@ -73,14 +73,14 @@ func (t *FacetToken) WriteTo(writer *StringBuilder) {
 		aggregation.WriteTo(writer)
 	}
 
-	if StringUtils_isNotBlank(t._optionsParameterName) {
+	if stringIsNotBlank(t._optionsParameterName) {
 		writer.append(", $")
 		writer.append(t._optionsParameterName)
 	}
 
 	writer.append(")")
 
-	if StringUtils_isBlank(t._alias) || t._alias == t._aggregateByFieldName {
+	if stringIsBlank(t._alias) || t._alias == t._aggregateByFieldName {
 		return
 	}
 
@@ -89,7 +89,7 @@ func (t *FacetToken) WriteTo(writer *StringBuilder) {
 }
 
 func FacetToken_create(facetSetupDocumentId string) *FacetToken {
-	if StringUtils_isWhitespace(facetSetupDocumentId) {
+	if stringIsWhitespace(facetSetupDocumentId) {
 		//throw new IllegalArgumentException("facetSetupDocumentId cannot be null");
 		panicIf(true, "facetSetupDocumentId cannot be null")
 	}
@@ -201,21 +201,21 @@ func (t *FacetAggregationToken) WriteTo(writer *StringBuilder) {
 }
 
 func FacetAggregationToken_max(fieldName string) *FacetAggregationToken {
-	panicIf(StringUtils_isWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
 	return NewFacetAggregationToken(fieldName, FacetAggregation_MAX)
 }
 
 func FacetAggregationToken_min(fieldName string) *FacetAggregationToken {
-	panicIf(StringUtils_isWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
 	return NewFacetAggregationToken(fieldName, FacetAggregation_MIN)
 }
 
 func FacetAggregationToken_average(fieldName string) *FacetAggregationToken {
-	panicIf(StringUtils_isWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
 	return NewFacetAggregationToken(fieldName, FacetAggregation_AVERAGE)
 }
 
 func FacetAggregationToken_sum(fieldName string) *FacetAggregationToken {
-	panicIf(StringUtils_isWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
 	return NewFacetAggregationToken(fieldName, FacetAggregation_SUM)
 }

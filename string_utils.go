@@ -5,16 +5,16 @@ import "unicode"
 // Go port of org.apache.commons.lang3.StringUtils
 
 // TODO: replace with direct code
-func StringUtils_isEmpty(s string) bool {
+func stringIsEmpty(s string) bool {
 	return s == ""
 }
 
 // TODO: replace with direct code
-func StringUtils_isNotEmpty(s string) bool {
+func stringIsNotEmpty(s string) bool {
 	return s != ""
 }
 
-func StringUtils_isWhitespace(s string) bool {
+func stringIsWhitespace(s string) bool {
 	for _, c := range s {
 		if !unicode.IsSpace(c) {
 			return false
@@ -23,7 +23,7 @@ func StringUtils_isWhitespace(s string) bool {
 	return true
 }
 
-func StringUtils_isBlank(s string) bool {
+func stringIsBlank(s string) bool {
 	for _, c := range s {
 		if c != ' ' {
 			return false
@@ -32,6 +32,6 @@ func StringUtils_isBlank(s string) bool {
 	return true
 }
 
-func StringUtils_isNotBlank(s string) bool {
-	return !StringUtils_isBlank(s)
+func stringIsNotBlank(s string) bool {
+	return !stringIsBlank(s)
 }

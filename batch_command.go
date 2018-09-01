@@ -140,7 +140,7 @@ func (c *BatchCommand) appendOptions(sb string) string {
 	sb += "?"
 
 	if _options.isWaitForReplicas() {
-		ts := TimeUtils_durationToTimeSpan(_options.getWaitForReplicasTimeout())
+		ts := durationToTimeSpan(_options.getWaitForReplicasTimeout())
 		sb += "&waitForReplicasTimeout=" + ts
 
 		if _options.isThrowOnTimeoutInWaitForReplicas() {
@@ -156,7 +156,7 @@ func (c *BatchCommand) appendOptions(sb string) string {
 	}
 
 	if _options.isWaitForIndexes() {
-		ts := TimeUtils_durationToTimeSpan(_options.getWaitForIndexesTimeout())
+		ts := durationToTimeSpan(_options.getWaitForIndexesTimeout())
 		sb += "&waitForIndexesTimeout=" + ts
 
 		if _options.isThrowOnTimeoutInWaitForIndexes() {

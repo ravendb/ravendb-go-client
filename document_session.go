@@ -424,7 +424,7 @@ func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
 
 
 func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
-	if StringUtils_isNotEmpty(collectionOrIndexName.getCollection()) {
+	if stringIsNotEmpty(collectionOrIndexName.getCollection()) {
 		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.getCollection(), false)
 	}
 

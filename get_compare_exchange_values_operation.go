@@ -78,7 +78,7 @@ func (c *GetCompareExchangeValuesCommand) CreateRequest(node *ServerNode) (*http
 			url += "&key=" + UrlUtils_escapeDataString(key)
 		}
 	} else {
-		if !StringUtils_isEmpty(c._operation._startWith) {
+		if !stringIsEmpty(c._operation._startWith) {
 			url += "&startsWith=" + UrlUtils_escapeDataString(c._operation._startWith)
 		}
 
