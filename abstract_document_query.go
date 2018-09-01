@@ -885,15 +885,15 @@ func (q *AbstractDocumentQuery) InvokeAfterStreamExecuted(result ObjectNode) {
 
 func (q *AbstractDocumentQuery) GenerateIndexQuery(query string) *IndexQuery {
 	indexQuery := NewIndexQuery("")
-	indexQuery.SetQuery(query)
-	indexQuery.SetStart(q.start)
-	indexQuery.SetWaitForNonStaleResults(q.theWaitForNonStaleResults)
-	indexQuery.SetWaitForNonStaleResultsTimeout(q.timeout)
-	indexQuery.SetQueryParameters(q.queryParameters)
-	indexQuery.SetDisableCaching(q.disableCaching)
+	indexQuery.query = query
+	indexQuery.start = q.start
+	indexQuery.waitForNonStaleResults = q.theWaitForNonStaleResults
+	indexQuery.waitForNonStaleResultsTimeout = q.timeout
+	indexQuery.queryParameters = q.queryParameters
+	indexQuery.disableCaching = q.disableCaching
 
 	if q.pageSize != nil {
-		indexQuery.SetPageSize(*q.pageSize)
+		indexQuery.pageSize = *q.pageSize
 	}
 	return indexQuery
 }
