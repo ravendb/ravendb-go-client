@@ -44,7 +44,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 	jsmap := ravendb.StructToJSONMap(s)
 	vd, err := json.Marshal(s)
 	assert.NoError(t, err)
-	typ := ravendb.GetTypeOf(s)
+	typ := reflect.TypeOf(s)
 	v2, err := ravendb.MakeStructFromJSONMap(typ, jsmap)
 	assert.NoError(t, err)
 	vTyp := fmt.Sprintf("%T", s)
@@ -80,11 +80,11 @@ func TestIsStructy(t *testing.T) {
 }
 
 func TestGetIdentityProperty(t *testing.T) {
-	got := ravendb.GetIdentityProperty(ravendb.GetTypeOf(""))
+	got := ravendb.GetIdentityProperty(reflect.TypeOf(""))
 	assert.Equal(t, "", got)
-	got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(User{}))
+	got = ravendb.GetIdentityProperty(reflect.TypeOf(User{}))
 	assert.Equal(t, "ID", got)
-	got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(&User{}))
+	got = ravendb.GetIdentityProperty(reflect.TypeOf(&User{}))
 	assert.Equal(t, "ID", got)
 
 	{
@@ -92,7 +92,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			Id string
 		}{}
-		got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(v))
+		got = ravendb.GetIdentityProperty(reflect.TypeOf(v))
 		assert.Equal(t, "", got)
 	}
 
@@ -101,7 +101,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			ID int
 		}{}
-		got = ravendb.GetIdentityProperty(ravendb.GetTypeOf(v))
+		got = ravendb.GetIdentityProperty(reflect.TypeOf(v))
 		assert.Equal(t, "", got)
 	}
 

@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -16,7 +17,7 @@ type Product2 struct {
 func ravendb_903_test1(t *testing.T) {
 
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
-		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Product2{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Product2{}), index)
 		q = q.Search("description", "Hello")
 		q = q.Intersect()
 		q = q.WhereEquals("name", "Bar")
@@ -27,7 +28,7 @@ func ravendb_903_test1(t *testing.T) {
 
 func ravendb_903_test2(t *testing.T) {
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
-		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Product2{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Product2{}), index)
 		q = q.WhereEquals("name", "Bar")
 		q = q.Intersect()
 		q = q.Search("description", "Hello")

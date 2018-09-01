@@ -1,5 +1,7 @@
 package ravendb
 
+import "reflect"
+
 type SuggestionDocumentQuery struct {
 	// from SuggestionQueryBase
 	_session  *InMemoryDocumentSessionOperations
@@ -37,7 +39,7 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 	jsResults := queryResult.getResults()
 
 	for _, result := range jsResults {
-		suggestionResult, err := treeToValue(GetTypeOf(&SuggestionResult{}), result)
+		suggestionResult, err := treeToValue(reflect.TypeOf(&SuggestionResult{}), result)
 		if err != nil {
 			return nil, err
 		}

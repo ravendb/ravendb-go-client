@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -13,7 +14,7 @@ func uniqueValues_canReadNotExistingKey(t *testing.T) {
 	defer store.Close()
 
 	{
-		op := ravendb.NewGetCompareExchangeValueOperation(ravendb.GetTypeOf(0), "test")
+		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(0), "test")
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
@@ -27,7 +28,7 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
 	defer store.Close()
 
 	{
-		op := ravendb.NewGetCompareExchangeValueOperation(ravendb.GetTypeOf(0), "test")
+		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(0), "test")
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
@@ -39,7 +40,7 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	{
-		op := ravendb.NewGetCompareExchangeValueOperation(ravendb.GetTypeOf(0), "test")
+		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(0), "test")
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
@@ -62,7 +63,7 @@ func uniqueValues_canPutUniqueString(t *testing.T) {
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 
-		op2 := ravendb.NewGetCompareExchangeValueOperation(ravendb.GetTypeOf(""), "test")
+		op2 := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(""), "test")
 		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 
@@ -134,7 +135,7 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 		assert.True(t, res2.IsSuccessful())
 	}
 	{
-		op := ravendb.NewGetCompareExchangeValuesOperation(ravendb.GetTypeOf(&User{}), "test", -1, -1)
+		op := ravendb.NewGetCompareExchangeValuesOperation(reflect.TypeOf(&User{}), "test", -1, -1)
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		values := op.Command.Result
@@ -163,7 +164,7 @@ func uniqueValues_canRemoveUnique(t *testing.T) {
 		assert.Equal(t, val, "Karmel")
 		assert.True(t, res.IsSuccessful())
 		{
-			op := ravendb.NewDeleteCompareExchangeValueOperation(ravendb.GetTypeOf(""), "test", res.GetIndex())
+			op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", res.GetIndex())
 			err = store.Operations().Send(op)
 			assert.NoError(t, err)
 			assert.True(t, res.IsSuccessful())
@@ -186,14 +187,14 @@ func uniqueValues_removeUniqueFailed(t *testing.T) {
 		assert.True(t, res.IsSuccessful())
 	}
 	{
-		op := ravendb.NewDeleteCompareExchangeValueOperation(ravendb.GetTypeOf(""), "test", 0)
+		op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", 0)
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.False(t, res.IsSuccessful())
 	}
 	{
-		op := ravendb.NewGetCompareExchangeValueOperation(ravendb.GetTypeOf(""), "test")
+		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(""), "test")
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		readValue := op.Command.Result
@@ -259,7 +260,7 @@ func uniqueValues_canGetIndexValue(t *testing.T) {
 		assert.NoError(t, err)
 	}
 	{
-		op := ravendb.NewGetCompareExchangeValueOperation(ravendb.GetTypeOf(&User{}), "test")
+		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(&User{}), "test")
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result

@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"io/ioutil"
+	"reflect"
 	"sort"
 	"strings"
 	"testing"
@@ -164,7 +165,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			revisionsI, err := session.Advanced().Revisions().GetFor(ravendb.GetTypeOf(&User{}), "users/1")
+			revisionsI, err := session.Advanced().Revisions().GetFor(reflect.TypeOf(&User{}), "users/1")
 			assert.NoError(t, err)
 
 			// TODO: could be done with reflection
@@ -280,7 +281,7 @@ func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string
 
 	{
 		session := openSessionMust(t, store)
-		revisionsI, err := session.Advanced().Revisions().GetFor(ravendb.GetTypeOf(&User{}), "users/1")
+		revisionsI, err := session.Advanced().Revisions().GetFor(reflect.TypeOf(&User{}), "users/1")
 		assert.NoError(t, err)
 		n := len(revisionsI)
 		assert.Equal(t, n, 4)
