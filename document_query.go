@@ -9,15 +9,15 @@ type DocumentQuery struct {
 	*AbstractDocumentQuery
 }
 
-func NewDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
+func NewDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
 	return &DocumentQuery{
-		AbstractDocumentQuery: NewAbstractDocumentQuery(clazz, session, indexName, collectionName, isGroupBy, nil, nil, ""),
+		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, nil, nil, ""),
 	}
 }
 
-func NewDocumentQueryWithToken(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *DocumentQuery {
+func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *DocumentQuery {
 	return &DocumentQuery{
-		AbstractDocumentQuery: NewAbstractDocumentQuery(clazz, session, indexName, collectionName, isGroupBy, declareToken, loadTokens, fromAlias),
+		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, declareToken, loadTokens, fromAlias),
 	}
 }
 
@@ -466,7 +466,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 		loadTokens = queryData.getLoadTokens()
 		fromAlias = queryData.getFromAlias()
 	}
-	query := NewDocumentQueryWithToken(resultClass,
+	query := NewDocumentQueryWithTokenOld(resultClass,
 		q.theSession,
 		q.GetIndexName(),
 		q.GetCollectionName(),

@@ -35,7 +35,7 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		query := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&RegexMe{}))
+		query := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&RegexMe{}))
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
 		iq := query.GetIndexQuery()
@@ -43,7 +43,7 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 		assert.Equal(t, iq.GetQueryParameters()["p0"], "^[a-z ]{2,4}love")
 
-		result, err := query.ToList()
+		result, err := query.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, len(result), 4)
 

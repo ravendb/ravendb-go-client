@@ -60,9 +60,9 @@ func customSerialization_testSerialization(t *testing.T) {
 	//verify if query properly serialize value
 	{
 		session := openSessionMust(t, store)
-		q := session.Query(ravendb.GetTypeOf(&Product3{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&Product3{}))
 		q = q.WhereEquals("price", NewMoney(2, Dollar))
-		productsForTwoDollars, err := q.ToList()
+		productsForTwoDollars, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(productsForTwoDollars), 1)

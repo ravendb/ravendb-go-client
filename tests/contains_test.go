@@ -70,10 +70,10 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&UserWithFavs{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&UserWithFavs{}))
 		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
 		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
-		pascalOrGoDeveloperNames, err := q.ToList()
+		pascalOrGoDeveloperNames, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
 		assert.True(t, ravendb.InterfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
@@ -85,10 +85,10 @@ func containsTestcontainsTest(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&UserWithFavs{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&UserWithFavs{}))
 		q = q.ContainsAll("Favourites", []interface{}{"java"})
 		q = q.SelectFields(ravendb.GetTypeOf(""), "Name")
-		javaDevelopers, err := q.ToList()
+		javaDevelopers, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(javaDevelopers))
 		assert.True(t, ravendb.InterfaceArrayContains(javaDevelopers, "John"))

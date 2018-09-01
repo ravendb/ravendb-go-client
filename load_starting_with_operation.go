@@ -61,26 +61,25 @@ func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
 	}
 }
 
+// results must be *[]*struct. If *results is nil, we create it
 func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
-	rv := reflect.ValueOf(results)
+	rt := reflect.TypeOf(results)
 
-	if rv.Type().Kind() != reflect.Ptr {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. tp: %s", rv.Type().String(), rv.Type().String())
+	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Slice {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. rt: %s", results, rt)
 	}
+	rv := reflect.ValueOf(results)
 	sliceV := rv.Elem()
-	if sliceV.Type().Kind() != reflect.Slice {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. sliceV.Type(): %s", rv.Type().String(), sliceV.Type().String())
-	}
 
 	// slice element should be a pointer to a struct
 	sliceElemPtrType := sliceV.Type().Elem()
 	if sliceElemPtrType.Kind() != reflect.Ptr {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. sliceElemPtrType: %s", rv.Type().String(), sliceElemPtrType.String())
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemPtrType: %s", results, sliceElemPtrType)
 	}
 
 	sliceElemType := sliceElemPtrType.Elem()
 	if sliceElemType.Kind() != reflect.Struct {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %s. sliceElemType: %s", rv.Type().String(), sliceElemType.String())
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemType: %s", results, sliceElemType)
 	}
 	// if this is a pointer to nil slice, create a new slice
 	// otherwise we use the slice that was provided by the caller

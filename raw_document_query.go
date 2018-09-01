@@ -9,9 +9,16 @@ type RawDocumentQuery struct {
 	*AbstractDocumentQuery
 }
 
-func NewRawDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessionOperations, rawQuery string) *RawDocumentQuery {
+func NewRawDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, rawQuery string) *RawDocumentQuery {
 	res := &RawDocumentQuery{}
-	res.AbstractDocumentQuery = NewAbstractDocumentQuery(clazz, session, "", "", false, nil, nil, "")
+	res.AbstractDocumentQuery = NewAbstractDocumentQueryOld(clazz, session, "", "", false, nil, nil, "")
+	res.queryRaw = rawQuery
+	return res
+}
+
+func NewRawDocumentQuery(session *InMemoryDocumentSessionOperations, rawQuery string) *RawDocumentQuery {
+	res := &RawDocumentQuery{}
+	res.AbstractDocumentQuery = NewAbstractDocumentQuery(session, "", "", false, nil, nil, "")
 	res.queryRaw = rawQuery
 	return res
 }

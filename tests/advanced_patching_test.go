@@ -94,9 +94,9 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		q := session.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&CustomType{}), "TestIndex", "", false)
+		q := session.Advanced().DocumentQueryAllOld(ravendb.GetTypeOf(&CustomType{}), "TestIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
-		_, err = q.ToList()
+		_, err = q.ToListOld()
 		assert.NoError(t, err)
 
 		session.Close()

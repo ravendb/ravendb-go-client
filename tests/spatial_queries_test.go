@@ -97,19 +97,19 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 		assert.NoError(t, err)
 
 		// Wait until the index is built
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WaitForNonStaleResults(0)
-		_, err := q.ToList()
+		_, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		lat := float64(55.6836422426)
 		lng := float64(13.5871808352) // in the middle of AreaOne
 		radius := float64(5.0)
 
-		q = session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q = session.QueryWithQueryOld(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WithinRadiusOf("coordinates", radius, lat, lng)
 		q = q.WaitForNonStaleResults(0)
-		nearbyDocs, err := q.ToList()
+		nearbyDocs, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(nearbyDocs), 3)
@@ -146,9 +146,9 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Wait until the index is built
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WaitForNonStaleResults(0)
-		_, err = q.ToList()
+		_, err = q.ToListOld()
 		assert.NoError(t, err)
 
 		radius := float64(8)
@@ -156,20 +156,20 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
 		// Find within 8 miles.
 		// We should find both my house and the gym.
 
-		q = session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q = session.QueryWithQueryOld(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), ravendb.SpatialUnits_MILES)
 		q = q.WaitForNonStaleResults(0)
-		matchesWithinMiles, err := q.ToList()
+		matchesWithinMiles, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinMiles), 2)
 
 		// Find within 8 kilometers.
 		// We should find only my house, since the gym is ~11 kilometers out.
 
-		q = session.QueryWithQuery(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
+		q = session.QueryWithQueryOld(ravendb.GetTypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.getLatitude(), myHouse.getLongitude(), ravendb.SpatialUnits_KILOMETERS)
 		q = q.WaitForNonStaleResults(0)
-		matchesWithinKilometers, err := q.ToList()
+		matchesWithinKilometers, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinKilometers), 1)
 

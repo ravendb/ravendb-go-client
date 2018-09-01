@@ -40,7 +40,7 @@ func loadTest_canDeleteByQuery(t *testing.T) {
 
 		{
 			session := openSessionMust(t, store)
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			count, err := q.Count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)

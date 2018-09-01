@@ -48,14 +48,14 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&User{}))
+		q := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereEquals("name", ravendb.CmpXchg_value("Hera"))
 		q = q.WhereEquals("lastName", ravendb.CmpXchg_value("Tom"))
 
 		query := q.GetIndexQuery().GetQuery()
 		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
 
-		queryResult, err := q.ToList()
+		queryResult, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 1)
@@ -63,9 +63,9 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 		user := queryResult[0].(*User)
 		assert.Equal(t, *user.Name, "Zeus")
 
-		q = session.Advanced().DocumentQuery(ravendb.GetTypeOf(&User{}))
+		q = session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereNotEquals("name", ravendb.CmpXchg_value("Hera"))
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -73,7 +73,7 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
 		user = users[0].(*User)
 		assert.Equal(t, *user.Name, "Jerry")
 
-		users, err = session.Advanced().RawQuery(ravendb.GetTypeOf(&User{}), "from Users where name = cmpxchg(\"Hera\")").ToList()
+		users, err = session.Advanced().RawQueryOld(ravendb.GetTypeOf(&User{}), "from Users where name = cmpxchg(\"Hera\")").ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)

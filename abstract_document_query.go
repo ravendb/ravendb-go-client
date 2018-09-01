@@ -99,9 +99,35 @@ func AbstractDocumentQuery_getDefaultTimeout() time.Duration {
 	return time.Second * 15
 }
 
-func NewAbstractDocumentQuery(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *AbstractDocumentQuery {
+func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
 		clazz:                    clazz,
+		defaultOperator:          QueryOperator_AND,
+		isGroupBy:                isGroupBy,
+		indexName:                indexName,
+		collectionName:           collectionName,
+		declareToken:             declareToken,
+		loadTokens:               loadTokens,
+		theSession:               session,
+		_aliasToGroupByFieldName: make(map[string]string),
+		queryParameters:          make(map[string]Object),
+		queryStats:               NewQueryStatistics(),
+	}
+	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
+	f := func(queryResult *QueryResult) {
+		res.UpdateStatsAndHighlightings(queryResult)
+	}
+	res._addAfterQueryExecutedListener(f)
+	if session == nil {
+		res._conventions = NewDocumentConventions()
+	} else {
+		res._conventions = session.GetConventions()
+	}
+	return res
+}
+
+func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *AbstractDocumentQuery {
+	res := &AbstractDocumentQuery{
 		defaultOperator:          QueryOperator_AND,
 		isGroupBy:                isGroupBy,
 		indexName:                indexName,
@@ -1601,20 +1627,19 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 	return q.queryOperation.getCurrentQueryResults().createSnapshot(), nil
 }
 
-// TODO: Go has no interatos so for better API, rename to getResult() or sth.
-func (q *AbstractDocumentQuery) Iterator() ([]interface{}, error) {
-	tmp := 0
-	return q.executeQueryOperation(&tmp)
+// Note: toList() is the same as iterator() becuase Go has no iterators
+func (q *AbstractDocumentQuery) ToListOld() ([]interface{}, error) {
+	return q.executeQueryOperationOld(nil)
 }
 
-// Note: toList() is the same as iterator() becuase Go has no iterators
-func (q *AbstractDocumentQuery) ToList() ([]interface{}, error) {
-	return q.executeQueryOperation(nil)
+// results is *[]*struct
+func (q *AbstractDocumentQuery) ToList(results interface{}) error {
+	return q.executeQueryOperationNew(results, nil)
 }
 
 func (q *AbstractDocumentQuery) First() (interface{}, error) {
 	tmp := 1
-	result, err := q.executeQueryOperation(&tmp)
+	result, err := q.executeQueryOperationOld(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1626,7 +1651,7 @@ func (q *AbstractDocumentQuery) First() (interface{}, error) {
 
 func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 	tmp := 1
-	result, err := q.executeQueryOperation(&tmp)
+	result, err := q.executeQueryOperationOld(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1638,7 +1663,7 @@ func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 
 func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 	tmp := 2
-	result, err := q.executeQueryOperation(&tmp)
+	result, err := q.executeQueryOperationOld(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1652,7 +1677,7 @@ func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 
 func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
 	tmp := 2
-	result, err := q.executeQueryOperation(&tmp)
+	result, err := q.executeQueryOperationOld(&tmp)
 	if err != nil {
 		return nil, err
 	}
@@ -1682,7 +1707,7 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	if q.IsDistinct() {
 		// for distinct it is cheaper to do count 1
 		var tmp = 1
-		res, err := q.executeQueryOperation(&tmp)
+		res, err := q.executeQueryOperationOld(&tmp)
 		if err != nil {
 			return false, err
 		}
@@ -1700,7 +1725,20 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	return queryResult.getTotalResults() > 0, nil
 }
 
-func (q *AbstractDocumentQuery) executeQueryOperation(take *int) ([]interface{}, error) {
+func (q *AbstractDocumentQuery) executeQueryOperationNew(results interface{}, take *int) error {
+	if take != nil && (q.pageSize == nil || *q.pageSize > *take) {
+		q._take(take)
+	}
+
+	err := q.initSync()
+	if err != nil {
+		return err
+	}
+
+	return q.queryOperation.completeNew(results)
+}
+
+func (q *AbstractDocumentQuery) executeQueryOperationOld(take *int) ([]interface{}, error) {
 	if take != nil && (q.pageSize == nil || *q.pageSize > *take) {
 		q._take(take)
 	}
@@ -1710,7 +1748,7 @@ func (q *AbstractDocumentQuery) executeQueryOperation(take *int) ([]interface{},
 		return nil, err
 	}
 
-	return q.queryOperation.complete(q.clazz)
+	return q.queryOperation.completeOld(q.clazz)
 }
 
 func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {

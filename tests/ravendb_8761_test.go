@@ -16,19 +16,19 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders group by lines[].product\n"+
+		q := session.Advanced().RawQueryOld(ravendb.GetTypeOf(&ProductCount{}), "from Orders group by lines[].product\n"+
 			"  order by count()\n"+
 			"  select key() as productName, count() as count")
 		q = q.WaitForNonStaleResults()
-		productCounts1, err := q.ToList()
+		productCounts1, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q2 := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&Order{}))
 		q3 := q2.GroupBy("lines[].product")
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "productName")
 		q2 = q3.SelectCount()
 		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
-		productCounts2, err := q2.ToList()
+		productCounts2, err := q2.ToListOld()
 		assert.NoError(t, err)
 
 		combined := [][]interface{}{productCounts1, productCounts2}
@@ -50,20 +50,20 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
+		q := session.Advanced().RawQueryOld(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
 			" group by lines[].product, shipTo.country\n"+
 			" order by count() \n"+
 			" select lines[].product as productName, shipTo.country as country, count() as count")
-		productCounts1, err := q.ToList()
+		productCounts1, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q2 := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&Order{}))
 		q3 := q2.GroupBy("lines[].product", "shipTo.country")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("shipTo.country", "country")
 		q2 = q3.SelectCount()
 		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
-		productCounts2, err := q2.ToList()
+		productCounts2, err := q2.ToListOld()
 		assert.NoError(t, err)
 
 		combined := [][]interface{}{productCounts1, productCounts2}
@@ -87,20 +87,20 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
+		q := session.Advanced().RawQueryOld(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
 			" group by lines[].product, lines[].quantity\n"+
 			" order by lines[].quantity\n"+
 			" select lines[].product as productName, lines[].quantity as quantity, count() as count")
-		productCounts1, err := q.ToList()
+		productCounts1, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q2 := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&Order{}))
 		q3 := q2.GroupBy("lines[].product", "lines[].quantity")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantity")
 		q2 = q3.SelectCount()
 		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
-		productCounts2, err := q2.ToList()
+		productCounts2, err := q2.ToListOld()
 
 		combined := [][]interface{}{productCounts1, productCounts2}
 		for _, products := range combined {
@@ -167,20 +167,20 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders group by array(lines[].product)\n"+
+		q := session.Advanced().RawQueryOld(ravendb.GetTypeOf(&ProductCount{}), "from Orders group by array(lines[].product)\n"+
 			" order by count()\n"+
 			" select key() as products, count() as count")
 		q = q.WaitForNonStaleResults()
-		productCounts1, err := q.ToList()
+		productCounts1, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q2 := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
 		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
-		productCounts2, err := q2.ToList()
+		productCounts2, err := q2.ToListOld()
 		assert.NoError(t, err)
 
 		combined := [][]interface{}{productCounts1, productCounts2}
@@ -203,21 +203,21 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
+		q := session.Advanced().RawQueryOld(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
 			" group by array(lines[].product), shipTo.country\n"+
 			" order by count()\n"+
 			" select lines[].product as products, shipTo.country as country, count() as count")
 		q = q.WaitForNonStaleResults()
-		productCounts1, err := q.ToList()
+		productCounts1, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q2 := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"), ravendb.GroupBy_field("shipTo.country"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
 		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
-		productCounts2, err := q2.ToList()
+		productCounts2, err := q2.ToListOld()
 		assert.NoError(t, err)
 
 		combined := [][]interface{}{productCounts1, productCounts2}
@@ -240,22 +240,22 @@ func ravendb_8761_can_group_by_array_content(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().RawQuery(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
+		q := session.Advanced().RawQueryOld(ravendb.GetTypeOf(&ProductCount{}), "from Orders\n"+
 			" group by array(lines[].product), array(lines[].quantity)\n"+
 			" order by lines[].quantity\n"+
 			" select lines[].product as products, lines[].quantity as quantities, count() as count")
 		q = q.WaitForNonStaleResults()
-		productCounts1, err := q.ToList()
+		productCounts1, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.Advanced().DocumentQuery(ravendb.GetTypeOf(&Order{}))
+		q2 := session.Advanced().DocumentQueryOld(ravendb.GetTypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"), ravendb.GroupBy_array("lines[].quantity"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantities")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
 		q2 = q2.OfType(ravendb.GetTypeOf(&ProductCount{}))
-		productCounts2, err := q2.ToList()
+		productCounts2, err := q2.ToListOld()
 		assert.NoError(t, err)
 
 		combined := [][]interface{}{productCounts1, productCounts2}

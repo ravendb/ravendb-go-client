@@ -42,7 +42,7 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&Item{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&Item{}))
 		q = q.WaitForNonStaleResults(0)
 		f := ravendb.NewPointField("latitude", "longitude")
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
@@ -51,7 +51,7 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 
 		q = q.Spatial2(f, fn)
 		q2 := q.OrderByDistance(ravendb.NewPointField("latitude", "longitude"), 10, 10)
-		items, err := q2.ToList()
+		items, err := q2.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(items), 2)
@@ -63,12 +63,12 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 		item = items[1].(*Item)
 		assert.Equal(t, item.Name, "Item2")
 
-		q = session.Query(ravendb.GetTypeOf(&Item{}))
+		q = session.QueryOld(ravendb.GetTypeOf(&Item{}))
 		q = q.WaitForNonStaleResults(0)
 		f = ravendb.NewPointField("latitude", "longitude")
 		q = q.Spatial2(f, fn)
 		q2 = q.OrderByDistanceDescending(ravendb.NewPointField("latitude", "longitude"), 10, 10)
-		items, err = q2.ToList()
+		items, err = q2.ToListOld()
 
 		assert.NoError(t, err)
 

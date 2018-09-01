@@ -1,6 +1,9 @@
 package ravendb
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type QueryOperation struct {
 	_session                 *InMemoryDocumentSessionOperations
@@ -84,7 +87,63 @@ func (o *QueryOperation) enterQueryContext() CleanCloseable {
 	return o._session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o._session.GetDatabaseName())
 }
 
-func (o *QueryOperation) complete(clazz reflect.Type) ([]interface{}, error) {
+func (o *QueryOperation) completeNew(results interface{}) error {
+	queryResult := o._currentQueryResults.createSnapshot()
+
+	if !o._disableEntitiesTracking {
+		o._session.RegisterIncludes(queryResult.getIncludes())
+	}
+	rt := reflect.TypeOf(results)
+
+	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Slice {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. rt: %s", results, rt)
+	}
+	rv := reflect.ValueOf(results)
+	sliceV := rv.Elem()
+
+	// slice element should be a pointer to a struct
+	sliceElemPtrType := sliceV.Type().Elem()
+	if sliceElemPtrType.Kind() != reflect.Ptr {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemPtrType: %s", results, sliceElemPtrType)
+	}
+
+	sliceElemType := sliceElemPtrType.Elem()
+	if sliceElemType.Kind() != reflect.Struct {
+		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemType: %s", results, sliceElemType)
+	}
+	// if this is a pointer to nil slice, create a new slice
+	// otherwise we use the slice that was provided by the caller
+	if sliceV.IsNil() {
+		sliceV.Set(reflect.MakeSlice(sliceV.Type(), 0, 0))
+	}
+
+	sliceV2 := sliceV
+
+	clazz := sliceElemPtrType
+	for _, document := range queryResult.Results {
+		metadataI, ok := document[Constants_Documents_Metadata_KEY]
+		panicIf(!ok, "missing metadata")
+		metadata := metadataI.(ObjectNode)
+		id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+
+		el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
+		if err != nil {
+			return NewRuntimeException("Unable to read json: %s", err)
+		}
+		v2 := reflect.ValueOf(el)
+		sliceV2 = reflect.Append(sliceV2, v2)
+	}
+
+	if !o._disableEntitiesTracking {
+		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.getIncludes(), queryResult.getIncludedPaths())
+	}
+	if sliceV2 != sliceV {
+		sliceV.Set(sliceV2)
+	}
+	return nil
+}
+
+func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) {
 	queryResult := o._currentQueryResults.createSnapshot()
 
 	if !o._disableEntitiesTracking {

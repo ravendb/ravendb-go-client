@@ -16,7 +16,7 @@ type Product2 struct {
 func ravendb_903_test1(t *testing.T) {
 
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
-		q := session.Advanced().DocumentQueryInIndex(ravendb.GetTypeOf(&Product2{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Product2{}), index)
 		q = q.Search("description", "Hello")
 		q = q.Intersect()
 		q = q.WhereEquals("name", "Bar")
@@ -27,7 +27,7 @@ func ravendb_903_test1(t *testing.T) {
 
 func ravendb_903_test2(t *testing.T) {
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
-		q := session.Advanced().DocumentQueryInIndex(ravendb.GetTypeOf(&Product2{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Product2{}), index)
 		q = q.WhereEquals("name", "Bar")
 		q = q.Intersect()
 		q = q.Search("description", "Hello")
@@ -81,7 +81,7 @@ func ravendb_903_doTest(t *testing.T, queryFunction func(*ravendb.DocumentSessio
 	{
 		session := openSessionMust(t, store)
 		query := queryFunction(session, index)
-		products, err := query.ToList()
+		products, err := query.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, len(products), 1)
 
