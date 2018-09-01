@@ -413,10 +413,6 @@ func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName stri
 	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 
-func (s *DocumentSession) RawQueryOld(clazz reflect.Type, query string) *IRawDocumentQuery {
-	return NewRawDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, query)
-}
-
 func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
 	return NewRawDocumentQuery(s.InMemoryDocumentSessionOperations, query)
 }

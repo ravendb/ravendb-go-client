@@ -149,13 +149,13 @@ func query_queryMapReduceWithCount(t *testing.T) {
 
 		{
 			result := results[0].(*ReduceResult)
-			assert.Equal(t, result.getCount(), 2)
+			assert.Equal(t, result.Count, 2)
 			assert.Equal(t, result.Name, "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
-			assert.Equal(t, result.getCount(), 1)
+			assert.Equal(t, result.Count, 1)
 			assert.Equal(t, result.Name, "Tarzan")
 		}
 
@@ -183,13 +183,13 @@ func query_queryMapReduceWithSum(t *testing.T) {
 
 		{
 			result := results[0].(*ReduceResult)
-			assert.Equal(t, result.getAge(), 8)
+			assert.Equal(t, result.Age, 8)
 			assert.Equal(t, result.Name, "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
-			assert.Equal(t, result.getAge(), 2)
+			assert.Equal(t, result.Age, 2)
 			assert.Equal(t, result.Name, "Tarzan")
 		}
 
@@ -213,13 +213,13 @@ func query_queryMapReduceIndex(t *testing.T) {
 
 		{
 			result := results[0].(*ReduceResult)
-			assert.Equal(t, result.getCount(), 2)
+			assert.Equal(t, result.Count, 2)
 			assert.Equal(t, result.Name, "John")
 		}
 
 		{
 			result := results[1].(*ReduceResult)
-			assert.Equal(t, result.getCount(), 1)
+			assert.Equal(t, result.Count, 1)
 			assert.Equal(t, result.Name, "Tarzan")
 		}
 
@@ -411,22 +411,6 @@ type UserProjection struct {
 	Name string
 }
 
-func (p *UserProjection) getId() string {
-	return p.ID
-}
-
-func (p *UserProjection) setId(id string) {
-	p.ID = id
-}
-
-func (p *UserProjection) GetName() string {
-	return p.Name
-}
-
-func (p *UserProjection) setName(name string) {
-	p.Name = name
-}
-
 func query_queryWithProjection(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
@@ -445,7 +429,7 @@ func query_queryWithProjection(t *testing.T) {
 
 		for _, p := range projections {
 			projection := p.(*UserProjection)
-			assert.NotEmpty(t, projection.getId())
+			assert.NotEmpty(t, projection.ID)
 
 			assert.NotEmpty(t, projection.Name)
 		}
@@ -472,7 +456,7 @@ func query_queryWithProjection2(t *testing.T) {
 
 		for _, p := range projections {
 			projection := p.(*UserProjection)
-			assert.NotEmpty(t, projection.getId())
+			assert.NotEmpty(t, projection.ID)
 
 			assert.Empty(t, projection.Name) // we didn't specify this field in mapping
 		}
@@ -576,6 +560,7 @@ func query_querySkipTake(t *testing.T) {
 }
 
 func query_rawQuerySkipTake(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -584,14 +569,15 @@ func query_rawQuerySkipTake(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQueryOld(ravendb.GetTypeOf(&User{}), "from users")
+		var users []*User
+		q := session.RawQuery("from users")
 		q = q.Skip(2)
 		q = q.Take(1)
-		users, err := q.ToListOld()
+		err = q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
-		user := users[0].(*User)
+		user := users[0]
 		assert.Equal(t, *user.Name, "Tarzan")
 
 		session.Close()
@@ -599,6 +585,7 @@ func query_rawQuerySkipTake(t *testing.T) {
 }
 
 func query_parametersInRawQuery(t *testing.T) {
+	var err error
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -607,13 +594,14 @@ func query_parametersInRawQuery(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQueryOld(ravendb.GetTypeOf(&User{}), "from users where age == $p0")
+		var users []*User
+		q := session.RawQuery("from users where age == $p0")
 		q = q.AddParameter("p0", 5)
-		users, err := q.ToListOld()
+		err = q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
-		user := users[0].(*User)
+		user := users[0]
 		assert.Equal(t, *user.Name, "John")
 
 		session.Close()
@@ -873,7 +861,7 @@ func query_queryParameters(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQueryOld(ravendb.GetTypeOf(&User{}), "from Users where name = $name")
+		q := session.RawQuery("from Users where name = $name")
 		q = q.AddParameter("name", "Tarzan")
 		count, err := q.Count()
 		assert.NoError(t, err)
@@ -1092,81 +1080,81 @@ func query_createDogs(t *testing.T, newSession *ravendb.DocumentSession) {
 	var err error
 
 	dog1 := NewDog()
-	dog1.setName("Snoopy")
-	dog1.setBreed("Beagle")
-	dog1.setColor("White")
+	dog1.Name = "Snoopy"
+	dog1.Breed = "Beagle"
+	dog1.Color = "White"
 	dog1.Age = 6
-	dog1.setVaccinated(true)
+	dog1.IsVaccinated = true
 
 	err = newSession.StoreWithID(dog1, "docs/1")
 	assert.NoError(t, err)
 
 	dog2 := NewDog()
-	dog2.setName("Brian")
-	dog2.setBreed("Labrador")
-	dog2.setColor("White")
+	dog2.Name = "Brian"
+	dog2.Breed = "Labrador"
+	dog2.Color = "White"
 	dog2.Age = 12
-	dog2.setVaccinated(false)
+	dog2.IsVaccinated = false
 
 	err = newSession.StoreWithID(dog2, "docs/2")
 	assert.NoError(t, err)
 
 	dog3 := NewDog()
-	dog3.setName("Django")
-	dog3.setBreed("Jack Russel")
-	dog3.setColor("Black")
+	dog3.Name = "Django"
+	dog3.Breed = "Jack Russel"
+	dog3.Color = "Black"
 	dog3.Age = 3
-	dog3.setVaccinated(true)
+	dog3.IsVaccinated = true
 
 	err = newSession.StoreWithID(dog3, "docs/3")
 	assert.NoError(t, err)
 
 	dog4 := NewDog()
-	dog4.setName("Beethoven")
-	dog4.setBreed("St. Bernard")
-	dog4.setColor("Brown")
+	dog4.Name = "Beethoven"
+	dog4.Breed = "St. Bernard"
+	dog4.Color = "Brown"
 	dog4.Age = 1
-	dog4.setVaccinated(false)
+	dog4.IsVaccinated = false
 
 	err = newSession.StoreWithID(dog4, "docs/4")
 	assert.NoError(t, err)
 
 	dog5 := NewDog()
-	dog5.setName("Scooby Doo")
-	dog5.setBreed("Great Dane")
-	dog5.setColor("Brown")
+	dog5.Name = "Scooby Doo"
+	dog5.Breed = "Great Dane"
+	dog5.Color = "Brown"
 	dog5.Age = 0
-	dog5.setVaccinated(false)
+	dog5.IsVaccinated = false
 
 	err = newSession.StoreWithID(dog5, "docs/5")
 	assert.NoError(t, err)
 
 	dog6 := NewDog()
-	dog6.setName("Old Yeller")
-	dog6.setBreed("Black Mouth Cur")
-	dog6.setColor("White")
+	dog6.Name = "Old Yeller"
+	dog6.Breed = "Black Mouth Cur"
+	dog6.Color = "White"
 	dog6.Age = 2
-	dog6.setVaccinated(true)
+	dog6.IsVaccinated = true
 
 	err = newSession.StoreWithID(dog6, "docs/6")
 	assert.NoError(t, err)
 
 	dog7 := NewDog()
-	dog7.setName("Benji")
-	dog7.setBreed("Mixed")
-	dog7.setColor("White")
+	dog7.Name = "Benji"
+	dog7.Breed = "Mixed"
+	dog7.Color = "White"
 	dog7.Age = 0
-	dog7.setVaccinated(false)
+	dog7.IsVaccinated = false
 
 	err = newSession.StoreWithID(dog7, "docs/7")
 	assert.NoError(t, err)
 
 	dog8 := NewDog()
-	dog8.setName("Lassie")
-	dog8.setBreed("Collie")
-	dog8.setColor("Brown")
+	dog8.Name = "Lassie"
+	dog8.Breed = "Collie"
+	dog8.Color = "Brown"
 	dog8.Age = 6
-	dog8.setVaccinated(true)
+	dog8.IsVaccinated = true
 
 	err = newSession.StoreWithID(dog8, "docs/8")
 	assert.NoError(t, err)
@@ -1185,82 +1173,10 @@ func NewDog() *Dog {
 	return &Dog{}
 }
 
-func (d *Dog) getId() string {
-	return d.ID
-}
-
-func (d *Dog) setId(id string) {
-	d.ID = id
-}
-
-func (d *Dog) GetName() string {
-	return d.Name
-}
-
-func (d *Dog) setName(name string) {
-	d.Name = name
-}
-
-func (d *Dog) getBreed() string {
-	return d.Breed
-}
-
-func (d *Dog) setBreed(breed string) {
-	d.Breed = breed
-}
-
-func (d *Dog) getColor() string {
-	return d.Color
-}
-
-func (d *Dog) setColor(color string) {
-	d.Color = color
-}
-
-func (d *Dog) getAge() int {
-	return d.Age
-}
-
-func (d *Dog) setAge(age int) {
-	d.Age = age
-}
-
-func (d *Dog) isVaccinated() bool {
-	return d.IsVaccinated
-}
-
-func (d *Dog) setVaccinated(vaccinated bool) {
-	d.IsVaccinated = vaccinated
-}
-
 type DogsIndex_Result struct {
 	Name         string `json:"name"`
 	Age          int    `json:"age"`
 	IsVaccinated bool   `json:"vaccinated"`
-}
-
-func (r *DogsIndex_Result) GetName() string {
-	return r.Name
-}
-
-func (r *DogsIndex_Result) setName(name string) {
-	r.Name = name
-}
-
-func (r *DogsIndex_Result) getAge() int {
-	return r.Age
-}
-
-func (r *DogsIndex_Result) setAge(age int) {
-	r.Age = age
-}
-
-func (r *DogsIndex_Result) isVaccinated() bool {
-	return r.IsVaccinated
-}
-
-func (r *DogsIndex_Result) setVaccinated(vaccinated bool) {
-	r.IsVaccinated = vaccinated
 }
 
 func makeDogsIndex() *ravendb.AbstractIndexCreationTask {
@@ -1357,30 +1273,6 @@ type ReduceResult struct {
 	Count int    `json:"count"`
 	Name  string `json:"name"`
 	Age   int    `json:"age"`
-}
-
-func (r *ReduceResult) getAge() int {
-	return r.Age
-}
-
-func (r *ReduceResult) setAge(age int) {
-	r.Age = age
-}
-
-func (r *ReduceResult) getCount() int {
-	return r.Count
-}
-
-func (r *ReduceResult) setCount(count int) {
-	r.Count = count
-}
-
-func (r *ReduceResult) GetName() string {
-	return r.Name
-}
-
-func (r *ReduceResult) setName(name string) {
-	r.Name = name
 }
 
 func TestQuery(t *testing.T) {
