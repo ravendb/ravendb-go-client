@@ -60,7 +60,7 @@ func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, clazz reflect.Ty
 	options := ravendb.NewMoreLikeThisOptions()
 	options.Fields = []string{"body"}
 
-	q := session.QueryInIndex(clazz, index)
+	q := session.QueryInIndexOld(clazz, index)
 	fn1 := func(b *ravendb.IFilterDocumentQueryBase) {
 		b.WhereEquals("id()", documentKey)
 	}
@@ -68,7 +68,7 @@ func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, clazz reflect.Ty
 		f.UsingDocumentWithBuilder(fn1).WithOptions(options)
 	}
 	q = q.MoreLikeThisWithBuilder(fn2)
-	list, err := q.ToList()
+	list, err := q.ToListOld()
 	assert.NoError(t, err)
 	assert.True(t, len(list) > 0)
 

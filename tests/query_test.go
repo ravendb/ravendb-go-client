@@ -36,8 +36,8 @@ func query_querySimple(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q := session.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&User{}), "", "users", false)
-		queryResult, err := q.ToList()
+		q := session.Advanced().DocumentQueryAllOld(ravendb.GetTypeOf(&User{}), "", "users", false)
+		queryResult, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 3)
 
@@ -106,19 +106,19 @@ func query_queryWithWhereClause(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&User{}), ravendb.Query_collection("users"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&User{}), ravendb.Query_collection("users"))
 		q = q.WhereStartsWith("name", "J")
-		queryResult, err := q.ToList()
+		queryResult, err := q.ToListOld()
 		assert.NoError(t, err)
 
-		q2 := session.QueryWithQuery(ravendb.GetTypeOf(&User{}), ravendb.Query_collection("users"))
+		q2 := session.QueryWithQueryOld(ravendb.GetTypeOf(&User{}), ravendb.Query_collection("users"))
 		q2 = q2.WhereEquals("name", "Tarzan")
-		queryResult2, err := q2.ToList()
+		queryResult2, err := q2.ToListOld()
 		assert.NoError(t, err)
 
-		q3 := session.QueryWithQuery(ravendb.GetTypeOf(&User{}), ravendb.Query_collection("users"))
+		q3 := session.QueryWithQueryOld(ravendb.GetTypeOf(&User{}), ravendb.Query_collection("users"))
 		q3 = q3.WhereEndsWith("name", "n")
-		queryResult3, err := q3.ToList()
+		queryResult3, err := q3.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 2)
@@ -138,13 +138,13 @@ func query_queryMapReduceWithCount(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
 		q = q.OrderByDescending("count")
 		q = q.OfType(ravendb.GetTypeOf(&ReduceResult{}))
-		results, err := q.ToList()
+		results, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		{
@@ -172,13 +172,13 @@ func query_queryMapReduceWithSum(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectSum(ravendb.NewGroupByFieldWithName("age"))
 		q = q.OrderByDescending("age")
 		q = q.OfType(ravendb.GetTypeOf(&ReduceResult{}))
-		results, err := q.ToList()
+		results, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		{
@@ -206,9 +206,9 @@ func query_queryMapReduceIndex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&ReduceResult{}), ravendb.Query_index("UsersByName"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&ReduceResult{}), ravendb.Query_index("UsersByName"))
 		q = q.OrderByDescending("count")
-		results, err := q.ToList()
+		results, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		{
@@ -236,10 +236,10 @@ func query_querySingleProperty(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingType_LONG)
 		q = q.SelectFields(ravendb.GetTypeOf(int(0)), "age")
-		ages, err := q.ToList()
+		ages, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(ages), 3)
@@ -261,9 +261,9 @@ func query_queryWithSelect(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.SelectFields(ravendb.GetTypeOf(&User{}), "age")
-		usersAge, err := q.ToList()
+		usersAge, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		for _, u := range usersAge {
@@ -286,9 +286,9 @@ func query_queryWithWhereIn(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereIn("name", []interface{}{"Tarzan", "no_such"})
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -306,9 +306,9 @@ func query_queryWithWhereBetween(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereBetween("age", 4, 5)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -329,9 +329,9 @@ func query_queryWithWhereLessThan(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereLessThan("age", 3)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -352,9 +352,9 @@ func query_queryWithWhereLessThanOrEqual(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereLessThanOrEqual("age", 3)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -372,9 +372,9 @@ func query_queryWithWhereGreaterThan(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereGreaterThan("age", 3)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -395,9 +395,9 @@ func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereGreaterThanOrEqual("age", 3)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -436,9 +436,9 @@ func query_queryWithProjection(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.SelectFields(ravendb.GetTypeOf(&UserProjection{}))
-		projections, err := q.ToList()
+		projections, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -463,9 +463,9 @@ func query_queryWithProjection2(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.SelectFields(ravendb.GetTypeOf(&UserProjection{}), "lastName")
-		projections, err := q.ToList()
+		projections, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -490,10 +490,10 @@ func query_queryDistinct(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.SelectFields(ravendb.GetTypeOf(""), "name")
 		q = q.Distinct()
-		uniqueNames, err := q.ToList()
+		uniqueNames, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 2)
@@ -513,9 +513,9 @@ func query_querySearchWithOr(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperator_OR)
-		uniqueNames, err := q.ToList()
+		uniqueNames, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 3)
@@ -533,9 +533,9 @@ func query_queryNoTracking(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.NoTracking()
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -559,11 +559,11 @@ func query_querySkipTake(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.OrderBy("name")
 		q = q.Skip(2)
 		q = q.Take(1)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -584,10 +584,10 @@ func query_rawQuerySkipTake(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQuery(ravendb.GetTypeOf(&User{}), "from users")
+		q := session.RawQueryOld(ravendb.GetTypeOf(&User{}), "from users")
 		q = q.Skip(2)
 		q = q.Take(1)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -607,9 +607,9 @@ func query_parametersInRawQuery(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQuery(ravendb.GetTypeOf(&User{}), "from users where age == $p0")
+		q := session.RawQueryOld(ravendb.GetTypeOf(&User{}), "from users where age == $p0")
 		q = q.AddParameter("p0", 5)
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -629,9 +629,9 @@ func query_queryLucene(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereLucene("name", "Tarzan")
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -655,27 +655,27 @@ func query_queryWhereExact(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereEquals("name", "tarzan")
-			users, err := q.ToList()
+			users, err := q.ToListOld()
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1)
 		}
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereEqualsWithExact("name", "tarzan", true)
-			users, err := q.ToList()
+			users, err := q.ToListOld()
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 0) // we queried for tarzan with exact
 		}
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereEqualsWithExact("name", "Tarzan", true)
-			users, err := q.ToList()
+			users, err := q.ToListOld()
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1) // we queried for Tarzan with exact
@@ -695,10 +695,10 @@ func query_queryWhereNot(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.Not()
 			q = q.WhereEquals("name", "tarzan")
-			res, err := q.ToList()
+			res, err := q.ToListOld()
 
 			assert.NoError(t, err)
 
@@ -706,9 +706,9 @@ func query_queryWhereNot(t *testing.T) {
 		}
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereNotEquals("name", "tarzan")
-			res, err := q.ToList()
+			res, err := q.ToListOld()
 
 			assert.NoError(t, err)
 
@@ -716,9 +716,9 @@ func query_queryWhereNot(t *testing.T) {
 		}
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereNotEqualsWithExact("name", "Tarzan", true)
-			res, err := q.ToList()
+			res, err := q.ToListOld()
 
 			assert.NoError(t, err)
 
@@ -806,9 +806,9 @@ func query_queryWithDuration(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
-			q := session.QueryInIndex(ravendb.GetTypeOf(&Order{}), NewOrderTime())
+			q := session.QueryInIndexOld(ravendb.GetTypeOf(&Order{}), NewOrderTime())
 			q = q.WhereLessThan("delay", time.Hour*3)
-			orders, err := q.ToList()
+			orders, err := q.ToListOld()
 			assert.NoError(t, err)
 
 			var delay []string
@@ -822,9 +822,9 @@ func query_queryWithDuration(t *testing.T) {
 		}
 
 		{
-			q := session.QueryInIndex(ravendb.GetTypeOf(&Order{}), NewOrderTime())
+			q := session.QueryInIndexOld(ravendb.GetTypeOf(&Order{}), NewOrderTime())
 			q = q.WhereGreaterThan("delay", time.Hour*3)
-			orders, err := q.ToList()
+			orders, err := q.ToListOld()
 			assert.NoError(t, err)
 
 			var delay2 []string
@@ -850,15 +850,15 @@ func query_queryFirst(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		first, err := session.Query(ravendb.GetTypeOf(&User{})).First()
+		first, err := session.QueryOld(ravendb.GetTypeOf(&User{})).First()
 		assert.NoError(t, err)
 		assert.NotNil(t, first)
 
-		single, err := session.Query(ravendb.GetTypeOf(&User{})).WhereEquals("name", "Tarzan").Single()
+		single, err := session.QueryOld(ravendb.GetTypeOf(&User{})).WhereEquals("name", "Tarzan").Single()
 		assert.NoError(t, err)
 		assert.NotNil(t, single)
 
-		_, err = session.Query(ravendb.GetTypeOf(&User{})).Single()
+		_, err = session.QueryOld(ravendb.GetTypeOf(&User{})).Single()
 		_ = err.(*ravendb.IllegalStateException)
 
 		session.Close()
@@ -873,7 +873,7 @@ func query_queryParameters(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQuery(ravendb.GetTypeOf(&User{}), "from Users where name = $name")
+		q := session.RawQueryOld(ravendb.GetTypeOf(&User{}), "from Users where name = $name")
 		q = q.AddParameter("name", "Tarzan")
 		count, err := q.Count()
 		assert.NoError(t, err)
@@ -892,15 +892,15 @@ func query_queryRandomOrder(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{})).RandomOrdering()
-			res, err := q.ToList()
+			q := session.QueryOld(ravendb.GetTypeOf(&User{})).RandomOrdering()
+			res, err := q.ToListOld()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{})).RandomOrderingWithSeed("123")
-			res, err := q.ToList()
+			q := session.QueryOld(ravendb.GetTypeOf(&User{})).RandomOrderingWithSeed("123")
+			res, err := q.ToListOld()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -918,20 +918,20 @@ func query_queryWhereExists(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereExists("name")
-			res, err := q.ToList()
+			res, err := q.ToListOld()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
-			q := session.Query(ravendb.GetTypeOf(&User{}))
+			q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 			q = q.WhereExists("name")
 			q = q.AndAlso()
 			q = q.Not()
 			q = q.WhereExists("no_such_field")
-			res, err := q.ToList()
+			res, err := q.ToListOld()
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -948,14 +948,14 @@ func query_queryWithBoost(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Query(ravendb.GetTypeOf(&User{}))
+		q := session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(5)
 		q = q.OrElse()
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(2)
 		q = q.OrderByScore()
-		users, err := q.ToList()
+		users, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -967,14 +967,14 @@ func query_queryWithBoost(t *testing.T) {
 		}
 		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
-		q = session.Query(ravendb.GetTypeOf(&User{}))
+		q = session.QueryOld(ravendb.GetTypeOf(&User{}))
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(2)
 		q = q.OrElse()
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(5)
 		q = q.OrderByScore()
-		users, err = q.ToList()
+		users, err = q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -1063,11 +1063,11 @@ func query_queryWithCustomize(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 
-		q := newSession.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q := newSession.Advanced().DocumentQueryAllOld(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
 		q = q.OrderByWithOrdering("name", ravendb.OrderingType_ALPHA_NUMERIC)
 		q = q.WhereGreaterThan("age", 2)
-		queryResult, err := q.ToList()
+		queryResult, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 4)
@@ -1286,9 +1286,9 @@ func query_queryLongRequest(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		q := newSession.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&User{}), "", "Users", false)
+		q := newSession.Advanced().DocumentQueryAllOld(ravendb.GetTypeOf(&User{}), "", "Users", false)
 		q = q.WhereEquals("name", longName)
-		queryResult, err := q.ToList()
+		queryResult, err := q.ToListOld()
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 1)
 
@@ -1320,22 +1320,22 @@ func query_queryByIndex(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 
-		q := newSession.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q := newSession.Advanced().DocumentQueryAllOld(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WhereGreaterThan("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
-		queryResult, err := q.ToList()
+		queryResult, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 1)
 		r := queryResult[0].(*DogsIndex_Result)
 		assert.Equal(t, r.Name, "Brian")
 
-		q = newSession.Advanced().DocumentQueryAll(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q = newSession.Advanced().DocumentQueryAllOld(ravendb.GetTypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
 		q = q.WhereLessThanOrEqual("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
-		queryResult2, err := q.ToList()
+		queryResult2, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult2), 3)

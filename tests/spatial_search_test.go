@@ -56,12 +56,12 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var statsRef *ravendb.QueryStatistics
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
 		q = q.Statistics(&statsRef)
 		q = q.WhereLessThanOrEqual("date", ravendb.DateUtils_addYears(time.Now(), 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
-		events, err := q.ToList()
+		events, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.True(t, len(events) > 0)
@@ -82,7 +82,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().DocumentQueryInIndex(ravendb.GetTypeOf(&Event{}), index)
+		q := session.Advanced().DocumentQueryInIndexOld(ravendb.GetTypeOf(&Event{}), index)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.WithinRadius(5, 38.9103000, -77.3942)
 		}
@@ -134,7 +134,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 
 		var queryStats *ravendb.QueryStatistics
 
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
 		q = q.Statistics(&queryStats)
 		q = q.OpenSubclause()
 		q = q.WhereGreaterThanOrEqual("capacity", 0)
@@ -143,7 +143,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		q = q.CloseSubclause()
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
-		events, err := q.ToList()
+		events, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		assert.Equal(t, queryStats.GetTotalResults(), 2)
@@ -202,11 +202,11 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
-		events, err := q.ToList()
+		events, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		var a []string
@@ -221,11 +221,11 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryWithQuery(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
+		q := session.QueryWithQueryOld(ravendb.GetTypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
-		events, err := q.ToList()
+		events, err := q.ToListOld()
 		assert.NoError(t, err)
 
 		var a []string

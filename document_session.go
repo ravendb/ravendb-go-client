@@ -396,38 +396,47 @@ func cloneMapStringObject(m map[string]Object) map[string]Object {
 
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
-func (s *DocumentSession) DocumentQueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAll(clazz, index.GetIndexName(), "", index.IsMapReduce())
+// TODO: needs clazz
+func (s *DocumentSession) DocumentQueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.DocumentQueryAllOld(clazz, index.GetIndexName(), "", index.IsMapReduce())
 }
 
-func (s *DocumentSession) DocumentQuery(clazz reflect.Type) *DocumentQuery {
-	return s.DocumentQueryAll(clazz, "", "", false)
+// TODO: needs clazz
+func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
+	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
-func (s *DocumentSession) DocumentQueryAll(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
+// TODO: this needs clazz
+func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 
-	return NewDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
+	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 
-func (s *DocumentSession) RawQuery(clazz reflect.Type, query string) *IRawDocumentQuery {
-	return NewRawDocumentQuery(clazz, s.InMemoryDocumentSessionOperations, query)
+func (s *DocumentSession) RawQueryOld(clazz reflect.Type, query string) *IRawDocumentQuery {
+	return NewRawDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, query)
 }
 
-func (s *DocumentSession) Query(clazz reflect.Type) *DocumentQuery {
-	return s.DocumentQueryAll(clazz, "", "", false)
+func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
+	return NewRawDocumentQuery(s.InMemoryDocumentSessionOperations, query)
 }
 
-func (s *DocumentSession) QueryWithQuery(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
+// TODO: needs clazz
+func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
+	return s.DocumentQueryAllOld(clazz, "", "", false)
+}
+
+
+func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
 	if StringUtils_isNotEmpty(collectionOrIndexName.getCollection()) {
-		return s.DocumentQueryAll(clazz, "", collectionOrIndexName.getCollection(), false)
+		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.getCollection(), false)
 	}
 
-	return s.DocumentQueryAll(clazz, collectionOrIndexName.getIndexName(), "", false)
+	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.getIndexName(), "", false)
 }
 
-func (s *DocumentSession) QueryInIndex(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryInIndex(clazz, index)
+func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.DocumentQueryInIndexOld(clazz, index)
 }
 
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {
