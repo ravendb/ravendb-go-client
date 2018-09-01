@@ -47,7 +47,7 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 		results[res.Name] = res
 	}
 
-	QueryOperation_ensureIsAcceptable(queryResult, q._query.IsWaitForNonStaleResults(), q._duration, q._session)
+	QueryOperation_ensureIsAcceptable(queryResult, q._query.waitForNonStaleResults, q._duration, q._session)
 
 	return results, nil
 }

@@ -54,7 +54,7 @@ func (o *QueryOperation) assertPageSizeSet() {
 		return
 	}
 
-	if o._indexQuery.IsPageSizeSet() {
+	if o._indexQuery.pageSize > 0 {
 		return
 	}
 
@@ -79,7 +79,7 @@ func (o *QueryOperation) logQuery() {
 func (o *QueryOperation) enterQueryContext() CleanCloseable {
 	o.startTiming()
 
-	if !o._indexQuery.IsWaitForNonStaleResults() {
+	if !o._indexQuery.waitForNonStaleResults {
 		var res *NilCleanCloseable
 		return res
 	}
@@ -254,7 +254,7 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 		return NewIndexDoesNotExistException("Could not find index " + o._indexName)
 	}
 
-	err := QueryOperation_ensureIsAcceptable(result, o._indexQuery.IsWaitForNonStaleResults(), o._sp, o._session)
+	err := QueryOperation_ensureIsAcceptable(result, o._indexQuery.waitForNonStaleResults, o._sp, o._session)
 	if err != nil {
 		return err
 	}
