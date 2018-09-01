@@ -287,9 +287,10 @@ func query_queryWithWhereIn(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereIn("name", []interface{}{"Tarzan", "no_such"})
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -307,14 +308,15 @@ func query_queryWithWhereBetween(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereBetween("age", 4, 5)
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
 
-		user := users[0].(*User)
+		user := users[0]
 		assert.Equal(t, *user.Name, "John")
 
 		session.Close()
@@ -330,14 +332,15 @@ func query_queryWithWhereLessThan(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereLessThan("age", 3)
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
 
-		user := users[0].(*User)
+		user := users[0]
 		assert.Equal(t, *user.Name, "Tarzan")
 
 		session.Close()
@@ -353,9 +356,10 @@ func query_queryWithWhereLessThanOrEqual(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereLessThanOrEqual("age", 3)
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -373,14 +377,15 @@ func query_queryWithWhereGreaterThan(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereGreaterThan("age", 3)
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
 
-		user := users[0].(*User)
+		user := users[0]
 		assert.Equal(t, *user.Name, "John")
 
 		session.Close()
@@ -396,9 +401,10 @@ func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WhereGreaterThanOrEqual("age", 3)
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
