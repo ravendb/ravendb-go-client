@@ -11,22 +11,21 @@ func isRqlTokenKeyword(s string) bool {
 	return false
 }
 
-// QueryToken describes interface for query token
 // In Java QueryToken is a base class that defines virtual writeTo and provides
-// writeField. We make writeField a stand-alone helper function and make QueryToken
+// writeField. We make writeField a stand-alone helper function and make queryToken
 // an interface
-type QueryToken interface {
-	WriteTo(*strings.Builder)
+type queryToken interface {
+	writeTo(*strings.Builder)
 }
 
-func QueryToken_writeField(writer *strings.Builder, field string) {
+func writeQueryTokenField(writer *strings.Builder, field string) {
 	isKeyWord := isRqlTokenKeyword(field)
 	if isKeyWord {
 		writer.WriteString("'")
-	}
-	writer.WriteString(field)
-
-	if isKeyWord {
+		writer.WriteString(field)
 		writer.WriteString("'")
+		return
 	}
+
+	writer.WriteString(field)
 }

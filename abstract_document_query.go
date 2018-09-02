@@ -29,15 +29,15 @@ type AbstractDocumentQuery struct {
 
 	pageSize *int
 
-	selectTokens       []QueryToken
-	fromToken          *FromToken
-	declareToken       *DeclareToken
-	loadTokens         []*LoadToken
-	fieldsToFetchToken *FieldsToFetchToken
+	selectTokens       []queryToken
+	fromToken          *fromToken
+	declareToken       *declareToken
+	loadTokens         []*loadToken
+	fieldsToFetchToken *fieldsToFetchToken
 
-	whereTokens   []QueryToken
-	groupByTokens []QueryToken
-	orderByTokens []QueryToken
+	whereTokens   []queryToken
+	groupByTokens []queryToken
+	orderByTokens []queryToken
 
 	start        int
 	_conventions *DocumentConventions
@@ -79,7 +79,7 @@ func (q *AbstractDocumentQuery) IsDistinct() bool {
 	if len(q.selectTokens) == 0 {
 		return false
 	}
-	_, ok := q.selectTokens[0].(*DistinctToken)
+	_, ok := q.selectTokens[0].(*distinctToken)
 	return ok
 }
 
@@ -99,7 +99,7 @@ func AbstractDocumentQuery_getDefaultTimeout() time.Duration {
 	return time.Second * 15
 }
 
-func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *AbstractDocumentQuery {
+func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
 		clazz:                    clazz,
 		defaultOperator:          QueryOperator_AND,
@@ -113,7 +113,7 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 		queryParameters:          make(map[string]Object),
 		queryStats:               NewQueryStatistics(),
 	}
-	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
+	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
 	f := func(queryResult *QueryResult) {
 		res.UpdateStatsAndHighlightings(queryResult)
 	}
@@ -126,7 +126,7 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 	return res
 }
 
-func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *AbstractDocumentQuery {
+func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
 		defaultOperator:          QueryOperator_AND,
 		isGroupBy:                isGroupBy,
@@ -139,7 +139,7 @@ func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexN
 		queryParameters:          make(map[string]Object),
 		queryStats:               NewQueryStatistics(),
 	}
-	res.fromToken = FromToken_create(indexName, collectionName, fromAlias)
+	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
 	f := func(queryResult *QueryResult) {
 		res.UpdateStatsAndHighlightings(queryResult)
 	}
@@ -295,7 +295,10 @@ func (q *AbstractDocumentQuery) _groupByCount(projectedName string) {
 	q.assertNoRawQuery()
 	q.isGroupBy = true
 
-	q.selectTokens = append(q.selectTokens, GroupByCountToken_create(projectedName))
+	t := &groupByCountToken{
+		fieldName: projectedName,
+	}
+	q.selectTokens = append(q.selectTokens, t)
 }
 
 func (q *AbstractDocumentQuery) _whereTrue() {
@@ -304,14 +307,14 @@ func (q *AbstractDocumentQuery) _whereTrue() {
 	q.negateIfNeeded(tokensRef, "")
 
 	tokens := *tokensRef
-	tokens = append(tokens, TrueToken_INSTANCE)
+	tokens = append(tokens, trueTokenInstance)
 	*tokensRef = tokens
 }
 
 func (q *AbstractDocumentQuery) _moreLikeThis() *MoreLikeThisScope {
 	q.appendOperatorIfNeeded(&q.whereTokens)
 
-	token := NewMoreLikeThisToken()
+	token := newMoreLikeThisToken()
 	q.whereTokens = append(q.whereTokens, token)
 
 	q._isInMoreLikeThis = true
@@ -344,7 +347,7 @@ func (q *AbstractDocumentQuery) _whereLucene(fieldName string, whereClause strin
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	var options *WhereOptions
+	var options *whereOptions
 	if exact {
 		options = NewWhereOptionsWithExact(exact)
 	}
@@ -361,7 +364,7 @@ func (q *AbstractDocumentQuery) _openSubclause() {
 	q.negateIfNeeded(tokensRef, "")
 
 	tokens := *tokensRef
-	tokens = append(tokens, OpenSubclauseToken_INSTANCE)
+	tokens = append(tokens, openSubclauseTokenInstance)
 	*tokensRef = tokens
 }
 
@@ -370,7 +373,7 @@ func (q *AbstractDocumentQuery) _closeSubclause() {
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	tokens := *tokensRef
-	tokens = append(tokens, CloseSubclauseToken_INSTANCE)
+	tokens = append(tokens, closeSubclauseTokenInstance)
 	*tokensRef = tokens
 }
 
@@ -415,7 +418,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *WhereParams, tokensRef *[]QueryToken) bool {
+func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *WhereParams, tokensRef *[]queryToken) bool {
 	if mc, ok := whereParams.getValue().(*CmpXchg); ok {
 		n := len(mc.args)
 		args := make([]string, n)
@@ -723,7 +726,7 @@ func (q *AbstractDocumentQuery) _andAlso() {
 	}
 
 	lastToken := tokens[n-1]
-	if _, ok := lastToken.(*QueryOperatorToken); ok {
+	if _, ok := lastToken.(*queryOperatorToken); ok {
 		//throw new IllegalStateException("Cannot add AND, previous token was already an operator token.");
 		panicIf(true, "Cannot add AND, previous token was already an operator token.")
 	}
@@ -741,7 +744,7 @@ func (q *AbstractDocumentQuery) _orElse() {
 	}
 
 	lastToken := tokens[n-1]
-	if _, ok := lastToken.(*QueryOperatorToken); ok {
+	if _, ok := lastToken.(*queryOperatorToken); ok {
 		//throw new IllegalStateException("Cannot add OR, previous token was already an operator token.");
 		panicIf(true, "Cannot add OR, previous token was already an operator token.")
 	}
@@ -763,7 +766,7 @@ func (q *AbstractDocumentQuery) _boost(boost float64) {
 	}
 
 	maybeWhereToken := tokens[n-1]
-	whereToken, ok := maybeWhereToken.(*WhereToken)
+	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
 		//throw new IllegalStateException("Missing where clause");
 		panicIf(true, "Missing where clause")
@@ -774,7 +777,7 @@ func (q *AbstractDocumentQuery) _boost(boost float64) {
 		panicIf(true, "Boost factor must be a positive number")
 	}
 
-	whereToken.GetOptions().setBoost(boost)
+	whereToken.GetOptions().boost = boost
 }
 
 func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
@@ -786,7 +789,7 @@ func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
 	}
 
 	maybeWhereToken := tokens[n-1]
-	whereToken, ok := maybeWhereToken.(*WhereToken)
+	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
 		//throw new IllegalStateException("Missing where clause");
 		panicIf(true, "Missing where clause")
@@ -797,7 +800,7 @@ func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
 		panicIf(true, "Fuzzy distance must be between 0.0 and 1.0")
 	}
 
-	whereToken.GetOptions().setFuzzy(fuzzy)
+	whereToken.GetOptions().fuzzy = fuzzy
 }
 
 func (q *AbstractDocumentQuery) _proximity(proximity int) {
@@ -810,7 +813,7 @@ func (q *AbstractDocumentQuery) _proximity(proximity int) {
 	}
 
 	maybeWhereToken := tokens[n-1]
-	whereToken, ok := maybeWhereToken.(*WhereToken)
+	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
 		//throw new IllegalStateException("Missing where clause");
 		panicIf(true, "Missing where clause")
@@ -821,7 +824,7 @@ func (q *AbstractDocumentQuery) _proximity(proximity int) {
 		panicIf(true, "Proximity distance must be a positive number")
 	}
 
-	whereToken.GetOptions().setProximity(proximity)
+	whereToken.GetOptions().proximity = proximity
 }
 
 func (q *AbstractDocumentQuery) _orderBy(field string) {
@@ -978,12 +981,12 @@ func (q *AbstractDocumentQuery) _intersect() {
 	n := len(tokens)
 	if n > 0 {
 		last := tokens[n-1]
-		_, isWhere := last.(*WhereToken)
-		_, isClose := last.(*CloseSubclauseToken)
+		_, isWhere := last.(*whereToken)
+		_, isClose := last.(*closeSubclauseToken)
 		if isWhere || isClose {
 			q.isIntersect = true
 
-			tokens = append(tokens, IntersectMarkerToken_INSTANCE)
+			tokens = append(tokens, intersectMarkerTokenInstance)
 			*tokensRef = tokens
 			return
 		}
@@ -1031,7 +1034,7 @@ func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []Object) 
 
 	tokens := *tokensRef
 	if len(array) == 0 {
-		tokens = append(tokens, TrueToken_INSTANCE)
+		tokens = append(tokens, trueTokenInstance)
 	} else {
 		whereToken := WhereToken_create(WhereOperator_ALL_IN, fieldName, q.addQueryParameter(array))
 		tokens = append(tokens, whereToken)
@@ -1044,10 +1047,10 @@ func (q *AbstractDocumentQuery) _distinct() {
 	//throw new IllegalStateException("The is already a distinct query");
 
 	if len(q.selectTokens) == 0 {
-		q.selectTokens = []QueryToken{DistinctToken_INSTANCE}
+		q.selectTokens = []queryToken{distinctTokenInstance}
 		return
 	}
-	q.selectTokens = append([]QueryToken{DistinctToken_INSTANCE}, q.selectTokens...)
+	q.selectTokens = append([]queryToken{distinctTokenInstance}, q.selectTokens...)
 }
 
 func (q *AbstractDocumentQuery) UpdateStatsAndHighlightings(queryResult *QueryResult) {
@@ -1064,8 +1067,8 @@ func (q *AbstractDocumentQuery) buildSelect(writer *strings.Builder) {
 
 	if len(q.selectTokens) == 1 {
 		tok := q.selectTokens[0]
-		if dtok, ok := tok.(*DistinctToken); ok {
-			dtok.WriteTo(writer)
+		if dtok, ok := tok.(*distinctToken); ok {
+			dtok.writeTo(writer)
 			writer.WriteString(" *")
 			return
 		}
@@ -1074,28 +1077,28 @@ func (q *AbstractDocumentQuery) buildSelect(writer *strings.Builder) {
 	for i, token := range q.selectTokens {
 		if i > 0 {
 			prevToken := q.selectTokens[i-1]
-			if _, ok := prevToken.(*DistinctToken); !ok {
+			if _, ok := prevToken.(*distinctToken); !ok {
 				writer.WriteString(",")
 			}
 		}
 
-		var prevToken QueryToken
+		var prevToken queryToken
 		if i > 0 {
 			prevToken = q.selectTokens[i-1]
 		}
 		DocumentQueryHelper_addSpaceIfNeeded(prevToken, token, writer)
 
-		token.WriteTo(writer)
+		token.writeTo(writer)
 	}
 }
 
 func (q *AbstractDocumentQuery) buildFrom(writer *strings.Builder) {
-	q.fromToken.WriteTo(writer)
+	q.fromToken.writeTo(writer)
 }
 
 func (q *AbstractDocumentQuery) buildDeclare(writer *strings.Builder) {
 	if q.declareToken != nil {
-		q.declareToken.WriteTo(writer)
+		q.declareToken.writeTo(writer)
 	}
 }
 
@@ -1111,7 +1114,7 @@ func (q *AbstractDocumentQuery) buildLoad(writer *strings.Builder) {
 			writer.WriteString(", ")
 		}
 
-		tok.WriteTo(writer)
+		tok.writeTo(writer)
 	}
 }
 
@@ -1127,12 +1130,12 @@ func (q *AbstractDocumentQuery) buildWhere(writer *strings.Builder) {
 	}
 
 	for i, tok := range q.whereTokens {
-		var prevToken QueryToken
+		var prevToken queryToken
 		if i > 0 {
 			prevToken = q.whereTokens[i-1]
 		}
 		DocumentQueryHelper_addSpaceIfNeeded(prevToken, tok, writer)
-		tok.WriteTo(writer)
+		tok.writeTo(writer)
 	}
 
 	if q.isIntersect {
@@ -1151,7 +1154,7 @@ func (q *AbstractDocumentQuery) buildGroupBy(writer *strings.Builder) {
 		if i > 0 {
 			writer.WriteString(", ")
 		}
-		token.WriteTo(writer)
+		token.writeTo(writer)
 	}
 }
 
@@ -1167,11 +1170,11 @@ func (q *AbstractDocumentQuery) buildOrderBy(writer *strings.Builder) {
 			writer.WriteString(", ")
 		}
 
-		token.WriteTo(writer)
+		token.writeTo(writer)
 	}
 }
 
-func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]QueryToken) {
+func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) {
 	tokens := *tokensRef
 	q.assertNoRawQuery()
 
@@ -1181,30 +1184,30 @@ func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]QueryToken) 
 	}
 
 	lastToken := tokens[n-1]
-	_, isWhereToken := lastToken.(*WhereToken)
-	_, isCloseSubclauseToken := lastToken.(*CloseSubclauseToken)
+	_, isWhereToken := lastToken.(*whereToken)
+	_, isCloseSubclauseToken := lastToken.(*closeSubclauseToken)
 	if !isWhereToken && !isCloseSubclauseToken {
 		return
 	}
 
-	var lastWhere *WhereToken
+	var lastWhere *whereToken
 
 	for i := n - 1; i >= 0; i-- {
 		tok := tokens[i]
-		if maybeLastWhere, ok := tok.(*WhereToken); ok {
+		if maybeLastWhere, ok := tok.(*whereToken); ok {
 			lastWhere = maybeLastWhere
 			break
 		}
 	}
 
-	var token *QueryOperatorToken
+	var token *queryOperatorToken
 	if q.defaultOperator == QueryOperator_AND {
 		token = QueryOperatorToken_AND
 	} else {
 		token = QueryOperatorToken_OR
 	}
 
-	if lastWhere != nil && lastWhere.GetOptions().getSearchOperator() != SearchOperator_UNSET {
+	if lastWhere != nil && lastWhere.options.searchOperator != SearchOperator_UNSET {
 		token = QueryOperatorToken_OR // default to OR operator after search if AND was not specified explicitly
 	}
 
@@ -1230,7 +1233,7 @@ func (q *AbstractDocumentQuery) transformCollection(fieldName string, values []O
 	return result
 }
 
-func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]QueryToken, fieldName string) {
+func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]queryToken, fieldName string) {
 	if !q.negate {
 		return
 	}
@@ -1242,7 +1245,7 @@ func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]QueryToken, fieldNam
 	n := len(tokens)
 	isOpenSubclauseToken := false
 	if n > 0 {
-		_, isOpenSubclauseToken = tokens[n-1].(*OpenSubclauseToken)
+		_, isOpenSubclauseToken = tokens[n-1].(*openSubclauseToken)
 	}
 	if n == 0 || isOpenSubclauseToken {
 		if fieldName != "" {
@@ -1253,7 +1256,7 @@ func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]QueryToken, fieldNam
 		q._andAlso()
 	}
 
-	tokens = append(tokens, NegateToken_INSTANCE)
+	tokens = append(tokens, negateTokenInstance)
 	*tokensRef = tokens
 }
 
@@ -1341,7 +1344,7 @@ func (q *AbstractDocumentQuery) addQueryParameter(value Object) string {
 	return parameterName
 }
 
-func (q *AbstractDocumentQuery) getCurrentWhereTokens() []QueryToken {
+func (q *AbstractDocumentQuery) getCurrentWhereTokens() []queryToken {
 	if !q._isInMoreLikeThis {
 		return q.whereTokens
 	}
@@ -1349,22 +1352,22 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokens() []QueryToken {
 	n := len(q.whereTokens)
 
 	if n == 0 {
-		// throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
-		panicIf(true, "Cannot get MoreLikeThisToken because there are no where token specified.")
+		// throw new IllegalStateException("Cannot get moreLikeThisToken because there are no where token specified.");
+		panicIf(true, "Cannot get moreLikeThisToken because there are no where token specified.")
 	}
 
 	lastToken := q.whereTokens[n-1]
 
-	if moreLikeThisToken, ok := lastToken.(*MoreLikeThisToken); ok {
+	if moreLikeThisToken, ok := lastToken.(*moreLikeThisToken); ok {
 		return moreLikeThisToken.whereTokens
 	} else {
-		//throw new IllegalStateException("Last token is not MoreLikeThisToken");
-		panicIf(true, "Last token is not MoreLikeThisToken")
+		//throw new IllegalStateException("Last token is not moreLikeThisToken");
+		panicIf(true, "Last token is not moreLikeThisToken")
 	}
 	return nil
 }
 
-func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]QueryToken {
+func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]queryToken {
 	if !q._isInMoreLikeThis {
 		return &q.whereTokens
 	}
@@ -1372,29 +1375,29 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]QueryToken {
 	n := len(q.whereTokens)
 
 	if n == 0 {
-		// throw new IllegalStateException("Cannot get MoreLikeThisToken because there are no where token specified.");
-		panicIf(true, "Cannot get MoreLikeThisToken because there are no where token specified.")
+		// throw new IllegalStateException("Cannot get moreLikeThisToken because there are no where token specified.");
+		panicIf(true, "Cannot get moreLikeThisToken because there are no where token specified.")
 	}
 
 	lastToken := q.whereTokens[n-1]
 
-	if moreLikeThisToken, ok := lastToken.(*MoreLikeThisToken); ok {
+	if moreLikeThisToken, ok := lastToken.(*moreLikeThisToken); ok {
 		return &moreLikeThisToken.whereTokens
 	} else {
-		//throw new IllegalStateException("Last token is not MoreLikeThisToken");
-		panicIf(true, "Last token is not MoreLikeThisToken")
+		//throw new IllegalStateException("Last token is not moreLikeThisToken");
+		panicIf(true, "Last token is not moreLikeThisToken")
 	}
 	return nil
 }
 
-func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *FieldsToFetchToken) {
+func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsToFetchToken) {
 	q.fieldsToFetchToken = fieldsToFetch
 
 	if len(q.selectTokens) == 0 {
 		q.selectTokens = append(q.selectTokens, fieldsToFetch)
 	} else {
 		for _, x := range q.selectTokens {
-			if _, ok := x.(*FieldsToFetchToken); ok {
+			if _, ok := x.(*fieldsToFetchToken); ok {
 				for idx, tok := range q.selectTokens {
 					if tok == x {
 						q.selectTokens[idx] = fieldsToFetch
@@ -1750,7 +1753,7 @@ func (q *AbstractDocumentQuery) executeQueryOperationOld(take int) ([]interface{
 
 func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
 	for _, token := range q.selectTokens {
-		if _, ok := token.(*FacetToken); ok {
+		if _, ok := token.(*facetToken); ok {
 			continue
 		}
 
@@ -1765,7 +1768,7 @@ func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
 }
 
 func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
-	q.selectTokens = append(q.selectTokens, FacetToken_create(facetSetupDocumentId))
+	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentId))
 }
 
 /*
@@ -1802,12 +1805,20 @@ func (q *AbstractDocumentQuery) _suggestUsing(suggestion SuggestionBase) {
 
 	q.assertCanSuggest()
 
-	var token *SuggestToken
+	var token *suggestToken
 
 	if term, ok := suggestion.(*SuggestionWithTerm); ok {
-		token = SuggestToken_create(term.Field, q.addQueryParameter(term.Term), q.getOptionsParameterName(term.Options))
+		token = &suggestToken{
+			fieldName:            term.Field,
+			termParameterName:    q.addQueryParameter(term.Term),
+			optionsParameterName: q.getOptionsParameterName(term.Options),
+		}
 	} else if terms, ok := suggestion.(*SuggestionWithTerms); ok {
-		token = SuggestToken_create(terms.Field, q.addQueryParameter(terms.Terms), q.getOptionsParameterName(terms.Options))
+		token = &suggestToken{
+			fieldName:            terms.Field,
+			termParameterName:    q.addQueryParameter(terms.Terms),
+			optionsParameterName: q.getOptionsParameterName(terms.Options),
+		}
 	} else {
 		// throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
 		panic(NewUnsupportedOperationException("Unknown type of suggestion: %T", suggestion))

@@ -2,33 +2,33 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &FromToken{}
+var _ queryToken = &fromToken{}
 
-type FromToken struct {
+type fromToken struct {
 	collectionName string
 	indexName      string
 	dynamic        bool
 	alias          string
 }
 
-func (t *FromToken) getCollectionName() string {
+func (t *fromToken) getCollectionName() string {
 	return t.collectionName
 }
 
-func (t *FromToken) getIndexName() string {
+func (t *fromToken) getIndexName() string {
 	return t.indexName
 }
 
-func (t *FromToken) isDynamic() bool {
+func (t *fromToken) isDynamic() bool {
 	return t.dynamic
 }
 
-func (t *FromToken) getAlias() string {
+func (t *fromToken) getAlias() string {
 	return t.alias
 }
 
-func NewFromToken(indexName string, collectionName string, alias string) *FromToken {
-	return &FromToken{
+func newFromToken(indexName string, collectionName string, alias string) *fromToken {
+	return &fromToken{
 		collectionName: collectionName,
 		indexName:      indexName,
 		dynamic:        collectionName != "",
@@ -36,11 +36,11 @@ func NewFromToken(indexName string, collectionName string, alias string) *FromTo
 	}
 }
 
-func FromToken_create(indexName string, collectionName string, alias string) *FromToken {
-	return NewFromToken(indexName, collectionName, alias)
+func createFromToken(indexName string, collectionName string, alias string) *fromToken {
+	return newFromToken(indexName, collectionName, alias)
 }
 
-func (t *FromToken) WriteTo(writer *strings.Builder) {
+func (t *fromToken) writeTo(writer *strings.Builder) {
 	if t.indexName == "" && t.collectionName == "" {
 		panicIf(true, "Either indexName or collectionName must be specified")
 		// NewIllegalStateException("Either indexName or collectionName must be specified");
@@ -58,7 +58,7 @@ func (t *FromToken) WriteTo(writer *strings.Builder) {
 			writer.WriteString(t.collectionName)
 			writer.WriteString(`"`)
 		} else {
-			QueryToken_writeField(writer, t.collectionName)
+			writeQueryTokenField(writer, t.collectionName)
 		}
 	} else {
 		writer.WriteString("from index '")
@@ -72,7 +72,7 @@ func (t *FromToken) WriteTo(writer *strings.Builder) {
 	}
 }
 
-func (t *FromToken) throwInvalidCollectionName() {
+func (t *fromToken) throwInvalidCollectionName() {
 	panicIf(true, "Collection name cannot contain a quote, but was: %s", t.collectionName)
 	// NewIllegalArgumentException("Collection name cannot contain a quote, but was: " + collectionName);
 }

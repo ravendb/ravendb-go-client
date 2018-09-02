@@ -2,19 +2,15 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &OpenSubclauseToken{}
+var _ queryToken = &openSubclauseToken{}
 
 var (
-	OpenSubclauseToken_INSTANCE = NewOpenSubclauseToken()
+	openSubclauseTokenInstance = &openSubclauseToken{}
 )
 
-type OpenSubclauseToken struct {
+type openSubclauseToken struct {
 }
 
-func NewOpenSubclauseToken() *OpenSubclauseToken {
-	return &OpenSubclauseToken{}
-}
-
-func (t *OpenSubclauseToken) WriteTo(writer *strings.Builder) {
+func (t *openSubclauseToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("(")
 }

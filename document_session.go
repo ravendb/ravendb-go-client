@@ -443,7 +443,7 @@ func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractInd
 // public <T> void streamInto(IRawDocumentQuery<T> query, OutputStream output) {
 // public <T> void streamInto(IDocumentQuery<T> query, OutputStream output) {
 
-// private <T> StreamResult<T> createStreamResult(reflect.Type clazz, ObjectNode json, FieldsToFetchToken fieldsToFetch) throws IOException {
+// private <T> StreamResult<T> createStreamResult(reflect.Type clazz, ObjectNode json, fieldsToFetchToken fieldsToFetch) throws IOException {
 // public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith) {
 // public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith, string matches) {
 // public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith, string matches, int start) {

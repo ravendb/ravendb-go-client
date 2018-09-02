@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var _ QueryToken = &WhereToken{}
+var _ queryToken = &whereToken{}
 
 type MethodsType = string
 
@@ -13,17 +13,17 @@ const (
 	MethodsType_CMP_X_CHG = "CmpXChg"
 )
 
-type WhereMethodCall struct {
+type whereMethodCall struct {
 	methodType MethodsType
 	parameters []string
 	property   string
 }
 
-func NewWhereMethodCall() *WhereMethodCall {
-	return &WhereMethodCall{}
+func newWhereMethodCall() *whereMethodCall {
+	return &whereMethodCall{}
 }
 
-type WhereOptions struct {
+type whereOptions struct {
 	searchOperator    SearchOperator
 	fromParameterName string
 	toParameterName   string
@@ -34,155 +34,75 @@ type WhereOptions struct {
 	// TODO: does it have to be *int to indicate 'no value provided' ?
 	proximity        int
 	exact            bool
-	method           *WhereMethodCall
-	whereShape       *ShapeToken
+	method           *whereMethodCall
+	whereShape       *shapeToken
 	distanceErrorPct float64
 }
 
-func WhereOptions_defaultOptions() *WhereOptions {
-	return NewWhereOptions()
+func WhereOptions_defaultOptions() *whereOptions {
+	return newWhereOptions()
 }
 
-func NewWhereOptions() *WhereOptions {
-	return &WhereOptions{}
+func newWhereOptions() *whereOptions {
+	return &whereOptions{}
 }
 
-func NewWhereOptionsWithExact(exact bool) *WhereOptions {
-	return &WhereOptions{
+func NewWhereOptionsWithExact(exact bool) *whereOptions {
+	return &whereOptions{
 		exact: exact,
 	}
 }
 
-func NewWhereOptionsWithOperator(search SearchOperator) *WhereOptions {
-	return &WhereOptions{
+func NewWhereOptionsWithOperator(search SearchOperator) *whereOptions {
+	return &whereOptions{
 		searchOperator: search,
 	}
 }
 
-func NewWhereOptionsWithTokenAndDistance(shape *ShapeToken, distance float64) *WhereOptions {
-	return &WhereOptions{
+func NewWhereOptionsWithTokenAndDistance(shape *shapeToken, distance float64) *whereOptions {
+	return &whereOptions{
 		whereShape:       shape,
 		distanceErrorPct: distance,
 	}
 }
 
-func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *WhereOptions {
-	method := NewWhereMethodCall()
+func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *whereOptions {
+	method := newWhereMethodCall()
 	method.methodType = methodType
 	method.parameters = parameters
 	method.property = property
 
-	return &WhereOptions{
+	return &whereOptions{
 		method: method,
 		exact:  exact,
 	}
 }
 
-func NewWhereOptionsWithFromTo(exact bool, from string, to string) *WhereOptions {
-	return &WhereOptions{
+func NewWhereOptionsWithFromTo(exact bool, from string, to string) *whereOptions {
+	return &whereOptions{
 		exact:             exact,
 		fromParameterName: from,
 		toParameterName:   to,
 	}
 }
 
-func (o *WhereOptions) getSearchOperator() SearchOperator {
-	return o.searchOperator
-}
-
-func (o *WhereOptions) setSearchOperator(searchOperator SearchOperator) {
-	o.searchOperator = searchOperator
-}
-
-func (o *WhereOptions) getFromParameterName() string {
-	return o.fromParameterName
-}
-
-func (o *WhereOptions) setFromParameterName(fromParameterName string) {
-	o.fromParameterName = fromParameterName
-}
-
-func (o *WhereOptions) getToParameterName() string {
-	return o.toParameterName
-}
-
-func (o *WhereOptions) setToParameterName(toParameterName string) {
-	o.toParameterName = toParameterName
-}
-
-func (o *WhereOptions) getBoost() float64 {
-	return o.boost
-}
-
-func (o *WhereOptions) setBoost(boost float64) {
-	o.boost = boost
-}
-
-func (o *WhereOptions) getFuzzy() float64 {
-	return o.fuzzy
-}
-
-func (o *WhereOptions) setFuzzy(fuzzy float64) {
-	o.fuzzy = fuzzy
-}
-
-func (o *WhereOptions) getProximity() int {
-	return o.proximity
-}
-
-func (o *WhereOptions) setProximity(proximity int) {
-	o.proximity = proximity
-}
-
-func (o *WhereOptions) isExact() bool {
-	return o.exact
-}
-
-func (o *WhereOptions) setExact(exact bool) {
-	o.exact = exact
-}
-
-func (o *WhereOptions) getMethod() *WhereMethodCall {
-	return o.method
-}
-
-func (o *WhereOptions) setMethod(method *WhereMethodCall) {
-	o.method = method
-}
-
-func (o *WhereOptions) getWhereShape() *ShapeToken {
-	return o.whereShape
-}
-
-func (o *WhereOptions) setWhereShape(whereShape *ShapeToken) {
-	o.whereShape = whereShape
-}
-
-func (o *WhereOptions) getDistanceErrorPct() float64 {
-	return o.distanceErrorPct
-}
-
-func (o *WhereOptions) setDistanceErrorPct(distanceErrorPct float64) {
-	o.distanceErrorPct = distanceErrorPct
-}
-
-type WhereToken struct {
+type whereToken struct {
 	fieldName     string
 	whereOperator WhereOperator
 	parameterName string
-	options       *WhereOptions
+	options       *whereOptions
 }
 
-func NewWhereToken() *WhereToken {
-	return &WhereToken{}
+func newWhereToken() *whereToken {
+	return &whereToken{}
 }
 
-func WhereToken_create(op WhereOperator, fieldName string, parameterName string) *WhereToken {
+func WhereToken_create(op WhereOperator, fieldName string, parameterName string) *whereToken {
 	return WhereToken_createWithOptions(op, fieldName, parameterName, nil)
 }
 
-func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterName string, options *WhereOptions) *WhereToken {
-	token := NewWhereToken()
+func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterName string, options *whereOptions) *whereToken {
+	token := newWhereToken()
 	token.fieldName = fieldName
 	token.parameterName = parameterName
 	token.whereOperator = op
@@ -194,59 +114,59 @@ func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterN
 	return token
 }
 
-func (t *WhereToken) GetFieldName() string {
+func (t *whereToken) GetFieldName() string {
 	return t.fieldName
 }
 
-func (t *WhereToken) setFieldName(fieldName string) {
+func (t *whereToken) setFieldName(fieldName string) {
 	t.fieldName = fieldName
 }
 
-func (t *WhereToken) getWhereOperator() WhereOperator {
+func (t *whereToken) getWhereOperator() WhereOperator {
 	return t.whereOperator
 }
 
-func (t *WhereToken) setWhereOperator(whereOperator WhereOperator) {
+func (t *whereToken) setWhereOperator(whereOperator WhereOperator) {
 	t.whereOperator = whereOperator
 }
 
-func (t *WhereToken) getParameterName() string {
+func (t *whereToken) getParameterName() string {
 	return t.parameterName
 }
 
-func (t *WhereToken) setParameterName(parameterName string) {
+func (t *whereToken) setParameterName(parameterName string) {
 	t.parameterName = parameterName
 }
 
-func (t *WhereToken) GetOptions() *WhereOptions {
+func (t *whereToken) GetOptions() *whereOptions {
 	return t.options
 }
 
-func (t *WhereToken) SetOptions(options *WhereOptions) {
+func (t *whereToken) SetOptions(options *whereOptions) {
 	t.options = options
 }
 
-func (t *WhereToken) addAlias(alias string) {
+func (t *whereToken) addAlias(alias string) {
 	if t.fieldName == "id()" {
 		return
 	}
 	t.fieldName = alias + "." + t.fieldName
 }
 
-func (t *WhereToken) writeMethod(writer *strings.Builder) bool {
-	if t.options.getMethod() != nil {
-		switch t.options.getMethod().methodType {
+func (t *whereToken) writeMethod(writer *strings.Builder) bool {
+	if t.options.method != nil {
+		switch t.options.method.methodType {
 		case MethodsType_CMP_X_CHG:
 			writer.WriteString("cmpxchg(")
 			break
 		default:
-			panicIf(true, "Unsupported method: %s", t.options.getMethod().methodType)
+			panicIf(true, "Unsupported method: %s", t.options.method.methodType)
 			// TODO: return as error?
-			//return NewIllegalArgumentException("Unsupported method: %s", options.getMethod().methodType);
+			//return NewIllegalArgumentException("Unsupported method: %s", options.method.methodType);
 		}
 
 		first := true
-		for _, parameter := range t.options.getMethod().parameters {
+		for _, parameter := range t.options.method.parameters {
 			if !first {
 				writer.WriteString(",")
 			}
@@ -256,9 +176,9 @@ func (t *WhereToken) writeMethod(writer *strings.Builder) bool {
 		}
 		writer.WriteString(")")
 
-		if t.options.getMethod().property != "" {
+		if t.options.method.property != "" {
 			writer.WriteString(".")
-			writer.WriteString(t.options.getMethod().property)
+			writer.WriteString(t.options.method.property)
 		}
 		return true
 	}
@@ -266,7 +186,7 @@ func (t *WhereToken) writeMethod(writer *strings.Builder) bool {
 	return false
 }
 
-func (t *WhereToken) WriteTo(writer *strings.Builder) {
+func (t *whereToken) writeTo(writer *strings.Builder) {
 	options := t.options
 	if options.boost != 0 {
 		writer.WriteString("boost(")
@@ -342,9 +262,9 @@ func (t *WhereToken) WriteTo(writer *strings.Builder) {
 	}
 }
 
-func (t *WhereToken) writeInnerWhere(writer *strings.Builder) {
+func (t *whereToken) writeInnerWhere(writer *strings.Builder) {
 
-	QueryToken_writeField(writer, t.fieldName)
+	writeQueryTokenField(writer, t.fieldName)
 
 	switch t.whereOperator {
 	case WhereOperator_EQUALS:
@@ -377,7 +297,7 @@ func (t *WhereToken) writeInnerWhere(writer *strings.Builder) {
 	}
 }
 
-func (t *WhereToken) specialOperator(writer *strings.Builder) {
+func (t *whereToken) specialOperator(writer *strings.Builder) {
 	options := t.options
 	parameterName := t.parameterName
 	switch t.whereOperator {
@@ -409,7 +329,7 @@ func (t *WhereToken) specialOperator(writer *strings.Builder) {
 		writer.WriteString(")")
 	case WhereOperator_SPATIAL_WITHIN, WhereOperator_SPATIAL_CONTAINS, WhereOperator_SPATIAL_DISJOINT, WhereOperator_SPATIAL_INTERSECTS:
 		writer.WriteString(", ")
-		options.whereShape.WriteTo(writer)
+		options.whereShape.writeTo(writer)
 
 		if math.Abs(options.distanceErrorPct-Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT) > 1e-40 {
 			writer.WriteString(", ")

@@ -2,19 +2,15 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &NegateToken{}
+var _ queryToken = &negateToken{}
 
 var (
-	NegateToken_INSTANCE = NewNegateToken()
+	negateTokenInstance = &negateToken{}
 )
 
-type NegateToken struct {
+type negateToken struct {
 }
 
-func NewNegateToken() *NegateToken {
-	return &NegateToken{}
-}
-
-func (t *NegateToken) WriteTo(writer *strings.Builder) {
+func (t *negateToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("not")
 }

@@ -15,7 +15,7 @@ func NewDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOpe
 	}
 }
 
-func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *DeclareToken, loadTokens []*LoadToken, fromAlias string) *DocumentQuery {
+func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *DocumentQuery {
 	return &DocumentQuery{
 		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, declareToken, loadTokens, fromAlias),
 	}
@@ -433,7 +433,7 @@ func (q *DocumentQuery) createDocumentQueryInternal(resultClass reflect.Type) *D
 
 func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
 
-	var newFieldsToFetch *FieldsToFetchToken
+	var newFieldsToFetch *fieldsToFetchToken
 
 	if queryData != nil && len(queryData.getFields()) > 0 {
 		fields := queryData.getFields()
@@ -458,8 +458,8 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 		q.updateFieldsToFetchToken(newFieldsToFetch)
 	}
 
-	var declareToken *DeclareToken
-	var loadTokens []*LoadToken
+	var declareToken *declareToken
+	var loadTokens []*loadToken
 	var fromAlias string
 	if queryData != nil {
 		declareToken = queryData.getDeclareToken()

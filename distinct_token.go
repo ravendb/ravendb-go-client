@@ -2,19 +2,15 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &DistinctToken{}
+var _ queryToken = &distinctToken{}
 
 var (
-	DistinctToken_INSTANCE = NewDistinctToken()
+	distinctTokenInstance = &distinctToken{}
 )
 
-type DistinctToken struct {
+type distinctToken struct {
 }
 
-func NewDistinctToken() *DistinctToken {
-	return &DistinctToken{}
-}
-
-func (t *DistinctToken) WriteTo(writer *strings.Builder) {
+func (t *distinctToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("distinct")
 }

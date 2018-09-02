@@ -2,17 +2,13 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &TrueToken{}
+var _ queryToken = &trueToken{}
 
-var TrueToken_INSTANCE = NewTrueToken()
+var trueTokenInstance = &trueToken{}
 
-type TrueToken struct {
+type trueToken struct {
 }
 
-func NewTrueToken() *TrueToken {
-	return &TrueToken{}
-}
-
-func (t *TrueToken) WriteTo(writer *strings.Builder) {
+func (t *trueToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("true")
 }

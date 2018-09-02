@@ -1,12 +1,12 @@
 package ravendb
 
 type MoreLikeThisScope struct {
-	_token             *MoreLikeThisToken
+	_token             *moreLikeThisToken
 	_addQueryParameter func(Object) string
 	_onDispose         func()
 }
 
-func NewMoreLikeThisScope(token *MoreLikeThisToken, addQueryParameter func(Object) string, onDispose func()) *MoreLikeThisScope {
+func NewMoreLikeThisScope(token *moreLikeThisToken, addQueryParameter func(Object) string, onDispose func()) *MoreLikeThisScope {
 	return &MoreLikeThisScope{
 		_token:             token,
 		_addQueryParameter: addQueryParameter,

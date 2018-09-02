@@ -4,8 +4,8 @@ type QueryData struct {
 	fields           []string
 	projections      []string
 	fromAlias        string
-	declareToken     *DeclareToken
-	loadTokens       []*LoadToken
+	declareToken     *declareToken
+	loadTokens       []*loadToken
 	isCustomFunction bool
 }
 
@@ -33,19 +33,19 @@ func (d *QueryData) setFromAlias(fromAlias string) {
 	d.fromAlias = fromAlias
 }
 
-func (d *QueryData) getDeclareToken() *DeclareToken {
+func (d *QueryData) getDeclareToken() *declareToken {
 	return d.declareToken
 }
 
-func (d *QueryData) setDeclareToken(declareToken *DeclareToken) {
+func (d *QueryData) setDeclareToken(declareToken *declareToken) {
 	d.declareToken = declareToken
 }
 
-func (d *QueryData) getLoadTokens() []*LoadToken {
+func (d *QueryData) getLoadTokens() []*loadToken {
 	return d.loadTokens
 }
 
-func (d *QueryData) setLoadTokens(loadTokens []*LoadToken) {
+func (d *QueryData) setLoadTokens(loadTokens []*loadToken) {
 	d.loadTokens = loadTokens
 }
 
@@ -61,7 +61,7 @@ func NewQueryData(fields []string, projections []string) *QueryData {
 	return NewQueryDataWithTokens(fields, projections, "", nil, nil, false)
 }
 
-func NewQueryDataWithTokens(fields []string, projections []string, fromAlias string, declareToken *DeclareToken, loadTokens []*LoadToken, isCustomFunction bool) *QueryData {
+func NewQueryDataWithTokens(fields []string, projections []string, fromAlias string, declareToken *declareToken, loadTokens []*loadToken, isCustomFunction bool) *QueryData {
 	return &QueryData{
 		fields:           fields,
 		projections:      projections,

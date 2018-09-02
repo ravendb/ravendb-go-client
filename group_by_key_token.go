@@ -2,31 +2,31 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &GroupByKeyToken{}
+var _ queryToken = &groupByKeyToken{}
 
-type GroupByKeyToken struct {
-	_fieldName     string
-	_projectedName string
+type groupByKeyToken struct {
+	fieldName     string
+	projectedName string
 }
 
-func NewGroupByKeyToken(fieldName string, projectedName string) *GroupByKeyToken {
-	return &GroupByKeyToken{
-		_fieldName:     fieldName,
-		_projectedName: projectedName,
+func newGroupByKeyToken(fieldName string, projectedName string) *groupByKeyToken {
+	return &groupByKeyToken{
+		fieldName:     fieldName,
+		projectedName: projectedName,
 	}
 }
 
-func GroupByKeyToken_create(fieldName string, projectedName string) *GroupByKeyToken {
-	return NewGroupByKeyToken(fieldName, projectedName)
+func GroupByKeyToken_create(fieldName string, projectedName string) *groupByKeyToken {
+	return newGroupByKeyToken(fieldName, projectedName)
 }
 
-func (t *GroupByKeyToken) WriteTo(writer *strings.Builder) {
-	QueryToken_writeField(writer, firstNonEmptyString(t._fieldName, "key()"))
+func (t *groupByKeyToken) writeTo(writer *strings.Builder) {
+	writeQueryTokenField(writer, firstNonEmptyString(t.fieldName, "key()"))
 
-	if t._projectedName == "" || t._projectedName == t._fieldName {
+	if t.projectedName == "" || t.projectedName == t.fieldName {
 		return
 	}
 
 	writer.WriteString(" as ")
-	writer.WriteString(t._projectedName)
+	writer.WriteString(t.projectedName)
 }

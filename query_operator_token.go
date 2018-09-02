@@ -2,10 +2,10 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &QueryOperatorToken{}
+var _ queryToken = &queryOperatorToken{}
 
-type QueryOperatorToken struct {
-	_queryOperator QueryOperator
+type queryOperatorToken struct {
+	queryOperator QueryOperator
 }
 
 var (
@@ -13,14 +13,14 @@ var (
 	QueryOperatorToken_OR  = NewQueryOperatorToken(QueryOperator_OR)
 )
 
-func NewQueryOperatorToken(queryOperator QueryOperator) *QueryOperatorToken {
-	return &QueryOperatorToken{
-		_queryOperator: queryOperator,
+func NewQueryOperatorToken(queryOperator QueryOperator) *queryOperatorToken {
+	return &queryOperatorToken{
+		queryOperator: queryOperator,
 	}
 }
 
-func (t *QueryOperatorToken) WriteTo(writer *strings.Builder) {
-	if t._queryOperator == QueryOperator_AND {
+func (t *queryOperatorToken) writeTo(writer *strings.Builder) {
+	if t.queryOperator == QueryOperator_AND {
 		writer.WriteString("and")
 		return
 	}

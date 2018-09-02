@@ -2,34 +2,30 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &FacetToken{}
+var _ queryToken = &facetToken{}
 
-type FacetToken struct {
+type facetToken struct {
 	_facetSetupDocumentId string
 	_aggregateByFieldName string
 	_alias                string
 	_ranges               []string
 	_optionsParameterName string
 
-	_aggregations []*FacetAggregationToken
+	_aggregations []*facetAggregationToken
 }
 
-func (t *FacetToken) GetName() string {
+func (t *facetToken) GetName() string {
 	return firstNonEmptyString(t._alias, t._aggregateByFieldName)
 }
 
-func NewFacetToken() *FacetToken {
-	return &FacetToken{}
-}
-
-func NewFacetTokenWithID(facetSetupDocumentId string) *FacetToken {
-	return &FacetToken{
+func NewFacetTokenWithID(facetSetupDocumentId string) *facetToken {
+	return &facetToken{
 		_facetSetupDocumentId: facetSetupDocumentId,
 	}
 }
 
-func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string, optionsParameterName string) *FacetToken {
-	return &FacetToken{
+func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string, optionsParameterName string) *facetToken {
+	return &facetToken{
 		_aggregateByFieldName: aggregateByFieldName,
 		_alias:                alias,
 		_ranges:               ranges,
@@ -37,7 +33,7 @@ func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string
 	}
 }
 
-func (t *FacetToken) WriteTo(writer *strings.Builder) {
+func (t *facetToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("facet(")
 
 	if t._facetSetupDocumentId != "" {
@@ -72,7 +68,7 @@ func (t *FacetToken) WriteTo(writer *strings.Builder) {
 			writer.WriteString(", ")
 		}
 		firstArgument = false
-		aggregation.WriteTo(writer)
+		aggregation.writeTo(writer)
 	}
 
 	if stringIsNotBlank(t._optionsParameterName) {
@@ -90,7 +86,7 @@ func (t *FacetToken) WriteTo(writer *strings.Builder) {
 	writer.WriteString(t._alias)
 }
 
-func FacetToken_create(facetSetupDocumentId string) *FacetToken {
+func createFacetToken(facetSetupDocumentId string) *facetToken {
 	if stringIsWhitespace(facetSetupDocumentId) {
 		//throw new IllegalArgumentException("facetSetupDocumentId cannot be null");
 		panicIf(true, "facetSetupDocumentId cannot be null")
@@ -99,7 +95,7 @@ func FacetToken_create(facetSetupDocumentId string) *FacetToken {
 	return NewFacetTokenWithID(facetSetupDocumentId)
 }
 
-func FacetToken_createWithFacet(facet *Facet, addQueryParameter func(Object) string) *FacetToken {
+func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(Object) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 	token := NewFacetTokenAll(facet.GetFieldName(), facet.GetDisplayFieldName(), nil, optionsParameterName)
 
@@ -107,7 +103,7 @@ func FacetToken_createWithFacet(facet *Facet, addQueryParameter func(Object) str
 	return token
 }
 
-func FacetToken_createWithRangeFacet(facet *RangeFacet, addQueryParameter func(Object) string) *FacetToken {
+func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(Object) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
 	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), facet.getRanges(), optionsParameterName)
@@ -117,7 +113,7 @@ func FacetToken_createWithRangeFacet(facet *RangeFacet, addQueryParameter func(O
 	return token
 }
 
-func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(Object) string) *FacetToken {
+func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(Object) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
 	var ranges []string
@@ -131,25 +127,25 @@ func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryPa
 	return token
 }
 
-func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(Object) string) *FacetToken {
+func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(Object) string) *facetToken {
 	// this is just a dispatcher
 	return facet.ToFacetToken(addQueryParameter)
 }
 
-func applyAggregations(facet FacetBase, token *FacetToken) {
+func applyAggregations(facet FacetBase, token *facetToken) {
 	m := facet.GetAggregations()
 
 	for key, value := range m {
-		var aggregationToken *FacetAggregationToken
+		var aggregationToken *facetAggregationToken
 		switch key {
 		case FacetAggregation_MAX:
-			aggregationToken = FacetAggregationToken_max(value)
+			aggregationToken = facetAggregationTokenMax(value)
 		case FacetAggregation_MIN:
-			aggregationToken = FacetAggregationToken_min(value)
+			aggregationToken = facetAggregationTokenMin(value)
 		case FacetAggregation_AVERAGE:
-			aggregationToken = FacetAggregationToken_average(value)
+			aggregationToken = facetAggregationTokenAverage(value)
 		case FacetAggregation_SUM:
-			aggregationToken = FacetAggregationToken_sum(value)
+			aggregationToken = facetAggregationTokenSum(value)
 		default:
 			panic("Unsupported aggregation method: " + key)
 			//throw new NotImplementedException("Unsupported aggregation method: " + aggregation.getKey());
@@ -166,19 +162,21 @@ func getOptionsParameterName(facet FacetBase, addQueryParameter func(Object) str
 	return addQueryParameter(facet.GetOptions())
 }
 
-type FacetAggregationToken struct {
+var _ queryToken = &facetAggregationToken{}
+
+type facetAggregationToken struct {
 	_fieldName   string
 	_aggregation FacetAggregation
 }
 
-func NewFacetAggregationToken(fieldName string, aggregation FacetAggregation) *FacetAggregationToken {
-	return &FacetAggregationToken{
+func newFacetAggregationToken(fieldName string, aggregation FacetAggregation) *facetAggregationToken {
+	return &facetAggregationToken{
 		_fieldName:   fieldName,
 		_aggregation: aggregation,
 	}
 }
 
-func (t *FacetAggregationToken) WriteTo(writer *strings.Builder) {
+func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
 	switch t._aggregation {
 	case FacetAggregation_MAX:
 		writer.WriteString("max(")
@@ -202,22 +200,22 @@ func (t *FacetAggregationToken) WriteTo(writer *strings.Builder) {
 	}
 }
 
-func FacetAggregationToken_max(fieldName string) *FacetAggregationToken {
+func facetAggregationTokenMax(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return NewFacetAggregationToken(fieldName, FacetAggregation_MAX)
+	return newFacetAggregationToken(fieldName, FacetAggregation_MAX)
 }
 
-func FacetAggregationToken_min(fieldName string) *FacetAggregationToken {
+func facetAggregationTokenMin(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return NewFacetAggregationToken(fieldName, FacetAggregation_MIN)
+	return newFacetAggregationToken(fieldName, FacetAggregation_MIN)
 }
 
-func FacetAggregationToken_average(fieldName string) *FacetAggregationToken {
+func facetAggregationTokenAverage(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return NewFacetAggregationToken(fieldName, FacetAggregation_AVERAGE)
+	return newFacetAggregationToken(fieldName, FacetAggregation_AVERAGE)
 }
 
-func FacetAggregationToken_sum(fieldName string) *FacetAggregationToken {
+func facetAggregationTokenSum(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return NewFacetAggregationToken(fieldName, FacetAggregation_SUM)
+	return newFacetAggregationToken(fieldName, FacetAggregation_SUM)
 }

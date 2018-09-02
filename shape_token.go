@@ -2,19 +2,19 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &ShapeToken{}
+var _ queryToken = &shapeToken{}
 
-type ShapeToken struct {
-	_shape string
+type shapeToken struct {
+	shape string
 }
 
-func NewShapeToken(shape string) *ShapeToken {
-	return &ShapeToken{
-		_shape: shape,
+func NewShapeToken(shape string) *shapeToken {
+	return &shapeToken{
+		shape: shape,
 	}
 }
 
-func ShapeToken_circle(radiusParameterName string, latitudeParameterName string, longitudeParameterName string, radiusUnits SpatialUnits) *ShapeToken {
+func ShapeToken_circle(radiusParameterName string, latitudeParameterName string, longitudeParameterName string, radiusUnits SpatialUnits) *shapeToken {
 	if radiusUnits == "" {
 		return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ")")
 	}
@@ -25,10 +25,10 @@ func ShapeToken_circle(radiusParameterName string, latitudeParameterName string,
 	return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Miles')")
 }
 
-func ShapeToken_wkt(shapeWktParameterName string) *ShapeToken {
+func ShapeToken_wkt(shapeWktParameterName string) *shapeToken {
 	return NewShapeToken("spatial.wkt($" + shapeWktParameterName + ")")
 }
 
-func (t *ShapeToken) WriteTo(writer *strings.Builder) {
-	writer.WriteString(t._shape)
+func (t *shapeToken) writeTo(writer *strings.Builder) {
+	writer.WriteString(t.shape)
 }

@@ -2,31 +2,31 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &DeclareToken{}
+var _ queryToken = &declareToken{}
 
-type DeclareToken struct {
+type declareToken struct {
 	name       string
 	parameters string
 	body       string
 }
 
-func NewDeclareToken(name string, body string, parameters string) *DeclareToken {
-	return &DeclareToken{
+func newDeclareToken(name string, body string, parameters string) *declareToken {
+	return &declareToken{
 		name:       name,
 		body:       body,
 		parameters: parameters,
 	}
 }
 
-func DeclareToken_create(name string, body string) *DeclareToken {
-	return DeclareToken_create2(name, body, "")
+func createDeclareToken(name string, body string) *declareToken {
+	return createDeclareTokenWithParams(name, body, "")
 }
 
-func DeclareToken_create2(name string, body string, parameters string) *DeclareToken {
-	return NewDeclareToken(name, body, parameters)
+func createDeclareTokenWithParams(name string, body string, parameters string) *declareToken {
+	return newDeclareToken(name, body, parameters)
 }
 
-func (t *DeclareToken) WriteTo(writer *strings.Builder) {
+func (t *declareToken) writeTo(writer *strings.Builder) {
 
 	writer.WriteString("declare ")
 	writer.WriteString("function ")

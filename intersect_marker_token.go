@@ -2,19 +2,15 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &IntersectMarkerToken{}
+var _ queryToken = &intersectMarkerToken{}
 
 var (
-	IntersectMarkerToken_INSTANCE = NewIntersectMarkerToken()
+	intersectMarkerTokenInstance = &intersectMarkerToken{}
 )
 
-type IntersectMarkerToken struct {
+type intersectMarkerToken struct {
 }
 
-func NewIntersectMarkerToken() *IntersectMarkerToken {
-	return &IntersectMarkerToken{}
-}
-
-func (t *IntersectMarkerToken) WriteTo(writer *strings.Builder) {
+func (t *intersectMarkerToken) writeTo(writer *strings.Builder) {
 	writer.WriteString(",")
 }

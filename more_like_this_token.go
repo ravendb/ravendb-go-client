@@ -2,26 +2,26 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &MoreLikeThisToken{}
+var _ queryToken = &moreLikeThisToken{}
 
-type MoreLikeThisToken struct {
+type moreLikeThisToken struct {
 	documentParameterName string
 	optionsParameterName  string
-	whereTokens           []QueryToken
+	whereTokens           []queryToken
 }
 
-func NewMoreLikeThisToken() *MoreLikeThisToken {
-	return &MoreLikeThisToken{}
+func newMoreLikeThisToken() *moreLikeThisToken {
+	return &moreLikeThisToken{}
 }
 
-func (t *MoreLikeThisToken) WriteTo(writer *strings.Builder) {
+func (t *moreLikeThisToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("moreLikeThis(")
 
 	if t.documentParameterName == "" {
-		var prevToken QueryToken
+		var prevToken queryToken
 		for _, whereToken := range t.whereTokens {
 			DocumentQueryHelper_addSpaceIfNeeded(prevToken, whereToken, writer)
-			whereToken.WriteTo(writer)
+			whereToken.writeTo(writer)
 			prevToken = whereToken
 		}
 	} else {

@@ -12,14 +12,14 @@ type QueryOperation struct {
 	_metadataOnly            bool
 	_indexEntriesOnly        bool
 	_currentQueryResults     *QueryResult
-	_fieldsToFetch           *FieldsToFetchToken
+	_fieldsToFetch           *fieldsToFetchToken
 	_sp                      *Stopwatch
 	_disableEntitiesTracking bool
 
 	// static  Log logger = LogFactory.getLog(QueryOperation.class);
 }
 
-func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *FieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) *QueryOperation {
+func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) *QueryOperation {
 	res := &QueryOperation{
 		_session:                 session,
 		_indexName:               indexName,
@@ -184,7 +184,7 @@ func jsonIsValueNode(v interface{}) bool {
 	return false
 }
 
-func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *FieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
+func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
 	_, ok := jsonGetAsBool(metadata, "@projection")
 	if !ok {
 		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)

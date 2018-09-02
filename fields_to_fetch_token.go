@@ -2,23 +2,23 @@ package ravendb
 
 import "strings"
 
-var _ QueryToken = &FieldsToFetchToken{}
+var _ queryToken = &fieldsToFetchToken{}
 
-type FieldsToFetchToken struct {
+type fieldsToFetchToken struct {
 	fieldsToFetch  []string
 	projections    []string
 	customFunction bool
 }
 
-func NewFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool) *FieldsToFetchToken {
-	return &FieldsToFetchToken{
+func newFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
+	return &fieldsToFetchToken{
 		fieldsToFetch:  fieldsToFetch,
 		projections:    projections,
 		customFunction: customFunction,
 	}
 }
 
-func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, customFunction bool) *FieldsToFetchToken {
+func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
 	if len(fieldsToFetch) == 0 {
 		panicIf(true, "fieldToFetch cannot be null")
 		//return NewIllegalArgumentException("fieldToFetch cannot be null");
@@ -29,17 +29,17 @@ func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, cus
 		// return NewIllegalArgumentException("Length of projections must be the same as length of field to fetch");
 	}
 
-	return NewFieldsToFetchToken(fieldsToFetch, projections, customFunction)
+	return newFieldsToFetchToken(fieldsToFetch, projections, customFunction)
 }
 
-func (t *FieldsToFetchToken) WriteTo(writer *strings.Builder) {
+func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) {
 	for i, fieldToFetch := range t.fieldsToFetch {
 
 		if i > 0 {
 			writer.WriteString(", ")
 		}
 
-		QueryToken_writeField(writer, fieldToFetch)
+		writeQueryTokenField(writer, fieldToFetch)
 
 		if t.customFunction {
 			continue
