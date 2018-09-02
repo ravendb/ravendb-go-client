@@ -35,6 +35,8 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
+
+		var result []*RegexMe
 		query := session.Advanced().DocumentQueryOld(reflect.TypeOf(&RegexMe{}))
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
@@ -43,7 +45,7 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
 
 		assert.Equal(t, iq.GetQueryParameters()["p0"], "^[a-z ]{2,4}love")
 
-		result, err := query.ToListOld()
+		err = query.ToList(&result)
 		assert.NoError(t, err)
 		assert.Equal(t, len(result), 4)
 
@@ -59,14 +61,6 @@ func NewRegexMe(text string) *RegexMe {
 	return &RegexMe{
 		Text: text,
 	}
-}
-
-func (r *RegexMe) getText() string {
-	return r.Text
-}
-
-func (r *RegexMe) setText(text string) {
-	r.Text = text
 }
 
 func TestRegexQuery(t *testing.T) {
