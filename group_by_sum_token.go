@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &GroupBySumToken{}
 
 type GroupBySumToken struct {
@@ -18,15 +20,15 @@ func GroupBySumToken_create(fieldName string, projectedName string) *GroupBySumT
 	return NewGroupBySumToken(fieldName, projectedName)
 }
 
-func (t *GroupBySumToken) WriteTo(writer *StringBuilder) {
-	writer.append("sum(")
-	writer.append(t._fieldName)
-	writer.append(")")
+func (t *GroupBySumToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("sum(")
+	writer.WriteString(t._fieldName)
+	writer.WriteString(")")
 
 	if t._projectedName == "" {
 		return
 	}
 
-	writer.append(" as ")
-	writer.append(t._projectedName)
+	writer.WriteString(" as ")
+	writer.WriteString(t._projectedName)
 }

@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &OpenSubclauseToken{}
 
 var (
@@ -13,6 +15,6 @@ func NewOpenSubclauseToken() *OpenSubclauseToken {
 	return &OpenSubclauseToken{}
 }
 
-func (t *OpenSubclauseToken) WriteTo(writer *StringBuilder) {
-	writer.append("(")
+func (t *OpenSubclauseToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("(")
 }

@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &FacetToken{}
 
 type FacetToken struct {
@@ -35,13 +37,13 @@ func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string
 	}
 }
 
-func (t *FacetToken) WriteTo(writer *StringBuilder) {
-	writer.append("facet(")
+func (t *FacetToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("facet(")
 
 	if t._facetSetupDocumentId != "" {
-		writer.append("id('")
-		writer.append(t._facetSetupDocumentId)
-		writer.append("'))")
+		writer.WriteString("id('")
+		writer.WriteString(t._facetSetupDocumentId)
+		writer.WriteString("'))")
 
 		return
 	}
@@ -49,17 +51,17 @@ func (t *FacetToken) WriteTo(writer *StringBuilder) {
 	firstArgument := false
 
 	if t._aggregateByFieldName != "" {
-		writer.append(t._aggregateByFieldName)
+		writer.WriteString(t._aggregateByFieldName)
 	} else if len(t._ranges) != 0 {
 		firstInRange := true
 
 		for _, rang := range t._ranges {
 			if !firstInRange {
-				writer.append(", ")
+				writer.WriteString(", ")
 			}
 
 			firstInRange = false
-			writer.append(rang)
+			writer.WriteString(rang)
 		}
 	} else {
 		firstArgument = true
@@ -67,25 +69,25 @@ func (t *FacetToken) WriteTo(writer *StringBuilder) {
 
 	for _, aggregation := range t._aggregations {
 		if !firstArgument {
-			writer.append(", ")
+			writer.WriteString(", ")
 		}
 		firstArgument = false
 		aggregation.WriteTo(writer)
 	}
 
 	if stringIsNotBlank(t._optionsParameterName) {
-		writer.append(", $")
-		writer.append(t._optionsParameterName)
+		writer.WriteString(", $")
+		writer.WriteString(t._optionsParameterName)
 	}
 
-	writer.append(")")
+	writer.WriteString(")")
 
 	if stringIsBlank(t._alias) || t._alias == t._aggregateByFieldName {
 		return
 	}
 
-	writer.append(" as ")
-	writer.append(t._alias)
+	writer.WriteString(" as ")
+	writer.WriteString(t._alias)
 }
 
 func FacetToken_create(facetSetupDocumentId string) *FacetToken {
@@ -176,24 +178,24 @@ func NewFacetAggregationToken(fieldName string, aggregation FacetAggregation) *F
 	}
 }
 
-func (t *FacetAggregationToken) WriteTo(writer *StringBuilder) {
+func (t *FacetAggregationToken) WriteTo(writer *strings.Builder) {
 	switch t._aggregation {
 	case FacetAggregation_MAX:
-		writer.append("max(")
-		writer.append(t._fieldName)
-		writer.append(")")
+		writer.WriteString("max(")
+		writer.WriteString(t._fieldName)
+		writer.WriteString(")")
 	case FacetAggregation_MIN:
-		writer.append("min(")
-		writer.append(t._fieldName)
-		writer.append(")")
+		writer.WriteString("min(")
+		writer.WriteString(t._fieldName)
+		writer.WriteString(")")
 	case FacetAggregation_AVERAGE:
-		writer.append("avg(")
-		writer.append(t._fieldName)
-		writer.append(")")
+		writer.WriteString("avg(")
+		writer.WriteString(t._fieldName)
+		writer.WriteString(")")
 	case FacetAggregation_SUM:
-		writer.append("sum(")
-		writer.append(t._fieldName)
-		writer.append(")")
+		writer.WriteString("sum(")
+		writer.WriteString(t._fieldName)
+		writer.WriteString(")")
 	default:
 		panicIf(true, "Invalid aggregation mode: %s", t._aggregation)
 		//throw new IllegalArgumentException("Invalid aggregation mode: " + _aggregation);

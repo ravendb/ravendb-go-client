@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &NegateToken{}
 
 var (
@@ -13,6 +15,6 @@ func NewNegateToken() *NegateToken {
 	return &NegateToken{}
 }
 
-func (t *NegateToken) WriteTo(writer *StringBuilder) {
-	writer.append("not")
+func (t *NegateToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("not")
 }

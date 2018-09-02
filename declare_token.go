@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &DeclareToken{}
 
 type DeclareToken struct {
@@ -24,18 +26,18 @@ func DeclareToken_create2(name string, body string, parameters string) *DeclareT
 	return NewDeclareToken(name, body, parameters)
 }
 
-func (t *DeclareToken) WriteTo(writer *StringBuilder) {
+func (t *DeclareToken) WriteTo(writer *strings.Builder) {
 
-	writer.append("declare ")
-	writer.append("function ")
-	writer.append(t.name)
-	writer.append("(")
-	writer.append(t.parameters)
-	writer.append(") ")
-	writer.append("{")
-	writer.append("\n")
-	writer.append(t.body)
-	writer.append("\n")
-	writer.append("}")
-	writer.append("\n")
+	writer.WriteString("declare ")
+	writer.WriteString("function ")
+	writer.WriteString(t.name)
+	writer.WriteString("(")
+	writer.WriteString(t.parameters)
+	writer.WriteString(") ")
+	writer.WriteString("{")
+	writer.WriteString("\n")
+	writer.WriteString(t.body)
+	writer.WriteString("\n")
+	writer.WriteString("}")
+	writer.WriteString("\n")
 }

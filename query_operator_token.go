@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &QueryOperatorToken{}
 
 type QueryOperatorToken struct {
@@ -17,11 +19,11 @@ func NewQueryOperatorToken(queryOperator QueryOperator) *QueryOperatorToken {
 	}
 }
 
-func (t *QueryOperatorToken) WriteTo(writer *StringBuilder) {
+func (t *QueryOperatorToken) WriteTo(writer *strings.Builder) {
 	if t._queryOperator == QueryOperator_AND {
-		writer.append("and")
+		writer.WriteString("and")
 		return
 	}
 
-	writer.append("or")
+	writer.WriteString("or")
 }

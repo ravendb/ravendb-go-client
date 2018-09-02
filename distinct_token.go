@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &DistinctToken{}
 
 var (
@@ -13,6 +15,6 @@ func NewDistinctToken() *DistinctToken {
 	return &DistinctToken{}
 }
 
-func (t *DistinctToken) WriteTo(writer *StringBuilder) {
-	writer.append("distinct")
+func (t *DistinctToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("distinct")
 }

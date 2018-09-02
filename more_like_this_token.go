@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &MoreLikeThisToken{}
 
 type MoreLikeThisToken struct {
@@ -12,8 +14,8 @@ func NewMoreLikeThisToken() *MoreLikeThisToken {
 	return &MoreLikeThisToken{}
 }
 
-func (t *MoreLikeThisToken) WriteTo(writer *StringBuilder) {
-	writer.append("moreLikeThis(")
+func (t *MoreLikeThisToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("moreLikeThis(")
 
 	if t.documentParameterName == "" {
 		var prevToken QueryToken
@@ -23,17 +25,17 @@ func (t *MoreLikeThisToken) WriteTo(writer *StringBuilder) {
 			prevToken = whereToken
 		}
 	} else {
-		writer.append("$")
-		writer.append(t.documentParameterName)
+		writer.WriteString("$")
+		writer.WriteString(t.documentParameterName)
 	}
 
 	if t.optionsParameterName == "" {
-		writer.append(")")
+		writer.WriteString(")")
 		return
 	}
 
-	writer.append(", $")
-	writer.append(t.optionsParameterName)
-	writer.append(")")
+	writer.WriteString(", $")
+	writer.WriteString(t.optionsParameterName)
+	writer.WriteString(")")
 
 }

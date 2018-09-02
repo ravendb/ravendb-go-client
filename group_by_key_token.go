@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &GroupByKeyToken{}
 
 type GroupByKeyToken struct {
@@ -18,13 +20,13 @@ func GroupByKeyToken_create(fieldName string, projectedName string) *GroupByKeyT
 	return NewGroupByKeyToken(fieldName, projectedName)
 }
 
-func (t *GroupByKeyToken) WriteTo(writer *StringBuilder) {
+func (t *GroupByKeyToken) WriteTo(writer *strings.Builder) {
 	QueryToken_writeField(writer, firstNonEmptyString(t._fieldName, "key()"))
 
 	if t._projectedName == "" || t._projectedName == t._fieldName {
 		return
 	}
 
-	writer.append(" as ")
-	writer.append(t._projectedName)
+	writer.WriteString(" as ")
+	writer.WriteString(t._projectedName)
 }

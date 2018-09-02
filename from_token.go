@@ -40,32 +40,35 @@ func FromToken_create(indexName string, collectionName string, alias string) *Fr
 	return NewFromToken(indexName, collectionName, alias)
 }
 
-func (t *FromToken) WriteTo(writer *StringBuilder) {
+func (t *FromToken) WriteTo(writer *strings.Builder) {
 	if t.indexName == "" && t.collectionName == "" {
 		panicIf(true, "Either indexName or collectionName must be specified")
 		// NewIllegalStateException("Either indexName or collectionName must be specified");
 	}
 
 	if t.dynamic {
-		writer.append("from ")
+		writer.WriteString("from ")
 
 		hasWhitespace := (strings.IndexAny(t.collectionName, " \t\r\n") != -1)
 		if hasWhitespace {
 			if strings.Contains(t.collectionName, "\"") {
 				t.throwInvalidCollectionName()
 			}
-			writer.append('"').append(t.collectionName).append('"')
+			writer.WriteString(`"`)
+			writer.WriteString(t.collectionName)
+			writer.WriteString(`"`)
 		} else {
 			QueryToken_writeField(writer, t.collectionName)
 		}
 	} else {
-		writer.append("from index '")
-		writer.append(t.indexName)
-		writer.append("'")
+		writer.WriteString("from index '")
+		writer.WriteString(t.indexName)
+		writer.WriteString("'")
 	}
 
 	if t.alias != "" {
-		writer.append(" as ").append(t.alias)
+		writer.WriteString(" as ")
+		writer.WriteString(t.alias)
 	}
 }
 

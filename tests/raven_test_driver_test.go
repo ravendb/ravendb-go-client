@@ -3,11 +3,16 @@ package tests
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
 	"strings"
@@ -530,7 +535,7 @@ func getRavendbExePath() string {
 	must(err)
 
 	path := filepath.Join(cwd, "..", "RavenDB", "Server", "Raven.Server")
-	if ravendb.IsWindows() {
+	if IsWindows() {
 		path += ".exe"
 	}
 	if ravendb.FileExists(path) {
@@ -538,7 +543,7 @@ func getRavendbExePath() string {
 	}
 
 	path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
-	if ravendb.IsWindows() {
+	if IsWindows() {
 		path += ".exe"
 	}
 	return path
@@ -554,7 +559,7 @@ func downloadServerIfNeededWindows() {
 	if err != nil {
 		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
 		timeStart := time.Now()
-		err := ravendb.HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
+		err := HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
 		must(err)
 		fmt.Printf(" took %s\n", time.Since(timeStart))
 	}
@@ -567,7 +572,7 @@ func downloadServerIfNeededWindows() {
 }
 
 func downloadServerIfNeeded() {
-	if ravendb.IsWindows() {
+	if IsWindows() {
 		downloadServerIfNeededWindows()
 		return
 	}
@@ -700,6 +705,55 @@ func logGoroutines(file string) {
 	}
 	defer f.Close()
 	profile.WriteTo(f, 2)
+}
+
+func IsWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
+func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+	return func(netw, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(netw, addr, cTimeout)
+		if err != nil {
+			return nil, err
+		}
+		conn.SetDeadline(time.Now().Add(rwTimeout))
+		return conn, nil
+	}
+}
+
+// can be used for http.Get() requests with better timeouts. New one must be created
+// for each Get() request
+func newTimeoutClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
+}
+
+func downloadURL(url string) ([]byte, error) {
+	// default timeout for http.Get() is really long, so dial it down
+	// for both connection and read/write timeouts
+	timeoutClient := newTimeoutClient(time.Second*120, time.Second*120)
+	resp, err := timeoutClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("'%s': status code not 200 (%d)", url, resp.StatusCode))
+	}
+	return ioutil.ReadAll(resp.Body)
+}
+
+func HttpDl(url string, destPath string) error {
+	d, err := downloadURL(url)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(destPath, d, 0755)
 }
 
 func TestMain(m *testing.M) {

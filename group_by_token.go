@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &GroupByToken{}
 
 type GroupByToken struct {
@@ -22,13 +24,13 @@ func GroupByToken_createWithMethod(fieldName string, method GroupByMethod) *Grou
 	return NewGroupByToken(fieldName, method)
 }
 
-func (t *GroupByToken) WriteTo(writer *StringBuilder) {
+func (t *GroupByToken) WriteTo(writer *strings.Builder) {
 	_method := t._method
 	if _method != GroupByMethod_NONE {
-		writer.append("Array(")
+		writer.WriteString("Array(")
 	}
 	QueryToken_writeField(writer, t._fieldName)
 	if _method != GroupByMethod_NONE {
-		writer.append(")")
+		writer.WriteString(")")
 	}
 }

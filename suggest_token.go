@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &SuggestToken{}
 
 type SuggestToken struct {
@@ -20,16 +22,16 @@ func SuggestToken_create(fieldName string, termParameterName string, optionsPara
 	return NewSuggestToken(fieldName, termParameterName, optionsParameterName)
 }
 
-func (t *SuggestToken) WriteTo(writer *StringBuilder) {
-	writer.append("suggest(")
-	writer.append(t._fieldName)
-	writer.append(", $")
-	writer.append(t._termParameterName)
+func (t *SuggestToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString("suggest(")
+	writer.WriteString(t._fieldName)
+	writer.WriteString(", $")
+	writer.WriteString(t._termParameterName)
 
 	if t._optionsParameterName != "" {
-		writer.append(", $")
-		writer.append(t._optionsParameterName)
+		writer.WriteString(", $")
+		writer.WriteString(t._optionsParameterName)
 	}
 
-	writer.append(")")
+	writer.WriteString(")")
 }

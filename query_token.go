@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 func isRqlTokenKeyword(s string) bool {
 	switch s {
 	case "as", "select", "where", "load",
@@ -14,17 +16,17 @@ func isRqlTokenKeyword(s string) bool {
 // writeField. We make writeField a stand-alone helper function and make QueryToken
 // an interface
 type QueryToken interface {
-	WriteTo(*StringBuilder)
+	WriteTo(*strings.Builder)
 }
 
-func QueryToken_writeField(writer *StringBuilder, field string) {
+func QueryToken_writeField(writer *strings.Builder, field string) {
 	isKeyWord := isRqlTokenKeyword(field)
 	if isKeyWord {
-		writer.append("'")
+		writer.WriteString("'")
 	}
-	writer.append(field)
+	writer.WriteString(field)
 
 	if isKeyWord {
-		writer.append("'")
+		writer.WriteString("'")
 	}
 }

@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &ShapeToken{}
 
 type ShapeToken struct {
@@ -27,6 +29,6 @@ func ShapeToken_wkt(shapeWktParameterName string) *ShapeToken {
 	return NewShapeToken("spatial.wkt($" + shapeWktParameterName + ")")
 }
 
-func (t *ShapeToken) WriteTo(writer *StringBuilder) {
-	writer.append(t._shape)
+func (t *ShapeToken) WriteTo(writer *strings.Builder) {
+	writer.WriteString(t._shape)
 }

@@ -1,5 +1,7 @@
 package ravendb
 
+import "strings"
+
 var _ QueryToken = &FieldsToFetchToken{}
 
 type FieldsToFetchToken struct {
@@ -30,11 +32,11 @@ func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, cus
 	return NewFieldsToFetchToken(fieldsToFetch, projections, customFunction)
 }
 
-func (t *FieldsToFetchToken) WriteTo(writer *StringBuilder) {
+func (t *FieldsToFetchToken) WriteTo(writer *strings.Builder) {
 	for i, fieldToFetch := range t.fieldsToFetch {
 
 		if i > 0 {
-			writer.append(", ")
+			writer.WriteString(", ")
 		}
 
 		QueryToken_writeField(writer, fieldToFetch)
@@ -51,7 +53,7 @@ func (t *FieldsToFetchToken) WriteTo(writer *StringBuilder) {
 			continue
 		}
 
-		writer.append(" as ")
-		writer.append(projection)
+		writer.WriteString(" as ")
+		writer.WriteString(projection)
 	}
 }

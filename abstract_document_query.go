@@ -926,7 +926,7 @@ func (q *AbstractDocumentQuery) String() string {
 		panicIf(true, "A clause was not closed correctly within this query, current clause depth = %d", q._currentClauseDepth)
 	}
 
-	queryText := NewStringBuilder()
+	queryText := &strings.Builder{}
 	q.buildDeclare(queryText)
 	q.buildFrom(queryText)
 	q.buildGroupBy(queryText)
@@ -940,16 +940,16 @@ func (q *AbstractDocumentQuery) String() string {
 	return queryText.String()
 }
 
-func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
+func (q *AbstractDocumentQuery) buildInclude(queryText *strings.Builder) {
 	if len(q.includes) == 0 {
 		return
 	}
 
 	q.includes = StringArrayRemoveDuplicates(q.includes)
-	queryText.append(" include ")
+	queryText.WriteString(" include ")
 	for i, include := range q.includes {
 		if i > 0 {
-			queryText.append(",")
+			queryText.WriteString(",")
 		}
 
 		requiredQuotes := false
@@ -963,9 +963,11 @@ func (q *AbstractDocumentQuery) buildInclude(queryText *StringBuilder) {
 
 		if requiredQuotes {
 			s := strings.Replace(include, "'", "\\'", -1)
-			queryText.append("'").append(s).append("'")
+			queryText.WriteString("'")
+			queryText.WriteString(s)
+			queryText.WriteString("'")
 		} else {
-			queryText.append(include)
+			queryText.WriteString(include)
 		}
 	}
 }
@@ -1053,18 +1055,18 @@ func (q *AbstractDocumentQuery) UpdateStatsAndHighlightings(queryResult *QueryRe
 	//TBD 4.1 Highlightings.Update(queryResult);
 }
 
-func (q *AbstractDocumentQuery) buildSelect(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildSelect(writer *strings.Builder) {
 	if len(q.selectTokens) == 0 {
 		return
 	}
 
-	writer.append(" select ")
+	writer.WriteString(" select ")
 
 	if len(q.selectTokens) == 1 {
 		tok := q.selectTokens[0]
 		if dtok, ok := tok.(*DistinctToken); ok {
 			dtok.WriteTo(writer)
-			writer.append(" *")
+			writer.WriteString(" *")
 			return
 		}
 	}
@@ -1073,7 +1075,7 @@ func (q *AbstractDocumentQuery) buildSelect(writer *StringBuilder) {
 		if i > 0 {
 			prevToken := q.selectTokens[i-1]
 			if _, ok := prevToken.(*DistinctToken); !ok {
-				writer.append(",")
+				writer.WriteString(",")
 			}
 		}
 
@@ -1087,41 +1089,41 @@ func (q *AbstractDocumentQuery) buildSelect(writer *StringBuilder) {
 	}
 }
 
-func (q *AbstractDocumentQuery) buildFrom(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildFrom(writer *strings.Builder) {
 	q.fromToken.WriteTo(writer)
 }
 
-func (q *AbstractDocumentQuery) buildDeclare(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildDeclare(writer *strings.Builder) {
 	if q.declareToken != nil {
 		q.declareToken.WriteTo(writer)
 	}
 }
 
-func (q *AbstractDocumentQuery) buildLoad(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildLoad(writer *strings.Builder) {
 	if len(q.loadTokens) == 0 {
 		return
 	}
 
-	writer.append(" load ")
+	writer.WriteString(" load ")
 
 	for i, tok := range q.loadTokens {
 		if i != 0 {
-			writer.append(", ")
+			writer.WriteString(", ")
 		}
 
 		tok.WriteTo(writer)
 	}
 }
 
-func (q *AbstractDocumentQuery) buildWhere(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildWhere(writer *strings.Builder) {
 	if len(q.whereTokens) == 0 {
 		return
 	}
 
-	writer.append(" where ")
+	writer.WriteString(" where ")
 
 	if q.isIntersect {
-		writer.append("intersect(")
+		writer.WriteString("intersect(")
 	}
 
 	for i, tok := range q.whereTokens {
@@ -1134,35 +1136,35 @@ func (q *AbstractDocumentQuery) buildWhere(writer *StringBuilder) {
 	}
 
 	if q.isIntersect {
-		writer.append(") ")
+		writer.WriteString(") ")
 	}
 }
 
-func (q *AbstractDocumentQuery) buildGroupBy(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildGroupBy(writer *strings.Builder) {
 	if len(q.groupByTokens) == 0 {
 		return
 	}
 
-	writer.append(" group by ")
+	writer.WriteString(" group by ")
 
 	for i, token := range q.groupByTokens {
 		if i > 0 {
-			writer.append(", ")
+			writer.WriteString(", ")
 		}
 		token.WriteTo(writer)
 	}
 }
 
-func (q *AbstractDocumentQuery) buildOrderBy(writer *StringBuilder) {
+func (q *AbstractDocumentQuery) buildOrderBy(writer *strings.Builder) {
 	if len(q.orderByTokens) == 0 {
 		return
 	}
 
-	writer.append(" order by ")
+	writer.WriteString(" order by ")
 
 	for i, token := range q.orderByTokens {
 		if i > 0 {
-			writer.append(", ")
+			writer.WriteString(", ")
 		}
 
 		token.WriteTo(writer)

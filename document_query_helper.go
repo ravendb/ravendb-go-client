@@ -1,6 +1,8 @@
 package ravendb
 
-func DocumentQueryHelper_addSpaceIfNeeded(previousToken QueryToken, currentToken QueryToken, writer *StringBuilder) {
+import "strings"
+
+func DocumentQueryHelper_addSpaceIfNeeded(previousToken QueryToken, currentToken QueryToken, writer *strings.Builder) {
 	if previousToken == nil {
 		return
 	}
@@ -16,5 +18,5 @@ func DocumentQueryHelper_addSpaceIfNeeded(previousToken QueryToken, currentToken
 	if skip {
 		return
 	}
-	writer.append(" ")
+	writer.WriteString(" ")
 }

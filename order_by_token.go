@@ -57,22 +57,22 @@ func OrderByToken_createDescending(fieldName string, ordering OrderingType) *Ord
 	return NewOrderByToken(fieldName, true, ordering)
 }
 
-func (t *OrderByToken) WriteTo(writer *StringBuilder) {
+func (t *OrderByToken) WriteTo(writer *strings.Builder) {
 	QueryToken_writeField(writer, t._fieldName)
 
 	switch t._ordering {
 	case OrderingType_LONG:
-		writer.append(" as long")
+		writer.WriteString(" as long")
 		break
 	case OrderingType_DOUBLE:
-		writer.append(" as double")
+		writer.WriteString(" as double")
 		break
 	case OrderingType_ALPHA_NUMERIC:
-		writer.append(" as alphaNumeric")
+		writer.WriteString(" as alphaNumeric")
 		break
 	}
 
 	if t._descending { // we only add this if we have to, ASC is the default and reads nicer
-		writer.append(" desc")
+		writer.WriteString(" desc")
 	}
 }

@@ -1,6 +1,9 @@
 package ravendb
 
-import "math"
+import (
+	"math"
+	"strings"
+)
 
 var _ QueryToken = &WhereToken{}
 
@@ -230,11 +233,11 @@ func (t *WhereToken) addAlias(alias string) {
 	t.fieldName = alias + "." + t.fieldName
 }
 
-func (t *WhereToken) writeMethod(writer *StringBuilder) bool {
+func (t *WhereToken) writeMethod(writer *strings.Builder) bool {
 	if t.options.getMethod() != nil {
 		switch t.options.getMethod().methodType {
 		case MethodsType_CMP_X_CHG:
-			writer.append("cmpxchg(")
+			writer.WriteString("cmpxchg(")
 			break
 		default:
 			panicIf(true, "Unsupported method: %s", t.options.getMethod().methodType)
@@ -245,17 +248,17 @@ func (t *WhereToken) writeMethod(writer *StringBuilder) bool {
 		first := true
 		for _, parameter := range t.options.getMethod().parameters {
 			if !first {
-				writer.append(",")
+				writer.WriteString(",")
 			}
 			first = false
-			writer.append("$")
-			writer.append(parameter)
+			writer.WriteString("$")
+			writer.WriteString(parameter)
 		}
-		writer.append(")")
+		writer.WriteString(")")
 
 		if t.options.getMethod().property != "" {
-			writer.append(".")
-			writer.append(t.options.getMethod().property)
+			writer.WriteString(".")
+			writer.WriteString(t.options.getMethod().property)
 		}
 		return true
 	}
@@ -263,105 +266,105 @@ func (t *WhereToken) writeMethod(writer *StringBuilder) bool {
 	return false
 }
 
-func (t *WhereToken) WriteTo(writer *StringBuilder) {
+func (t *WhereToken) WriteTo(writer *strings.Builder) {
 	options := t.options
 	if options.boost != 0 {
-		writer.append("boost(")
+		writer.WriteString("boost(")
 	}
 
 	if options.fuzzy != 0 {
-		writer.append("fuzzy(")
+		writer.WriteString("fuzzy(")
 	}
 
 	if options.proximity != 0 {
-		writer.append("proximity(")
+		writer.WriteString("proximity(")
 	}
 
 	if options.exact {
-		writer.append("exact(")
+		writer.WriteString("exact(")
 	}
 
 	switch t.whereOperator {
 	case WhereOperator_SEARCH:
-		writer.append("search(")
+		writer.WriteString("search(")
 		break
 	case WhereOperator_LUCENE:
-		writer.append("lucene(")
+		writer.WriteString("lucene(")
 		break
 	case WhereOperator_STARTS_WITH:
-		writer.append("startsWith(")
+		writer.WriteString("startsWith(")
 		break
 	case WhereOperator_ENDS_WITH:
-		writer.append("endsWith(")
+		writer.WriteString("endsWith(")
 		break
 	case WhereOperator_EXISTS:
-		writer.append("exists(")
+		writer.WriteString("exists(")
 		break
 	case WhereOperator_SPATIAL_WITHIN:
-		writer.append("spatial.within(")
+		writer.WriteString("spatial.within(")
 		break
 	case WhereOperator_SPATIAL_CONTAINS:
-		writer.append("spatial.contains(")
+		writer.WriteString("spatial.contains(")
 		break
 	case WhereOperator_SPATIAL_DISJOINT:
-		writer.append("spatial.disjoint(")
+		writer.WriteString("spatial.disjoint(")
 		break
 	case WhereOperator_SPATIAL_INTERSECTS:
-		writer.append("spatial.intersects(")
+		writer.WriteString("spatial.intersects(")
 		break
 	case WhereOperator_REGEX:
-		writer.append("regex(")
+		writer.WriteString("regex(")
 		break
 	}
 
 	t.writeInnerWhere(writer)
 
 	if options.exact {
-		writer.append(")")
+		writer.WriteString(")")
 	}
 
 	if options.proximity != 0 {
-		writer.append(", ")
-		writer.append(options.proximity)
-		writer.append(")")
+		writer.WriteString(", ")
+		builderWriteInt(writer, options.proximity)
+		writer.WriteString(")")
 	}
 
 	if options.fuzzy != 0 {
-		writer.append(", ")
-		writer.append(options.fuzzy)
-		writer.append(")")
+		writer.WriteString(", ")
+		builderWriteFloat64(writer, options.fuzzy)
+		writer.WriteString(")")
 	}
 
 	if options.boost != 0 {
-		writer.append(", ")
-		writer.append(options.boost)
-		writer.append(")")
+		writer.WriteString(", ")
+		builderWriteFloat64(writer, options.boost)
+		writer.WriteString(")")
 	}
 }
 
-func (t *WhereToken) writeInnerWhere(writer *StringBuilder) {
+func (t *WhereToken) writeInnerWhere(writer *strings.Builder) {
 
 	QueryToken_writeField(writer, t.fieldName)
 
 	switch t.whereOperator {
 	case WhereOperator_EQUALS:
-		writer.append(" = ")
+		writer.WriteString(" = ")
 		break
 
 	case WhereOperator_NOT_EQUALS:
-		writer.append(" != ")
+		writer.WriteString(" != ")
 		break
 	case WhereOperator_GREATER_THAN:
-		writer.append(" > ")
+		writer.WriteString(" > ")
 		break
 	case WhereOperator_GREATER_THAN_OR_EQUAL:
-		writer.append(" >= ")
+		writer.WriteString(" >= ")
 		break
 	case WhereOperator_LESS_THAN:
-		writer.append(" < ")
+		writer.WriteString(" < ")
 		break
 	case WhereOperator_LESS_THAN_OR_EQUAL:
-		writer.append(" <= ")
+		writer.WriteString(" <= ")
 		break
 	default:
 		t.specialOperator(writer)
@@ -369,49 +372,50 @@ func (t *WhereToken) writeInnerWhere(writer *StringBuilder) {
 	}
 
 	if !t.writeMethod(writer) {
-		writer.append("$").append(t.parameterName)
+		writer.WriteString("$")
+		writer.WriteString(t.parameterName)
 	}
 }
 
-func (t *WhereToken) specialOperator(writer *StringBuilder) {
+func (t *WhereToken) specialOperator(writer *strings.Builder) {
 	options := t.options
 	parameterName := t.parameterName
 	switch t.whereOperator {
 	case WhereOperator_IN:
-		writer.append(" in ($")
-		writer.append(parameterName)
-		writer.append(")")
+		writer.WriteString(" in ($")
+		writer.WriteString(parameterName)
+		writer.WriteString(")")
 	case WhereOperator_ALL_IN:
-		writer.append(" all in ($")
-		writer.append(parameterName)
-		writer.append(")")
+		writer.WriteString(" all in ($")
+		writer.WriteString(parameterName)
+		writer.WriteString(")")
 	case WhereOperator_BETWEEN:
-		writer.append(" between $")
-		writer.append(options.fromParameterName)
-		writer.append(" and $")
-		writer.append(options.toParameterName)
+		writer.WriteString(" between $")
+		writer.WriteString(options.fromParameterName)
+		writer.WriteString(" and $")
+		writer.WriteString(options.toParameterName)
 	case WhereOperator_SEARCH:
-		writer.append(", $")
-		writer.append(parameterName)
+		writer.WriteString(", $")
+		writer.WriteString(parameterName)
 		if options.searchOperator == SearchOperator_AND {
-			writer.append(", and")
+			writer.WriteString(", and")
 		}
-		writer.append(")")
+		writer.WriteString(")")
 	case WhereOperator_LUCENE, WhereOperator_STARTS_WITH, WhereOperator_ENDS_WITH, WhereOperator_REGEX:
-		writer.append(", $")
-		writer.append(parameterName)
-		writer.append(")")
+		writer.WriteString(", $")
+		writer.WriteString(parameterName)
+		writer.WriteString(")")
 	case WhereOperator_EXISTS:
-		writer.append(")")
+		writer.WriteString(")")
 	case WhereOperator_SPATIAL_WITHIN, WhereOperator_SPATIAL_CONTAINS, WhereOperator_SPATIAL_DISJOINT, WhereOperator_SPATIAL_INTERSECTS:
-		writer.append(", ")
+		writer.WriteString(", ")
 		options.whereShape.WriteTo(writer)
 
 		if math.Abs(options.distanceErrorPct-Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT) > 1e-40 {
-			writer.append(", ")
-			writer.append(options.distanceErrorPct)
+			writer.WriteString(", ")
+			builderWriteFloat64(writer, options.distanceErrorPct)
 		}
-		writer.append(")")
+		writer.WriteString(")")
 	default:
 		panicIf(true, "unsupported operator %d", t.whereOperator)
 	}
