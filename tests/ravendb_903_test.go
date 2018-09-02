@@ -80,9 +80,10 @@ func ravendb_903_doTest(t *testing.T, queryFunction func(*ravendb.DocumentSessio
 	gRavenTestDriver.waitForIndexing(store, "", 0)
 
 	{
+		var products []*Product2
 		session := openSessionMust(t, store)
 		query := queryFunction(session, index)
-		products, err := query.ToListOld()
+		err = query.ToList(&products)
 		assert.NoError(t, err)
 		assert.Equal(t, len(products), 1)
 
