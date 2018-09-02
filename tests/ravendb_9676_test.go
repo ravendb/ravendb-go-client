@@ -43,6 +43,7 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var items []*Item
 		q := session.QueryOld(reflect.TypeOf(&Item{}))
 		q = q.WaitForNonStaleResults(0)
 		f := ravendb.NewPointField("latitude", "longitude")
@@ -52,34 +53,35 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
 
 		q = q.Spatial2(f, fn)
 		q2 := q.OrderByDistance(ravendb.NewPointField("latitude", "longitude"), 10, 10)
-		items, err := q2.ToListOld()
+		err = q2.ToList(&items)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(items), 2)
 		session.Close()
 
-		item := items[0].(*Item)
+		item := items[0]
 		assert.Equal(t, item.Name, "Item1")
 
-		item = items[1].(*Item)
+		item = items[1]
 		assert.Equal(t, item.Name, "Item2")
 
+		items = nil
 		q = session.QueryOld(reflect.TypeOf(&Item{}))
 		q = q.WaitForNonStaleResults(0)
 		f = ravendb.NewPointField("latitude", "longitude")
 		q = q.Spatial2(f, fn)
 		q2 = q.OrderByDistanceDescending(ravendb.NewPointField("latitude", "longitude"), 10, 10)
-		items, err = q2.ToListOld()
+		err = q2.ToList(&items)
 
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(items), 2)
 		session.Close()
 
-		item = items[0].(*Item)
+		item = items[0]
 		assert.Equal(t, item.Name, "Item2")
 
-		item = items[1].(*Item)
+		item = items[1]
 		assert.Equal(t, item.Name, "Item1")
 	}
 }
