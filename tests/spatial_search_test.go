@@ -56,13 +56,14 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var events []*Event
 		var statsRef *ravendb.QueryStatistics
 		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
 		q = q.Statistics(&statsRef)
 		q = q.WhereLessThanOrEqual("date", ravendb.DateUtils_addYears(time.Now(), 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
-		events, err := q.ToListOld()
+		err = q.ToList(&events)
 		assert.NoError(t, err)
 
 		assert.True(t, len(events) > 0)
@@ -135,6 +136,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 
 		var queryStats *ravendb.QueryStatistics
 
+		var events []*Event
 		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
 		q = q.Statistics(&queryStats)
 		q = q.OpenSubclause()
@@ -144,14 +146,14 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		q = q.CloseSubclause()
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
-		events, err := q.ToListOld()
+		err = q.ToList(&events)
 		assert.NoError(t, err)
 
 		assert.Equal(t, queryStats.GetTotalResults(), 2)
 
 		var a []string
 		for _, event := range events {
-			a = append(a, event.(*Event).getVenue())
+			a = append(a, event.Venue)
 		}
 
 		assert.True(t, ravendb.StringArrayContainsExactly(a, []string{"c/3", "b/2"}))
@@ -203,16 +205,17 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	{
 		session := openSessionMust(t, store)
 
+		var events []*Event
 		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
-		events, err := q.ToListOld()
+		err = q.ToList(&events)
 		assert.NoError(t, err)
 
 		var a []string
 		for _, event := range events {
-			a = append(a, event.(*Event).getVenue())
+			a = append(a, event.Venue)
 		}
 		assert.True(t, ravendb.StringArrayContainsExactly(a, []string{"a/2", "b/2", "c/2", "a/1", "b/1", "c/1", "a/3", "b/3", "c/3"}))
 
@@ -222,16 +225,17 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	{
 		session := openSessionMust(t, store)
 
+		var events []*Event
 		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
-		events, err := q.ToListOld()
+		err = q.ToList(&events)
 		assert.NoError(t, err)
 
 		var a []string
 		for _, event := range events {
-			a = append(a, event.(*Event).getVenue())
+			a = append(a, event.Venue)
 		}
 		assert.True(t, ravendb.StringArrayContainsExactly(a, []string{"a/1", "a/2", "a/3", "b/1", "b/2", "b/3", "c/1", "c/2", "c/3"}))
 
@@ -272,46 +276,6 @@ func NewEventWithDateAndCapacity(venue string, latitude float64, longitude float
 		Date:      date,
 		Capacity:  capacity,
 	}
-}
-
-func (e *Event) getVenue() string {
-	return e.Venue
-}
-
-func (e *Event) setVenue(venue string) {
-	e.Venue = venue
-}
-
-func (e *Event) getLatitude() float64 {
-	return e.Latitude
-}
-
-func (e *Event) setLatitude(latitude float64) {
-	e.Latitude = latitude
-}
-
-func (e *Event) getLongitude() float64 {
-	return e.Longitude
-}
-
-func (e *Event) setLongitude(longitude float64) {
-	e.Longitude = longitude
-}
-
-func (e *Event) getDate() time.Time {
-	return e.Date
-}
-
-func (e *Event) setDate(date time.Time) {
-	e.Date = date
-}
-
-func (e *Event) getCapacity() int {
-	return e.Capacity
-}
-
-func (e *Event) setCapacity(capacity int) {
-	e.Capacity = capacity
 }
 
 func TestSpatialSearch(t *testing.T) {
