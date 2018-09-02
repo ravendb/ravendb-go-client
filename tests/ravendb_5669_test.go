@@ -22,6 +22,7 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var results []*Animal
 		query := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Animal{}), index)
 
 		query.OpenSubclause()
@@ -34,7 +35,7 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T) {
 
 		query.CloseSubclause()
 
-		results, err := query.ToListOld()
+		err = query.ToList(&results)
 		assert.NoError(t, err)
 		assert.Equal(t, len(results), 1)
 
@@ -56,6 +57,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var results []*Animal
 		query := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Animal{}), index)
 
 		query.OpenSubclause()
@@ -72,7 +74,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T) {
 
 		query.CloseSubclause()
 
-		results, err := query.ToListOld()
+		err = query.ToList(&results)
 		assert.NoError(t, err)
 		assert.Equal(t, len(results), 1)
 
