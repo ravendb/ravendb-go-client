@@ -61,14 +61,16 @@ func customSerialization_testSerialization(t *testing.T) {
 	//verify if query properly serialize value
 	{
 		session := openSessionMust(t, store)
+
+		var productsForTwoDollars []*Product3
 		q := session.QueryOld(reflect.TypeOf(&Product3{}))
 		q = q.WhereEquals("price", NewMoney(2, Dollar))
-		productsForTwoDollars, err := q.ToListOld()
+		err := q.ToList(&productsForTwoDollars)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(productsForTwoDollars), 1)
 
-		product := productsForTwoDollars[0].(*Product3)
+		product := productsForTwoDollars[0]
 		assert.Equal(t, product.Name, "Bread")
 
 		session.Close()
