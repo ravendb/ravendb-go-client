@@ -29,3 +29,9 @@ func writeQueryTokenField(writer *strings.Builder, field string) {
 
 	writer.WriteString(field)
 }
+
+type singleStringToken string
+
+func (t singleStringToken) writeTo(writer *strings.Builder) {
+	writer.WriteString(string(t))
+}
