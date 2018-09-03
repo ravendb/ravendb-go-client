@@ -222,12 +222,14 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
+
+		var users []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
 		q = q.WhereEquals("name", "Arek")
-		users, err := q.ToListOld()
+		err := q.ToList(&users)
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 1)
 	}
@@ -300,11 +302,12 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 		session := openSessionMust(t, store)
 
 		var stats *ravendb.QueryStatistics
+		var notUsed []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
-		_, err := q.ToListOld()
+		err := q.ToList(&notUsed)
 		assert.NoError(t, err)
 
 		indexName = stats.GetIndexName()
@@ -350,12 +353,13 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var notUsed []*User
 		var stats *ravendb.QueryStatistics
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
-		_, err := q.ToListOld()
+		err := q.ToList(&notUsed)
 		assert.NoError(t, err)
 
 		indexName = stats.GetIndexName()
@@ -404,17 +408,19 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var notUsed []*User
 		var statsRef *ravendb.QueryStatistics
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
-		_, err = q.ToListOld()
+		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
+
 
 		q = session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.Statistics(&statsRef)
 		q = q.WhereGreaterThan("age", 10)
-		_, err = q.ToListOld()
+		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
 
 		session.Close()
@@ -503,6 +509,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		options.SetMinimumDocumentFrequency(1)
 		options.SetMinimumTermFrequency(0)
 
+		var list []*Post
 		q := session.QueryInIndexOld(reflect.TypeOf(&Post{}), Posts_ByTitleAndDesc())
 
 		fn1 := func(x *ravendb.IFilterDocumentQueryBase) {
@@ -515,20 +522,20 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 
 		q = q.MoreLikeThisWithBuilder(fn2)
 
-		list, err := q.ToListOld()
+		err := q.ToList(&list)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(list), 3)
 
-		post := list[0].(*Post)
+		post := list[0]
 		assert.Equal(t, post.Title, "doduck")
 		assert.Equal(t, post.Desc, "prototype your idea")
 
-		post = list[1].(*Post)
+		post = list[1]
 		assert.Equal(t, post.Title, "doduck")
 		assert.Equal(t, post.Desc, "love programming")
 
-		post = list[2].(*Post)
+		post = list[2]
 
 		assert.Equal(t, post.Title, "We do")
 		assert.Equal(t, post.Desc, "prototype")
