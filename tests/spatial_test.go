@@ -89,6 +89,7 @@ func spatial_weirdSpatialResults(t *testing.T) {
 
 		var statsRef *ravendb.QueryStatistics
 
+		var result []*MyDocument
 		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&MyDocument{}), index)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
@@ -96,7 +97,7 @@ func spatial_weirdSpatialResults(t *testing.T) {
 		q = q.SelectFields(reflect.TypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
-		result, err := q.ToListOld()
+		err = q.ToList(&result)
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.GetTotalResults(), 0)
@@ -143,6 +144,7 @@ func spatial_matchSpatialResults(t *testing.T) {
 
 		var statsRef *ravendb.QueryStatistics
 
+		var result []*MyDocument
 		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&MyDocument{}), index)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 10, 10)
@@ -150,7 +152,7 @@ func spatial_matchSpatialResults(t *testing.T) {
 		q = q.SelectFields(reflect.TypeOf(&MyProjection{}), "id", "latitude", "longitude")
 		q = q.Take(50)
 
-		result, err := q.ToListOld()
+		err = q.ToList(&result)
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.GetTotalResults(), 1)
