@@ -12,7 +12,7 @@ func DocumentQueryHelper_addSpaceIfNeeded(previousToken queryToken, currentToken
 		skip = true
 	} else if _, ok := currentToken.(*closeSubclauseToken); ok {
 		skip = true
-	} else if _, ok := currentToken.(*intersectMarkerToken); ok {
+	} else if currentToken == intersectMarkerTokenInstance {
 		skip = true
 	}
 	if skip {
