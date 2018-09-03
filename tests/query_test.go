@@ -143,23 +143,24 @@ func query_queryMapReduceWithCount(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var results []*ReduceResult
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
 		q = q.OrderByDescending("count")
 		q = q.OfType(reflect.TypeOf(&ReduceResult{}))
-		results, err := q.ToListOld()
+		err := q.ToList(&results)
 		assert.NoError(t, err)
 
 		{
-			result := results[0].(*ReduceResult)
+			result := results[0]
 			assert.Equal(t, result.Count, 2)
 			assert.Equal(t, result.Name, "John")
 		}
 
 		{
-			result := results[1].(*ReduceResult)
+			result := results[1]
 			assert.Equal(t, result.Count, 1)
 			assert.Equal(t, result.Name, "Tarzan")
 		}
@@ -177,23 +178,24 @@ func query_queryMapReduceWithSum(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var results []*ReduceResult
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectSum(ravendb.NewGroupByFieldWithName("age"))
 		q = q.OrderByDescending("age")
 		q = q.OfType(reflect.TypeOf(&ReduceResult{}))
-		results, err := q.ToListOld()
+		err := q.ToList(&results)
 		assert.NoError(t, err)
 
 		{
-			result := results[0].(*ReduceResult)
+			result := results[0]
 			assert.Equal(t, result.Age, 8)
 			assert.Equal(t, result.Name, "John")
 		}
 
 		{
-			result := results[1].(*ReduceResult)
+			result := results[1]
 			assert.Equal(t, result.Age, 2)
 			assert.Equal(t, result.Name, "Tarzan")
 		}
@@ -211,19 +213,20 @@ func query_queryMapReduceIndex(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var results []*ReduceResult
 		q := session.QueryWithQueryOld(reflect.TypeOf(&ReduceResult{}), ravendb.Query_index("UsersByName"))
 		q = q.OrderByDescending("count")
-		results, err := q.ToListOld()
+		err := q.ToList(&results)
 		assert.NoError(t, err)
 
 		{
-			result := results[0].(*ReduceResult)
+			result := results[0]
 			assert.Equal(t, result.Count, 2)
 			assert.Equal(t, result.Name, "John")
 		}
 
 		{
-			result := results[1].(*ReduceResult)
+			result := results[1]
 			assert.Equal(t, result.Count, 1)
 			assert.Equal(t, result.Name, "Tarzan")
 		}
@@ -266,14 +269,13 @@ func query_queryWithSelect(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var usersAge []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.SelectFields(reflect.TypeOf(&User{}), "age")
-		usersAge, err := q.ToListOld()
+		err := q.ToList(&usersAge)
 		assert.NoError(t, err)
 
-		for _, u := range usersAge {
-			user := u.(*User)
-
+		for _, user := range usersAge {
 			assert.True(t, user.Age >= 0)
 			assert.NotEmpty(t, user.ID)
 		}
@@ -508,9 +510,10 @@ func query_querySearchWithOr(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 
+		var uniqueNames []*User
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperator_OR)
-		uniqueNames, err := q.ToListOld()
+		err := q.ToList(&uniqueNames)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 3)
