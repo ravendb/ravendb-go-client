@@ -95,9 +95,10 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
+		var notUsed []*CustomType
 		q := session.Advanced().DocumentQueryAllOld(reflect.TypeOf(&CustomType{}), "TestIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
-		_, err = q.ToListOld()
+		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
 
 		session.Close()
