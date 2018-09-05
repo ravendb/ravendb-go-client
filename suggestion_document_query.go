@@ -2,6 +2,8 @@ package ravendb
 
 import "reflect"
 
+type ISuggestionDocumentQuery = SuggestionDocumentQuery
+
 type SuggestionDocumentQuery struct {
 	// from SuggestionQueryBase
 	_session  *InMemoryDocumentSessionOperations

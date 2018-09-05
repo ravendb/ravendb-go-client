@@ -2,6 +2,8 @@ package ravendb
 
 import "reflect"
 
+type IRevisionsSessionOperations = DocumentSessionRevisions
+
 type DocumentSessionRevisions struct {
 	*AdvancedSessionExtentionBase
 }

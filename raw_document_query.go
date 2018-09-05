@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+type IRawDocumentQuery = RawDocumentQuery
+
 type RawDocumentQuery struct {
 	*AbstractDocumentQuery
 }
