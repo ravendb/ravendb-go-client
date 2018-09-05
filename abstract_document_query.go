@@ -8,6 +8,8 @@ import (
 	"unicode"
 )
 
+type IAbstractDocumentQuery = AbstractDocumentQuery
+
 type AbstractDocumentQuery struct {
 	clazz                    reflect.Type
 	_aliasToGroupByFieldName map[string]string
