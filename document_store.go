@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+type IDocumentStore = DocumentStore
+
 // DocumentStore represents a database
 type DocumentStore struct {
 	// from DocumentStoreBase
