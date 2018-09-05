@@ -11,6 +11,8 @@ type IDocumentQueryBaseSingle = DocumentQuery
 
 type IDocumentQuery = DocumentQuery
 
+type IFilterDocumentQueryBase = DocumentQuery
+
 type DocumentQuery struct {
 	*AbstractDocumentQuery
 }
