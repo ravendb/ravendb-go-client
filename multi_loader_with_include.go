@@ -5,6 +5,8 @@ import (
 	"reflect"
 )
 
+// ILoaderWithInclude is NewMultiLoaderWithInclude
+
 type MultiLoaderWithInclude struct {
 	_session  *DocumentSession
 	_includes []string
