@@ -1,5 +1,7 @@
 package ravendb
 
+// IConnectableChanges is folded into IDatabaseChanges
+
 type IDatabaseChanges interface {
 	// those are IConnectableChanges
 	isConnected() bool
