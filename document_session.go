@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+// type IDocumentSessionImpl = DocumentSession
+
 // TODO: decide if we want to return ErrNotFound or nil if the value is not found
 // Java returns nil (which, I guess, is default value for reference (i.e. all) types)
 // var ErrNotFound = errors.New("Not found")
@@ -421,7 +423,6 @@ func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
 func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
-
 
 func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
 	if stringIsNotEmpty(collectionOrIndexName.getCollection()) {
