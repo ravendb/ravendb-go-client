@@ -2,6 +2,8 @@ package ravendb
 
 import "time"
 
+type IDocumentQueryCustomization = DocumentQueryCustomizationDelegate
+
 type DocumentQueryCustomizationDelegate struct {
 	query *AbstractDocumentQuery
 }
