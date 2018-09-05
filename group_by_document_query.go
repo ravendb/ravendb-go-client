@@ -1,5 +1,7 @@
 package ravendb
 
+type IGroupByDocumentQuery = GroupByDocumentQuery
+
 type GroupByDocumentQuery struct {
 	_query *DocumentQuery
 }
