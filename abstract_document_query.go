@@ -382,10 +382,11 @@ func (q *AbstractDocumentQuery) _whereEquals(fieldName string, value Object) {
 }
 
 func (q *AbstractDocumentQuery) _whereEqualsWithExact(fieldName string, value Object, exact bool) {
-	params := NewWhereParams()
-	params.setFieldName(fieldName)
-	params.setValue(value)
-	params.setExact(exact)
+	params := &WhereParams{
+		fieldName: fieldName,
+		value:     value,
+		isExact:   exact,
+	}
 	q._whereEqualsWithParams(params)
 }
 
@@ -400,7 +401,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 		return
 	}
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
+	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
@@ -411,7 +412,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 
 	transformToEqualValue := q.transformValue(whereParams)
 	addQueryParameter := q.addQueryParameter(transformToEqualValue)
-	whereToken := WhereToken_createWithOptions(WhereOperator_EQUALS, whereParams.GetFieldName(), addQueryParameter, NewWhereOptionsWithExact(whereParams.isExact()))
+	whereToken := WhereToken_createWithOptions(WhereOperator_EQUALS, whereParams.fieldName, addQueryParameter, NewWhereOptionsWithExact(whereParams.isExact))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -419,15 +420,15 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 }
 
 func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *WhereParams, tokensRef *[]queryToken) bool {
-	if mc, ok := whereParams.getValue().(*CmpXchg); ok {
+	if mc, ok := whereParams.value.(*CmpXchg); ok {
 		n := len(mc.args)
 		args := make([]string, n)
 		for i := 0; i < n; i++ {
 			args[i] = q.addQueryParameter(mc.args[i])
 		}
 
-		opts := NewWhereOptionsWithMethod(MethodsType_CMP_X_CHG, args, mc.accessPath, whereParams.isExact())
-		token := WhereToken_createWithOptions(op, whereParams.GetFieldName(), "", opts)
+		opts := NewWhereOptionsWithMethod(MethodsType_CMP_X_CHG, args, mc.accessPath, whereParams.isExact)
+		token := WhereToken_createWithOptions(op, whereParams.fieldName, "", opts)
 
 		tokens := *tokensRef
 		tokens = append(tokens, token)
@@ -446,10 +447,11 @@ func (q *AbstractDocumentQuery) _whereNotEquals(fieldName string, value Object) 
 }
 
 func (q *AbstractDocumentQuery) _whereNotEqualsWithExact(fieldName string, value Object, exact bool) {
-	params := NewWhereParams()
-	params.setFieldName(fieldName)
-	params.setValue(value)
-	params.setExact(exact)
+	params := &WhereParams{
+		fieldName: fieldName,
+		value:     value,
+		isExact:   exact,
+	}
 
 	q._whereNotEqualsWithParams(params)
 }
@@ -474,13 +476,13 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WherePara
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
+	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
 
 	if q.ifValueIsMethod(WhereOperator_NOT_EQUALS, whereParams, tokensRef) {
 		return
 	}
 
-	whereToken := WhereToken_createWithOptions(WhereOperator_NOT_EQUALS, whereParams.GetFieldName(), q.addQueryParameter(transformToEqualValue), NewWhereOptionsWithExact(whereParams.isExact()))
+	whereToken := WhereToken_createWithOptions(WhereOperator_NOT_EQUALS, whereParams.fieldName, q.addQueryParameter(transformToEqualValue), NewWhereOptionsWithExact(whereParams.isExact))
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
@@ -509,20 +511,21 @@ func (q *AbstractDocumentQuery) _whereInWithExact(fieldName string, values []Obj
 }
 
 func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object) {
-	whereParams := NewWhereParams()
-	whereParams.setFieldName(fieldName)
-	whereParams.setValue(value)
-	whereParams.setAllowWildcards(true)
+	whereParams := &WhereParams{
+		fieldName:      fieldName,
+		value:          value,
+		allowWildcards: true,
+	}
 
 	transformToEqualValue := q.transformValue(whereParams)
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
-	q.negateIfNeeded(tokensRef, whereParams.GetFieldName())
+	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	q.negateIfNeeded(tokensRef, whereParams.fieldName)
 
-	whereToken := WhereToken_create(WhereOperator_STARTS_WITH, whereParams.GetFieldName(), q.addQueryParameter(transformToEqualValue))
+	whereToken := WhereToken_create(WhereOperator_STARTS_WITH, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -530,20 +533,21 @@ func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object)
 }
 
 func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
-	whereParams := NewWhereParams()
-	whereParams.setFieldName(fieldName)
-	whereParams.setValue(value)
-	whereParams.setAllowWildcards(true)
+	whereParams := &WhereParams{
+		fieldName:      fieldName,
+		value:          value,
+		allowWildcards: true,
+	}
 
 	transformToEqualValue := q.transformValue(whereParams)
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	whereParams.setFieldName(q.ensureValidFieldName(whereParams.GetFieldName(), whereParams.isNestedPath()))
-	q.negateIfNeeded(tokensRef, whereParams.GetFieldName())
+	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	q.negateIfNeeded(tokensRef, whereParams.fieldName)
 
-	whereToken := WhereToken_create(WhereOperator_ENDS_WITH, whereParams.GetFieldName(), q.addQueryParameter(transformToEqualValue))
+	whereToken := WhereToken_create(WhereOperator_ENDS_WITH, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -561,13 +565,15 @@ func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start O
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	startParams := NewWhereParams()
-	startParams.setValue(start)
-	startParams.setFieldName(fieldName)
+	startParams := &WhereParams{
+		value:     start,
+		fieldName: fieldName,
+	}
 
-	endParams := NewWhereParams()
-	endParams.setValue(end)
-	endParams.setFieldName(fieldName)
+	endParams := &WhereParams{
+		value:     end,
+		fieldName: fieldName,
+	}
 
 	fromParam := interface{}("*")
 	if start != nil {
@@ -600,9 +606,10 @@ func (q *AbstractDocumentQuery) _whereGreaterThanWithExact(fieldName string, val
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := NewWhereParams()
-	whereParams.setValue(value)
-	whereParams.setFieldName(fieldName)
+	whereParams := &WhereParams{
+		value:     value,
+		fieldName: fieldName,
+	}
 
 	paramValue := interface{}("*")
 	if value != nil {
@@ -628,9 +635,10 @@ func (q *AbstractDocumentQuery) _whereGreaterThanOrEqualWithExact(fieldName stri
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := NewWhereParams()
-	whereParams.setValue(value)
-	whereParams.setFieldName(fieldName)
+	whereParams := &WhereParams{
+		value:     value,
+		fieldName: fieldName,
+	}
 
 	paramValue := interface{}("*")
 	if value != nil {
@@ -657,9 +665,10 @@ func (q *AbstractDocumentQuery) _whereLessThanWithExact(fieldName string, value 
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := NewWhereParams()
-	whereParams.setValue(value)
-	whereParams.setFieldName(fieldName)
+	whereParams := &WhereParams{
+		value:     value,
+		fieldName: fieldName,
+	}
 
 	paramValue := interface{}("NULL")
 	if value != nil {
@@ -682,9 +691,10 @@ func (q *AbstractDocumentQuery) _whereLessThanOrEqualWithExact(fieldName string,
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := NewWhereParams()
-	whereParams.setValue(value)
-	whereParams.setFieldName(fieldName)
+	whereParams := &WhereParams{
+		value:     value,
+		fieldName: fieldName,
+	}
 
 	paramValue := interface{}("NULL")
 	if value != nil {
@@ -703,9 +713,10 @@ func (q *AbstractDocumentQuery) _whereRegex(fieldName string, pattern string) {
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := NewWhereParams()
-	whereParams.setValue(pattern)
-	whereParams.setFieldName(fieldName)
+	whereParams := &WhereParams{
+		value:     pattern,
+		fieldName: fieldName,
+	}
 
 	parameter := q.addQueryParameter(q.transformValue(whereParams))
 
@@ -1222,10 +1233,11 @@ func (q *AbstractDocumentQuery) transformCollection(fieldName string, values []O
 			tmp := q.transformCollection(fieldName, collectionValue)
 			result = append(result, tmp...)
 		} else {
-			nestedWhereParams := NewWhereParams()
-			nestedWhereParams.setAllowWildcards(true)
-			nestedWhereParams.setFieldName(fieldName)
-			nestedWhereParams.setValue(value)
+			nestedWhereParams := &WhereParams{
+				allowWildcards: true,
+				fieldName:      fieldName,
+				value:          value,
+			}
 			tmp := q.transformValue(nestedWhereParams)
 			result = append(result, tmp)
 		}
@@ -1313,21 +1325,20 @@ func (q *AbstractDocumentQuery) transformValue(whereParams *WhereParams) Object 
 }
 
 func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams, forRange bool) Object {
-	if whereParams.getValue() == nil {
+	if whereParams.value == nil {
 		return nil
 	}
 
-	if "" == whereParams.getValue() {
+	if "" == whereParams.value {
 		return ""
 	}
 
 	var stringValueReference string
-	if q._conventions.TryConvertValueForQuery(whereParams.GetFieldName(), whereParams.getValue(), forRange, &stringValueReference) {
+	if q._conventions.TryConvertValueForQuery(whereParams.fieldName, whereParams.value, forRange, &stringValueReference) {
 		return stringValueReference
 	}
 
-	// TODO: this could be a type switch
-	val := whereParams.getValue()
+	val := whereParams.value
 	switch v := val.(type) {
 	case time.Time, string, int, int32, int64, float32, float64, bool:
 		return val
@@ -1335,7 +1346,7 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams
 		n := int64(v/time.Nanosecond) / 100
 		return n
 	}
-	return whereParams.getValue()
+	return whereParams.value
 }
 
 func (q *AbstractDocumentQuery) addQueryParameter(value Object) string {
