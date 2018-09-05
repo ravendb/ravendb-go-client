@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+type IDocumentQueryBase = DocumentQuery
+
+type IDocumentQueryBaseSingle = DocumentQuery
+
 type DocumentQuery struct {
 	*AbstractDocumentQuery
 }
