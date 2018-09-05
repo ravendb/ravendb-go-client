@@ -1,5 +1,7 @@
 package ravendb
 
+type IAttachmentsSessionOperations = DocumentSessionAttachments
+
 type DocumentSessionAttachments struct {
 	*DocumentSessionAttachmentsBase
 }

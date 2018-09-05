@@ -1,3 +1,0 @@
-package ravendb
-
-type IAttachmentsSessionOperations = DocumentSessionAttachments
