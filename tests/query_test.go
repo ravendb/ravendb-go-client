@@ -670,7 +670,7 @@ func query_queryWhereExact(t *testing.T) {
 		{
 			var users []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
-			q = q.WhereEqualsWithExact("name", "tarzan", true)
+			q = q.WhereEquals("name", "tarzan").Exact()
 			err := q.ToList(&users)
 			assert.NoError(t, err)
 
@@ -680,7 +680,7 @@ func query_queryWhereExact(t *testing.T) {
 		{
 			var users []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
-			q = q.WhereEqualsWithExact("name", "Tarzan", true)
+			q = q.WhereEquals("name", "Tarzan").Exact()
 			err := q.ToList(&users)
 			assert.NoError(t, err)
 
@@ -726,7 +726,7 @@ func query_queryWhereNot(t *testing.T) {
 		{
 			var res []*User
 			q := session.QueryOld(reflect.TypeOf(&User{}))
-			q = q.WhereNotEqualsWithExact("name", "Tarzan", true)
+			q = q.WhereNotEquals("name", "Tarzan").Exact()
 			err := q.ToList(&res)
 
 			assert.NoError(t, err)

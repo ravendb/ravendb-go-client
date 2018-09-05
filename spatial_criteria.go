@@ -38,5 +38,5 @@ func (c *SpatialCriteriaCommon) toQueryTokenCommon(sc SpatialCriteria, fieldName
 	}
 
 	opts := NewWhereOptionsWithTokenAndDistance(shapeToken, c._distanceErrorPct)
-	return WhereToken_createWithOptions(whereOperator, fieldName, "", opts)
+	return createWhereTokenWithOptions(whereOperator, fieldName, "", opts)
 }

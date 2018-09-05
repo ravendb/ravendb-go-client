@@ -97,11 +97,11 @@ func newWhereToken() *whereToken {
 	return &whereToken{}
 }
 
-func WhereToken_create(op WhereOperator, fieldName string, parameterName string) *whereToken {
-	return WhereToken_createWithOptions(op, fieldName, parameterName, nil)
+func createWhereToken(op WhereOperator, fieldName string, parameterName string) *whereToken {
+	return createWhereTokenWithOptions(op, fieldName, parameterName, nil)
 }
 
-func WhereToken_createWithOptions(op WhereOperator, fieldName string, parameterName string, options *whereOptions) *whereToken {
+func createWhereTokenWithOptions(op WhereOperator, fieldName string, parameterName string, options *whereOptions) *whereToken {
 	token := newWhereToken()
 	token.fieldName = fieldName
 	token.parameterName = parameterName

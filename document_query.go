@@ -193,18 +193,14 @@ func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *IDocu
 	return q
 }
 
-func (q *DocumentQuery) WhereLuceneWithExact(fieldName string, whereClause string, exact bool) *IDocumentQuery {
-	q._whereLucene(fieldName, whereClause, exact)
-	return q
-}
-
 func (q *DocumentQuery) WhereEquals(fieldName string, value Object) *DocumentQuery {
 	q._whereEqualsWithExact(fieldName, value, false)
 	return q
 }
 
-func (q *DocumentQuery) WhereEqualsWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
-	q._whereEqualsWithExact(fieldName, value, exact)
+// Exact marks previous Where statement (e.g. WhereEquals or WhereLucene) as exact
+func (q *DocumentQuery) Exact() *DocumentQuery {
+	q.setExactInLastWhereToken(true)
 	return q
 }
 
@@ -223,11 +219,6 @@ func (q *DocumentQuery) WhereEqualsWithParams(whereParams *WhereParams) *Documen
 
 func (q *DocumentQuery) WhereNotEquals(fieldName string, value Object) *DocumentQuery {
 	q._whereNotEquals(fieldName, value)
-	return q
-}
-
-func (q *DocumentQuery) WhereNotEqualsWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
-	q._whereNotEqualsWithExact(fieldName, value, exact)
 	return q
 }
 
@@ -250,11 +241,7 @@ func (q *DocumentQuery) WhereNotEqualsWithParams(whereParams *WhereParams) *Docu
 }
 
 func (q *DocumentQuery) WhereIn(fieldName string, values []Object) *DocumentQuery {
-	return q.WhereInWithExact(fieldName, values, false)
-}
-
-func (q *DocumentQuery) WhereInWithExact(fieldName string, values []Object, exact bool) *DocumentQuery {
-	q._whereInWithExact(fieldName, values, exact)
+	q._whereInWithExact(fieldName, values, false)
 	return q
 }
 
@@ -273,31 +260,19 @@ func (q *DocumentQuery) WhereEndsWith(fieldName string, value Object) *DocumentQ
 //TBD expr  IDocumentQuery<T> WhereEndsWith<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value)
 
 func (q *DocumentQuery) WhereBetween(fieldName string, start Object, end Object) *DocumentQuery {
-	return q.WhereBetweenWithExact(fieldName, start, end, false)
-}
-
-func (q *DocumentQuery) WhereBetweenWithExact(fieldName string, start Object, end Object, exact bool) *DocumentQuery {
-	q._whereBetweenWithExact(fieldName, start, end, exact)
+	q._whereBetweenWithExact(fieldName, start, end, false)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereBetween<TValue>(Expression<Func<T, TValue>> propertySelector, TValue start, TValue end, bool exact = false)
 
 func (q *DocumentQuery) WhereGreaterThan(fieldName string, value Object) *DocumentQuery {
-	return q.WhereGreaterThanWithExact(fieldName, value, false)
-}
-
-func (q *DocumentQuery) WhereGreaterThanWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
-	q._whereGreaterThanWithExact(fieldName, value, exact)
+	q._whereGreaterThanWithExact(fieldName, value, false)
 	return q
 }
 
 func (q *DocumentQuery) WhereGreaterThanOrEqual(fieldName string, value Object) *DocumentQuery {
-	return q.WhereGreaterThanOrEqualWithExact(fieldName, value, false)
-}
-
-func (q *DocumentQuery) WhereGreaterThanOrEqualWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
-	q._whereGreaterThanOrEqualWithExact(fieldName, value, exact)
+	q._whereGreaterThanOrEqualWithExact(fieldName, value, false)
 	return q
 }
 
@@ -305,22 +280,14 @@ func (q *DocumentQuery) WhereGreaterThanOrEqualWithExact(fieldName string, value
 //TBD expr  IDocumentQuery<T> WhereGreaterThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
 func (q *DocumentQuery) WhereLessThan(fieldName string, value Object) *DocumentQuery {
-	return q.WhereLessThanWithExact(fieldName, value, false)
-}
-
-func (q *DocumentQuery) WhereLessThanWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
-	q._whereLessThanWithExact(fieldName, value, exact)
+	q._whereLessThanWithExact(fieldName, value, false)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereLessThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
 func (q *DocumentQuery) WhereLessThanOrEqual(fieldName string, value Object) *DocumentQuery {
-	return q.WhereLessThanOrEqualWithExact(fieldName, value, false)
-}
-
-func (q *DocumentQuery) WhereLessThanOrEqualWithExact(fieldName string, value Object, exact bool) *DocumentQuery {
-	q._whereLessThanOrEqualWithExact(fieldName, value, exact)
+	q._whereLessThanOrEqualWithExact(fieldName, value, false)
 	return q
 }
 
