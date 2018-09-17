@@ -248,9 +248,9 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	go func() {
 		err := o._requestExecutor.ExecuteCommand(bulkCommand)
 		if err != nil {
-			o._bulkInsertExecuteTask.MarkAsDoneWithError(err)
+			o._bulkInsertExecuteTask.CompleteExceptionally(err)
 		} else {
-			o._bulkInsertExecuteTask.MarkAsDone(nil)
+			o._bulkInsertExecuteTask.Complete(nil)
 		}
 	}()
 

@@ -30,6 +30,8 @@ type DatabaseChanges struct {
 	_counters      sync.Map // toLower(string) -> *DatabaseConnectionState
 
 	_immediateConnection atomicInteger
+
+	_connectionStatusChanged []func()
 }
 
 func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *DatabaseChanges {
@@ -45,8 +47,28 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 
 	//res._client = res.createWebSocketClient(_requestExecutor),
 	//res._task = CompletableFuture.runAsync(() -> doWork());
-	//res.addConnectionStatusChanged(res._connectionStatusEventHandler)
+
+	_connectionStatusEventHandler := func() {
+		res.onConnectionStatusChanged()
+	}
+	res.addConnectionStatusChanged(_connectionStatusEventHandler)
 	return res
+}
+
+func (c *DatabaseChanges) onConnectionStatusChanged() {
+	c._semaphore <- true // acquire
+	defer func() {
+		<-c._semaphore // release
+	}()
+
+	if c.isConnected() {
+		c._tcs.Complete(c)
+		return
+	}
+
+	if c._tcs.IsDone() {
+		c._tcs = NewCompletableFuture()
+	}
 }
 
 func (c *DatabaseChanges) isConnected() bool {
@@ -59,14 +81,23 @@ func (c *DatabaseChanges) ensureConnectedNow() {
 
 }
 
-func (c *DatabaseChanges) addConnectionStatusChanged(handler EventHandler) {
-	panic("NYI")
+func (c *DatabaseChanges) addConnectionStatusChanged(handler func()) int {
+	idx := len(c._connectionStatusChanged)
+	c._connectionStatusChanged = append(c._connectionStatusChanged, handler)
+	return idx
 
 }
 
-func (c *DatabaseChanges) removeConnectionStatusChanged(handler EventHandler) {
-	panic("NYI")
+func (c *DatabaseChanges) removeConnectionStatusChanged(handlerIdx int) {
+	c._connectionStatusChanged[handlerIdx] = nil
+}
 
+func (c *DatabaseChanges) invokeConnectionStatusChanged() {
+	for _, fn := range c._connectionStatusChanged {
+		if fn != nil {
+			fn()
+		}
+	}
 }
 
 func (c *DatabaseChanges) addOnError(handler func(error)) {

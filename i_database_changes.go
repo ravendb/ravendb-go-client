@@ -6,8 +6,8 @@ type IDatabaseChanges interface {
 	// those are IConnectableChanges
 	isConnected() bool
 	ensureConnectedNow()
-	addConnectionStatusChanged(handler EventHandler)
-	removeConnectionStatusChanged(handler EventHandler)
+	addConnectionStatusChanged(handler func()) int
+	removeConnectionStatusChanged(handlerIdx int)
 	addOnError(handler func(error))
 	removeOnError(handler func(error))
 

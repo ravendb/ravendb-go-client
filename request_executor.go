@@ -317,9 +317,9 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *CompletableFuture {
 
 		defer func() {
 			if err != nil {
-				future.MarkAsDoneWithError(err)
+				future.CompleteExceptionally(err)
 			} else {
-				future.MarkAsDone(nil)
+				future.Complete(nil)
 			}
 		}()
 
@@ -377,9 +377,9 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		var res bool
 		defer func() {
 			if err != nil {
-				future.MarkAsDoneWithError(err)
+				future.CompleteExceptionally(err)
 			} else {
-				future.MarkAsDone(res)
+				future.Complete(res)
 			}
 			re.clusterTopologySemaphore.release()
 		}()
@@ -438,9 +438,9 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		var res bool
 		defer func() {
 			if err != nil {
-				future.MarkAsDoneWithError(err)
+				future.CompleteExceptionally(err)
 			} else {
-				future.MarkAsDone(res)
+				future.Complete(res)
 			}
 		}()
 		if re._disposed {
@@ -598,9 +598,9 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		var err error
 		defer func() {
 			if err != nil {
-				future.MarkAsDoneWithError(err)
+				future.CompleteExceptionally(err)
 			} else {
-				future.MarkAsDone(nil)
+				future.Complete(nil)
 			}
 		}()
 
