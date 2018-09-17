@@ -28,7 +28,7 @@ type DatabaseChanges struct {
 	_confirmations sync.Map // int => *CompletableFuture
 	_counters      sync.Map // toLower(string) -> *DatabaseConnectionState
 
-	_immediateConnection AtomicInteger
+	_immediateConnection atomicInteger
 }
 
 func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *DatabaseChanges {

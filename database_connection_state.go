@@ -11,7 +11,7 @@ type DatabaseConnectionState struct {
 	_onDisconnect Runnable
 	onConnect     Runnable
 
-	_value        AtomicInteger
+	_value        atomicInteger
 	lastException error
 
 	onDocumentChangeNotification        []func(*DocumentChange)
@@ -29,11 +29,11 @@ func (s *DatabaseConnectionState) removeOnError(idx int) {
 }
 
 func (s *DatabaseConnectionState) inc() {
-	s._value.IncrementAndGet()
+	s._value.incrementAndGet()
 }
 
 func (s *DatabaseConnectionState) dec() {
-	if s._value.DecrementAndGet() == 0 {
+	if s._value.decrementAndGet() == 0 {
 		s._onDisconnect.run()
 	}
 }

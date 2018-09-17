@@ -28,7 +28,7 @@ func (s *NodeSelector) onFailedRequest(nodeIndex int) {
 		return // probably already changed
 	}
 
-	state.failures[nodeIndex].IncrementAndGet()
+	state.failures[nodeIndex].incrementAndGet()
 }
 
 func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bool {
@@ -54,7 +54,7 @@ func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
 	serverNodes := state.nodes
 	n := min(len(serverNodes), len(stateFailures))
 	for i := 0; i < n; i++ {
-		if stateFailures[i].Get() == 0 && serverNodes[i].GetUrl() != "" {
+		if stateFailures[i].get() == 0 && serverNodes[i].GetUrl() != "" {
 			return NewCurrentIndexAndNode(i, serverNodes[i]), nil
 		}
 	}
@@ -76,13 +76,13 @@ func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, 
 	index := sessionId % len(state.topology.GetNodes())
 
 	for i := index; i < len(state.failures); i++ {
-		if state.failures[i].Get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
+		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
 
 	for i := 0; i < index; i++ {
-		if state.failures[i].Get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
+		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
@@ -92,7 +92,7 @@ func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, 
 
 func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 	state := s._state
-	if state.failures[state.fastest].Get() == 0 && state.nodes[state.fastest].GetServerRole() == ServerNode_Role_MEMBER {
+	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].GetServerRole() == ServerNode_Role_MEMBER {
 		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest]), nil
 	}
 
@@ -110,7 +110,7 @@ func (s *NodeSelector) restoreNodeIndex(nodeIndex int) {
 		return // nothing to do
 	}
 
-	state.failures[nodeIndex].Set(0)
+	state.failures[nodeIndex].set(0)
 }
 
 // TODO: return an error
@@ -122,7 +122,7 @@ func NodeSelector_throwEmptyTopology() {
 func (s *NodeSelector) switchToSpeedTestPhase() {
 	state := s._state
 
-	if !state.speedTestMode.CompareAndSet(0, 1) {
+	if !state.speedTestMode.compareAndSet(0, 1) {
 		return
 	}
 
@@ -130,11 +130,11 @@ func (s *NodeSelector) switchToSpeedTestPhase() {
 		state.fastestRecords[i] = 0
 	}
 
-	state.speedTestMode.IncrementAndGet()
+	state.speedTestMode.incrementAndGet()
 }
 
 func (s *NodeSelector) inSpeedTestPhase() bool {
-	return s._state.speedTestMode.Get() > 1
+	return s._state.speedTestMode.get() > 1
 }
 
 func (s *NodeSelector) recordFastest(index int, node *ServerNode) {
@@ -158,7 +158,7 @@ func (s *NodeSelector) recordFastest(index int, node *ServerNode) {
 		s.selectFastest(state, index)
 	}
 
-	if state.speedTestMode.IncrementAndGet() <= len(state.nodes)*10 {
+	if state.speedTestMode.incrementAndGet() <= len(state.nodes)*10 {
 		return
 	}
 
@@ -186,7 +186,7 @@ func NodeSelector_findMaxIndex(state *NodeSelectorState) int {
 
 func (s *NodeSelector) selectFastest(state *NodeSelectorState, index int) {
 	state.fastest = index
-	state.speedTestMode.Set(0)
+	state.speedTestMode.set(0)
 
 	if s._updateFastestNodeTimer != nil {
 		s._updateFastestNodeTimer.Reset(time.Minute)
@@ -214,10 +214,10 @@ type NodeSelectorState struct {
 	topology         *Topology
 	currentNodeIndex int
 	nodes            []*ServerNode
-	failures         []AtomicInteger
+	failures         []atomicInteger
 	fastestRecords   []int
 	fastest          int
-	speedTestMode    AtomicInteger
+	speedTestMode    atomicInteger
 }
 
 func NewNodeSelectorState(currentNodeIndex int, topology *Topology) *NodeSelectorState {
@@ -227,7 +227,7 @@ func NewNodeSelectorState(currentNodeIndex int, topology *Topology) *NodeSelecto
 		currentNodeIndex: currentNodeIndex,
 		nodes:            nodes,
 	}
-	failures := make([]AtomicInteger, len(nodes), len(nodes))
+	failures := make([]atomicInteger, len(nodes), len(nodes))
 	res.failures = failures
 	res.fastestRecords = make([]int, len(nodes), len(nodes))
 	return res

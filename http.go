@@ -19,7 +19,7 @@ var (
 	HTTPFailedRequestsLogger io.Writer
 	// HTTPRequestCount numbers http requests which helps to match http
 	// traffic from java client with go client
-	HTTPRequestCount AtomicInteger
+	HTTPRequestCount atomicInteger
 
 	muLog sync.Mutex
 )
@@ -38,7 +38,7 @@ func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 }
 
 func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Response, reqErr error) {
-	n := HTTPRequestCount.Get()
+	n := HTTPRequestCount.get()
 
 	fmt.Fprintf(w, "=========== %d:\n", n)
 	if reqErr != nil {

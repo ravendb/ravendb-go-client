@@ -40,7 +40,7 @@ type RequestExecutor struct {
 	_updateTopologyTimer *time.Timer
 	_nodeSelector        *NodeSelector
 
-	numberOfServerRequests  AtomicInteger
+	numberOfServerRequests  atomicInteger
 	topologyEtag            int
 	clientConfigurationEtag int
 	conventions             *DocumentConventions
@@ -724,7 +724,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	//sp := time.Now()
 	responseDispose := ResponseDisposeHandling_AUTOMATIC
 	var response *http.Response
-	re.numberOfServerRequests.IncrementAndGet()
+	re.numberOfServerRequests.incrementAndGet()
 	if re.shouldExecuteOnAll(chosenNode, command) {
 		response, err = re.executeOnAllToFigureOutTheFastest(chosenNode, command)
 	} else {

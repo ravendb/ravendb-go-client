@@ -23,6 +23,7 @@ import (
 	"runtime/pprof"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -40,7 +41,7 @@ var (
 	globalServerProcess        *Process
 	globalSecuredServer        *ravendb.DocumentStore
 	globalSecuredServerProcess *Process
-	index                      ravendb.AtomicInteger
+	index                      int32
 )
 
 func must(err error) {
@@ -150,7 +151,7 @@ func (d *RavenTestDriver) getDocumentStoreWithName(dbName string) (*ravendb.Docu
 
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
 
-	n := index.IncrementAndGet()
+	n := int(atomic.AddInt32(&index, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := d.getGlobalServer(secured)
 	if documentStore == nil {
