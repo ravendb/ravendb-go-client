@@ -28,3 +28,4 @@ foo.pcap
 pcap_convert
 netgraph
 *.zip
+.DS_Store

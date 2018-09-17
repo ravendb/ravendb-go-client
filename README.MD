@@ -38,3 +38,13 @@ To run tests: `go test -vet=off`.
 On Windows, if RavenDB server is not present locally, we'll download it to `RavenDB` directory.
 
 Windows version doesn't capture traffic between HTTP client and server because `gopacket` package requires CGO support and pcap to work so I stubbed it out to be a no-op.
+
+# Running on Mac
+
+For running https tests must import `certs/ca.crt` as trusted certificate.
+
+Double-click on `certs/ca.crt` file. That opens `Keychain Access` system app.
+
+Click on `Certificates` category, double-click on `a.javatest11.development.run` certificate.
+
+This opens a dialog box. In `Trust` section select `Always Trust` drop-down item.

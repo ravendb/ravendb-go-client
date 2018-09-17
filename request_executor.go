@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -124,6 +125,7 @@ var (
 	globalHTTPClient *http.Client
 )
 
+/*
 func getGlobalHTTPClientNoKeepAlive() *http.Client {
 	if globalHTTPClient == nil {
 		// TODO: certificate
@@ -151,12 +153,24 @@ func getGlobalHTTPClientNoKeepAlive() *http.Client {
 	}
 	return globalHTTPClient
 }
+*/
 
-func getGlobalHTTPClient() *http.Client {
+func getGlobalHTTPClient(certs []tls.Certificate) *http.Client {
 	if globalHTTPClient == nil {
-		// TODO: certificate
 		client := &http.Client{
 			Timeout: time.Second * 30,
+		}
+		if certs != nil {
+			fmt.Printf("Creating HTTP client with certificates\n")
+			client.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{
+					Certificates: certs,
+					// TODO: this is for testing only, we should either manually
+					// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
+					// or add certificate to global cert store
+					InsecureSkipVerify: true,
+				},
+			}
 		}
 		globalHTTPClient = client
 	}
@@ -183,7 +197,11 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 	// TODO: create a different client if settings like compression
 	// or certificate differ
 	//res.httpClient = res.createClient()
-	res.httpClient = getGlobalHTTPClient()
+	var certs []tls.Certificate
+	if certificate != nil {
+		certs = certificate.Certificates
+	}
+	res.httpClient = getGlobalHTTPClient(certs)
 	return res
 }
 
