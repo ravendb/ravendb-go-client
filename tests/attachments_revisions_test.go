@@ -225,11 +225,11 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 		assert.NoError(t, err)
 
 		result := op.Command.Result
-		s := *result.GetChangeVector()
+		s := *result.ChangeVector
 		assert.True(t, strings.Contains(s, "A:3"))
-		assert.Equal(t, result.GetName(), names[0])
-		assert.Equal(t, result.GetDocumentID(), "users/1")
-		assert.Equal(t, result.GetContentType(), "image/png")
+		assert.Equal(t, result.Name, names[0])
+		assert.Equal(t, result.DocumentID, "users/1")
+		assert.Equal(t, result.ContentType, "image/png")
 	}
 
 	{
@@ -238,11 +238,11 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
-		s := *result.GetChangeVector()
+		s := *result.ChangeVector
 		assert.True(t, strings.Contains(s, "A:7"))
-		assert.Equal(t, result.GetName(), names[1])
-		assert.Equal(t, result.GetDocumentID(), "users/1")
-		assert.Equal(t, result.GetContentType(), "ImGgE/jPeG")
+		assert.Equal(t, result.Name, names[1])
+		assert.Equal(t, result.DocumentID, "users/1")
+		assert.Equal(t, result.ContentType, "ImGgE/jPeG")
 	}
 	{
 		fileStream := bytes.NewReader([]byte{1, 2, 3, 4, 5})
@@ -250,11 +250,11 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		result := op.Command.Result
-		s := *result.GetChangeVector()
+		s := *result.ChangeVector
 		assert.True(t, strings.Contains(s, "A:12"))
-		assert.Equal(t, result.GetName(), names[2])
-		assert.Equal(t, result.GetDocumentID(), "users/1")
-		assert.Equal(t, result.GetContentType(), "")
+		assert.Equal(t, result.Name, names[2])
+		assert.Equal(t, result.DocumentID, "users/1")
+		assert.Equal(t, result.ContentType, "")
 	}
 	return names
 }

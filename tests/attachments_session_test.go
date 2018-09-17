@@ -202,7 +202,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 		{
 			attachmentResult, err := session.Advanced().Attachments().Get("users/1", "file2")
 			assert.NoError(t, err)
-			name := attachmentResult.GetDetails().GetName()
+			name := attachmentResult.GetDetails().Name
 			assert.Equal(t, name, "file2")
 			attachmentResult.Close()
 		}
@@ -480,9 +480,9 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 		assert.Equal(t, len(attachments), 1)
 
 		attachment := attachments[0]
-		assert.Equal(t, attachment.GetContentType(), "image/png")
-		assert.Equal(t, attachment.GetName(), names[0])
-		assert.Equal(t, attachment.GetSize(), int64(3))
+		assert.Equal(t, attachment.ContentType, "image/png")
+		assert.Equal(t, attachment.Name, names[0])
+		assert.Equal(t, attachment.Size, int64(3))
 
 		session.Close()
 	}

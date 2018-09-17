@@ -89,13 +89,16 @@ func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.
 		size, _ = strconv.ParseInt(sizeHeader, 10, 64)
 	}
 
-	attachmentDetails := NewAttachmentDetails()
-	attachmentDetails.SetContentType(contentType)
-	attachmentDetails.SetName(c._name)
-	attachmentDetails.SetHash(hash)
-	attachmentDetails.SetSize(size)
-	attachmentDetails.SetChangeVector(changeVector)
-	attachmentDetails.SetDocumentID(c._documentId)
+	attachmentDetails := &AttachmentDetails{
+		AttachmentName: AttachmentName{
+			ContentType: contentType,
+			Name:        c._name,
+			Hash:        hash,
+			Size:        size,
+		},
+		ChangeVector: changeVector,
+		DocumentID:   c._documentId,
+	}
 
 	c.Result = NewCloseableAttachmentResult(response, attachmentDetails)
 	return ResponseDisposeHandling_MANUALLY, nil
