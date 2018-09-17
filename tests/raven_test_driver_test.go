@@ -3,6 +3,12 @@ package tests
 import (
 	"bufio"
 	"bytes"
+	"crypto"
+	"crypto/ecdsa"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -71,10 +77,63 @@ func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, err
 	return d.getDocumentStore2("test_db", true, 0)
 }
 
-// func (d *RavenTestDriver)
+func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
+	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
+		return key, nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(der); err == nil {
+		switch key := key.(type) {
+		case *rsa.PrivateKey, *ecdsa.PrivateKey:
+			return key, nil
+		default:
+			return nil, fmt.Errorf("Found unknown private key type in PKCS#8 wrapping")
+		}
+	}
+	if key, err := x509.ParseECPrivateKey(der); err == nil {
+		return key, nil
+	}
+	return nil, fmt.Errorf("Failed to parse private key")
+}
+
+func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
+	raw, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var cert tls.Certificate
+	for {
+		block, rest := pem.Decode(raw)
+		if block == nil {
+			break
+		}
+		if block.Type == "CERTIFICATE" {
+			cert.Certificate = append(cert.Certificate, block.Bytes)
+		} else {
+			cert.PrivateKey, err = parsePrivateKey(block.Bytes)
+			if err != nil {
+				return nil, fmt.Errorf("Failure reading private key from \"%s\": %s", path, err)
+			}
+		}
+		raw = rest
+	}
+
+	if len(cert.Certificate) == 0 {
+		return nil, fmt.Errorf("No certificate found in \"%s\"", path)
+	} else if cert.PrivateKey == nil {
+		return nil, fmt.Errorf("No private key found in \"%s\"", path)
+	}
+
+	return &cert, nil
+}
+
 func (d *RavenTestDriver) getTestClientCertificate() *ravendb.KeyStore {
-	// TODO: implement me
-	return nil
+	res := &ravendb.KeyStore{}
+	path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
+	cert, err := loadCertficateAndKeyFromFile(path)
+	must(err)
+	res.Certificates = append(res.Certificates, *cert)
+	return res
 }
 
 func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
@@ -90,7 +149,6 @@ func (d *RavenTestDriver) getDocumentStoreWithName(dbName string) (*ravendb.Docu
 }
 
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
-	//fmt.Printf("getDocumentStore2\n")
 
 	n := index.IncrementAndGet()
 	name := fmt.Sprintf("%s_%d", dbName, n)
@@ -283,10 +341,9 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	store.GetConventions().SetDisableTopologyUpdates(true)
 
 	if secured {
-		panic("NYI")
 		globalSecuredServer = store
-		//TODO: KeyStore clientCert = getTestClientCertificate();
-		//TODO: Store.setCertificate(clientCert);
+		clientCert := d.getTestClientCertificate()
+		store.SetCertificate(clientCert)
 	} else {
 		globalServer = store
 	}
@@ -438,6 +495,13 @@ func getDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
 	return store
 }
 
+func getSecuredDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
+	store, err := gRavenTestDriver.getSecuredDocumentStore()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+	return store
+}
+
 func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.DocumentSession {
 	session, err := store.OpenSession()
 	assert.NoError(t, err)
@@ -535,7 +599,7 @@ func getRavendbExePath() string {
 	must(err)
 
 	path := filepath.Join(cwd, "..", "RavenDB", "Server", "Raven.Server")
-	if IsWindows() {
+	if isWindows() {
 		path += ".exe"
 	}
 	if ravendb.FileExists(path) {
@@ -543,7 +607,7 @@ func getRavendbExePath() string {
 	}
 
 	path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
-	if IsWindows() {
+	if isWindows() {
 		path += ".exe"
 	}
 	return path
@@ -572,7 +636,7 @@ func downloadServerIfNeededWindows() {
 }
 
 func downloadServerIfNeeded() {
-	if IsWindows() {
+	if isWindows() {
 		downloadServerIfNeededWindows()
 		return
 	}
@@ -587,17 +651,37 @@ func detectServerPath() {
 		return
 	}
 
-	// use RAVENDB_JAVA_TEST_SERVER_PATH env var if explicilty set
+	// auto-detect env variables if not explicitly set
 	serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
-	if serverPath != "" {
-		return
+	if serverPath == "" {
+		path := getRavendbExePath()
+		_, err := os.Stat(path)
+		must(err)
+		os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+		fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
 	}
 
-	path := getRavendbExePath()
-	_, err := os.Stat(path)
-	must(err)
-	os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
-	fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
+	if os.Getenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH") == "" {
+		path := filepath.Join("..", "certs", "server.pfx")
+		_, err := os.Stat(path)
+		must(err)
+		os.Setenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH", path)
+		fmt.Printf("Setting RAVENDB_JAVA_TEST_CERTIFICATE_PATH to '%s'\n", path)
+	}
+
+	if os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH") == "" {
+		path := filepath.Join("..", "certs", "cert.pem")
+		_, err := os.Stat(path)
+		must(err)
+		os.Setenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH", path)
+		fmt.Printf("Setting RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH to '%s'\n", path)
+	}
+
+	if os.Getenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL") == "" {
+		uri := "https://a.javatest11.development.run:8085"
+		os.Setenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL", uri)
+		fmt.Printf("Setting RAVENDB_JAVA_TEST_HTTPS_SERVER_URL to '%s'\n", uri)
+	}
 }
 
 func maybePrintFailedRequestsLog() {
@@ -707,7 +791,7 @@ func logGoroutines(file string) {
 	profile.WriteTo(f, 2)
 }
 
-func IsWindows() bool {
+func isWindows() bool {
 	return runtime.GOOS == "windows"
 }
 

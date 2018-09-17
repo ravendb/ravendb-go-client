@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"os"
+
 	"github.com/ravendb/ravendb-go-client"
 )
 
@@ -22,8 +23,7 @@ func NewTestServiceLocator() (*RavenServerLocator, error) {
 }
 
 const (
-	envCertificatePath = "RAVENDB_JAVA_TEST_CERTIFICATE_PATH"
-	envHTTPSServerURL  = "RAVENDB_JAVA_TEST_HTTPS_SERVER_URL"
+	envHTTPSServerURL = "RAVENDB_JAVA_TEST_HTTPS_SERVER_URL"
 )
 
 func NewSecuredServiceLocator() (*RavenServerLocator, error) {
@@ -36,12 +36,14 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 		return nil, fmt.Errorf("Unable to find RavenDB https server url. Please make sure %s environment variable is set and is valid (current value = %v)", envHTTPSServerURL, envHTTPSServerURL)
 	}
 
+	envCertificatePath := "RAVENDB_JAVA_TEST_CERTIFICATE_PATH"
 	certificatePath := os.Getenv(envCertificatePath)
 	if certificatePath == "" {
 		return nil, fmt.Errorf("Unable to find RavenDB server certificate path. Please make sure %s environment variable is set and is valid (current value = %v)", envCertificatePath, envHTTPSServerURL)
 	}
 	locator.commandArguments = []string{
 		"--Security.Certificate.Path=" + certificatePath,
+		"--Security.Certificate.Password=pwd1234",
 		"--ServerUrl=" + httpsServerURL,
 	}
 	return locator, nil
