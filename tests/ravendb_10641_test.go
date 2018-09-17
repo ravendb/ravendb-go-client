@@ -43,7 +43,8 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 		assert.True(t, ok)
 		metadata := metadataI.(map[string]interface{})
 		metadata["lang"] = "sv"
-		// Note: unlike Java, we have to
+		// Note: unlike Java we can't intercept modifications so we have to
+		// manually mark as dirty
 		m.MarkDirty()
 
 		err = session.SaveChanges()

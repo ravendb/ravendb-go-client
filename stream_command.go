@@ -35,9 +35,10 @@ func (c *StreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 func (c *StreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
 
 	// TODO: return an error if response.Body is nil
-	streamResponse := NewStreamResultResponse()
-	streamResponse.SetResponse(response)
-	streamResponse.setStream(response.Body)
+	streamResponse := &StreamResultResponse{
+		Response: response,
+		Stream:   response.Body,
+	}
 	c.Result = streamResponse
 
 	return ResponseDisposeHandling_MANUALLY, nil
