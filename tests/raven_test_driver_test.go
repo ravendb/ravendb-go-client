@@ -74,10 +74,6 @@ func NewRavenTestDriverWithPacketCapture(pcapPath string) *RavenTestDriver {
 	return &RavenTestDriver{pcapPath: pcapPath}
 }
 
-func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, error) {
-	return d.getDocumentStore2("test_db", true, 0)
-}
-
 func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
 	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
 		return key, nil
@@ -128,7 +124,7 @@ func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
 	return &cert, nil
 }
 
-func (d *RavenTestDriver) getTestClientCertificate() *ravendb.KeyStore {
+func getTestClientCertificate() *ravendb.KeyStore {
 	res := &ravendb.KeyStore{}
 	path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
 	cert, err := loadCertficateAndKeyFromFile(path)
@@ -138,15 +134,11 @@ func (d *RavenTestDriver) getTestClientCertificate() *ravendb.KeyStore {
 }
 
 func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
-	return d.getDocumentStoreWithName("test_db")
+	return d.getDocumentStore2("test_db", false, 0)
 }
 
-func (d *RavenTestDriver) getSecuredDocumentStoreWithName(database string) (*ravendb.DocumentStore, error) {
-	return d.getDocumentStore2(database, true, 0)
-}
-
-func (d *RavenTestDriver) getDocumentStoreWithName(dbName string) (*ravendb.DocumentStore, error) {
-	return d.getDocumentStore2(dbName, false, 0)
+func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, error) {
+	return d.getDocumentStore2("test_db", true, 0)
 }
 
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
@@ -176,7 +168,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	store := ravendb.NewDocumentStoreWithUrlsAndDatabase(urls, name)
 
 	if secured {
-		store.SetCertificate(d.getTestClientCertificate())
+		store.SetCertificate(getTestClientCertificate())
 	}
 
 	// TODO: is over-written by CustomSerializationTest
@@ -343,7 +335,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 
 	if secured {
 		globalSecuredServer = store
-		clientCert := d.getTestClientCertificate()
+		clientCert := getTestClientCertificate()
 		store.SetCertificate(clientCert)
 	} else {
 		globalServer = store

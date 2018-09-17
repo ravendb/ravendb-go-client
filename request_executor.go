@@ -121,60 +121,62 @@ func (re *RequestExecutor) GetCertificate() *KeyStore {
 	return re.certificate
 }
 
-var (
-	globalHTTPClient *http.Client
-)
-
 /*
-func getGlobalHTTPClientNoKeepAlive() *http.Client {
-	if globalHTTPClient == nil {
-		// TODO: certificate
-
-		// based on http.DefaultTransport with DisableKeepAlives set to true
-		tr := &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-				DualStack: true,
-			}).DialContext,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			DisableKeepAlives:     true,
-		}
-
-		client := &http.Client{
-			Timeout:   time.Second * 30,
-			Transport: tr,
-		}
-		globalHTTPClient = client
+func makeHTTPClientNoKeepAlive(certs []tls.Certificate) *http.Client {
+	// based on http.DefaultTransport with DisableKeepAlives set to true
+	tr := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		DisableKeepAlives:     true,
 	}
-	return globalHTTPClient
+
+	client := &http.Client{
+		Timeout:   time.Second * 30,
+		Transport: tr,
+	}
+
+	if certs != nil {
+		fmt.Printf("Creating HTTP client with certificates\n")
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: certs,
+				// TODO: this is for testing only, we should either manually
+				// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
+				// or add certificate to global cert store
+				InsecureSkipVerify: true,
+			},
+		}
+	}
+
+	return client
 }
 */
 
-func getGlobalHTTPClient(certs []tls.Certificate) *http.Client {
-	if globalHTTPClient == nil {
-		client := &http.Client{
-			Timeout: time.Second * 30,
-		}
-		if certs != nil {
-			fmt.Printf("Creating HTTP client with certificates\n")
-			client.Transport = &http.Transport{
-				TLSClientConfig: &tls.Config{
-					Certificates: certs,
-					// TODO: this is for testing only, we should either manually
-					// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
-					// or add certificate to global cert store
-					InsecureSkipVerify: true,
-				},
-			}
-		}
-		globalHTTPClient = client
+func makeHTTPClient(certs []tls.Certificate) *http.Client {
+	client := &http.Client{
+		Timeout: time.Second * 30,
 	}
-	return globalHTTPClient
+	if certs != nil {
+		fmt.Printf("Creating HTTP client with certificates\n")
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: certs,
+				// TODO: this is for testing only, we should either manually
+				// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
+				// or add certificate to global cert store
+				InsecureSkipVerify: true,
+			},
+		}
+	}
+	return client
 }
 
 // NewRequestExecutor creates a new executor
@@ -201,7 +203,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 	if certificate != nil {
 		certs = certificate.Certificates
 	}
-	res.httpClient = getGlobalHTTPClient(certs)
+	res.httpClient = makeHTTPClient(certs)
 	return res
 }
 
