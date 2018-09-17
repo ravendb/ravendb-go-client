@@ -1,24 +1,7 @@
 package ravendb
 
+// IndexChange describes a change to the index. Can be used as DatabaseChange.
 type IndexChange struct {
-	typ  IndexChangeTypes
-	name string
+	Type IndexChangeTypes
+	Name string
 }
-
-/*
-   public IndexChangeTypes getType() {
-       return type;
-   }
-
-   public void setType(IndexChangeTypes type) {
-       this.type = type;
-   }
-
-   public string GetName() {
-       return name;
-   }
-
-   public void setName(string name) {
-       this.name = name;
-   }
-*/

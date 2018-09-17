@@ -1,7 +1,6 @@
 package ravendb
 
 var (
-	// verify DatabaseConnectionState implements IChangesConnectionState
 	_ IChangesConnectionState = &DatabaseConnectionState{}
 )
 
@@ -34,7 +33,9 @@ func (s *DatabaseConnectionState) inc() {
 
 func (s *DatabaseConnectionState) dec() {
 	if s._value.decrementAndGet() == 0 {
-		s._onDisconnect.run()
+		if s._onDisconnect != nil {
+			s._onDisconnect()
+		}
 	}
 }
 

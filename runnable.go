@@ -1,7 +1,5 @@
 package ravendb
 
-// Go implementation of https://docs.oracle.com/javase/7/docs/api/java/lang/Runnable.html
-
-type Runnable interface {
-	run()
-}
+// Note: in Java Runnable is a class with run() function. In Go we use
+// a void function. Instead of foo.run() we do foo()
+type Runnable func()

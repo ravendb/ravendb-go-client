@@ -9,7 +9,8 @@ var (
 type DatabaseChanges struct {
 	_commandId int
 
-	//Semaphore _semaphore = new Semaphore(1);
+	// TODO: why semaphore of size 1 and not a mutex?
+	_semaphore chan bool
 
 	_requestExecutor *RequestExecutor
 	_conventions     *DocumentConventions
@@ -39,6 +40,7 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		_tcs:             NewCompletableFuture(),
 		_cts:             NewCancellationTokenSource(),
 		_onDispose:       onDispose,
+		_semaphore:       make(chan bool, 1),
 	}
 
 	//res._client = res.createWebSocketClient(_requestExecutor),

@@ -1,24 +1,7 @@
 package ravendb
 
+// OperationStatusChange describes a change to the operation status. Can be used as DatabaseChange.
 type OperationStatusChange struct {
-	operationId int
-	state       ObjectNode
+	OperationID int
+	State       map[string]interface{}
 }
-
-/*
-   public long getOperationId() {
-       return operationId;
-   }
-
-   public void setOperationId(long operationId) {
-       this.operationId = operationId;
-   }
-
-   public ObjectNode getState() {
-       return state;
-   }
-
-   public void setState(ObjectNode state) {
-       this.state = state;
-   }
-*/
