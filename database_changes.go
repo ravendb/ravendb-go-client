@@ -1,6 +1,10 @@
 package ravendb
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
 
 var (
 	_ IDatabaseChanges = &DatabaseChanges{}
@@ -22,16 +26,19 @@ type DatabaseChanges struct {
 	//_clientSession *Session
 	//_processor *WebSocketChangesProcessor
 
-	_task *CompletableFuture
-	_cts  *CancellationTokenSource
-	_tcs  *CompletableFuture
+	_client *websocket.Conn
+	_task   *CompletableFuture
+	_cts    *CancellationTokenSource
+	_tcs    *CompletableFuture
 
-	_confirmations sync.Map // int => *CompletableFuture
-	_counters      sync.Map // toLower(string) -> *DatabaseConnectionState
+	mu             sync.Mutex // protects _confirmations and _counters maps
+	_confirmations map[int]*CompletableFuture
+	_counters      map[string]*DatabaseConnectionState
 
 	_immediateConnection atomicInteger
 
 	_connectionStatusChanged []func()
+	onError                  []func(error)
 }
 
 func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *DatabaseChanges {
@@ -46,7 +53,17 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 	}
 
 	//res._client = res.createWebSocketClient(_requestExecutor),
+
 	//res._task = CompletableFuture.runAsync(() -> doWork());
+	res._task = NewCompletableFuture()
+	go func() {
+		err := res.doWork()
+		if err != nil {
+			res._task.CompleteExceptionally(err)
+		} else {
+			res._task.Complete(nil)
+		}
+	}()
 
 	_connectionStatusEventHandler := func() {
 		res.onConnectionStatusChanged()
@@ -100,16 +117,73 @@ func (c *DatabaseChanges) invokeConnectionStatusChanged() {
 	}
 }
 
-func (c *DatabaseChanges) addOnError(handler func(error)) {
-	panic("NYI")
-
+func (c *DatabaseChanges) addOnError(handler func(error)) int {
+	idx := len(c.onError)
+	c.onError = append(c.onError, handler)
+	return idx
 }
 
-func (c *DatabaseChanges) removeOnError(handler func(error)) {
+func (c *DatabaseChanges) removeOnError(handlerIdx int) {
+	c.onError[handlerIdx] = nil
+}
+
+func (c *DatabaseChanges) invokeOnError(err error) {
+	for _, fn := range c.onError {
+		if fn != nil {
+			fn(err)
+		}
+	}
+}
+
+func (c *DatabaseChanges) Close() {
 	panic("NYI")
+}
+
+func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
+	panic("NYI")
+	return nil, nil
+}
+
+func (c *DatabaseChanges) send(command, value string) error {
+	panic("NYI")
+	return nil
+}
+
+func (c *DatabaseChanges) doWork() error {
+	_, err := c._requestExecutor.getPreferredNode()
+	if err != nil {
+		c.invokeConnectionStatusChanged()
+		c.notifyAboutError(err)
+		return err
+	}
+	panic("NYI")
+	return nil
+}
+
+func (c *DatabaseChanges) reconnectClient() bool {
+	panic("NYI")
+	return false
 }
 
 func (c *DatabaseChanges) forAllOperations() IChangesObservable_OperationStatusChange {
 	panic("NYI")
 	return nil
+}
+
+func (c *DatabaseChanges) notifyAboutError(e error) {
+	panic("NYI")
+	// TODO: implement this
+	/*
+		if (_cts.getToken().isCancellationRequested()) {
+			return;
+		}
+	*/
+
+	c.invokeOnError(e)
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, state := range c._counters {
+		state.error(e)
+	}
 }

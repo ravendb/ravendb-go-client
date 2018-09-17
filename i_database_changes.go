@@ -8,8 +8,8 @@ type IDatabaseChanges interface {
 	ensureConnectedNow()
 	addConnectionStatusChanged(handler func()) int
 	removeConnectionStatusChanged(handlerIdx int)
-	addOnError(handler func(error))
-	removeOnError(handler func(error))
+	addOnError(handler func(error)) int
+	removeOnError(handlerIdx int)
 
 	//IChangesObservable<IndexChange> forIndex(string indexName);
 	//IChangesObservable<DocumentChange> forDocument(string docId);
