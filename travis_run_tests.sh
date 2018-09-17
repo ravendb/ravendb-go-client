@@ -24,4 +24,6 @@ echo "GOPATH:           $GOPATH"
 # this works in run_tests.sh
 #go test -v -race  -vet=off -coverpkg github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt ./tests
 
-go test -v -race  -vet=off -coverpkg=all -covermode=atomic -coverprofile=coverage.txt ./tests
+
+# go test -v -race  -vet=off -coverpkg=all -covermode=atomic -coverprofile=coverage.txt ./tests
+go test -v -race -vet=off -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt ./tests
