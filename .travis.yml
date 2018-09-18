@@ -27,7 +27,7 @@ before_install:
   - go get -d -t -v ./...
 
 script:
-  - ./travis_run_tests.sh
+  - ./scripts/travis_run_tests.sh
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

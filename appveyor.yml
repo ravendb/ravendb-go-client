@@ -3,6 +3,9 @@
 # files in a package
 version: 4.0.{build}
 
+# TODO: now that we use go 1.11 and modules, we don't need GOPATH and can
+# rely on go get -v . to get all dependencies
+
 branches:
   only:
     - v4.0
