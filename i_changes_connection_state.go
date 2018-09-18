@@ -8,7 +8,7 @@ type IChangesConnectionState interface {
 	inc()
 	dec()
 	error(error)
-	addOnChangeNotification(ChangesType, interface{}) int
+	addOnChangeNotification(ChangesType, func(interface{})) int
 	removeOnChangeNotification(ChangesType, int)
 	addOnError(func(error)) int
 	removeOnError(int)

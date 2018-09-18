@@ -13,9 +13,9 @@ type DatabaseConnectionState struct {
 	_value        atomicInteger
 	lastException error
 
-	onDocumentChangeNotification        []func(*DocumentChange)
-	onIndexChangeNotification           []func(*IndexChange)
-	onOperationStatusChangeNotification []func(*OperationStatusChange)
+	onDocumentChangeNotification        []func(interface{})
+	onIndexChangeNotification           []func(interface{})
+	onOperationStatusChangeNotification []func(interface{})
 }
 
 func (s *DatabaseConnectionState) addOnError(handler func(error)) int {
@@ -62,20 +62,16 @@ func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *Data
 	}
 }
 
-func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler interface{}) int {
-
+func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler func(interface{})) int {
 	switch typ {
 	case ChangesType_DOCUMENT:
-		h := handler.(func(*DocumentChange))
-		s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, h)
+		s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, handler)
 		return len(s.onDocumentChangeNotification) - 1
 	case ChangesType_INDEX:
-		h := handler.(func(*IndexChange))
-		s.onIndexChangeNotification = append(s.onIndexChangeNotification, h)
+		s.onIndexChangeNotification = append(s.onIndexChangeNotification, handler)
 		return len(s.onIndexChangeNotification) - 1
 	case ChangesType_OPERATION:
-		h := handler.(func(*OperationStatusChange))
-		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, h)
+		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, handler)
 		return len(s.onOperationStatusChangeNotification) - 1
 	default:
 		//throw new IllegalStateException("ChangeType: " + type + " is not supported");

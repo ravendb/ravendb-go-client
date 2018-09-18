@@ -15,7 +15,7 @@ type IDatabaseChanges interface {
 	//IChangesObservable<DocumentChange> forDocument(string docId);
 	//IChangesObservable<DocumentChange> forAllDocuments();
 	//IChangesObservable<OperationStatusChange> forOperationId(long operationId);
-	forAllOperations() IChangesObservable_OperationStatusChange
+	forAllOperations() IChangesObservable // *OperationStatusChange
 	//IChangesObservable<IndexChange> forAllIndexes();
 	//IChangesObservable<DocumentChange> forDocumentsStartingWith(string docIdPrefix);
 	//IChangesObservable<DocumentChange> forDocumentsInCollection(string collectionName);

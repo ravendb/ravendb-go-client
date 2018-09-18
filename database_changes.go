@@ -220,7 +220,7 @@ func (c *DatabaseChanges) reconnectClient() bool {
 	return true
 }
 
-func (c *DatabaseChanges) forAllOperations() IChangesObservable_OperationStatusChange {
+func (c *DatabaseChanges) forAllOperations() IChangesObservable {
 	panic("NYI")
 	return nil
 }

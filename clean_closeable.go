@@ -16,3 +16,17 @@ type NilCleanCloseable struct {
 func (n *NilCleanCloseable) Close() {
 	// works even if n is nil
 }
+
+type FuncCleanCloseable struct {
+	fn func()
+}
+
+func NewFuncCleanCloseable(fn func()) *FuncCleanCloseable {
+	return &FuncCleanCloseable{
+		fn: fn,
+	}
+}
+
+func (f *FuncCleanCloseable) Close() {
+	f.fn()
+}
