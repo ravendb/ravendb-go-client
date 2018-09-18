@@ -60,18 +60,6 @@ func (f *CompletableFuture) getState() (bool, interface{}, error) {
 	return f.completed, f.result, f.err
 }
 
-// IsDone returns true if future has been completed, either with a result or error
-func (f *CompletableFuture) IsDone() bool {
-	done, _, _ := f.getState()
-	return done
-}
-
-// IsCompletedExceptionally returns true if future has been completed due to an error
-func (f *CompletableFuture) IsCompletedExceptionally() bool {
-	_, err, _ := f.getState()
-	return err != nil // implies f.done
-}
-
 // must be called with f.mu locked
 func (f *CompletableFuture) markCompleted(result interface{}, err error) {
 	f.completed = true
@@ -97,6 +85,35 @@ func (f *CompletableFuture) CompleteExceptionally(err error) {
 		f.markCompleted(nil, err)
 	}
 	f.mu.Unlock()
+}
+
+// Cancel cancels a future
+func (f *CompletableFuture) Cancel(mayInterruptIfRunning bool) {
+	// mayInterruptIfRunning is ignored, apparently same happens in Java
+	// https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html
+	f.CompleteExceptionally(NewCancellationError())
+}
+
+// IsDone returns true if future has been completed, either with a result or error
+func (f *CompletableFuture) IsDone() bool {
+	done, _, _ := f.getState()
+	return done
+}
+
+// IsCompletedExceptionally returns true if future has been completed due to an error
+func (f *CompletableFuture) IsCompletedExceptionally() bool {
+	_, err, _ := f.getState()
+	return err != nil // implies f.done
+}
+
+// IsCancelled returns true if future was cancelled by calling Cancel()
+func (f *CompletableFuture) IsCancelled() bool {
+	var isCancelled bool
+	_, err, _ := f.getState()
+	if err != nil {
+		_, isCancelled = err.(*CancellationError)
+	}
+	return isCancelled
 }
 
 // Get waits for completion and returns resulting value or error

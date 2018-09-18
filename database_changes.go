@@ -37,24 +37,23 @@ type DatabaseChanges struct {
 
 	_immediateConnection atomicInteger
 
-	_connectionStatusChanged []func()
-	onError                  []func(error)
+	_connectionStatusEventHandlerIdx int
+	_connectionStatusChanged         []func()
+	onError                          []func(error)
 }
 
 func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *DatabaseChanges {
 	res := &DatabaseChanges{
-		_requestExecutor: requestExecutor,
-		_conventions:     requestExecutor.GetConventions(),
-		_database:        databaseName,
-		_tcs:             NewCompletableFuture(),
-		_cts:             NewCancellationTokenSource(),
-		_onDispose:       onDispose,
-		_semaphore:       make(chan bool, 1),
+		_requestExecutor:                 requestExecutor,
+		_conventions:                     requestExecutor.GetConventions(),
+		_database:                        databaseName,
+		_tcs:                             NewCompletableFuture(),
+		_cts:                             NewCancellationTokenSource(),
+		_onDispose:                       onDispose,
+		_semaphore:                       make(chan bool, 1),
+		_connectionStatusEventHandlerIdx: -1,
 	}
 
-	//res._client = res.createWebSocketClient(_requestExecutor),
-
-	//res._task = CompletableFuture.runAsync(() -> doWork());
 	res._task = NewCompletableFuture()
 	go func() {
 		err := res.doWork()
@@ -68,7 +67,7 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 	_connectionStatusEventHandler := func() {
 		res.onConnectionStatusChanged()
 	}
-	res.addConnectionStatusChanged(_connectionStatusEventHandler)
+	res._connectionStatusEventHandlerIdx = res.addConnectionStatusChanged(_connectionStatusEventHandler)
 	return res
 }
 
@@ -105,7 +104,9 @@ func (c *DatabaseChanges) addConnectionStatusChanged(handler func()) int {
 }
 
 func (c *DatabaseChanges) removeConnectionStatusChanged(handlerIdx int) {
-	c._connectionStatusChanged[handlerIdx] = nil
+	if handlerIdx != -1 {
+		c._connectionStatusChanged[handlerIdx] = nil
+	}
 }
 
 func (c *DatabaseChanges) invokeConnectionStatusChanged() {
@@ -135,7 +136,23 @@ func (c *DatabaseChanges) invokeOnError(err error) {
 }
 
 func (c *DatabaseChanges) Close() {
-	panic("NYI")
+	c.mu.Lock()
+	for _, confirmation := range c._confirmations {
+		confirmation.Cancel(false)
+	}
+	c._semaphore <- true // acquire
+	c._client.Close()
+	c._client = nil
+	<-c._semaphore // release
+	c._cts.cancel()
+	c._counters = nil
+	c.mu.Unlock()
+	c._task.Get()
+	c.invokeConnectionStatusChanged()
+	c.removeConnectionStatusChanged(c._connectionStatusEventHandlerIdx)
+	if c._onDispose != nil {
+		c._onDispose()
+	}
 }
 
 func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
@@ -193,8 +210,14 @@ func (c *DatabaseChanges) doWork() error {
 }
 
 func (c *DatabaseChanges) reconnectClient() bool {
-	panic("NYI")
-	return false
+	if c._cts.getToken().isCancellationRequested() {
+		return false
+	}
+
+	c._immediateConnection.set(0)
+
+	c.invokeConnectionStatusChanged()
+	return true
 }
 
 func (c *DatabaseChanges) forAllOperations() IChangesObservable_OperationStatusChange {
@@ -203,13 +226,9 @@ func (c *DatabaseChanges) forAllOperations() IChangesObservable_OperationStatusC
 }
 
 func (c *DatabaseChanges) notifyAboutError(e error) {
-	panic("NYI")
-	// TODO: implement this
-	/*
-		if (_cts.getToken().isCancellationRequested()) {
-			return;
-		}
-	*/
+	if c._cts.getToken().isCancellationRequested() {
+		return
+	}
 
 	c.invokeOnError(e)
 

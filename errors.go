@@ -266,3 +266,14 @@ type NotFoundError struct {
 func (e *NotFoundError) Error() string {
 	return fmt.Sprintf(`Server returned 404 Not Found for URL '%s'`, e.URL)
 }
+
+type CancellationError struct {
+}
+
+func (e *CancellationError) Error() string {
+	return "CancellationError"
+}
+
+func NewCancellationError() *CancellationError {
+	return &CancellationError{}
+}
