@@ -8,7 +8,7 @@ type DatabaseConnectionState struct {
 	onError []func(error)
 
 	_onDisconnect Runnable
-	onConnect     Runnable // TODO: not used in Java
+	onConnect     Runnable
 
 	_value        atomicInteger
 	lastException error

@@ -89,13 +89,12 @@ func (c *DatabaseChanges) onConnectionStatusChanged() {
 }
 
 func (c *DatabaseChanges) isConnected() bool {
-	panic("NYI")
-	return false
+	return c._client != nil
 }
 
-func (c *DatabaseChanges) ensureConnectedNow() {
-	panic("NYI")
-
+func (c *DatabaseChanges) ensureConnectedNow() error {
+	_, err := c._tcs.Get()
+	return err
 }
 
 func (c *DatabaseChanges) addConnectionStatusChanged(handler func()) int {
@@ -140,8 +139,41 @@ func (c *DatabaseChanges) Close() {
 }
 
 func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
-	panic("NYI")
-	return nil, nil
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	counter, ok := c._counters[name]
+	if ok {
+		return counter, nil
+	}
+
+	s := name
+	onDisconnect := func() {
+		if c.isConnected() {
+			err := c.send(unwatchCommand, value)
+			if err != nil {
+				// if we are not connected then we unsubscribed already
+				// because connections drops with all subscriptions
+			}
+		}
+
+		c.mu.Lock()
+		state := c._counters[s]
+		delete(c._counters, s)
+		c.mu.Unlock()
+		state.Close()
+	}
+
+	onConnect := func() {
+		c.send(watchCommand, value)
+	}
+
+	counter = NewDatabaseConnectionState(onConnect, onDisconnect)
+	c._counters[name] = counter
+
+	if c._immediateConnection.get() == 0 {
+		counter.onConnect()
+	}
+	return counter, nil
 }
 
 func (c *DatabaseChanges) send(command, value string) error {

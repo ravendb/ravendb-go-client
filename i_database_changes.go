@@ -5,7 +5,7 @@ package ravendb
 type IDatabaseChanges interface {
 	// those are IConnectableChanges
 	isConnected() bool
-	ensureConnectedNow()
+	ensureConnectedNow() error
 	addConnectionStatusChanged(handler func()) int
 	removeConnectionStatusChanged(handlerIdx int)
 	addOnError(handler func(error)) int
