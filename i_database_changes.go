@@ -4,22 +4,22 @@ package ravendb
 
 type IDatabaseChanges interface {
 	// those are IConnectableChanges
-	isConnected() bool
-	ensureConnectedNow() error
-	addConnectionStatusChanged(handler func()) int
-	removeConnectionStatusChanged(handlerIdx int)
-	addOnError(handler func(error)) int
-	removeOnError(handlerIdx int)
+	IsConnected() bool
+	EnsureConnectedNow() error
+	AddConnectionStatusChanged(handler func()) int
+	RemoveConnectionStatusChanged(handlerIdx int)
+	AddOnError(handler func(error)) int
+	RemoveOnError(handlerIdx int)
 
-	forIndex(indexName string) (IChangesObservable, error)                      // *IndexChange
-	forDocument(docID string) (IChangesObservable, error)                       // *DocumentChange>
-	forAllDocuments() (IChangesObservable, error)                               // DocumentChange
-	forOperationId(operationID int) (IChangesObservable, error)                 // OperationStatusChange
-	forAllOperations() (IChangesObservable, error)                              // *OperationStatusChange
-	forAllIndexes() (IChangesObservable, error)                                 // *IndexChange
-	forDocumentsStartingWith(docIdPrefix string) (IChangesObservable, error)    // *DocumentChange>
-	forDocumentsInCollection(collectionName string) (IChangesObservable, error) // *DocumentChange
+	ForIndex(indexName string) (IChangesObservable, error)                      // *IndexChange
+	ForDocument(docID string) (IChangesObservable, error)                       // *DocumentChange>
+	ForAllDocuments() (IChangesObservable, error)                               // DocumentChange
+	ForOperationId(operationID int) (IChangesObservable, error)                 // OperationStatusChange
+	ForAllOperations() (IChangesObservable, error)                              // *OperationStatusChange
+	ForAllIndexes() (IChangesObservable, error)                                 // *IndexChange
+	ForDocumentsStartingWith(docIdPrefix string) (IChangesObservable, error)    // *DocumentChange>
+	ForDocumentsInCollection(collectionName string) (IChangesObservable, error) // *DocumentChange
 	//IChangesObservable<DocumentChange> forDocumentsInCollection(Class<?> clazz);
-	forDocumentsOfType(typeName string) (IChangesObservable, error) // *DocumentChange
+	ForDocumentsOfType(typeName string) (IChangesObservable, error) // *DocumentChange
 	//IChangesObservable<DocumentChange> forDocumentsOfType(Class<?> clazz);
 }

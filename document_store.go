@@ -26,7 +26,9 @@ type DocumentStore struct {
 	_certificate *KeyStore
 	database     string // name of the database
 
-	// TODO: _databaseChanges
+	// maps database name to IDatabaseChanges. Must be protected with mutex
+	_databaseChanges map[string]IDatabaseChanges
+
 	// TODO: _aggressiveCacheChanges
 	// maps database name to its RequestsExecutor
 	requestsExecutors            map[string]*RequestExecutor
@@ -39,7 +41,6 @@ type DocumentStore struct {
 	afterClose  []func(*DocumentStore)
 	beforeClose []func(*DocumentStore)
 
-	// old
 	mu sync.Mutex
 }
 
@@ -168,6 +169,7 @@ func NewDocumentStore() *DocumentStore {
 	s := &DocumentStore{
 		requestsExecutors: map[string]*RequestExecutor{},
 		conventions:       NewDocumentConventions(),
+		_databaseChanges:  map[string]IDatabaseChanges{},
 	}
 	return s
 }
@@ -375,15 +377,56 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 	return res
 }
 
-func (s *DocumentStore) Changes() *IDatabaseChanges {
-	// TODO: implement me
-	return nil
+func (s *DocumentStore) Changes() IDatabaseChanges {
+	return s.ChangesWithDatabaseName("")
 }
 
-//    public IDatabaseChanges changes(string database) {
-//    protected IDatabaseChanges createDatabaseChanges(string database) {
-//     public Exception getLastDatabaseChangesStateException() {
-//    public Exception getLastDatabaseChangesStateException(string database) {
+func (s *DocumentStore) ChangesWithDatabaseName(database string) IDatabaseChanges {
+	s.assertInitialized()
+
+	if database == "" {
+		database = s.GetDatabase()
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	changes, ok := s._databaseChanges[database]
+	if !ok {
+		changes = s.createDatabaseChanges(database)
+		s._databaseChanges[database] = changes
+	}
+	return changes
+}
+
+func (s *DocumentStore) createDatabaseChanges(database string) IDatabaseChanges {
+	onDispose := func() {
+		s.mu.Lock()
+		delete(s._databaseChanges, database)
+		s.mu.Unlock()
+	}
+	re := s.GetRequestExecutorWithDatabase(database)
+	return NewDatabaseChanges(re, database, onDispose)
+}
+
+func (s *DocumentStore) GetLastDatabaseChangesStateException() error {
+	return s.GetLastDatabaseChangesStateExceptionWithDatabaseName("")
+}
+
+func (s *DocumentStore) GetLastDatabaseChangesStateExceptionWithDatabaseName(database string) error {
+	if database == "" {
+		database = s.GetDatabase()
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	databaseChanges, ok := s._databaseChanges[database]
+	if !ok {
+		return nil
+	}
+	ch := databaseChanges.(*DatabaseChanges)
+	return ch.getLastConnectionStateException()
+}
 
 func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) {
 	// TODO: implement me

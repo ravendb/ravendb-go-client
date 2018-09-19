@@ -91,7 +91,7 @@ func runJava() {
 	//runSingleJavaTest("IndexOperationsTest")
 	//runSingleJavaTest("IndexesFromClientTest")
 	//runSingleJavaTest("LoadIntoStreamTest")
-	runSingleJavaTest("LoadTest")
+	//runSingleJavaTest("LoadTest")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")
 	//runSingleJavaTest("PatchTest")
 	//runSingleJavaTest("PutDocumentCommandTest")
@@ -119,6 +119,7 @@ func runJava() {
 	//runSingleJavaTest("QueriesWithCustomFunctionsTest")
 	//runSingleJavaTest("SuggestionsTest")
 	//runSingleJavaTest("MoreLikeThisTest")
+	runSingleJavaTest("ChangesTest")
 }
 
 func main() {

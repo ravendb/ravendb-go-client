@@ -18,7 +18,7 @@ func (o *Operation) GetId() int {
 	return o._id
 }
 
-func NewOperation(requestExecutor *RequestExecutor, changes func() *IDatabaseChanges, conventions *DocumentConventions, id int) *Operation {
+func NewOperation(requestExecutor *RequestExecutor, changes func() IDatabaseChanges, conventions *DocumentConventions, id int) *Operation {
 	return &Operation{
 		_requestExecutor: requestExecutor,
 		//TBD _changes = changes;

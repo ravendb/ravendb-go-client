@@ -69,7 +69,7 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 	_connectionStatusEventHandler := func() {
 		res.onConnectionStatusChanged()
 	}
-	res._connectionStatusEventHandlerIdx = res.addConnectionStatusChanged(_connectionStatusEventHandler)
+	res._connectionStatusEventHandlerIdx = res.AddConnectionStatusChanged(_connectionStatusEventHandler)
 	return res
 }
 
@@ -79,7 +79,7 @@ func (c *DatabaseChanges) onConnectionStatusChanged() {
 		<-c._semaphore // release
 	}()
 
-	if c.isConnected() {
+	if c.IsConnected() {
 		c._tcs.Complete(c)
 		return
 	}
@@ -89,29 +89,29 @@ func (c *DatabaseChanges) onConnectionStatusChanged() {
 	}
 }
 
-func (c *DatabaseChanges) isConnected() bool {
+func (c *DatabaseChanges) IsConnected() bool {
 	return c._client != nil
 }
 
-func (c *DatabaseChanges) ensureConnectedNow() error {
+func (c *DatabaseChanges) EnsureConnectedNow() error {
 	_, err := c._tcs.Get()
 	return err
 }
 
-func (c *DatabaseChanges) addConnectionStatusChanged(handler func()) int {
+func (c *DatabaseChanges) AddConnectionStatusChanged(handler func()) int {
 	idx := len(c._connectionStatusChanged)
 	c._connectionStatusChanged = append(c._connectionStatusChanged, handler)
 	return idx
 
 }
 
-func (c *DatabaseChanges) removeConnectionStatusChanged(handlerIdx int) {
+func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
 	if handlerIdx != -1 {
 		c._connectionStatusChanged[handlerIdx] = nil
 	}
 }
 
-func (c *DatabaseChanges) forIndex(indexName string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForIndex(indexName string) (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("indexes/"+indexName, "watch-index", "unwatch-index", indexName)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func (c *DatabaseChanges) getLastConnectionStateException() error {
 	return nil
 }
 
-func (c *DatabaseChanges) forDocument(docId string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocument(docId string) (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("docs/"+docId, "watch-doc", "unwatch-doc", docId)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func filterAlwaysTrue(notification interface{}) bool {
 	return true
 }
 
-func (c *DatabaseChanges) forAllDocuments() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllDocuments() (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("all-docs", "watch-docs", "unwatch-docs", "")
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (c *DatabaseChanges) forAllDocuments() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) forOperationId(operationId int) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForOperationId(operationId int) (IChangesObservable, error) {
 	opIDStr := strconv.Itoa(operationId)
 	counter, err := c.getOrAddConnectionState("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
@@ -178,7 +178,7 @@ func (c *DatabaseChanges) forOperationId(operationId int) (IChangesObservable, e
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) forAllOperations() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllOperations() (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("all-operations", "watch-operations", "unwatch-operations", "")
 	if err != nil {
 		return nil, err
@@ -189,7 +189,7 @@ func (c *DatabaseChanges) forAllOperations() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) forAllIndexes() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllIndexes() (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("all-indexes", "watch-indexes", "unwatch-indexes", "")
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func (c *DatabaseChanges) forAllIndexes() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) forDocumentsStartingWith(docIdPrefix string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsStartingWith(docIdPrefix string) (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("prefixes/"+docIdPrefix, "watch-prefix", "unwatch-prefix", docIdPrefix)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (c *DatabaseChanges) forDocumentsStartingWith(docIdPrefix string) (IChanges
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) forDocumentsInCollection(collectionName string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (IChangesObservable, error) {
 	if collectionName == "" {
 		return nil, NewIllegalArgumentException("CollectionName cannot be empty")
 	}
@@ -241,13 +241,13 @@ func (c *DatabaseChanges) forDocumentsInCollection(collectionName string) (IChan
 }
 
 /*
-func (c *DatabaseChanges) forDocumentsInCollection(Class<?> clazz) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsInCollection(Class<?> clazz) (IChangesObservable, error) {
 	String collectionName = _conventions.getCollectionName(clazz);
 	return forDocumentsInCollection(collectionName);
 }
 */
 
-func (c *DatabaseChanges) forDocumentsOfType(typeName string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsOfType(typeName string) (IChangesObservable, error) {
 	if typeName == "" {
 		return nil, NewIllegalArgumentException("TypeName cannot be empty")
 	}
@@ -271,7 +271,7 @@ func (c *DatabaseChanges) forDocumentsOfType(typeName string) (IChangesObservabl
 }
 
 /*
-   public IChangesObservable<DocumentChange> forDocumentsOfType(Class<?> clazz) {
+   public IChangesObservable<DocumentChange> ForDocumentsOfType(Class<?> clazz) {
        if (clazz == null) {
            throw new IllegalArgumentException("Clazz cannot be null");
        }
@@ -290,13 +290,13 @@ func (c *DatabaseChanges) invokeConnectionStatusChanged() {
 	}
 }
 
-func (c *DatabaseChanges) addOnError(handler func(error)) int {
+func (c *DatabaseChanges) AddOnError(handler func(error)) int {
 	idx := len(c.onError)
 	c.onError = append(c.onError, handler)
 	return idx
 }
 
-func (c *DatabaseChanges) removeOnError(handlerIdx int) {
+func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
 	c.onError[handlerIdx] = nil
 }
 
@@ -322,7 +322,7 @@ func (c *DatabaseChanges) Close() {
 	c.mu.Unlock()
 	c._task.Get()
 	c.invokeConnectionStatusChanged()
-	c.removeConnectionStatusChanged(c._connectionStatusEventHandlerIdx)
+	c.RemoveConnectionStatusChanged(c._connectionStatusEventHandlerIdx)
 	if c._onDispose != nil {
 		c._onDispose()
 	}
@@ -338,7 +338,7 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 
 	s := name
 	onDisconnect := func() {
-		if c.isConnected() {
+		if c.IsConnected() {
 			err := c.send(unwatchCommand, value)
 			if err != nil {
 				// if we are not connected then we unsubscribed already

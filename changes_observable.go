@@ -21,7 +21,7 @@ func NewChangesObservable(typ ChangesType, connectionState IChangesConnectionSta
 	}
 }
 
-func (o *ChangesObservable) subscribe(observer IObserver) CleanCloseable {
+func (o *ChangesObservable) Subscribe(observer IObserver) CleanCloseable {
 	consumer := func(payload interface{}) {
 		o.send(payload)
 	}
@@ -64,7 +64,7 @@ func (o *ChangesObservable) send(msg interface{}) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	for subscriber := range o._subscribers {
-		subscriber.onNext(msg)
+		subscriber.OnNext(msg)
 	}
 }
 
@@ -73,6 +73,6 @@ func (o *ChangesObservable) error(e error) {
 	defer o.mu.Unlock()
 
 	for subscriber := range o._subscribers {
-		subscriber.onError(e)
+		subscriber.OnError(e)
 	}
 }
