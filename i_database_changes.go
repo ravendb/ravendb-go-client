@@ -11,15 +11,15 @@ type IDatabaseChanges interface {
 	addOnError(handler func(error)) int
 	removeOnError(handlerIdx int)
 
-	//IChangesObservable<IndexChange> forIndex(string indexName);
-	//IChangesObservable<DocumentChange> forDocument(string docId);
-	//IChangesObservable<DocumentChange> forAllDocuments();
-	//IChangesObservable<OperationStatusChange> forOperationId(long operationId);
-	forAllOperations() IChangesObservable // *OperationStatusChange
-	//IChangesObservable<IndexChange> forAllIndexes();
-	//IChangesObservable<DocumentChange> forDocumentsStartingWith(string docIdPrefix);
-	//IChangesObservable<DocumentChange> forDocumentsInCollection(string collectionName);
+	forIndex(indexName string) (IChangesObservable, error)                      // *IndexChange
+	forDocument(docID string) (IChangesObservable, error)                       // *DocumentChange>
+	forAllDocuments() (IChangesObservable, error)                               // DocumentChange
+	forOperationId(operationID int) (IChangesObservable, error)                 // OperationStatusChange
+	forAllOperations() (IChangesObservable, error)                              // *OperationStatusChange
+	forAllIndexes() (IChangesObservable, error)                                 // *IndexChange
+	forDocumentsStartingWith(docIdPrefix string) (IChangesObservable, error)    // *DocumentChange>
+	forDocumentsInCollection(collectionName string) (IChangesObservable, error) // *DocumentChange
 	//IChangesObservable<DocumentChange> forDocumentsInCollection(Class<?> clazz);
-	//IChangesObservable<DocumentChange> forDocumentsOfType(string typeName);
+	forDocumentsOfType(typeName string) (IChangesObservable, error) // *DocumentChange
 	//IChangesObservable<DocumentChange> forDocumentsOfType(Class<?> clazz);
 }

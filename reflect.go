@@ -110,7 +110,6 @@ func isTypePointerToStruct(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Struct
 }
 
-
 // if typ is ptr-to-struct, return as is
 // if typ is ptr-to-ptr-to-struct, returns ptr-to-struct
 // otherwise returns nil
@@ -130,7 +129,6 @@ func fixUpStructType(typ reflect.Type) reflect.Type {
 	}
 	return nil
 }
-
 
 func convertFloat64ToType(v float64, typ reflect.Type) interface{} {
 	switch typ.Kind() {
@@ -218,6 +216,15 @@ func getJSONStructFieldNames(typ reflect.Type) []string {
 	}
 
 	return res
+}
+
+// given js value (most likely as map[string]interface{}) decode into res
+func decodeJSONAsStruct(js interface{}, res interface{}) error {
+	d, err := json.Marshal(js)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(d, res)
 }
 
 // given a json represented as map and type of a struct

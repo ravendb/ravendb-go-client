@@ -1,5 +1,7 @@
 package ravendb
 
+import "fmt"
+
 var (
 	_ IChangesConnectionState = &DatabaseConnectionState{}
 )
@@ -93,6 +95,20 @@ func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, id
 		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
 	}
+}
+
+func (s *DatabaseConnectionState) send(v interface{}) error {
+	switch rv := v.(type) {
+	case *DocumentChange:
+		s.sendDocumentChange(rv)
+	case *IndexChange:
+		s.sendIndexChange(rv)
+	case *OperationStatusChange:
+		s.sendOperationStatusChange(rv)
+	default:
+		return fmt.Errorf("DatabaseConnectionState.send(): unsupporrted type %T", v)
+	}
+	return nil
 }
 
 func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
