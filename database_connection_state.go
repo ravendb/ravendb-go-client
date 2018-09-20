@@ -1,6 +1,9 @@
 package ravendb
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 var (
 	_ IChangesConnectionState = &DatabaseConnectionState{}
@@ -18,14 +21,21 @@ type DatabaseConnectionState struct {
 	onDocumentChangeNotification        []func(interface{})
 	onIndexChangeNotification           []func(interface{})
 	onOperationStatusChangeNotification []func(interface{})
+
+	// protects arrays
+	mu sync.Mutex
 }
 
 func (s *DatabaseConnectionState) addOnError(handler func(error)) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.onError = append(s.onError, handler)
 	return len(s.onError) - 1
 }
 
 func (s *DatabaseConnectionState) removeOnError(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.onError[idx] = nil
 }
 
@@ -42,6 +52,8 @@ func (s *DatabaseConnectionState) dec() {
 }
 
 func (s *DatabaseConnectionState) error(e error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.lastException = e
 	for _, f := range s.onError {
 		if f != nil {
@@ -63,6 +75,8 @@ func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *Data
 }
 
 func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler func(interface{})) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	var idx int
 	switch typ {
 	case ChangesType_DOCUMENT:
@@ -78,12 +92,13 @@ func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handl
 		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
 	}
-	dbg("addOnChangeNotification: %s %d\n", typ, idx)
 	return idx
 }
 
 func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, idx int) {
-	dbg("removeOnChangeNotification: %s %d\n", typ, idx)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	switch typ {
 	case ChangesType_DOCUMENT:
 		s.onDocumentChangeNotification[idx] = nil
@@ -112,16 +127,18 @@ func (s *DatabaseConnectionState) send(v interface{}) error {
 }
 
 func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
-	dbg("DatabaseConnectionState.sendDocumentChange: len(s.onDocumentChangeNotification)=%d\n", len(s.onDocumentChangeNotification))
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, f := range s.onDocumentChangeNotification {
 		if f != nil {
-			dbg("DatabaseConnectionState.sendDocumentChange: calling f\n")
 			f(documentChange)
 		}
 	}
 }
 
 func (s *DatabaseConnectionState) sendIndexChange(indexChange *IndexChange) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, f := range s.onIndexChangeNotification {
 		if f != nil {
 			f(indexChange)
@@ -130,6 +147,8 @@ func (s *DatabaseConnectionState) sendIndexChange(indexChange *IndexChange) {
 }
 
 func (s *DatabaseConnectionState) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	for _, f := range s.onOperationStatusChangeNotification {
 		if f != nil {
 			f(operationStatusChange)

@@ -158,35 +158,119 @@ func changesTest_allDocumentsChanges(t *testing.T) {
 	}
 }
 
-func changesTest_singleIndexChanges(t *testing.T) {}
+// Note: UsersByName is the same as makeUsersByNameIndex in query_test.go
 
-func changesTest_allIndexChanges(t *testing.T) {}
+func changesTest_singleIndexChanges(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
 
-func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T) {}
+	index := makeUsersByNameIndex()
+	err = store.ExecuteIndex(index)
+	assert.NoError(t, err)
+
+	changesList := make(chan *ravendb.IndexChange, 8)
+
+	{
+		changes := store.Changes()
+		err = changes.EnsureConnectedNow()
+		assert.NoError(t, err)
+
+		observable, err := changes.ForIndex(index.IndexName)
+		assert.NoError(t, err)
+
+		{
+			action := func(v interface{}) {
+				change := v.(*ravendb.IndexChange)
+				changesList <- change
+			}
+			observer := ravendb.NewActionBasedObserver(action)
+			subscription := observable.Subscribe(observer)
+			time.Sleep(500 * time.Millisecond)
+			//SetIndexesPriorityOperation
+			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriority_LOW)
+			err = store.Maintenance().Send(operation)
+
+			select {
+			case indexChange := <-changesList:
+				assert.Equal(t, indexChange.Name, index.IndexName)
+			case <-time.After(time.Second * 2):
+				assert.True(t, false, "timed out waiting for changes")
+			}
+			subscription.Close()
+		}
+	}
+}
+
+func changesTest_allIndexChanges(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	index := makeUsersByNameIndex()
+	err = store.ExecuteIndex(index)
+	assert.NoError(t, err)
+
+	changesList := make(chan *ravendb.IndexChange, 8)
+
+	{
+		changes := store.Changes()
+		err = changes.EnsureConnectedNow()
+		assert.NoError(t, err)
+
+		observable, err := changes.ForAllIndexes()
+		assert.NoError(t, err)
+
+		{
+			action := func(v interface{}) {
+				change := v.(*ravendb.IndexChange)
+				changesList <- change
+			}
+			observer := ravendb.NewActionBasedObserver(action)
+			subscription := observable.Subscribe(observer)
+			time.Sleep(500 * time.Millisecond)
+			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriority_LOW)
+			err = store.Maintenance().Send(operation)
+
+			select {
+			case indexChange := <-changesList:
+				assert.Equal(t, indexChange.Name, index.IndexName)
+			case <-time.After(time.Second * 2):
+				assert.True(t, false, "timed out waiting for changes")
+			}
+			subscription.Close()
+		}
+	}
+}
+
+func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	semaphore := make(chan bool, 1)
+	semaphore <- true // acquire
+
+	changes := store.ChangesWithDatabaseName("no_such_db")
+
+	onError := func(e error) {
+		<-semaphore // release
+	}
+	changes.AddOnError(onError)
+
+	select {
+	case <-semaphore:
+		// do nothing
+	case <-time.After(time.Second * 15):
+		assert.True(t, false, "timed out waiting for error")
+	}
+
+	op := ravendb.NewGetStatisticsOperation()
+	err = store.Maintenance().Send(op)
+	assert.NoError(t, err)
+}
 
 func changesTest_resourcesCleanup(t *testing.T) {}
-
-/*
-   public static class UsersByName extends AbstractIndexCreationTask {
-       public UsersByName() {
-
-           map = "from c in docs.Users select new " +
-                   " {" +
-                   "    c.name, " +
-                   "    count = 1" +
-                   "}";
-
-           reduce = "from result in results " +
-                   "group result by result.name " +
-                   "into g " +
-                   "select new " +
-                   "{ " +
-                   "  name = g.Key, " +
-                   "  count = g.Sum(x => x.count) " +
-                   "}";
-       }
-   }
-*/
 
 func TestChanges(t *testing.T) {
 	if dbTestsDisabled() {

@@ -152,7 +152,6 @@ func (c *DatabaseChanges) ForDocument(docId string) (IChangesObservable, error) 
 }
 
 func filterAlwaysTrue(notification interface{}) bool {
-	dbg("filterAlwaysTrue: %T\n", notification)
 	return true
 }
 
@@ -348,7 +347,6 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 
 	s := name
 	onDisconnect := func() {
-		dbg("getOrAddConnectionState() onDisconnect()\n")
 		if c.IsConnected() {
 			err := c.send(unwatchCommand, value)
 			if err != nil {
@@ -365,7 +363,6 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	}
 
 	onConnect := func() {
-		dbg("getOrAddConnectionState() onConnect()\n")
 		c.send(watchCommand, value)
 	}
 
@@ -413,9 +410,7 @@ func (c *DatabaseChanges) send(command, value string) error {
 		return err
 	}
 
-	dbg("DatabaseChanges.send: '%s' '%s', id: %d\n", command, value, currentCommandId)
 	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
-	dbg("DatabaseChanges.send: got response for command %d\n", currentCommandId)
 	return err
 }
 
@@ -425,12 +420,11 @@ func toWebSocketPath(path string) string {
 }
 
 func (c *DatabaseChanges) doWork() error {
-	dbg("doWork()\n")
 	_, err := c._requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
 		c.notifyAboutError(err)
-		dbg("doWork(): err: %s\n", err)
+		dbg("doWork(): c._requestExecutor.getPreferredNode failed with err: %s\n", err)
 		return err
 	}
 
@@ -439,7 +433,6 @@ func (c *DatabaseChanges) doWork() error {
 
 	for {
 		if c._cts.getToken().isCancellationRequested() {
-			dbg("doWork(): isCancellationRequested()\n")
 			return nil
 		}
 
@@ -447,9 +440,7 @@ func (c *DatabaseChanges) doWork() error {
 		var err error
 		panicIf(c.IsConnected(), "impoosible: cannot be connected")
 
-		dbg("doWork(): before dial %s\n", urlString)
 		c._client, _, err = websocket.DefaultDialer.Dial(urlString, nil)
-		dbg("doWork(): after dial\n")
 		if err != nil {
 			dbg("doWork(): websocket.Dial(%s) failed with %s()\n", urlString, err)
 			time.Sleep(time.Second)
@@ -498,13 +489,12 @@ func (c *DatabaseChanges) reconnectClient() bool {
 }
 
 func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, states []*DatabaseConnectionState) error {
-	dbg("notifySubscribers: typ '%s', val: %v, len(states): %d\n", typ, value, len(states))
 	switch typ {
 	case "DocumentChange":
 		var documentChange *DocumentChange
 		err := decodeJSONAsStruct(value, &documentChange)
 		if err != nil {
-			dbg("notifySubscribers: decodeJSONAsStruct failed with %s\n", err)
+			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
 		for _, state := range states {
@@ -514,6 +504,7 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, state
 		var indexChange *IndexChange
 		err := decodeJSONAsStruct(value, &indexChange)
 		if err != nil {
+			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
 		for _, state := range states {
@@ -523,6 +514,7 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, state
 		var operationStatusChange *OperationStatusChange
 		err := decodeJSONAsStruct(value, &operationStatusChange)
 		if err != nil {
+			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
 		for _, state := range states {
@@ -562,16 +554,14 @@ func NewWebSocketChangesProcessor(client *websocket.Conn) *WebSocketChangesProce
 
 func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 	var err error
-	dbg("WebSocketChangesProcessor.processMessages()\n")
 	for {
 		var msgArray []interface{} // an array of objects
-		dbg("WebSocketChangesProcessor.processMessages() before ReadJSON()\n")
 		err = p.client.ReadJSON(&msgArray)
 		if err != nil {
 			dbg("WebSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
 		}
-		dbg("WebSocketChangesProcessor.processMessages() msgArray: %T %v\n", msgArray, msgArray)
+		// dbg("WebSocketChangesProcessor.processMessages() msgArray: %T %v\n", msgArray, msgArray)
 		for _, msgNodeV := range msgArray {
 			msgNode := msgNodeV.(map[string]interface{})
 			typ, _ := jsonGetAsString(msgNode, "Type")
