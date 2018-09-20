@@ -51,10 +51,8 @@ func (s *DatabaseConnectionState) error(e error) {
 }
 
 func (s *DatabaseConnectionState) Close() {
-	s.onDocumentChangeNotification = nil
-	s.onIndexChangeNotification = nil
-	s.onOperationStatusChangeNotification = nil
-	s.onError = nil
+	// Note: not clearing as in Java because removeOnChangeNotification()
+	// can be called after Close()
 }
 
 func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *DatabaseConnectionState {
@@ -65,28 +63,30 @@ func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *Data
 }
 
 func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler func(interface{})) int {
+	var idx int
 	switch typ {
 	case ChangesType_DOCUMENT:
+		idx = len(s.onDocumentChangeNotification)
 		s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, handler)
-		return len(s.onDocumentChangeNotification) - 1
 	case ChangesType_INDEX:
+		idx = len(s.onIndexChangeNotification)
 		s.onIndexChangeNotification = append(s.onIndexChangeNotification, handler)
-		return len(s.onIndexChangeNotification) - 1
 	case ChangesType_OPERATION:
+		idx = len(s.onOperationStatusChangeNotification)
 		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, handler)
-		return len(s.onOperationStatusChangeNotification) - 1
 	default:
 		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
 	}
-	return -1
+	dbg("addOnChangeNotification: %s %d\n", typ, idx)
+	return idx
 }
 
 func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, idx int) {
+	dbg("removeOnChangeNotification: %s %d\n", typ, idx)
 	switch typ {
 	case ChangesType_DOCUMENT:
 		s.onDocumentChangeNotification[idx] = nil
-
 	case ChangesType_INDEX:
 		s.onIndexChangeNotification[idx] = nil
 	case ChangesType_OPERATION:
@@ -112,8 +112,10 @@ func (s *DatabaseConnectionState) send(v interface{}) error {
 }
 
 func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
+	dbg("DatabaseConnectionState.sendDocumentChange: len(s.onDocumentChangeNotification)=%d\n", len(s.onDocumentChangeNotification))
 	for _, f := range s.onDocumentChangeNotification {
 		if f != nil {
+			dbg("DatabaseConnectionState.sendDocumentChange: calling f\n")
 			f(documentChange)
 		}
 	}

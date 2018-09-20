@@ -3,9 +3,9 @@ package ravendb
 type DocumentChangeTypes = string
 
 const (
-	DocumentChangeTypes_NONE     = "NONE"
-	DocumentChangeTypes_PUT      = "PUT"
-	DocumentChangeTypes_DELETE   = "DELETE"
-	DocumentChangeTypes_CONFLICT = "CONFLICT"
-	DocumentChangeTypes_COMMON   = "COMMON"
+	DocumentChangeTypes_NONE     = "None"
+	DocumentChangeTypes_PUT      = "Put"
+	DocumentChangeTypes_DELETE   = "Delete"
+	DocumentChangeTypes_CONFLICT = "Conflict"
+	DocumentChangeTypes_COMMON   = "Common"
 )

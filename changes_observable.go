@@ -1,6 +1,9 @@
 package ravendb
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 var _ IChangesObservable = &ChangesObservable{}
 
@@ -22,11 +25,14 @@ func NewChangesObservable(typ ChangesType, connectionState IChangesConnectionSta
 }
 
 func (o *ChangesObservable) Subscribe(observer IObserver) CleanCloseable {
+	dbg("ChangesObservable.Subscribe\n")
 	consumer := func(payload interface{}) {
+		dbg("ChangesObservable.Subscribe: consumer called\n")
 		o.send(payload)
 	}
 
 	onErrorHandle := func(ex error) {
+		dbg("ChangesObservable.Subscribe: onErrorHandle called\n")
 		o.error(ex)
 	}
 
@@ -34,6 +40,7 @@ func (o *ChangesObservable) Subscribe(observer IObserver) CleanCloseable {
 	onErrorHandleIdx := o._connectionState.addOnError(onErrorHandle)
 
 	o._connectionState.inc()
+	o.addObserver(observer)
 
 	fn := func() {
 		o._connectionState.dec()
@@ -47,22 +54,26 @@ func (o *ChangesObservable) Subscribe(observer IObserver) CleanCloseable {
 func (o *ChangesObservable) addObserver(observer IObserver) {
 	o.mu.Lock()
 	o._subscribers[observer] = true
+	dbg("ChangesObservable.send() addObserver() len(o._subscribers)=%d\n", len(o._subscribers))
 	o.mu.Unlock()
 }
 
 func (o *ChangesObservable) removeObserver(observer IObserver) {
 	o.mu.Lock()
 	delete(o._subscribers, observer)
+	dbg("ChangesObservable.send() removeObserver() len(o._subscribers)=%d\n", len(o._subscribers))
 	o.mu.Unlock()
 }
 
 func (o *ChangesObservable) send(msg interface{}) {
-	if o._filter != nil && o._filter(msg) {
+	if o._filter != nil && !o._filter(msg) {
+		fmt.Printf("ChangesObservable.send() skipping because filter returned false\n")
 		return
 	}
 
 	o.mu.Lock()
 	defer o.mu.Unlock()
+	dbg("ChangesObservable.send() len(o._subscribers)=%d\n", len(o._subscribers))
 	for subscriber := range o._subscribers {
 		subscriber.OnNext(msg)
 	}

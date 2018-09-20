@@ -19,7 +19,7 @@ function check() {
 
 set -o xtrace
 
-export VERBOSE_LOG=true
+#export VERBOSE_LOG=true
 export LOG_HTTP_REQUEST_SUMMARY=true
 export LOG_FAILED_HTTP_REQUESTS=true
 # logs output of raven server to stdout, helpful for failing tests

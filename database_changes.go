@@ -26,8 +26,7 @@ type DatabaseChanges struct {
 
 	_onDispose Runnable
 
-	_client    *websocket.Conn
-	_processor *WebSocketChangesProcessor
+	_client *websocket.Conn
 
 	_task *CompletableFuture
 	_cts  *CancellationTokenSource
@@ -54,6 +53,8 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		_onDispose:                       onDispose,
 		_semaphore:                       make(chan bool, 1),
 		_connectionStatusEventHandlerIdx: -1,
+		_confirmations:                   map[int]*CompletableFuture{},
+		_counters:                        map[string]*DatabaseConnectionState{},
 	}
 
 	res._task = NewCompletableFuture()
@@ -74,10 +75,8 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 }
 
 func (c *DatabaseChanges) onConnectionStatusChanged() {
-	c._semaphore <- true // acquire
-	defer func() {
-		<-c._semaphore // release
-	}()
+	c.semAcquire()
+	defer c.semRelease()
 
 	if c.IsConnected() {
 		c._tcs.Complete(c)
@@ -90,6 +89,7 @@ func (c *DatabaseChanges) onConnectionStatusChanged() {
 }
 
 func (c *DatabaseChanges) IsConnected() bool {
+	// TODO: should be protected aginst multi-threading
 	return c._client != nil
 }
 
@@ -99,10 +99,11 @@ func (c *DatabaseChanges) EnsureConnectedNow() error {
 }
 
 func (c *DatabaseChanges) AddConnectionStatusChanged(handler func()) int {
+	c.mu.Lock()
 	idx := len(c._connectionStatusChanged)
 	c._connectionStatusChanged = append(c._connectionStatusChanged, handler)
+	c.mu.Unlock()
 	return idx
-
 }
 
 func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
@@ -151,6 +152,7 @@ func (c *DatabaseChanges) ForDocument(docId string) (IChangesObservable, error) 
 }
 
 func filterAlwaysTrue(notification interface{}) bool {
+	dbg("filterAlwaysTrue: %T\n", notification)
 	return true
 }
 
@@ -283,10 +285,17 @@ func (c *DatabaseChanges) ForDocumentsOfType(typeName string) (IChangesObservabl
 */
 
 func (c *DatabaseChanges) invokeConnectionStatusChanged() {
+	var dup []func()
+	c.mu.Lock()
 	for _, fn := range c._connectionStatusChanged {
 		if fn != nil {
-			fn()
+			dup = append(dup, fn)
 		}
+	}
+	c.mu.Unlock()
+
+	for _, fn := range dup {
+		fn()
 	}
 }
 
@@ -313,10 +322,11 @@ func (c *DatabaseChanges) Close() {
 	for _, confirmation := range c._confirmations {
 		confirmation.Cancel(false)
 	}
-	c._semaphore <- true // acquire
+	c.semAcquire()
 	c._client.Close()
 	c._client = nil
-	<-c._semaphore // release
+	c.semRelease()
+
 	c._cts.cancel()
 	c._counters = nil
 	c.mu.Unlock()
@@ -338,6 +348,7 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 
 	s := name
 	onDisconnect := func() {
+		dbg("getOrAddConnectionState() onDisconnect()\n")
 		if c.IsConnected() {
 			err := c.send(unwatchCommand, value)
 			if err != nil {
@@ -354,21 +365,31 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	}
 
 	onConnect := func() {
+		dbg("getOrAddConnectionState() onConnect()\n")
 		c.send(watchCommand, value)
 	}
 
 	counter = NewDatabaseConnectionState(onConnect, onDisconnect)
 	c._counters[name] = counter
 
-	if c._immediateConnection.get() == 0 {
+	if c._immediateConnection.get() != 0 {
 		counter.onConnect()
 	}
 	return counter, nil
 }
 
+func (c *DatabaseChanges) semAcquire() {
+	c._semaphore <- true
+}
+
+func (c *DatabaseChanges) semRelease() {
+	<-c._semaphore
+}
+
 func (c *DatabaseChanges) send(command, value string) error {
 	taskCompletionSource := NewCompletableFuture()
-	c._semaphore <- true // acquire
+
+	c.semAcquire()
 
 	c._commandId++
 	currentCommandId := c._commandId
@@ -386,24 +407,83 @@ func (c *DatabaseChanges) send(command, value string) error {
 	err := c._client.WriteJSON(o)
 	c._confirmations[currentCommandId] = taskCompletionSource
 
-	<-c._semaphore // release
+	c.semRelease()
 	if err != nil {
+		dbg("DatabaseChanges.send: WriteJSON() failed with %s\n", err)
 		return err
 	}
 
+	dbg("DatabaseChanges.send: '%s' '%s', id: %d\n", command, value, currentCommandId)
 	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
+	dbg("DatabaseChanges.send: got response for command %d\n", currentCommandId)
 	return err
 }
 
+func toWebSocketPath(path string) string {
+	path = strings.Replace(path, "http://", "ws://", -1)
+	return strings.Replace(path, "https://", "wss://", -1)
+}
+
 func (c *DatabaseChanges) doWork() error {
+	dbg("doWork()\n")
 	_, err := c._requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
 		c.notifyAboutError(err)
+		dbg("doWork(): err: %s\n", err)
 		return err
 	}
-	panic("NYI")
-	return nil
+
+	urlString := c._requestExecutor.GetUrl() + "/databases/" + c._database + "/changes"
+	urlString = toWebSocketPath(urlString)
+
+	for {
+		if c._cts.getToken().isCancellationRequested() {
+			dbg("doWork(): isCancellationRequested()\n")
+			return nil
+		}
+
+		var processor *WebSocketChangesProcessor
+		var err error
+		panicIf(c.IsConnected(), "impoosible: cannot be connected")
+
+		dbg("doWork(): before dial %s\n", urlString)
+		c._client, _, err = websocket.DefaultDialer.Dial(urlString, nil)
+		dbg("doWork(): after dial\n")
+		if err != nil {
+			dbg("doWork(): websocket.Dial(%s) failed with %s()\n", urlString, err)
+			time.Sleep(time.Second)
+			continue
+		}
+
+		processor = NewWebSocketChangesProcessor(c._client)
+		go processor.processMessages(c)
+		c._immediateConnection.set(1)
+
+		// TODO: make thread safe
+		for _, counter := range c._counters {
+			counter.onConnect()
+		}
+		c.invokeConnectionStatusChanged()
+		_, err = processor.processing.Get()
+		c.invokeConnectionStatusChanged()
+		shouldReconnect := c.reconnectClient()
+
+		for _, confirmation := range c._confirmations {
+			confirmation.Cancel(false)
+		}
+
+		for k := range c._confirmations {
+			delete(c._confirmations, k)
+		}
+
+		if !shouldReconnect {
+			return nil
+		}
+
+		// wait before next retry
+		time.Sleep(time.Second)
+	}
 }
 
 func (c *DatabaseChanges) reconnectClient() bool {
@@ -418,11 +498,13 @@ func (c *DatabaseChanges) reconnectClient() bool {
 }
 
 func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, states []*DatabaseConnectionState) error {
+	dbg("notifySubscribers: typ '%s', val: %v, len(states): %d\n", typ, value, len(states))
 	switch typ {
 	case "DocumentChange":
 		var documentChange *DocumentChange
 		err := decodeJSONAsStruct(value, &documentChange)
 		if err != nil {
+			dbg("notifySubscribers: decodeJSONAsStruct failed with %s\n", err)
 			return err
 		}
 		for _, state := range states {
@@ -471,14 +553,25 @@ type WebSocketChangesProcessor struct {
 	client     *websocket.Conn
 }
 
+func NewWebSocketChangesProcessor(client *websocket.Conn) *WebSocketChangesProcessor {
+	return &WebSocketChangesProcessor{
+		processing: NewCompletableFuture(),
+		client:     client,
+	}
+}
+
 func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 	var err error
+	dbg("WebSocketChangesProcessor.processMessages()\n")
 	for {
 		var msgArray []interface{} // an array of objects
+		dbg("WebSocketChangesProcessor.processMessages() before ReadJSON()\n")
 		err = p.client.ReadJSON(&msgArray)
 		if err != nil {
+			dbg("WebSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
 		}
+		dbg("WebSocketChangesProcessor.processMessages() msgArray: %T %v\n", msgArray, msgArray)
 		for _, msgNodeV := range msgArray {
 			msgNode := msgNodeV.(map[string]interface{})
 			typ, _ := jsonGetAsString(msgNode, "Type")
@@ -489,8 +582,9 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 			case "Confirm":
 				commandID, ok := jsonGetAsInt(msgNode, "CommandId")
 				if ok {
-					// TODO: protect with semaphore?
+					changes.semAcquire()
 					future := changes._confirmations[commandID]
+					changes.semRelease()
 					if future != nil {
 						future.Complete(nil)
 					}

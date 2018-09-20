@@ -389,12 +389,14 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) IDatabaseChange
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	changes, ok := s._databaseChanges[database]
+	s.mu.Unlock()
+
 	if !ok {
 		changes = s.createDatabaseChanges(database)
+		s.mu.Lock()
 		s._databaseChanges[database] = changes
+		s.mu.Unlock()
 	}
 	return changes
 }
