@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -26,7 +27,8 @@ type DatabaseChanges struct {
 
 	_onDispose Runnable
 
-	_client *websocket.Conn
+	_client  *websocket.Conn
+	muClient sync.Mutex
 
 	_task *CompletableFuture
 	_cts  *CancellationTokenSource
@@ -88,9 +90,22 @@ func (c *DatabaseChanges) onConnectionStatusChanged() {
 	}
 }
 
+func (c *DatabaseChanges) getWsClient() *websocket.Conn {
+	c.muClient.Lock()
+	res := c._client
+	c.muClient.Unlock()
+	return res
+}
+
+func (c *DatabaseChanges) setWsClient(client *websocket.Conn) {
+	c.muClient.Lock()
+	c._client = client
+	c.muClient.Unlock()
+}
+
 func (c *DatabaseChanges) IsConnected() bool {
-	// TODO: should be protected aginst multi-threading
-	return c._client != nil
+	client := c.getWsClient()
+	return client != nil
 }
 
 func (c *DatabaseChanges) EnsureConnectedNow() error {
@@ -321,14 +336,22 @@ func (c *DatabaseChanges) Close() {
 	for _, confirmation := range c._confirmations {
 		confirmation.Cancel(false)
 	}
-	c.semAcquire()
-	c._client.Close()
-	c._client = nil
-	c.semRelease()
+	c.mu.Unlock()
 
+	client := c.getWsClient()
+	if client != nil {
+		err := client.Close()
+		if err != nil {
+			dbg("DatabaseChanges.Close(): client.Close() failed with %s\n", err)
+		}
+		c.setWsClient(nil)
+	}
+
+	c.mu.Lock()
 	c._cts.cancel()
 	c._counters = nil
 	c.mu.Unlock()
+
 	c._task.Get()
 	c.invokeConnectionStatusChanged()
 	c.RemoveConnectionStatusChanged(c._connectionStatusEventHandlerIdx)
@@ -401,7 +424,8 @@ func (c *DatabaseChanges) send(command, value string) error {
 		Param:     value,
 	}
 
-	err := c._client.WriteJSON(o)
+	client := c.getWsClient()
+	err := client.WriteJSON(o)
 	c._confirmations[currentCommandId] = taskCompletionSource
 
 	c.semRelease()
@@ -440,14 +464,20 @@ func (c *DatabaseChanges) doWork() error {
 		var err error
 		panicIf(c.IsConnected(), "impoosible: cannot be connected")
 
-		c._client, _, err = websocket.DefaultDialer.Dial(urlString, nil)
+		dialer := *websocket.DefaultDialer
+		dialer.HandshakeTimeout = time.Second * 2
+		// TODO: set tlsConfig for https
+		ctx := context.Background()
+		var client *websocket.Conn
+		client, _, err = dialer.DialContext(ctx, urlString, nil)
+		c.setWsClient(client)
 		if err != nil {
 			dbg("doWork(): websocket.Dial(%s) failed with %s()\n", urlString, err)
 			time.Sleep(time.Second)
 			continue
 		}
 
-		processor = NewWebSocketChangesProcessor(c._client)
+		processor = NewWebSocketChangesProcessor(client)
 		go processor.processMessages(c)
 		c._immediateConnection.set(1)
 

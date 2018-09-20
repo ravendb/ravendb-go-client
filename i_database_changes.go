@@ -22,4 +22,6 @@ type IDatabaseChanges interface {
 	//IChangesObservable<DocumentChange> forDocumentsInCollection(Class<?> clazz);
 	ForDocumentsOfType(typeName string) (IChangesObservable, error) // *DocumentChange
 	//IChangesObservable<DocumentChange> forDocumentsOfType(Class<?> clazz);
+
+	Close()
 }

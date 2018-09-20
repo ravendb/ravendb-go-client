@@ -19,7 +19,7 @@ function check() {
 
 set -o xtrace
 
-#export VERBOSE_LOG=true
+export VERBOSE_LOG=true
 export LOG_HTTP_REQUEST_SUMMARY=true
 export LOG_FAILED_HTTP_REQUESTS=true
 # logs output of raven server to stdout, helpful for failing tests
@@ -45,4 +45,5 @@ go clean -testcache
 
 #go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestRavenDB5669$ ./tests
 
-go test -v -race -vet=off -run ^TestChanges$ ./tests
+go test -v -race -vet=off -run "^TestC.*$" ./tests
+# go test -v -race -vet=off -run ^TestClientConfiguration$ ./tests

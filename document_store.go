@@ -221,7 +221,9 @@ func (s *DocumentStore) Close() {
 
 	// TODO: evict _aggressiveCacheChanges
 
-	// TODO: close _databaseChanges
+	for _, changes := range s._databaseChanges {
+		changes.Close()
+	}
 
 	if s._multiDbHiLo != nil {
 		s._multiDbHiLo.ReturnUnusedRange()

@@ -1,18 +1,17 @@
 package ravendb
 
 import (
-	"fmt"
+	"sync/atomic"
 	"time"
 )
 
 // TODO: make private if not exposed in public API
 // TODO: CancellationToken seems un-necessary
-// TODO: should use atomic becasue used across threads
 
 type CancellationTokenSource struct {
-	cancelled bool
+	cancelled int32
 
-	cancelAfterDate time.Time
+	timeDeadlineNanoSec int64
 }
 
 func NewCancellationTokenSource() *CancellationTokenSource {
@@ -20,21 +19,19 @@ func NewCancellationTokenSource() *CancellationTokenSource {
 }
 
 func (s *CancellationTokenSource) getToken() *CancellationToken {
-	dbg("CancellationTokenSource.getToken()\n")
 	return &CancellationToken{
 		token: s,
 	}
 }
 
 func (s *CancellationTokenSource) cancel() {
-	fmt.Printf("token requested cancelled\n")
-	s.cancelled = true
+	atomic.StoreInt32(&s.cancelled, 1)
 }
 
 func (s *CancellationTokenSource) cancelAfter(timeoutInMilliseconds int) {
-	dbg("token requested cancelled for %d ms\n", timeoutInMilliseconds)
 	dur := time.Millisecond * time.Duration(timeoutInMilliseconds)
-	s.cancelAfterDate = time.Now().Add(dur)
+	t := time.Now().Add(dur)
+	atomic.StoreInt64(&s.timeDeadlineNanoSec, t.UnixNano())
 }
 
 type CancellationToken struct {
@@ -42,16 +39,17 @@ type CancellationToken struct {
 }
 
 func (t *CancellationToken) isCancellationRequested() bool {
-	if t.token.cancelled {
-		dbg("CancellationToken.isCancellationRequested: yes because cancelled=%v\n", t.token.cancelled)
+	v := atomic.LoadInt32(&t.token.cancelled)
+	if v != 0 {
 		return true
 	}
-	if t.token.cancelAfterDate.IsZero() {
-		dbg("CancellationToken.isCancellationRequested: no because token.cancelAfterDate is zero\n")
+	timeDeadlineNanoSec := atomic.LoadInt64(&t.token.timeDeadlineNanoSec)
+	if 0 == timeDeadlineNanoSec {
 		return false
 	}
-	isAfter := time.Now().After(t.token.cancelAfterDate)
-	dbg("CancellationToken.isCancellationRequested: isAfter=%v\n", isAfter)
+
+	timeDeadline := time.Unix(0, timeDeadlineNanoSec)
+	isAfter := time.Now().After(timeDeadline)
 	return isAfter
 }
 

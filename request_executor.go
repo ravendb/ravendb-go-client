@@ -219,7 +219,9 @@ func NewClusterRequestExecutor(certificate *KeyStore, conventions *DocumentConve
 
 func RequestExecutor_create(initialUrls []string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 	re := NewRequestExecutor(databaseName, certificate, conventions, initialUrls)
+	re.mu.Lock()
 	re._firstTopologyUpdate = re.firstTopologyUpdate(initialUrls)
+	re.mu.Unlock()
 	return re
 }
 
@@ -291,7 +293,9 @@ func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, 
 	executor.MakeCluster()
 
 	executor._disableClientConfigurationUpdates = true
+	executor.mu.Lock()
 	executor._firstTopologyUpdate = executor.firstTopologyUpdate(initialUrls)
+	executor.mu.Unlock()
 
 	return executor
 }
@@ -532,7 +536,7 @@ func (re *RequestExecutor) unlikelyExecuteInner(command RavenCommand, topologyUp
 		if re._firstTopologyUpdate == nil {
 			if len(re._lastKnownUrls) == 0 {
 				re.mu.Unlock()
-				return topologyUpdate, NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
+				return nil, NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
 			re._firstTopologyUpdate = re.firstTopologyUpdate(re._lastKnownUrls)
@@ -1182,8 +1186,12 @@ func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
 }
 
 func (re *RequestExecutor) ensureNodeSelector() error {
-	if re._firstTopologyUpdate != nil && !re._firstTopologyUpdate.IsDone() {
-		_, err := re._firstTopologyUpdate.Get()
+	re.mu.Lock()
+	firstTopologyUpdate := re._firstTopologyUpdate
+	re.mu.Unlock()
+
+	if firstTopologyUpdate != nil && !firstTopologyUpdate.IsDone() {
+		_, err := firstTopologyUpdate.Get()
 		if err != nil {
 			return err
 		}
