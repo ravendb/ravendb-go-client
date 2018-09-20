@@ -182,7 +182,10 @@ func query_queryMapReduceWithSum(t *testing.T) {
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
-		q = q2.SelectSum(ravendb.NewGroupByFieldWithName("age"))
+		f := &ravendb.GroupByField{
+			FieldName: "age",
+		}
+		q = q2.SelectSum(f)
 		q = q.OrderByDescending("age")
 		q = q.OfType(reflect.TypeOf(&ReduceResult{}))
 		err := q.ToList(&results)
