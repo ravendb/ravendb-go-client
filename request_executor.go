@@ -160,20 +160,27 @@ func makeHTTPClientNoKeepAlive(certs []tls.Certificate) *http.Client {
 }
 */
 
-func makeHTTPClient(certs []tls.Certificate) *http.Client {
+func tlsConfigFromCerts(keystore *KeyStore) *tls.Config {
+	if keystore == nil || keystore.Certificates == nil {
+		return nil
+	}
+	return &tls.Config{
+		Certificates: keystore.Certificates,
+		// TODO: this is for testing only, we should either manually
+		// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
+		// or add certificate to global cert store
+		InsecureSkipVerify: true,
+	}
+}
+
+func makeHTTPClient(keystore *KeyStore) *http.Client {
 	client := &http.Client{
 		Timeout: time.Second * 30,
 	}
-	if certs != nil {
-		fmt.Printf("Creating HTTP client with certificates\n")
+	tlsConfig := tlsConfigFromCerts(keystore)
+	if tlsConfig != nil {
 		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: certs,
-				// TODO: this is for testing only, we should either manually
-				// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
-				// or add certificate to global cert store
-				InsecureSkipVerify: true,
-			},
+			TLSClientConfig: tlsConfig,
 		}
 	}
 	return client
@@ -199,11 +206,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 	// TODO: create a different client if settings like compression
 	// or certificate differ
 	//res.httpClient = res.createClient()
-	var certs []tls.Certificate
-	if certificate != nil {
-		certs = certificate.Certificates
-	}
-	res.httpClient = makeHTTPClient(certs)
+	res.httpClient = makeHTTPClient(certificate)
 	return res
 }
 

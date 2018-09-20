@@ -466,7 +466,11 @@ func (c *DatabaseChanges) doWork() error {
 
 		dialer := *websocket.DefaultDialer
 		dialer.HandshakeTimeout = time.Second * 2
-		// TODO: set tlsConfig for https
+		tlsConfig := tlsConfigFromCerts(c._requestExecutor.certificate)
+		if tlsConfig != nil {
+			dialer.TLSClientConfig = tlsConfig
+		}
+
 		ctx := context.Background()
 		var client *websocket.Conn
 		client, _, err = dialer.DialContext(ctx, urlString, nil)
