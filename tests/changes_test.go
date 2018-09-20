@@ -83,6 +83,10 @@ func changesTest_singleDocumentChanges(t *testing.T) {
 }
 
 func changesTest_changesWithHttps(t *testing.T) {
+	if isWindows() {
+		t.Skip("skipping https test on windows")
+		return
+	}
 	store := getSecuredDocumentStoreMust(t)
 	defer store.Close()
 	changesTest_singleDocumentChangesCommon(t, store)
