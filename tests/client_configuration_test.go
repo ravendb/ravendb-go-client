@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func clientConfiguration_canHandleNoConfiguration(t *testing.T) {
@@ -23,11 +23,12 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	configurationToSave := ravendb.NewClientConfiguration()
-	configurationToSave.SetEtag(123)
-	configurationToSave.SetMaxNumberOfRequestsPerSession(80)
-	configurationToSave.SetReadBalanceBehavior(ravendb.ReadBalanceBehavior_FASTEST_NODE)
-	configurationToSave.SetDisabled(true)
+	configurationToSave := &ravendb.ClientConfiguration{
+		Etag:                          123,
+		MaxNumberOfRequestsPerSession: 80,
+		ReadBalanceBehavior:           ravendb.ReadBalanceBehavior_FASTEST_NODE,
+		IsDisabled:                    true,
+	}
 
 	saveOperation, err := ravendb.NewPutClientConfigurationOperation(configurationToSave)
 	assert.NoError(t, err)
@@ -39,10 +40,10 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T) {
 	assert.True(t, result.GetEtag() > 0)
 	newConfiguration := result.GetConfiguration()
 	assert.NotNil(t, newConfiguration)
-	assert.True(t, newConfiguration.GetEtag() > configurationToSave.GetEtag())
-	assert.True(t, newConfiguration.IsDisabled())
-	assert.Equal(t, newConfiguration.GetMaxNumberOfRequestsPerSession(), 80)
-	assert.Equal(t, newConfiguration.GetReadBalanceBehavior(), ravendb.ReadBalanceBehavior_FASTEST_NODE)
+	assert.True(t, newConfiguration.Etag > configurationToSave.Etag)
+	assert.True(t, newConfiguration.IsDisabled)
+	assert.Equal(t, newConfiguration.MaxNumberOfRequestsPerSession, 80)
+	assert.Equal(t, newConfiguration.ReadBalanceBehavior, ravendb.ReadBalanceBehavior_FASTEST_NODE)
 }
 
 func TestClientConfiguration(t *testing.T) {

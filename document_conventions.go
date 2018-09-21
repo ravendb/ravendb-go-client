@@ -90,30 +90,30 @@ func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if configuration.IsDisabled() && c._originalConfiguration == nil {
+	if configuration.IsDisabled && c._originalConfiguration == nil {
 		// nothing to do
 		return
 	}
 
-	if configuration.IsDisabled() && c._originalConfiguration != nil {
+	if configuration.IsDisabled && c._originalConfiguration != nil {
 		// need to revert to original values
-		c._maxNumberOfRequestsPerSession = c._originalConfiguration.GetMaxNumberOfRequestsPerSession()
-		c._readBalanceBehavior = c._originalConfiguration.GetReadBalanceBehavior()
+		c._maxNumberOfRequestsPerSession = c._originalConfiguration.MaxNumberOfRequestsPerSession
+		c._readBalanceBehavior = c._originalConfiguration.ReadBalanceBehavior
 
 		c._originalConfiguration = nil
 		return
 	}
 
 	if c._originalConfiguration == nil {
-		c._originalConfiguration = NewClientConfiguration()
-		c._originalConfiguration.SetEtag(-1)
-		c._originalConfiguration.SetMaxNumberOfRequestsPerSession(c._maxNumberOfRequestsPerSession)
-		c._originalConfiguration.SetReadBalanceBehavior(c._readBalanceBehavior)
+		c._originalConfiguration = &ClientConfiguration{}
+		c._originalConfiguration.Etag = -1
+		c._originalConfiguration.MaxNumberOfRequestsPerSession = c._maxNumberOfRequestsPerSession
+		c._originalConfiguration.ReadBalanceBehavior = c._readBalanceBehavior
 	}
 
-	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.GetMaxNumberOfRequestsPerSession(), c._originalConfiguration.GetMaxNumberOfRequestsPerSession())
+	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.MaxNumberOfRequestsPerSession, c._originalConfiguration.MaxNumberOfRequestsPerSession)
 
-	c._readBalanceBehavior = firstNonEmptyString(configuration.GetReadBalanceBehavior(), c._originalConfiguration.GetReadBalanceBehavior())
+	c._readBalanceBehavior = firstNonEmptyString(configuration.ReadBalanceBehavior, c._originalConfiguration.ReadBalanceBehavior)
 }
 
 func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName string) string {
