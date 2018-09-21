@@ -42,12 +42,12 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 
 	indexes := stats.Indexes
 	for _, indexInformation := range indexes {
-		assert.NotEqual(t, indexInformation.GetName(), "")
-		assert.False(t, indexInformation.IsStale())
-		assert.NotNil(t, indexInformation.GetState())
-		assert.NotEqual(t, indexInformation.GetLockMode(), "")
-		assert.NotEqual(t, indexInformation.GetPriority(), "")
-		assert.NotEqual(t, indexInformation.GetType(), "")
+		assert.NotEqual(t, indexInformation.Name, "")
+		assert.False(t, indexInformation.IsStale)
+		assert.NotNil(t, indexInformation.State)
+		assert.NotEqual(t, indexInformation.LockMode, "")
+		assert.NotEqual(t, indexInformation.Priority, "")
+		assert.NotEqual(t, indexInformation.Type, "")
 		assert.NotNil(t, indexInformation.GetLastIndexingTime())
 	}
 }

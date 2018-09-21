@@ -361,13 +361,13 @@ func (d *RavenTestDriver) waitForIndexing(store *ravendb.DocumentStore, database
 		isDone := true
 		hasError := false
 		for _, index := range databaseStatistics.Indexes {
-			if index.GetState() == ravendb.IndexState_DISABLED {
+			if index.State == ravendb.IndexState_DISABLED {
 				continue
 			}
-			if index.IsStale() || strings.HasPrefix(index.GetName(), ravendb.Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX) {
+			if index.IsStale || strings.HasPrefix(index.Name, ravendb.Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX) {
 				isDone = false
 			}
-			if index.GetState() == ravendb.IndexState_ERROR {
+			if index.State == ravendb.IndexState_ERROR {
 				hasError = true
 			}
 		}
