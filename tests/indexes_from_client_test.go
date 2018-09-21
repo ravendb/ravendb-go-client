@@ -142,9 +142,9 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 		assert.NoError(t, err)
 		status := op.Command.Result
 
-		assert.Equal(t, status.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
-		assert.Equal(t, len(status.GetIndexes()), 1)
-		assert.Equal(t, status.GetIndexes()[0].GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, status.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, len(status.Indexes), 1)
+		assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_RUNNING)
 	}
 
 	{
@@ -157,8 +157,8 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 			err = store.Maintenance().Send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
-			assert.Equal(t, status.GetStatus(), ravendb.IndexRunningStatus_PAUSED)
-			assert.Equal(t, status.GetIndexes()[0].GetStatus(), ravendb.IndexRunningStatus_PAUSED)
+			assert.Equal(t, status.Status, ravendb.IndexRunningStatus_PAUSED)
+			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_PAUSED)
 		}
 	}
 
@@ -172,11 +172,11 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 			err = store.Maintenance().Send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
-			indexName = status.GetIndexes()[0].GetName()
+			indexName = status.Indexes[0].Name
 
-			assert.Equal(t, status.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
-			assert.Equal(t, len(status.GetIndexes()), 1)
-			assert.Equal(t, status.GetIndexes()[0].GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+			assert.Equal(t, status.Status, ravendb.IndexRunningStatus_RUNNING)
+			assert.Equal(t, len(status.Indexes), 1)
+			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_RUNNING)
 		}
 
 	}
@@ -190,9 +190,9 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 			err = store.Maintenance().Send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
-			assert.Equal(t, status.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
-			assert.Equal(t, len(status.GetIndexes()), 1)
-			assert.Equal(t, status.GetIndexes()[0].GetStatus(), ravendb.IndexRunningStatus_PAUSED)
+			assert.Equal(t, status.Status, ravendb.IndexRunningStatus_RUNNING)
+			assert.Equal(t, len(status.Indexes), 1)
+			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_PAUSED)
 		}
 	}
 }

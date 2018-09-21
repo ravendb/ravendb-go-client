@@ -65,8 +65,8 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.GetIndexes()[0]
-		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_DISABLED)
+		indexStatus := indexingStatus.Indexes[0]
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_DISABLED)
 	}
 
 	{
@@ -80,8 +80,8 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.GetIndexes()[0]
-		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.Indexes[0]
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_RUNNING)
 	}
 }
 
@@ -204,8 +204,8 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.GetIndexes()[0]
-		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_PAUSED)
+		indexStatus := indexingStatus.Indexes[0]
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_PAUSED)
 	}
 
 	{
@@ -219,8 +219,8 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		indexStatus := indexingStatus.GetIndexes()[0]
-		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.Indexes[0]
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_RUNNING)
 	}
 }
 
@@ -248,9 +248,9 @@ func testIndexCanStopStartIndex(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		assert.Equal(t, indexingStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
-		indexStatus := indexingStatus.GetIndexes()[0]
-		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_PAUSED)
+		assert.Equal(t, indexingStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.Indexes[0]
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_PAUSED)
 	}
 
 	{
@@ -264,9 +264,9 @@ func testIndexCanStopStartIndex(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		assert.Equal(t, indexingStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
-		indexStatus := indexingStatus.GetIndexes()[0]
-		assert.Equal(t, indexStatus.GetStatus(), ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexingStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		indexStatus := indexingStatus.Indexes[0]
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_RUNNING)
 	}
 }
 
