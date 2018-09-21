@@ -70,7 +70,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
-	firstIndexingTime := statistics.GetIndexes()[0].GetLastIndexingTime()
+	firstIndexingTime := statistics.Indexes[0].GetLastIndexingTime()
 
 	indexName := NewUsersIndex().GetIndexName()
 	// now reset index
@@ -125,7 +125,7 @@ func indexesFromClientTest_canDelete(t *testing.T) {
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
-	assert.Equal(t, len(statistics.GetIndexes()), 0)
+	assert.Equal(t, len(statistics.Indexes), 0)
 }
 
 func indexesFromClientTest_canStopAndStart(t *testing.T) {
@@ -415,7 +415,6 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 		q = q.WhereEquals("name", "Arek")
 		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
-
 
 		q = session.QueryOld(reflect.TypeOf(&User{}))
 		q = q.Statistics(&statsRef)

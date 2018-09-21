@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func getStatisticsCommandTest_canGetStats(t *testing.T) {
@@ -25,22 +25,22 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	assert.NoError(t, err)
 	stats := command.Result
 	assert.NotNil(t, stats)
-	assert.True(t, stats.GetLastDocEtag() > 0)
-	assert.Equal(t, stats.GetCountOfIndexes(), 3)
-	assert.Equal(t, stats.GetCountOfDocuments(), 1059)
-	assert.True(t, stats.GetCountOfRevisionDocuments() > 0)
-	assert.Equal(t, stats.GetCountOfDocumentsConflicts(), 0)
-	assert.Equal(t, stats.GetCountOfConflicts(), 0)
-	assert.Equal(t, stats.GetCountOfUniqueAttachments(), 17)
-	assert.NotEqual(t, stats.GetDatabaseChangeVector(), "")
-	assert.NotEqual(t, stats.GetDatabaseID(), "")
-	assert.NotNil(t, stats.GetPager())
+	assert.True(t, stats.LastDocEtag > 0)
+	assert.Equal(t, stats.CountOfIndexes, 3)
+	assert.Equal(t, stats.CountOfDocuments, 1059)
+	assert.True(t, stats.CountOfRevisionDocuments > 0)
+	assert.Equal(t, stats.CountOfDocumentsConflicts, 0)
+	assert.Equal(t, stats.CountOfConflicts, 0)
+	assert.Equal(t, stats.CountOfUniqueAttachments, 17)
+	assert.NotEqual(t, stats.DatabaseChangeVector, "")
+	assert.NotEqual(t, stats.DatabaseID, "")
+	assert.NotNil(t, stats.Pager)
 	assert.NotNil(t, stats.GetLastIndexingTime())
-	assert.NotNil(t, stats.GetIndexes())
-	assert.NotEqual(t, stats.GetSizeOnDisk().GetHumaneSize(), "")
-	assert.NotEqual(t, stats.GetSizeOnDisk().GetSizeInBytes(), 0)
+	assert.NotNil(t, stats.Indexes)
+	assert.NotEqual(t, stats.SizeOnDisk.GetHumaneSize(), "")
+	assert.NotEqual(t, stats.SizeOnDisk.GetSizeInBytes(), 0)
 
-	indexes := stats.GetIndexes()
+	indexes := stats.Indexes
 	for _, indexInformation := range indexes {
 		assert.NotEqual(t, indexInformation.GetName(), "")
 		assert.False(t, indexInformation.IsStale())

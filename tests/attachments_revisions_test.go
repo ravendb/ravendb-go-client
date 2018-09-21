@@ -269,15 +269,15 @@ func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string
 	assert.NoError(t, err)
 	statistics := op.Command.Result
 
-	assert.Equal(t, statistics.GetCountOfAttachments(), expectedCountOfAttachments)
+	assert.Equal(t, statistics.CountOfAttachments, expectedCountOfAttachments)
 
-	assert.Equal(t, statistics.GetCountOfUniqueAttachments(), expectedCountOfUniqueAttachments)
+	assert.Equal(t, statistics.CountOfUniqueAttachments, expectedCountOfUniqueAttachments)
 
-	assert.Equal(t, statistics.GetCountOfRevisionDocuments(), 4)
+	assert.Equal(t, statistics.CountOfRevisionDocuments, 4)
 
-	assert.Equal(t, statistics.GetCountOfDocuments(), expectedCountOfDocuments)
+	assert.Equal(t, statistics.CountOfDocuments, expectedCountOfDocuments)
 
-	assert.Equal(t, statistics.GetCountOfIndexes(), 0)
+	assert.Equal(t, statistics.CountOfIndexes, 0)
 
 	{
 		session := openSessionMust(t, store)
