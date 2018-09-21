@@ -69,7 +69,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 			return nil, err
 		}
 		facetResult := res.(*FacetResult)
-		results[facetResult.GetName()] = facetResult
+		results[facetResult.Name] = facetResult
 	}
 
 	err := QueryOperation_ensureIsAcceptable(queryResult, q._query.waitForNonStaleResults, q._duration, q._session)

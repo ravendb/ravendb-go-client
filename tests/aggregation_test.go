@@ -87,7 +87,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 
 		facetResult := result["region"]
 
-		values := facetResult.GetValues()
+		values := facetResult.Values
 		val := values[0]
 		assert.Equal(t, val.GetCount(), 2)
 		assert.Equal(t, *val.GetMin(), float64(1))
@@ -175,7 +175,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 
 		facetResult := r["product"]
 
-		values := facetResult.GetValues()
+		values := facetResult.Values
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
@@ -185,7 +185,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 		assert.Equal(t, *x.GetSum(), float64(3333))
 
 		facetResult = r["currency"]
-		values = facetResult.GetValues()
+		values = facetResult.Values
 		assert.Equal(t, len(values), 2)
 
 		x = getFirstFacetValueOfRange(values, "eur")
@@ -254,7 +254,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 		assert.NoError(t, err)
 
 		facetResult := r["product"]
-		values := facetResult.GetValues()
+		values := facetResult.Values
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
@@ -329,8 +329,8 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(r), 2)
-		assert.Equal(t, *r["productMax"].GetValues()[0].GetMax(), float64(3333))
-		assert.Equal(t, r["productMin"].GetValues()[1].GetCount(), 2)
+		assert.Equal(t, *r["productMax"].Values[0].GetMax(), float64(3333))
+		assert.Equal(t, r["productMin"].Values[1].GetCount(), 2)
 
 		session.Close()
 	}
@@ -405,7 +405,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 
 		// Map<String, FacetResult> r = session
 		facetResult := r["product"]
-		values := facetResult.GetValues()
+		values := facetResult.Values
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
@@ -415,7 +415,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 		assert.Equal(t, *x.GetSum(), float64(3333))
 
 		facetResult = r["total"]
-		values = facetResult.GetValues()
+		values = facetResult.Values
 		assert.Equal(t, len(values), 4)
 
 		x = getFirstFacetValueOfRange(values, "total < 100")
@@ -503,7 +503,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
-		facetResults := r["at"].GetValues()
+		facetResults := r["at"].Values
 		assert.Equal(t, facetResults[0].GetCount(), 4)
 
 		// TODO: comments in java code don't match the results
