@@ -247,8 +247,8 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
-		assert.Equal(t, stats.GetLockMode(), ravendb.IndexLockMode_UNLOCK)
-		assert.Equal(t, stats.GetPriority(), ravendb.IndexPriority_NORMAL)
+		assert.Equal(t, stats.LockMode, ravendb.IndexLockMode_UNLOCK)
+		assert.Equal(t, stats.Priority, ravendb.IndexPriority_NORMAL)
 	}
 
 	{
@@ -267,8 +267,8 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
-		assert.Equal(t, stats.GetLockMode(), ravendb.IndexLockMode_LOCKED_IGNORE)
-		assert.Equal(t, stats.GetPriority(), ravendb.IndexPriority_LOW)
+		assert.Equal(t, stats.LockMode, ravendb.IndexLockMode_LOCKED_IGNORE)
+		assert.Equal(t, stats.Priority, ravendb.IndexPriority_LOW)
 	}
 }
 
