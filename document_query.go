@@ -220,7 +220,7 @@ func (q *DocumentQuery) WhereEqualsWithMethodCall(fieldName string, method Metho
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WhereEquals<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact)
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereEquals<TValue>(Expression<Func<T, TValue>> propertySelector, MethodCall value, bool exact)
 
-func (q *DocumentQuery) WhereEqualsWithParams(whereParams *WhereParams) *DocumentQuery {
+func (q *DocumentQuery) WhereEqualsWithParams(whereParams *whereParams) *DocumentQuery {
 	q._whereEqualsWithParams(whereParams)
 	return q
 }
@@ -238,7 +238,7 @@ func (q *DocumentQuery) _whereNotEqualsWithMethod(fieldName string, method Metho
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WhereNotEquals<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact)
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereNotEquals<TValue>(Expression<Func<T, TValue>> propertySelector, MethodCall value, bool exact)
 
-func (q *DocumentQuery) WhereNotEqualsWithParams(whereParams *WhereParams) *DocumentQuery {
+func (q *DocumentQuery) WhereNotEqualsWithParams(whereParams *whereParams) *DocumentQuery {
 	q._whereNotEqualsWithParams(whereParams)
 	return q
 }

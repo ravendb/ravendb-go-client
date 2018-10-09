@@ -114,38 +114,6 @@ func createWhereTokenWithOptions(op WhereOperator, fieldName string, parameterNa
 	return token
 }
 
-func (t *whereToken) GetFieldName() string {
-	return t.fieldName
-}
-
-func (t *whereToken) setFieldName(fieldName string) {
-	t.fieldName = fieldName
-}
-
-func (t *whereToken) getWhereOperator() WhereOperator {
-	return t.whereOperator
-}
-
-func (t *whereToken) setWhereOperator(whereOperator WhereOperator) {
-	t.whereOperator = whereOperator
-}
-
-func (t *whereToken) getParameterName() string {
-	return t.parameterName
-}
-
-func (t *whereToken) setParameterName(parameterName string) {
-	t.parameterName = parameterName
-}
-
-func (t *whereToken) GetOptions() *whereOptions {
-	return t.options
-}
-
-func (t *whereToken) SetOptions(options *whereOptions) {
-	t.options = options
-}
-
 func (t *whereToken) addAlias(alias string) {
 	if t.fieldName == "id()" {
 		return

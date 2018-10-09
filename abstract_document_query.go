@@ -376,7 +376,7 @@ func (q *AbstractDocumentQuery) _closeSubclause() {
 }
 
 func (q *AbstractDocumentQuery) _whereEquals(fieldName string, value interface{}) {
-	params := &WhereParams{
+	params := &whereParams{
 		fieldName: fieldName,
 		value:     value,
 	}
@@ -387,7 +387,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithMethodCall(fieldName string, met
 	q._whereEquals(fieldName, method)
 }
 
-func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams) {
+func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *whereParams) {
 	if q.negate {
 		q.negate = false
 		q._whereNotEqualsWithParams(whereParams)
@@ -412,7 +412,7 @@ func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams)
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *WhereParams, tokensRef *[]queryToken) bool {
+func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *whereParams, tokensRef *[]queryToken) bool {
 	if mc, ok := whereParams.value.(*CmpXchg); ok {
 		n := len(mc.args)
 		args := make([]string, n)
@@ -436,7 +436,7 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *W
 }
 
 func (q *AbstractDocumentQuery) _whereNotEquals(fieldName string, value Object) {
-	params := &WhereParams{
+	params := &whereParams{
 		fieldName: fieldName,
 		value:     value,
 	}
@@ -448,7 +448,7 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithMethod(fieldName string, meth
 	q._whereNotEquals(fieldName, method)
 }
 
-func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WhereParams) {
+func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *whereParams) {
 	if q.negate {
 		q.negate = false
 		q._whereEqualsWithParams(whereParams)
@@ -514,7 +514,7 @@ func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []Object) {
 }
 
 func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object) {
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		fieldName:      fieldName,
 		value:          value,
 		allowWildcards: true,
@@ -536,7 +536,7 @@ func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object)
 }
 
 func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		fieldName:      fieldName,
 		value:          value,
 		allowWildcards: true,
@@ -564,12 +564,12 @@ func (q *AbstractDocumentQuery) _whereBetween(fieldName string, start Object, en
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	startParams := &WhereParams{
+	startParams := &whereParams{
 		value:     start,
 		fieldName: fieldName,
 	}
 
-	endParams := &WhereParams{
+	endParams := &whereParams{
 		value:     end,
 		fieldName: fieldName,
 	}
@@ -601,7 +601,7 @@ func (q *AbstractDocumentQuery) _whereGreaterThan(fieldName string, value Object
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		value:     value,
 		fieldName: fieldName,
 	}
@@ -626,7 +626,7 @@ func (q *AbstractDocumentQuery) _whereGreaterThanOrEqual(fieldName string, value
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		value:     value,
 		fieldName: fieldName,
 	}
@@ -652,7 +652,7 @@ func (q *AbstractDocumentQuery) _whereLessThan(fieldName string, value Object) {
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		value:     value,
 		fieldName: fieldName,
 	}
@@ -674,7 +674,7 @@ func (q *AbstractDocumentQuery) _whereLessThanOrEqual(fieldName string, value Ob
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		value:     value,
 		fieldName: fieldName,
 	}
@@ -696,7 +696,7 @@ func (q *AbstractDocumentQuery) _whereRegex(fieldName string, pattern string) {
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereParams := &WhereParams{
+	whereParams := &whereParams{
 		value:     pattern,
 		fieldName: fieldName,
 	}
@@ -771,7 +771,7 @@ func (q *AbstractDocumentQuery) _boost(boost float64) {
 		panicIf(true, "Boost factor must be a positive number")
 	}
 
-	whereToken.GetOptions().boost = boost
+	whereToken.options.boost = boost
 }
 
 func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
@@ -794,7 +794,7 @@ func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
 		panicIf(true, "Fuzzy distance must be between 0.0 and 1.0")
 	}
 
-	whereToken.GetOptions().fuzzy = fuzzy
+	whereToken.options.fuzzy = fuzzy
 }
 
 func (q *AbstractDocumentQuery) _proximity(proximity int) {
@@ -818,7 +818,7 @@ func (q *AbstractDocumentQuery) _proximity(proximity int) {
 		panicIf(true, "Proximity distance must be a positive number")
 	}
 
-	whereToken.GetOptions().proximity = proximity
+	whereToken.options.proximity = proximity
 }
 
 func (q *AbstractDocumentQuery) _orderBy(field string) {
@@ -1216,7 +1216,7 @@ func (q *AbstractDocumentQuery) transformCollection(fieldName string, values []O
 			tmp := q.transformCollection(fieldName, collectionValue)
 			result = append(result, tmp...)
 		} else {
-			nestedWhereParams := &WhereParams{
+			nestedWhereParams := &whereParams{
 				allowWildcards: true,
 				fieldName:      fieldName,
 				value:          value,
@@ -1303,11 +1303,11 @@ func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedP
 	return QueryFieldUtil_escapeIfNecessary(fieldName)
 }
 
-func (q *AbstractDocumentQuery) transformValue(whereParams *WhereParams) Object {
+func (q *AbstractDocumentQuery) transformValue(whereParams *whereParams) Object {
 	return q.transformValueWithRange(whereParams, false)
 }
 
-func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *WhereParams, forRange bool) Object {
+func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *whereParams, forRange bool) Object {
 	if whereParams.value == nil {
 		return nil
 	}

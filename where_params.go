@@ -1,7 +1,7 @@
 package ravendb
 
-// WhereParams are parameters for the Where Equals call
-type WhereParams struct {
+// whereParams are parameters for the Where Equals call
+type whereParams struct {
 	fieldName      string
 	value          Object
 	allowWildcards bool
