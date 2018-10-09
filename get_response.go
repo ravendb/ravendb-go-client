@@ -3,10 +3,10 @@ package ravendb
 import "net/http"
 
 type GetResponse struct {
-	result     string
-	headers    map[string]string
-	statusCode int
-	forceRetry bool
+	result       string
+	headers      map[string]string
+	statusCode   int
+	isForceRetry bool
 }
 
 func NewGetResponse() *GetResponse {

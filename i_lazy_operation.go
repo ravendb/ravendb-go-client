@@ -5,5 +5,5 @@ type ILazyOperation interface {
 	getResult() Object
 	getQueryResult() *QueryResult
 	isRequiresRetry() bool
-	handleResponse(response *GetResponse)
+	handleResponse(response *GetResponse) error
 }

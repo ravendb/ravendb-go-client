@@ -19,11 +19,12 @@ func newClientSessionID() int {
 // InMemoryDocumentSessionOperations represents database operations queued
 // in memory
 type InMemoryDocumentSessionOperations struct {
-	_clientSessionID   int
-	deletedEntities    *ObjectSet
-	_requestExecutor   *RequestExecutor
-	_operationExecutor *OperationExecutor
-	// Note: pendingLazyOperations and onEvaluateLazy not used
+	_clientSessionID            int
+	deletedEntities             *ObjectSet
+	_requestExecutor            *RequestExecutor
+	_operationExecutor          *OperationExecutor
+	pendingLazyOperations       []ILazyOperation
+	onEvaluateLazy              map[ILazyOperation]func(interface{})
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
 	_saveChangesOptions         *BatchOptions
