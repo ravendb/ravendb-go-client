@@ -500,10 +500,6 @@ func (q *AbstractDocumentQuery) markLastTokenExact() {
 }
 
 func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []Object) {
-	q._whereInWithExact(fieldName, values, false)
-}
-
-func (q *AbstractDocumentQuery) _whereInWithExact(fieldName string, values []Object, exact bool) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -562,10 +558,6 @@ func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
 }
 
 func (q *AbstractDocumentQuery) _whereBetween(fieldName string, start Object, end Object) {
-	q._whereBetweenWithExact(fieldName, start, end, false)
-}
-
-func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start Object, end Object, exact bool) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -595,7 +587,7 @@ func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start O
 	}
 	toParameterName := q.addQueryParameter(toParam)
 
-	whereToken := createWhereTokenWithOptions(WhereOperator_BETWEEN, fieldName, "", NewWhereOptionsWithFromTo(exact, fromParameterName, toParameterName))
+	whereToken := createWhereTokenWithOptions(WhereOperator_BETWEEN, fieldName, "", NewWhereOptionsWithFromTo(false, fromParameterName, toParameterName))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -603,10 +595,6 @@ func (q *AbstractDocumentQuery) _whereBetweenWithExact(fieldName string, start O
 }
 
 func (q *AbstractDocumentQuery) _whereGreaterThan(fieldName string, value Object) {
-	q._whereGreaterThanWithExact(fieldName, value, false)
-}
-
-func (q *AbstractDocumentQuery) _whereGreaterThanWithExact(fieldName string, value Object, exact bool) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -624,7 +612,7 @@ func (q *AbstractDocumentQuery) _whereGreaterThanWithExact(fieldName string, val
 	}
 	parameter := q.addQueryParameter(paramValue)
 
-	whereToken := createWhereTokenWithOptions(WhereOperator_GREATER_THAN, fieldName, parameter, NewWhereOptionsWithExact(exact))
+	whereToken := createWhereTokenWithOptions(WhereOperator_GREATER_THAN, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -632,10 +620,6 @@ func (q *AbstractDocumentQuery) _whereGreaterThanWithExact(fieldName string, val
 }
 
 func (q *AbstractDocumentQuery) _whereGreaterThanOrEqual(fieldName string, value Object) {
-	q._whereGreaterThanOrEqualWithExact(fieldName, value, false)
-}
-
-func (q *AbstractDocumentQuery) _whereGreaterThanOrEqualWithExact(fieldName string, value Object, exact bool) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -654,7 +638,7 @@ func (q *AbstractDocumentQuery) _whereGreaterThanOrEqualWithExact(fieldName stri
 
 	parameter := q.addQueryParameter(paramValue)
 
-	whereToken := createWhereTokenWithOptions(WhereOperator_GREATER_THAN_OR_EQUAL, fieldName, parameter, NewWhereOptionsWithExact(exact))
+	whereToken := createWhereTokenWithOptions(WhereOperator_GREATER_THAN_OR_EQUAL, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -662,10 +646,6 @@ func (q *AbstractDocumentQuery) _whereGreaterThanOrEqualWithExact(fieldName stri
 }
 
 func (q *AbstractDocumentQuery) _whereLessThan(fieldName string, value Object) {
-	q._whereLessThanWithExact(fieldName, value, false)
-}
-
-func (q *AbstractDocumentQuery) _whereLessThanWithExact(fieldName string, value Object, exact bool) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -682,7 +662,7 @@ func (q *AbstractDocumentQuery) _whereLessThanWithExact(fieldName string, value 
 		paramValue = q.transformValueWithRange(whereParams, true)
 	}
 	parameter := q.addQueryParameter(paramValue)
-	whereToken := createWhereTokenWithOptions(WhereOperator_LESS_THAN, fieldName, parameter, NewWhereOptionsWithExact(exact))
+	whereToken := createWhereTokenWithOptions(WhereOperator_LESS_THAN, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -690,10 +670,6 @@ func (q *AbstractDocumentQuery) _whereLessThanWithExact(fieldName string, value 
 }
 
 func (q *AbstractDocumentQuery) _whereLessThanOrEqual(fieldName string, value Object) {
-	q._whereLessThanOrEqualWithExact(fieldName, value, false)
-}
-
-func (q *AbstractDocumentQuery) _whereLessThanOrEqualWithExact(fieldName string, value Object, exact bool) {
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
@@ -708,7 +684,7 @@ func (q *AbstractDocumentQuery) _whereLessThanOrEqualWithExact(fieldName string,
 		paramValue = q.transformValueWithRange(whereParams, true)
 	}
 	parameter := q.addQueryParameter(paramValue)
-	whereToken := createWhereTokenWithOptions(WhereOperator_LESS_THAN_OR_EQUAL, fieldName, parameter, NewWhereOptionsWithExact(exact))
+	whereToken := createWhereTokenWithOptions(WhereOperator_LESS_THAN_OR_EQUAL, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
