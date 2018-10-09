@@ -341,7 +341,7 @@ func (q *AbstractDocumentQuery) _skip(count int) {
 	q.start = count
 }
 
-func (q *AbstractDocumentQuery) _whereLucene(fieldName string, whereClause string, exact bool) {
+func (q *AbstractDocumentQuery) _whereLucene(fieldName string, whereClause string) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -349,11 +349,7 @@ func (q *AbstractDocumentQuery) _whereLucene(fieldName string, whereClause strin
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	var options *whereOptions
-	if exact {
-		options = NewWhereOptionsWithExact(exact)
-	}
-	whereToken := createWhereTokenWithOptions(WhereOperator_LUCENE, fieldName, q.addQueryParameter(whereClause), options)
+	whereToken := createWhereTokenWithOptions(WhereOperator_LUCENE, fieldName, q.addQueryParameter(whereClause), nil)
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
 }
@@ -380,31 +376,15 @@ func (q *AbstractDocumentQuery) _closeSubclause() {
 }
 
 func (q *AbstractDocumentQuery) _whereEquals(fieldName string, value interface{}) {
-	q._whereEqualsWithExact(fieldName, value, false)
-}
-
-func (q *AbstractDocumentQuery) _whereEqualsWithExact(fieldName string, value interface{}, exact bool) {
 	params := &WhereParams{
 		fieldName: fieldName,
 		value:     value,
-		isExact:   exact,
 	}
 	q._whereEqualsWithParams(params)
 }
 
-func (q *AbstractDocumentQuery) _whereEqualsWithMethodCall(fieldName string, method MethodCall, exact bool) {
-	q._whereEqualsWithExact(fieldName, method, exact)
-}
-
-func (q *AbstractDocumentQuery) setExactInLastWhereToken(exact bool) {
-	tokensRef := q.getCurrentWhereTokensRef()
-	tokens := *tokensRef
-	n := len(tokens)
-	panicIf(n == 0, "must create where tokens first e.g. by calling WhereEquals()")
-	lastToken := tokens[n-1]
-	tok, ok := lastToken.(*whereToken)
-	panicIf(!ok, "expected whereToken, got %T", lastToken)
-	tok.options.exact = exact
+func (q *AbstractDocumentQuery) _whereEqualsWithMethodCall(fieldName string, method MethodCall) {
+	q._whereEquals(fieldName, method)
 }
 
 func (q *AbstractDocumentQuery) _whereEqualsWithParams(whereParams *WhereParams) {
@@ -456,14 +436,9 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *W
 }
 
 func (q *AbstractDocumentQuery) _whereNotEquals(fieldName string, value Object) {
-	q._whereNotEqualsWithExact(fieldName, value, false)
-}
-
-func (q *AbstractDocumentQuery) _whereNotEqualsWithExact(fieldName string, value Object, exact bool) {
 	params := &WhereParams{
 		fieldName: fieldName,
 		value:     value,
-		isExact:   exact,
 	}
 
 	q._whereNotEqualsWithParams(params)
@@ -471,10 +446,6 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithExact(fieldName string, value
 
 func (q *AbstractDocumentQuery) _whereNotEqualsWithMethod(fieldName string, method MethodCall) {
 	q._whereNotEquals(fieldName, method)
-}
-
-func (q *AbstractDocumentQuery) _whereNotEqualsWithMethodAndExact(fieldName string, method MethodCall, exact bool) {
-	q._whereNotEqualsWithExact(fieldName, method, exact)
 }
 
 func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WhereParams) {
@@ -503,6 +474,29 @@ func (q *AbstractDocumentQuery) _whereNotEqualsWithParams(whereParams *WherePara
 
 func (q *AbstractDocumentQuery) NegateNext() {
 	q.negate = !q.negate
+}
+
+// mark last created token as exact. only applies to select number of tokens.
+// it allows fluid APIs like .Where().Exact()
+// will panic if last token wasn't of compatible type as that is considered
+// invalid use of API and returning an error would break fluid API
+func (q *AbstractDocumentQuery) markLastTokenExact() {
+	tokensRef := q.getCurrentWhereTokensRef()
+	tokens := *tokensRef
+	n := len(tokens)
+	lastToken := tokens[n-1]
+	switch tok := lastToken.(type) {
+	case *whereToken:
+		if tok.options == nil {
+			tok.options = NewWhereOptionsWithExact(true)
+		} else {
+			tok.options.exact = true
+		}
+	default:
+		panicIf(true, "expected whereToken, got %T", lastToken)
+	}
+
+	*tokensRef = tokens
 }
 
 func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []Object) {

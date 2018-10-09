@@ -197,23 +197,23 @@ func (q *DocumentQuery) Skip(count int) *DocumentQuery {
 }
 
 func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *IDocumentQuery {
-	q._whereLucene(fieldName, whereClause, false)
+	q._whereLucene(fieldName, whereClause)
 	return q
 }
 
 func (q *DocumentQuery) WhereEquals(fieldName string, value Object) *DocumentQuery {
-	q._whereEqualsWithExact(fieldName, value, false)
+	q._whereEquals(fieldName, value)
 	return q
 }
 
 // Exact marks previous Where statement (e.g. WhereEquals or WhereLucene) as exact
 func (q *DocumentQuery) Exact() *DocumentQuery {
-	q.setExactInLastWhereToken(true)
+	q.markLastTokenExact()
 	return q
 }
 
 func (q *DocumentQuery) WhereEqualsWithMethodCall(fieldName string, method MethodCall, exact bool) *DocumentQuery {
-	q._whereEqualsWithMethodCall(fieldName, method, exact)
+	q._whereEqualsWithMethodCall(fieldName, method)
 	return q
 }
 
