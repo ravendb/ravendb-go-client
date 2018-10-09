@@ -8,7 +8,7 @@ import (
 type QueryOperation struct {
 	_session                 *InMemoryDocumentSessionOperations
 	_indexName               string
-	_indexQuery              *IndexQuery
+	indexQuery               *IndexQuery
 	_metadataOnly            bool
 	_indexEntriesOnly        bool
 	_currentQueryResults     *QueryResult
@@ -23,7 +23,7 @@ func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName str
 	res := &QueryOperation{
 		_session:                 session,
 		_indexName:               indexName,
-		_indexQuery:              indexQuery,
+		indexQuery:               indexQuery,
 		_fieldsToFetch:           fieldsToFetch,
 		_disableEntitiesTracking: disableEntitiesTracking,
 		_metadataOnly:            metadataOnly,
@@ -38,7 +38,7 @@ func (o *QueryOperation) CreateRequest() *QueryCommand {
 
 	//o.logQuery();
 
-	return NewQueryCommand(o._session.GetConventions(), o._indexQuery, o._metadataOnly, o._indexEntriesOnly)
+	return NewQueryCommand(o._session.GetConventions(), o.indexQuery, o._metadataOnly, o._indexEntriesOnly)
 }
 
 func (o *QueryOperation) getCurrentQueryResults() *QueryResult {
@@ -54,7 +54,7 @@ func (o *QueryOperation) assertPageSizeSet() {
 		return
 	}
 
-	if o._indexQuery.pageSize > 0 {
+	if o.indexQuery.pageSize > 0 {
 		return
 	}
 
@@ -79,7 +79,7 @@ func (o *QueryOperation) logQuery() {
 func (o *QueryOperation) enterQueryContext() CleanCloseable {
 	o.startTiming()
 
-	if !o._indexQuery.waitForNonStaleResults {
+	if !o.indexQuery.waitForNonStaleResults {
 		var res *NilCleanCloseable
 		return res
 	}
@@ -254,7 +254,7 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 		return NewIndexDoesNotExistException("Could not find index " + o._indexName)
 	}
 
-	err := QueryOperation_ensureIsAcceptable(result, o._indexQuery.waitForNonStaleResults, o._sp, o._session)
+	err := QueryOperation_ensureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o._sp, o._session)
 	if err != nil {
 		return err
 	}
@@ -299,8 +299,4 @@ func QueryOperation_ensureIsAcceptable(result *QueryResult, waitForNonStaleResul
 		return NewTimeoutException(msg)
 	}
 	return nil
-}
-
-func (o *QueryOperation) getIndexQuery() *IndexQuery {
-	return o._indexQuery
 }

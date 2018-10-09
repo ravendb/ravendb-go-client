@@ -1,3 +1,1 @@
-Set-Location tests
-go test -c
-Set-Location ..
+go test -c .\tests
