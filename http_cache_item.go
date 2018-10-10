@@ -3,10 +3,10 @@ package ravendb
 import "time"
 
 type HttpCacheItem struct {
-	changeVector     string
+	changeVector     *string // TODO: can probably be string
 	payload          string
 	lastServerUpdate time.Time
-	generation       int
+	generation       int32
 
 	cache *HttpCache
 }

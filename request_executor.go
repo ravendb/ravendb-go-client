@@ -195,7 +195,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		_updateDatabaseTopologySemaphore:    NewSemaphore(1),
 		_updateClientConfigurationSemaphore: NewSemaphore(1),
 
-		cache:                NewHttpCache(),
+		cache:                NewHttpCache(conventions.getMaxHttpCacheSize()),
 		_readBalanceBehavior: conventions.GetReadBalanceBehavior(),
 		_databaseName:        databaseName,
 		certificate:          certificate,

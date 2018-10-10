@@ -1,6 +1,9 @@
 package ravendb
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 // var _ RavenCommand = &MultiGetCommand{}
 
@@ -29,79 +32,47 @@ func NewMultiGetCommand(cache *HttpCache, commands []*GetRequest) *MultiGetComma
 func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	c._baseUrl = node.GetUrl() + "/databases/" + node.GetDatabase()
 
-	uri := c._baseUrl + "/multi_get"
+	m := map[string]interface{}{}
+	var requests []map[string]interface{}
 
-	return NewHttpPost(uri, nil)
+	for _, command := range c._commands {
+		v := map[string]interface{}{}
+		cacheKey, _ := c.getCacheKey(command)
+		{
+			item, cachedChangeVector, _ := c._cache.get(cacheKey)
+			headers := map[string]string{}
+			if cachedChangeVector != nil {
+				headers["If-None-Match"] = "\"" + *cachedChangeVector + "\""
+			}
+			for k, v := range command.headers {
+				headers[k] = v
+			}
+			v["Url"] = "/databases/" + node.GetDatabase() + command.url
+			v["Query"] = command.query
+			v["Method"] = command.method
+			v["Headers"] = headers
+			v["Content"] = command.content
+
+			item.Close()
+		}
+		requests = append(requests, v)
+	}
+
+	m["Requests"] = requests
+	d, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+
+	uri := c._baseUrl + "/multi_get"
+	return NewHttpPost(uri, d)
 }
 
-/*
-       ObjectMapper mapper = JsonExtensions.getDefaultMapper();
-
-       request.setEntity(new ContentProviderHttpEntity(outputStream -> {
-           try (JsonGenerator generator = mapper.getFactory().createGenerator(outputStream)) {
-
-               generator.writeStartObject();
-
-               generator.writeFieldName("Requests");
-               generator.writeStartArray();
-
-               for (GetRequest command : _commands) {
-                   String cacheKey = getCacheKey(command, new Reference<>());
-
-                   Reference<String> cachedChangeVector = new Reference<>();
-                   try (CleanCloseable item = _cache.get(cacheKey, cachedChangeVector, new Reference<>())) {
-                       Map<String, String> headers = new HashMap<>();
-                       if (cachedChangeVector.value != null) {
-                           headers.put("If-None-Match", "\"" + cachedChangeVector.value + "\"");
-                       }
-
-                       for (Map.Entry<String, String> header : command.getHeaders().entrySet()) {
-                           headers.put(header.getKey(), header.getValue());
-                       }
-
-                       generator.writeStartObject();
-
-                       generator.writeStringField("Url", "/databases/" + node.getDatabase() + command.getUrl());
-                       generator.writeStringField("Query", command.getQuery());
-
-                       generator.writeStringField("Method", command.getMethod());
-
-                       generator.writeFieldName("Headers");
-                       generator.writeStartObject();
-
-                       for (Map.Entry<String, String> kvp : headers.entrySet()) {
-                           generator.writeStringField(kvp.getKey(), kvp.getValue());
-                       }
-                       generator.writeEndObject();
-
-                       generator.writeFieldName("Content");
-                       if (command.getContent() != null) {
-                           command.getContent().writeContent(generator);
-                       } else {
-                           generator.writeNull();
-                       }
-
-                       generator.writeEndObject();
-                   }
-               }
-               generator.writeEndArray();
-               generator.writeEndObject();
-           } catch (IOException e) {
-               throw new RuntimeException(e);
-           }
-       }, ContentType.APPLICATION_JSON));
-
-       url.value = _baseUrl + "/multi_get";
-       return request;
-   }
-*/
-
-/*
-   private String getCacheKey(GetRequest command, Reference<String> requestUrl) {
-       requestUrl.value = _baseUrl + command.getUrlAndQuery();
-       return command.getMethod() + "-" + requestUrl.value;
-   }
-*/
+func (c *MultiGetCommand) getCacheKey(command *GetRequest) (string, string) {
+	uri := c._baseUrl + command.getUrlAndQuery()
+	key := command.method + "-" + uri
+	return key, uri
+}
 
 /*
    public void setResponseRaw(CloseableHttpResponse response, InputStream stream) {

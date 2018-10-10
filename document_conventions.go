@@ -40,7 +40,8 @@ type DocumentConventions struct {
 
 	_throwIfQueryPageSizeIsNotSet bool
 
-	mu sync.Mutex
+	_maxHttpCacheSize int
+	mu                sync.Mutex
 }
 
 // Note: Java has it as frozen global variable (possibly for perf) but Go
@@ -55,13 +56,18 @@ func DocumentConventions_defaultConventions() *DocumentConventions {
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
 		_readBalanceBehavior:                            ReadBalanceBehavior_NONE,
-		_maxNumberOfRequestsPerSession:                  32,
 		MaxLengthOfQueryUsingGetURL:                     1024 + 512,
 		IdentityPartsSeparator:                          "/",
 		_disableTopologyUpdates:                         false,
 		RaiseIfQueryPageSizeIsNotSet:                    false,
 		_transformClassCollectionNameToDocumentIdPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
+		_maxNumberOfRequestsPerSession:                  32,
+		_maxHttpCacheSize:                               128 * 1024 * 1024,
 	}
+}
+
+func (c *DocumentConventions) getMaxHttpCacheSize() int {
+	return c._maxHttpCacheSize
 }
 
 func (c *DocumentConventions) Freeze() {

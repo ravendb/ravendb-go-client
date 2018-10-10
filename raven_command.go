@@ -201,7 +201,7 @@ func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response 
 		return
 	}
 
-	cache.set(url, *changeVector, responseJson)
+	cache.set(url, changeVector, responseJson)
 }
 
 func (c *RavenCommandBase) AddChangeVectorIfNotNull(changeVector *string, request *http.Request) {
