@@ -29,8 +29,16 @@ func (s *DocumentSession) Advanced() *DocumentSession {
 	return s
 }
 
-//    public ILazySessionOperations lazily() {
-//    public IEagerSessionOperations eagerly() {
+func (s *DocumentSession) Lazily() *ILazySessionOperations {
+	return NewLazySessionOperations(s)
+}
+
+// TODO: remove in API cleanup phase
+type IEagerSessionOperations = DocumentSession
+
+func (s *DocumentSession) Eagerly() *IEagerSessionOperations {
+	return s
+}
 
 func (s *DocumentSession) Attachments() *IAttachmentsSessionOperations {
 	if s._attachments == nil {

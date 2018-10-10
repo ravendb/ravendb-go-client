@@ -1037,7 +1037,33 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 	return nil
 }
 
-//TODO: protected static <T> T getOperationResult(Class<T> clazz, Object result) {
+func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result Object) interface{} {
+	if result == nil {
+		return Defaults_defaultValue(clazz)
+	}
+
+	panic("NYI")
+
+	/*
+		if (clazz.isAssignableFrom(result.getClass())) {
+			return (T) result;
+		}
+	*/
+
+	/*
+		if (result instanceof Map) {
+			Map map = (Map) result;
+			if (map.isEmpty()) {
+				return null;
+			} else {
+				return (T) map.values().iterator().next();
+			}
+		}
+
+		throw new IllegalStateException("Unable to cast " + result.getClass().getSimpleName() + " to " + clazz.getSimpleName());
+	*/
+	return nil
+}
 
 func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
 	for _, handler := range s.onAfterSaveChanges {
@@ -1066,6 +1092,143 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 
 	return indexName, collectionName
 }
+
+func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
+	panic("NYI")
+
+	var requests []*GetRequest
+	var pendingTmp []ILazyOperation
+	for _, op := range s.pendingLazyOperations {
+		req := op.createRequest()
+		if req == nil {
+			continue
+		}
+		pendingTmp = append(pendingTmp, op)
+		requests = append(requests, req)
+	}
+	s.pendingLazyOperations = pendingTmp
+
+	if len(requests) == 0 {
+		return &ResponseTimeInformation{}, nil
+	}
+
+	/*
+	   try  {
+	       Stopwatch sw = Stopwatch.createStarted();
+
+	       incrementRequestCount();
+
+	       ResponseTimeInformation responseTimeDuration = new ResponseTimeInformation();
+
+	       while (executeLazyOperationsSingleStep(responseTimeDuration, requests)) {
+	           Thread.sleep(100);
+	       }
+
+	       responseTimeDuration.computeServerTotal();
+
+	       for (ILazyOperation pendingLazyOperation : pendingLazyOperations) {
+	           Consumer<Object> value = onEvaluateLazy.get(pendingLazyOperation);
+	           if (value != null) {
+	               value.accept(pendingLazyOperation.getResult());
+	           }
+	       }
+
+	       responseTimeDuration.setTotalClientDuration(Duration.ofMillis(sw.elapsed(TimeUnit.MILLISECONDS)));
+	       return responseTimeDuration;
+	   } catch (InterruptedException e) {
+	       throw new RuntimeException("Unable to execute pending operations: "  + e.getMessage(), e);
+	   } finally {
+	       pendingLazyOperations.clear();
+	   }
+	*/
+
+	return nil, nil
+}
+
+/*
+   private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
+
+       MultiGetOperation multiGetOperation = new MultiGetOperation(this);
+       MultiGetCommand multiGetCommand = multiGetOperation.createRequest(requests);
+       getRequestExecutor().execute(multiGetCommand, sessionInfo);
+
+       List<GetResponse> responses = multiGetCommand.getResult();
+
+       for (int i = 0; i < pendingLazyOperations.size(); i++) {
+           long totalTime;
+           String tempReqTime;
+           GetResponse response = responses.get(i);
+
+           tempReqTime = response.getHeaders().get(Constants.Headers.REQUEST_TIME);
+           totalTime = tempReqTime != null ? Long.valueOf(tempReqTime) : 0;
+
+           ResponseTimeInformation.ResponseTimeItem timeItem = new ResponseTimeInformation.ResponseTimeItem();
+           timeItem.setUrl(requests.get(i).getUrlAndQuery());
+           timeItem.setDuration(Duration.ofMillis(totalTime));
+
+           responseTimeInformation.getDurationBreakdown().add(timeItem);
+
+           if (response.requestHasErrors()) {
+               throw new IllegalStateException("Got an error from server, status code: " + response.getStatusCode() + System.lineSeparator() + response.getResult());
+           }
+
+           pendingLazyOperations.get(i).handleResponse(response);
+           if (pendingLazyOperations.get(i).isRequiresRetry()) {
+               return true;
+           }
+       }
+       return false;
+   }
+
+*/
+
+// Note: in Java it's on DocumentSession but is called via InMemoryDocumentSessionOperations
+// which can't be done in Go. In Java, DocumentSession inherits from InMemoryDocumentSessionOperations
+// so we can cast from one to the other. In Go DocumentSession contains InMemoryDocumentSessionOperations
+// and we can't get from InMemoryDocumentSessionOperations to DocumentSession.
+func (s *InMemoryDocumentSessionOperations) addLazyOperation(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
+	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
+
+	fn := func() interface{} {
+		s.executeAllPendingLazyOperations()
+		return s.getOperationResult(clazz, operation.getResult())
+	}
+	lazyValue := NewLazy(fn)
+	if onEval != nil {
+		fn := func(theResult interface{}) {
+			onEval(s.getOperationResult(clazz, theResult))
+		}
+		s.onEvaluateLazy[operation] = fn
+	}
+
+	return lazyValue
+}
+
+/*
+protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
+	pendingLazyOperations.add(operation);
+
+	return new Lazy<>(() -> {
+		executeAllPendingLazyOperations();
+		return operation.getQueryResult().getTotalResults();
+	});
+}
+
+public <T> Lazy<Map<String, T>> lazyLoadInternal(Class<T> clazz, String[] ids, String[] includes, Consumer<Map<String, T>> onEval) {
+	if (checkIfIdAlreadyIncluded(ids, Arrays.asList(includes))) {
+		return new Lazy<>(() -> load(clazz, ids));
+	}
+
+	LoadOperation loadOperation = new LoadOperation(this)
+			.byIds(ids)
+			.withIncludes(includes);
+
+	LazyLoadOperation<T> lazyOp = new LazyLoadOperation<>(clazz, this, loadOperation)
+			.byIds(ids).withIncludes(includes);
+
+	return addLazyOperation((Class<Map<String, T>>)(Class<?>)Map.class, lazyOp, onEval);
+}
+*/
 
 type SaveChangesData struct {
 	deferredCommands    []ICommandData
