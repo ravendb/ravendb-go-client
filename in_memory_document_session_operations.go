@@ -1145,42 +1145,43 @@ func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*
 	return nil, nil
 }
 
-/*
-   private boolean executeLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
+func (s *InMemoryDocumentSessionOperations) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) bool {
 
-       MultiGetOperation multiGetOperation = new MultiGetOperation(this);
-       MultiGetCommand multiGetCommand = multiGetOperation.createRequest(requests);
-       getRequestExecutor().execute(multiGetCommand, sessionInfo);
+	/*
+	       MultiGetOperation multiGetOperation = new MultiGetOperation(this);
+	       MultiGetCommand multiGetCommand = multiGetOperation.createRequest(requests);
+	       getRequestExecutor().execute(multiGetCommand, sessionInfo);
 
-       List<GetResponse> responses = multiGetCommand.getResult();
+	       List<GetResponse> responses = multiGetCommand.getResult();
 
-       for (int i = 0; i < pendingLazyOperations.size(); i++) {
-           long totalTime;
-           String tempReqTime;
-           GetResponse response = responses.get(i);
+	       for (int i = 0; i < pendingLazyOperations.size(); i++) {
+	           long totalTime;
+	           String tempReqTime;
+	           GetResponse response = responses.get(i);
 
-           tempReqTime = response.getHeaders().get(Constants.Headers.REQUEST_TIME);
-           totalTime = tempReqTime != null ? Long.valueOf(tempReqTime) : 0;
+	           tempReqTime = response.getHeaders().get(Constants.Headers.REQUEST_TIME);
+	           totalTime = tempReqTime != null ? Long.valueOf(tempReqTime) : 0;
 
-           ResponseTimeInformation.ResponseTimeItem timeItem = new ResponseTimeInformation.ResponseTimeItem();
-           timeItem.setUrl(requests.get(i).getUrlAndQuery());
-           timeItem.setDuration(Duration.ofMillis(totalTime));
+	           ResponseTimeInformation.ResponseTimeItem timeItem = new ResponseTimeInformation.ResponseTimeItem();
+	           timeItem.setUrl(requests.get(i).getUrlAndQuery());
+	           timeItem.setDuration(Duration.ofMillis(totalTime));
 
-           responseTimeInformation.getDurationBreakdown().add(timeItem);
+	           responseTimeInformation.getDurationBreakdown().add(timeItem);
 
-           if (response.requestHasErrors()) {
-               throw new IllegalStateException("Got an error from server, status code: " + response.getStatusCode() + System.lineSeparator() + response.getResult());
-           }
+	           if (response.requestHasErrors()) {
+	               throw new IllegalStateException("Got an error from server, status code: " + response.getStatusCode() + System.lineSeparator() + response.getResult());
+	           }
 
-           pendingLazyOperations.get(i).handleResponse(response);
-           if (pendingLazyOperations.get(i).isRequiresRetry()) {
-               return true;
-           }
-       }
-       return false;
-   }
-
-*/
+	           pendingLazyOperations.get(i).handleResponse(response);
+	           if (pendingLazyOperations.get(i).isRequiresRetry()) {
+	               return true;
+	           }
+	       }
+	   }
+	*/
+	panic("NYI")
+	return false
+}
 
 // Note: in Java it's on DocumentSession but is called via InMemoryDocumentSessionOperations
 // which can't be done in Go. In Java, DocumentSession inherits from InMemoryDocumentSessionOperations
