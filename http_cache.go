@@ -48,6 +48,7 @@ func NewHttpCache(size int) *HttpCache {
 		weighter: func(k string, v *HttpCacheItem) int {
 			return len(v.payload) + 20
 		},
+		data: map[string]*HttpCacheItem{},
 	}
 	return &HttpCache{
 		items: cache,
