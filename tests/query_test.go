@@ -72,18 +72,19 @@ func query_queryLazily(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
 	}
 	/*
-	   Lazy<List<User>> lazyQuery = session.query(User.class)
-	           .lazily();
+		   // Lazy<List<User>> ;
+			lazyQuery := session.QueryOld(reflect.TypeOf(&User{})).Lazily()
 
-	   List<User> queryResult = lazyQuery.getValue();
+		   List<User> queryResult = lazyQuery.getValue();
 
-	   assertThat(queryResult)
-	           .hasSize(3);
+		   assertThat(queryResult)
+		           .hasSize(3);
 
-	   assertThat(queryResult.get(0).getName())
-	           .isEqualTo("John");
+		   assertThat(queryResult.get(0).getName())
+		           .isEqualTo("John");
 	*/
 
 }

@@ -1200,16 +1200,17 @@ func (s *InMemoryDocumentSessionOperations) addLazyOperation(clazz reflect.Type,
 	return lazyValue
 }
 
-/*
-protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
-	pendingLazyOperations.add(operation);
+func (s *InMemoryDocumentSessionOperations) addLazyCountOperation(operation ILazyOperation) *Lazy {
+	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	return new Lazy<>(() -> {
-		executeAllPendingLazyOperations();
-		return operation.getQueryResult().getTotalResults();
-	});
+	fn := func() interface{} {
+		s.executeAllPendingLazyOperations()
+		return operation.getQueryResult().TotalResults
+	}
+	return NewLazy(fn)
 }
 
+/*
 public <T> Lazy<Map<String, T>> lazyLoadInternal(Class<T> clazz, String[] ids, String[] includes, Consumer<Map<String, T>> onEval) {
 	if (checkIfIdAlreadyIncluded(ids, Arrays.asList(includes))) {
 		return new Lazy<>(() -> load(clazz, ids));

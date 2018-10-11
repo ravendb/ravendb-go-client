@@ -121,8 +121,6 @@ func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
-// TODO:    public <T> Lazy<T> addLazyOperation(reflect.Type clazz, ILazyOperation operation, Consumer<T> onEval) {
-// TODO:    protected Lazy<Integer> addLazyCountOperation(ILazyOperation operation) {
 // TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(reflect.Type clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)
 
 func (s *DocumentSession) Load(result interface{}, id string) error {
