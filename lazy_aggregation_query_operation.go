@@ -2,7 +2,7 @@ package ravendb
 
 import "encoding/json"
 
-//var _ ILazyOperation = &LazyAggregationQueryOperation{}
+var _ ILazyOperation = &LazyAggregationQueryOperation{}
 
 type LazyAggregationQueryOperation struct {
 	_conventions              *DocumentConventions
