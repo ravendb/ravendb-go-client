@@ -23,6 +23,15 @@ func HttpExtensions_getEtagHeader(response *http.Response) *string {
 	return &res
 }
 
+func HttpExtensions_getEtagHeaderFromMap(headers map[string]string) *string {
+	hdr := headers[Constants_Headers_ETAG]
+	if hdr == "" {
+		return nil
+	}
+	res := HttpExtensions_etagHeaderToChangeVector(hdr)
+	return &res
+}
+
 // TODO: add test
 func HttpExtensions_etagHeaderToChangeVector(responseHeader string) string {
 	panicIf(responseHeader == "", "Response did't had an ETag header")

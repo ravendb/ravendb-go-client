@@ -2,19 +2,21 @@ package ravendb
 
 import (
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"net/http"
 )
 
-// var _ RavenCommand = &MultiGetCommand{}
+var _ RavenCommand = &MultiGetCommand{}
 
 type MultiGetCommand struct {
 	RavenCommandBase
 
-	data      []*GetResponse // in Java we inherit from List<GetResponse>
 	_cache    *HttpCache
 	_commands []*GetRequest
+	_baseUrl  string
 
-	_baseUrl string
+	Result []*GetResponse // in Java we inherit from List<GetResponse>
 }
 
 func NewMultiGetCommand(cache *HttpCache, commands []*GetRequest) *MultiGetCommand {
@@ -74,171 +76,74 @@ func (c *MultiGetCommand) getCacheKey(command *GetRequest) (string, string) {
 	return key, uri
 }
 
-/*
-   public void setResponseRaw(CloseableHttpResponse response, InputStream stream) {
-       try (JsonParser parser = mapper.getFactory().createParser(stream)) {
-           if (parser.nextToken() != JsonToken.START_OBJECT) {
-               throwInvalidResponse();
-           }
+type getResponseJSON struct {
+	Result     json.RawMessage   `json:"Result"`
+	StatusCode int               `json:"StatusCode"`
+	Headers    map[string]string `json:"Headers"`
+}
 
-           String property = parser.nextFieldName();
-           if (!"Results".equals(property)) {
-               throwInvalidResponse();
-           }
+type resultsJSON struct {
+	Results []*getResponseJSON `json:"Results"`
+}
 
-           int i = 0;
-           result = new ArrayList<>();
+func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Reader) error {
+	var results *resultsJSON
+	d, err := ioutil.ReadAll(stream)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(d, &results)
+	if err != nil {
+		return err
+	}
 
-           for (GetResponse getResponse : readResponses(mapper, parser)) {
-               GetRequest command = _commands.get(i);
-               maybeSetCache(getResponse, command);
-               maybeReadFromCache(getResponse, command);
+	var result []*GetResponse
+	for i, rsp := range results.Results {
+		command := c._commands[i]
+		var getResponse GetResponse
 
-               result.add(getResponse);
+		getResponse.statusCode = rsp.StatusCode
+		getResponse.headers = rsp.Headers
+		getResponse.result = string(rsp.Result)
 
-               i++;
-           }
+		c.maybeSetCache(&getResponse, command)
+		c.maybeReadFromCache(&getResponse, command)
 
-           if (parser.nextToken() != JsonToken.END_OBJECT) {
-               throwInvalidResponse();
-           }
+		c.Result = append(c.Result, &getResponse)
+	}
 
+	return nil
+}
 
-       } catch (Exception e) {
-           throwInvalidResponse(e);
-       }
-   }
-*/
+func (c *MultiGetCommand) maybeReadFromCache(getResponse *GetResponse, command *GetRequest) {
+	if getResponse.statusCode != http.StatusNotModified {
+		return
+	}
 
-/*
-   private static List<GetResponse> readResponses(ObjectMapper mapper, JsonParser parser) throws IOException {
-       if (parser.nextToken() != JsonToken.START_ARRAY) {
-           throwInvalidResponse();
-       }
+	cacheKey, _ := c.getCacheKey(command)
+	{
+		cacheItem, _, cachedResponse := c._cache.get(cacheKey)
+		getResponse.result = cachedResponse
+		cacheItem.Close()
+	}
+}
 
-       List<GetResponse> responses = new ArrayList<>();
+func (c *MultiGetCommand) maybeSetCache(getResponse *GetResponse, command *GetRequest) {
+	if getResponse.statusCode == http.StatusNotModified {
+		return
+	}
 
-       while (true) {
-           if (parser.nextToken() == JsonToken.END_ARRAY) {
-               break;
-           }
+	cacheKey, _ := c.getCacheKey(command)
 
-           responses.add(readResponse(mapper, parser));
-       }
+	result := getResponse.result
+	if result == "" {
+		return
+	}
 
-       return responses;
-   }
-*/
+	changeVector := HttpExtensions_getEtagHeaderFromMap(getResponse.headers)
+	if changeVector == nil {
+		return
+	}
 
-/*
-   private static GetResponse readResponse(ObjectMapper mapper, JsonParser parser) throws IOException {
-       if (parser.currentToken() != JsonToken.START_OBJECT) {
-           throwInvalidResponse();
-       }
-
-       GetResponse getResponse = new GetResponse();
-
-       while (true) {
-           if (parser.nextToken() == null) {
-               throwInvalidResponse();
-           }
-
-           if (parser.currentToken() == JsonToken.END_OBJECT) {
-               break;
-           }
-
-           if (parser.currentToken() != JsonToken.FIELD_NAME) {
-               throwInvalidResponse();
-           }
-
-           String property = parser.getValueAsString();
-           switch (property) {
-               case "Result":
-                   JsonToken jsonToken = parser.nextToken();
-                   if (jsonToken == null) {
-                       throwInvalidResponse();
-                   }
-
-                   if (parser.currentToken() == JsonToken.VALUE_NULL) {
-                       continue;
-                   }
-
-                   if (parser.currentToken() != JsonToken.START_OBJECT) {
-                       throwInvalidResponse();
-                   }
-
-                   TreeNode treeNode = mapper.readTree(parser);
-                   getResponse.setResult(treeNode.toString());
-                   continue;
-               case "Headers":
-                   if (parser.nextToken() == null) {
-                       throwInvalidResponse();
-                   }
-
-                   if (parser.currentToken() == JsonToken.VALUE_NULL) {
-                       continue;
-                   }
-
-                   if (parser.currentToken() != JsonToken.START_OBJECT) {
-                       throwInvalidResponse();
-                   }
-
-                   ObjectNode headersMap = mapper.readTree(parser);
-                   headersMap.fieldNames().forEachRemaining(field -> getResponse.getHeaders().put(field, headersMap.get(field).asText()));
-                   continue;
-               case "StatusCode":
-                   int statusCode = parser.nextIntValue(-1);
-                   if (statusCode == -1) {
-                       throwInvalidResponse();
-                   }
-
-                   getResponse.setStatusCode(statusCode);
-                   continue;
-               default:
-                   throwInvalidResponse();
-                   break;
-
-           }
-
-
-       }
-
-       return getResponse;
-   }
-*/
-
-/*
-   private void maybeReadFromCache(GetResponse getResponse, GetRequest command) {
-       if (getResponse.getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
-           return;
-       }
-
-       String cacheKey = getCacheKey(command, new Reference<>());
-       Reference<String> cachedResponse = new Reference<>();
-       try (CleanCloseable cacheItem = _cache.get(cacheKey, new Reference<>(), cachedResponse)) {
-           getResponse.setResult(cachedResponse.value);
-       }
-   }
-*/
-
-/*
-   private void maybeSetCache(GetResponse getResponse, GetRequest command) {
-       if (getResponse.getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
-           return;
-       }
-
-       String cacheKey = getCacheKey(command, new Reference<>());
-
-       String result = getResponse.getResult();
-       if (result == null) {
-           return;
-       }
-
-       String changeVector = HttpExtensions.getEtagHeader(getResponse.getHeaders());
-       if (changeVector == null) {
-           return;
-       }
-
-       _cache.set(cacheKey, changeVector, result);
-   }
-*/
+	c._cache.set(cacheKey, changeVector, result)
+}
