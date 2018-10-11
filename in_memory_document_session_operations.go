@@ -3,7 +3,6 @@ package ravendb
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -77,6 +76,11 @@ type InMemoryDocumentSessionOperations struct {
 
 	generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
 	entityToJson                *EntityToJson
+
+	// Note: in java DocumentSession inherits from InMemoryDocumentSessionOperations
+	// so we can upcast/downcast between them
+	// In Go we need a backlink to reach DocumentSession
+	session *DocumentSession
 }
 
 // NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
@@ -1093,139 +1097,6 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 
 	return indexName, collectionName
 }
-
-func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
-	panic("NYI")
-
-	var requests []*GetRequest
-	var pendingTmp []ILazyOperation
-	for _, op := range s.pendingLazyOperations {
-		req := op.createRequest()
-		if req == nil {
-			continue
-		}
-		pendingTmp = append(pendingTmp, op)
-		requests = append(requests, req)
-	}
-	s.pendingLazyOperations = pendingTmp
-
-	if len(requests) == 0 {
-		return &ResponseTimeInformation{}, nil
-	}
-
-	sw := time.Now()
-	s.IncrementRequestCount()
-
-	defer func() { s.pendingLazyOperations = nil }()
-
-	responseTimeDuration := &ResponseTimeInformation{}
-	for {
-		shouldRetry, err := s.executeLazyOperationsSingleStep(responseTimeDuration, requests)
-		if err != nil {
-			return nil, err
-		}
-		if !shouldRetry {
-			break
-		}
-		time.Sleep(time.Millisecond * 100)
-	}
-	responseTimeDuration.computeServerTotal()
-
-	for _, pendingLazyOperation := range s.pendingLazyOperations {
-		value := s.onEvaluateLazy[pendingLazyOperation]
-		if value != nil {
-			value(pendingLazyOperation.getResult())
-		}
-	}
-
-	dur := time.Since(sw)
-
-	responseTimeDuration.totalClientDuration = dur
-	return responseTimeDuration, nil
-}
-
-func (s *InMemoryDocumentSessionOperations) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
-	multiGetOperation := NewMultiGetOperation(s)
-	multiGetCommand := multiGetOperation.createRequest(requests)
-
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(multiGetCommand, s.sessionInfo)
-	if err != nil {
-		return false, err
-	}
-	responses := multiGetCommand.Result
-	for i, op := range s.pendingLazyOperations {
-		response := responses[i]
-		tempReqTime := response.headers[Constants_Headers_REQUEST_TIME]
-		totalTime, _ := strconv.Atoi(tempReqTime)
-		uri := requests[i].getUrlAndQuery()
-		dur := time.Millisecond * time.Duration(totalTime)
-		timeItem := ResponseTimeItem{
-			url:      uri,
-			duration: dur,
-		}
-		responseTimeInformation.durationBreakdown = append(responseTimeInformation.durationBreakdown, timeItem)
-		if response.requestHasErrors() {
-			return false, NewIllegalStateException("Got an error from server, status code: %d\n%s", response.statusCode, response.result)
-		}
-		err = op.handleResponse(response)
-		if err != nil {
-			return false, err
-		}
-		if op.isRequiresRetry() {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// Note: in Java it's on DocumentSession but is called via InMemoryDocumentSessionOperations
-// which can't be done in Go. In Java, DocumentSession inherits from InMemoryDocumentSessionOperations
-// so we can cast from one to the other. In Go DocumentSession contains InMemoryDocumentSessionOperations
-// and we can't get from InMemoryDocumentSessionOperations to DocumentSession.
-func (s *InMemoryDocumentSessionOperations) addLazyOperation(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
-	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
-
-	fn := func() interface{} {
-		s.executeAllPendingLazyOperations()
-		return s.getOperationResult(clazz, operation.getResult())
-	}
-	lazyValue := NewLazy(fn)
-	if onEval != nil {
-		fn := func(theResult interface{}) {
-			onEval(s.getOperationResult(clazz, theResult))
-		}
-		s.onEvaluateLazy[operation] = fn
-	}
-
-	return lazyValue
-}
-
-func (s *InMemoryDocumentSessionOperations) addLazyCountOperation(operation ILazyOperation) *Lazy {
-	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
-
-	fn := func() interface{} {
-		s.executeAllPendingLazyOperations()
-		return operation.getQueryResult().TotalResults
-	}
-	return NewLazy(fn)
-}
-
-/*
-public <T> Lazy<Map<String, T>> lazyLoadInternal(Class<T> clazz, String[] ids, String[] includes, Consumer<Map<String, T>> onEval) {
-	if (checkIfIdAlreadyIncluded(ids, Arrays.asList(includes))) {
-		return new Lazy<>(() -> load(clazz, ids));
-	}
-
-	LoadOperation loadOperation = new LoadOperation(this)
-			.byIds(ids)
-			.withIncludes(includes);
-
-	LazyLoadOperation<T> lazyOp = new LazyLoadOperation<>(clazz, this, loadOperation)
-			.byIds(ids).withIncludes(includes);
-
-	return addLazyOperation((Class<Map<String, T>>)(Class<?>)Map.class, lazyOp, onEval);
-}
-*/
 
 type SaveChangesData struct {
 	deferredCommands    []ICommandData

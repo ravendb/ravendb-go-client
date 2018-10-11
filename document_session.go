@@ -5,6 +5,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 // type IDocumentSessionImpl = DocumentSession
@@ -117,11 +118,141 @@ func (s *DocumentSession) Refresh(entity Object) error {
 
 // TODO:    protected string generateId(Object entity) {
 
+func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
+	var requests []*GetRequest
+	var pendingTmp []ILazyOperation
+	for _, op := range s.pendingLazyOperations {
+		req := op.createRequest()
+		if req == nil {
+			continue
+		}
+		pendingTmp = append(pendingTmp, op)
+		requests = append(requests, req)
+	}
+	s.pendingLazyOperations = pendingTmp
+
+	if len(requests) == 0 {
+		return &ResponseTimeInformation{}, nil
+	}
+
+	sw := time.Now()
+	s.IncrementRequestCount()
+
+	defer func() { s.pendingLazyOperations = nil }()
+
+	responseTimeDuration := &ResponseTimeInformation{}
+	for {
+		shouldRetry, err := s.executeLazyOperationsSingleStep(responseTimeDuration, requests)
+		if err != nil {
+			return nil, err
+		}
+		if !shouldRetry {
+			break
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
+	responseTimeDuration.computeServerTotal()
+
+	for _, pendingLazyOperation := range s.pendingLazyOperations {
+		value := s.onEvaluateLazy[pendingLazyOperation]
+		if value != nil {
+			value(pendingLazyOperation.getResult())
+		}
+	}
+
+	dur := time.Since(sw)
+
+	responseTimeDuration.totalClientDuration = dur
+	return responseTimeDuration, nil
+}
+
+func (s *InMemoryDocumentSessionOperations) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
+	multiGetOperation := NewMultiGetOperation(s)
+	multiGetCommand := multiGetOperation.createRequest(requests)
+
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(multiGetCommand, s.sessionInfo)
+	if err != nil {
+		return false, err
+	}
+	responses := multiGetCommand.Result
+	for i, op := range s.pendingLazyOperations {
+		response := responses[i]
+		tempReqTime := response.headers[Constants_Headers_REQUEST_TIME]
+		totalTime, _ := strconv.Atoi(tempReqTime)
+		uri := requests[i].getUrlAndQuery()
+		dur := time.Millisecond * time.Duration(totalTime)
+		timeItem := ResponseTimeItem{
+			url:      uri,
+			duration: dur,
+		}
+		responseTimeInformation.durationBreakdown = append(responseTimeInformation.durationBreakdown, timeItem)
+		if response.requestHasErrors() {
+			return false, NewIllegalStateException("Got an error from server, status code: %d\n%s", response.statusCode, response.result)
+		}
+		err = op.handleResponse(response)
+		if err != nil {
+			return false, err
+		}
+		if op.isRequiresRetry() {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
-// TODO:    public <T> Lazy<Map<string, T>> lazyLoadInternal(reflect.Type clazz, string[] ids, string[] includes, Consumer<Map<string, T>> onEval)
+func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
+	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
+
+	fn := func() interface{} {
+		s.executeAllPendingLazyOperations()
+		return s.getOperationResult(clazz, operation.getResult())
+	}
+	lazyValue := NewLazy(fn)
+	if onEval != nil {
+		fn := func(theResult interface{}) {
+			onEval(s.getOperationResult(clazz, theResult))
+		}
+		s.onEvaluateLazy[operation] = fn
+	}
+
+	return lazyValue
+}
+
+func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy {
+	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
+
+	fn := func() interface{} {
+		s.executeAllPendingLazyOperations()
+		return operation.getQueryResult().TotalResults
+	}
+	return NewLazy(fn)
+}
+
+// public <T> Lazy<Map<String, T>>
+/*
+func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type,  ids []string,  includes []string, onEval func(map[string]interface{})) {
+	if (s.checkIfIdAlreadyIncluded(ids, includes)) {
+		fn := func() interface{} {
+			// TODO: we no longer have Load(clazz)
+			s.load
+		}
+		return new Lazy<>(() -> load(clazz, ids));
+	}
+
+	LoadOperation loadOperation = new LoadOperation(this)
+			.byIds(ids)
+			.withIncludes(includes);
+
+	LazyLoadOperation<T> lazyOp = new LazyLoadOperation<>(clazz, this, loadOperation)
+			.byIds(ids).withIncludes(includes);
+
+	return addLazyOperation((Class<Map<String, T>>)(Class<?>)Map.class, lazyOp, onEval);
+}
+*/
 
 func (s *DocumentSession) Load(result interface{}, id string) error {
 	if id == "" {

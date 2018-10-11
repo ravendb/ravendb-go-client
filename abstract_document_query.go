@@ -1777,11 +1777,10 @@ func (q *AbstractDocumentQuery) lazilyWithOnEval(onEval func(interface{})) *Lazy
 	lazyQueryOperation := NewLazyQueryOperation(q.clazz, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
 
 	// TODO: this is prbably wrong, needs to construct [] of q.clazz
-	return q.theSession.addLazyOperation(q.clazz, lazyQueryOperation, onEval)
+	return q.theSession.session.addLazyOperation(q.clazz, lazyQueryOperation, onEval)
 }
 
 /*
-
     Lazy<Integer> countLazily() {
        if (queryOperation == null) {
            _take(0);
