@@ -116,8 +116,6 @@ func (s *DocumentSession) Refresh(entity Object) error {
 }
 
 // TODO:    protected string generateId(Object entity) {
-// TODO:    public ResponseTimeInformation ExecuteAllPendingLazyOperations() {
-// TODO:    private boolean ExecuteLazyOperationsSingleStep(ResponseTimeInformation responseTimeInformation, List<GetRequest> requests) {
 
 func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)

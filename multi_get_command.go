@@ -97,7 +97,6 @@ func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Read
 		return err
 	}
 
-	var result []*GetResponse
 	for i, rsp := range results.Results {
 		command := c._commands[i]
 		var getResponse GetResponse

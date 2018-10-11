@@ -3,6 +3,7 @@ package ravendb
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -1112,75 +1113,69 @@ func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*
 		return &ResponseTimeInformation{}, nil
 	}
 
-	/*
-	   try  {
-	       Stopwatch sw = Stopwatch.createStarted();
+	sw := time.Now()
+	s.IncrementRequestCount()
 
-	       incrementRequestCount();
+	defer func() { s.pendingLazyOperations = nil }()
 
-	       ResponseTimeInformation responseTimeDuration = new ResponseTimeInformation();
+	responseTimeDuration := &ResponseTimeInformation{}
+	for {
+		shouldRetry, err := s.executeLazyOperationsSingleStep(responseTimeDuration, requests)
+		if err != nil {
+			return nil, err
+		}
+		if !shouldRetry {
+			break
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
+	responseTimeDuration.computeServerTotal()
 
-	       while (executeLazyOperationsSingleStep(responseTimeDuration, requests)) {
-	           Thread.sleep(100);
-	       }
+	for _, pendingLazyOperation := range s.pendingLazyOperations {
+		value := s.onEvaluateLazy[pendingLazyOperation]
+		if value != nil {
+			value(pendingLazyOperation.getResult())
+		}
+	}
 
-	       responseTimeDuration.computeServerTotal();
+	dur := time.Since(sw)
 
-	       for (ILazyOperation pendingLazyOperation : pendingLazyOperations) {
-	           Consumer<Object> value = onEvaluateLazy.get(pendingLazyOperation);
-	           if (value != null) {
-	               value.accept(pendingLazyOperation.getResult());
-	           }
-	       }
-
-	       responseTimeDuration.setTotalClientDuration(Duration.ofMillis(sw.elapsed(TimeUnit.MILLISECONDS)));
-	       return responseTimeDuration;
-	   } catch (InterruptedException e) {
-	       throw new RuntimeException("Unable to execute pending operations: "  + e.getMessage(), e);
-	   } finally {
-	       pendingLazyOperations.clear();
-	   }
-	*/
-
-	return nil, nil
+	responseTimeDuration.totalClientDuration = dur
+	return responseTimeDuration, nil
 }
 
-func (s *InMemoryDocumentSessionOperations) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) bool {
+func (s *InMemoryDocumentSessionOperations) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
+	multiGetOperation := NewMultiGetOperation(s)
+	multiGetCommand := multiGetOperation.createRequest(requests)
 
-	/*
-	       MultiGetOperation multiGetOperation = new MultiGetOperation(this);
-	       MultiGetCommand multiGetCommand = multiGetOperation.createRequest(requests);
-	       getRequestExecutor().execute(multiGetCommand, sessionInfo);
-
-	       List<GetResponse> responses = multiGetCommand.getResult();
-
-	       for (int i = 0; i < pendingLazyOperations.size(); i++) {
-	           long totalTime;
-	           String tempReqTime;
-	           GetResponse response = responses.get(i);
-
-	           tempReqTime = response.getHeaders().get(Constants.Headers.REQUEST_TIME);
-	           totalTime = tempReqTime != null ? Long.valueOf(tempReqTime) : 0;
-
-	           ResponseTimeInformation.ResponseTimeItem timeItem = new ResponseTimeInformation.ResponseTimeItem();
-	           timeItem.setUrl(requests.get(i).getUrlAndQuery());
-	           timeItem.setDuration(Duration.ofMillis(totalTime));
-
-	           responseTimeInformation.getDurationBreakdown().add(timeItem);
-
-	           if (response.requestHasErrors()) {
-	               throw new IllegalStateException("Got an error from server, status code: " + response.getStatusCode() + System.lineSeparator() + response.getResult());
-	           }
-
-	           pendingLazyOperations.get(i).handleResponse(response);
-	           if (pendingLazyOperations.get(i).isRequiresRetry()) {
-	               return true;
-	           }
-	       }
-	   }
-	*/
-	panic("NYI")
-	return false
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(multiGetCommand, s.sessionInfo)
+	if err != nil {
+		return false, err
+	}
+	responses := multiGetCommand.Result
+	for i, op := range s.pendingLazyOperations {
+		response := responses[i]
+		tempReqTime := response.headers[Constants_Headers_REQUEST_TIME]
+		totalTime, _ := strconv.Atoi(tempReqTime)
+		uri := requests[i].getUrlAndQuery()
+		dur := time.Millisecond * time.Duration(totalTime)
+		timeItem := ResponseTimeItem{
+			url:      uri,
+			duration: dur,
+		}
+		responseTimeInformation.durationBreakdown = append(responseTimeInformation.durationBreakdown, timeItem)
+		if response.requestHasErrors() {
+			return false, NewIllegalStateException("Got an error from server, status code: %d\n%s", response.statusCode, response.result)
+		}
+		err = op.handleResponse(response)
+		if err != nil {
+			return false, err
+		}
+		if op.isRequiresRetry() {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // Note: in Java it's on DocumentSession but is called via InMemoryDocumentSessionOperations
