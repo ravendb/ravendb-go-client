@@ -119,7 +119,8 @@ func runJava() {
 	//runSingleJavaTest("QueriesWithCustomFunctionsTest")
 	//runSingleJavaTest("SuggestionsTest")
 	//runSingleJavaTest("MoreLikeThisTest")
-	runSingleJavaTest("ChangesTest")
+	//runSingleJavaTest("ChangesTest")
+	runSingleJavaTest("DocumentStreaming")
 }
 
 func main() {
