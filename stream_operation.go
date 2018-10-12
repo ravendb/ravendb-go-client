@@ -1,6 +1,9 @@
 package ravendb
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"math"
 	"strconv"
 	"strings"
@@ -64,127 +67,184 @@ func (o *StreamOperation) createRequest2(startsWith string, matches string, star
 	return NewStreamCommand(uri)
 }
 
-/*
-   public CloseableIterator<ObjectNode> setResult(StreamResultResponse response)  {
-       if (response == null) {
-           throw new IllegalStateException("The index does not exists, failed to stream results");
-       }
+func isDelimToken(tok json.Token, delim string) bool {
+	delimTok, ok := tok.(json.Delim)
+	return ok && delimTok.String() == delim
+}
 
-       try {
-           JsonParser parser = JsonExtensions.getDefaultMapper().getFactory().createParser(response.getStream());
+func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStreamResults, error) {
+	if response == nil {
+		return nil, NewIllegalStateException("The index does not exists, failed to stream results")
+	}
+	dec := json.NewDecoder(response.Stream)
+	tok, err := dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	// we expect start of array token
+	if !isDelimToken(tok, "[") {
+		return nil, NewIllegalStateException("Expected start object ', got %T %s", tok, tok)
+	}
 
-           if (parser.nextToken() != JsonToken.START_OBJECT) {
-               throw new IllegalStateException("Expected start object");
-           }
+	if o._isQueryStream {
+		o._statistics, err = handleStreamQueryStats(dec)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-           if (_isQueryStream) {
-               handleStreamQueryStats(parser, _statistics);
-           }
+	// expecting object with a single field "Results" that is array of values
+	tok, err = getTokenAfterObjectKey(dec, "Results")
+	if err != nil {
+		return nil, err
+	}
+	if !isDelimToken(tok, "[") {
+		return nil, NewIllegalStateException("Expected start object ', got %T %s", tok, tok)
+	}
 
-           if (!"Results".equals(parser.nextFieldName())) {
-               throw new IllegalStateException("Expected Results field");
-           }
+	return NewYieldStreamResults(response, dec), nil
+}
 
-           if (parser.nextToken() != JsonToken.START_ARRAY) {
-               throw new IllegalStateException("Expected results array start");
-           }
+func getNextStringToken(dec *json.Decoder) (string, error) {
+	tok, err := dec.Token()
+	if err != nil {
+		return "", err
+	}
+	if s, ok := tok.(string); ok {
+		return s, nil
+	}
+	return "", fmt.Errorf("Expected string token, got %T %s", tok, tok)
+}
 
-           return new YieldStreamResults(response, parser);
-       } catch (IOException e) {
-           throw new RuntimeException("Unable to stream result: " + e.getMessage(), e);
-       }
-   }
+func getTokenAfterObjectKey(dec *json.Decoder, name string) (json.Token, error) {
+	s, err := getNextStringToken(dec)
+	if err == nil {
+		if s != name {
+			return nil, fmt.Errorf("Expected string token named '%s', got '%s'", name, s)
+		}
+	}
+	return dec.Token()
+}
 
-   private static void handleStreamQueryStats(JsonParser parser, StreamQueryStatistics streamQueryStatistics) throws IOException {
-       if (!"ResultEtag".equals(parser.nextFieldName())) {
-           throw new IllegalStateException("Expected ResultETag field");
-       }
+func getNextObjectStringValue(dec *json.Decoder, name string) (string, error) {
+	tok, err := getTokenAfterObjectKey(dec, name)
+	if err != nil {
+		return "", err
+	}
+	s, ok := tok.(string)
+	if !ok {
+		return "", fmt.Errorf("Expected string token, got %T %s", tok, tok)
+	}
+	return s, nil
+}
 
-       long resultEtag = parser.nextLongValue(0);
+func getNextObjectBoolValue(dec *json.Decoder, name string) (bool, error) {
+	tok, err := getTokenAfterObjectKey(dec, name)
+	if err != nil {
+		return false, err
+	}
+	v, ok := tok.(bool)
+	if !ok {
+		return false, fmt.Errorf("Expected bool token, got %T %s", tok, tok)
+	}
+	return v, nil
+}
 
-       if (!"IsStale".equals(parser.nextFieldName())) {
-           throw new IllegalStateException("Expected IsStale field");
-       }
+func getNextObjectInt64Value(dec *json.Decoder, name string) (int64, error) {
+	tok, err := getTokenAfterObjectKey(dec, name)
+	if err != nil {
+		return 0, err
+	}
+	if v, ok := tok.(float64); ok {
+		return int64(v), nil
+	}
+	if v, ok := tok.(json.Number); ok {
+		return v.Int64()
+	}
+	return 0, fmt.Errorf("Expected number token, got %T %s", tok, tok)
+}
 
-       boolean isStale = parser.nextBooleanValue();
+func handleStreamQueryStats(dec *json.Decoder) (*StreamQueryStatistics, error) {
+	var stats StreamQueryStatistics
+	var err error
+	var n int64
+	stats.ResultEtag, err = getNextObjectInt64Value(dec, "ResultEtag")
+	if err == nil {
+		stats.IsStale, err = getNextObjectBoolValue(dec, "IsStale")
+	}
+	if err == nil {
+		stats.IndexName, err = getNextObjectStringValue(dec, "IndexName")
+	}
+	if err == nil {
+		n, err = getNextObjectInt64Value(dec, "TotalResults")
+		stats.TotalResults = int(n)
+	}
+	if err == nil {
+		var s string
+		s, err = getNextObjectStringValue(dec, "IndexTimestamp")
+		if err == nil {
+			stats.IndexTimestamp, err = NetISO8601Utils_parse(s)
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &stats, nil
+}
 
-       if (!"IndexName".equals(parser.nextFieldName())) {
-           throw new IllegalStateException("Expected IndexName field");
-       }
+type YieldStreamResults struct {
+	response *StreamResultResponse
+	dec      *json.Decoder
+	err      error
+}
 
-       String indexName = parser.nextTextValue();
+func NewYieldStreamResults(response *StreamResultResponse, dec *json.Decoder) *YieldStreamResults {
+	return &YieldStreamResults{
+		response: response,
+		dec:      dec,
+	}
+}
 
-       if (!"TotalResults".equals(parser.nextFieldName())) {
-           throw new IllegalStateException("Expected TotalResults field");
-       }
+// decodes next javascript object from stream
+// returns io.EOF when reaching end of stream. Other errors indicate a parsing error
+func (r *YieldStreamResults) Next() (ObjectNode, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	// More() returns false if there is an error or ']' token
+	if r.dec.More() {
+		var v ObjectNode
+		r.err = r.dec.Decode(&v)
+		if r.err != nil {
+			return nil, r.err
+		}
+		return v, nil
+	}
+	// expect end of Results array
+	r.eatArrayEnd()
+	if r.err != nil {
+		return nil, r.err
+	}
 
-       int totalResults = (int) parser.nextLongValue(0);
+	// should now return nil, io.EOF to indicate end of stream
+	_, r.err = r.dec.Token()
+	return nil, r.err
+}
 
-       if (!"IndexTimestamp".equals(parser.nextFieldName())) {
-           throw new IllegalStateException("Expected IndexTimestamp field");
-       }
+func (r *YieldStreamResults) eatArrayEnd() {
+	if r.err != nil {
+		return
+	}
+	var tok json.Token
+	tok, r.err = r.dec.Token()
+	if r.err == nil && !isDelimToken(tok, "]") {
+		r.err = fmt.Errorf("Expected ']' token. Got token of type %T, value: '%s'", tok, tok)
+	}
+}
 
-       String indexTimestamp = parser.nextTextValue();
-
-       if (streamQueryStatistics == null) {
-           return;
-       }
-
-       streamQueryStatistics.setIndexName(indexName);
-       streamQueryStatistics.setStale(isStale);
-       streamQueryStatistics.setTotalResults(totalResults);
-       streamQueryStatistics.setResultEtag(resultEtag);
-       streamQueryStatistics.setIndexTimestamp(NetISO8601Utils.parse(indexTimestamp));
-   }
-
-   private class YieldStreamResults implements CloseableIterator<ObjectNode> {
-
-       private StreamResultResponse response;
-       private JsonParser parser;
-
-       public YieldStreamResults(StreamResultResponse response, JsonParser parser) {
-           this.response = response;
-           this.parser = parser;
-       }
-
-       @Override
-       public ObjectNode next() {
-           try {
-               ObjectNode node = JsonExtensions.getDefaultMapper().readTree(parser);
-               return node;
-           } catch (IOException e) {
-               throw new IllegalStateException("Unable to read stream result: " + e.getMessage(), e);
-           }
-       }
-
-       @Override
-       public boolean hasNext() {
-           try {
-               JsonToken jsonToken = parser.nextToken();
-               if (jsonToken == JsonToken.END_ARRAY) {
-
-                   if (parser.nextToken() != JsonToken.END_OBJECT) {
-                       throw new IllegalStateException("Expected '}' after results array");
-                   }
-
-                   return false;
-               }
-
-               return true;
-           } catch (IOException e) {
-               throw new IllegalStateException("Unable to read stream result: " + e.getMessage(), e);
-           }
-       }
-
-       @Override
-       public void close() {
-           try {
-               response.getResponse().close();
-           } catch (IOException e) {
-               throw new RuntimeException("Unable to close stream response");
-           }
-       }
-
-
-   }
-*/
+func (r *YieldStreamResults) Close() {
+	// a bit of a hack
+	if rc, ok := r.response.Stream.(io.ReadCloser); ok {
+		rc.Close()
+	}
+}

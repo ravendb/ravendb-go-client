@@ -9,3 +9,7 @@ const (
 func NetISO8601Utils_format(t time.Time) string {
 	return t.Format(ISO8601TimeFormat)
 }
+
+func NetISO8601Utils_parse(s string) (time.Time, error) {
+	return time.Parse(ISO8601TimeFormat, s)
+}
