@@ -22,7 +22,7 @@ func NewStreamOperation(session *InMemoryDocumentSessionOperations, statistics *
 	}
 }
 
-func (o *StreamOperation) createRequest(query *IndexQuery) *QueryStreamCommand {
+func (o *StreamOperation) createRequestForIndexQuery(query *IndexQuery) *QueryStreamCommand {
 	o._isQueryStream = true
 
 	if query.waitForNonStaleResults {
@@ -35,7 +35,7 @@ func (o *StreamOperation) createRequest(query *IndexQuery) *QueryStreamCommand {
 	return NewQueryStreamCommand(o._session.Conventions, query)
 }
 
-func (o *StreamOperation) createRequest2(startsWith string, matches string, start int, pageSize int, exclude string, startAfter string) *StreamCommand {
+func (o *StreamOperation) createRequest(startsWith string, matches string, start int, pageSize int, exclude string, startAfter string) *StreamCommand {
 	uri := "streams/docs?"
 
 	if startsWith != "" {
@@ -87,7 +87,7 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 	}
 
 	if o._isQueryStream {
-		o._statistics, err = handleStreamQueryStats(dec)
+		err = handleStreamQueryStats(dec, &o._statistics)
 		if err != nil {
 			return nil, err
 		}
@@ -164,8 +164,12 @@ func getNextObjectInt64Value(dec *json.Decoder, name string) (int64, error) {
 	return 0, fmt.Errorf("Expected number token, got %T %s", tok, tok)
 }
 
-func handleStreamQueryStats(dec *json.Decoder) (*StreamQueryStatistics, error) {
-	var stats StreamQueryStatistics
+func handleStreamQueryStats(dec *json.Decoder, statsPtr **StreamQueryStatistics) error {
+	stats := *statsPtr
+	if stats == nil {
+		stats = &StreamQueryStatistics{}
+		*statsPtr = stats
+	}
 	var err error
 	var n int64
 	stats.ResultEtag, err = getNextObjectInt64Value(dec, "ResultEtag")
@@ -186,10 +190,7 @@ func handleStreamQueryStats(dec *json.Decoder) (*StreamQueryStatistics, error) {
 			stats.IndexTimestamp, err = NetISO8601Utils_parse(s)
 		}
 	}
-	if err != nil {
-		return nil, err
-	}
-	return &stats, nil
+	return err
 }
 
 type YieldStreamResults struct {
