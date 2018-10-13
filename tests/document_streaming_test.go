@@ -1,8 +1,10 @@
 package tests
 
 import (
+	"io"
 	"testing"
 
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,24 +25,30 @@ func documentStreaming_canStreamDocumentsStartingWith(t *testing.T) {
 		session.Close()
 	}
 
-	/*
-	       int count = 0;
-
-	       try (IDocumentSession session = store.openSession()) {
-	           try (CloseableIterator<StreamResult<User>> reader = session.advanced().stream(User.class, "users/")) {
-	               while (reader.hasNext()) {
-	                   count++;
-	                   User user = reader.next().getDocument();
-	                   assertThat(user)
-	                           .isNotNull();
-	               }
-	           }
-	       }
-
-	       assertThat(count)
-	               .isEqualTo(200);
-	   }
-	*/
+	count := 0
+	{
+		session := openSessionMust(t, store)
+		{
+			args := &ravendb.StartsWithArgs{
+				StartsWith: "users/",
+			}
+			reader, err := session.Advanced().Stream(args)
+			assert.NoError(t, err)
+			for {
+				var user *User
+				_, err = reader.Next(&user)
+				if err == io.EOF {
+					err = nil
+					break
+				}
+				assert.NoError(t, err)
+				assert.NotNil(t, user)
+				count++
+			}
+			assert.NoError(t, err)
+		}
+	}
+	assert.Equal(t, count, 200)
 }
 
 func documentStreaming_streamWithoutIterationDoesntLeakConnection(t *testing.T) {
@@ -60,16 +68,16 @@ func documentStreaming_streamWithoutIterationDoesntLeakConnection(t *testing.T) 
 		session.Close()
 	}
 
-	/*
-	   for (int i = 0; i < 5; i++) {
-	       try (IDocumentSession session = store.openSession()) {
-
-	           try (CloseableIterator<StreamResult<User>> reader = session.advanced().stream(User.class, "users/")) {
-	               // don't iterate
-	           }
-	       }
-	   }
-	*/
+	for i := 0; i < 5; i++ {
+		session := openSessionMust(t, store)
+		args := &ravendb.StartsWithArgs{
+			StartsWith: "users/",
+		}
+		reader, err := session.Advanced().Stream(args)
+		assert.NoError(t, err)
+		// don't iterate
+		reader.Close()
+	}
 }
 
 func TestDocumentStreaming(t *testing.T) {

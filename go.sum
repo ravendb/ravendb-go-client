@@ -1,11 +1,11 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153 h1:yUdfgN0XgIJw7foRItutHYUIhlcKzcSf5vDpdhQAKTc=
-github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/elazarl/goproxy v0.0.0-20181003060214-f58a169a71a5 h1:LCoguo7Zd0MByKMbQbTvcZw7HiBcbvew+MOcwsJVwrY=
 github.com/elazarl/goproxy v0.0.0-20181003060214-f58a169a71a5/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/ga0/netgraph v0.0.0-20180806100023-69b72fb7588d h1:8lazH2GDFvS/b4+CkAPj4F/+mGhpZ0dwif8ObTIJYfU=
 github.com/ga0/netgraph v0.0.0-20180806100023-69b72fb7588d/go.mod h1:1C3woUKDOZMpanYZOAE+Ph9CCKPnj8SRmAtPdZ3E4so=
+github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
+github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
 github.com/google/gopacket v1.1.14 h1:1+TEhSu8Mh154ZBVjyd1Nt2Bb7cnyOeE3GQyb1WGLqI=
 github.com/google/gopacket v1.1.14/go.mod h1:UCLx9mCmAwsVbn6qQl1WIEt2SO7Nd2fD0th1TBAsqBw=
 github.com/google/gopacket v1.1.15 h1:M6W3hwQXo5rq1wyhRByGhqOw0m9p+HWtUJ3Bj4/fT6E=
@@ -14,7 +14,13 @@ github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3 h1:sHsPfNMAG70QAvKbddQ0uScZCHQoZsT5NykGRCeeeIs=
 github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3/go.mod h1:yL958EeXv8Ylng6IfnvG4oflryUi3vgA3xPs9hmII1s=
+github.com/mdlayher/raw v0.0.0-20180904195823-67a536258490 h1:I99tdqA1ygmdW0o/zybSegbU0sqLyItyNA63Ir+jwNA=
+github.com/mdlayher/raw v0.0.0-20180904195823-67a536258490/go.mod h1:rC/yE65s/DoHB6BzVOUBNYBGTg772JVytyAytffIZkY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+golang.org/x/net v0.0.0-20181011144130-49bb7cea24b1 h1:Y/KGZSOdz/2r0WJ9Mkmz6NJBusp0kiNx1Cn82lzJQ6w=
+golang.org/x/net v0.0.0-20181011144130-49bb7cea24b1/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+golang.org/x/sys v0.0.0-20181011152604-fa43e7bc11ba h1:nZJIJPGow0Kf9bU9QTc1U6OXbs/7Hu4e+cNv+hxH+Zc=
+golang.org/x/sys v0.0.0-20181011152604-fa43e7bc11ba/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=

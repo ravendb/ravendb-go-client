@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"reflect"
 	"strconv"
@@ -571,6 +572,17 @@ func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractInd
 	return s.DocumentQueryInIndexOld(clazz, index)
 }
 
+// StartsWithArgs contains arguments for functions that return documents
+// matching one or more options.
+// StartsWith is required, other fields are optional.
+type StartsWithArgs struct {
+	StartsWith string
+	Matches    string
+	Start      int
+	PageSize   int
+	StartAfter string
+}
+
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {
 // public <T> CloseableIterator<StreamResult<T>> stream(IRawDocumentQuery<T> query) {
@@ -580,8 +592,96 @@ func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractInd
 // public <T> void streamInto(IDocumentQuery<T> query, OutputStream output) {
 
 // private <T> StreamResult<T> createStreamResult(reflect.Type clazz, ObjectNode json, fieldsToFetchToken fieldsToFetch) throws IOException {
-// public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith) {
-// public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith, string matches) {
-// public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith, string matches, int start) {
-// public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith, string matches, int start, int pageSize) {
-// public <T> CloseableIterator<StreamResult<T>> stream(reflect.Type clazz, string startsWith, string matches, int start, int pageSize, string startAfter) {
+
+func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode, fieldsToFetch *fieldsToFetchToken) (*StreamResult, error) {
+	//fmt.Printf("createStreamResult: document: %#v\n", document)
+
+	// we expect v to be **Foo. We deserialize into *Foo and assign it to v
+	rt := reflect.TypeOf(v)
+	if rt.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
+	}
+	rt = rt.Elem()
+	if rt.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
+	}
+
+	metadataV, ok := document[Constants_Documents_Metadata_KEY]
+	if !ok {
+		fmt.Printf("document: %#v\n", document)
+		// TODO: maybe convert to errors
+		panicIf(!ok, "Document must have a metadata")
+	}
+	metadata, ok := metadataV.(ObjectNode)
+	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
+
+	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	// TODO: return an error?
+	panicIf(changeVector == nil, "Document must have a Change Vector")
+
+	// MapReduce indexes return reduce results that don't have @id property
+	id, _ := jsonGetAsString(metadata, Constants_Documents_Metadata_ID)
+
+	entity, err := QueryOperation_deserialize(rt, id, document, metadata, fieldsToFetch, true, s.InMemoryDocumentSessionOperations)
+	if err != nil {
+		return nil, err
+	}
+	setInterfaceToValue(v, entity)
+
+	meta := NewMetadataAsDictionaryWithSource(metadata)
+	streamResult := &StreamResult{
+		ID:           id,
+		changeVector: changeVector,
+		document:     entity,
+		metadata:     meta,
+	}
+	return streamResult, nil
+}
+
+func (s *DocumentSession) Stream(args *StartsWithArgs) (*StreamIterator, error) {
+	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
+
+	command := streamOperation.createRequest(args.StartsWith, args.Matches, args.Start, args.PageSize, "", args.StartAfter)
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	cmdResult := command.Result
+	result, err := streamOperation.setResult(cmdResult)
+	if err != nil {
+		return nil, err
+	}
+	return NewStreamIterator(s, result, nil, nil), nil
+}
+
+type StreamIterator struct {
+	_session            *DocumentSession
+	_innerIterator      *YieldStreamResults
+	_fieldsToFetchToken *fieldsToFetchToken
+	_onNextItem         func(ObjectNode)
+}
+
+func NewStreamIterator(session *DocumentSession, innerIterator *YieldStreamResults, fieldsToFetchToken *fieldsToFetchToken, onNextItem func(ObjectNode)) *StreamIterator {
+	return &StreamIterator{
+		_session:            session,
+		_innerIterator:      innerIterator,
+		_fieldsToFetchToken: fieldsToFetchToken,
+		_onNextItem:         onNextItem,
+	}
+}
+
+func (i *StreamIterator) Next(v interface{}) (*StreamResult, error) {
+	nextValue, err := i._innerIterator.NextJSONObject()
+	if err != nil {
+		return nil, err
+	}
+	if i._onNextItem != nil {
+		i._onNextItem(nextValue)
+	}
+	return i._session.createStreamResult(v, nextValue, i._fieldsToFetchToken)
+}
+
+func (i *StreamIterator) Close() {
+	i._innerIterator.Close()
+}

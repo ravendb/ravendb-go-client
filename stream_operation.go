@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -58,8 +57,8 @@ func (o *StreamOperation) createRequest(startsWith string, matches string, start
 		uri += "start=" + strconv.Itoa(start) + "&"
 	}
 
-	// TODO: verify callers use this number. Maybe can use 0 instead?
-	if pageSize != math.MaxInt32 {
+	// Note: using 0 as default value instead of MaxInt
+	if pageSize != 0 {
 		uri += "pageSize=" + strconv.Itoa(pageSize) + "&"
 	}
 
@@ -72,6 +71,15 @@ func isDelimToken(tok json.Token, delim string) bool {
 	return ok && delimTok.String() == delim
 }
 
+/* The response looks like:
+{
+  "Results": [
+    {
+       "foo": bar,
+    }
+  ]
+}
+*/
 func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStreamResults, error) {
 	if response == nil {
 		return nil, NewIllegalStateException("The index does not exists, failed to stream results")
@@ -81,9 +89,9 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 	if err != nil {
 		return nil, err
 	}
-	// we expect start of array token
-	if !isDelimToken(tok, "[") {
-		return nil, NewIllegalStateException("Expected start object ', got %T %s", tok, tok)
+	// we expect start of json object
+	if !isDelimToken(tok, "{") {
+		return nil, NewIllegalStateException("Expected start object '{', got %T %s", tok, tok)
 	}
 
 	if o._isQueryStream {
@@ -99,10 +107,21 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 		return nil, err
 	}
 	if !isDelimToken(tok, "[") {
-		return nil, NewIllegalStateException("Expected start object ', got %T %s", tok, tok)
+		return nil, NewIllegalStateException("Expected start array '[', got %T %s", tok, tok)
 	}
 
 	return NewYieldStreamResults(response, dec), nil
+}
+
+func getNextDelimToken(dec *json.Decoder, delimStr string) error {
+	tok, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := tok.(json.Delim); ok || delim.String() == delimStr {
+		return nil
+	}
+	return fmt.Errorf("Expected delim token '%', got %T %s", delimStr, tok, tok)
 }
 
 func getNextStringToken(dec *json.Decoder) (string, error) {
@@ -206,41 +225,47 @@ func NewYieldStreamResults(response *StreamResultResponse, dec *json.Decoder) *Y
 	}
 }
 
-// decodes next javascript object from stream
+// decodes next value from streawm
 // returns io.EOF when reaching end of stream. Other errors indicate a parsing error
-func (r *YieldStreamResults) Next() (ObjectNode, error) {
+func (r *YieldStreamResults) Next(v interface{}) error {
 	if r.err != nil {
-		return nil, r.err
+		return r.err
 	}
 	// More() returns false if there is an error or ']' token
 	if r.dec.More() {
-		var v ObjectNode
 		r.err = r.dec.Decode(&v)
 		if r.err != nil {
-			return nil, r.err
+			return r.err
 		}
-		return v, nil
+		return nil
 	}
+
 	// expect end of Results array
-	r.eatArrayEnd()
+	r.err = getNextDelimToken(r.dec, "]")
 	if r.err != nil {
-		return nil, r.err
+		return r.err
+	}
+
+	// expect end of top-level json object
+	r.err = getNextDelimToken(r.dec, "}")
+	if r.err != nil {
+		return r.err
 	}
 
 	// should now return nil, io.EOF to indicate end of stream
 	_, r.err = r.dec.Token()
-	return nil, r.err
+	return r.err
 }
 
-func (r *YieldStreamResults) eatArrayEnd() {
-	if r.err != nil {
-		return
+// decodes next javascript object from stream
+// returns io.EOF when reaching end of stream. Other errors indicate a parsing error
+func (r *YieldStreamResults) NextJSONObject() (ObjectNode, error) {
+	var v ObjectNode
+	err := r.Next(&v)
+	if err != nil {
+		return nil, err
 	}
-	var tok json.Token
-	tok, r.err = r.dec.Token()
-	if r.err == nil && !isDelimToken(tok, "]") {
-		r.err = fmt.Errorf("Expected ']' token. Got token of type %T, value: '%s'", tok, tok)
-	}
+	return v, nil
 }
 
 func (r *YieldStreamResults) Close() {
