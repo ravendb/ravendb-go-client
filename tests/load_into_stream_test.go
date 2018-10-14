@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
@@ -59,7 +59,10 @@ func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
 		session := openSessionMust(t, store)
 		stream := bytes.NewBuffer(nil)
 
-		err = session.Advanced().LoadStartingWithIntoStream("employee2s/", stream)
+		args := &ravendb.StartsWithArgs{
+			StartsWith: "employee2s/",
+		}
+		err = session.Advanced().LoadStartingWith(stream, args)
 		assert.NoError(t, err)
 
 		d, err := ioutil.ReadAll(stream)

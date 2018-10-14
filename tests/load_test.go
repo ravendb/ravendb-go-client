@@ -290,7 +290,10 @@ func loadTest_loadStartsWith(t *testing.T) {
 	{
 		newSession := openSessionMust(t, store)
 		var users []*User
-		err = newSession.Advanced().LoadStartingWith(&users, "A")
+		args := &ravendb.StartsWithArgs{
+			StartsWith: "A",
+		}
+		err = newSession.Advanced().LoadStartingWith(&users, args)
 		assert.NoError(t, err)
 
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
@@ -299,7 +302,12 @@ func loadTest_loadStartsWith(t *testing.T) {
 		}
 
 		users = nil
-		err = newSession.Advanced().LoadStartingWithFull(&users, "A", "", 1, 2, "", "")
+		args = &ravendb.StartsWithArgs{
+			StartsWith: "A",
+			Start:      1,
+			PageSize:   2,
+		}
+		err = newSession.Advanced().LoadStartingWith(&users, args)
 
 		userIDs = []string{"Abc", "Afa"}
 		for _, user := range users {

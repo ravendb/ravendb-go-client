@@ -329,43 +329,28 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 	return loadOperation.getDocuments(results)
 }
 
-func (s *DocumentSession) LoadStartingWith(results interface{}, idPrefix string) error {
-	return s.LoadStartingWithFull(results, idPrefix, "", 0, 25, "", "")
-}
-
-func (s *DocumentSession) LoadStartingWithFull(results interface{}, idPrefix string, matches string, start int, pageSize int, exclude string, startAfter string) error {
+func (s *DocumentSession) LoadStartingWith(results interface{}, args *StartsWithArgs) error {
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
-	_, err := s.loadStartingWithInternal(idPrefix, loadStartingWithOperation, nil, matches, start, pageSize, exclude, startAfter)
+	if args.PageSize == 0 {
+		args.PageSize = 25
+	}
+	_, err := s.loadStartingWithInternal(args.StartsWith, loadStartingWithOperation, nil, args.Matches, args.Start, args.PageSize, args.Exclude, args.StartAfter)
 	if err != nil {
 		return err
 	}
 	return loadStartingWithOperation.getDocuments(results)
 }
 
-func (s *DocumentSession) LoadStartingWithIntoStream(idPrefix string, output io.Writer) error {
-	return s.LoadStartingWithIntoStreamAll(idPrefix, output, "", 0, 25, "", "")
-}
-
-func (s *DocumentSession) LoadStartingWithIntoStream2(idPrefix string, output io.Writer, matches string) error {
-	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, 0, 25, "", "")
-}
-
-func (s *DocumentSession) LoadStartingWithIntoStream3(idPrefix string, output io.Writer, matches string, start int) error {
-	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, start, 25, "", "")
-}
-
-func (s *DocumentSession) LoadStartingWithIntoStream4(idPrefix string, output io.Writer, matches string, start int, pageSize int) error {
-	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
-}
-
-func (s *DocumentSession) LoadStartingWithIntoStream5(idPrefix string, output io.Writer, matches string, start int, pageSize int, exclude string) error {
-	return s.LoadStartingWithIntoStreamAll(idPrefix, output, matches, start, pageSize, "", "")
-}
-
-func (s *DocumentSession) LoadStartingWithIntoStreamAll(idPrefix string, output io.Writer, matches string, start int, pageSize int, exclude string, startAfter string) error {
-	op := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
-	_, err := s.loadStartingWithInternal(idPrefix, op, output, matches, start, pageSize, exclude, startAfter)
-	return err
+func (s *DocumentSession) LoadStartingWithStreamInto(output io.Writer, args *StartsWithArgs) error {
+	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
+	if args.PageSize == 0 {
+		args.PageSize = 25
+	}
+	_, err := s.loadStartingWithInternal(args.StartsWith, loadStartingWithOperation, output, args.Matches, args.Start, args.PageSize, args.Exclude, args.StartAfter)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *LoadStartingWithOperation, stream io.Writer,
@@ -572,17 +557,6 @@ func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractInd
 	return s.DocumentQueryInIndexOld(clazz, index)
 }
 
-// StartsWithArgs contains arguments for functions that return documents
-// matching one or more options.
-// StartsWith is required, other fields are optional.
-type StartsWithArgs struct {
-	StartsWith string
-	Matches    string
-	Start      int
-	PageSize   int
-	StartAfter string
-}
-
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {
 // public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {
 // public <T> CloseableIterator<StreamResult<T>> stream(IRawDocumentQuery<T> query) {
@@ -590,8 +564,6 @@ type StartsWithArgs struct {
 // private <T> CloseableIterator<StreamResult<T>> yieldResults(AbstractDocumentQuery query, CloseableIterator<ObjectNode> enumerator) {
 // public <T> void streamInto(IRawDocumentQuery<T> query, OutputStream output) {
 // public <T> void streamInto(IDocumentQuery<T> query, OutputStream output) {
-
-// private <T> StreamResult<T> createStreamResult(reflect.Type clazz, ObjectNode json, fieldsToFetchToken fieldsToFetch) throws IOException {
 
 func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode, fieldsToFetch *fieldsToFetchToken) (*StreamResult, error) {
 	//fmt.Printf("createStreamResult: document: %#v\n", document)
