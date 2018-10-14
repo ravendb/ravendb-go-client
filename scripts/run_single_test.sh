@@ -46,4 +46,4 @@ go clean -testcache
 #go test -race -vet=off -v -timeout 60s github.com/ravendb/ravendb-go-client/tests -run ^TestRavenDB5669$ ./tests
 
 #go test -v -race -vet=off -run "^TestC.*$" ./tests
-go test -v -race -vet=off -run ^TestDocumentStreaming$ ./tests
+go test -v -race -vet=off -run ^TestQueryStreaming$ ./tests
