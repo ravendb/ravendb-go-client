@@ -341,7 +341,7 @@ func (s *DocumentSession) LoadStartingWith(results interface{}, args *StartsWith
 	return loadStartingWithOperation.getDocuments(results)
 }
 
-func (s *DocumentSession) LoadStartingWithStreamInto(output io.Writer, args *StartsWithArgs) error {
+func (s *DocumentSession) LoadStartingWithIntoStream(output io.Writer, args *StartsWithArgs) error {
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
 	if args.PageSize == 0 {
 		args.PageSize = 25

@@ -62,7 +62,7 @@ func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
 		args := &ravendb.StartsWithArgs{
 			StartsWith: "employee2s/",
 		}
-		err = session.Advanced().LoadStartingWith(stream, args)
+		err = session.Advanced().LoadStartingWithIntoStream(stream, args)
 		assert.NoError(t, err)
 
 		d, err := ioutil.ReadAll(stream)

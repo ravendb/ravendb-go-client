@@ -120,7 +120,8 @@ func runJava() {
 	//runSingleJavaTest("SuggestionsTest")
 	//runSingleJavaTest("MoreLikeThisTest")
 	//runSingleJavaTest("ChangesTest")
-	runSingleJavaTest("DocumentStreaming")
+	//runSingleJavaTest("DocumentStreaming")
+	runSingleJavaTest("QueryStreaming")
 }
 
 func main() {
