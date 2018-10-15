@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 	"unicode"
+
+	"github.com/kjk/inflect"
 )
 
 var (
@@ -85,7 +87,7 @@ func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 func DefaultGetCollectionName(entityOrClazz interface{}) string {
 	// TODO: caching
 	name := GetShortTypeNameName(entityOrClazz)
-	return pluralize(name)
+	return inflect.ToPlural(name)
 }
 
 func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
