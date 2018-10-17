@@ -47,11 +47,6 @@ var (
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
 	RavenServerVerbose = false
-
-	// if true, we use ./capturer executable to capture http trafic packets
-	// between client and server
-	// can be enabled by setting PCAP_CAPTURE env variable to "true"
-	PcapCapture = false
 )
 
 func SetStateFromEnv() {
@@ -93,11 +88,6 @@ func SetStateFromEnv() {
 	if !EnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
 		EnableFailingTests = true
 		fmt.Printf("Setting EnableFailingTests to true\n")
-	}
-
-	if !PcapCapture && isEnvVarTrue("PCAP_CAPTURE") {
-		PcapCapture = true
-		fmt.Printf("Setting PcapCapture to true\n")
 	}
 }
 

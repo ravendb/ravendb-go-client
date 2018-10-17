@@ -199,7 +199,7 @@ To implement that in Go, we first collect keys of a map, sort them and then iter
 ## controlling logging && debugging
 
 You can set the following envirnment variables to "true" to enable more logging:
-* `LOG_HTTP_REQUEST_SUMMARY` : on windows we cannot monitor HTTP trafic via packet capture. This helps a bit by logging summary of each HTTP requests
+* `LOG_HTTP_REQUEST_SUMMARY` : logs summary of http request
 * `LOG_FAILED_HTTP_REQUESTS` : when a request fails (either a network error or returns status >= 400), will print request and response, including their bodies
 * `LOG_RAVEN_SERVER` : will set logging level of RavenDB server to 'Information' and will print server output to stdout
 * `ENABLE_FLAKY_TESTS` : runs flaky tests (those that sometimes fail and sometimes succeed)

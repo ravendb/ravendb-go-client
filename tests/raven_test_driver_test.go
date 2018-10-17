@@ -16,7 +16,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
@@ -24,12 +23,10 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"testing"
 	"time"
 
 	"github.com/ravendb/ravendb-go-client"
-	"github.com/ravendb/ravendb-go-client/pkg/capture"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,18 +57,11 @@ func panicIf(cond bool, format string, args ...interface{}) {
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
-	pcapPath            string
-	pcapCapturerProcess *exec.Cmd
-
 	disposed bool
 }
 
 func NewRavenTestDriver() *RavenTestDriver {
 	return &RavenTestDriver{}
-}
-
-func NewRavenTestDriverWithPacketCapture(pcapPath string) *RavenTestDriver {
-	return &RavenTestDriver{pcapPath: pcapPath}
 }
 
 func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
@@ -214,47 +204,6 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 	// empty by design
 }
 
-func startPcapCaptureProcess(ipAddr string, pcapPath string) (*exec.Cmd, error) {
-	cmd := exec.Command("./capturer", "-addr", ipAddr, "-pcap", pcapPath, "-show-request-summary")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Start()
-	if err != nil {
-		return nil, err
-	}
-	return cmd, nil
-}
-
-func stopPcapCaptureProcess(cmd *exec.Cmd) {
-	if cmd == nil {
-		return
-	}
-	// capture process should exit cleanly when given SIGINT
-	// we wait up to 3 seconds for exit
-	cmd.Process.Signal(syscall.SIGINT)
-	exited := make(chan bool, 1)
-	go func() {
-		cmd.Wait()
-		exited <- true
-	}()
-
-	select {
-	case <-exited:
-		fmt.Printf("Pcap capture process exited cleanly\n")
-	case <-time.After(time.Second * 3):
-		fmt.Printf("Pcap capture process didn't exit within 3 seconds\n")
-		cmd.Process.Kill()
-	}
-}
-
-func (d *RavenTestDriver) killCaptureProcess() {
-	if d == nil {
-		return
-	}
-	stopPcapCaptureProcess(d.pcapCapturerProcess)
-	d.pcapCapturerProcess = nil
-}
-
 func (d *RavenTestDriver) runServer(secured bool) error {
 	var locator *RavenServerLocator
 	var err error
@@ -305,17 +254,6 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		return fmt.Errorf("Unable to start server")
 	}
 	fmt.Printf("Server started on: '%s'\n", url)
-
-	// capture packets if not https
-	if !secured && d.pcapPath != "" {
-		ipAddr := strings.TrimPrefix(url, "http://")
-		fmt.Printf("Capturing packets from interface '%s' to file '%s'\n", ipAddr, d.pcapPath)
-		capture.RequestsSummaryWriter = os.Stdout
-		d.pcapCapturerProcess, err = startPcapCaptureProcess(ipAddr, d.pcapPath)
-		if err != nil {
-			fmt.Printf("Failed to start pcap capturer process. Error: %s\n", err)
-		}
-	}
 
 	if ravendb.RavenServerVerbose {
 		go func() {
@@ -456,7 +394,6 @@ func (d *RavenTestDriver) Close() {
 
 func shutdownTests() {
 	killGlobalServerProcesses()
-	gRavenTestDriver.killCaptureProcess()
 }
 
 var dbTestsDisabledAlreadyPrinted = false
@@ -535,11 +472,6 @@ func getLogDir() string {
 	return dir
 }
 
-func pcapPathFromTestName(t *testing.T) string {
-	name := "trace_" + testNameToFileName(t.Name()) + "_go.pcap"
-	return filepath.Join(getLogDir(), name)
-}
-
 func httpLogPathFromTestName(t *testing.T) string {
 	name := "trace_" + testNameToFileName(t.Name()) + "_go.txt"
 	return filepath.Join(getLogDir(), name)
@@ -560,26 +492,7 @@ func deleteTestDriver() {
 	}
 	gRavenTestDriver.Close()
 	killGlobalServerProcesses()
-	gRavenTestDriver.killCaptureProcess()
 	gRavenTestDriver = nil
-}
-
-func maybeConvertPcapToTxt(pcapPath string) {
-	if pcapPath == "" {
-		return
-	}
-	exe := "./pcap_convert"
-	_, err := os.Stat(exe)
-	if err != nil {
-		// skip if we don't have pcap_convert
-		return
-	}
-	cmd := exec.Command(exe, pcapPath)
-	err = cmd.Run()
-	if err != nil {
-		s := strings.Join(cmd.Args, " ")
-		fmt.Printf("command '%s' failed with '%s'\n", s, err)
-	}
 }
 
 var (
@@ -698,7 +611,6 @@ func createTestDriver(t *testing.T) func() {
 	gRavenLogsDir = ravenLogsDirFromTestName(t)
 
 	fmt.Printf("\nStarting test %s\n", t.Name())
-	var pcapPath string
 
 	ravendb.LogsLock()
 	defer ravendb.LogsUnlock()
@@ -725,20 +637,13 @@ func createTestDriver(t *testing.T) func() {
 		}
 	}
 
-	if ravendb.PcapCapture {
-		pcapPath = pcapPathFromTestName(t)
-		panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
-		gRavenTestDriver = NewRavenTestDriverWithPacketCapture(pcapPath)
-	} else {
-		gRavenTestDriver = NewRavenTestDriver()
-	}
+	gRavenTestDriver = NewRavenTestDriver()
 
 	return func() {
 		if t.Failed() {
 			maybePrintFailedRequestsLog()
 		}
 		deleteTestDriver()
-		maybeConvertPcapToTxt(pcapPath)
 		ravendb.LogsLock()
 		defer ravendb.LogsUnlock()
 		w := ravendb.HTTPLoggerWriter
