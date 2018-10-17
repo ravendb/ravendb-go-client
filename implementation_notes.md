@@ -178,7 +178,7 @@ Go doesn't allow comparing functions so for the purpose of removing them, we nee
 
 I chose the simplest solution: they are identified by the index in the array of callbacks.
 
-Function that adds returns the index.
+Function that adds a callback returns the index.
 
 To make the index stable, we never shrink the arrays. Removing callback from the array is `a[idx] = nil`.
 

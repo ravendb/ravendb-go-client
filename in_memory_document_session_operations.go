@@ -115,40 +115,40 @@ func (s *InMemoryDocumentSessionOperations) GetDeferredCommandsCount() int {
 	return len(s.deferredCommands)
 }
 
-func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
-
-}
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
-	panic("NYI")
-	//this.onBeforeStore.remove(handler);
+	return len(s.onBeforeStore) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handlerIdx int) {
+	s.onBeforeStore[handlerIdx] = nil
+}
+
+func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) int {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
+	return len(s.onAfterSaveChanges) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
-	panic("NYI")
-	//this.onAfterSaveChanges.remove(handler);
+func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handlerIdx int) {
+	s.onAfterSaveChanges[handlerIdx] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) int {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
+	return len(s.onBeforeDelete) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
-	panic("NYI")
-	//this.onBeforeDelete.remove(handler);
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handlerIdx int) {
+	s.onBeforeDelete[handlerIdx] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) int {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
+	return len(s.onBeforeQuery) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
-	panic("NYI")
-	//this.onBeforeQuery.remove(handler);
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerIdx int) {
+	s.onBeforeQuery[handlerIdx] = nil
 }
 
 func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
@@ -711,7 +711,9 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 
 			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.entity)
 			for _, handler := range s.onBeforeDelete {
-				handler(s, beforeDeleteEventArgs)
+				if handler != nil {
+					handler(s, beforeDeleteEventArgs)
+				}
 			}
 
 			cmdData := NewDeleteCommandData(documentInfo.id, changeVector)
@@ -751,7 +753,9 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 		if len(s.onBeforeStore) > 0 {
 			beforeStoreEventArgs := NewBeforeStoreEventArgs(s, entityValue.id, entityKey)
 			for _, handler := range s.onBeforeStore {
-				handler(s, beforeStoreEventArgs)
+				if handler != nil {
+					handler(s, beforeStoreEventArgs)
+				}
 			}
 			if beforeStoreEventArgs.isMetadataAccessed() {
 				s.UpdateMetadataModifications(entityValue)
@@ -1072,13 +1076,17 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 
 func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
 	for _, handler := range s.onAfterSaveChanges {
-		handler(s, afterSaveChangesEventArgs)
+		if handler != nil {
+			handler(s, afterSaveChangesEventArgs)
+		}
 	}
 }
 
 func (s *InMemoryDocumentSessionOperations) OnBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
 	for _, handler := range s.onBeforeQuery {
-		handler(s, beforeQueryEventArgs)
+		if handler != nil {
+			handler(s, beforeQueryEventArgs)
+		}
 	}
 }
 

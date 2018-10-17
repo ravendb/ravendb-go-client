@@ -72,63 +72,74 @@ func (s *DocumentStore) ensureNotClosed() {
 	// TODO: implement me
 }
 
-func (s *DocumentStore) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
+func (s *DocumentStore) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
+	return len(s.onBeforeStore) - 1
 
 }
-func (s *DocumentStore) RemoveBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) {
-	panic("NYI")
-	//this.onBeforeStore.remove(handler);
+func (s *DocumentStore) RemoveBeforeStoreListener(handlerIdx int) {
+	s.onBeforeStore[handlerIdx] = nil
 }
 
-func (s *DocumentStore) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
+func (s *DocumentStore) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) int {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
+	return len(s.onAfterSaveChanges) - 1
 }
 
-func (s *DocumentStore) RemoveAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) {
-	panic("NYI")
-	//this.onAfterSaveChanges.remove(handler);
+func (s *DocumentStore) RemoveAfterSaveChangesListener(handlerIdx int) {
+	s.onAfterSaveChanges[handlerIdx] = nil
 }
 
-func (s *DocumentStore) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
+func (s *DocumentStore) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) int {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
+	return len(s.onBeforeDelete) - 1
 }
 
-func (s *DocumentStore) RemoveBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) {
-	panic("NYI")
-	//this.onBeforeDelete.remove(handler);
+func (s *DocumentStore) RemoveBeforeDeleteListener(handlerIdx int) {
+	s.onBeforeDelete[handlerIdx] = nil
 }
 
-func (s *DocumentStore) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
+func (s *DocumentStore) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) int {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
+	return len(s.onBeforeQuery) - 1
 }
 
-func (s *DocumentStore) RemoveBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) {
-	panic("NYI")
-	//this.onBeforeQuery.remove(handler);
+func (s *DocumentStore) RemoveBeforeQueryListener(handlerIdx int) {
+	s.onBeforeQuery[handlerIdx] = nil
 }
 
 func (s *DocumentStore) RegisterEvents(session *InMemoryDocumentSessionOperations) {
+	// TODO: unregister those events?
 	for _, handler := range s.onBeforeStore {
-		session.AddBeforeStoreListener(handler)
+		if handler != nil {
+			session.AddBeforeStoreListener(handler)
+		}
 	}
 
 	for _, handler := range s.onAfterSaveChanges {
-		session.AddAfterSaveChangesListener(handler)
+		if handler != nil {
+			session.AddAfterSaveChangesListener(handler)
+		}
 	}
 
 	for _, handler := range s.onBeforeDelete {
-		session.AddBeforeDeleteListener(handler)
+		if handler != nil {
+			session.AddBeforeDeleteListener(handler)
+		}
 	}
 
 	for _, handler := range s.onBeforeQuery {
-		session.AddBeforeQueryListener(handler)
+		if handler != nil {
+			session.AddBeforeQueryListener(handler)
+		}
 	}
 }
 
 func (s *DocumentStore) afterSessionCreated(session *InMemoryDocumentSessionOperations) {
 	for _, handler := range s.onSessionCreated {
-		handler(s, NewSessionCreatedEventArgs(session))
+		if handler != nil {
+			handler(s, NewSessionCreatedEventArgs(session))
+		}
 	}
 }
 
@@ -161,8 +172,6 @@ func (s *DocumentStore) AggressivelyCache() {
 func (s *DocumentStore) AggressivelyCacheWithDatabase(database string) {
 	s.AggressivelyCacheForDatabase(time.Hour*24, database)
 }
-
-//    protected void registerEvents(InMemoryDocumentSessionOperations session) {
 
 // NewDocumentStore creates a DocumentStore
 func NewDocumentStore() *DocumentStore {
