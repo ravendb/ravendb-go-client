@@ -1023,7 +1023,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 }
 
 func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
-	document := cmd.Result.GetResults()[0]
+	document := cmd.Result.Results[0]
 	if document == nil {
 		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.id)
 	}

@@ -86,9 +86,9 @@ func basicDocuments_get(t *testing.T) {
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	assert.NoError(t, err)
 	docs := getDocumentsCommand.Result
-	assert.Equal(t, len(docs.GetResults()), 2)
-	doc1 := docs.GetResults()[0]
-	doc2 := docs.GetResults()[1]
+	assert.Equal(t, len(docs.Results), 2)
+	doc1 := docs.Results[0]
+	doc2 := docs.Results[1]
 
 	assert.NotNil(t, doc1)
 	doc1Properties := ravendb.FieldNames(doc1)
@@ -115,9 +115,9 @@ func basicDocuments_get(t *testing.T) {
 	getDocumentsCommand = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	docs = getDocumentsCommand.Result
-	assert.Equal(t, len(docs.GetResults()), 2)
-	doc1 = docs.GetResults()[0]
-	doc2 = docs.GetResults()[1]
+	assert.Equal(t, len(docs.Results), 2)
+	doc1 = docs.Results[0]
+	doc2 = docs.Results[1]
 
 	assert.NotNil(t, doc1)
 	doc1Properties = ravendb.FieldNames(doc1)

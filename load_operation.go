@@ -164,9 +164,9 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		return
 	}
 
-	o._session.RegisterIncludes(result.GetIncludes())
+	o._session.RegisterIncludes(result.Includes)
 
-	results := result.GetResults()
+	results := result.Results
 	for _, document := range results {
 		// TODO: Java also does document.isNull()
 		if document == nil {
@@ -176,5 +176,5 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		o._session.documentsById.add(newDocumentInfo)
 	}
 
-	o._session.RegisterMissingIncludes(result.GetResults(), result.GetIncludes(), o._includes)
+	o._session.RegisterMissingIncludes(result.Results, result.Includes, o._includes)
 }
