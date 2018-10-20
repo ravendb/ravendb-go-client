@@ -519,17 +519,17 @@ func cloneMapStringObject(m map[string]Object) map[string]Object {
 
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
-// TODO: needs clazz
+// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, index.GetIndexName(), "", index.IsMapReduce())
 }
 
-// TODO: needs clazz
+// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
-// TODO: this needs clazz
+// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 
@@ -540,11 +540,12 @@ func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
 	return NewRawDocumentQuery(s.InMemoryDocumentSessionOperations, query)
 }
 
-// TODO: needs clazz
+// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
+// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
 	if stringIsNotEmpty(collectionOrIndexName.getCollection()) {
 		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.getCollection(), false)
@@ -553,17 +554,72 @@ func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrInde
 	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.getIndexName(), "", false)
 }
 
+// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryInIndexOld(clazz, index)
 }
 
-// public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query) {
-// public <T> CloseableIterator<StreamResult<T>> stream(IDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {
-// public <T> CloseableIterator<StreamResult<T>> stream(IRawDocumentQuery<T> query) {
-// public <T> CloseableIterator<StreamResult<T>> stream(IRawDocumentQuery<T> query, Reference<StreamQueryStatistics> streamQueryStats) {
-// private <T> CloseableIterator<StreamResult<T>> yieldResults(AbstractDocumentQuery query, CloseableIterator<ObjectNode> enumerator) {
-// public <T> void streamInto(IRawDocumentQuery<T> query, OutputStream output) {
-// public <T> void streamInto(IDocumentQuery<T> query, OutputStream output) {
+func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
+	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
+	q := query.GetIndexQuery()
+	command := streamOperation.createRequestForIndexQuery(q)
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+	result, err := streamOperation.setResult(command.Result)
+	if err != nil {
+		return nil, err
+	}
+	onNextItem := func(res map[string]interface{}) {
+		query.InvokeAfterStreamExecuted(res)
+	}
+	return NewStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
+}
+
+func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
+	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
+	q := query.GetIndexQuery()
+	command := streamOperation.createRequestForIndexQuery(q)
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+	result, err := streamOperation.setResult(command.Result)
+	if err != nil {
+		return nil, err
+	}
+	onNextItem := func(res map[string]interface{}) {
+		query.InvokeAfterStreamExecuted(res)
+	}
+	return NewStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
+}
+
+func (s *DocumentSession) StreamRawQueryInto(query *IRawDocumentQuery, output io.Writer) error {
+	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
+	q := query.GetIndexQuery()
+	command := streamOperation.createRequestForIndexQuery(q)
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return err
+	}
+	stream := command.Result.Stream
+	_, err = io.Copy(output, stream)
+	return err
+}
+
+func (s *DocumentSession) StreamQueryInto(query *IDocumentQuery, output io.Writer) error {
+	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
+	q := query.GetIndexQuery()
+	command := streamOperation.createRequestForIndexQuery(q)
+	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	if err != nil {
+		return err
+	}
+	stream := command.Result.Stream
+	_, err = io.Copy(output, stream)
+	return err
+}
 
 func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode, fieldsToFetch *fieldsToFetchToken) (*StreamResult, error) {
 	//fmt.Printf("createStreamResult: document: %#v\n", document)

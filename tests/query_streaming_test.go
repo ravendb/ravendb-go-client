@@ -1,7 +1,13 @@
 package tests
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"reflect"
 	"testing"
+	"time"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
@@ -28,25 +34,28 @@ func queryStreaming_canStreamQueryResults(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	/*
-	   int count = 0;
-
-	   try (IDocumentSession session = store.openSession()) {
-	       IDocumentQuery<User> query = session.query(User.class, Users_ByName2.class);
-	       try (CloseableIterator<StreamResult<User>> stream = session.advanced().stream(query)) {
-	           while (stream.hasNext()) {
-	               StreamResult<User> user = stream.next();
-	               count++;
-
-	               assertThat(user)
-	                       .isNotNull();
-	           }
-	       }
-	   }
-
-	   assertThat(count)
-	           .isEqualTo(200);
-	*/
+	count := 0
+	{
+		session := openSessionMust(t, store)
+		query := session.QueryInIndexOld(reflect.TypeOf(&User{}), index)
+		stream, err := session.Advanced().StreamQuery(query, nil)
+		assert.NoError(t, err)
+		for {
+			var u *User
+			_, err = stream.Next(&u)
+			if err != nil {
+				break
+			}
+			count++
+			assert.NotNil(t, u)
+		}
+		if err == io.EOF {
+			err = nil
+		}
+		stream.Close()
+		assert.NoError(t, err)
+		assert.Equal(t, 200, count)
+	}
 }
 
 func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T) {
@@ -70,29 +79,31 @@ func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	/*
-	   try (IDocumentSession session = store.openSession()) {
-	       IDocumentQuery<User> query = session.query(User.class, Users_ByName2.class);
+	{
+		session := openSessionMust(t, store)
+		query := session.QueryInIndexOld(reflect.TypeOf(&User{}), index)
+		statsRef := &ravendb.StreamQueryStatistics{}
 
-	       Reference<StreamQueryStatistics> statsRef = new Reference<>();
-	       try (CloseableIterator<StreamResult<User>> reader = session.advanced().stream(query, statsRef)) {
-	           while (reader.hasNext()) {
-	               StreamResult<User> user = reader.next();
-	               assertThat(user)
-	                       .isNotNull();
-	           }
+		stream, err := session.Advanced().StreamQuery(query, statsRef)
+		assert.NoError(t, err)
+		for {
+			var u *User
+			_, err = stream.Next(&u)
+			if err != nil {
+				break
+			}
+			assert.NotNil(t, u)
+		}
+		if err == io.EOF {
+			err = nil
+		}
+		stream.Close()
+		assert.NoError(t, err)
 
-	           assertThat(statsRef.value.getIndexName())
-	                   .isEqualTo("Users/ByName");
-
-	           assertThat(statsRef.value.getTotalResults())
-	                   .isEqualTo(100);
-
-	           assertThat(statsRef.value.getIndexTimestamp())
-	                   .isInSameYearAs(new Date());
-	       }
-	   }
-	*/
+		assert.Equal(t, statsRef.IndexName, index.GetIndexName())
+		assert.Equal(t, statsRef.TotalResults, 100)
+		assert.Equal(t, statsRef.IndexTimestamp.Year(), time.Now().Year())
+	}
 }
 
 func queryStreaming_canStreamRawQueryResults(t *testing.T) {
@@ -116,25 +127,29 @@ func queryStreaming_canStreamRawQueryResults(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	/*
-	   int count = 0;
-
-	   try (IDocumentSession session = store.openSession()) {
-	       IRawDocumentQuery<User> query = session.advanced().rawQuery(User.class, "from index '" + new Users_ByName2().getIndexName() + "'");
-	       try (CloseableIterator<StreamResult<User>> stream = session.advanced().stream(query)) {
-	           while (stream.hasNext()) {
-	               StreamResult<User> user = stream.next();
-	               count++;
-
-	               assertThat(user)
-	                       .isNotNull();
-	           }
-	       }
-	   }
-
-	   assertThat(count)
-	           .isEqualTo(200);
-	*/
+	count := 0
+	{
+		session := openSessionMust(t, store)
+		qs := fmt.Sprintf(`from index '%s'`, index.GetIndexName())
+		query := session.Advanced().RawQuery(qs)
+		stream, err := session.Advanced().StreamRawQuery(query, nil)
+		assert.NoError(t, err)
+		for {
+			var u *User
+			_, err = stream.Next(&u)
+			if err != nil {
+				break
+			}
+			count++
+			assert.NotNil(t, u)
+		}
+		if err == io.EOF {
+			err = nil
+		}
+		stream.Close()
+		assert.NoError(t, err)
+		assert.Equal(t, 200, count)
+	}
 }
 
 func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T) {
@@ -158,29 +173,31 @@ func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	/*
-	   try (IDocumentSession session = store.openSession()) {
-	       IRawDocumentQuery<User> query = session.advanced().rawQuery(User.class, "from index '" + new Users_ByName2().getIndexName() + "'");
+	{
+		session := openSessionMust(t, store)
+		statsRef := &ravendb.StreamQueryStatistics{}
+		qs := fmt.Sprintf(`from index '%s'`, index.GetIndexName())
+		query := session.Advanced().RawQuery(qs)
+		stream, err := session.Advanced().StreamRawQuery(query, statsRef)
+		assert.NoError(t, err)
+		for {
+			var u *User
+			_, err = stream.Next(&u)
+			if err != nil {
+				break
+			}
+			assert.NotNil(t, u)
+		}
+		if err == io.EOF {
+			err = nil
+		}
+		stream.Close()
+		assert.NoError(t, err)
 
-	       Reference<StreamQueryStatistics> statsRef = new Reference<>();
-	       try (CloseableIterator<StreamResult<User>> reader = session.advanced().stream(query, statsRef)) {
-	           while (reader.hasNext()) {
-	               StreamResult<User> user = reader.next();
-	               assertThat(user)
-	                       .isNotNull();
-	           }
-
-	           assertThat(statsRef.value.getIndexName())
-	                   .isEqualTo("Users/ByName");
-
-	           assertThat(statsRef.value.getTotalResults())
-	                   .isEqualTo(100);
-
-	           assertThat(statsRef.value.getIndexTimestamp())
-	                   .isInSameYearAs(new Date());
-	       }
-	   }
-	*/
+		assert.Equal(t, statsRef.IndexName, index.GetIndexName())
+		assert.Equal(t, statsRef.TotalResults, 100)
+		assert.Equal(t, statsRef.IndexTimestamp.Year(), time.Now().Year())
+	}
 }
 
 func queryStreaming_canStreamRawQueryIntoStream(t *testing.T) {
@@ -202,20 +219,20 @@ func queryStreaming_canStreamRawQueryIntoStream(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	/*
-	   try (IDocumentSession session = store.openSession()) {
-	       IRawDocumentQuery<User> query = session.advanced().rawQuery(User.class, "from index '" + new Users_ByName2().getIndexName() + "'");
-	       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	       session.advanced().streamInto(query, baos);
+	{
+		var buf bytes.Buffer
+		session := openSessionMust(t, store)
+		qs := fmt.Sprintf(`from index '%s'`, index.GetIndexName())
+		query := session.Advanced().RawQuery(qs)
+		err = session.Advanced().StreamRawQueryInto(query, &buf)
+		assert.NoError(t, err)
 
-	       JsonNode queryResult = JsonExtensions.getDefaultMapper().readTree(baos.toByteArray());
-	       assertThat(queryResult)
-	               .isInstanceOf(ObjectNode.class);
-
-	       assertThat(queryResult.get("Results").get(0))
-	               .isNotNull();
-	   }
-	*/
+		var m map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &m)
+		assert.NoError(t, err)
+		_, ok := m["Results"]
+		assert.True(t, ok)
+	}
 }
 
 func queryStreaming_canStreamQueryIntoStream(t *testing.T) {
@@ -237,20 +254,19 @@ func queryStreaming_canStreamQueryIntoStream(t *testing.T) {
 	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	/*
-	   try (IDocumentSession session = store.openSession()) {
-	       IDocumentQuery<User> query = session.query(User.class, Users_ByName2.class);
-	       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	       session.advanced().streamInto(query, baos);
+	{
+		var buf bytes.Buffer
+		session := openSessionMust(t, store)
+		query := session.QueryInIndexOld(reflect.TypeOf(&User{}), index)
+		err = session.Advanced().StreamQueryInto(query, &buf)
+		assert.NoError(t, err)
 
-	       JsonNode queryResult = JsonExtensions.getDefaultMapper().readTree(baos.toByteArray());
-	       assertThat(queryResult)
-	               .isInstanceOf(ObjectNode.class);
-
-	       assertThat(queryResult.get("Results").get(0))
-	               .isNotNull();
-	   }
-	*/
+		var m map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &m)
+		assert.NoError(t, err)
+		_, ok := m["Results"]
+		assert.True(t, ok)
+	}
 }
 
 // avoid conflicts with NewUsers_ByName in indexes_from_client_test.go

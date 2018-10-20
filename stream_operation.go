@@ -95,7 +95,10 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 	}
 
 	if o._isQueryStream {
-		err = handleStreamQueryStats(dec, &o._statistics)
+		if o._statistics == nil {
+			o._statistics = &StreamQueryStatistics{}
+		}
+		err = handleStreamQueryStats(dec, o._statistics)
 		if err != nil {
 			return nil, err
 		}
@@ -183,12 +186,7 @@ func getNextObjectInt64Value(dec *json.Decoder, name string) (int64, error) {
 	return 0, fmt.Errorf("Expected number token, got %T %s", tok, tok)
 }
 
-func handleStreamQueryStats(dec *json.Decoder, statsPtr **StreamQueryStatistics) error {
-	stats := *statsPtr
-	if stats == nil {
-		stats = &StreamQueryStatistics{}
-		*statsPtr = stats
-	}
+func handleStreamQueryStats(dec *json.Decoder, stats *StreamQueryStatistics) error {
 	var err error
 	var n int64
 	stats.ResultEtag, err = getNextObjectInt64Value(dec, "ResultEtag")
