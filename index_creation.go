@@ -26,10 +26,10 @@ func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *ID
 func IndexCreation_createIndexesToAdd(indexCreationTasks []*AbstractIndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
 	var res []*IndexDefinition
 	for _, x := range indexCreationTasks {
-		x.SetConventions(conventions)
+		x.Conventions = conventions
 		definition := x.CreateIndexDefinition()
 		definition.Name = x.GetIndexName()
-		pri := x.GetPriority()
+		pri := x.Priority
 		if pri == "" {
 			pri = IndexPriority_NORMAL
 		}

@@ -81,30 +81,6 @@ func (t *AbstractIndexCreationTask) GetIndexName() string {
 	return strings.Replace(t.IndexName, "_", "/", -1)
 }
 
-func (t *AbstractIndexCreationTask) GetConventions() *DocumentConventions {
-	return t.Conventions
-}
-
-func (t *AbstractIndexCreationTask) SetConventions(conventions *DocumentConventions) {
-	t.Conventions = conventions
-}
-
-func (t *AbstractIndexCreationTask) GetPriority() IndexPriority {
-	return t.Priority
-}
-
-func (t *AbstractIndexCreationTask) SetPriority(priority IndexPriority) {
-	t.Priority = priority
-}
-
-func (t *AbstractIndexCreationTask) GetLockMode() IndexLockMode {
-	return t.LockMode
-}
-
-func (t *AbstractIndexCreationTask) SetLockMode(lockMode IndexLockMode) {
-	t.LockMode = lockMode
-}
-
 func (t *AbstractIndexCreationTask) Execute(store *IDocumentStore) error {
 	return store.ExecuteIndex(t)
 }
@@ -114,17 +90,17 @@ func (t *AbstractIndexCreationTask) Execute2(store *IDocumentStore, conventions 
 }
 
 func (t *AbstractIndexCreationTask) PutIndex(store *IDocumentStore, conventions *DocumentConventions, database string) error {
-	oldConventions := t.GetConventions()
-	defer t.SetConventions(oldConventions)
+	oldConventions := t.Conventions
+	defer func() { t.Conventions = oldConventions }()
 
 	conv := conventions
 	if conv == nil {
-		conv = t.GetConventions()
+		conv = t.Conventions
 	}
 	if conv == nil {
 		conv = store.GetConventions()
 	}
-	t.SetConventions(conv)
+	t.Conventions = conv
 
 	indexDefinition := t.CreateIndexDefinition()
 	indexDefinition.Name = t.GetIndexName()
