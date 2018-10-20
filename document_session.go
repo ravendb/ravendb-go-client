@@ -119,7 +119,7 @@ func (s *DocumentSession) Refresh(entity Object) error {
 
 // TODO:    protected string generateId(Object entity) {
 
-func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
+func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInformation, error) {
 	var requests []*GetRequest
 	var pendingTmp []ILazyOperation
 	for _, op := range s.pendingLazyOperations {
@@ -167,8 +167,8 @@ func (s *InMemoryDocumentSessionOperations) executeAllPendingLazyOperations() (*
 	return responseTimeDuration, nil
 }
 
-func (s *InMemoryDocumentSessionOperations) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
-	multiGetOperation := NewMultiGetOperation(s)
+func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
+	multiGetOperation := NewMultiGetOperation(s.InMemoryDocumentSessionOperations)
 	multiGetCommand := multiGetOperation.createRequest(requests)
 
 	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(multiGetCommand, s.sessionInfo)
@@ -209,7 +209,7 @@ func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOp
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
 	fn := func() interface{} {
-		s.executeAllPendingLazyOperations()
+		s.ExecuteAllPendingLazyOperations()
 		return s.getOperationResult(clazz, operation.getResult())
 	}
 	lazyValue := NewLazy(fn)
@@ -227,7 +227,7 @@ func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy 
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
 	fn := func() interface{} {
-		s.executeAllPendingLazyOperations()
+		s.ExecuteAllPendingLazyOperations()
 		return operation.getQueryResult().TotalResults
 	}
 	return NewLazy(fn)
