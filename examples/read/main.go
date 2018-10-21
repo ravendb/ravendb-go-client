@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/ravendb/ravendb-go-client"
 )
 
@@ -88,11 +89,9 @@ func main() {
 	if false {
 		session, err := store.OpenSession()
 		panicIfErr(err)
-		session.Include("employee")
 		var o *Order
-		err = session.Load(&o, "orders/827-A")
+		err = session.Include("employee").Load(&o, "orders/827-A")
 		panicIfErr(err)
 		fmt.Printf("order: %#v\n", o)
 	}
-
 }
