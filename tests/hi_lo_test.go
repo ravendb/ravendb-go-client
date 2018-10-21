@@ -83,7 +83,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	newStore.SetUrls(store.GetUrls())
 	newStore.SetDatabase(store.GetDatabase())
 
-	_, err = newStore.Initialize()
+	err = newStore.Initialize()
 	assert.NoError(t, err)
 
 	{
@@ -114,7 +114,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	newStore.SetUrls(store.GetUrls())
 	newStore.SetDatabase(store.GetDatabase())
 
-	_, err = newStore.Initialize()
+	err = newStore.Initialize()
 	assert.NoError(t, err)
 
 	{

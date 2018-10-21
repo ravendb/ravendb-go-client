@@ -166,7 +166,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	d.hookLeakedConnectionCheck(store)
 
 	d.setupDatabase(store)
-	_, err = store.Initialize()
+	err = store.Initialize()
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	} else {
 		globalServer = store
 	}
-	_, err = store.Initialize()
+	err = store.Initialize()
 	return err
 }
 
