@@ -330,13 +330,13 @@ func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *Request
 
 // Initialize initializes document Store,
 // Must be called before executing any operation.
-func (s *DocumentStore) Initialize() (*DocumentStore, error) {
+func (s *DocumentStore) Initialize() error {
 	if s.initialized {
-		return s, nil
+		return nil
 	}
 	err := s.assertValidConfiguration()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	conventions := s.conventions
@@ -349,7 +349,7 @@ func (s *DocumentStore) Initialize() (*DocumentStore, error) {
 		conventions.SetDocumentIdGenerator(genID)
 	}
 	s.initialized = true
-	return s, nil
+	return nil
 }
 
 func (s *DocumentStore) assertValidConfiguration() error {
