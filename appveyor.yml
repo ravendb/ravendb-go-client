@@ -22,6 +22,11 @@ environment:
   LOG_FAILED_HTTP_REQUESTS: true
   LOG_FAILED_HTTP_REQUESTS_DELAYED: true
 
+artifacts:
+  - path: logs
+    name: test logs
+    type: zip
+
 clone_folder: c:\gopath\ravendb-go-client
 
 install:
