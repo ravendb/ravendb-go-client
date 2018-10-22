@@ -103,10 +103,12 @@ func basicDocuments_get(t *testing.T) {
 	{
 		session := openSessionMust(t, store)
 		etojs := session.GetEntityToJson()
-		user1I := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/1", doc1)
+		user1I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/1", doc1)
+		assert.NoError(t, err)
 		user1 := user1I.(*User)
 
-		user2I := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/2", doc2)
+		user2I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/2", doc2)
+		assert.NoError(t, err)
 		user2 := user2I.(*User)
 		assert.Equal(t, *user1.Name, "Fitzchak")
 		assert.Equal(t, *user2.Name, "Arek")

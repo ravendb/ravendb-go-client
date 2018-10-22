@@ -34,9 +34,9 @@ func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {
 }
 
 // Note: in Java it's getRevision
-func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document ObjectNode) interface{} {
+func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document ObjectNode) (interface{}, error) {
 	if document == nil {
-		return Defaults_defaultValue(clazz)
+		return Defaults_defaultValue(clazz), nil
 	}
 
 	var metadata ObjectNode
@@ -50,7 +50,10 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	if metadata != nil {
 		changeVector = jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	}
-	entity := o._session.GetEntityToJson().ConvertToEntity(clazz, id, document)
+	entity, err := o._session.GetEntityToJson().ConvertToEntity(clazz, id, document)
+	if err != nil {
+		return nil, err
+	}
 	documentInfo := NewDocumentInfo()
 	documentInfo.id = id
 	documentInfo.changeVector = changeVector
@@ -58,18 +61,22 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	documentInfo.metadata = metadata
 	documentInfo.entity = entity
 	o._session.documentsByEntity[entity] = documentInfo
-	return entity
+	return entity, nil
 }
 
-func (o *GetRevisionOperation) GetRevisionsFor(clazz reflect.Type) []interface{} {
+func (o *GetRevisionOperation) GetRevisionsFor(clazz reflect.Type) ([]interface{}, error) {
 	resultsCount := len(o._result.getResults())
 	results := make([]interface{}, resultsCount, resultsCount)
+	var err error
 	for i := 0; i < resultsCount; i++ {
 		document := o._result.getResults()[i]
-		results[i] = o.GetRevisionWithDocument(clazz, document)
+		results[i], err = o.GetRevisionWithDocument(clazz, document)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return results
+	return results, nil
 }
 
 func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary {
@@ -87,16 +94,16 @@ func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary
 	return results
 }
 
-func (o *GetRevisionOperation) GetRevision(clazz reflect.Type) interface{} {
+func (o *GetRevisionOperation) GetRevision(clazz reflect.Type) (interface{}, error) {
 	if o._result == nil {
-		return Defaults_defaultValue(clazz)
+		return Defaults_defaultValue(clazz), nil
 	}
 
 	document := o._result.getResults()[0]
 	return o.GetRevisionWithDocument(clazz, document)
 }
 
-func (o *GetRevisionOperation) GetRevisions(clazz reflect.Type) map[string]interface{} {
+func (o *GetRevisionOperation) GetRevisions(clazz reflect.Type) (map[string]interface{}, error) {
 	// Maybe: Java uses case-insensitive keys, but keys are change vectors
 	// so that shouldn't matter
 	results := map[string]interface{}{}
@@ -108,9 +115,12 @@ func (o *GetRevisionOperation) GetRevisions(clazz reflect.Type) map[string]inter
 		}
 
 		v := o._result.getResults()[i]
-		rev := o.GetRevisionWithDocument(clazz, v)
+		rev, err := o.GetRevisionWithDocument(clazz, v)
+		if err != nil {
+			return nil, err
+		}
 		results[changeVector] = rev
 	}
 
-	return results
+	return results, nil
 }

@@ -381,8 +381,9 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 // TrackEntity tracks entity
 func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
+	var err error
 	if id == "" {
-		return s.DeserializeFromTransformer(entityType, "", document), nil
+		return s.DeserializeFromTransformer(entityType, "", document)
 	}
 
 	docInfo := s.documentsByEntity[id]
@@ -391,7 +392,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			docInfo.entity = s.entityToJson.ConvertToEntity(entityType, id, document)
+			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if !noTracking {
@@ -404,7 +408,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	docInfo = s.includedDocumentsById[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
-			docInfo.entity = s.entityToJson.ConvertToEntity(entityType, id, document)
+			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if !noTracking {
@@ -416,7 +423,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		return docInfo.entity, nil
 	}
 
-	entity := s.entityToJson.ConvertToEntity(entityType, id, document)
+	entity, err := s.entityToJson.ConvertToEntity(entityType, id, document)
+	if err != nil {
+		return nil, err
+	}
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	if changeVector == nil {
@@ -977,7 +987,7 @@ func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer2(result i
 	s.entityToJson.ConvertToEntity2(result, id, document)
 }
 
-func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) interface{} {
+func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) (interface{}, error) {
 	return s.entityToJson.ConvertToEntity(clazz, id, document)
 }
 
@@ -1037,9 +1047,13 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 		documentInfo.changeVector = changeVector
 	}
 	documentInfo.document = document
-	documentInfo.entity = s.entityToJson.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
+	var err error
+	documentInfo.entity, err = s.entityToJson.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
+	if err != nil {
+		return err
+	}
 
-	err := BeanUtils_copyProperties(entity, documentInfo.entity)
+	err = BeanUtils_copyProperties(entity, documentInfo.entity)
 	if err != nil {
 		return NewRuntimeException("Unable to refresh entity: %s", err)
 	}

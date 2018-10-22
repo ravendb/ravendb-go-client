@@ -75,14 +75,17 @@ func (e *EntityToJson) ConvertToEntity2(result interface{}, id string, document 
 }
 
 // Converts a json object to an entity.
-func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) Object {
+func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) (Object, error) {
 	if isTypeObjectNode(entityType) {
-		return document
+		return document, nil
 	}
 	// TODO: deal with default values
-	entity, _ := MakeStructFromJSONMap(entityType, document)
+	entity, err := MakeStructFromJSONMap(entityType, document)
+	if err != nil {
+		return nil, err
+	}
 	TrySetIDOnEntity(entity, id)
-	return entity
+	return entity, nil
 }
 
 func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo) {

@@ -86,7 +86,7 @@ func main() {
 	}
 
 	// TODO: not supported yet
-	if false {
+	if true {
 		session, err := store.OpenSession()
 		panicIfErr(err)
 		var o *Order

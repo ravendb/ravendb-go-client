@@ -32,7 +32,7 @@ func (r *DocumentSessionRevisions) GetForPaged(clazz reflect.Type, id string, st
 		return nil, err
 	}
 	operation.setResult(command.Result)
-	return operation.GetRevisionsFor(clazz), nil
+	return operation.GetRevisionsFor(clazz)
 }
 
 func (r *DocumentSessionRevisions) GetMetadataFor(id string) ([]*MetadataAsDictionary, error) {
@@ -64,7 +64,7 @@ func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) 
 		return nil, err
 	}
 	operation.setResult(command.Result)
-	return operation.GetRevision(clazz), nil
+	return operation.GetRevision(clazz)
 }
 
 /*

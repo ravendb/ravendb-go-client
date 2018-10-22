@@ -33,9 +33,10 @@ func (l *MultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) er
 func (l *MultiLoaderWithInclude) Load(result interface{}, id string) error {
 	// create a map[string]typeof(result)
 	rt := reflect.TypeOf(result)
-	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Struct {
+	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Ptr && rt.Elem().Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("type of result should be pointer-to-struct but is %T", result)
 	}
+	rt = rt.Elem() // it's now ptr-to-struct
 
 	mapType := reflect.MapOf(stringType, rt)
 	m := reflect.MakeMap(mapType)
