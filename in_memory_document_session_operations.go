@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -1060,11 +1061,28 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result Object) interface{} {
+func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result Object) (interface{}, error) {
 	if result == nil {
-		return Defaults_defaultValue(clazz)
+		return Defaults_defaultValue(clazz), nil
 	}
 
+	if clazz.Kind() == reflect.Slice {
+		res := reflect.MakeSlice(clazz, 0, 0)
+		arr, ok := result.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("result is '%T' and not []interface{}", result)
+		}
+		fmt.Printf("len(arr) = %d\n", len(arr))
+		for _, el := range arr {
+			// TODO: don't panic if el type != clazz.Elem() type
+			v := reflect.ValueOf(el)
+			res = reflect.Append(res, v)
+		}
+		return res.Interface(), nil
+	}
+
+	resultType := reflect.ValueOf(result).Type()
+	fmt.Printf("clazzType: %s, resultType: %s\n", clazz.String(), resultType)
 	panic("NYI")
 
 	/*
@@ -1085,7 +1103,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 
 		throw new IllegalStateException("Unable to cast " + result.getClass().getSimpleName() + " to " + clazz.getSimpleName());
 	*/
-	return nil
+	return nil, errors.New("NYI")
 }
 
 func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {

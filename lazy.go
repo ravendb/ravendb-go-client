@@ -3,30 +3,31 @@ package ravendb
 import "sync"
 
 type Lazy struct {
-	valueFactory func() interface{}
+	valueFactory func() (interface{}, error)
 	valueCreated bool
 	value        interface{}
 	mu           sync.Mutex
 }
 
-func NewLazy(valueFactory func() interface{}) *Lazy {
+func NewLazy(valueFactory func() (interface{}, error)) *Lazy {
 	return &Lazy{
 		valueFactory: valueFactory,
 	}
 }
 
-func (l *Lazy) isValueCreated() bool {
+func (l *Lazy) IsValueCreated() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.valueCreated
 }
 
-func (l *Lazy) getValue() interface{} {
+func (l *Lazy) GetValue() (interface{}, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	var err error
 	if !l.valueCreated {
-		l.value = l.valueFactory()
+		l.value, err = l.valueFactory()
 		l.valueCreated = true
 	}
-	return l.value
+	return l.value, err
 }

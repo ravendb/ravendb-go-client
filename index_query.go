@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"math"
 	"time"
 )
 
@@ -26,7 +25,7 @@ type IndexQuery struct {
 func NewIndexQuery(query string) *IndexQuery {
 	return &IndexQuery{
 		query:    query,
-		pageSize: math.MaxInt32,
+		pageSize: 0,
 	}
 }
 

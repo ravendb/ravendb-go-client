@@ -1765,19 +1765,19 @@ func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
 	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentId))
 }
 
-func (q *AbstractDocumentQuery) lazily() *Lazy {
-	return q.lazilyWithOnEval(nil)
+func (q *AbstractDocumentQuery) Lazily() *Lazy {
+	return q.LazilyWithOnEval(nil)
 }
 
-func (q *AbstractDocumentQuery) lazilyWithOnEval(onEval func(interface{})) *Lazy {
+func (q *AbstractDocumentQuery) LazilyWithOnEval(onEval func(interface{})) *Lazy {
 	if q.GetQueryOperation() == nil {
 		q.queryOperation = q.initializeQueryOperation()
 	}
 
 	lazyQueryOperation := NewLazyQueryOperation(q.clazz, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
 
-	// TODO: this is prbably wrong, needs to construct [] of q.clazz
-	return q.theSession.session.addLazyOperation(q.clazz, lazyQueryOperation, onEval)
+	at := reflect.SliceOf(q.clazz)
+	return q.theSession.session.addLazyOperation(at, lazyQueryOperation, onEval)
 }
 
 /*

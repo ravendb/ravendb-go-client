@@ -95,7 +95,7 @@ func runJava() {
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")
 	//runSingleJavaTest("PatchTest")
 	//runSingleJavaTest("PutDocumentCommandTest")
-	//runSingleJavaTest("QueryTest")
+	runSingleJavaTest("QueryTest")
 	//runSingleJavaTest("RegexQueryTest")
 	//runSingleJavaTest("RequestExecutorTest")
 	//runSingleJavaTest("RevisionsTest")
@@ -121,7 +121,7 @@ func runJava() {
 	//runSingleJavaTest("MoreLikeThisTest")
 	//runSingleJavaTest("ChangesTest")
 	//runSingleJavaTest("DocumentStreaming")
-	runSingleJavaTest("QueryStreaming")
+	//runSingleJavaTest("QueryStreaming")
 }
 
 func main() {

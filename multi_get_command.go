@@ -53,7 +53,7 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 			v["Query"] = command.query
 			v["Method"] = command.method
 			v["Headers"] = headers
-			v["Content"] = command.content
+			v["Content"] = command.content.writeContent()
 
 			item.Close()
 		}

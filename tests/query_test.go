@@ -47,7 +47,6 @@ func query_querySimple(t *testing.T) {
 	}
 }
 
-// TODO: requires Lazy support
 func query_queryLazily(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -68,25 +67,18 @@ func query_queryLazily(t *testing.T) {
 		assert.NoError(t, err)
 		err = session.StoreWithID(user2, "users/2")
 		assert.NoError(t, err)
-		err = session.StoreWithID(user2, "users/3")
+		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-
+		lazyQuery := session.QueryOld(reflect.TypeOf(&User{})).Lazily()
+		queryResultI, err := lazyQuery.GetValue()
+		assert.NoError(t, err)
+		queryResult := queryResultI.([]*User)
+		assert.Equal(t, 3, len(queryResult))
+		user := queryResult[0]
+		assert.Equal(t, *user.Name, "John")
 	}
-	/*
-		   // Lazy<List<User>> ;
-			lazyQuery := session.QueryOld(reflect.TypeOf(&User{})).Lazily()
-
-		   List<User> queryResult = lazyQuery.getValue();
-
-		   assertThat(queryResult)
-		           .hasSize(3);
-
-		   assertThat(queryResult.get(0).getName())
-		           .isEqualTo("John");
-	*/
-
 }
 
 func query_collectionsStats(t *testing.T) {

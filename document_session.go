@@ -59,6 +59,8 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, documentStore, re, id),
 	}
 
+	res.InMemoryDocumentSessionOperations.session = res
+
 	//TODO: res._attachments: NewDocumentSessionAttachments(res)
 	res._revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
 
@@ -208,14 +210,18 @@ func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	fn := func() interface{} {
-		s.ExecuteAllPendingLazyOperations()
+	fn := func() (interface{}, error) {
+		_, err := s.ExecuteAllPendingLazyOperations()
+		if err != nil {
+			return nil, err
+		}
 		return s.getOperationResult(clazz, operation.getResult())
 	}
 	lazyValue := NewLazy(fn)
 	if onEval != nil {
 		fn := func(theResult interface{}) {
-			onEval(s.getOperationResult(clazz, theResult))
+			res, _ := s.getOperationResult(clazz, theResult)
+			onEval(res)
 		}
 		s.onEvaluateLazy[operation] = fn
 	}
@@ -226,9 +232,12 @@ func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOp
 func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	fn := func() interface{} {
-		s.ExecuteAllPendingLazyOperations()
-		return operation.getQueryResult().TotalResults
+	fn := func() (interface{}, error) {
+		_, err := s.ExecuteAllPendingLazyOperations()
+		if err != nil {
+			return nil, err
+		}
+		return operation.getQueryResult().TotalResults, nil
 	}
 	return NewLazy(fn)
 }
@@ -532,7 +541,7 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
-
+	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 
@@ -542,6 +551,7 @@ func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
+	panicIf(s == nil, "s shouldn't be nil here")
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
