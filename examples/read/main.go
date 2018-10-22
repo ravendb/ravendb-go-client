@@ -85,13 +85,16 @@ func main() {
 		fmt.Printf("employee: %#v\n", e)
 	}
 
-	// TODO: not supported yet
-	if true {
+	{
+		// TODO: not working yet, see https://github.com/ravendb/ravendb-go-client/issues/63
 		session, err := store.OpenSession()
 		panicIfErr(err)
 		var o *Order
 		err = session.Include("employee").Load(&o, "orders/827-A")
-		panicIfErr(err)
-		fmt.Printf("order: %#v\n", o)
+		if err != nil {
+			fmt.Printf("error: %s\n", err)
+		} else {
+			fmt.Printf("order: %#v\n", o)
+		}
 	}
 }
