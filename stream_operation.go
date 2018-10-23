@@ -124,7 +124,7 @@ func getNextDelimToken(dec *json.Decoder, delimStr string) error {
 	if delim, ok := tok.(json.Delim); ok || delim.String() == delimStr {
 		return nil
 	}
-	return fmt.Errorf("Expected delim token '%', got %T %s", delimStr, tok, tok)
+	return fmt.Errorf("Expected delim token '%s', got %T %s", delimStr, tok, tok)
 }
 
 func getNextStringToken(dec *json.Decoder) (string, error) {

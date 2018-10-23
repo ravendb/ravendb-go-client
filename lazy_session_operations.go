@@ -1,5 +1,10 @@
 package ravendb
 
+import (
+	"errors"
+	"reflect"
+)
+
 // TODO: remove in API cleanup phase
 type ILazySessionOperations = LazySessionOperations
 
@@ -13,59 +18,40 @@ func NewLazySessionOperations(delegate *DocumentSession) *LazySessionOperations 
 	}
 }
 
+func (o *LazySessionOperations) Include(path string) *ILazyLoaderWithInclude {
+	return NewLazyMultiLoaderWithInclude(o.delegate).Include(path)
+}
+
+// Lazy<TResult>
+func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(interface{})) *Lazy {
+	if o.delegate.IsLoaded(id) {
+		fn := func() (interface{}, error) {
+			panic("NYI")
+			//return o.delegate.LoadOld(clazz, id)
+			return nil, errors.New("NYI")
+		}
+		return NewLazy(fn)
+	}
+
+	session := o.delegate.InMemoryDocumentSessionOperations
+	op := NewLoadOperation(session)
+	op = op.byId(id)
+	lazyLoadOperation := NewLazyLoadOperation(clazz, session, op).byId(id)
+	return o.delegate.addLazyOperation(clazz, lazyLoadOperation, onEval)
+}
+
+//    public <TResult> Lazy<Map<String, TResult>>
+func (o *LazySessionOperations) LoadStartingWith(clazz reflect.Type, args *StartsWithArgs) *Lazy {
+	session := o.delegate.InMemoryDocumentSessionOperations
+	operation := NewLazyStartsWithOperation(clazz, args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
+
+	t := reflect.MapOf(stringType, clazz)
+	return o.delegate.addLazyOperation(t, operation, nil)
+}
+
 /*
-    public ILazyLoaderWithInclude include(String path) {
-        return new LazyMultiLoaderWithInclude(delegate).include(path);
-    }
-
-    public <TResult> Lazy<TResult> load(Class<TResult> clazz, String id) {
-        return load(clazz, id, null);
-    }
-
-    public <TResult> Lazy<TResult> load(Class<TResult> clazz, String id, Consumer<TResult> onEval) {
-        if (delegate.isLoaded(id)) {
-            return new Lazy<>(() -> delegate.load(clazz, id));
-        }
-
-        LazyLoadOperation lazyLoadOperation = new LazyLoadOperation(clazz, delegate, new LoadOperation(delegate).byId(id)).byId(id);
-        return delegate.addLazyOperation(clazz, lazyLoadOperation, onEval);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> loadStartingWith(Class<TResult> clazz, String idPrefix) {
-        return loadStartingWith(clazz, idPrefix, null, 0, 25, null, null);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> loadStartingWith(Class<TResult> clazz, String idPrefix, String matches) {
-        return loadStartingWith(clazz, idPrefix, matches, 0, 25, null, null);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> loadStartingWith(Class<TResult> clazz, String idPrefix, String matches, int start) {
-        return loadStartingWith(clazz, idPrefix, matches, start, 25, null, null);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> loadStartingWith(Class<TResult> clazz, String idPrefix, String matches, int start, int pageSize) {
-        return loadStartingWith(clazz, idPrefix, matches, start, pageSize, null, null);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> loadStartingWith(Class<TResult> clazz, String idPrefix, String matches, int start, int pageSize, String exclude) {
-        return loadStartingWith(clazz, idPrefix, matches, start, pageSize, exclude, null);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> loadStartingWith(Class<TResult> clazz, String idPrefix, String matches, int start, int pageSize, String exclude, String startAfter) {
-        LazyStartsWithOperation operation = new LazyStartsWithOperation<>(clazz, idPrefix, matches, exclude, start, pageSize, delegate, startAfter);
-
-        return delegate.addLazyOperation((Class<Map<String, TResult>>)(Class<?>)Map.class, operation, null);
-    }
-
-    public <TResult> Lazy<Map<String, TResult>> load(Class<TResult> clazz, Collection<String> ids) {
-        return load(clazz, ids, null);
-    }
-
     public <TResult> Lazy<Map<String, TResult>> load(Class<TResult> clazz, Collection<String> ids, Consumer<Map<String, TResult>> onEval) {
         return delegate.lazyLoadInternal(clazz, ids.toArray(new String[0]), new String[0], onEval);
     }
-
-    //TBD expr ILazyLoaderWithInclude<T> ILazySessionOperations.Include<T>(Expression<Func<T, string>> path)
-    //TBD expr ILazyLoaderWithInclude<T> ILazySessionOperations.Include<T>(Expression<Func<T, IEnumerable<string>>> path)
 }
 */

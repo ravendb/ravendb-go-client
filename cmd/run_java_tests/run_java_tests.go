@@ -5,9 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
-
 	"path/filepath"
+	"strings"
 
 	"github.com/ravendb/ravendb-go-client/pkg/proxy"
 )
@@ -95,7 +94,7 @@ func runJava() {
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")
 	//runSingleJavaTest("PatchTest")
 	//runSingleJavaTest("PutDocumentCommandTest")
-	runSingleJavaTest("QueryTest")
+	//runSingleJavaTest("QueryTest")
 	//runSingleJavaTest("RegexQueryTest")
 	//runSingleJavaTest("RequestExecutorTest")
 	//runSingleJavaTest("RevisionsTest")
@@ -122,6 +121,7 @@ func runJava() {
 	//runSingleJavaTest("ChangesTest")
 	//runSingleJavaTest("DocumentStreaming")
 	//runSingleJavaTest("QueryStreaming")
+	runSingleJavaTest("LoadAllStartingWith")
 }
 
 func main() {

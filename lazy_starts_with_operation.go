@@ -24,6 +24,7 @@ type LazyStartsWithOperation struct {
 	requiresRetry bool
 }
 
+// TODO: convert to use StartsWithArgs
 func NewLazyStartsWithOperation(clazz reflect.Type, idPrefix string, matches string, exclude string, start int, pageSize int, sessionOperations *InMemoryDocumentSessionOperations, startAfter string) *LazyStartsWithOperation {
 	return &LazyStartsWithOperation{
 		_clazz:             clazz,
