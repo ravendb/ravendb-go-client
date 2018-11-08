@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	tr                              = transport.Transport{Proxy: transport.ProxyFromEnvironment}
+	tr               = transport.Transport{Proxy: transport.ProxyFromEnvironment}
 	proxyLogFilePath string
 	proxyLogFile     *os.File
 	sessionID        int32
@@ -385,7 +385,7 @@ func handleOnResponse(resp *http.Response, ctx *goproxy.ProxyCtx) *http.Response
 func Run(logPath string) {
 	ChangeLogFile(logPath)
 
-	addr := ":8888"
+	addr := "localhost:8888"
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = false
 
