@@ -1072,7 +1072,6 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		if !ok {
 			return nil, fmt.Errorf("result is '%T' and not []interface{}", result)
 		}
-		fmt.Printf("len(arr) = %d\n", len(arr))
 		for _, el := range arr {
 			// TODO: don't panic if el type != clazz.Elem() type
 			v := reflect.ValueOf(el)
@@ -1081,28 +1080,53 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		return res.Interface(), nil
 	}
 
+	resultMap, ok := result.(map[string]interface{})
+	if !ok {
+		return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %T", result)
+	}
+
 	resultType := reflect.ValueOf(result).Type()
 	fmt.Printf("clazzType: %s, resultType: %s\n", clazz.String(), resultType)
+	/*
+		if resultType.Kind() != reflect.Map {
+			return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %s", resultType)
+		}
+
+		if resultType.Elem().Kind() != reflect.Interface {
+			return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %s", resultType)
+		}
+	*/
+
 	panic("NYI")
 
-	/*
-		if (clazz.isAssignableFrom(result.getClass())) {
-			return (T) result;
-		}
-	*/
+	if len(resultMap) == 0 {
+		// TODO: should create and return an empty map so that caller can type check?
+		return nil, nil
+	}
 
 	/*
-		if (result instanceof Map) {
-			Map map = (Map) result;
-			if (map.isEmpty()) {
-				return null;
-			} else {
-				return (T) map.values().iterator().next();
-			}
+		// create a map[string]typeof(result)
+		rt := reflect.TypeOf(result)
+		if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Ptr && rt.Elem().Elem().Kind() != reflect.Struct {
+			return fmt.Errorf("type of result should be pointer-to-struct but is %T", result)
 		}
+		rt = rt.Elem() // it's now ptr-to-struct
 
-		throw new IllegalStateException("Unable to cast " + result.getClass().getSimpleName() + " to " + clazz.getSimpleName());
+		mapType := reflect.MapOf(stringType, rt)
+		m := reflect.MakeMap(mapType)
+		ids := []string{id}
+		err := l._session.loadInternalMulti(m.Interface(), ids, l._includes)
+		if err != nil {
+			return err
+		}
+		key := reflect.ValueOf(id)
+		res := m.MapIndex(key)
+		if res.IsNil() {
+			return ErrNotFound
+		}
+		setInterfaceToValue(result, res.Interface())
 	*/
+
 	return nil, errors.New("NYI")
 }
 
