@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -1061,6 +1060,23 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 	return nil
 }
 
+func isMapStringToPtrStruct(t reflect.Type) bool {
+	if t.Kind() != reflect.Map {
+		return false
+	}
+
+	if t.Key().Kind() != reflect.String {
+		return false
+	}
+
+	vt := t.Elem()
+	if vt.Kind() != reflect.Ptr || vt.Elem().Kind() != reflect.Struct {
+		return false
+	}
+
+	return true
+}
+
 func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result Object) (interface{}, error) {
 	if result == nil {
 		return Defaults_defaultValue(clazz), nil
@@ -1080,29 +1096,37 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		return res.Interface(), nil
 	}
 
+	if !isMapStringToPtrStruct(clazz) {
+		return nil, fmt.Errorf("expected class to be []*Type or map[string]Type, is '%T'", clazz)
+	}
+
 	resultMap, ok := result.(map[string]interface{})
 	if !ok {
 		return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %T", result)
 	}
 
-	resultType := reflect.ValueOf(result).Type()
-	fmt.Printf("clazzType: %s, resultType: %s\n", clazz.String(), resultType)
-	/*
-		if resultType.Kind() != reflect.Map {
-			return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %s", resultType)
-		}
-
-		if resultType.Elem().Kind() != reflect.Interface {
-			return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %s", resultType)
-		}
-	*/
-
-	if len(resultMap) == 0 {
-		// TODO: should create and return an empty map so that caller can type check?
-		return nil, nil
+	if false {
+		resultType := reflect.ValueOf(result).Type()
+		fmt.Printf("clazzType: %s, resultType: %s\n", clazz.String(), resultType)
 	}
 
-	panic("NYI")
+	mapValueType := clazz.Elem()
+	mapType := reflect.MapOf(stringType, mapValueType)
+	m := reflect.MakeMap(mapType)
+
+	if len(resultMap) == 0 {
+		return m.Interface(), nil
+	}
+
+	for k, v := range resultMap {
+		fmt.Printf("k: '%s', vt: '%T', v: '%s'\n", k, v, v)
+		key := reflect.ValueOf(k)
+		res := reflect.ValueOf(v)
+		if res.IsNil() {
+			return nil, fmt.Errorf("value for key '%s' is nil", k)
+		}
+		m.SetMapIndex(key, res)
+	}
 
 	/*
 		// create a map[string]typeof(result)
@@ -1127,7 +1151,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		setInterfaceToValue(result, res.Interface())
 	*/
 
-	return nil, errors.New("NYI")
+	return m.Interface(), nil
 }
 
 func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
