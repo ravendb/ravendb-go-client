@@ -39,12 +39,16 @@ func NewLazyStartsWithOperation(clazz reflect.Type, idPrefix string, matches str
 }
 
 func (o *LazyStartsWithOperation) createRequest() *GetRequest {
+	pageSize := o._pageSize
+	if pageSize == 0 {
+		pageSize = 25
+	}
 	q := fmt.Sprintf("?startsWith=%s&matches=%s&exclude=%s&start=%d&pageSize=%d&startAfter=%s",
 		UrlUtils_escapeDataString(o._idPrefix),
 		UrlUtils_escapeDataString(o._matches),
 		UrlUtils_escapeDataString(o._exclude),
 		o._start,
-		o._pageSize,
+		pageSize,
 		o._startAfter)
 
 	request := &GetRequest{

@@ -1097,12 +1097,12 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		}
 	*/
 
-	panic("NYI")
-
 	if len(resultMap) == 0 {
 		// TODO: should create and return an empty map so that caller can type check?
 		return nil, nil
 	}
+
+	panic("NYI")
 
 	/*
 		// create a map[string]typeof(result)
