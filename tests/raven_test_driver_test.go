@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -496,8 +495,9 @@ func deleteTestDriver() {
 }
 
 var (
-	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.0.6-windows-x64.zip"
-	ravenWindowsZipPath       = "Ravendb-4.0.6.zip"
+	defaultUserAgent          = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.2-windows-x64.zip"
+	ravenWindowsZipPath       = "Ravendb-4.1.2.zip"
 )
 
 func getRavendbExePath() string {
@@ -719,13 +719,18 @@ func downloadURL(url string) ([]byte, error) {
 	// default timeout for http.Get() is really long, so dial it down
 	// for both connection and read/write timeouts
 	timeoutClient := newTimeoutClient(time.Second*120, time.Second*120)
-	resp, err := timeoutClient.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", defaultUserAgent)
+	resp, err := timeoutClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("'%s': status code not 200 (%d)", url, resp.StatusCode))
+		return nil, fmt.Errorf("'%s': status code not 200 (%d)", url, resp.StatusCode)
 	}
 	return ioutil.ReadAll(resp.Body)
 }
