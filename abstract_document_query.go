@@ -333,6 +333,7 @@ func (q *AbstractDocumentQuery) _include(path string) {
 	q.includes = append(q.includes, path)
 }
 
+// TODO: see if count can be int
 func (q *AbstractDocumentQuery) _take(count *int) {
 	q.pageSize = count
 }
@@ -1770,7 +1771,7 @@ func (q *AbstractDocumentQuery) Lazily() *Lazy {
 }
 
 func (q *AbstractDocumentQuery) LazilyWithOnEval(onEval func(interface{})) *Lazy {
-	if q.GetQueryOperation() == nil {
+	if q.queryOperation == nil {
 		q.queryOperation = q.initializeQueryOperation()
 	}
 
@@ -1780,17 +1781,16 @@ func (q *AbstractDocumentQuery) LazilyWithOnEval(onEval func(interface{})) *Lazy
 	return q.theSession.session.addLazyOperation(at, lazyQueryOperation, onEval)
 }
 
-/*
-    Lazy<Integer> countLazily() {
-       if (queryOperation == null) {
-           _take(0);
-           queryOperation = initializeQueryOperation();
-       }
+func (q *AbstractDocumentQuery) CountLazily() *Lazy {
+	if q.queryOperation == nil {
+		v := 0
+		q._take(&v)
+		q.queryOperation = q.initializeQueryOperation()
+	}
 
-       LazyQueryOperation<T> lazyQueryOperation = new LazyQueryOperation<T>(clazz, theSession.getConventions(), queryOperation, afterQueryExecutedCallback);
-       return ((DocumentSession)theSession).addLazyCountOperation(lazyQueryOperation);
-   }
-*/
+	lazyQueryOperation := NewLazyQueryOperation(q.clazz, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
+	return q.theSession.session.addLazyCountOperation(lazyQueryOperation)
+}
 
 // SuggestUsing adds a query part for suggestions
 func (q *AbstractDocumentQuery) _suggestUsing(suggestion SuggestionBase) {
