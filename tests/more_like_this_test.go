@@ -63,7 +63,50 @@ func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T) {
 	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
 }
 
-func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T)                  {}
+func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	var id string
+	dataIndex := NewDataIndex2(true, false)
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		list := getDataList()
+		for _, el := range list {
+			err = session.Store(el)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		id = session.Advanced().GetDocumentID(list[0])
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		options.Fields = []string{"body"}
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", id)
+			}
+			ops := f.UsingDocumentWithBuilder(builder)
+			ops.WithOptions(options)
+		}
+		query.MoreLikeThisWithBuilder(builder)
+		lazyLst := query.Lazily()
+		list, err := lazyLst.GetValue()
+		assert.NoError(t, err)
+		v := list.([]*Data)
+		assert.NotEmpty(t, v)
+		// TODO: more precise check that returned the right values
+	}
+}
+
 func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T)     {}
 func moreLikeThis_canGetResultsUsingStorage(t *testing.T)                          {}
 func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T)            {}
