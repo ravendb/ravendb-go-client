@@ -40,7 +40,29 @@ func getDataList() []*Data {
 	return items
 }
 
-func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T)                      {}
+func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	var id string
+	dataIndex := NewDataIndex2(true, false)
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		list := getDataList()
+		for _, el := range list {
+			err = session.Store(el)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		id = session.Advanced().GetDocumentID(list[0])
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
+}
+
 func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T)                  {}
 func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T)     {}
 func moreLikeThis_canGetResultsUsingStorage(t *testing.T)                          {}
@@ -84,7 +106,7 @@ type Data struct {
 
 	Body                    string `json:"body"`
 	WhitespaceAnalyzerField string `json:"whitespaceAnalyzerField"`
-	PersonId                string `json:"personId"`
+	PersonID                string `json:"personId"`
 }
 
 func NewData(s string) *Data {
@@ -112,9 +134,11 @@ func NewDataIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func NewDataIndex2(termVector bool, store bool) *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("ComplexDataIndex")
+	res := ravendb.NewAbstractIndexCreationTask("DataIndex")
 
-	res.Map = "from doc in docs.Datas select new { doc.body, doc.whitespaceAnalyzerField }"
+	// Note: in Java it's docs.Datas because Inflector.pluralize() doesn't
+	// handle 'data' properly and we do
+	res.Map = "from doc in docs.Data select new { doc.body, doc.whitespaceAnalyzerField }"
 
 	res.Analyze("body", "Lucene.Net.Analysis.Standard.StandardAnalyzer")
 	res.Analyze("whitespaceAnalyzerField", "Lucene.Net.Analysis.WhitespaceAnalyzer")
