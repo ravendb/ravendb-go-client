@@ -76,8 +76,25 @@ func query_queryLazily(t *testing.T) {
 		assert.NoError(t, err)
 		queryResult := queryResultI.([]*User)
 		assert.Equal(t, 3, len(queryResult))
+		/* TODO:
+			Java checks for exact order but we sometimes get them in a different
+			order e.g. https://travis-ci.org/ravendb/ravendb-go-client/builds/453165841
+			Is exact order a requirement or just happen to always return in order
+			in Java?
+		*/
+
+		/* This is what Java checks:
 		user := queryResult[0]
 		assert.Equal(t, *user.Name, "John")
+		*/
+
+		/* this is a test that doesn't depend on order */
+		var names []string
+		for _, user := range queryResult {
+			names = append(names, *user.Name)
+		}
+		sort.Strings(names)
+		assert.Equal(t, names, []string{"Jane", "John", "Tarzan"})
 	}
 }
 
