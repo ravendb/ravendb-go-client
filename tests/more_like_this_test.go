@@ -146,6 +146,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T) {
 		err = query.ToList(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
+		assert.Equal(t, len(list), 7)
 		// TODO: better check if returned the right result
 	}
 }
@@ -175,7 +176,30 @@ func moreLikeThis_canGetResultsUsingStorage(t *testing.T) {
 	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
 }
 
-func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T)            {}
+func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	var id string
+	dataIndex := NewDataIndex2(true, true)
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		list := getDataList()
+		for _, el := range list {
+			err = session.Store(el)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		id = session.Advanced().GetDocumentID(list[0])
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
+}
+
 func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T)                      {}
 func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T)                             {}
 func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T)             {}
