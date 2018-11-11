@@ -517,7 +517,46 @@ func moreLikeThis_can_Use_Stop_Words(t *testing.T) {
 	}
 }
 
-func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T)                      {}
+func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	dataIndex := NewDataIndex()
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		list := getDataList()
+		for _, el := range list {
+			err = session.Store(el)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		options.Fields = []string{"body"}
+		options.SetMinimumTermFrequency(1)
+		options.SetMinimumDocumentFrequency(1)
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			o := f.UsingDocument("{ \"body\": \"A test\" }")
+			o.WithOptions(options)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.Equal(t, len(list), 7)
+	}
+}
+
 func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T) {}
 
 func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, clazz reflect.Type, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
