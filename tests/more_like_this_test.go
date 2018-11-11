@@ -452,7 +452,71 @@ func moreLikeThis_can_Use_Boost_Param(t *testing.T) {
 	}
 }
 
-func moreLikeThis_can_Use_Stop_Words(t *testing.T)                                 {}
+func moreLikeThis_can_Use_Stop_Words(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
+	dataIndex := NewDataIndex()
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		d := []string{
+			"This is a test. Isn't it great? I hope I pass my test!",
+			"I should not hit this document. I hope",
+			"Cake is great.",
+			"This document has the word test only once",
+			"test",
+			"test",
+			"test",
+			"test",
+		}
+		for _, text := range d {
+			data := &Data{
+				Body: text,
+			}
+			err = session.Store(data)
+			assert.NoError(t, err)
+		}
+
+		stopWords := &ravendb.MoreLikeThisStopWords{
+			ID:        "Config/Stopwords",
+			StopWords: []string{"I", "A", "Be"},
+		}
+		err = session.Store(stopWords)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		options.Fields = []string{"body"}
+		options.SetMinimumTermFrequency(2)
+		options.SetMinimumDocumentFrequency(1)
+		options.SetStopWordsDocumentID("Config/Stopwords")
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", key)
+			}
+			o := f.UsingDocumentWithBuilder(builder)
+			o.WithOptions(options)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.Equal(t, len(list), 5)
+	}
+}
+
 func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T)                      {}
 func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T) {}
 
