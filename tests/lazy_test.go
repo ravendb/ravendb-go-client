@@ -29,7 +29,9 @@ func lazy_canLazilyLoadEntity(t *testing.T) {
 
 	{
 		session := openSessionMust(t, store)
-		lazyOrder := session.Advanced().Lazily().Load(reflect.TypeOf(&Company{}), "companies/1", nil)
+		query := session.Advanced().Lazily()
+		lazyOrder := query.Load(reflect.TypeOf(&Company{}), "companies/1", nil)
+
 		assert.False(t, lazyOrder.IsValueCreated())
 		orderI, err := lazyOrder.GetValue()
 		assert.NoError(t, err)

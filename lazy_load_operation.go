@@ -14,7 +14,7 @@ type LazyLoadOperation struct {
 	_ids           []string
 	_includes      []string
 
-	result        Object
+	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
@@ -127,14 +127,15 @@ func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
 	if err != nil {
 		return err
 	}
-	o.handleResponse2(multiLoadResult)
-	return nil
+	return o.handleResponse2(multiLoadResult)
 }
 
-func (o *LazyLoadOperation) handleResponse2(loadResult *GetDocumentsResult) {
+func (o *LazyLoadOperation) handleResponse2(loadResult *GetDocumentsResult) error {
 	o._loadOperation.setResult(loadResult)
 
+	var err error
 	if !o.requiresRetry {
-		o.result = o._loadOperation.getDocuments(o._clazz)
+		o.result, err = o._loadOperation.getDocumentsOld(o._clazz)
 	}
+	return err
 }

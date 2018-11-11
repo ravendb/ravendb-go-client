@@ -51,7 +51,11 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 			}
 			v["Url"] = "/databases/" + node.GetDatabase() + command.url
 			v["Query"] = command.query
-			v["Method"] = command.method
+			if command.method == "" {
+				v["Method"] = nil
+			} else {
+				v["Method"] = command.method
+			}
 			v["Headers"] = headers
 			if command.content != nil {
 				v["Content"] = command.content.writeContent()

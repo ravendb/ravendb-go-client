@@ -27,14 +27,14 @@ func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(
 	if o.delegate.IsLoaded(id) {
 		fn := func() (interface{}, error) {
 			//return o.delegate.LoadOld(clazz, id)
+			panic("NYI")
 			return nil, errors.New("NYI")
 		}
 		return NewLazy(fn)
 	}
 
 	session := o.delegate.InMemoryDocumentSessionOperations
-	op := NewLoadOperation(session)
-	op = op.byId(id)
+	op := NewLoadOperation(session).byId(id)
 	lazyLoadOperation := NewLazyLoadOperation(clazz, session, op).byId(id)
 	return o.delegate.addLazyOperation(clazz, lazyLoadOperation, onEval)
 }

@@ -1077,9 +1077,15 @@ func isMapStringToPtrStruct(t reflect.Type) bool {
 	return true
 }
 
-func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result Object) (interface{}, error) {
+func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result interface{}) (interface{}, error) {
 	if result == nil {
 		return Defaults_defaultValue(clazz), nil
+	}
+
+	resultType := reflect.ValueOf(result).Type()
+	//fmt.Printf(":: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
+	if resultType == clazz {
+		return result, nil
 	}
 
 	if clazz.Kind() == reflect.Slice {
@@ -1097,7 +1103,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 	}
 
 	if !isMapStringToPtrStruct(clazz) {
-		return nil, fmt.Errorf("expected class to be []*Type or map[string]Type, is '%T'", clazz)
+		return nil, fmt.Errorf("expected clazz to be []*Type or map[string]*Type, is '%s'", clazz)
 	}
 
 	resultMap, ok := result.(map[string]interface{})
@@ -1127,29 +1133,6 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		}
 		m.SetMapIndex(key, res)
 	}
-
-	/*
-		// create a map[string]typeof(result)
-		rt := reflect.TypeOf(result)
-		if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Ptr && rt.Elem().Elem().Kind() != reflect.Struct {
-			return fmt.Errorf("type of result should be pointer-to-struct but is %T", result)
-		}
-		rt = rt.Elem() // it's now ptr-to-struct
-
-		mapType := reflect.MapOf(stringType, rt)
-		m := reflect.MakeMap(mapType)
-		ids := []string{id}
-		err := l._session.loadInternalMulti(m.Interface(), ids, l._includes)
-		if err != nil {
-			return err
-		}
-		key := reflect.ValueOf(id)
-		res := m.MapIndex(key)
-		if res.IsNil() {
-			return ErrNotFound
-		}
-		setInterfaceToValue(result, res.Interface())
-	*/
 
 	return m.Interface(), nil
 }

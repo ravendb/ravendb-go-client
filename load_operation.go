@@ -126,6 +126,7 @@ var stringType = reflect.TypeOf("")
 // TODO: also handle a pointer to a map?
 func (o *LoadOperation) getDocuments(results interface{}) error {
 	// results must be map[string]*struct
+	//fmt.Printf("LoadOperation.getDocuments: results type: %T\n", results)
 	m := reflect.ValueOf(results)
 	if m.Type().Kind() != reflect.Map {
 		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())

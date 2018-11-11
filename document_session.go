@@ -215,7 +215,8 @@ func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOp
 		if err != nil {
 			return nil, err
 		}
-		return s.getOperationResult(clazz, operation.getResult())
+		res := operation.getResult()
+		return s.getOperationResult(clazz, res)
 	}
 	lazyValue := NewLazy(fn)
 	if onEval != nil {
