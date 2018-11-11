@@ -348,7 +348,57 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T) {
 	}
 }
 
-func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T)                         {}
+func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
+	dataIndex := NewDataIndex()
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		d := []string{
+			"This is a test. Isn't it great? I hope I pass my test!",
+			"I have a test tomorrow. I hate having a test",
+			"Cake is great.",
+			"This document has the word test only once",
+		}
+		for _, text := range d {
+			data := &Data{}
+			data.Body = text
+			err = session.Store(data)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		options.Fields = []string{"body"}
+		options.SetMinimumDocumentFrequency(2)
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", key)
+			}
+			o := f.UsingDocumentWithBuilder(builder)
+			o.WithOptions(options)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, list)
+
+	}
+}
+
 func moreLikeThis_can_Use_Boost_Param(t *testing.T)                                {}
 func moreLikeThis_can_Use_Stop_Words(t *testing.T)                                 {}
 func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T)                      {}
