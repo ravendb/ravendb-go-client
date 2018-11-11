@@ -206,7 +206,7 @@ func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	key := "data/1-A" // Note: in Java it's datas/1-A because of bad pluralization of data
+	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
 
 	{
@@ -231,7 +231,7 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	key := "data/1-A" // Note: in Java it's datas/1-A because of bad pluralization of data
+	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
 
 	{
@@ -267,7 +267,87 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T) {
 	}
 }
 
-func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T)             {}
+func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	key1 := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
+	dataIndex := NewDataIndex()
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		for i := 0; i < 10; i++ {
+			data := &Data{}
+			data.WhitespaceAnalyzerField = "bob@hotmail.com hotmail"
+			err = session.Store(data)
+			assert.NoError(t, err)
+
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		v1 := 2
+		options.MinimumTermFrequency = &v1
+		v2 := 5
+		options.MinimumDocumentFrequency = &v2
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", key1)
+			}
+			o := f.UsingDocumentWithBuilder(builder)
+			o.WithOptions(options)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.Empty(t, list)
+	}
+
+	key2 := "data/11-A" // Note: in Java it's datas/ because of bad pluralization of data
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		for i := 0; i < 10; i++ {
+			data := &Data{}
+			data.WhitespaceAnalyzerField = "bob@hotmail.com bob@hotmail.com"
+			err = session.Store(data)
+			assert.NoError(t, err)
+
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", key2)
+			}
+			f.UsingDocumentWithBuilder(builder)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, list)
+	}
+}
+
 func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T)                         {}
 func moreLikeThis_can_Use_Boost_Param(t *testing.T)                                {}
 func moreLikeThis_can_Use_Stop_Words(t *testing.T)                                 {}
