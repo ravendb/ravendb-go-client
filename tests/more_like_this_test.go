@@ -395,11 +395,63 @@ func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T) {
 		err = query.ToList(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
-
 	}
 }
 
-func moreLikeThis_can_Use_Boost_Param(t *testing.T)                                {}
+func moreLikeThis_can_Use_Boost_Param(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
+	dataIndex := NewDataIndex()
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		d := []string{
+			"This is a test. it is a great test. I hope I pass my great test!",
+			"Cake is great.",
+			"I have a test tomorrow.",
+		}
+		for _, text := range d {
+			data := &Data{
+				Body: text,
+			}
+			err = session.Store(data)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		options.Fields = []string{"body"}
+		options.SetMinimumWordLength(3)
+		options.SetMinimumDocumentFrequency(1)
+		options.SetMinimumTermFrequency(2)
+		options.SetBoost(true)
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", key)
+			}
+			o := f.UsingDocumentWithBuilder(builder)
+			o.WithOptions(options)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, list)
+		assert.Equal(t, list[0].Body, "I have a test tomorrow.")
+	}
+}
+
 func moreLikeThis_can_Use_Stop_Words(t *testing.T)                                 {}
 func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T)                      {}
 func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T) {}
