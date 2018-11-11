@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -225,7 +226,47 @@ func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T) {
 	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, key)
 }
 
-func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T)                             {}
+func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	key := "data/1-A" // Note: in Java it's datas/1-A because of bad pluralization of data
+	dataIndex := NewDataIndex()
+
+	{
+		session := openSessionMust(t, store)
+		dataIndex.Execute(store)
+		for i := 0; i < 10; i++ {
+			data := &Data{}
+			data.Body = fmt.Sprintf("Body%d", i)
+			data.WhitespaceAnalyzerField = "test test"
+			err = session.Store(data)
+			assert.NoError(t, err)
+
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+				b.WhereEquals("id()", key)
+			}
+			f.UsingDocumentWithBuilder(builder)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*Data
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.Equal(t, 9, len(list)) // TODO: should this be 10? 1?
+	}
+}
+
 func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T)             {}
 func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T)                         {}
 func moreLikeThis_can_Use_Boost_Param(t *testing.T)                                {}
