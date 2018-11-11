@@ -19,10 +19,8 @@ func (l *LazyMultiLoaderWithInclude) Include(path string) *ILazyLoaderWithInclud
 }
 
 // Lazy<Map<String, T>>
-func (l *LazyMultiLoaderWithInclude) Load(clazz reflect.Type, ids []string) *Lazy {
-	panic("NYI")
-	//return l._session.lazyLoadInternal(clazz, ids, l._includes, nil)
-	return nil
+func (l *LazyMultiLoaderWithInclude) LoadMulti(clazz reflect.Type, ids []string) *Lazy {
+	return l._session.lazyLoadInternal(clazz, ids, l._includes, nil)
 }
 
 /*

@@ -243,26 +243,27 @@ func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy 
 }
 
 // public <T> Lazy<Map<String, T>>
-/*
-func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type,  ids []string,  includes []string, onEval func(map[string]interface{})) {
-	if (s.checkIfIdAlreadyIncluded(ids, includes)) {
-		fn := func() interface{} {
-			// TODO: we no longer have Load(clazz)
-			s.load
+// TODO: change onEval to func(map[string]interface{})
+func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type, ids []string, includes []string, onEval func(interface{})) *Lazy {
+	if s.checkIfIdAlreadyIncluded(ids, includes) {
+		fn := func() (interface{}, error) {
+			return s.LoadMultiOld(clazz, ids)
 		}
-		return new Lazy<>(() -> load(clazz, ids));
+		return NewLazy(fn)
 	}
 
-	LoadOperation loadOperation = new LoadOperation(this)
-			.byIds(ids)
-			.withIncludes(includes);
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	loadOperation = loadOperation.byIds(ids)
+	loadOperation = loadOperation.withIncludes(includes)
 
-	LazyLoadOperation<T> lazyOp = new LazyLoadOperation<>(clazz, this, loadOperation)
-			.byIds(ids).withIncludes(includes);
+	lazyOp := NewLazyLoadOperation(clazz, s.InMemoryDocumentSessionOperations, loadOperation)
+	lazyOp = lazyOp.byIds(ids)
+	lazyOp = lazyOp.withIncludes(includes)
 
-	return addLazyOperation((Class<Map<String, T>>)(Class<?>)Map.class, lazyOp, onEval);
+	at := reflect.MapOf(stringType, clazz)
+
+	return s.addLazyOperation(at, lazyOp, onEval)
 }
-*/
 
 func (s *DocumentSession) Load(result interface{}, id string) error {
 	if id == "" {
@@ -296,6 +297,15 @@ func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
 		return err
 	}
 	return loadOperation.getDocuments(results)
+}
+
+func (s *DocumentSession) LoadMultiOld(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	err := s.loadInternalWithOperation(ids, loadOperation, nil)
+	if err != nil {
+		return nil, err
+	}
+	return loadOperation.getDocumentsOld(clazz)
 }
 
 func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {

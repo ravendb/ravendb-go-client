@@ -117,12 +117,13 @@ func runJava() {
 	//runSingleJavaTest("CustomSerializationTest")
 	//runSingleJavaTest("QueriesWithCustomFunctionsTest")
 	//runSingleJavaTest("SuggestionsTest")
-	runSingleJavaTest("MoreLikeThisTest")
+	//runSingleJavaTest("MoreLikeThisTest")
 	//runSingleJavaTest("ChangesTest")
 	//runSingleJavaTest("DocumentStreaming")
 	//runSingleJavaTest("QueryStreaming")
 	//runSingleJavaTest("LoadAllStartingWith")
 	//runSingleJavaTest("SuggestionsLazyTest")
+	runSingleJavaTest("LazyTest")
 }
 
 func main() {
