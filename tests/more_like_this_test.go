@@ -48,9 +48,9 @@ func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T) {
 
 	var id string
 	dataIndex := NewDataIndex2(true, false)
+	dataIndex.Execute(store)
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -116,10 +116,10 @@ func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T) {
 
 	var id string
 	dataIndex := NewDataIndex2(true, false)
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -159,10 +159,10 @@ func moreLikeThis_canGetResultsUsingStorage(t *testing.T) {
 
 	var id string
 	dataIndex := NewDataIndex2(false, true)
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -184,10 +184,10 @@ func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T) {
 
 	var id string
 	dataIndex := NewDataIndex2(true, true)
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -208,10 +208,10 @@ func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		for i := 0; i < 100; i++ {
 			data := &Data{}
 			data.Body = getLorem(200)
@@ -233,10 +233,10 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		for i := 0; i < 10; i++ {
 			data := &Data{}
 			data.Body = fmt.Sprintf("Body%d", i)
@@ -274,10 +274,10 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T) {
 
 	key1 := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		for i := 0; i < 10; i++ {
 			data := &Data{}
 			data.WhitespaceAnalyzerField = "bob@hotmail.com hotmail"
@@ -355,10 +355,10 @@ func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		d := []string{
 			"This is a test. Isn't it great? I hope I pass my test!",
 			"I have a test tomorrow. I hate having a test",
@@ -405,10 +405,10 @@ func moreLikeThis_can_Use_Boost_Param(t *testing.T) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		d := []string{
 			"This is a test. it is a great test. I hope I pass my great test!",
 			"Cake is great.",
@@ -459,10 +459,10 @@ func moreLikeThis_can_Use_Stop_Words(t *testing.T) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		d := []string{
 			"This is a test. Isn't it great? I hope I pass my test!",
 			"I should not hit this document. I hope",
@@ -523,9 +523,10 @@ func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T) {
 	defer store.Close()
 
 	dataIndex := NewDataIndex()
+	dataIndex.Execute(store)
+
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -557,7 +558,52 @@ func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T) {
 	}
 }
 
-func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T) {}
+func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	dataIndex := NewComplexDataIndex()
+	dataIndex.Execute(store)
+
+	{
+		session := openSessionMust(t, store)
+
+		complexProperty := &ComplexProperty{
+			Body: "test",
+		}
+
+		complexData := &ComplexData{
+			Property: complexProperty,
+		}
+
+		err = session.Store(complexData)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		options := ravendb.NewMoreLikeThisOptions()
+		options.SetMinimumTermFrequency(1)
+		options.SetMinimumDocumentFrequency(1)
+
+		query := session.QueryInIndexOld(reflect.TypeOf(&ComplexData{}), dataIndex)
+		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
+			o := f.UsingDocument("{ \"Property\": { \"Body\": \"test\" } }")
+			o.WithOptions(options)
+		}
+		query = query.MoreLikeThisWithBuilder(builder)
+		var list []*ComplexData
+		err = query.ToList(&list)
+		assert.NoError(t, err)
+		assert.Equal(t, len(list), 1)
+	}
+}
 
 func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, clazz reflect.Type, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
 	session := openSessionMust(t, store)
@@ -640,7 +686,8 @@ func NewDataIndex2(termVector bool, store bool) *ravendb.AbstractIndexCreationTa
 
 func NewComplexDataIndex() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("ComplexDataIndex")
-	res.Map = "from doc in docs.ComplexDatas select new  { doc.property, doc.property.body }"
+	// Note: In Java it's docs.ComplexDatas due to not pluralizing Data properly
+	res.Map = "from doc in docs.ComplexData select new  { doc.property, doc.property.body }"
 	res.Index("body", ravendb.FieldIndexing_SEARCH)
 	return res
 }
