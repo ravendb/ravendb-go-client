@@ -122,8 +122,8 @@ func runJava() {
 	//runSingleJavaTest("DocumentStreaming")
 	//runSingleJavaTest("QueryStreaming")
 	//runSingleJavaTest("LoadAllStartingWith")
-	//runSingleJavaTest("SuggestionsLazyTest")
-	runSingleJavaTest("LazyTest")
+	runSingleJavaTest("SuggestionsLazyTest")
+	//runSingleJavaTest("LazyTest")
 }
 
 func main() {

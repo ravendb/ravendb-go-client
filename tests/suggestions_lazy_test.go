@@ -16,7 +16,7 @@ func suggestionsLazy_usingLinq(t *testing.T) {
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "test"
 
-	indexDefinition.Maps = []string{"from doc in docs.Users select new { doc.name }"}
+	indexDefinition.Maps = []string{"from doc in docs.User4s select new { doc.name }"}
 	indexFieldOptions := ravendb.NewIndexFieldOptions()
 	indexFieldOptions.Suggestions = true
 	indexDefinition.Fields["name"] = indexFieldOptions
@@ -53,7 +53,7 @@ func suggestionsLazy_usingLinq(t *testing.T) {
 
 		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
 		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "Oren")
+			x.ByField("name", "Owen")
 		}
 		q2 := q.SuggestUsingBuilder(fn)
 		suggestionQueryResult := q2.ExecuteLazy(nil)
@@ -80,5 +80,5 @@ func TestSuggestionsLazy(t *testing.T) {
 	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
-	//suggestionsLazy_usingLinq(t)
+	suggestionsLazy_usingLinq(t)
 }
