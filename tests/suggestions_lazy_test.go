@@ -68,6 +68,7 @@ func suggestionsLazy_usingLinq(t *testing.T) {
 
 		assert.Equal(t, oldRequests+1, s.Advanced().GetNumberOfRequests())
 
+		s.Close()
 	}
 }
 

@@ -1090,7 +1090,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 	}
 
 	resultType := reflect.ValueOf(result).Type()
-	//fmt.Printf("getOperationResult: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
+	fmt.Printf("getOperationResult: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
 	if resultType == clazz {
 		return result, nil
 	}

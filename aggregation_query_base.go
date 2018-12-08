@@ -36,17 +36,24 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 	return q.processResults(command.Result, q._session.GetConventions())
 }
 
-/* TODO:
-func (q *AggregationQueryBase)      Lazy<map[string]*FacetResult> executeLazy() {
-        return executeLazy(null)
-    }
+// Lazy<map[string]*FacetResult>
+// arg to onEval is map[string]*FacetResult
+func (q *AggregationQueryBase) ExecuteLazy(onEval func(interface{})) *Lazy {
+	q._query = q.GetIndexQuery()
 
-func (q *AggregationQueryBase)      Lazy<map[string]*FacetResult> executeLazy(Consumer<map[string]*FacetResult> onEval) {
-        _query = getIndexQuery()
-        return ((DocumentSession)_session).addLazyOperation((Class<map[string]*FacetResult>)(Class<?>)Map.class,
-                new LazyAggregationQueryOperation( _session.getConventions(), _query, result -> invokeAfterQueryExecuted(result), this::processResults), onEval)
-    }
-*/
+	afterFn := func(result *QueryResult) {
+		q.invokeAfterQueryExecuted(result)
+	}
+
+	// TODO: returns error and change signature of NewLazyAggregationQueryOperation
+	processResultFn := func(queryResult *QueryResult, conventions *DocumentConventions) map[string]*FacetResult {
+		res, _ := q.processResults(queryResult, conventions)
+		return res
+	}
+	op := NewLazyAggregationQueryOperation(q._session.Conventions, q._query, afterFn, processResultFn)
+	clazz := reflect.TypeOf(map[string]*FacetResult{})
+	return q._session.session.addLazyOperation(clazz, op, onEval)
+}
 
 /*
 // abstract
