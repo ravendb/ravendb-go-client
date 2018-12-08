@@ -74,9 +74,53 @@ func lazy_canLazilyLoadEntity(t *testing.T) {
 	}
 }
 
-func lazy_canExecuteAllPendingLazyOperations(t *testing.T) {}
-func lazy_withQueuedActions_Load(t *testing.T)             {}
-func lazy_canUseCacheWhenLazyLoading(t *testing.T)         {}
+func lazy_canExecuteAllPendingLazyOperations(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		for i := 1; i <= 2; i++ {
+			company := &Company{
+				ID: fmt.Sprintf("companies/%d", i),
+			}
+			err = session.StoreWithID(company, company.ID)
+			assert.NoError(t, err)
+		}
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		var company1Ref *Company
+		var company2Ref *Company
+		query := session.Advanced().Lazily()
+		query.Load(reflect.TypeOf(&Company{}), "companies/1", func(v interface{}) {
+			c := v.(*Company)
+			company1Ref = c
+		})
+
+		query.Load(reflect.TypeOf(&Company{}), "companies/2", func(v interface{}) {
+			c := v.(*Company)
+			company2Ref = c
+		})
+
+		assert.Nil(t, company1Ref)
+		assert.Nil(t, company2Ref)
+
+		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
+		assert.NoError(t, err)
+		assert.Equal(t, company1Ref.ID, "companies/1")
+		assert.Equal(t, company2Ref.ID, "companies/2")
+
+	}
+}
+
+func lazy_withQueuedActions_Load(t *testing.T)     {}
+func lazy_canUseCacheWhenLazyLoading(t *testing.T) {}
 
 func TestLazy(t *testing.T) {
 	if dbTestsDisabled() {

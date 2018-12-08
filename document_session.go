@@ -220,6 +220,9 @@ func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOp
 	}
 	lazyValue := NewLazy(fn)
 	if onEval != nil {
+		if s.onEvaluateLazy == nil {
+			s.onEvaluateLazy = map[ILazyOperation]func(interface{}){}
+		}
 		fn := func(theResult interface{}) {
 			res, _ := s.getOperationResult(clazz, theResult)
 			onEval(res)
