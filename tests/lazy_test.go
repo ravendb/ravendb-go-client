@@ -150,11 +150,47 @@ func lazy_withQueuedActions_Load(t *testing.T) {
 		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
 		assert.NoError(t, err)
 		assert.Equal(t, *userRef.LastName, "Oren")
-
 	}
 }
 
-func lazy_canUseCacheWhenLazyLoading(t *testing.T) {}
+func lazy_canUseCacheWhenLazyLoading(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		user := User{}
+		user.setLastName("Oren")
+		err = session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		lazyUser := session.Advanced().Lazily().Load(reflect.TypeOf(&User{}), "users/1", nil)
+		assert.False(t, lazyUser.IsValueCreated())
+
+		userI, err := lazyUser.GetValue()
+		assert.NoError(t, err)
+		assert.NotNil(t, userI)
+	}
+
+	{
+		session := openSessionMust(t, store)
+		lazyUser := session.Advanced().Lazily().Load(reflect.TypeOf(&User{}), "users/1", nil)
+		assert.False(t, lazyUser.IsValueCreated())
+
+		userI, err := lazyUser.GetValue()
+		assert.NoError(t, err)
+		assert.NotNil(t, userI)
+		user := userI.(*User)
+		assert.Equal(t, *user.LastName, "Oren")
+	}
+}
 
 func TestLazy(t *testing.T) {
 	if dbTestsDisabled() {
