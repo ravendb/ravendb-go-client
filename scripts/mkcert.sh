@@ -5,7 +5,7 @@ set -u -e -o pipefail -o xtrace
 # run as: ./scripts/mkcert.sh
 
 # on mac must use password https://github.com/dotnet/corefx/issues/24225
-# password hard-coded here and in NewSecuredServiceLocator() see --Security.Certificate.Passwor
+# password hard-coded here and in NewSecuredServiceLocator() see --Security.Certificate.Password
 RAVEN_Security_Certificate_Password=pwd1234
 
 rm -rf ./certs

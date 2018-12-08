@@ -119,7 +119,41 @@ func lazy_canExecuteAllPendingLazyOperations(t *testing.T) {
 	}
 }
 
-func lazy_withQueuedActions_Load(t *testing.T)     {}
+func lazy_withQueuedActions_Load(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		user := User{}
+		user.setLastName("Oren")
+		err = session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		var userRef *User
+
+		query := session.Advanced().Lazily()
+		query.Load(reflect.TypeOf(&User{}), "users/1", func(v interface{}) {
+			userRef = v.(*User)
+		})
+
+		assert.Nil(t, userRef)
+
+		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
+		assert.NoError(t, err)
+		assert.Equal(t, *userRef.LastName, "Oren")
+
+	}
+}
+
 func lazy_canUseCacheWhenLazyLoading(t *testing.T) {}
 
 func TestLazy(t *testing.T) {
