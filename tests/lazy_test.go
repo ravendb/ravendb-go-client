@@ -88,7 +88,7 @@ func TestLazy(t *testing.T) {
 
 	// matches order of Java tests
 	lazy_canExecuteAllPendingLazyOperations(t)
-	//lazy_canLazilyLoadEntity(t)
+	lazy_canLazilyLoadEntity(t)
 	lazy_canUseCacheWhenLazyLoading(t)
 	lazy_withQueuedActions_Load(t)
 }

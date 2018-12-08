@@ -1060,6 +1060,10 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *
 	return nil
 }
 
+func isPtrStruct(t reflect.Type) bool {
+	return t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct
+}
+
 func isMapStringToPtrStruct(t reflect.Type) bool {
 	if t.Kind() != reflect.Map {
 		return false
@@ -1069,21 +1073,24 @@ func isMapStringToPtrStruct(t reflect.Type) bool {
 		return false
 	}
 
-	vt := t.Elem()
-	if vt.Kind() != reflect.Ptr || vt.Elem().Kind() != reflect.Struct {
-		return false
-	}
-
-	return true
+	return isPtrStruct(t.Elem())
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result interface{}) (interface{}, error) {
+	// result is map[string]interface{}, where interface{} is ptr-to-struct
+	// clazz describes what type the caller wanted ([]*struct, map[string]*struct or *struct)
+	// this converts result to type of clazz
+
+	//fmt.Printf("getOperationResult(): clazz is '%s', result is '%v' of type '%T'\n", clazz, result, result)
+
 	if result == nil {
-		return Defaults_defaultValue(clazz), nil
+		res := Defaults_defaultValue(clazz)
+		//fmt.Printf("getOperationResult(): returning result '%#v' of type 'T%s'\n", res, res)
+		return res, nil
 	}
 
 	resultType := reflect.ValueOf(result).Type()
-	//fmt.Printf(":: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
+	//fmt.Printf("getOperationResult: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
 	if resultType == clazz {
 		return result, nil
 	}
@@ -1094,6 +1101,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		if !ok {
 			return nil, fmt.Errorf("result is '%T' and not []interface{}", result)
 		}
+		// Note: this might be different than Java due to randomized map tranversal in Go
 		for _, el := range arr {
 			// TODO: don't panic if el type != clazz.Elem() type
 			v := reflect.ValueOf(el)
@@ -1102,39 +1110,50 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		return res.Interface(), nil
 	}
 
-	if !isMapStringToPtrStruct(clazz) {
-		return nil, fmt.Errorf("expected clazz to be []*Type or map[string]*Type, is '%s'", clazz)
-	}
-
 	resultMap, ok := result.(map[string]interface{})
 	if !ok {
 		return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %T", result)
 	}
 
-	if false {
-		resultType := reflect.ValueOf(result).Type()
-		fmt.Printf("clazzType: %s, resultType: %s\n", clazz.String(), resultType)
-	}
+	if isMapStringToPtrStruct(clazz) {
+		mapValueType := clazz.Elem()
+		mapType := reflect.MapOf(stringType, mapValueType)
+		m := reflect.MakeMap(mapType)
 
-	mapValueType := clazz.Elem()
-	mapType := reflect.MapOf(stringType, mapValueType)
-	m := reflect.MakeMap(mapType)
+		if len(resultMap) == 0 {
+			res := m.Interface()
+			//fmt.Printf("getOperationResult(): returning result '%#v' of type 'T%s'\n", res, res)
+			return res, nil
+		}
 
-	if len(resultMap) == 0 {
+		// Note: if the value in the database for a give id doesn't exist,
+		// result has the key with nil value and we preserve that to match Java
+		for k, v := range resultMap {
+			//fmt.Printf("k: '%s', vt: '%T', v: '%v'\n", k, v, v)
+			key := reflect.ValueOf(k)
+			res := reflect.ValueOf(v)
+			m.SetMapIndex(key, res)
+		}
+
 		return m.Interface(), nil
 	}
 
-	for k, v := range resultMap {
-		fmt.Printf("k: '%s', vt: '%T', v: '%s'\n", k, v, v)
-		key := reflect.ValueOf(k)
-		res := reflect.ValueOf(v)
-		if res.IsNil() {
-			return nil, fmt.Errorf("value for key '%s' is nil", k)
-		}
-		m.SetMapIndex(key, res)
+	if !isPtrStruct(clazz) {
+		return nil, NewIllegalStateException("expected clazz to be of type ptr-to-struct, is: %T", clazz)
 	}
 
-	return m.Interface(), nil
+	if len(resultMap) == 0 {
+		return nil, nil
+	}
+
+	for _, v := range resultMap {
+		//fmt.Printf("getOperationResult: v: '%v' v type: '%T', clazz: %s\n", v, v, clazz)
+		// TODO: assert that type of v is the same as clazz?
+		return v, nil
+	}
+
+	fmt.Printf("getOperationResult(): returning nil, clazz is '%s', result is '%v' of type '%T'\n", clazz, result, result)
+	return nil, nil
 }
 
 func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
