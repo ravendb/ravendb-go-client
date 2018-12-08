@@ -25,6 +25,7 @@ func suggestions_setup(t *testing.T, store *ravendb.IDocumentStore) {
 	indexDefinition.Fields["name"] = indexFieldOptions
 
 	err = store.Maintenance().Send(ravendb.NewPutIndexesOperation(indexDefinition))
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)

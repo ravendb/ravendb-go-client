@@ -17,6 +17,6 @@ $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$PSScriptRoot\..\RavenDB\Server\Raven.Serv
 go.exe clean -testcache
 
 #go.exe test -v -vet=off -timeout 30s ./tests -run ^TestRavenDB8761$
-go.exe test -v -timeout 30s ./tests -run ^TestLazy$
+go.exe test -v -timeout 30s ./tests -run ^TestSuggestionsLazy$
 
 #go.exe test -vet=off -v -timeout 30s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
