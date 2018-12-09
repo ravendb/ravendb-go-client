@@ -66,7 +66,7 @@ func (q *DocumentQuery) WaitForNonStaleResults(waitTimeout time.Duration) *Docum
 	return q
 }
 
-func (q *DocumentQuery) AddParameter(name string, value Object) *IDocumentQuery {
+func (q *DocumentQuery) AddParameter(name string, value interface{}) *IDocumentQuery {
 	q._addParameter(name, value)
 	return q
 }
@@ -138,14 +138,14 @@ func (q *DocumentQuery) Intersect() *IDocumentQuery {
 	return q
 }
 
-func (q *DocumentQuery) ContainsAny(fieldName string, values []Object) *DocumentQuery {
+func (q *DocumentQuery) ContainsAny(fieldName string, values []interface{}) *DocumentQuery {
 	q._containsAny(fieldName, values)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> ContainsAny<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values)
 
-func (q *DocumentQuery) ContainsAll(fieldName string, values []Object) *DocumentQuery {
+func (q *DocumentQuery) ContainsAll(fieldName string, values []interface{}) *DocumentQuery {
 	q._containsAll(fieldName, values)
 	return q
 }
@@ -201,7 +201,7 @@ func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *IDocu
 	return q
 }
 
-func (q *DocumentQuery) WhereEquals(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereEquals(fieldName string, value interface{}) *DocumentQuery {
 	q._whereEquals(fieldName, value)
 	return q
 }
@@ -225,7 +225,7 @@ func (q *DocumentQuery) WhereEqualsWithParams(whereParams *whereParams) *Documen
 	return q
 }
 
-func (q *DocumentQuery) WhereNotEquals(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereNotEquals(fieldName string, value interface{}) *DocumentQuery {
 	q._whereNotEquals(fieldName, value)
 	return q
 }
@@ -243,38 +243,38 @@ func (q *DocumentQuery) WhereNotEqualsWithParams(whereParams *whereParams) *Docu
 	return q
 }
 
-func (q *DocumentQuery) WhereIn(fieldName string, values []Object) *DocumentQuery {
+func (q *DocumentQuery) WhereIn(fieldName string, values []interface{}) *DocumentQuery {
 	q._whereIn(fieldName, values)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereIn<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values, bool exact = false)
 
-func (q *DocumentQuery) WhereStartsWith(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereStartsWith(fieldName string, value interface{}) *DocumentQuery {
 	q._whereStartsWith(fieldName, value)
 	return q
 }
 
-func (q *DocumentQuery) WhereEndsWith(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereEndsWith(fieldName string, value interface{}) *DocumentQuery {
 	q._whereEndsWith(fieldName, value)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereEndsWith<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value)
 
-func (q *DocumentQuery) WhereBetween(fieldName string, start Object, end Object) *DocumentQuery {
+func (q *DocumentQuery) WhereBetween(fieldName string, start interface{}, end interface{}) *DocumentQuery {
 	q._whereBetween(fieldName, start, end)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereBetween<TValue>(Expression<Func<T, TValue>> propertySelector, TValue start, TValue end, bool exact = false)
 
-func (q *DocumentQuery) WhereGreaterThan(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereGreaterThan(fieldName string, value interface{}) *DocumentQuery {
 	q._whereGreaterThan(fieldName, value)
 	return q
 }
 
-func (q *DocumentQuery) WhereGreaterThanOrEqual(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereGreaterThanOrEqual(fieldName string, value interface{}) *DocumentQuery {
 	q._whereGreaterThanOrEqual(fieldName, value)
 	return q
 }
@@ -282,14 +282,14 @@ func (q *DocumentQuery) WhereGreaterThanOrEqual(fieldName string, value Object) 
 //TBD expr  IDocumentQuery<T> WhereGreaterThan<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 //TBD expr  IDocumentQuery<T> WhereGreaterThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
-func (q *DocumentQuery) WhereLessThan(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereLessThan(fieldName string, value interface{}) *DocumentQuery {
 	q._whereLessThan(fieldName, value)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereLessThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
-func (q *DocumentQuery) WhereLessThanOrEqual(fieldName string, value Object) *DocumentQuery {
+func (q *DocumentQuery) WhereLessThanOrEqual(fieldName string, value interface{}) *DocumentQuery {
 	q._whereLessThanOrEqual(fieldName, value)
 	return q
 }

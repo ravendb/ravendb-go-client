@@ -13,7 +13,7 @@ type JavaScriptArray struct {
 	pathToArray string
 
 	scriptLines []string
-	Parameters  map[string]Object
+	Parameters  map[string]interface{}
 }
 
 // NewJavaScriptArray creates a new JavaScriptArray
@@ -21,7 +21,7 @@ func NewJavaScriptArray(suffix int, pathToArray string) *JavaScriptArray {
 	return &JavaScriptArray{
 		suffix:      suffix,
 		pathToArray: pathToArray,
-		Parameters:  map[string]Object{},
+		Parameters:  map[string]interface{}{},
 	}
 }
 

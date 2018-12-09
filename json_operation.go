@@ -237,7 +237,7 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 	return changed
 }
 
-func JsonOperation_newChange(name string, newValue Object, oldValue Object, docChanges *[]*DocumentsChanges, change ChangeType) {
+func JsonOperation_newChange(name string, newValue interface{}, oldValue interface{}, docChanges *[]*DocumentsChanges, change ChangeType) {
 	documentsChanges := NewDocumentsChanges()
 	documentsChanges.setFieldName(name)
 	documentsChanges.setFieldNewValue(newValue)

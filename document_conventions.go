@@ -16,7 +16,7 @@ var (
 	DocumentConventions_identityPropertyName = "ID"
 )
 
-type DocumentIDGeneratorFunc func(dbName string, entity Object) string
+type DocumentIDGeneratorFunc func(dbName string, entity interface{}) string
 
 // DocumentConventions describes document conventions
 type DocumentConventions struct {
@@ -76,7 +76,7 @@ func (c *DocumentConventions) Freeze() {
 	c._frozen = true
 }
 
-func (c *DocumentConventions) GetCollectionName(entityOrClazz Object) string {
+func (c *DocumentConventions) GetCollectionName(entityOrClazz interface{}) string {
 	return DefaultGetCollectionName(entityOrClazz)
 }
 
@@ -172,7 +172,7 @@ func (c *DocumentConventions) SetDocumentIdGenerator(documentIdGenerator Documen
 }
 
 // Generates the document id.
-func (c *DocumentConventions) GenerateDocumentId(databaseName string, entity Object) string {
+func (c *DocumentConventions) GenerateDocumentId(databaseName string, entity interface{}) string {
 	return c._documentIdGenerator(databaseName, entity)
 }
 
@@ -200,7 +200,7 @@ func (c *DocumentConventions) DeserializeEntityFromJson(documentType reflect.Typ
 	return res, nil
 }
 
-func (c *DocumentConventions) TryConvertValueForQuery(fieldName string, value Object, forRange bool, stringValue *string) bool {
+func (c *DocumentConventions) TryConvertValueForQuery(fieldName string, value interface{}, forRange bool, stringValue *string) bool {
 	// TODO: implement me
 	// Tested by CustomSerializationTest
 	/*

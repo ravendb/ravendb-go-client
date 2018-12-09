@@ -26,7 +26,7 @@ func (f *RangeFacet) setRanges(ranges []string) {
 	f.ranges = ranges
 }
 
-func (f *RangeFacet) ToFacetToken(addQueryParameter func(Object) string) *facetToken {
+func (f *RangeFacet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
 	if f._parent != nil {
 		return f._parent.ToFacetToken(addQueryParameter)
 	}

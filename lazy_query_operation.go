@@ -13,7 +13,7 @@ type LazyQueryOperation struct {
 	_queryOperation     *QueryOperation
 	_afterQueryExecuted []func(*QueryResult)
 
-	result        Object
+	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
@@ -36,11 +36,11 @@ func (o *LazyQueryOperation) createRequest() *GetRequest {
 	}
 }
 
-func (o *LazyQueryOperation) getResult() Object {
+func (o *LazyQueryOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyQueryOperation) setResult(result Object) {
+func (o *LazyQueryOperation) setResult(result interface{}) {
 	o.result = result
 }
 

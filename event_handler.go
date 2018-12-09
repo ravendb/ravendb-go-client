@@ -1,5 +1,5 @@
 package ravendb
 
 type EventHandler interface {
-	handle(sender Object, event interface{})
+	handle(sender interface{}, event interface{})
 }

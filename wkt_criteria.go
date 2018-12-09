@@ -14,10 +14,10 @@ func NewWktCriteria(shapeWkt string, relation SpatialRelation, distErrorPercent 
 	return res
 }
 
-func (c *WktCriteria) ToQueryToken(fieldName string, addQueryParameter func(Object) string) queryToken {
+func (c *WktCriteria) ToQueryToken(fieldName string, addQueryParameter func(interface{}) string) queryToken {
 	return c.SpatialCriteriaCommon.toQueryTokenCommon(c, fieldName, addQueryParameter)
 }
 
-func (c *WktCriteria) GetShapeToken(addQueryParameter func(Object) string) *shapeToken {
+func (c *WktCriteria) GetShapeToken(addQueryParameter func(interface{}) string) *shapeToken {
 	return ShapeToken_wkt(addQueryParameter(c._shapeWkt))
 }

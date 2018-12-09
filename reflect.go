@@ -308,6 +308,6 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 
 // TODO: temporary name to match Java
 // TODO: include github.com/jinzhu/copier to avoid dependency
-func BeanUtils_copyProperties(dest Object, src Object) error {
+func BeanUtils_copyProperties(dest interface{}, src interface{}) error {
 	return copier.Copy(dest, src)
 }

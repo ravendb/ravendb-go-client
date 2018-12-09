@@ -6,7 +6,7 @@ import (
 
 type EntityToJson struct {
 	_session           *InMemoryDocumentSessionOperations
-	_missingDictionary map[Object]map[string]Object
+	_missingDictionary map[interface{}]map[string]interface{}
 	//private final Map<Object, Map<string, Object>> _missingDictionary = new TreeMap<>((o1, o2) -> o1 == o2 ? 0 : 1);
 }
 
@@ -17,11 +17,11 @@ func NewEntityToJson(session *InMemoryDocumentSessionOperations) *EntityToJson {
 	}
 }
 
-func (e *EntityToJson) getMissingDictionary() map[Object]map[string]Object {
+func (e *EntityToJson) getMissingDictionary() map[interface{}]map[string]interface{} {
 	return e._missingDictionary
 }
 
-func EntityToJson_convertEntityToJson(entity Object, documentInfo *DocumentInfo) ObjectNode {
+func EntityToJson_convertEntityToJson(entity interface{}, documentInfo *DocumentInfo) ObjectNode {
 	// maybe we don't need to do anything?
 	if v, ok := entity.(ObjectNode); ok {
 		return v
@@ -75,7 +75,7 @@ func (e *EntityToJson) ConvertToEntity2(result interface{}, id string, document 
 }
 
 // Converts a json object to an entity.
-func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) (Object, error) {
+func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) (interface{}, error) {
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}

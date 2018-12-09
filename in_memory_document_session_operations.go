@@ -103,7 +103,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		deferredCommandsMap:           make(map[IdTypeAndName]ICommandData),
 	}
 
-	genIDFunc := func(entity Object) string {
+	genIDFunc := func(entity interface{}) string {
 		return res.GenerateId(entity)
 	}
 	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.conventions, genIDFunc)
@@ -172,7 +172,7 @@ func (s *InMemoryDocumentSessionOperations) GetDatabaseName() string {
 	return s.databaseName
 }
 
-func (s *InMemoryDocumentSessionOperations) GenerateId(entity Object) string {
+func (s *InMemoryDocumentSessionOperations) GenerateId(entity interface{}) string {
 	return s.GetConventions().GenerateDocumentId(s.GetDatabaseName(), entity)
 }
 
@@ -502,7 +502,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 }
 
 // Store stores entity in the session. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) Store(entity Object) error {
+func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
 	_, hasID := s.generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
 	concu := ConcurrencyCheck_AUTO
 	if !hasID {
@@ -512,12 +512,12 @@ func (s *InMemoryDocumentSessionOperations) Store(entity Object) error {
 }
 
 // StoreWithID stores  entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreWithID(entity Object, id string) error {
+func (s *InMemoryDocumentSessionOperations) StoreWithID(entity interface{}, id string) error {
 	return s.storeInternal(entity, nil, id, ConcurrencyCheck_AUTO)
 }
 
 // StoreWithChangeVectorAndID stores entity in the session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity Object, changeVector *string, id string) error {
+func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity interface{}, changeVector *string, id string) error {
 	concurr := ConcurrencyCheck_DISABLED
 	if changeVector != nil {
 		concurr = ConcurrencyCheck_FORCED
@@ -527,12 +527,12 @@ func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity Ob
 }
 
 // TODO: should this return an error?
-func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneration(entity Object) {
+func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneration(entity interface{}) {
 	err := NewNotImplementedException("You cannot set GenerateDocumentIdsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
 	must(err)
 }
 
-func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
+func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
 		return NewIllegalArgumentException("Entity cannot be null")
 	}
@@ -589,7 +589,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity Object, changeV
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, entity Object, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
 		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
@@ -609,7 +609,7 @@ func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, e
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity Object, id string) error {
+func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity interface{}, id string) error {
 	nLastChar := len(id) - 1
 	if len(id) == 0 || id[nLastChar] == '|' || id[nLastChar] == '/' {
 		return nil
@@ -845,7 +845,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 }
 
 // Determines whether the specified entity has changed.
-func (s *InMemoryDocumentSessionOperations) HasChanged(entity Object) bool {
+func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) bool {
 	documentInfo := s.documentsByEntity[entity]
 
 	if documentInfo == nil {
@@ -867,14 +867,14 @@ func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[st
 
 // Mark the entity as one that should be ignore for change tracking purposes,
 // it still takes part in the session, but is ignored for SaveChanges.
-func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity Object) {
+func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity interface{}) {
 	docInfo, _ := s.GetDocumentInfo(entity)
 	docInfo.ignoreChanges = true
 }
 
 // Evicts the specified entity from the session.
 // Remove the entity from the delete queue and stops tracking changes for this entity.
-func (s *InMemoryDocumentSessionOperations) Evict(entity Object) {
+func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) {
 	documentInfo := s.documentsByEntity[entity]
 	if documentInfo != nil {
 		delete(s.documentsByEntity, entity)
@@ -1032,7 +1032,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 	return true
 }
 
-func (s *InMemoryDocumentSessionOperations) refreshInternal(entity Object, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
+func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
 	document := cmd.Result.Results[0]
 	if document == nil {
 		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.id)
@@ -1192,7 +1192,7 @@ type SaveChangesData struct {
 	deferredCommands    []ICommandData
 	deferredCommandsMap map[IdTypeAndName]ICommandData
 	sessionCommands     []ICommandData
-	entities            []Object
+	entities            []interface{}
 	options             *BatchOptions
 }
 
@@ -1212,7 +1212,7 @@ func (d *SaveChangesData) GetSessionCommands() []ICommandData {
 	return d.sessionCommands
 }
 
-func (d *SaveChangesData) GetEntities() []Object {
+func (d *SaveChangesData) GetEntities() []interface{} {
 	return d.entities
 }
 
@@ -1228,7 +1228,7 @@ func (d *SaveChangesData) AddSessionCommandData(cmd ICommandData) {
 	d.sessionCommands = append(d.sessionCommands, cmd)
 }
 
-func (d *SaveChangesData) AddEntity(entity Object) {
+func (d *SaveChangesData) AddEntity(entity interface{}) {
 	d.entities = append(d.entities, entity)
 }
 

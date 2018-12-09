@@ -5,10 +5,10 @@ type AfterSaveChangesEventArgs struct {
 
 	Session    *InMemoryDocumentSessionOperations
 	DocumentId string
-	Entity     Object
+	Entity     interface{}
 }
 
-func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity Object) *AfterSaveChangesEventArgs {
+func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity interface{}) *AfterSaveChangesEventArgs {
 	return &AfterSaveChangesEventArgs{
 		Session:    session,
 		DocumentId: documentId,

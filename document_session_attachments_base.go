@@ -16,7 +16,7 @@ func NewDocumentSessionAttachmentsBase(session *InMemoryDocumentSessionOperation
 	return res
 }
 
-func (s *DocumentSessionAttachmentsBase) GetNames(entity Object) ([]*AttachmentName, error) {
+func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*AttachmentName, error) {
 	if entity == nil {
 		return nil, nil
 	}
@@ -81,7 +81,7 @@ func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, s
 	return nil
 }
 
-func (s *DocumentSessionAttachmentsBase) StoreEntity(entity Object, name string, stream io.Reader, contentType string) error {
+func (s *DocumentSessionAttachmentsBase) StoreEntity(entity interface{}, name string, stream io.Reader, contentType string) error {
 	document := s.documentsByEntity[entity]
 	if document == nil {
 		return throwEntityNotInSession(entity)
@@ -90,7 +90,7 @@ func (s *DocumentSessionAttachmentsBase) StoreEntity(entity Object, name string,
 	return s.Store(document.id, name, stream, contentType)
 }
 
-func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity Object, name string) error {
+func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name string) error {
 	document := s.documentsByEntity[entity]
 	if document == nil {
 		return throwEntityNotInSession(entity)
@@ -129,6 +129,6 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) 
 	return nil
 }
 
-func throwEntityNotInSession(entity Object) *IllegalArgumentException {
+func throwEntityNotInSession(entity interface{}) *IllegalArgumentException {
 	return NewIllegalArgumentException("%v is not associated with the session. Use documentId instead or track the entity in the session.", entity)
 }

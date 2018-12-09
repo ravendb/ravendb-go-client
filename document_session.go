@@ -102,7 +102,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	return ok, nil
 }
 
-func (s *DocumentSession) Refresh(entity Object) error {
+func (s *DocumentSession) Refresh(entity interface{}) error {
 	documentInfo := s.documentsByEntity[entity]
 	if documentInfo == nil {
 		return NewIllegalStateException("Cannot refresh a transient instance")
@@ -532,8 +532,8 @@ func (s *DocumentSession) tryMergePatches(id string, patchRequest *PatchRequest)
 	return true
 }
 
-func cloneMapStringObject(m map[string]Object) map[string]Object {
-	res := map[string]Object{}
+func cloneMapStringObject(m map[string]interface{}) map[string]interface{} {
+	res := map[string]interface{}{}
 	for k, v := range m {
 		res[k] = v
 	}

@@ -343,7 +343,7 @@ func (s *DocumentStore) Initialize() error {
 	if conventions.GetDocumentIdGenerator() == nil {
 		generator := NewMultiDatabaseHiLoIdGenerator(s, s.GetConventions())
 		s._multiDbHiLo = generator
-		genID := func(dbName string, entity Object) string {
+		genID := func(dbName string, entity interface{}) string {
 			return generator.GenerateDocumentID(dbName, entity)
 		}
 		conventions.SetDocumentIdGenerator(genID)

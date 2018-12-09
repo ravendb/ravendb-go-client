@@ -14,7 +14,7 @@ func NewGenericRangeFacet(parent FacetBase) *GenericRangeFacet {
 	}
 }
 
-func GenericRangeFacet_parse(rangeBuilder *RangeBuilder, addQueryParameter func(Object) string) string {
+func GenericRangeFacet_parse(rangeBuilder *RangeBuilder, addQueryParameter func(interface{}) string) string {
 	return rangeBuilder.GetStringRepresentation(addQueryParameter)
 }
 
@@ -26,7 +26,7 @@ func (f *GenericRangeFacet) setRanges(ranges []*RangeBuilder) {
 	f.ranges = ranges
 }
 
-func (f *GenericRangeFacet) ToFacetToken(addQueryParameter func(Object) string) *facetToken {
+func (f *GenericRangeFacet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
 	if f._parent != nil {
 		return f._parent.ToFacetToken(addQueryParameter)
 	}

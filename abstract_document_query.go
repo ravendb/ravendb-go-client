@@ -112,7 +112,7 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 		loadTokens:               loadTokens,
 		theSession:               session,
 		_aliasToGroupByFieldName: make(map[string]string),
-		queryParameters:          make(map[string]Object),
+		queryParameters:          make(map[string]interface{}),
 		queryStats:               NewQueryStatistics(),
 	}
 	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
@@ -138,7 +138,7 @@ func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexN
 		loadTokens:               loadTokens,
 		theSession:               session,
 		_aliasToGroupByFieldName: make(map[string]string),
-		queryParameters:          make(map[string]Object),
+		queryParameters:          make(map[string]interface{}),
 		queryStats:               NewQueryStatistics(),
 	}
 	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
@@ -220,7 +220,7 @@ func (q *AbstractDocumentQuery) assertNoRawQuery() {
 	panicIf(q.queryRaw != "", "RawQuery was called, cannot modify this query by calling on operations that would modify the query (such as Where, Select, OrderBy, GroupBy, etc)")
 }
 
-func (q *AbstractDocumentQuery) _addParameter(name string, value Object) {
+func (q *AbstractDocumentQuery) _addParameter(name string, value interface{}) {
 	name = strings.TrimPrefix(name, "$")
 	if _, ok := q.queryParameters[name]; ok {
 		// throw new IllegalStateException("The parameter " + name + " was already added");
@@ -320,7 +320,7 @@ func (q *AbstractDocumentQuery) _moreLikeThis() *MoreLikeThisScope {
 	q.whereTokens = append(q.whereTokens, token)
 
 	q._isInMoreLikeThis = true
-	add := func(o Object) string {
+	add := func(o interface{}) string {
 		return q.addQueryParameter(o)
 	}
 	onDispose := func() {
@@ -436,7 +436,7 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *w
 	return false
 }
 
-func (q *AbstractDocumentQuery) _whereNotEquals(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereNotEquals(fieldName string, value interface{}) {
 	params := &whereParams{
 		fieldName: fieldName,
 		value:     value,
@@ -500,7 +500,7 @@ func (q *AbstractDocumentQuery) markLastTokenExact() {
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []Object) {
+func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -514,7 +514,7 @@ func (q *AbstractDocumentQuery) _whereIn(fieldName string, values []Object) {
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value interface{}) {
 	whereParams := &whereParams{
 		fieldName:      fieldName,
 		value:          value,
@@ -536,7 +536,7 @@ func (q *AbstractDocumentQuery) _whereStartsWith(fieldName string, value Object)
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value interface{}) {
 	whereParams := &whereParams{
 		fieldName:      fieldName,
 		value:          value,
@@ -558,7 +558,7 @@ func (q *AbstractDocumentQuery) _whereEndsWith(fieldName string, value Object) {
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereBetween(fieldName string, start Object, end Object) {
+func (q *AbstractDocumentQuery) _whereBetween(fieldName string, start interface{}, end interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -595,7 +595,7 @@ func (q *AbstractDocumentQuery) _whereBetween(fieldName string, start Object, en
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereGreaterThan(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereGreaterThan(fieldName string, value interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -620,7 +620,7 @@ func (q *AbstractDocumentQuery) _whereGreaterThan(fieldName string, value Object
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereGreaterThanOrEqual(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereGreaterThanOrEqual(fieldName string, value interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -646,7 +646,7 @@ func (q *AbstractDocumentQuery) _whereGreaterThanOrEqual(fieldName string, value
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereLessThan(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereLessThan(fieldName string, value interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -670,7 +670,7 @@ func (q *AbstractDocumentQuery) _whereLessThan(fieldName string, value Object) {
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _whereLessThanOrEqual(fieldName string, value Object) {
+func (q *AbstractDocumentQuery) _whereLessThanOrEqual(fieldName string, value interface{}) {
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
@@ -1003,7 +1003,7 @@ func (q *AbstractDocumentQuery) _whereExists(fieldName string) {
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _containsAny(fieldName string, values []Object) {
+func (q *AbstractDocumentQuery) _containsAny(fieldName string, values []interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -1018,7 +1018,7 @@ func (q *AbstractDocumentQuery) _containsAny(fieldName string, values []Object) 
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []Object) {
+func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []interface{}) {
 	fieldName = q.ensureValidFieldName(fieldName, false)
 
 	tokensRef := q.getCurrentWhereTokensRef()
@@ -1210,10 +1210,10 @@ func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) 
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) transformCollection(fieldName string, values []Object) []Object {
-	var result []Object
+func (q *AbstractDocumentQuery) transformCollection(fieldName string, values []interface{}) []interface{} {
+	var result []interface{}
 	for _, value := range values {
-		if collectionValue, ok := value.([]Object); ok {
+		if collectionValue, ok := value.([]interface{}); ok {
 			tmp := q.transformCollection(fieldName, collectionValue)
 			result = append(result, tmp...)
 		} else {
@@ -1256,11 +1256,11 @@ func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]queryToken, fieldNam
 	*tokensRef = tokens
 }
 
-func AbstractDocumentQuery_unpackCollection(items []Object) []Object {
-	var results []Object
+func AbstractDocumentQuery_unpackCollection(items []interface{}) []interface{} {
+	var results []interface{}
 
 	for _, item := range items {
-		if itemCollection, ok := item.([]Object); ok {
+		if itemCollection, ok := item.([]interface{}); ok {
 			els := AbstractDocumentQuery_unpackCollection(itemCollection)
 			results = append(results, els...)
 		} else {
@@ -1304,11 +1304,11 @@ func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedP
 	return QueryFieldUtil_escapeIfNecessary(fieldName)
 }
 
-func (q *AbstractDocumentQuery) transformValue(whereParams *whereParams) Object {
+func (q *AbstractDocumentQuery) transformValue(whereParams *whereParams) interface{} {
 	return q.transformValueWithRange(whereParams, false)
 }
 
-func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *whereParams, forRange bool) Object {
+func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *whereParams, forRange bool) interface{} {
 	if whereParams.value == nil {
 		return nil
 	}
@@ -1333,7 +1333,7 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *whereParams
 	return whereParams.value
 }
 
-func (q *AbstractDocumentQuery) addQueryParameter(value Object) string {
+func (q *AbstractDocumentQuery) addQueryParameter(value interface{}) string {
 	parameterName := "p" + strconv.Itoa(len(q.queryParameters))
 	q.queryParameters[parameterName] = value
 	return parameterName
@@ -1756,7 +1756,7 @@ func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
 		panicIf(true, "Aggregation query can select only facets while it got %T token", token)
 	}
 
-	add := func(o Object) string {
+	add := func(o interface{}) string {
 		return q.addQueryParameter(o)
 	}
 	q.selectTokens = append(q.selectTokens, FacetToken_createWithFacetBase(facet, add))

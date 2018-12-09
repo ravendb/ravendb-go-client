@@ -86,11 +86,11 @@ func (o *LazyLoadOperation) withIncludes(includes []string) *LazyLoadOperation {
 	return o
 }
 
-func (o *LazyLoadOperation) getResult() Object {
+func (o *LazyLoadOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyLoadOperation) setResult(result Object) {
+func (o *LazyLoadOperation) setResult(result interface{}) {
 	o.result = result
 }
 

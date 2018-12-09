@@ -4,6 +4,6 @@ type MethodCall interface {
 }
 
 type MethodCallData struct {
-	args       []Object
+	args       []interface{}
 	accessPath string
 }

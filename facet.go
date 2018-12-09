@@ -22,6 +22,6 @@ func (f *Facet) SetFieldName(fieldName string) {
 	f.fieldName = fieldName
 }
 
-func (f *Facet) ToFacetToken(addQueryParameter func(Object) string) *facetToken {
+func (f *Facet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
 	return createFacetTokenWithFacet(f, addQueryParameter)
 }

@@ -5,7 +5,7 @@ import "encoding/json"
 var _ ILazyOperation = &LazySuggestionQueryOperation{}
 
 type LazySuggestionQueryOperation struct {
-	result        Object
+	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 
@@ -34,7 +34,7 @@ func (o *LazySuggestionQueryOperation) createRequest() *GetRequest {
 	}
 }
 
-func (o *LazySuggestionQueryOperation) getResult() Object {
+func (o *LazySuggestionQueryOperation) getResult() interface{} {
 	return o.result
 }
 

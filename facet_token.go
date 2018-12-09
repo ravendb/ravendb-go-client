@@ -95,7 +95,7 @@ func createFacetToken(facetSetupDocumentId string) *facetToken {
 	return NewFacetTokenWithID(facetSetupDocumentId)
 }
 
-func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(Object) string) *facetToken {
+func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 	token := NewFacetTokenAll(facet.GetFieldName(), facet.GetDisplayFieldName(), nil, optionsParameterName)
 
@@ -103,7 +103,7 @@ func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(Object) stri
 	return token
 }
 
-func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(Object) string) *facetToken {
+func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
 	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), facet.getRanges(), optionsParameterName)
@@ -113,7 +113,7 @@ func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(Ob
 	return token
 }
 
-func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(Object) string) *facetToken {
+func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
 	var ranges []string
@@ -127,7 +127,7 @@ func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryPa
 	return token
 }
 
-func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(Object) string) *facetToken {
+func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(interface{}) string) *facetToken {
 	// this is just a dispatcher
 	return facet.ToFacetToken(addQueryParameter)
 }
@@ -155,7 +155,7 @@ func applyAggregations(facet FacetBase, token *facetToken) {
 	}
 }
 
-func getOptionsParameterName(facet FacetBase, addQueryParameter func(Object) string) string {
+func getOptionsParameterName(facet FacetBase, addQueryParameter func(interface{}) string) string {
 	if facet.GetOptions() == nil || facet.GetOptions() == FacetOptions_getDefaultOptions() {
 		return ""
 	}

@@ -8,9 +8,6 @@ import (
 	"strings"
 )
 
-// TODO: remove it, it only exists to make initial porting faster
-type Object = interface{}
-
 var (
 	// if true, does verbose logging.
 	// can be enabled by setting VERBOSE_LOG env variable to "true"

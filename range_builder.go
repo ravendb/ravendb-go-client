@@ -79,7 +79,7 @@ func (b *RangeBuilder) IsGreaterThanOrEqualTo(value interface{}) *RangeBuilder {
 	return clone
 }
 
-func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(Object) string) string {
+func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(interface{}) string) string {
 	var less string
 	var greater string
 

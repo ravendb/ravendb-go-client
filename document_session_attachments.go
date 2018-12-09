@@ -32,7 +32,7 @@ func (s *DocumentSessionAttachments) Get(documentId string, name string) (*Close
 	return res, nil
 }
 
-func (s *DocumentSessionAttachments) GetEntity(entity Object, name string) (*CloseableAttachmentResult, error) {
+func (s *DocumentSessionAttachments) GetEntity(entity interface{}, name string) (*CloseableAttachmentResult, error) {
 	document := s.documentsByEntity[entity]
 	if document == nil {
 		return nil, throwEntityNotInSession(entity)

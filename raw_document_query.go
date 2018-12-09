@@ -97,7 +97,7 @@ func (q *RawDocumentQuery) RemoveAfterStreamExecutedListener(idx int) *IRawDocum
 	return q
 }
 
-func (q *RawDocumentQuery) AddParameter(name string, value Object) *IRawDocumentQuery {
+func (q *RawDocumentQuery) AddParameter(name string, value interface{}) *IRawDocumentQuery {
 	q._addParameter(name, value)
 	return q
 }

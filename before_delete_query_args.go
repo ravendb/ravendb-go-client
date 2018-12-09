@@ -5,10 +5,10 @@ type BeforeDeleteEventArgs struct {
 
 	session    *InMemoryDocumentSessionOperations
 	documentId string
-	entity     Object
+	entity     interface{}
 }
 
-func NewBeforeDeleteEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity Object) *BeforeDeleteEventArgs {
+func NewBeforeDeleteEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity interface{}) *BeforeDeleteEventArgs {
 	return &BeforeDeleteEventArgs{
 		session:    session,
 		documentId: documentId,
@@ -24,7 +24,7 @@ func (a *BeforeDeleteEventArgs) GetDocumentID() string {
 	return a.documentId
 }
 
-func (a *BeforeDeleteEventArgs) getEntity() Object {
+func (a *BeforeDeleteEventArgs) getEntity() interface{} {
 	return a.entity
 }
 

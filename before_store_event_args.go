@@ -5,10 +5,10 @@ type BeforeStoreEventArgs struct {
 
 	session    *InMemoryDocumentSessionOperations
 	documentId string
-	entity     Object
+	entity     interface{}
 }
 
-func NewBeforeStoreEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity Object) *BeforeStoreEventArgs {
+func NewBeforeStoreEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity interface{}) *BeforeStoreEventArgs {
 	return &BeforeStoreEventArgs{
 		session:    session,
 		documentId: documentId,
@@ -24,7 +24,7 @@ func (a *BeforeStoreEventArgs) GetDocumentID() string {
 	return a.documentId
 }
 
-func (a *BeforeStoreEventArgs) getEntity() Object {
+func (a *BeforeStoreEventArgs) getEntity() interface{} {
 	return a.entity
 }
 

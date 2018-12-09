@@ -53,7 +53,7 @@ func (g *HiLoIDGenerator) GetDocumentIDFromID(nextID int) string {
 }
 
 // GenerateDocumentID returns next key
-func (g *HiLoIDGenerator) GenerateDocumentID(entity Object) string {
+func (g *HiLoIDGenerator) GenerateDocumentID(entity interface{}) string {
 	// TODO: propagate error
 	id, _ := g.NextID()
 	return g.GetDocumentIDFromID(id)

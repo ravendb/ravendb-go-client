@@ -1,6 +1,6 @@
 package ravendb
 
-type GenIDFunc func(Object) string
+type GenIDFunc func(interface{}) string
 
 type GenerateEntityIdOnTheClient struct {
 	_conventions *DocumentConventions
@@ -15,13 +15,13 @@ func NewGenerateEntityIdOnTheClient(conventions *DocumentConventions, generateId
 }
 
 // Attempts to get the document key from an instance
-func (g *GenerateEntityIdOnTheClient) tryGetIdFromInstance(entity Object) (string, bool) {
+func (g *GenerateEntityIdOnTheClient) tryGetIdFromInstance(entity interface{}) (string, bool) {
 	panicIf(entity == nil, "Entity cannot be null")
 	return tryGetIdFromInstance(entity)
 }
 
 // Tries to get the identity.
-func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity Object) string {
+func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity interface{}) string {
 	id, ok := g.tryGetIdFromInstance(entity)
 	if !ok || id == "" {
 		id = g._generateId(entity)
@@ -35,13 +35,13 @@ func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity Object) str
 	return id
 }
 
-func (g *GenerateEntityIdOnTheClient) generateDocumentKeyForStorage(entity Object) string {
+func (g *GenerateEntityIdOnTheClient) generateDocumentKeyForStorage(entity interface{}) string {
 	id := g.getOrGenerateDocumentId(entity)
 	g.trySetIdentity(entity, id)
 	return id
 }
 
 // Tries to set the identity property
-func (g *GenerateEntityIdOnTheClient) trySetIdentity(entity Object, id string) {
+func (g *GenerateEntityIdOnTheClient) trySetIdentity(entity interface{}, id string) {
 	TrySetIDOnEntity(entity, id)
 }

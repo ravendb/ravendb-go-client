@@ -19,7 +19,7 @@ type LazyStartsWithOperation struct {
 	_sessionOperations *InMemoryDocumentSessionOperations
 	_startAfter        string
 
-	result        Object
+	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
@@ -59,11 +59,11 @@ func (o *LazyStartsWithOperation) createRequest() *GetRequest {
 	return request
 }
 
-func (o *LazyStartsWithOperation) getResult() Object {
+func (o *LazyStartsWithOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyStartsWithOperation) setResult(result Object) {
+func (o *LazyStartsWithOperation) setResult(result interface{}) {
 	o.result = result
 }
 
@@ -90,7 +90,7 @@ func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 		return err
 	}
 
-	finalResults := map[string]Object{}
+	finalResults := map[string]interface{}{}
 	//TreeMap<string, Object> finalResults = new TreeMap<>(string::compareToIgnoreCase);
 
 	for _, document := range getDocumentResult.Results {

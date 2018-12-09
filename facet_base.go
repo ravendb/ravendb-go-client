@@ -2,7 +2,7 @@ package ravendb
 
 type FacetBase interface {
 	// those are supplied by each type
-	ToFacetToken(addQueryParameter func(Object) string) *facetToken
+	ToFacetToken(addQueryParameter func(interface{}) string) *facetToken
 
 	// inherited from FacetBaseCommon
 	GetOptions() *FacetOptions

@@ -10,7 +10,7 @@ type LazyAggregationQueryOperation struct {
 	_invokeAfterQueryExecuted func(*QueryResult)
 	_processResults           func(*QueryResult, *DocumentConventions) map[string]*FacetResult
 
-	result        Object
+	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
@@ -35,11 +35,11 @@ func (o *LazyAggregationQueryOperation) createRequest() *GetRequest {
 	return request
 }
 
-func (o *LazyAggregationQueryOperation) getResult() Object {
+func (o *LazyAggregationQueryOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyAggregationQueryOperation) setResult(result Object) {
+func (o *LazyAggregationQueryOperation) setResult(result interface{}) {
 	o.result = result
 }
 

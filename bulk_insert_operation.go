@@ -85,7 +85,7 @@ type BulkInsertOperation struct {
 
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
 	re := store.GetRequestExecutorWithDatabase(database)
-	f := func(entity Object) string {
+	f := func(entity interface{}) string {
 		return re.GetConventions().GenerateDocumentId(database, entity)
 	}
 
@@ -155,7 +155,7 @@ func (o *BulkInsertOperation) WaitForId() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) StoreWithID(entity Object, id string, metadata *IMetadataDictionary) error {
+func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadata *IMetadataDictionary) error {
 	if !o._concurrentCheck.compareAndSet(0, 1) {
 		return NewIllegalStateException("Bulk Insert Store methods cannot be executed concurrently.")
 	}
@@ -301,11 +301,11 @@ func (o *BulkInsertOperation) Close() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) Store(entity Object) (string, error) {
+func (o *BulkInsertOperation) Store(entity interface{}) (string, error) {
 	return o.StoreWithMetadata(entity, nil)
 }
 
-func (o *BulkInsertOperation) StoreWithMetadata(entity Object, metadata *IMetadataDictionary) (string, error) {
+func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *IMetadataDictionary) (string, error) {
 	var id string
 	if metadata == nil || !metadata.ContainsKey(Constants_Documents_Metadata_ID) {
 		id = o.GetId(entity)
@@ -318,7 +318,7 @@ func (o *BulkInsertOperation) StoreWithMetadata(entity Object, metadata *IMetada
 	return id, o.StoreWithID(entity, id, metadata)
 }
 
-func (o *BulkInsertOperation) GetId(entity Object) string {
+func (o *BulkInsertOperation) GetId(entity interface{}) string {
 	idRef, ok := o._generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
 	if ok {
 		return idRef

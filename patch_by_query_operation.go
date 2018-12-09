@@ -71,7 +71,7 @@ func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, er
 	}
 
 	q := JsonExtensions_writeIndexQuery(c._conventions, c._queryToUpdate)
-	m := map[string]Object{
+	m := map[string]interface{}{
 		"Query": q,
 	}
 

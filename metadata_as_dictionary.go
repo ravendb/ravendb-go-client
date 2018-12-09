@@ -11,7 +11,7 @@ type MetadataAsDictionary struct {
 	_parentKey string
 
 	// the actual metadata
-	_metadata map[string]Object
+	_metadata map[string]interface{}
 	_source   ObjectNode
 
 	dirty bool
@@ -61,7 +61,7 @@ func (d *MetadataAsDictionary) KeySet() []string {
 
 func (d *MetadataAsDictionary) Init() {
 	d.dirty = true
-	d._metadata = map[string]Object{}
+	d._metadata = map[string]interface{}{}
 
 	for k, v := range d._source {
 		val := d.ConvertValue(k, v)
@@ -73,7 +73,7 @@ func (d *MetadataAsDictionary) Init() {
 	}
 }
 
-func (d *MetadataAsDictionary) Put(key string, value Object) Object {
+func (d *MetadataAsDictionary) Put(key string, value interface{}) interface{} {
 	if d._metadata == nil {
 		d.Init()
 	}
@@ -83,7 +83,7 @@ func (d *MetadataAsDictionary) Put(key string, value Object) Object {
 	return value
 }
 
-func (d *MetadataAsDictionary) ConvertValue(key string, value Object) Object {
+func (d *MetadataAsDictionary) ConvertValue(key string, value interface{}) interface{} {
 	if value == nil {
 		return nil
 	}
@@ -116,7 +116,7 @@ func (d *MetadataAsDictionary) Clear() {
 	}
 	d.dirty = true
 
-	d._metadata = map[string]Object{} // TODO: can it be nil?
+	d._metadata = map[string]interface{}{} // TODO: can it be nil?
 }
 
 func (d *MetadataAsDictionary) Get(key string) (interface{}, bool) {
@@ -132,7 +132,7 @@ func (d *MetadataAsDictionary) Get(key string) (interface{}, bool) {
 	return d.ConvertValue(key, v), ok
 }
 
-func (d *MetadataAsDictionary) EntrySet() map[string]Object {
+func (d *MetadataAsDictionary) EntrySet() map[string]interface{} {
 	if d._metadata == nil {
 		d.Init()
 	}

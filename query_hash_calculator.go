@@ -56,7 +56,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			io.WriteString(&h._buffer, k)
 			io.WriteString(&h._buffer, v)
 		}
-	case map[string]Object:
+	case map[string]interface{}:
 		// this is Parameters
 		if len(v2) == 0 {
 			io.WriteString(&h._buffer, "null-dic<string,object>")

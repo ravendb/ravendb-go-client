@@ -2,7 +2,7 @@ package ravendb
 
 type BatchOperation struct {
 	_session              *InMemoryDocumentSessionOperations
-	_entities             []Object
+	_entities             []interface{}
 	_sessionCommandsCount int
 }
 

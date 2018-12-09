@@ -6,6 +6,6 @@ type CmpXchg struct {
 
 func CmpXchg_value(key string) *CmpXchg {
 	cmpXchg := &CmpXchg{}
-	cmpXchg.args = []Object{key}
+	cmpXchg.args = []interface{}{key}
 	return cmpXchg
 }

@@ -21,11 +21,11 @@ func NewCircleCriteria(radius float64, latitude float64, longitude float64, radi
 	return res
 }
 
-func (c *CircleCriteria) ToQueryToken(fieldName string, addQueryParameter func(Object) string) queryToken {
+func (c *CircleCriteria) ToQueryToken(fieldName string, addQueryParameter func(interface{}) string) queryToken {
 	return c.SpatialCriteriaCommon.toQueryTokenCommon(c, fieldName, addQueryParameter)
 }
 
-func (c *CircleCriteria) GetShapeToken(addQueryParameter func(Object) string) *shapeToken {
+func (c *CircleCriteria) GetShapeToken(addQueryParameter func(interface{}) string) *shapeToken {
 	return ShapeToken_circle(addQueryParameter(c._radius), addQueryParameter(c._latitude),
 		addQueryParameter(c._longitude), c._radiusUnits)
 }
