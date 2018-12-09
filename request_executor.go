@@ -40,7 +40,7 @@ type RequestExecutor struct {
 	_updateTopologyTimer *time.Timer
 	_nodeSelector        *NodeSelector
 
-	numberOfServerRequests  atomicInteger
+	NumberOfServerRequests  atomicInteger
 	topologyEtag            int
 	clientConfigurationEtag int
 	conventions             *DocumentConventions
@@ -65,7 +65,8 @@ type RequestExecutor struct {
 	isCluster                bool
 	clusterTopologySemaphore *Semaphore
 
-	/// TODO: in Java this thread local
+	/// Note: in Java this is thread local but Go doesn't have equivalent
+	// of thread local data
 	aggressiveCaching *AggressiveCacheOptions
 }
 
@@ -733,7 +734,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	//sp := time.Now()
 	responseDispose := ResponseDisposeHandling_AUTOMATIC
 	var response *http.Response
-	re.numberOfServerRequests.incrementAndGet()
+	re.NumberOfServerRequests.incrementAndGet()
 	if re.shouldExecuteOnAll(chosenNode, command) {
 		response, err = re.executeOnAllToFigureOutTheFastest(chosenNode, command)
 	} else {

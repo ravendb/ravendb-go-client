@@ -2,16 +2,7 @@ package ravendb
 
 import "time"
 
+// TODO: should this be exported?
 type AggressiveCacheOptions struct {
-	duration time.Duration
-}
-
-func (o *AggressiveCacheOptions) getDuration() time.Duration {
-	return o.duration
-}
-
-func NewAggressiveCacheOptions(duration time.Duration) *AggressiveCacheOptions {
-	return &AggressiveCacheOptions{
-		duration: duration,
-	}
+	Duration time.Duration
 }

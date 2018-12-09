@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"sync"
 	"time"
@@ -441,15 +442,62 @@ func (s *DocumentStore) GetLastDatabaseChangesStateExceptionWithDatabaseName(dat
 	return ch.getLastConnectionStateException()
 }
 
-func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) {
-	// TODO: implement me
+func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) io.Closer {
+	return s.AggressivelyCacheForDatabase(cacheDuration, "")
 }
 
-func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration, database string) {
-	// TODO: implement me
+type aggressiveCachingRestorer struct {
+	re  *RequestExecutor
+	old *AggressiveCacheOptions
 }
 
-//    private void listenToChangesAndUpdateTheCache(string database) {
+func (r *aggressiveCachingRestorer) Close() error {
+	r.re.aggressiveCaching = r.old
+	return nil
+}
+
+func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration, database string) io.Closer {
+	if database == "" {
+		database = s.GetDatabase()
+	}
+	panicIf(database == "", "must have database") // TODO: maybe return error
+	if !s._aggressiveCachingUsed {
+		s.listenToChangesAndUpdateTheCache(database)
+	}
+
+	re := s.GetRequestExecutorWithDatabase(database)
+	old := re.aggressiveCaching
+
+	opts := &AggressiveCacheOptions{
+		Duration: cacheDuration,
+	}
+	re.aggressiveCaching = opts
+	restorer := &aggressiveCachingRestorer{
+		re:  re,
+		old: old,
+	}
+	return restorer
+}
+
+func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
+	// TODO: implement me
+	panic("NYI")
+	/*
+	   // this is intentionally racy, most cases, we'll already
+	   // have this set once, so we won't need to do it again
+
+	   _aggressiveCachingUsed = true;
+	   Lazy<EvictItemsFromCacheBasedOnChanges> lazy = _aggressiveCacheChanges.get(database);
+
+	   if (lazy == null) {
+	       lazy = _aggressiveCacheChanges.computeIfAbsent(database, db -> {
+	           return new Lazy<>(() -> new EvictItemsFromCacheBasedOnChanges(this, database));
+	       });
+	   }
+
+	   lazy.getValue(); // force evaluation
+	*/
+}
 
 func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) {
 	s.beforeClose = append(s.beforeClose, fn)

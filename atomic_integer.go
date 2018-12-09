@@ -17,6 +17,11 @@ func (i *atomicInteger) get() int {
 	return int(res)
 }
 
+func (i *atomicInteger) Get() int {
+	res := atomic.LoadInt32(&i.N)
+	return int(res)
+}
+
 func (i *atomicInteger) set(n int) {
 	atomic.StoreInt32(&i.N, int32(n))
 }
