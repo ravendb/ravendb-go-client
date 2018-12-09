@@ -33,7 +33,8 @@ func (e *EvictItemsFromCacheBasedOnChanges) OnNext(value interface{}) {
 	} else if indexChange, ok := value.(*IndexChange); ok {
 		tp := indexChange.Type
 		if tp == IndexChangeTypes_BATCH_COMPLETED || tp == IndexChangeTypes_INDEX_REMOVED {
-			e._requestExecutor.GetCache().generation.incrementAndGet()
+			cache := e._requestExecutor.GetCache()
+			cache.generation.incrementAndGet()
 		}
 	}
 }

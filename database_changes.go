@@ -15,11 +15,11 @@ var (
 	_ IDatabaseChanges = &DatabaseChanges{}
 )
 
+// DatabaseChanges notifies about changes to a database
 type DatabaseChanges struct {
-	_commandId int // TODO: make atomic?
+	_commandID atomicInteger
 
-	// TODO: why semaphore of size 1 and not a mutex?
-	_semaphore chan bool
+	_semaphore sync.Mutex
 
 	_requestExecutor *RequestExecutor
 	_conventions     *DocumentConventions
@@ -53,7 +53,6 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		_tcs:                             NewCompletableFuture(),
 		_cts:                             NewCancellationTokenSource(),
 		_onDispose:                       onDispose,
-		_semaphore:                       make(chan bool, 1),
 		_connectionStatusEventHandlerIdx: -1,
 		_confirmations:                   map[int]*CompletableFuture{},
 		_counters:                        map[string]*DatabaseConnectionState{},
@@ -332,23 +331,32 @@ func (c *DatabaseChanges) invokeOnError(err error) {
 }
 
 func (c *DatabaseChanges) Close() {
+	//fmt.Printf("DatabaseChanges.Close()\n")
 	c.mu.Lock()
 	for _, confirmation := range c._confirmations {
 		confirmation.Cancel(false)
 	}
 	c.mu.Unlock()
 
+	//fmt.Printf("DatabaseChanges.Close() before _cts.cancel\n")
+	c.mu.Lock()
+	c._cts.cancel()
+	c.mu.Unlock()
+	//fmt.Printf("DatabaseChanges.Close() after _cts.cancel\n")
+
 	client := c.getWsClient()
 	if client != nil {
+		//fmt.Printf("DatabaseChanges.Close(): before client.Close()\n")
 		err := client.Close()
 		if err != nil {
 			dbg("DatabaseChanges.Close(): client.Close() failed with %s\n", err)
 		}
 		c.setWsClient(nil)
+	} else {
+		//fmt.Printf("DatabaseChanges.Close(): c.getWsClient() returned nil\n")
 	}
 
 	c.mu.Lock()
-	c._cts.cancel()
 	c._counters = nil
 	c.mu.Unlock()
 
@@ -399,11 +407,11 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 }
 
 func (c *DatabaseChanges) semAcquire() {
-	c._semaphore <- true
+	c._semaphore.Lock()
 }
 
 func (c *DatabaseChanges) semRelease() {
-	<-c._semaphore
+	c._semaphore.Unlock()
 }
 
 func (c *DatabaseChanges) send(command, value string) error {
@@ -411,22 +419,21 @@ func (c *DatabaseChanges) send(command, value string) error {
 
 	c.semAcquire()
 
-	c._commandId++
-	currentCommandId := c._commandId
+	currentCommandID := c._commandID.incrementAndGet()
 
 	o := struct {
 		CommandID int    `json:"CommandId"`
 		Command   string `json:"Command"`
 		Param     string `json:"Param"`
 	}{
-		CommandID: currentCommandId,
+		CommandID: currentCommandID,
 		Command:   command,
 		Param:     value,
 	}
 
 	client := c.getWsClient()
 	err := client.WriteJSON(o)
-	c._confirmations[currentCommandId] = taskCompletionSource
+	c._confirmations[currentCommandID] = taskCompletionSource
 
 	c.semRelease()
 	if err != nil {
@@ -444,11 +451,13 @@ func toWebSocketPath(path string) string {
 }
 
 func (c *DatabaseChanges) doWork() error {
+	//fmt.Printf("DatabaseChanges.doWork(): started\n")
+
 	_, err := c._requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
 		c.notifyAboutError(err)
-		dbg("doWork(): c._requestExecutor.getPreferredNode failed with err: %s\n", err)
+		//fmt.Printf("DatabaseChanges.doWork(): c._requestExecutor.getPreferredNode failed with err: %s\n", err)
 		return err
 	}
 
@@ -456,9 +465,12 @@ func (c *DatabaseChanges) doWork() error {
 	urlString = toWebSocketPath(urlString)
 
 	for {
+		//fmt.Printf("DatabaseChanges.doWork(): before c._cts.getToken().isCancellationRequested() check\n")
 		if c._cts.getToken().isCancellationRequested() {
+			//fmt.Printf("DatabaseChanges.doWork(): c._cts.getToken().isCancellationRequested() returned true so exiting\n")
 			return nil
 		}
+		//fmt.Printf("DatabaseChanges.doWork(): after c._cts.getToken().isCancellationRequested() check\n")
 
 		var processor *WebSocketChangesProcessor
 		var err error
@@ -473,14 +485,29 @@ func (c *DatabaseChanges) doWork() error {
 
 		ctx := context.Background()
 		var client *websocket.Conn
+		//fmt.Printf("DatabaseChanges.doWork: before dialer.DialContext()\n")
 		client, _, err = dialer.DialContext(ctx, urlString, nil)
 		c.setWsClient(client)
+
+		// recheck cancellation becuase it might have been cancelled
+		// since DialContext()
+		if c._cts.getToken().isCancellationRequested() {
+			//fmt.Printf("DatabaseChanges.doWork(): c._cts.getToken().isCancellationRequested() returned true so exiting\n")
+			if client != nil {
+				client.Close()
+				c.setWsClient(nil)
+			}
+			return err
+		}
+
+		//fmt.Printf("DatabaseChanges.doWork: after dialer.DialContext() and calling setWsClient\n")
 		if err != nil {
-			dbg("doWork(): websocket.Dial(%s) failed with %s()\n", urlString, err)
+			//fmt.Printf("DatabaseChanges.doWork(): websocket.Dial(%s) failed with %s()\n", urlString, err)
 			time.Sleep(time.Second)
 			continue
 		}
 
+		//fmt.Printf("DatabaseChanges started websocket connection\n")
 		processor = NewWebSocketChangesProcessor(client)
 		go processor.processMessages(c)
 		c._immediateConnection.set(1)
@@ -491,8 +518,12 @@ func (c *DatabaseChanges) doWork() error {
 		}
 		c.invokeConnectionStatusChanged()
 		_, err = processor.processing.Get()
+		/*if err != nil {
+			fmt.Printf("DatbaseChanges.precessing.Get() returned err %s\n", err)
+		}*/
 		c.invokeConnectionStatusChanged()
 		shouldReconnect := c.reconnectClient()
+		//fmt.Printf("DatabaseChanges.doWork: shouldReconnect=%v\n", shouldReconnect)
 
 		for _, confirmation := range c._confirmations {
 			confirmation.Cancel(false)
@@ -590,12 +621,16 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
+		//fmt.Printf("WebSocketChangesProcessor.processMessages, before ReadJSON\n")
 		err = p.client.ReadJSON(&msgArray)
+		//fmt.Printf("WebSocketChangesProcessor.processMessages, after ReadJSON\n")
 		if err != nil {
+			//fmt.Printf("WebSocketChangesProcessor.processMessages, ReadJSON failed wiht '%s'\n", err)
 			dbg("WebSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
 		}
-		// dbg("WebSocketChangesProcessor.processMessages() msgArray: %T %v\n", msgArray, msgArray)
+
+		//fmt.Printf("WebSocketChangesProcessor.processMessages() msgArray: %T %v\n", msgArray, msgArray)
 		for _, msgNodeV := range msgArray {
 			msgNode := msgNodeV.(map[string]interface{})
 			typ, _ := jsonGetAsString(msgNode, "Type")
@@ -621,10 +656,10 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 				}
 				changes.notifySubscribers(typ, val, states)
 			}
-
 		}
 	}
 	// TODO: check for io.EOF for clean connection close?
+	//fmt.Printf("DatabaseChanges.processMessages() ended with %s\n", err)
 	changes.notifyAboutError(err)
 	p.processing.CompleteExceptionally(err)
 }

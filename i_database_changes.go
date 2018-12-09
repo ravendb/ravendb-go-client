@@ -2,6 +2,8 @@ package ravendb
 
 // IConnectableChanges is folded into IDatabaseChanges
 
+// TODO: remove IDatabaseChanges and make it just DatabaseChanges
+// TODO: reduce surface of IConnectableChanges or remove completely
 type IDatabaseChanges interface {
 	// those are IConnectableChanges
 	IsConnected() bool
