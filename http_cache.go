@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"math"
-	"sync/atomic"
 	"time"
 )
 
@@ -35,7 +34,7 @@ func (c *genericCache) put(uri string, i *HttpCacheItem) {
 
 type HttpCache struct {
 	items      *genericCache
-	generation int32 // atomic
+	generation atomicInteger
 }
 
 func NewHttpCache(size int) *HttpCache {
@@ -69,8 +68,7 @@ func (c *HttpCache) set(url string, changeVector *string, result string) {
 	httpCacheItem.changeVector = changeVector
 	httpCacheItem.payload = result
 	httpCacheItem.cache = c
-	gen := atomic.LoadInt32(&c.generation)
-	httpCacheItem.generation = gen
+	httpCacheItem.generation = c.generation.get()
 	c.items.put(url, httpCacheItem)
 }
 
@@ -96,8 +94,7 @@ func (c *HttpCache) setNotFound(url string) {
 	s := "404 response"
 	httpCacheItem.changeVector = &s
 	httpCacheItem.cache = c
-	gen := atomic.LoadInt32(&c.generation)
-	httpCacheItem.generation = gen
+	httpCacheItem.generation = c.generation.get()
 
 	c.items.put(url, httpCacheItem)
 }
@@ -126,8 +123,8 @@ func (i *ReleaseCacheItem) getAge() time.Duration {
 }
 
 func (i *ReleaseCacheItem) getMightHaveBeenModified() bool {
-	currGen := atomic.LoadInt32(&i.item.generation)
-	itemGen := atomic.LoadInt32(&i.item.cache.generation)
+	currGen := i.item.generation
+	itemGen := i.item.cache.generation.get()
 	return currGen == itemGen
 }
 

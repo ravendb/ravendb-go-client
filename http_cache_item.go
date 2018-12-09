@@ -6,7 +6,7 @@ type HttpCacheItem struct {
 	changeVector     *string // TODO: can probably be string
 	payload          string
 	lastServerUpdate time.Time
-	generation       int32
+	generation       int // TODO: should this be atomicInteger?
 
 	cache *HttpCache
 }

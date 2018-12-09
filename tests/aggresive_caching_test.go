@@ -70,5 +70,6 @@ func TestAggressiveCaching(t *testing.T) {
 	aggressiveCaching_canAggressivelyCacheQueries(t)
 	aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t)
 	aggressiveCaching_canAggressivelyCacheLoads(t)
+	// TODO: hangs in DatabaseChanges waiting for websockets end
 	//aggressiveCaching_canAggressivelyCacheLoads_404(t)
 }

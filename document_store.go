@@ -30,9 +30,15 @@ type DocumentStore struct {
 	// maps database name to IDatabaseChanges. Must be protected with mutex
 	_databaseChanges map[string]IDatabaseChanges
 
-	// TODO: _aggressiveCacheChanges
+	// Note: access must be protected with mu
+	// ConcurrentMap<String, Lazy<EvictItemsFromCacheBasedOnChanges>>
+	_aggressiveCacheChanges map[string]*Lazy
+
 	// maps database name to its RequestsExecutor
-	requestsExecutors            map[string]*RequestExecutor
+	// TODO: in Java is ConcurrentMap<String, RequestExecutor> requestExecutors
+	// so must protect access with mutex and use case-insensitive lookup
+	requestsExecutors map[string]*RequestExecutor
+
 	_multiDbHiLo                 *MultiDatabaseHiLoIDGenerator
 	maintenanceOperationExecutor *MaintenanceOperationExecutor
 	operationExecutor            *OperationExecutor
@@ -177,9 +183,10 @@ func (s *DocumentStore) AggressivelyCacheWithDatabase(database string) {
 // NewDocumentStore creates a DocumentStore
 func NewDocumentStore() *DocumentStore {
 	s := &DocumentStore{
-		requestsExecutors: map[string]*RequestExecutor{},
-		conventions:       NewDocumentConventions(),
-		_databaseChanges:  map[string]IDatabaseChanges{},
+		requestsExecutors:       map[string]*RequestExecutor{},
+		conventions:             NewDocumentConventions(),
+		_databaseChanges:        map[string]IDatabaseChanges{},
+		_aggressiveCacheChanges: map[string]*Lazy{},
 	}
 	return s
 }
@@ -228,6 +235,17 @@ func (s *DocumentStore) Close() {
 		fn(s)
 	}
 	s.beforeClose = nil
+
+	for _, value := range s._aggressiveCacheChanges {
+		if !value.IsValueCreated() {
+			continue
+		}
+
+		vi, err := value.GetValue()
+		must(err) // TODO: ignore?
+		v := vi.(*EvictItemsFromCacheBasedOnChanges)
+		v.Close()
+	}
 
 	// TODO: evict _aggressiveCacheChanges
 
@@ -314,8 +332,9 @@ func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *Request
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	executor, ok := s.requestsExecutors[database]
+	s.mu.Unlock()
+
 	if ok {
 		return executor
 	}
@@ -325,7 +344,11 @@ func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *Request
 	} else {
 		executor = RequestExecutor_createForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], s.GetDatabase(), s.GetCertificate(), s.GetConventions())
 	}
+
+	s.mu.Lock()
 	s.requestsExecutors[database] = executor
+	s.mu.Unlock()
+
 	return executor
 }
 
@@ -406,9 +429,11 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) IDatabaseChange
 
 	if !ok {
 		changes = s.createDatabaseChanges(database)
+
 		s.mu.Lock()
 		s._databaseChanges[database] = changes
 		s.mu.Unlock()
+
 	}
 	return changes
 }
@@ -433,8 +458,9 @@ func (s *DocumentStore) GetLastDatabaseChangesStateExceptionWithDatabaseName(dat
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	databaseChanges, ok := s._databaseChanges[database]
+	s.mu.Unlock()
+
 	if !ok {
 		return nil
 	}
@@ -480,23 +506,28 @@ func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration
 }
 
 func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
-	// TODO: implement me
-	panic("NYI")
-	/*
-	   // this is intentionally racy, most cases, we'll already
-	   // have this set once, so we won't need to do it again
+	// this is intentionally racy, most cases, we'll already
+	// have this set once, so we won't need to do it again
+	s._aggressiveCachingUsed = true
 
-	   _aggressiveCachingUsed = true;
-	   Lazy<EvictItemsFromCacheBasedOnChanges> lazy = _aggressiveCacheChanges.get(database);
+	// Lazy < EvictItemsFromCacheBasedOnChanges >
+	s.mu.Lock()
+	lazy := s._aggressiveCacheChanges[database]
+	s.mu.Unlock()
 
-	   if (lazy == null) {
-	       lazy = _aggressiveCacheChanges.computeIfAbsent(database, db -> {
-	           return new Lazy<>(() -> new EvictItemsFromCacheBasedOnChanges(this, database));
-	       });
-	   }
+	if lazy == nil {
+		valueFactory := func() (interface{}, error) {
+			res := NewEvictItemsFromCacheBasedOnChanges(s, database)
+			return res, nil
+		}
+		lazy = NewLazy(valueFactory)
 
-	   lazy.getValue(); // force evaluation
-	*/
+		s.mu.Lock()
+		s._aggressiveCacheChanges[database] = lazy
+		s.mu.Unlock()
+	}
+
+	lazy.GetValue() // force evaluation
 }
 
 func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) {
