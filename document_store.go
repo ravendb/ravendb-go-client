@@ -247,8 +247,6 @@ func (s *DocumentStore) Close() {
 		v.Close()
 	}
 
-	// TODO: evict _aggressiveCacheChanges
-
 	for _, changes := range s._databaseChanges {
 		changes.Close()
 	}
