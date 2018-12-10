@@ -80,13 +80,18 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			io.WriteString(&h._buffer, k)
 			if v == nil {
 				io.WriteString(&h._buffer, "null")
-			} else if isPtrStruct(reflect.TypeOf(v)) {
-				// when value of parameter is a struct like SuggestionOptions
+				return
+			}
+			tp := reflect.TypeOf(v)
+			if isPtrStruct(tp) || tp.Kind() == reflect.Struct {
+				// when value of parameter is a struct or pointer to struct
+				// it could be our param like SuggestionOptions or
+				// param that is custom type used by the user
 				s := fmt.Sprintf("%#v", v)
 				io.WriteString(&h._buffer, s)
-			} else {
-				h.write(v)
+				return
 			}
+			h.write(v)
 		}
 	case bool:
 		var toWrite int32 = 1
