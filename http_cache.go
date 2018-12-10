@@ -3,7 +3,6 @@ package ravendb
 import (
 	//"fmt"
 
-	"fmt"
 	"math"
 	"time"
 )
@@ -31,7 +30,7 @@ func (c *genericCache) getIfPresent(uri string) *HttpCacheItem {
 }
 
 func (c *genericCache) put(uri string, i *HttpCacheItem) {
-	fmt.Printf("genericCache.put(): url: %s, changeVector: %s, len(result): %d\n", uri, *i.changeVector, len(i.payload))
+	//fmt.Printf("genericCache.put(): url: %s, changeVector: %s, len(result): %d\n", uri, *i.changeVector, len(i.payload))
 
 	// TODO: probably implement cache eviction
 	c.data[uri] = i
