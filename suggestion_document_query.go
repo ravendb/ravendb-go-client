@@ -61,10 +61,8 @@ func (q *SuggestionDocumentQuery) ExecuteLazy(onEval func(v interface{})) *Lazy 
 	afterFn := func(result *QueryResult) {
 		q.InvokeAfterQueryExecuted(result)
 	}
-	// TODO: return error and update signature of NewLazySuggestionQueryOperation
-	processFn := func(queryResult *QueryResult, conventions *DocumentConventions) map[string]*SuggestionResult {
-		res, _ := q.processResults(queryResult, conventions)
-		return res
+	processFn := func(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*SuggestionResult, error) {
+		return q.processResults(queryResult, conventions)
 	}
 
 	op := NewLazySuggestionQueryOperation(q._session.Conventions, q._query, afterFn, processFn)

@@ -12,11 +12,11 @@ type LazySuggestionQueryOperation struct {
 	_conventions              *DocumentConventions
 	_indexQuery               *IndexQuery
 	_invokeAfterQueryExecuted func(*QueryResult)
-	_processResults           func(*QueryResult, *DocumentConventions) map[string]*SuggestionResult
+	_processResults           func(*QueryResult, *DocumentConventions) (map[string]*SuggestionResult, error)
 }
 
 func NewLazySuggestionQueryOperation(conventions *DocumentConventions, indexQuery *IndexQuery, invokeAfterQueryExecuted func(*QueryResult),
-	processResults func(*QueryResult, *DocumentConventions) map[string]*SuggestionResult) *LazySuggestionQueryOperation {
+	processResults func(*QueryResult, *DocumentConventions) (map[string]*SuggestionResult, error)) *LazySuggestionQueryOperation {
 	return &LazySuggestionQueryOperation{
 		_conventions:              conventions,
 		_indexQuery:               indexQuery,
@@ -59,16 +59,17 @@ func (o *LazySuggestionQueryOperation) handleResponse(response *GetResponse) err
 		return err
 	}
 
-	o.handleResponse2(queryResult)
-	return nil
+	return o.handleResponse2(queryResult)
 }
 
-func (o *LazySuggestionQueryOperation) handleResponse2(queryResult *QueryResult) {
+func (o *LazySuggestionQueryOperation) handleResponse2(queryResult *QueryResult) error {
 	if o._invokeAfterQueryExecuted != nil {
 		o._invokeAfterQueryExecuted(queryResult)
 	}
 
+	var err error
 	// TODO: is op._processResults always != nil ?
-	o.result = o._processResults(queryResult, o._conventions)
+	o.result, err = o._processResults(queryResult, o._conventions)
 	o.queryResult = queryResult
+	return err
 }
