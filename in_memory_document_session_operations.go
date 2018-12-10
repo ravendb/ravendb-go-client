@@ -1061,7 +1061,10 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 }
 
 func isPtrStruct(t reflect.Type) bool {
-	return t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct
+	if t.Kind() != reflect.Ptr {
+		return false
+	}
+	return t.Elem() != nil && t.Elem().Kind() == reflect.Struct
 }
 
 func isMapStringToPtrStruct(t reflect.Type) bool {

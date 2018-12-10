@@ -78,7 +78,9 @@ func (h *QueryHashCalculator) write(v interface{}) {
 		for _, k := range keys {
 			v := v2[k]
 			io.WriteString(&h._buffer, k)
-			if isPtrStruct(reflect.TypeOf(v)) {
+			if v == nil {
+				io.WriteString(&h._buffer, "null")
+			} else if isPtrStruct(reflect.TypeOf(v)) {
 				// when value of parameter is a struct like SuggestionOptions
 				s := fmt.Sprintf("%#v", v)
 				io.WriteString(&h._buffer, s)
