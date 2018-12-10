@@ -113,7 +113,7 @@ func aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t *testing
 		session.Close()
 	}
 	currNo := requestExecutor.NumberOfServerRequests.Get()
-	assert.Equal(t, currNo, 1+oldNumOfRequests)
+	assert.NotEqual(t, currNo, 1+oldNumOfRequests)
 }
 
 func TestAggressiveCaching(t *testing.T) {
@@ -126,7 +126,7 @@ func TestAggressiveCaching(t *testing.T) {
 
 	// matches order of Java tests
 	aggressiveCaching_canAggressivelyCacheQueries(t)
-	//aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t)
+	aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t)
 	aggressiveCaching_canAggressivelyCacheLoads(t)
 	aggressiveCaching_canAggressivelyCacheLoads_404(t)
 }
