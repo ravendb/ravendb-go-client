@@ -90,38 +90,6 @@ func (h *QueryHashCalculator) write(v interface{}) {
 		must(binary.Write(&h._buffer, binary.LittleEndian, int64(t)))
 	case int:
 		must(binary.Write(&h._buffer, binary.LittleEndian, int64(v2)))
-		/*
-			case *int:
-				if v2 == nil {
-					io.WriteString(&h._buffer, "null-int")
-				} else {
-					binary.Write(&h._buffer, binary.LittleEndian, *v2)
-				}
-			case *float32:
-				if v2 == nil {
-					io.WriteString(&h._buffer, "null-float32")
-				} else {
-					binary.Write(&h._buffer, binary.LittleEndian, *v2)
-				}
-			case *float64:
-				if v2 == nil {
-					io.WriteString(&h._buffer, "null-float64")
-				} else {
-					binary.Write(&h._buffer, binary.LittleEndian, *v2)
-				}
-			case *bool:
-				if v2 == nil {
-					io.WriteString(&h._buffer, "null-bool")
-				} else {
-					binary.Write(&h._buffer, binary.LittleEndian, *v2)
-				}
-			case *string:
-				if v2 == nil {
-					io.WriteString(&h._buffer, "null-string")
-				} else {
-					io.WriteString(&h._buffer, *v2)
-				}
-		*/
 	default:
 		//fmt.Printf("Writing value '%v' of type %T\n", v, v)
 		// binary.Write handles all primitive types, except string and int
