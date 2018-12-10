@@ -36,8 +36,8 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 	return q.processResults(command.Result, q._session.GetConventions())
 }
 
-// Lazy<map[string]*FacetResult>
 // arg to onEval is map[string]*FacetResult
+// returns Lazy<map[string]*FacetResult>
 func (q *AggregationQueryBase) ExecuteLazy(onEval func(interface{})) *Lazy {
 	q._query = q.GetIndexQuery()
 
@@ -45,10 +45,8 @@ func (q *AggregationQueryBase) ExecuteLazy(onEval func(interface{})) *Lazy {
 		q.invokeAfterQueryExecuted(result)
 	}
 
-	// TODO: returns error and change signature of NewLazyAggregationQueryOperation
-	processResultFn := func(queryResult *QueryResult, conventions *DocumentConventions) map[string]*FacetResult {
-		res, _ := q.processResults(queryResult, conventions)
-		return res
+	processResultFn := func(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*FacetResult, error) {
+		return q.processResults(queryResult, conventions)
 	}
 	op := NewLazyAggregationQueryOperation(q._session.Conventions, q._query, afterFn, processResultFn)
 	clazz := reflect.TypeOf(map[string]*FacetResult{})

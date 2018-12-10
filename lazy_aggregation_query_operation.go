@@ -8,7 +8,7 @@ type LazyAggregationQueryOperation struct {
 	_conventions              *DocumentConventions
 	_indexQuery               *IndexQuery
 	_invokeAfterQueryExecuted func(*QueryResult)
-	_processResults           func(*QueryResult, *DocumentConventions) map[string]*FacetResult
+	_processResults           func(*QueryResult, *DocumentConventions) (map[string]*FacetResult, error)
 
 	result        interface{}
 	queryResult   *QueryResult
@@ -16,7 +16,7 @@ type LazyAggregationQueryOperation struct {
 }
 
 func NewLazyAggregationQueryOperation(conventions *DocumentConventions, indexQuery *IndexQuery, invokeAfterQueryExecuted func(*QueryResult),
-	processResults func(*QueryResult, *DocumentConventions) map[string]*FacetResult) *LazyAggregationQueryOperation {
+	processResults func(*QueryResult, *DocumentConventions) (map[string]*FacetResult, error)) *LazyAggregationQueryOperation {
 	return &LazyAggregationQueryOperation{
 		_conventions:              conventions,
 		_indexQuery:               indexQuery,
@@ -71,12 +71,13 @@ func (o *LazyAggregationQueryOperation) handleResponse(response *GetResponse) er
 	if err != nil {
 		return err
 	}
-	o.handleResponse2(queryResult)
-	return nil
+	return o.handleResponse2(queryResult)
 }
 
-func (o *LazyAggregationQueryOperation) handleResponse2(queryResult *QueryResult) {
+func (o *LazyAggregationQueryOperation) handleResponse2(queryResult *QueryResult) error {
+	var err error
 	o._invokeAfterQueryExecuted(queryResult)
-	o.result = o._processResults(queryResult, o._conventions)
+	o.result, err = o._processResults(queryResult, o._conventions)
 	o.queryResult = queryResult
+	return err
 }
