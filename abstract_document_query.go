@@ -97,7 +97,7 @@ func (q *AbstractDocumentQuery) IsDynamicMapReduce() bool {
 	return len(q.groupByTokens) > 0
 }
 
-func AbstractDocumentQuery_getDefaultTimeout() time.Duration {
+func getQueryDefaultTimeout() time.Duration {
 	return time.Second * 15
 }
 
@@ -170,7 +170,7 @@ func (q *AbstractDocumentQuery) _usingDefaultOperator(operator QueryOperator) {
 func (q *AbstractDocumentQuery) _waitForNonStaleResults(waitTimeout time.Duration) {
 	q.theWaitForNonStaleResults = true
 	if waitTimeout == 0 {
-		waitTimeout = AbstractDocumentQuery_getDefaultTimeout()
+		waitTimeout = getQueryDefaultTimeout()
 	}
 	q.timeout = waitTimeout
 }

@@ -39,6 +39,10 @@ func (h *QueryHashCalculator) write(v interface{}) {
 		for _, s := range v2 {
 			io.WriteString(&h._buffer, s)
 		}
+	case []interface{}:
+		for _, v := range v2 {
+			h.write(v)
+		}
 	case map[string]string:
 		if len(v2) == 0 {
 			io.WriteString(&h._buffer, "null-dic<string,string>")
@@ -74,40 +78,49 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			io.WriteString(&h._buffer, k)
 			h.write(v)
 		}
-	/*
-		case *int:
-			if v2 == nil {
-				io.WriteString(&h._buffer, "null-int")
-			} else {
-				binary.Write(&h._buffer, binary.LittleEndian, *v2)
-			}
-		case *float32:
-			if v2 == nil {
-				io.WriteString(&h._buffer, "null-float32")
-			} else {
-				binary.Write(&h._buffer, binary.LittleEndian, *v2)
-			}
-		case *float64:
-			if v2 == nil {
-				io.WriteString(&h._buffer, "null-float64")
-			} else {
-				binary.Write(&h._buffer, binary.LittleEndian, *v2)
-			}
-		case *bool:
-			if v2 == nil {
-				io.WriteString(&h._buffer, "null-bool")
-			} else {
-				binary.Write(&h._buffer, binary.LittleEndian, *v2)
-			}
-		case *string:
-			if v2 == nil {
-				io.WriteString(&h._buffer, "null-string")
-			} else {
-				io.WriteString(&h._buffer, *v2)
-			}
-	*/
+	case bool:
+		var toWrite int32 = 1
+		if v2 {
+			toWrite = 2
+		}
+		must(binary.Write(&h._buffer, binary.LittleEndian, toWrite))
+	case int:
+		must(binary.Write(&h._buffer, binary.LittleEndian, int64(v2)))
+		/*
+			case *int:
+				if v2 == nil {
+					io.WriteString(&h._buffer, "null-int")
+				} else {
+					binary.Write(&h._buffer, binary.LittleEndian, *v2)
+				}
+			case *float32:
+				if v2 == nil {
+					io.WriteString(&h._buffer, "null-float32")
+				} else {
+					binary.Write(&h._buffer, binary.LittleEndian, *v2)
+				}
+			case *float64:
+				if v2 == nil {
+					io.WriteString(&h._buffer, "null-float64")
+				} else {
+					binary.Write(&h._buffer, binary.LittleEndian, *v2)
+				}
+			case *bool:
+				if v2 == nil {
+					io.WriteString(&h._buffer, "null-bool")
+				} else {
+					binary.Write(&h._buffer, binary.LittleEndian, *v2)
+				}
+			case *string:
+				if v2 == nil {
+					io.WriteString(&h._buffer, "null-string")
+				} else {
+					io.WriteString(&h._buffer, *v2)
+				}
+		*/
 	default:
-		// binary.Write handles all primitive types, except string
-		binary.Write(&h._buffer, binary.LittleEndian, v)
+		//fmt.Printf("Writing value '%v' of type %T\n", v, v)
+		// binary.Write handles all primitive types, except string and int
+		must(binary.Write(&h._buffer, binary.LittleEndian, v))
 	}
 }
