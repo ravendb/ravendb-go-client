@@ -370,8 +370,9 @@ func (c *DatabaseChanges) Close() {
 
 func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	counter, ok := c._counters[name]
+	c.mu.Unlock()
+
 	if ok {
 		return counter, nil
 	}
@@ -398,7 +399,9 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	}
 
 	counter = NewDatabaseConnectionState(onConnect, onDisconnect)
+	c.mu.Lock()
 	c._counters[name] = counter
+	c.mu.Unlock()
 
 	if c._immediateConnection.get() != 0 {
 		counter.onConnect()
@@ -512,10 +515,12 @@ func (c *DatabaseChanges) doWork() error {
 		go processor.processMessages(c)
 		c._immediateConnection.set(1)
 
-		// TODO: make thread safe
+		c.mu.Lock()
 		for _, counter := range c._counters {
 			counter.onConnect()
 		}
+		c.mu.Unlock()
+
 		c.invokeConnectionStatusChanged()
 		_, err = processor.processing.Get()
 		/*if err != nil {
