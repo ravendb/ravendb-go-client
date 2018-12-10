@@ -32,8 +32,18 @@ func isJSONFloatEqual(oldPropVal float64, newProp interface{}) bool {
 		return oldPropVal == newPropVal
 	default:
 		// TODO: can those happen in real life?
-		// newProp should be
-		panicIf(true, "unhandled type")
+		panicIf(true, "unhandled type of newProp, expected 'float64' and is '%T'", newProp)
+	}
+	return false
+}
+
+func isJSONBoolEqual(oldPropVal bool, newProp interface{}) bool {
+	switch newPropVal := newProp.(type) {
+	case bool:
+		return oldPropVal == newPropVal
+	default:
+		// TODO: can those happen in real life?
+		panicIf(true, "unhandled type of newProp, expected 'bool' and is '%T'", newProp)
 	}
 	return false
 }
@@ -44,8 +54,7 @@ func isJSONStringEqual(oldPropVal string, newProp interface{}) bool {
 		return oldPropVal == newPropVal
 	default:
 		// TODO: can those happen in real life?
-		// newProp should be
-		panicIf(true, "unhandled type")
+		panicIf(true, "unhandled type of newProp, expected 'string' and is '%T'", newProp)
 	}
 	return false
 }
@@ -98,6 +107,8 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 				return true
 			}
 			JsonOperation_newChange(prop, newProp, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+		case bool:
+
 		case []interface{}:
 			if oldProp == nil || !isInstanceOfArrayOfInterface(oldProp) {
 				if changes == nil {
@@ -140,7 +151,7 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 			}
 			// TODO: array, nil
 			// Write tests for all types
-			panicIf(true, "unhandled type %T, newProp: '%v', oldProp: '%s'", newProp, newProp, oldProp)
+			panicIf(true, "unhandled type %T, newProp: '%v', oldProp: '%v'", newProp, newProp, oldProp)
 		}
 	}
 
@@ -209,8 +220,8 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 				break
 			}
 			// Note: this matches Java but also means that 1 == "1"
-			oldValStr := fmt.Sprintf("%s", oldVal)
-			newValStr := fmt.Sprintf("%s", newVal)
+			oldValStr := fmt.Sprintf("%v", oldVal)
+			newValStr := fmt.Sprintf("%v", newVal)
 			if oldValStr != newValStr {
 				if changes != nil {
 					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)

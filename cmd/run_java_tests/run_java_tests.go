@@ -125,7 +125,8 @@ func runJava() {
 	//runSingleJavaTest("SuggestionsLazyTest")
 	//runSingleJavaTest("LazyTest")
 	//runSingleJavaTest("LazyAggregationEmbedded")
-	runSingleJavaTest("AggressiveCaching")
+	//runSingleJavaTest("AggressiveCaching")
+	runSingleJavaTest("CachingOfDocumentInclude")
 }
 
 func main() {
