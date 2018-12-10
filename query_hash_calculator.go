@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"reflect"
 	"sort"
 	"time"
 )
@@ -77,7 +78,13 @@ func (h *QueryHashCalculator) write(v interface{}) {
 		for _, k := range keys {
 			v := v2[k]
 			io.WriteString(&h._buffer, k)
-			h.write(v)
+			if isPtrStruct(reflect.TypeOf(v)) {
+				// when value of parameter is a struct like SuggestionOptions
+				s := fmt.Sprintf("%#v", v)
+				io.WriteString(&h._buffer, s)
+			} else {
+				h.write(v)
+			}
 		}
 	case bool:
 		var toWrite int32 = 1
