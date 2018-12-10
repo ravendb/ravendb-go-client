@@ -1090,7 +1090,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 	}
 
 	resultType := reflect.ValueOf(result).Type()
-	fmt.Printf("getOperationResult: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
+	//fmt.Printf("getOperationResult: result type: %T, resultType: %s, clazz: %s, result: %v\n", result, resultType, clazz, result)
 	if resultType == clazz {
 		return result, nil
 	}
@@ -1152,7 +1152,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 		return v, nil
 	}
 
-	fmt.Printf("getOperationResult(): returning nil, clazz is '%s', result is '%v' of type '%T'\n", clazz, result, result)
+	//fmt.Printf("getOperationResult(): returning nil, clazz is '%s', result is '%v' of type '%T'\n", clazz, result, result)
 	return nil, nil
 }
 

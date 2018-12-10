@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"time"
 )
 
 type QueryHashCalculator struct {
@@ -84,6 +85,9 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			toWrite = 2
 		}
 		must(binary.Write(&h._buffer, binary.LittleEndian, toWrite))
+	case time.Time:
+		t := v2.UTC().Unix()
+		must(binary.Write(&h._buffer, binary.LittleEndian, int64(t)))
 	case int:
 		must(binary.Write(&h._buffer, binary.LittleEndian, int64(v2)))
 		/*
