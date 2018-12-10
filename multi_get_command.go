@@ -111,7 +111,7 @@ func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Read
 
 		getResponse.statusCode = rsp.StatusCode
 		getResponse.headers = rsp.Headers
-		getResponse.result = string(rsp.Result)
+		getResponse.result = rsp.Result
 
 		c.maybeSetCache(&getResponse, command)
 		c.maybeReadFromCache(&getResponse, command)
@@ -143,7 +143,7 @@ func (c *MultiGetCommand) maybeSetCache(getResponse *GetResponse, command *GetRe
 	cacheKey, _ := c.getCacheKey(command)
 
 	result := getResponse.result
-	if result == "" {
+	if len(result) == 0 {
 		return
 	}
 

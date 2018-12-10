@@ -11,7 +11,7 @@ func NewMultiGetOperation(session *InMemoryDocumentSessionOperations) *MultiGetO
 }
 
 func (o *MultiGetOperation) createRequest(requests []*GetRequest) *MultiGetCommand {
-	return NewMultiGetCommand(o._session.GetRequestExecutor().GetCache(), requests)
+	return NewMultiGetCommand(o._session.GetRequestExecutor().Cache, requests)
 }
 
 func (o *MultiGetOperation) setResult(result ObjectNode) {

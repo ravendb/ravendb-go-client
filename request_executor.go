@@ -51,7 +51,7 @@ type RequestExecutor struct {
 	_firstTopologyUpdate *CompletableFuture
 
 	_readBalanceBehavior   ReadBalanceBehavior
-	cache                  *HttpCache
+	Cache                  *HttpCache
 	httpClient             *http.Client
 	_topologyTakenFromNode *ServerNode
 
@@ -68,10 +68,6 @@ type RequestExecutor struct {
 	/// Note: in Java this is thread local but Go doesn't have equivalent
 	// of thread local data
 	aggressiveCaching *AggressiveCacheOptions
-}
-
-func (re *RequestExecutor) GetCache() *HttpCache {
-	return re.cache
 }
 
 func (re *RequestExecutor) GetTopology() *Topology {
@@ -196,7 +192,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		_updateDatabaseTopologySemaphore:    NewSemaphore(1),
 		_updateClientConfigurationSemaphore: NewSemaphore(1),
 
-		cache:                NewHttpCache(conventions.getMaxHttpCacheSize()),
+		Cache:                NewHttpCache(conventions.getMaxHttpCacheSize()),
 		_readBalanceBehavior: conventions.GetReadBalanceBehavior(),
 		_databaseName:        databaseName,
 		certificate:          certificate,
@@ -512,7 +508,7 @@ func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, s
 }
 
 func (re *RequestExecutor) chooseNodeForRequest(cmd RavenCommand, sessionInfo *SessionInfo) (*CurrentIndexAndNode, error) {
-	if !cmd.GetBase().isReadRequest() {
+	if !cmd.GetBase().IsReadRequest {
 		return re.getPreferredNode()
 	}
 
@@ -712,14 +708,31 @@ func isNetworkTimeoutError(err error) bool {
 }
 
 func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
-	//fmt.Printf("RequestExecutor.Execute cmd: %#v\n", command)
 	request, err := re.CreateRequest(chosenNode, command)
 	if err != nil {
 		return err
 	}
-	// TODO: caching
-
 	urlRef := request.URL.String()
+	//fmt.Printf("RequestExecutor.Execute cmd: %T url: %s\n", command, urlRef)
+
+	cachedItem, cachedChangeVector, cachedValue := re.getFromCache(command, urlRef)
+	defer cachedItem.Close()
+
+	if cachedChangeVector != nil {
+		aggressiveCacheOptions := re.aggressiveCaching
+		if aggressiveCacheOptions != nil {
+			expired := cachedItem.getAge() > aggressiveCacheOptions.Duration
+			//fmt.Printf("RequestExecutor.Execute(): expired: %v, mightHaveBeenModified: %v, canCacheAggressively: %v\n", expired, cachedItem.getMightHaveBeenModified(), command.GetBase().CanCacheAggressively)
+			if !expired &&
+				!cachedItem.getMightHaveBeenModified() &&
+				command.GetBase().CanCacheAggressively {
+				//fmt.Printf("RequestExecutor.Execute(): using cached value of size %d\n", len(cachedValue))
+				return command.SetResponse(cachedValue, true)
+			}
+		}
+
+		request.Header.Set("If-None-Match", "\""+*cachedChangeVector+"\"")
+	}
 
 	if !re._disableClientConfigurationUpdates {
 		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
@@ -754,12 +767,19 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		return nil
 	}
 
-	command.GetBase().statusCode = response.StatusCode
+	command.GetBase().StatusCode = response.StatusCode
 
 	refreshTopology := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_TOPOLOGY)
 	refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_CLIENT_CONFIGURATION)
 
-	// TODO: handle not modified
+	if response.StatusCode == http.StatusNotModified {
+		cachedItem.notModified()
+
+		if command.GetBase().ResponseType == RavenCommandResponseType_OBJECT {
+			err = command.SetResponse([]byte(cachedValue), true)
+		}
+		return err
+	}
 
 	if response.StatusCode >= 400 {
 		ok, err := re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry)
@@ -791,7 +811,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		return nil // we either handled this already in the unsuccessful response or we are throwing
 	}
 
-	responseDispose, err = processCommandResponse(command, re.cache, response, urlRef)
+	responseDispose, err = processCommandResponse(command, re.Cache, response, urlRef)
 	re._lastReturnedResponse.Store(time.Now())
 	if err != nil {
 		return err
@@ -871,12 +891,13 @@ func (re *RequestExecutor) inSpeedTestPhase() bool {
 func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command RavenCommand) bool {
 	multipleNodes := (re._nodeSelector != nil) && (len(re._nodeSelector.getTopology().GetNodes()) > 1)
 
+	cmd := command.GetBase()
 	return re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE &&
 		re._nodeSelector != nil &&
 		re._nodeSelector.inSpeedTestPhase() &&
 		multipleNodes &&
-		command.GetBase().isReadRequest() &&
-		command.GetBase().GetResponseType() == RavenCommandResponseType_OBJECT &&
+		cmd.IsReadRequest &&
+		cmd.ResponseType == RavenCommandResponseType_OBJECT &&
 		chosenNode != nil
 }
 
@@ -885,9 +906,13 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 	return nil, nil
 }
 
-func (re *RequestExecutor) getFromCache(command RavenCommand, url string, cachedChangeVector *string, cachedValue *string) *ReleaseCacheItem {
-	panic("NYI")
-	return nil
+func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*ReleaseCacheItem, *string, []byte) {
+	cmd := command.GetBase()
+	if cmd.CanCache && cmd.IsReadRequest && cmd.ResponseType == RavenCommandResponseType_OBJECT {
+		return re.Cache.get(url)
+	}
+
+	return NewReleaseCacheItem(nil), nil, nil
 }
 
 func (re *RequestExecutor) CreateRequest(node *ServerNode, command RavenCommand) (*http.Request, error) {
@@ -903,8 +928,8 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 	var err error
 	switch response.StatusCode {
 	case http.StatusNotFound:
-		re.cache.setNotFound(url)
-		switch command.GetBase().GetResponseType() {
+		re.Cache.setNotFound(url)
+		switch command.GetBase().ResponseType {
 		case RavenCommandResponseType_EMPTY:
 			return true, nil
 		case RavenCommandResponseType_OBJECT:
@@ -1113,7 +1138,7 @@ func (re *RequestExecutor) Close() {
 	}
 
 	re._disposed = true
-	//re.cache.close()
+	re.Cache.Close()
 
 	re.mu.Lock()
 	defer re.mu.Unlock()

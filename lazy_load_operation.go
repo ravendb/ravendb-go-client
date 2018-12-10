@@ -118,7 +118,7 @@ func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
 	}
 
 	res := response.result
-	if res == "" {
+	if len(res) == 0 {
 		o.handleResponse2(nil)
 		return nil
 	}

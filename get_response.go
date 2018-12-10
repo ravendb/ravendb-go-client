@@ -3,7 +3,7 @@ package ravendb
 import "net/http"
 
 type GetResponse struct {
-	result       string
+	result       []byte
 	headers      map[string]string
 	statusCode   int
 	isForceRetry bool

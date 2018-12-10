@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	//"fmt"
 	"math"
 	"time"
 )
@@ -63,7 +64,9 @@ func (c *HttpCache) Close() {
 	c.items = nil
 }
 
-func (c *HttpCache) set(url string, changeVector *string, result string) {
+func (c *HttpCache) set(url string, changeVector *string, result []byte) {
+	//fmt.Printf("HttpCache.set(): url: %s, changeVector: %s, len(result): %d\n", url, *changeVector, len(result))
+
 	httpCacheItem := NewHttpCacheItem()
 	httpCacheItem.changeVector = changeVector
 	httpCacheItem.payload = result
@@ -72,24 +75,20 @@ func (c *HttpCache) set(url string, changeVector *string, result string) {
 	c.items.put(url, httpCacheItem)
 }
 
-// returns changeVector and response
-func (c *HttpCache) get(url string) (ci *ReleaseCacheItem, changeVector *string, response string) {
+// returns cacheItem, changeVector and response
+func (c *HttpCache) get(url string) (*ReleaseCacheItem, *string, []byte) {
 	item := c.items.getIfPresent(url)
 	if item != nil {
-		changeVector = item.changeVector
-		response = item.payload
-
-		ci = NewReleaseCacheItem(item)
-		return
+		//fmt.Printf("HttpCache.get(): found url: %s, changeVector: %s, len(payload): %d\n", url, *item.changeVector, len(item.payload))
+		return NewReleaseCacheItem(item), item.changeVector, item.payload
 	}
 
-	changeVector = nil
-	response = ""
-	ci = NewReleaseCacheItem(nil)
-	return
+	//fmt.Printf("HttpCache.get(): didn't find url: %s\n", url)
+	return NewReleaseCacheItem(nil), nil, nil
 }
 
 func (c *HttpCache) setNotFound(url string) {
+	//fmt.Printf("HttpCache.setNotFound(): url: %s\n", url)
 	httpCacheItem := NewHttpCacheItem()
 	s := "404 response"
 	httpCacheItem.changeVector = &s
@@ -125,7 +124,7 @@ func (i *ReleaseCacheItem) getAge() time.Duration {
 func (i *ReleaseCacheItem) getMightHaveBeenModified() bool {
 	currGen := i.item.generation
 	itemGen := i.item.cache.generation.get()
-	return currGen == itemGen
+	return currGen != itemGen
 }
 
 func (i *ReleaseCacheItem) Close() {

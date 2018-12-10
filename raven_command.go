@@ -24,10 +24,10 @@ type RavenCommand interface {
 // TODO: optimize so that zero-values are default values so that we
 // don't need NewRavenCommandBase()
 type RavenCommandBase struct {
-	statusCode            int
-	ResponseType          RavenCommandResponseType
-	_canCache             bool
-	_canCacheAggressively bool
+	StatusCode           int
+	ResponseType         RavenCommandResponseType
+	CanCache             bool
+	CanCacheAggressively bool
 
 	// if true, can be cached
 	IsReadRequest bool
@@ -37,41 +37,15 @@ type RavenCommandBase struct {
 
 func NewRavenCommandBase() RavenCommandBase {
 	res := RavenCommandBase{
-		ResponseType:          RavenCommandResponseType_OBJECT,
-		_canCache:             true,
-		_canCacheAggressively: true,
+		ResponseType:         RavenCommandResponseType_OBJECT,
+		CanCache:             true,
+		CanCacheAggressively: true,
 	}
 	return res
 }
 
 func (c *RavenCommandBase) GetBase() *RavenCommandBase {
 	return c
-}
-
-// this is virtual in Java, we set IsReadRequest instead when creating
-// RavenCommand instance
-func (c *RavenCommandBase) isReadRequest() bool {
-	return c.IsReadRequest
-}
-
-func (c *RavenCommandBase) GetResponseType() RavenCommandResponseType {
-	return c.ResponseType
-}
-
-func (c *RavenCommandBase) GetStatusCode() int {
-	return c.statusCode
-}
-
-func (c *RavenCommandBase) SetStatusCode(statusCode int) {
-	c.statusCode = statusCode
-}
-
-func (c *RavenCommandBase) CanCache() bool {
-	return c._canCache
-}
-
-func (c *RavenCommandBase) CanCacheAggressively() bool {
-	return c._canCacheAggressively
 }
 
 func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
@@ -156,6 +130,7 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return cmdStream.processResponse(cache, response, url)
 	}
 
+	//fmt.Printf("processCommandResponse of %T\n", cmd)
 	c := cmd.GetBase()
 
 	if response.Body == nil {
@@ -179,25 +154,28 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		if err != nil {
 			return ResponseDisposeHandling_AUTOMATIC, err
 		}
+
 		if cache != nil {
-			c.CacheResponse(cache, url, response, string(js))
+			//fmt.Printf("processCommandResponse: caching response for %s\n", url)
+			c.CacheResponse(cache, url, response, js)
 		}
 		err = cmd.SetResponse(js, false)
 		return ResponseDisposeHandling_AUTOMATIC, err
-	} else {
-		cmd.SetResponseRaw(response, response.Body)
 	}
 
+	cmd.SetResponseRaw(response, response.Body)
 	return ResponseDisposeHandling_AUTOMATIC, nil
 }
 
-func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response *http.Response, responseJson string) {
-	if !c.CanCache() {
+func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response *http.Response, responseJson []byte) {
+	if !c.CanCache {
+		//fmt.Printf("CacheResponse: url: %s, !c.CanCache\n", url)
 		return
 	}
 
 	changeVector := HttpExtensions_getEtagHeader(response)
 	if changeVector == nil {
+		//fmt.Printf("CacheResponse: url: %s, not caching because changeVector==nil\n", url)
 		return
 	}
 

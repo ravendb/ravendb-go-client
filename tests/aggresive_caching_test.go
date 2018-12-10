@@ -27,21 +27,6 @@ func initAggressiveCaching(t *testing.T) *ravendb.DocumentStore {
 	return store
 }
 
-// for temporarily disabling logging of failed requests (if a given
-// test is known to issue failing requests)
-// usage: defer disableLogFailedRequests()()
-// or:
-// restorer := disableLogFailedRequests()
-// ...
-// restorer()
-func disableLogFailedRequests() func() {
-	old := ravendb.LogFailedRequests
-	ravendb.LogFailedRequests = false
-	return func() {
-		ravendb.LogFailedRequests = old
-	}
-}
-
 func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T) {
 	defer disableLogFailedRequests()()
 
@@ -61,6 +46,7 @@ func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T) {
 	}
 
 	currNo := requestExecutor.NumberOfServerRequests.Get()
+
 	assert.Equal(t, currNo, 1+oldNumOfRequests)
 	store.Close()
 }
@@ -75,7 +61,8 @@ func aggressiveCaching_canAggressivelyCacheLoads(t *testing.T) {
 		{
 			dur := time.Minute * 5
 			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
-			session.Load(&User{}, "users/1-A")
+			var u *User
+			session.Load(&u, "users/1-A")
 			context.Close()
 		}
 		session.Close()
@@ -95,7 +82,7 @@ func aggressiveCaching_canAggressivelyCacheQueries(t *testing.T) {
 			dur := time.Minute * 5
 			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
 			q := session.QueryOld(reflect.TypeOf(&User{}))
-			var u *User
+			var u []*User
 			err := q.ToList(&u)
 			assert.NoError(t, err)
 			context.Close()
@@ -118,7 +105,7 @@ func aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t *testing
 			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
 			q := session.QueryOld(reflect.TypeOf(&User{}))
 			q = q.WaitForNonStaleResults(0)
-			var u *User
+			var u []*User
 			err := q.ToList(&u)
 			assert.NoError(t, err)
 			context.Close()
@@ -138,8 +125,8 @@ func TestAggressiveCaching(t *testing.T) {
 	defer recoverTest(t, destroyDriver)
 
 	// matches order of Java tests
-	//aggressiveCaching_canAggressivelyCacheQueries(t)
+	aggressiveCaching_canAggressivelyCacheQueries(t)
 	//aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t)
-	//aggressiveCaching_canAggressivelyCacheLoads(t)
-	//aggressiveCaching_canAggressivelyCacheLoads_404(t)
+	aggressiveCaching_canAggressivelyCacheLoads(t)
+	aggressiveCaching_canAggressivelyCacheLoads_404(t)
 }

@@ -598,6 +598,21 @@ func maybePrintFailedRequestsLog() {
 	}
 }
 
+// for temporarily disabling logging of failed requests (if a given
+// test is known to issue failing requests)
+// usage: defer disableLogFailedRequests()()
+// or:
+// restorer := disableLogFailedRequests()
+// ...
+// restorer()
+func disableLogFailedRequests() func() {
+	old := ravendb.LogFailedRequests
+	ravendb.LogFailedRequests = false
+	return func() {
+		ravendb.LogFailedRequests = old
+	}
+}
+
 // In Java, RavenTestDriver is created/destroyed for each test
 // In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test

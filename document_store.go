@@ -387,7 +387,6 @@ type RestoreCaching struct {
 }
 
 func (r *RestoreCaching) Close() {
-	// TODO: in Java it's thread local
 	r.re.aggressiveCaching = r.old
 }
 
@@ -401,8 +400,8 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 	}
 
 	re := s.GetRequestExecutorWithDatabase(databaseName)
-	old := re.aggressiveCaching // TODO: is thread local
-	re.aggressiveCaching = nil  // TODO: is thread local
+	old := re.aggressiveCaching
+	re.aggressiveCaching = nil
 	res := &RestoreCaching{
 		re:  re,
 		old: old,
@@ -508,7 +507,6 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 	// have this set once, so we won't need to do it again
 	s._aggressiveCachingUsed = true
 
-	// Lazy < EvictItemsFromCacheBasedOnChanges >
 	s.mu.Lock()
 	lazy := s._aggressiveCacheChanges[database]
 	s.mu.Unlock()
@@ -528,17 +526,23 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 	lazy.GetValue() // force evaluation
 }
 
-func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) {
+func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) int {
 	s.beforeClose = append(s.beforeClose, fn)
+	return len(s.beforeClose) - 1
 }
 
-//   public void removeBeforeCloseListener(EventHandler<VoidArgs> event) {
+func (s *DocumentStore) RemoveBeforeCloseListener(idx int) {
+	s.beforeClose[idx] = nil
+}
 
-func (s *DocumentStore) AddAfterCloseListener(fn func(*DocumentStore)) {
+func (s *DocumentStore) AddAfterCloseListener(fn func(*DocumentStore)) int {
 	s.afterClose = append(s.afterClose, fn)
+	return len(s.afterClose) - 1
 }
 
-//    public void removeAfterCloseListener(EventHandler<VoidArgs> event) {
+func (s *DocumentStore) RemoveAfterCloseListener(idx int) {
+	s.afterClose[idx] = nil
+}
 
 func (s *DocumentStore) Maintenance() *MaintenanceOperationExecutor {
 	s.assertInitialized()

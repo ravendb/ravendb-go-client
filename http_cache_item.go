@@ -4,7 +4,7 @@ import "time"
 
 type HttpCacheItem struct {
 	changeVector     *string // TODO: can probably be string
-	payload          string
+	payload          []byte
 	lastServerUpdate time.Time
 	generation       int // TODO: should this be atomicInteger?
 
