@@ -3,6 +3,8 @@ package tests
 import (
 	"reflect"
 	"runtime"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -438,9 +440,6 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	assert.NotEmpty(t, explanation.GetReason())
 }
 
-// TODO: here the issue seems to be merely a different order of resuls
-// Fails on Travis CI https://travis-ci.org/ravendb/ravendb-go-client/builds/418503707
-// but works on Mac/Windows
 func indexesFromClientTest_moreLikeThis(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
@@ -526,16 +525,30 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 
 		assert.Equal(t, len(list), 3)
 
-		post := list[0]
-		assert.Equal(t, post.Title, "doduck")
-		assert.Equal(t, post.Desc, "prototype your idea")
+		// Note: unlike Java must sort result to account for randomized order
+		// of results because of https://github.com/ravendb/ravendb-go-client/issues/71
+		sort.Slice(list, func(i, j int) bool {
+			p1 := list[i]
+			p2 := list[j]
+			if strings.ToLower(p1.Title) < strings.ToLower(p2.Title) {
+				return true
+			}
+			if strings.ToLower(p1.Title) > strings.ToLower(p2.Title) {
+				return false
+			}
+			return strings.ToLower(p1.Desc) < strings.ToLower(p2.Desc)
+		})
 
-		post = list[1]
+		var post *Post
+		post = list[0] // Note: 1 in Java
 		assert.Equal(t, post.Title, "doduck")
 		assert.Equal(t, post.Desc, "love programming")
 
-		post = list[2]
+		post = list[1] // Note: 0 in Java
+		assert.Equal(t, post.Title, "doduck")
+		assert.Equal(t, post.Desc, "prototype your idea")
 
+		post = list[2]
 		assert.Equal(t, post.Title, "We do")
 		assert.Equal(t, post.Desc, "prototype")
 
@@ -558,12 +571,13 @@ func TestIndexesFromClient(t *testing.T) {
 	indexesFromClientTest_getIndexNames(t)
 	indexesFromClientTest_canStopAndStart(t)
 	indexesFromClientTest_canExplain(t)
-	if ravendb.EnableFlakyTests {
-		indexesFromClientTest_moreLikeThis(t)
-	}
+
+	indexesFromClientTest_moreLikeThis(t)
+
 	// TODO: this works on Mac but fails on Travis CI/Linux
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/410576496
 	// also sometimes fails on macbook pro
+
 	if ravendb.EnableFailingTests && runtime.GOOS != "linux" {
 		indexesFromClientTest_setLockModeAndSetPriority(t)
 	}
