@@ -38,7 +38,7 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 
 	results := map[string]*SuggestionResult{}
 
-	jsResults := queryResult.getResults()
+	jsResults := queryResult.Results
 
 	for _, result := range jsResults {
 		suggestionResult, err := treeToValue(reflect.TypeOf(&SuggestionResult{}), result)

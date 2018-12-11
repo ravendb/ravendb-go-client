@@ -7,6 +7,7 @@ import (
 
 var _ ILazyOperation = &LazyQueryOperation{}
 
+// LazyQueryOperation describes server operation for lazy queries
 type LazyQueryOperation struct {
 	_clazz              reflect.Type
 	_conventions        *DocumentConventions
@@ -18,6 +19,7 @@ type LazyQueryOperation struct {
 	requiresRetry bool
 }
 
+// NewLazyQueryOperation returns new LazyQueryOperation
 func NewLazyQueryOperation(clazz reflect.Type, conventions *DocumentConventions, queryOperation *QueryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
 	return &LazyQueryOperation{
 		_clazz:              clazz,
@@ -36,28 +38,19 @@ func (o *LazyQueryOperation) createRequest() *GetRequest {
 	}
 }
 
+// needed for ILazyOperation
 func (o *LazyQueryOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyQueryOperation) setResult(result interface{}) {
-	o.result = result
-}
-
+// needed for ILazyOperation
 func (o *LazyQueryOperation) getQueryResult() *QueryResult {
 	return o.queryResult
 }
 
-func (o *LazyQueryOperation) setQueryResult(queryResult *QueryResult) {
-	o.queryResult = queryResult
-}
-
+// needed for ILazyOperation
 func (o *LazyQueryOperation) isRequiresRetry() bool {
 	return o.requiresRetry
-}
-
-func (o *LazyQueryOperation) setRequiresRetry(requiresRetry bool) {
-	o.requiresRetry = requiresRetry
 }
 
 func (o *LazyQueryOperation) handleResponse(response *GetResponse) error {

@@ -92,7 +92,7 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 	queryResult := o._currentQueryResults.createSnapshot()
 
 	if !o._disableEntitiesTracking {
-		o._session.RegisterIncludes(queryResult.getIncludes())
+		o._session.RegisterIncludes(queryResult.Includes)
 	}
 	rt := reflect.TypeOf(results)
 
@@ -136,7 +136,7 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 	}
 
 	if !o._disableEntitiesTracking {
-		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.getIncludes(), queryResult.getIncludedPaths())
+		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
 	if sliceV2 != sliceV {
 		sliceV.Set(sliceV2)
@@ -148,12 +148,12 @@ func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) 
 	queryResult := o._currentQueryResults.createSnapshot()
 
 	if !o._disableEntitiesTracking {
-		o._session.RegisterIncludes(queryResult.getIncludes())
+		o._session.RegisterIncludes(queryResult.Includes)
 	}
 
 	var list []interface{}
 	{
-		results := queryResult.getResults()
+		results := queryResult.Results
 		for _, document := range results {
 			metadataI, ok := document[Constants_Documents_Metadata_KEY]
 			panicIf(!ok, "missing metadata")
@@ -168,7 +168,7 @@ func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) 
 	}
 
 	if !o._disableEntitiesTracking {
-		o._session.RegisterMissingIncludes(queryResult.getResults(), queryResult.getIncludes(), queryResult.getIncludedPaths())
+		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
 
 	return list, nil
@@ -294,7 +294,7 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 }
 
 func QueryOperation_ensureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *Stopwatch, session *InMemoryDocumentSessionOperations) error {
-	if waitForNonStaleResults && result.isStale() {
+	if waitForNonStaleResults && result.IsStale {
 		duration.stop()
 		msg := "Waited for " + duration.String() + " for the query to return non stale result."
 		return NewTimeoutException(msg)

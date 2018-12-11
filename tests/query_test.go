@@ -77,10 +77,8 @@ func query_queryLazily(t *testing.T) {
 		queryResult := queryResultI.([]*User)
 		assert.Equal(t, 3, len(queryResult))
 		/* TODO:
-		Java checks for exact order but we sometimes get them in a different
-		order e.g. https://travis-ci.org/ravendb/ravendb-go-client/builds/453165841
-		Is exact order a requirement or just happen to always return in order
-		in Java?
+		Java checks for exact order but in Go order of results is random.
+		See https://github.com/ravendb/ravendb-go-client/issues/71
 		*/
 
 		/* This is what Java checks:

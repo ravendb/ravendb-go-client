@@ -94,7 +94,7 @@ func runJava() {
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")
 	//runSingleJavaTest("PatchTest")
 	//runSingleJavaTest("PutDocumentCommandTest")
-	//runSingleJavaTest("QueryTest")
+	runSingleJavaTest("QueryTest")
 	//runSingleJavaTest("RegexQueryTest")
 	//runSingleJavaTest("RequestExecutorTest")
 	//runSingleJavaTest("RevisionsTest")
@@ -126,7 +126,7 @@ func runJava() {
 	//runSingleJavaTest("LazyTest")
 	//runSingleJavaTest("LazyAggregationEmbedded")
 	//runSingleJavaTest("AggressiveCaching")
-	runSingleJavaTest("CachingOfDocumentInclude")
+	//runSingleJavaTest("CachingOfDocumentInclude")
 }
 
 func main() {
