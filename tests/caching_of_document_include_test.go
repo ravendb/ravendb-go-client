@@ -227,6 +227,64 @@ func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_sessi
 }
 
 func cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache(t *testing.T) {
+	var err error
+	store := getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		names := []string{"Additional", "Ayende", "Michael", "Fitzhak", "Maxim"}
+		for _, name := range names {
+			user := &User5{
+				Name: name,
+			}
+			err = session.Store(user)
+			assert.NoError(t, err)
+		}
+
+		withPartner := &User5{
+			PartnerID: "user5s/1-A",
+		}
+		err = session.Store(withPartner)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		var u2, u6 *User5
+		err = session.Load(&u2, "user5s/2-A")
+		assert.NoError(t, err)
+		err = session.Load(&u6, "user5s/6-A")
+		assert.NoError(t, err)
+
+		inp := []string{"user5s/1-A", "user5s/2-A", "user5s/3-A", "user5s/4-A", "user5s/5-A", "user5s/6-A"}
+		u4 := make(map[string]*User5)
+		err = session.LoadMulti(u4, inp)
+		assert.NoError(t, err)
+
+		var u *User5
+		err = session.Load(&u, u6.PartnerID)
+		assert.NoError(t, err)
+
+		old := session.Advanced().GetNumberOfRequests()
+
+		res := make(map[string]*User5)
+		ids := []string{"user5s/2-A", "user5s/3-A", "user5s/6-A"}
+		err = session.Include("PartnerID").LoadMulti(res, ids)
+		assert.NoError(t, err)
+
+		new := session.Advanced().GetNumberOfRequests()
+		assert.Equal(t, old, new)
+
+		session.Close()
+	}
 }
 
 func TestCachingOfDocumentInclude(t *testing.T) {
