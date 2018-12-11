@@ -1,11 +1,13 @@
 package ravendb
 
 import (
+	"io"
 	"sync"
 )
 
 var _ IChangesObservable = &ChangesObservable{}
 
+// ChangesObservable is for observing changes in a database
 type ChangesObservable struct {
 	_type            ChangesType
 	_connectionState IChangesConnectionState
@@ -14,6 +16,7 @@ type ChangesObservable struct {
 	_subscribers     map[IObserver]bool
 }
 
+// NewChangesObservable returns a new ChangesObservable
 func NewChangesObservable(typ ChangesType, connectionState IChangesConnectionState, filter func(interface{}) bool) *ChangesObservable {
 	return &ChangesObservable{
 		_type:            typ,
@@ -23,7 +26,8 @@ func NewChangesObservable(typ ChangesType, connectionState IChangesConnectionSta
 	}
 }
 
-func (o *ChangesObservable) Subscribe(observer IObserver) CleanCloseable {
+// Subscribe subscribes to a given observer
+func (o *ChangesObservable) Subscribe(observer IObserver) io.Closer {
 	consumer := func(payload interface{}) {
 		o.send(payload)
 	}
@@ -38,13 +42,14 @@ func (o *ChangesObservable) Subscribe(observer IObserver) CleanCloseable {
 	o._connectionState.inc()
 	o.addObserver(observer)
 
-	fn := func() {
+	fn := func() error {
 		o._connectionState.dec()
 		o.removeObserver(observer)
 		o._connectionState.removeOnChangeNotification(o._type, consumerIdx)
 		o._connectionState.removeOnError(onErrorHandleIdx)
+		return nil
 	}
-	return NewFuncCleanCloseable(fn)
+	return newFuncCloser(fn)
 }
 
 func (o *ChangesObservable) addObserver(observer IObserver) {

@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"fmt"
+	"io"
 	"reflect"
 )
 
@@ -76,11 +77,11 @@ func (o *QueryOperation) logQuery() {
 	*/
 }
 
-func (o *QueryOperation) enterQueryContext() CleanCloseable {
+func (o *QueryOperation) enterQueryContext() io.Closer {
 	o.startTiming()
 
 	if !o.indexQuery.waitForNonStaleResults {
-		var res *NilCleanCloseable
+		var res *nilCloser
 		return res
 	}
 

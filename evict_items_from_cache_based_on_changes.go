@@ -1,10 +1,14 @@
 package ravendb
 
+import "io"
+
+// EvictItemsFromCacheBasedOnChanges is for evicting cache items
+// based on database changes
 type EvictItemsFromCacheBasedOnChanges struct {
 	_databaseName          string
 	_changes               IDatabaseChanges
-	_documentsSubscription CleanCloseable
-	_indexesSubscription   CleanCloseable
+	_documentsSubscription io.Closer
+	_indexesSubscription   io.Closer
 	_requestExecutor       *RequestExecutor
 }
 

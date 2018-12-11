@@ -1,3 +1,5 @@
+This document describes how and why Go port deviates from Java codebase.
+
 Go is a statically typed language without generics.
 
 That means that code patterns that work well in a dynamicaly typed language (Python,
@@ -171,6 +173,22 @@ To avoid quoting strings, use `%v` or `%s`.
 In Java, the name of id property is `id`.
 
 In Go publicly accessible properties have to start with capital letter so it would have to be `Id`. Additionally the Go naming rule for abbreviations is all capitalized i.e. `ID`.
+
+## `CleanCloseable` => `io.Closer`
+
+Go standard library has a `io.Closer` interface which is the same as as `CleanCloseable`.
+
+## interface vs. concrete types
+
+In Go the only reason to define an interface is if there is more than one implementation.
+
+In Java interfaces are sometimes used to limit API exposed to the user of the library.
+Due to Java's per-class access control if the library uses an object method, it must be
+public and therefore visible to clients of the library.
+
+In Go we don't need to do that because access control is per-package.
+
+Therefore many such interfaces are removed and we instead expose concrete types in the API.
 
 ## managing callbacks
 

@@ -1,32 +1,35 @@
 package ravendb
 
-type CleanCloseable interface {
-	Close()
-}
+// Note: we use io.Closer instead of CleanCloseable
 
-// NilCleanCloseable is meant for functions that return CleanCloseable type and
+// nilCloser is meant for functions that return io.Closer type and
 // want to return nil.
 // Instead do:
-// var res *NilCleanCloseable
+// var res *nilCloser
 // return res
 // That way the caller can call Close() without checking for nil
-type NilCleanCloseable struct {
+type nilCloser struct {
 }
 
-func (n *NilCleanCloseable) Close() {
+// Close closes nil closer
+func (n *nilCloser) Close() error {
 	// works even if n is nil
+	return nil
 }
 
-type FuncCleanCloseable struct {
-	fn func()
+// funcCloser wraps a function as io.Closer
+type funcCloser struct {
+	fn func() error
 }
 
-func NewFuncCleanCloseable(fn func()) *FuncCleanCloseable {
-	return &FuncCleanCloseable{
+// newFuncCloser returns a new funcCloser
+func newFuncCloser(fn func() error) *funcCloser {
+	return &funcCloser{
 		fn: fn,
 	}
 }
 
-func (f *FuncCleanCloseable) Close() {
-	f.fn()
+// Close calls underlying Close function
+func (f *funcCloser) Close() error {
+	return f.fn()
 }

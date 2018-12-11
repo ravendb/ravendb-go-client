@@ -386,8 +386,9 @@ type RestoreCaching struct {
 	old *AggressiveCacheOptions
 }
 
-func (r *RestoreCaching) Close() {
+func (r *RestoreCaching) Close() error {
 	r.re.aggressiveCaching = r.old
+	return nil
 }
 
 func (s *DocumentStore) DisableAggressiveCaching() *RestoreCaching {

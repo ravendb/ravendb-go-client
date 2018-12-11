@@ -1,5 +1,7 @@
 package ravendb
 
+import "io"
+
 type IChangesObservable interface {
-	Subscribe(observer IObserver) CleanCloseable
+	Subscribe(observer IObserver) io.Closer
 }
