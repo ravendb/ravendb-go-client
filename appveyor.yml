@@ -44,6 +44,8 @@ build_script:
   - go build
 
 test_script:
-  - go test -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" ./tests
+  # default timeout is 10m which sometimes is not enough (usually we finish
+  # under 8 but sometimes appveyor is slower)
+  - go test -timeout 20m -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" ./tests
 
 deploy: off
