@@ -17,6 +17,6 @@ $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$PSScriptRoot\..\RavenDB\Server\Raven.Serv
 go.exe clean -testcache
 
 #go.exe test -v -timeout 15s ./tests -run ^TestRavenDB8761$
-go.exe test -race -v -timeout 15s ./tests -run ^TestCachingOfDocumentInclude$
+go.exe test -v -timeout 15s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
 #go.exe test -vet=off -v -timeout 15s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$
