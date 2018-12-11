@@ -5,7 +5,7 @@ import "strings"
 // AbstractIndexCreationTask is for creating an index
 // TODO: rename to IndexCreationTask
 type AbstractIndexCreationTask struct {
-	Map    string // Note: in Go map is a reserved keyword
+	Map    string
 	Reduce string
 
 	Conventions       *DocumentConventions
@@ -22,8 +22,8 @@ type AbstractIndexCreationTask struct {
 
 	OutputReduceToCollection string
 
-	// in Go this must be set by "sub-class". In Java it's dynamically calculated
-	// as getClass().getSimpleName()
+	// in Go IndexName must provided explicitly
+	// In Java it's dynamically calculated as getClass().getSimpleName()
 	IndexName string
 }
 
@@ -44,14 +44,7 @@ func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
 	}
 }
 
-func (t *AbstractIndexCreationTask) GetAdditionalSources() map[string]string {
-	return t.AdditionalSources
-}
-
-func (t *AbstractIndexCreationTask) SetAdditionalSources(additionalSources map[string]string) {
-	t.AdditionalSources = additionalSources
-}
-
+// CreateIndexDefinition creates IndexDefinition
 func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	if t.Conventions == nil {
 		t.Conventions = NewDocumentConventions()
@@ -67,29 +60,32 @@ func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	indexDefinitionBuilder.termVectorsStrings = t.TermVectorsStrings
 	indexDefinitionBuilder.spatialIndexesStrings = t.SpatialOptionsStrings
 	indexDefinitionBuilder.outputReduceToCollection = t.OutputReduceToCollection
-	indexDefinitionBuilder.additionalSources = t.GetAdditionalSources()
+	indexDefinitionBuilder.additionalSources = t.AdditionalSources
 
 	return indexDefinitionBuilder.toIndexDefinition(t.Conventions, false)
 }
 
+// IsMapReduce returns true if this is map-reduce index
 func (t *AbstractIndexCreationTask) IsMapReduce() bool {
 	return t.Reduce != ""
 }
 
+// GetIndexName returns index name
 func (t *AbstractIndexCreationTask) GetIndexName() string {
 	panicIf(t.IndexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName()")
 	return strings.Replace(t.IndexName, "_", "/", -1)
 }
 
+// Execute executes index in specified document store
 func (t *AbstractIndexCreationTask) Execute(store *IDocumentStore) error {
 	return store.ExecuteIndex(t)
 }
 
 func (t *AbstractIndexCreationTask) Execute2(store *IDocumentStore, conventions *DocumentConventions, database string) error {
-	return t.PutIndex(store, conventions, database)
+	return t.putIndex(store, conventions, database)
 }
 
-func (t *AbstractIndexCreationTask) PutIndex(store *IDocumentStore, conventions *DocumentConventions, database string) error {
+func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions *DocumentConventions, database string) error {
 	oldConventions := t.Conventions
 	defer func() { t.Conventions = oldConventions }()
 
@@ -114,31 +110,38 @@ func (t *AbstractIndexCreationTask) PutIndex(store *IDocumentStore, conventions 
 	return store.Maintenance().ForDatabase(database).Send(op)
 }
 
+// Index registers field to be indexed
 func (t *AbstractIndexCreationTask) Index(field string, indexing FieldIndexing) {
 	t.IndexesStrings[field] = indexing
 }
 
+// Spatial registers field to be spatially indexed
 func (t *AbstractIndexCreationTask) Spatial(field string, indexing func(*SpatialOptionsFactory) *SpatialOptions) {
 	v := indexing(NewSpatialOptionsFactory())
 	t.SpatialOptionsStrings[field] = v
 }
 
+// StoreAllFields selects if we're storing all fields or not
 func (t *AbstractIndexCreationTask) StoreAllFields(storage FieldStorage) {
 	t.StoresStrings[Constants_Documents_Indexing_Fields_ALL_FIELDS] = storage
 }
 
+// Store registers field to be stored
 func (t *AbstractIndexCreationTask) Store(field string, storage FieldStorage) {
 	t.StoresStrings[field] = storage
 }
 
+// Analyze registers field to be analyzed
 func (t *AbstractIndexCreationTask) Analyze(field string, analyzer string) {
 	t.AnalyzersStrings[field] = analyzer
 }
 
+// TermVector registers field to have term vectors
 func (t *AbstractIndexCreationTask) TermVector(field string, termVector FieldTermVector) {
 	t.TermVectorsStrings[field] = termVector
 }
 
+// Suggestion registers field to be indexed as suggestions
 func (t *AbstractIndexCreationTask) Suggestion(field string) {
 	t.IndexSuggestions = append(t.IndexSuggestions, field)
 }

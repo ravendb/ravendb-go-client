@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-type IAbstractDocumentQuery = AbstractDocumentQuery
+// Note: IAbstractDocumentQuery is AbstractDocumentQuery
 
 type AbstractDocumentQuery struct {
 	clazz                    reflect.Type

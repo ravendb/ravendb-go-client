@@ -1,7 +1,7 @@
 package ravendb
 
 const (
-	// Name of struct field that is identity property
+	// Name of struct field that represents identity property
 	IdentityProperty = "ID"
 
 	Constants_Documents_Metadata_COLLECTION    = "@collection"
