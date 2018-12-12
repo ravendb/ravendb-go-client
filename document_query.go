@@ -230,7 +230,7 @@ func (q *DocumentQuery) WhereNotEquals(fieldName string, value interface{}) *Doc
 	return q
 }
 
-func (q *DocumentQuery) _whereNotEqualsWithMethod(fieldName string, method MethodCall) *DocumentQuery {
+func (q *DocumentQuery) WhereNotEqualsWithMethod(fieldName string, method MethodCall) *DocumentQuery {
 	q._whereNotEqualsWithMethod(fieldName, method)
 	return q
 }

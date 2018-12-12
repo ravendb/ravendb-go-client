@@ -933,10 +933,8 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 			return true, nil
 		case RavenCommandResponseType_OBJECT:
 			command.SetResponse(nil, false)
-			break
 		default:
 			command.SetResponseRaw(response, nil)
-			break
 		}
 		return true, nil
 	case http.StatusForbidden:
@@ -965,11 +963,9 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		return ok, nil
 	case http.StatusConflict:
 		err = RequestExecutor_handleConflict(response)
-		break
 	default:
 		command.GetBase().OnResponseFailure(response)
 		err = ExceptionDispatcher_throwException(response)
-		break
 	}
 	return false, err
 }

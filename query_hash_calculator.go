@@ -37,7 +37,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			io.WriteString(&h._buffer, "null-list-str")
 			return
 		}
-		binary.Write(&h._buffer, binary.LittleEndian, len(v2))
+		must(binary.Write(&h._buffer, binary.LittleEndian, int64(len(v2))))
 		for _, s := range v2 {
 			io.WriteString(&h._buffer, s)
 		}
@@ -50,7 +50,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			io.WriteString(&h._buffer, "null-dic<string,string>")
 			return
 		}
-		binary.Write(&h._buffer, binary.LittleEndian, len(v2))
+		must(binary.Write(&h._buffer, binary.LittleEndian, int64(len(v2))))
 		// in Go iteration over map is not stable, so need to manually sort keys
 		var keys []string
 		for k := range v2 {
@@ -68,7 +68,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 			io.WriteString(&h._buffer, "null-dic<string,object>")
 			return
 		}
-		binary.Write(&h._buffer, binary.LittleEndian, len(v2))
+		must(binary.Write(&h._buffer, binary.LittleEndian, int64(len(v2))))
 		// in Go iteration over map is not stable, so need to manually sort keys
 		var keys []string
 		for k := range v2 {

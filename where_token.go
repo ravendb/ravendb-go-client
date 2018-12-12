@@ -126,7 +126,6 @@ func (t *whereToken) writeMethod(writer *strings.Builder) bool {
 		switch t.options.method.methodType {
 		case MethodsType_CMP_X_CHG:
 			writer.WriteString("cmpxchg(")
-			break
 		default:
 			panicIf(true, "Unsupported method: %s", t.options.method.methodType)
 			// TODO: return as error?
@@ -175,34 +174,24 @@ func (t *whereToken) writeTo(writer *strings.Builder) {
 	switch t.whereOperator {
 	case WhereOperator_SEARCH:
 		writer.WriteString("search(")
-		break
 	case WhereOperator_LUCENE:
 		writer.WriteString("lucene(")
-		break
 	case WhereOperator_STARTS_WITH:
 		writer.WriteString("startsWith(")
-		break
 	case WhereOperator_ENDS_WITH:
 		writer.WriteString("endsWith(")
-		break
 	case WhereOperator_EXISTS:
 		writer.WriteString("exists(")
-		break
 	case WhereOperator_SPATIAL_WITHIN:
 		writer.WriteString("spatial.within(")
-		break
 	case WhereOperator_SPATIAL_CONTAINS:
 		writer.WriteString("spatial.contains(")
-		break
 	case WhereOperator_SPATIAL_DISJOINT:
 		writer.WriteString("spatial.disjoint(")
-		break
 	case WhereOperator_SPATIAL_INTERSECTS:
 		writer.WriteString("spatial.intersects(")
-		break
 	case WhereOperator_REGEX:
 		writer.WriteString("regex(")
-		break
 	}
 
 	t.writeInnerWhere(writer)
@@ -237,23 +226,16 @@ func (t *whereToken) writeInnerWhere(writer *strings.Builder) {
 	switch t.whereOperator {
 	case WhereOperator_EQUALS:
 		writer.WriteString(" = ")
-		break
-
 	case WhereOperator_NOT_EQUALS:
 		writer.WriteString(" != ")
-		break
 	case WhereOperator_GREATER_THAN:
 		writer.WriteString(" > ")
-		break
 	case WhereOperator_GREATER_THAN_OR_EQUAL:
 		writer.WriteString(" >= ")
-		break
 	case WhereOperator_LESS_THAN:
 		writer.WriteString(" < ")
-		break
 	case WhereOperator_LESS_THAN_OR_EQUAL:
 		writer.WriteString(" <= ")
-		break
 	default:
 		t.specialOperator(writer)
 		return

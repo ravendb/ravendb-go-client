@@ -63,13 +63,10 @@ func (t *orderByToken) writeTo(writer *strings.Builder) {
 	switch t.ordering {
 	case OrderingType_LONG:
 		writer.WriteString(" as long")
-		break
 	case OrderingType_DOUBLE:
 		writer.WriteString(" as double")
-		break
 	case OrderingType_ALPHA_NUMERIC:
 		writer.WriteString(" as alphaNumeric")
-		break
 	}
 
 	if t.descending { // we only add this if we have to, ASC is the default and reads nicer
