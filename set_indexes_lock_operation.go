@@ -75,19 +75,3 @@ type SetIndexesLockParameters struct {
 	IndexNames []string      `json:"IndexNames"`
 	Mode       IndexLockMode `json:"Mode"`
 }
-
-func (p *SetIndexesLockParameters) getIndexNames() []string {
-	return p.IndexNames
-}
-
-func (p *SetIndexesLockParameters) setIndexNames(indexNames []string) {
-	p.IndexNames = indexNames
-}
-
-func (p *SetIndexesLockParameters) getMode() IndexLockMode {
-	return p.Mode
-}
-
-func (p *SetIndexesLockParameters) setMode(mode IndexLockMode) {
-	p.Mode = mode
-}

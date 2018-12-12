@@ -405,8 +405,8 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 
 	var newFieldsToFetch *fieldsToFetchToken
 
-	if queryData != nil && len(queryData.getFields()) > 0 {
-		fields := queryData.getFields()
+	if queryData != nil && len(queryData.fields) > 0 {
+		fields := queryData.fields
 
 		identityProperty := q.GetConventions().GetIdentityProperty(resultClass)
 
@@ -421,7 +421,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 			}
 		}
 
-		newFieldsToFetch = FieldsToFetchToken_create(fields, queryData.getProjections(), queryData.IsCustomFunction())
+		newFieldsToFetch = FieldsToFetchToken_create(fields, queryData.projections, queryData.isCustomFunction)
 	}
 
 	if newFieldsToFetch != nil {
@@ -432,9 +432,9 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	var loadTokens []*loadToken
 	var fromAlias string
 	if queryData != nil {
-		declareToken = queryData.getDeclareToken()
-		loadTokens = queryData.getLoadTokens()
-		fromAlias = queryData.getFromAlias()
+		declareToken = queryData.declareToken
+		loadTokens = queryData.loadTokens
+		fromAlias = queryData.fromAlias
 	}
 	query := NewDocumentQueryWithTokenOld(resultClass,
 		q.theSession,

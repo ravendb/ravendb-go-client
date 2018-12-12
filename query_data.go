@@ -9,54 +9,6 @@ type QueryData struct {
 	isCustomFunction bool
 }
 
-func (d *QueryData) getFields() []string {
-	return d.fields
-}
-
-func (d *QueryData) setFields(fields []string) {
-	d.fields = fields
-}
-
-func (d *QueryData) getProjections() []string {
-	return d.projections
-}
-
-func (d *QueryData) setProjections(projections []string) {
-	d.projections = projections
-}
-
-func (d *QueryData) getFromAlias() string {
-	return d.fromAlias
-}
-
-func (d *QueryData) setFromAlias(fromAlias string) {
-	d.fromAlias = fromAlias
-}
-
-func (d *QueryData) getDeclareToken() *declareToken {
-	return d.declareToken
-}
-
-func (d *QueryData) setDeclareToken(declareToken *declareToken) {
-	d.declareToken = declareToken
-}
-
-func (d *QueryData) getLoadTokens() []*loadToken {
-	return d.loadTokens
-}
-
-func (d *QueryData) setLoadTokens(loadTokens []*loadToken) {
-	d.loadTokens = loadTokens
-}
-
-func (d *QueryData) IsCustomFunction() bool {
-	return d.isCustomFunction
-}
-
-func (d *QueryData) setCustomFunction(customFunction bool) {
-	d.isCustomFunction = customFunction
-}
-
 func NewQueryData(fields []string, projections []string) *QueryData {
 	return NewQueryDataWithTokens(fields, projections, "", nil, nil, false)
 }

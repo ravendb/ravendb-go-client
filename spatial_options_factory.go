@@ -84,10 +84,10 @@ func (f *CartesianSpatialOptionsFactory) quadPrefixTreeIndex(maxTreeLevel int, b
 	opts.Type = SpatialFieldType_CARTESIAN
 	opts.MaxTreeLevel = maxTreeLevel
 	opts.Strategy = SpatialSearchStrategy_QUAD_PREFIX_TREE
-	opts.MinX = bounds.getMinX()
-	opts.MinY = bounds.getMinY()
-	opts.MaxX = bounds.getMaxX()
-	opts.MaxY = bounds.getMaxY()
+	opts.MinX = bounds.minX
+	opts.MinY = bounds.minY
+	opts.MaxX = bounds.maxX
+	opts.MaxY = bounds.maxY
 
 	return opts
 }
@@ -97,38 +97,6 @@ type SpatialBounds struct {
 	maxX float64
 	minY float64
 	maxY float64
-}
-
-func (b *SpatialBounds) getMinX() float64 {
-	return b.minX
-}
-
-func (b *SpatialBounds) setMinX(minX float64) {
-	b.minX = minX
-}
-
-func (b *SpatialBounds) getMaxX() float64 {
-	return b.maxX
-}
-
-func (b *SpatialBounds) setMaxX(maxX float64) {
-	b.maxX = maxX
-}
-
-func (b *SpatialBounds) getMinY() float64 {
-	return b.minY
-}
-
-func (b *SpatialBounds) setMinY(minY float64) {
-	b.minY = minY
-}
-
-func (b *SpatialBounds) getMaxY() float64 {
-	return b.maxY
-}
-
-func (b *SpatialBounds) setMaxY(maxY float64) {
-	b.maxY = maxY
 }
 
 func NewSpatialBounds(minX float64, minY float64, maxX float64, maxY float64) *SpatialBounds {
