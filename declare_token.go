@@ -10,6 +10,8 @@ type declareToken struct {
 	body       string
 }
 
+/*
+// TODO: why is this unused? Should declareToken be publicly exposed?
 func newDeclareToken(name string, body string, parameters string) *declareToken {
 	return &declareToken{
 		name:       name,
@@ -17,14 +19,7 @@ func newDeclareToken(name string, body string, parameters string) *declareToken 
 		parameters: parameters,
 	}
 }
-
-func createDeclareToken(name string, body string) *declareToken {
-	return createDeclareTokenWithParams(name, body, "")
-}
-
-func createDeclareTokenWithParams(name string, body string, parameters string) *declareToken {
-	return newDeclareToken(name, body, parameters)
-}
+*/
 
 func (t *declareToken) writeTo(writer *strings.Builder) {
 

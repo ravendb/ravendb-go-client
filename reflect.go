@@ -102,14 +102,6 @@ func GetStructTypeOfValue(v interface{}) (reflect.Type, bool) {
 	return getStructTypeOfReflectValue(rv)
 }
 
-func isTypePointerToStruct(typ reflect.Type) bool {
-	if typ.Kind() != reflect.Ptr {
-		return false
-	}
-	typ = typ.Elem()
-	return typ.Kind() == reflect.Struct
-}
-
 // if typ is ptr-to-struct, return as is
 // if typ is ptr-to-ptr-to-struct, returns ptr-to-struct
 // otherwise returns nil

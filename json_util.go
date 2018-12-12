@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 )
@@ -129,8 +128,10 @@ func ValueToTree(v interface{}) ObjectNode {
 	return StructToJSONMap(v)
 }
 
+// TODO: remove
 // copyJSONMap makes a deep copy of map[string]interface{}
 // TODO: possibly not the fastest way to do it
+/*
 func copyJSONMap(v map[string]interface{}) map[string]interface{} {
 	d, err := json.Marshal(v)
 	must(err)
@@ -139,6 +140,7 @@ func copyJSONMap(v map[string]interface{}) map[string]interface{} {
 	must(err)
 	return res
 }
+*/
 
 // jsonDecodeFirst decode first JSON object from d
 // This is like json.Unmarshal() but allows for d
@@ -154,9 +156,12 @@ func jsonUnmarshalFirst(d []byte, v interface{}) error {
 	return err
 }
 
+// TODO: remove
+/*
 func decodeJSONFromReader(r io.Reader, v interface{}) error {
 	return json.NewDecoder(r).Decode(v)
 }
+*/
 
 func isUnprintable(c byte) bool {
 	if c < 32 {

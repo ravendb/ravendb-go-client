@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -1119,14 +1117,6 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 	failedNodes[chosenNode] = exceptionToUse
 }
 
-// TODO: write me. this should be configurable by the user
-func (re *RequestExecutor) tryLoadFromCache(url string) {
-}
-
-// TODO: write me. this should be configurable by the user
-func writeToCache(topology *Topology, node *ServerNode) {
-}
-
 // Close should be called when deleting executor
 func (re *RequestExecutor) Close() {
 	if re._disposed {
@@ -1152,10 +1142,15 @@ func (re *RequestExecutor) Close() {
 	re.disposeAllFailedNodesTimers()
 }
 
+// TODO: remove
+/*
 var (
 	envProxyURL string
 )
+*/
 
+// TODO: remove
+/*
 func buildProxyURL(req *http.Request) (*url.URL, error) {
 	proxy := envProxyURL
 	proxyURL, err := url.Parse(proxy)
@@ -1176,7 +1171,10 @@ func buildProxyURL(req *http.Request) (*url.URL, error) {
 	}
 	return proxyURL, nil
 }
+*/
 
+// TODO: remove
+/*
 var proxyTransport http.RoundTripper = &http.Transport{
 	Proxy: buildProxyURL,
 	DialContext: (&net.Dialer{
@@ -1189,6 +1187,7 @@ var proxyTransport http.RoundTripper = &http.Transport{
 	TLSHandshakeTimeout:   10 * time.Second,
 	ExpectContinueTimeout: 1 * time.Second,
 }
+*/
 
 func (re *RequestExecutor) createClient() *http.Client {
 	// TODO: certificate

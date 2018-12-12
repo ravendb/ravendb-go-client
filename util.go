@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -116,6 +115,8 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
+/*
+// TODO:
 func isValidDbNameChar(c rune) bool {
 	if c >= 'A' && c <= 'Z' {
 		return true
@@ -132,7 +133,10 @@ func isValidDbNameChar(c rune) bool {
 	}
 	return false
 }
+*/
 
+// TODO: remove
+/*
 // TODO: implement me exactly
 func quoteKey2(s string, reservedSlash bool) string {
 	// https://golang.org/src/net/url/url.go?s=7512:7544#L265
@@ -142,6 +146,7 @@ func quoteKey2(s string, reservedSlash bool) string {
 func quoteKey(s string) string {
 	return quoteKey2(s, false)
 }
+*/
 
 func min(i1, i2 int) int {
 	if i1 < i2 {
