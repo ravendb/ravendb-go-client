@@ -31,7 +31,7 @@ func (s *DocumentSession) Advanced() *DocumentSession {
 	return s
 }
 
-func (s *DocumentSession) Lazily() *ILazySessionOperations {
+func (s *DocumentSession) Lazily() *LazySessionOperations {
 	return NewLazySessionOperations(s)
 }
 
