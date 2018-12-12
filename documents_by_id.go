@@ -1,21 +1,21 @@
 package ravendb
 
 // TODO: make key lookups case-insensitive
-type DocumentsById struct {
+type documentsByID struct {
 	inner map[string]*DocumentInfo
 }
 
-func NewDocumentsById() *DocumentsById {
-	return &DocumentsById{
+func newDocumentsByID() *documentsByID {
+	return &documentsByID{
 		inner: map[string]*DocumentInfo{},
 	}
 }
 
-func (d *DocumentsById) getValue(id string) *DocumentInfo {
+func (d *documentsByID) getValue(id string) *DocumentInfo {
 	return d.inner[id]
 }
 
-func (d *DocumentsById) add(info *DocumentInfo) {
+func (d *documentsByID) add(info *DocumentInfo) {
 	// TODO: this happens in Java but in Go it breaks change tracking
 	// e.g. crudTest_crudOperationsWithNull
 	// Not sure if should restore this and the bug is caused by some
@@ -30,7 +30,7 @@ func (d *DocumentsById) add(info *DocumentInfo) {
 	d.inner[info.id] = info
 }
 
-func (d *DocumentsById) remove(id string) bool {
+func (d *documentsByID) remove(id string) bool {
 	if _, ok := d.inner[id]; ok {
 		return false
 	}
@@ -38,10 +38,10 @@ func (d *DocumentsById) remove(id string) bool {
 	return true
 }
 
-func (d *DocumentsById) clear() {
+func (d *documentsByID) clear() {
 	d.inner = map[string]*DocumentInfo{}
 }
 
-func (d *DocumentsById) getCount() int {
+func (d *documentsByID) getCount() int {
 	return len(d.inner)
 }

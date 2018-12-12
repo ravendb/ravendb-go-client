@@ -90,9 +90,9 @@ func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 		return ErrNotFound
 	}
 
-	doc := o._session.documentsById.getValue(id)
+	doc := o._session.documentsByID.getValue(id)
 	if doc == nil {
-		doc, _ = o._session.includedDocumentsById[id]
+		doc, _ = o._session.includeddocumentsByID[id]
 	}
 	if doc == nil {
 		return ErrNotFound
@@ -110,9 +110,9 @@ func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (int
 		return Defaults_defaultValue(clazz), nil
 	}
 
-	doc := o._session.documentsById.getValue(id)
+	doc := o._session.documentsByID.getValue(id)
 	if doc == nil {
-		doc, _ = o._session.includedDocumentsById[id]
+		doc, _ = o._session.includeddocumentsByID[id]
 	}
 	if doc == nil {
 		return Defaults_defaultValue(clazz), nil
@@ -189,7 +189,7 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 			continue
 		}
 		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)
-		o._session.documentsById.add(newDocumentInfo)
+		o._session.documentsByID.add(newDocumentInfo)
 	}
 
 	o._session.RegisterMissingIncludes(result.Results, result.Includes, o._includes)

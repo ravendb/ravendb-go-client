@@ -45,11 +45,11 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
 
-	documentsById *DocumentsById
+	documentsByID *documentsByID
 
 	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
-	includedDocumentsById map[string]*DocumentInfo
+	includeddocumentsByID map[string]*DocumentInfo
 
 	// hold the data required to manage the data for RavenDB's Unit of Work
 	// TODO: this uses value semantics, so it works as expected for
@@ -93,8 +93,8 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		_requestExecutor:              re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
-		documentsById:                 NewDocumentsById(),
-		includedDocumentsById:         map[string]*DocumentInfo{},
+		documentsByID:                 newDocumentsByID(),
+		includeddocumentsByID:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
 		_documentStore:                store,
 		databaseName:                  dbName,
@@ -267,7 +267,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoaded(id string) bool {
 
 // IsLoadedOrDeleted returns true if document with this id is loaded
 func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
-	documentInfo := s.documentsById.getValue(id)
+	documentInfo := s.documentsByID.getValue(id)
 	if documentInfo != nil && documentInfo.document != nil {
 		// is loaded
 		return true
@@ -275,7 +275,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 	if s.IsDeleted(id) {
 		return true
 	}
-	_, found := s.includedDocumentsById[id]
+	_, found := s.includeddocumentsByID[id]
 	return found
 }
 
@@ -330,14 +330,14 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		}
 
 		if !noTracking {
-			delete(s.includedDocumentsById, id)
+			delete(s.includeddocumentsByID, id)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 		setInterfaceToValue(result, docInfo.entity)
 		return nil
 	}
 
-	docInfo = s.includedDocumentsById[id]
+	docInfo = s.includeddocumentsByID[id]
 	if docInfo != nil {
 		noSet := true
 		if docInfo.entity == nil {
@@ -347,8 +347,8 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		}
 
 		if !noTracking {
-			delete(s.includedDocumentsById, id)
-			s.documentsById.add(docInfo)
+			delete(s.includeddocumentsByID, id)
+			s.documentsByID.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 		if noSet {
@@ -372,14 +372,14 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		newDocumentInfo.entity = result
 		newDocumentInfo.changeVector = changeVector
 
-		s.documentsById.add(newDocumentInfo)
+		s.documentsByID.add(newDocumentInfo)
 		s.documentsByEntity[result] = newDocumentInfo
 	}
 
 	return nil
 }
 
-// TrackEntity tracks entity
+// TrackEntityOld tracks entity
 func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
 	var err error
 	if id == "" {
@@ -399,13 +399,13 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		}
 
 		if !noTracking {
-			delete(s.includedDocumentsById, id)
+			delete(s.includeddocumentsByID, id)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 		return docInfo.entity, nil
 	}
 
-	docInfo = s.includedDocumentsById[id]
+	docInfo = s.includeddocumentsByID[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
 			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
@@ -415,8 +415,8 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		}
 
 		if !noTracking {
-			delete(s.includedDocumentsById, id)
-			s.documentsById.add(docInfo)
+			delete(s.includeddocumentsByID, id)
+			s.documentsByID.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 
@@ -441,7 +441,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		newDocumentInfo.entity = entity
 		newDocumentInfo.changeVector = changeVector
 
-		s.documentsById.add(newDocumentInfo)
+		s.documentsByID.add(newDocumentInfo)
 		s.documentsByEntity[entity] = newDocumentInfo
 	}
 
@@ -460,12 +460,12 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 	}
 
 	s.deletedEntities.add(entity)
-	delete(s.includedDocumentsById, value.id)
+	delete(s.includeddocumentsByID, value.id)
 	s._knownMissingIds = append(s._knownMissingIds, value.id)
 	return nil
 }
 
-// Marks the specified entity for deletion. The entity will be deleted when IDocumentSession.SaveChanges is called.
+// Delete marks the specified entity for deletion. The entity will be deleted when IDocumentSession.SaveChanges is called.
 // WARNING: This method will not call beforeDelete listener!
 func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
 	return s.DeleteWithChangeVector(id, nil)
@@ -477,7 +477,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	}
 
 	var changeVector *string
-	documentInfo := s.documentsById.getValue(id)
+	documentInfo := s.documentsByID.getValue(id)
 	if documentInfo != nil {
 		newObj := EntityToJson_convertEntityToJson(documentInfo.entity, documentInfo)
 		if documentInfo.entity != nil && s.EntityChanged(newObj, documentInfo, nil) {
@@ -488,7 +488,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 			delete(s.documentsByEntity, documentInfo.entity)
 		}
 
-		s.documentsById.remove(id)
+		s.documentsByID.remove(id)
 		changeVector = documentInfo.changeVector
 	}
 
@@ -605,7 +605,7 @@ func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, e
 
 	s.documentsByEntity[entity] = documentInfo
 	if id != "" {
-		s.documentsById.add(documentInfo)
+		s.documentsByID.add(documentInfo)
 	}
 }
 
@@ -614,7 +614,7 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity int
 	if len(id) == 0 || id[nLastChar] == '|' || id[nLastChar] == '/' {
 		return nil
 	}
-	info := s.documentsById.getValue(id)
+	info := s.documentsByID.getValue(id)
 	if info == nil || info.entity == entity {
 		return nil
 	}
@@ -702,7 +702,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 			}
 
 			var changeVector *string
-			documentInfo = s.documentsById.getValue(documentInfo.id)
+			documentInfo = s.documentsByID.getValue(documentInfo.id)
 
 			if documentInfo != nil {
 				changeVector = documentInfo.changeVector
@@ -712,7 +712,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesDeletion(result *S
 					result.AddEntity(documentInfo.entity)
 				}
 
-				s.documentsById.remove(documentInfo.id)
+				s.documentsByID.remove(documentInfo.id)
 			}
 
 			if !s.useOptimisticConcurrency {
@@ -779,7 +779,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForEntitiesPuts(result *SaveC
 		result.AddEntity(entityKey)
 
 		if entityValue.id != "" {
-			s.documentsById.remove(entityValue.id)
+			s.documentsByID.remove(entityValue.id)
 		}
 
 		entityValue.document = document
@@ -857,7 +857,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) bool 
 }
 
 func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
-	for _, docInfo := range s.documentsById.inner {
+	for _, docInfo := range s.documentsByID.inner {
 		s.UpdateMetadataModifications(docInfo)
 		entity := docInfo.entity
 		newObj := EntityToJson_convertEntityToJson(entity, docInfo)
@@ -878,7 +878,7 @@ func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) {
 	documentInfo := s.documentsByEntity[entity]
 	if documentInfo != nil {
 		delete(s.documentsByEntity, entity)
-		s.documentsById.remove(documentInfo.id)
+		s.documentsByID.remove(documentInfo.id)
 	}
 
 	s.deletedEntities.remove(entity)
@@ -887,9 +887,9 @@ func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) {
 func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.documentsByEntity = nil
 	s.deletedEntities.clear()
-	s.documentsById = nil
+	s.documentsByID = nil
 	s._knownMissingIds = nil
-	s.includedDocumentsById = nil
+	s.includeddocumentsByID = nil
 }
 
 // Defer commands to be executed on saveChanges()
@@ -962,7 +962,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 			continue
 		}
 
-		s.includedDocumentsById[newDocumentInfo.id] = newDocumentInfo
+		s.includeddocumentsByID[newDocumentInfo.id] = newDocumentInfo
 	}
 }
 
@@ -998,9 +998,9 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 		}
 
 		// Check if document was already loaded, the check if we've received it through include
-		documentInfo := s.documentsById.getValue(id)
+		documentInfo := s.documentsByID.getValue(id)
 		if documentInfo == nil {
-			documentInfo, _ = s.includedDocumentsById[id]
+			documentInfo, _ = s.includeddocumentsByID[id]
 			if documentInfo == nil {
 				return false
 			}

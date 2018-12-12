@@ -80,7 +80,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		doc[Constants_Documents_Metadata_KEY] = documentInfo.metadata
 		documentInfo.metadataInstance = nil
 
-		b._session.documentsById.add(documentInfo)
+		b._session.documentsByID.add(documentInfo)
 		b._session.GetGenerateEntityIdOnTheClient().trySetIdentity(entity, id)
 
 		afterSaveChangesEventArgs := NewAfterSaveChangesEventArgs(b._session, documentInfo.id, documentInfo.entity)

@@ -9,7 +9,7 @@ type AdvancedSessionExtentionBase struct {
 	deferredCommandsMap map[IdTypeAndName]ICommandData
 
 	deletedEntities *ObjectSet
-	documentsById   *DocumentsById
+	documentsByID   *documentsByID
 }
 
 func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations) *AdvancedSessionExtentionBase {
@@ -21,7 +21,7 @@ func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations)
 		documentStore:       session.GetDocumentStore(),
 		deferredCommandsMap: session.deferredCommandsMap,
 		deletedEntities:     session.deletedEntities,
-		documentsById:       session.documentsById,
+		documentsByID:       session.documentsByID,
 	}
 }
 

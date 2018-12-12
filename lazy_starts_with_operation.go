@@ -95,7 +95,7 @@ func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 
 	for _, document := range getDocumentResult.Results {
 		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)
-		o._sessionOperations.documentsById.add(newDocumentInfo)
+		o._sessionOperations.documentsByID.add(newDocumentInfo)
 
 		if newDocumentInfo.id == "" {
 			continue // is this possible?
@@ -106,7 +106,7 @@ func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 			finalResults[id] = nil
 			continue
 		}
-		doc := o._sessionOperations.documentsById.getValue(newDocumentInfo.id)
+		doc := o._sessionOperations.documentsByID.getValue(newDocumentInfo.id)
 		if doc != nil {
 			finalResults[id], err = o._sessionOperations.TrackEntityInDocumentInfoOld(o._clazz, doc)
 			if err != nil {

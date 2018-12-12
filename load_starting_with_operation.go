@@ -56,7 +56,7 @@ func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
 
 	for _, document := range documents {
 		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)
-		o._session.documentsById.add(newDocumentInfo)
+		o._session.documentsByID.add(newDocumentInfo)
 		o._returnedIds = append(o._returnedIds, newDocumentInfo.id)
 	}
 }
@@ -112,7 +112,7 @@ func (o *LoadStartingWithOperation) getDocumentOld(clazz reflect.Type, id string
 		return Defaults_defaultValue(clazz), nil
 	}
 
-	doc := o._session.documentsById.getValue(id)
+	doc := o._session.documentsByID.getValue(id)
 	if doc != nil {
 		return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
 	}

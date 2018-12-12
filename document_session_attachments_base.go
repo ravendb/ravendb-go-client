@@ -71,7 +71,7 @@ func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, s
 		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered to delete an attachment with the same name.")
 	}
 
-	documentInfo := s.documentsById.getValue(documentId)
+	documentInfo := s.documentsByID.getValue(documentId)
 	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
 		return NewIllegalStateException("Cannot Store attachment " + name + " of document " + documentId + ", the document was already deleted in this session.")
 	}
@@ -114,7 +114,7 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) 
 		return nil // no-op
 	}
 
-	documentInfo := s.documentsById.getValue(documentId)
+	documentInfo := s.documentsByID.getValue(documentId)
 	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
 		return nil //no-op
 	}

@@ -88,7 +88,7 @@ func (s *DocumentSession) SaveChanges() error {
 }
 
 func (s *DocumentSession) Exists(id string) (bool, error) {
-	if s.documentsById.getValue(id) != nil {
+	if s.documentsByID.getValue(id) != nil {
 		return true, nil
 	}
 	command := NewHeadDocumentCommand(id, nil)

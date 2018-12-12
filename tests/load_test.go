@@ -72,7 +72,7 @@ func loadTest_loadDocumentById(t *testing.T) {
 	}
 }
 
-func loadTest_loadDocumentsByIds(t *testing.T) {
+func loadTest_loaddocumentsByIDs(t *testing.T) {
 	var err error
 	store := getDocumentStoreMust(t)
 	defer store.Close()
@@ -328,7 +328,7 @@ func TestLoad(t *testing.T) {
 	// matches order of Java tests
 	loadTest_loadDocumentById(t)
 	loadTest_loadNullShouldReturnNull(t)
-	loadTest_loadDocumentsByIds(t)
+	loadTest_loaddocumentsByIDs(t)
 	loadTest_shouldLoadManyIdsAsPostRequest(t)
 	loadTest_loadStartsWith(t)
 	loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
