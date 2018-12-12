@@ -1,16 +1,17 @@
 package ravendb
 
 var (
-	FacetOptions_defaultOptions = &FacetOptions{}
+	facetOptionsDefault = &FacetOptions{}
 )
 
+// FacetOptions describes options for facet
 type FacetOptions struct {
-	termSortMode          FacetTermSortMode
+	//termSortMode          FacetTermSortMode // TODO: why unused?
 	includeRemainingTerms bool
 	start                 int
 	pageSize              int
 }
 
-func FacetOptions_getDefaultOptions() *FacetOptions {
-	return FacetOptions_defaultOptions
+func getDefaultFacetOptions() *FacetOptions {
+	return facetOptionsDefault
 }
