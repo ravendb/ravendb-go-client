@@ -52,7 +52,7 @@ func CompareExchangeValueResultParser_getValues(clazz reflect.Type, response []b
 		}
 
 		if isTypePrimitive(clazz) {
-			value := Defaults_defaultValue(clazz)
+			var value interface{}
 			rawValue := rawMap["Object"]
 			value, err = convertValue(rawValue, clazz)
 			if err != nil {

@@ -82,6 +82,7 @@ func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
 		}
 
 		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		session.Close()
 	}

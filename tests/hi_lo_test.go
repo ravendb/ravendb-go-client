@@ -163,6 +163,7 @@ func hiloTest_canNotGoDown(t *testing.T) {
 
 	for i := 0; i < 128; i++ {
 		nextID, err = hiLoKeyGenerator.NextID()
+		assert.NoError(t, err)
 		contains := ravendb.IntArrayContains(ids, nextID)
 		assert.False(t, contains)
 		ids = append(ids, nextID)

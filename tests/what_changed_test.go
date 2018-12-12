@@ -385,6 +385,7 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
 
 		user1.Age = 10
 		err = session.DeleteEntity(&user2)
+		assert.NoError(t, err)
 
 		changes, _ = session.Advanced().WhatChanged()
 		assert.Equal(t, len(changes), 2)

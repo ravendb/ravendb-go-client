@@ -116,6 +116,7 @@ func basicDocuments_get(t *testing.T) {
 	}
 	getDocumentsCommand = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
+	assert.NoError(t, err)
 	docs = getDocumentsCommand.Result
 	assert.Equal(t, len(docs.Results), 2)
 	doc1 = docs.Results[0]

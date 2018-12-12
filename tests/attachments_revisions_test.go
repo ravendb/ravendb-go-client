@@ -332,6 +332,7 @@ func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, 
 	for i := 0; i < expectedCount; i++ {
 		attachment := attachments[i]
 		aname, ok := attachment.Get("Name")
+		assert.True(t, ok)
 		anameStr, ok := aname.(string)
 		assert.True(t, ok)
 		attachmentNames[i] = anameStr

@@ -62,6 +62,7 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 
 		var v *Document
 		err = session.Load(&v, "items/first")
+		assert.NoError(t, err)
 		var metadata *ravendb.MetadataAsDictionary
 		metadata, err = session.Advanced().GetMetadataFor(&v)
 		assert.NoError(t, err)

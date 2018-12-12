@@ -109,6 +109,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 		q2 = q3.SelectCount()
 		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
+		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}
 		for _, products := range combined {

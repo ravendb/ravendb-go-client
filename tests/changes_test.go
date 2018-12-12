@@ -199,6 +199,7 @@ func changesTest_singleIndexChanges(t *testing.T) {
 			//SetIndexesPriorityOperation
 			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriority_LOW)
 			err = store.Maintenance().Send(operation)
+			assert.NoError(t, err)
 
 			select {
 			case indexChange := <-changesList:
@@ -240,6 +241,7 @@ func changesTest_allIndexChanges(t *testing.T) {
 			time.Sleep(500 * time.Millisecond)
 			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriority_LOW)
 			err = store.Maintenance().Send(operation)
+			assert.NoError(t, err)
 
 			select {
 			case indexChange := <-changesList:

@@ -130,6 +130,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 	}
 
 	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -201,6 +202,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 	}
 
 	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)

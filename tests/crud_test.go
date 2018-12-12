@@ -139,9 +139,11 @@ func crudTest_crudOperations(t *testing.T) {
 
 		tempUser = nil
 		err = newSession.Load(&tempUser, "users/4")
+		assert.NoError(t, err)
 		assert.Nil(t, tempUser)
 		tempUser = nil
 		err = newSession.Load(&tempUser, "users/1")
+		assert.NoError(t, err)
 		assert.Equal(t, tempUser.Age, 10)
 		newSession.Close()
 	}

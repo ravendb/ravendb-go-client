@@ -45,6 +45,9 @@ func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []
 	}
 
 	result, err := convertValue(val, clazz)
+	if err != nil {
+		return nil, err
+	}
 
 	exchangeResult := NewCompareExchangeResult()
 	exchangeResult.index = index

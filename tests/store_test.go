@@ -25,6 +25,8 @@ func storeTestRefreshTest(t *testing.T) {
 			innerSession := openSessionMust(t, store)
 			var innerUser *User
 			err = innerSession.Load(&innerUser, "users/1")
+			assert.NoError(t, err)
+
 			innerUser.setName("RavenDB 4.0")
 			err = innerSession.SaveChanges()
 			assert.NoError(t, err)

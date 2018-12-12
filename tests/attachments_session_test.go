@@ -170,6 +170,7 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 		user := &User{}
 		user.setName("Fitzchak")
 		err = session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
 
 		stream1 := bytes.NewBuffer([]byte{1, 2, 3})
 		stream2 := bytes.NewBuffer([]byte{1, 2, 3, 4, 5, 6})

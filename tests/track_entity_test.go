@@ -42,6 +42,8 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 		err = session.Store(user1)
 		assert.NoError(t, err)
 		err = session.Store(user2)
+		assert.NoError(t, err)
+
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		session.Close()

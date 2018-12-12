@@ -85,6 +85,7 @@ func bulkInsertsTest_killedToEarly(t *testing.T) {
 		assert.True(t, ok)
 
 		err = bulkInsert.Close()
+		assert.NoError(t, err)
 	}
 }
 

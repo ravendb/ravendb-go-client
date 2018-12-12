@@ -53,6 +53,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 		t.Fatalf("'%s' != '%s'", vTyp, v2Typ)
 	}
 	v2d, err := json.Marshal(v2)
+	assert.NoError(t, err)
 	if !bytes.Equal(vd, v2d) {
 		t.Fatalf("'%s' != '%s'", string(vd), string(v2d))
 	}

@@ -67,6 +67,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		session.Close()
 	}
@@ -151,6 +152,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		session.Close()
 	}
@@ -235,6 +237,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		session.Close()
 	}
@@ -306,6 +309,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		session.Close()
 	}
@@ -373,6 +377,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
+		assert.NoError(t, err)
 
 		session.Close()
 	}
