@@ -200,7 +200,8 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 
 		// test get attachment by its name
 		{
-			attachmentResult, err := session.Advanced().Attachments().Get("users/1", "file2")
+			var attachmentResult *ravendb.CloseableAttachmentResult
+			attachmentResult, err = session.Advanced().Attachments().Get("users/1", "file2")
 			assert.NoError(t, err)
 			name := attachmentResult.GetDetails().Name
 			assert.Equal(t, name, "file2")

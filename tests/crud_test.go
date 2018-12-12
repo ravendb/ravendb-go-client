@@ -213,8 +213,8 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 		if ravendb.EnableFailingTests {
 			// TODO: this returns 3 changes, showing user/2 as added
 			// which is probably wrong. Need to figure out why.
-			changes, err := newSession.Advanced().WhatChanged()
-			assert.NoError(t, err)
+			changes, err2 := newSession.Advanced().WhatChanged()
+			assert.NoError(t, err2)
 			assert.Equal(t, len(changes), 2)
 		}
 

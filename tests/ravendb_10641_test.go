@@ -3,6 +3,8 @@ package tests
 import (
 	"testing"
 
+	"github.com/ravendb/ravendb-go-client"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +23,8 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 		items := map[string]string{
 			"lang": "en",
 		}
-		meta, err := session.Advanced().GetMetadataFor(v)
+		var meta *ravendb.MetadataAsDictionary
+		meta, err = session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
 		meta.Put("Items", items)
 		err = session.SaveChanges()
@@ -37,7 +40,8 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
 
-		m, err := session.Advanced().GetMetadataFor(&v)
+		var m *ravendb.MetadataAsDictionary
+		m, err = session.Advanced().GetMetadataFor(&v)
 		assert.NoError(t, err)
 		metadataI, ok := m.Get("Items")
 		assert.True(t, ok)
@@ -58,7 +62,8 @@ func ravendb_10641_canEditObjectsInMetadata(t *testing.T) {
 
 		var v *Document
 		err = session.Load(&v, "items/first")
-		metadata, err := session.Advanced().GetMetadataFor(&v)
+		var metadata *ravendb.MetadataAsDictionary
+		metadata, err = session.Advanced().GetMetadataFor(&v)
 		assert.NoError(t, err)
 		metadata.Put("test", "123")
 
