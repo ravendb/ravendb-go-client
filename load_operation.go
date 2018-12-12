@@ -92,7 +92,7 @@ func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 
 	doc := o._session.documentsByID.getValue(id)
 	if doc == nil {
-		doc, _ = o._session.includeddocumentsByID[id]
+		doc, _ = o._session.includedDocumentsByID[id]
 	}
 	if doc == nil {
 		return ErrNotFound
@@ -112,7 +112,7 @@ func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (int
 
 	doc := o._session.documentsByID.getValue(id)
 	if doc == nil {
-		doc, _ = o._session.includeddocumentsByID[id]
+		doc, _ = o._session.includedDocumentsByID[id]
 	}
 	if doc == nil {
 		return Defaults_defaultValue(clazz), nil

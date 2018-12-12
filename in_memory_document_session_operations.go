@@ -49,7 +49,7 @@ type InMemoryDocumentSessionOperations struct {
 
 	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
-	includeddocumentsByID map[string]*DocumentInfo
+	includedDocumentsByID map[string]*DocumentInfo
 
 	// hold the data required to manage the data for RavenDB's Unit of Work
 	// TODO: this uses value semantics, so it works as expected for
@@ -94,7 +94,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsByID:                 newDocumentsByID(),
-		includeddocumentsByID:         map[string]*DocumentInfo{},
+		includedDocumentsByID:         map[string]*DocumentInfo{},
 		documentsByEntity:             map[interface{}]*DocumentInfo{},
 		_documentStore:                store,
 		databaseName:                  dbName,
@@ -275,7 +275,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 	if s.IsDeleted(id) {
 		return true
 	}
-	_, found := s.includeddocumentsByID[id]
+	_, found := s.includedDocumentsByID[id]
 	return found
 }
 
@@ -330,14 +330,14 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		}
 
 		if !noTracking {
-			delete(s.includeddocumentsByID, id)
+			delete(s.includedDocumentsByID, id)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 		setInterfaceToValue(result, docInfo.entity)
 		return nil
 	}
 
-	docInfo = s.includeddocumentsByID[id]
+	docInfo = s.includedDocumentsByID[id]
 	if docInfo != nil {
 		noSet := true
 		if docInfo.entity == nil {
@@ -347,7 +347,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		}
 
 		if !noTracking {
-			delete(s.includeddocumentsByID, id)
+			delete(s.includedDocumentsByID, id)
 			s.documentsByID.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
@@ -399,13 +399,13 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		}
 
 		if !noTracking {
-			delete(s.includeddocumentsByID, id)
+			delete(s.includedDocumentsByID, id)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
 		return docInfo.entity, nil
 	}
 
-	docInfo = s.includeddocumentsByID[id]
+	docInfo = s.includedDocumentsByID[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
 			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
@@ -415,7 +415,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		}
 
 		if !noTracking {
-			delete(s.includeddocumentsByID, id)
+			delete(s.includedDocumentsByID, id)
 			s.documentsByID.add(docInfo)
 			s.documentsByEntity[docInfo.entity] = docInfo
 		}
@@ -460,7 +460,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 	}
 
 	s.deletedEntities.add(entity)
-	delete(s.includeddocumentsByID, value.id)
+	delete(s.includedDocumentsByID, value.id)
 	s._knownMissingIds = append(s._knownMissingIds, value.id)
 	return nil
 }
@@ -889,7 +889,7 @@ func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.deletedEntities.clear()
 	s.documentsByID = nil
 	s._knownMissingIds = nil
-	s.includeddocumentsByID = nil
+	s.includedDocumentsByID = nil
 }
 
 // Defer commands to be executed on saveChanges()
@@ -962,7 +962,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 			continue
 		}
 
-		s.includeddocumentsByID[newDocumentInfo.id] = newDocumentInfo
+		s.includedDocumentsByID[newDocumentInfo.id] = newDocumentInfo
 	}
 }
 
@@ -1000,7 +1000,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 		// Check if document was already loaded, the check if we've received it through include
 		documentInfo := s.documentsByID.getValue(id)
 		if documentInfo == nil {
-			documentInfo, _ = s.includeddocumentsByID[id]
+			documentInfo, _ = s.includedDocumentsByID[id]
 			if documentInfo == nil {
 				return false
 			}
