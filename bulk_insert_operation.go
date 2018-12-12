@@ -180,7 +180,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 	}
 
 	if o._bulkInsertExecuteTask.IsCompletedExceptionally() {
-		_, err := o._bulkInsertExecuteTask.Get()
+		_, err = o._bulkInsertExecuteTask.Get()
 		panicIf(err == nil, "err should not be nil")
 		return o.throwBulkInsertAborted(err, nil)
 	}

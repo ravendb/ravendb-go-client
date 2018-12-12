@@ -101,9 +101,9 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 		h.Set("Content-Disposition",
 			fmt.Sprintf(`form-data; name="%s"`, escapeQuotes(name)))
 		h.Set("Command-Type", "AttachmentStream")
-		part, err := writer.CreatePart(h)
-		if err != nil {
-			return nil, err
+		part, err2 := writer.CreatePart(h)
+		if err2 != nil {
+			return nil, err2
 		}
 		_, err = io.Copy(part, stream)
 		if err != nil {

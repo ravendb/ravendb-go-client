@@ -1235,13 +1235,8 @@ func (d *SaveChangesData) AddEntity(entity interface{}) {
 	d.entities = append(d.entities, entity)
 }
 
-// TODO: make faster
 func copyDeferredCommands(in []ICommandData) []ICommandData {
-	res := []ICommandData{}
-	for _, d := range in {
-		res = append(res, d)
-	}
-	return res
+	return append([]ICommandData(nil), in...)
 }
 
 func copyDeferredCommandsMap(in map[IdTypeAndName]ICommandData) map[IdTypeAndName]ICommandData {

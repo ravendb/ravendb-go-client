@@ -132,7 +132,7 @@ func lgShort(s string) {
 		if logLineCount <= 1 {
 			os.Stdout.WriteString(previousLogLine)
 		} else {
-			s := strings.TrimSpace(previousLogLine)
+			s = strings.TrimSpace(previousLogLine)
 			s = fmt.Sprintf("%s x %d\n", s, logLineCount)
 			os.Stdout.WriteString(s)
 		}

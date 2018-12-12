@@ -256,7 +256,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 
 	if ravendb.RavenServerVerbose {
 		go func() {
-			_, err := io.Copy(os.Stdout, proc.stdoutReader)
+			_, err = io.Copy(os.Stdout, proc.stdoutReader)
 			if !(err == nil || err == io.EOF) {
 				fmt.Printf("io.Copy() failed with %s\n", err)
 			}
@@ -529,7 +529,7 @@ func downloadServerIfNeededWindows() {
 	if err != nil {
 		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
 		timeStart := time.Now()
-		err := HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
+		err = HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
 		must(err)
 		fmt.Printf(" took %s\n", time.Since(timeStart))
 	}

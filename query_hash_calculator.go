@@ -76,7 +76,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			v := v2[k]
+			v = v2[k]
 			io.WriteString(&h._buffer, k)
 			if v == nil {
 				io.WriteString(&h._buffer, "null")

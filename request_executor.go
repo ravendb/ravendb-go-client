@@ -760,7 +760,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		}
 		// Note: Java here re-throws if err is IOException and !shouldRetry
 		// but for us that propagates the wrong error to RequestExecutorTest_failsWhenServerIsOffline
-		urlRef := request.URL.String()
+		urlRef = request.URL.String()
 		if !re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo) {
 			return re.throwFailedToContactAllNodes(command, request, err, nil)
 		}
@@ -781,8 +781,9 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		return err
 	}
 
+	var ok bool
 	if response.StatusCode >= 400 {
-		ok, err := re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry)
+		ok, err = re.handleUnsuccessfulResponse(chosenNode, nodeIndex, command, request, response, urlRef, sessionInfo, shouldRetry)
 		if err != nil {
 			return err
 		}
@@ -948,12 +949,13 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		}
 
 		updateFuture := re.updateTopologyAsyncWithForceUpdate(chosenNode, int(math.MaxInt32), true)
-		_, err := updateFuture.Get()
+		_, err = updateFuture.Get()
 		if err != nil {
 			return false, err
 		}
 
-		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
+		var currentIndexAndNode *CurrentIndexAndNode
+		currentIndexAndNode, err = re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return false, err
 		}
@@ -1164,7 +1166,7 @@ func buildProxyURL(req *http.Request) (*url.URL, error) {
 		// proxy was bogus. Try prepending "http://" to it and
 		// see if that parses correctly. If not, we fall
 		// through and complain about the original one.
-		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
+		if proxyURL, err = url.Parse("http://" + proxy); err == nil {
 			return proxyURL, nil
 		}
 
