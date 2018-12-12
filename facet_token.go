@@ -156,7 +156,7 @@ func applyAggregations(facet FacetBase, token *facetToken) {
 }
 
 func getOptionsParameterName(facet FacetBase, addQueryParameter func(interface{}) string) string {
-	if facet.GetOptions() == nil || facet.GetOptions() == FacetOptions_getDefaultOptions() {
+	if facet.GetOptions() == nil || facet.GetOptions() == getDefaultFacetOptions() {
 		return ""
 	}
 	return addQueryParameter(facet.GetOptions())

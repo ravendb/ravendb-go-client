@@ -261,6 +261,8 @@ func runToolByName(tool string) {
 		deadcode()
 	case "var", "varcheck":
 		varcheck()
+	case "align", "aligncheck":
+		aligncheck()
 	case "struct", "structcheck":
 		structcheck()
 	case "mega", "megacheck":
