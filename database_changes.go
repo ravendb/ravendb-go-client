@@ -492,7 +492,7 @@ func (c *DatabaseChanges) doWork() error {
 		client, _, err = dialer.DialContext(ctx, urlString, nil)
 		c.setWsClient(client)
 
-		// recheck cancellation becuase it might have been cancelled
+		// recheck cancellation because it might have been cancelled
 		// since DialContext()
 		if c._cts.getToken().isCancellationRequested() {
 			//fmt.Printf("DatabaseChanges.doWork(): c._cts.getToken().isCancellationRequested() returned true so exiting\n")
@@ -630,7 +630,7 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 		err = p.client.ReadJSON(&msgArray)
 		//fmt.Printf("WebSocketChangesProcessor.processMessages, after ReadJSON\n")
 		if err != nil {
-			//fmt.Printf("WebSocketChangesProcessor.processMessages, ReadJSON failed wiht '%s'\n", err)
+			//fmt.Printf("WebSocketChangesProcessor.processMessages, ReadJSON failed with '%s'\n", err)
 			dbg("WebSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
 		}

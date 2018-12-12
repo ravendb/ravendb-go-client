@@ -1618,6 +1618,7 @@ func (q *AbstractDocumentQuery) executeActualQuery() error {
 	return nil
 }
 
+// GetQueryResult returns results of a query
 func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 	err := q.initSync()
 	if err != nil {
@@ -1627,16 +1628,18 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 	return q.queryOperation.getCurrentQueryResults().createSnapshot(), nil
 }
 
-// Note: toList() is the same as iterator() becuase Go has no iterators
+// ToListOld returns the result of the query
+// Note: toList() is the same as iterator() because Go has no iterators
 func (q *AbstractDocumentQuery) ToListOld() ([]interface{}, error) {
 	return q.executeQueryOperationOld(0)
 }
 
-// results is *[]*struct
+// ToList returns results of the query as *[]*struct
 func (q *AbstractDocumentQuery) ToList(results interface{}) error {
 	return q.executeQueryOperationNew(results, 0)
 }
 
+// First returns first result of a query
 func (q *AbstractDocumentQuery) First() (interface{}, error) {
 	result, err := q.executeQueryOperationOld(1)
 	if err != nil {

@@ -54,7 +54,7 @@ func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pag
 	return operation.GetRevisionsMetadataFor(), nil
 }
 
-// TODO: change to take interace{} to return as an argument?
+// TODO: change to take interface{} to return as an argument?
 // TODO: change changeVector to *string?
 func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) (interface{}, error) {
 	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)

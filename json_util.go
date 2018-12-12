@@ -23,7 +23,7 @@ type JsonNodeType = interface{}
 type ObjectNode = map[string]interface{}
 
 // TreeNode is equivalent of com.fasterxml.jackson.databind.TreeNode
-// in terms of Go's json package, it's the same as interface{} becuase
+// in terms of Go's json package, it's the same as interface{} because
 // interface{} combines both the value and its type
 type TreeNode = interface{}
 

@@ -483,7 +483,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 		post5 := &Post{
 			ID:    "posts/5",
 			Title: "We love",
-			Desc:  "challange",
+			Desc:  "challenge",
 		}
 		err = session.Store(post5)
 		assert.NoError(t, err)

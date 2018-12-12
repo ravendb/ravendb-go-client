@@ -2,14 +2,14 @@ This document describes how and why Go port deviates from Java codebase.
 
 Go is a statically typed language without generics.
 
-That means that code patterns that work well in a dynamicaly typed language (Python,
+That means that code patterns that work well in a dynamically typed language (Python,
 Ruby) or a statically typed language with generics (Java, C#) are akward or
 impossible when transliterated to Go.
 
 Go library follows structure and terminology of Python and Java libraries but
 sometimes it must diverge.
 
-To make future maintance easier, this documents implementation choices and why
+To make future maintenance easier, this documents implementation choices and why
 they were made.
 
 ## Java OOP vs. Go
@@ -20,11 +20,11 @@ Go only has embedding. A Derived struct can embed Base struct and will "inherit"
 
 Go has interfaces which allows virtual functions. You can define an interface Foo, implement it by Bar1 and Bar2 structs. Function that takes Foo as an argument can receive Bar1 and Bar2 and will call the right virtual functions on them.
 
-One might think that embedding + interface can be used to implement Java inheritence:
+One might think that embedding + interface can be used to implement Java inheritance:
 * define interface Foo
 * have Base struct implement it
 * embed Base in Derived struct
-* over-write some interface (virutal) functions in Derived
+* over-write some interface (virtual) functions in Derived
 
 There is a subtle but important difference.
 
@@ -192,7 +192,7 @@ Therefore many such interfaces are removed and we instead expose concrete types 
 
 ## managing callbacks
 
-Go doesn't allow comparing functions so for the purpose of removing them, we need to identifiy them somehow.
+Go doesn't allow comparing functions so for the purpose of removing them, we need to identify them somehow.
 
 I chose the simplest solution: they are identified by the index in the array of callbacks.
 

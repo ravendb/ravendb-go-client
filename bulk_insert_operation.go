@@ -49,7 +49,7 @@ func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 	return NewNotImplementedException("Not implemented")
 }
 
-// TODO: port this. Currenlty send is not over-rideable
+// TODO: port this. Currently send can't be over-written
 /*
  CloseableHttpResponse send(CloseableHttpClient client, HttpRequestBase request) throws IOException {
 	try {

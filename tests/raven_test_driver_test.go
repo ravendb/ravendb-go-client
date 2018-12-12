@@ -548,7 +548,7 @@ func downloadServerIfNeeded() {
 	}
 }
 
-// this helps running tests from withing Visual Studio Code,
+// this helps running tests from within Visual Studio Code,
 // where env variables are not set
 func detectServerPath() {
 	// explicitly setting RAVEN_GO_NO_DB_TESTS=true disables database tests

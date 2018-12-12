@@ -19,10 +19,10 @@ func NewEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName str
 		_requestExecutor: store.GetRequestExecutorWithDatabase(databaseName),
 	}
 	docSub, err := res._changes.ForAllDocuments()
-	must(err) // TOOD: return an error?
+	must(err) // TODO: return an error?
 	res._documentsSubscription = docSub.Subscribe(res)
 	indexSub, err := res._changes.ForAllIndexes()
-	must(err) // TOOD: return an error?
+	must(err) // TODO: return an error?
 	res._indexesSubscription = indexSub.Subscribe(res)
 	return res
 }
