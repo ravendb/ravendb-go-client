@@ -67,7 +67,7 @@ func (o *LazyAggregationQueryOperation) handleResponse(response *GetResponse) er
 	}
 
 	var queryResult *QueryResult
-	err := json.Unmarshal([]byte(response.result), &queryResult)
+	err := json.Unmarshal(response.result, &queryResult)
 	if err != nil {
 		return err
 	}

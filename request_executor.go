@@ -776,7 +776,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		cachedItem.notModified()
 
 		if command.GetBase().ResponseType == RavenCommandResponseType_OBJECT {
-			err = command.SetResponse([]byte(cachedValue), true)
+			err = command.SetResponse(cachedValue, true)
 		}
 		return err
 	}

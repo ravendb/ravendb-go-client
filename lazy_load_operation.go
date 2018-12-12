@@ -123,7 +123,7 @@ func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
 		return nil
 	}
 	var multiLoadResult *GetDocumentsResult
-	err := json.Unmarshal([]byte(res), &multiLoadResult)
+	err := json.Unmarshal(res, &multiLoadResult)
 	if err != nil {
 		return err
 	}

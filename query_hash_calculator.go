@@ -101,7 +101,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 		must(binary.Write(&h._buffer, binary.LittleEndian, toWrite))
 	case time.Time:
 		t := v2.UTC().Unix()
-		must(binary.Write(&h._buffer, binary.LittleEndian, int64(t)))
+		must(binary.Write(&h._buffer, binary.LittleEndian, t))
 	case int:
 		must(binary.Write(&h._buffer, binary.LittleEndian, int64(v2)))
 	default:

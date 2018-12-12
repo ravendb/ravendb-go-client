@@ -85,7 +85,7 @@ func (o *LazyStartsWithOperation) setRequiresRetry(requiresRetry bool) {
 
 func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 	var getDocumentResult *GetDocumentsResult
-	err := json.Unmarshal([]byte(response.result), &getDocumentResult)
+	err := json.Unmarshal(response.result, &getDocumentResult)
 	if err != nil {
 		return err
 	}
