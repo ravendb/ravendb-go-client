@@ -222,3 +222,13 @@ You can set the following envirnment variables to "true" to enable more logging:
 * `LOG_RAVEN_SERVER` : will set logging level of RavenDB server to 'Information' and will print server output to stdout
 * `ENABLE_FLAKY_TESTS` : runs flaky tests (those that sometimes fail and sometimes succeed)
 * `VERBOSE_LOG` : prints additional ad-hoc logging made via `dbg()` call. This is meant for adding temporary logging
+
+## branching strategy to support go modules
+
+In Go 1.11 go added support for go modules which is the official way to manage module dependencies going forward.
+
+To support Go modules and greater Go ecosystem, we need the following branching strategy:
+* master branch has the latest code
+* branches like v4.0 and v4.1 are for maintenance, bug fix work for older releases
+* to make a release, we use tags e.g. v4.1.1, v4.1.2 etc. (Go modules use semantic versioning)
+* go modules picks the latest tag (e.g. v4.2.2 will be picked over v4.2.1 or v4.1.5)
