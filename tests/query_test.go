@@ -1375,9 +1375,7 @@ func TestQuery(t *testing.T) {
 	query_queryWithProjection(t)
 	query_queryFirst(t)
 	query_querySingleProperty(t)
-	if ravendb.EnableFlakyTests {
-		query_parametersInRawQuery(t)
-	}
+	query_parametersInRawQuery(t)
 	query_queryWithWhereLessThan(t)
 	query_queryMapReduceWithCount(t)
 	query_queryWithWhereGreaterThanOrEqual(t)
