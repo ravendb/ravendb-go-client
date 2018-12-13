@@ -50,7 +50,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 			continue
 		}
 		entity := b._entities[i]
-		documentInfo := b._session.documentsByEntity[entity]
+		documentInfo := getDocumentInfoByEntity(b._session.documents, entity)
 		if documentInfo == nil {
 			continue
 		}

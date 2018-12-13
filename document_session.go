@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// type IDocumentSessionImpl = DocumentSession
+// Note: IDocumentSessionImpl is DocumentSession
 
 // TODO: decide if we want to return ErrNotFound or nil if the value is not found
 // Java returns nil (which, I guess, is default value for reference (i.e. all) types)
@@ -103,7 +103,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 }
 
 func (s *DocumentSession) Refresh(entity interface{}) error {
-	documentInfo := s.documentsByEntity[entity]
+	documentInfo := getDocumentInfoByEntity(s.documents, entity)
 	if documentInfo == nil {
 		return NewIllegalStateException("Cannot refresh a transient instance")
 	}

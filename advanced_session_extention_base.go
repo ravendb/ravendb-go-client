@@ -2,7 +2,7 @@ package ravendb
 
 type AdvancedSessionExtentionBase struct {
 	session             *InMemoryDocumentSessionOperations
-	documentsByEntity   map[interface{}]*DocumentInfo
+	documents           []*DocumentInfo
 	requestExecutor     *RequestExecutor
 	sessionInfo         *SessionInfo
 	documentStore       *IDocumentStore
@@ -15,7 +15,7 @@ type AdvancedSessionExtentionBase struct {
 func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations) *AdvancedSessionExtentionBase {
 	return &AdvancedSessionExtentionBase{
 		session:             session,
-		documentsByEntity:   session.documentsByEntity,
+		documents:           session.documents,
 		requestExecutor:     session.GetRequestExecutor(),
 		sessionInfo:         session.sessionInfo,
 		documentStore:       session.GetDocumentStore(),
