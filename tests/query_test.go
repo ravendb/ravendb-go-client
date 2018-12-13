@@ -803,7 +803,9 @@ func query_queryWithDuration(t *testing.T) {
 	store := getDocumentStoreMust(t)
 	defer store.Close()
 
-	// TODO: it fails with time.Now()
+	// TODO: it fails with time.Now(), probably because non-UTC version
+	// is not understood by the server as DateTime, see
+	// https://github.com/ravendb/ravendb-go-client/issues/77
 	now := time.Now().UTC()
 
 	index := NewOrderTime()
@@ -1355,6 +1357,7 @@ func TestQuery(t *testing.T) {
 	query_rawQuerySkipTake(t)
 
 	if ravendb.EnableFlakyTests {
+		// https://github.com/ravendb/ravendb-go-client/issues/77
 		query_queryWithDuration(t)
 	}
 	query_queryWithWhereClause(t)
