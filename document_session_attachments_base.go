@@ -20,7 +20,7 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 	if entity == nil {
 		return nil, nil
 	}
-	document := s.documentsByEntity[entity]
+	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
 		return nil, throwEntityNotInSession(entity)
 	}
@@ -81,8 +81,9 @@ func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, s
 	return nil
 }
 
+// StoreEntity stores an entity
 func (s *DocumentSessionAttachmentsBase) StoreEntity(entity interface{}, name string, stream io.Reader, contentType string) error {
-	document := s.documentsByEntity[entity]
+	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
 		return throwEntityNotInSession(entity)
 	}
@@ -90,8 +91,9 @@ func (s *DocumentSessionAttachmentsBase) StoreEntity(entity interface{}, name st
 	return s.Store(document.id, name, stream, contentType)
 }
 
+// DeleteEntity deletes a given entity
 func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name string) error {
-	document := s.documentsByEntity[entity]
+	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
 		return throwEntityNotInSession(entity)
 	}
@@ -99,6 +101,7 @@ func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name s
 	return s.Delete(document.id, name)
 }
 
+// Delete deletes entity with a given i
 func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) error {
 	// TODO: validate args
 

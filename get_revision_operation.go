@@ -60,7 +60,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	documentInfo.document = document
 	documentInfo.metadata = metadata
 	documentInfo.entity = entity
-	o._session.documentsByEntity[entity] = documentInfo
+	setDocumentInfo(&o._session.documents, documentInfo)
 	return entity, nil
 }
 

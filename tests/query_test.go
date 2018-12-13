@@ -1364,10 +1364,9 @@ func TestQuery(t *testing.T) {
 	// matches order of Java tests
 	query_queryWhereExists(t)
 	query_querySearchWithOr(t)
-	//TODO: this test is flaky
-	if ravendb.EnableFlakyTests {
-		query_rawQuerySkipTake(t)
-	}
+
+	query_rawQuerySkipTake(t)
+
 	if ravendb.EnableFlakyTests {
 		query_queryWithDuration(t)
 	}
@@ -1389,7 +1388,6 @@ func TestQuery(t *testing.T) {
 	query_queryWithProjection(t)
 	query_queryFirst(t)
 	query_querySingleProperty(t)
-	//TODO: this test is flaky
 	if ravendb.EnableFlakyTests {
 		query_parametersInRawQuery(t)
 	}
