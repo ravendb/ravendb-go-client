@@ -36,15 +36,15 @@ type Address struct {
 }
 
 type Order struct {
-	Company   string              `json:"Company"`
-	Employee  *Employee           `json:"Employee"`
-	Freight   float64             `json:"Freight"`
-	Lines     []Line              `json:"Lines"`
-	OrderedAt string              `json:"OrderedAt"`
-	RequireAt string              `json:"RequireAt"`
-	ShipTo    ShipTo              `json:"ShipTo"`
-	ShipVia   string              `json:"ShipVia"`
-	ShippedAt *ravendb.ServerTime `json:"ShippedAt"`
+	Company   string        `json:"Company"`
+	Employee  *Employee     `json:"Employee"`
+	Freight   float64       `json:"Freight"`
+	Lines     []Line        `json:"Lines"`
+	OrderedAt string        `json:"OrderedAt"`
+	RequireAt string        `json:"RequireAt"`
+	ShipTo    ShipTo        `json:"ShipTo"`
+	ShipVia   string        `json:"ShipVia"`
+	ShippedAt *ravendb.Time `json:"ShippedAt"`
 }
 
 type Line struct {

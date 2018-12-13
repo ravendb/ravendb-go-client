@@ -14,11 +14,11 @@ type IndexStats struct {
 
 	Collections map[string]*CollectionStats `json:"Collections"`
 
-	LastQueryingTime ServerTime         `json:"LastQueryingTime"`
+	LastQueryingTime Time               `json:"LastQueryingTime"`
 	State            IndexState         `json:"State"`
 	Priority         IndexPriority      `json:"Priority"`
-	CreatedTimestamp ServerTime         `json:"CreatedTimestamp"`
-	LastIndexingTime ServerTime         `json:"LastIndexingTime"`
+	CreatedTimestamp Time               `json:"CreatedTimestamp"`
+	LastIndexingTime Time               `json:"LastIndexingTime"`
 	IsStale          bool               `json:"Stale"`
 	LockMode         IndexLockMode      `json:"LockMode"`
 	Type             IndexType          `json:"Type"`

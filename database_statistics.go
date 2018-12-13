@@ -16,17 +16,18 @@ type DatabaseStatistics struct {
 
 	Indexes []*IndexInformation `json:"Indexes"`
 
-	DatabaseChangeVector                     string      `json:"DatabaseChangeVector"`
-	DatabaseID                               string      `json:"DatabaseId"`
-	Is64Bit                                  bool        `json:"Is64Bit"`
-	Pager                                    string      `json:"Pager"`
-	LastIndexingTime                         *ServerTime `json:"LastIndexingTime"`
-	SizeOnDisk                               *Size       `json:"SizeOnDisk"`
-	NumberOfTransactionMergerQueueOperations int         `json:"NumberOfTransactionMergerQueueOperations"`
+	DatabaseChangeVector                     string `json:"DatabaseChangeVector"`
+	DatabaseID                               string `json:"DatabaseId"`
+	Is64Bit                                  bool   `json:"Is64Bit"`
+	Pager                                    string `json:"Pager"`
+	LastIndexingTime                         *Time  `json:"LastIndexingTime"`
+	SizeOnDisk                               *Size  `json:"SizeOnDisk"`
+	NumberOfTransactionMergerQueueOperations int    `json:"NumberOfTransactionMergerQueueOperations"`
 }
 
+// GetLastIndexingTime returns last indexing time
 func (s *DatabaseStatistics) GetLastIndexingTime() *time.Time {
-	return serverTimePtrToTimePtr(s.LastIndexingTime)
+	return s.LastIndexingTime.toTimePtr()
 }
 
 /*

@@ -9,7 +9,7 @@ type IndexInformation struct {
 	LockMode         IndexLockMode `json:"LockMode"`
 	Priority         IndexPriority `json:"Priority"`
 	Type             IndexType     `json:"Type"`
-	LastIndexingTime ServerTime    `json:"LastIndexingTime"`
+	LastIndexingTime Time          `json:"LastIndexingTime"`
 }
 
 func (i *IndexInformation) GetLastIndexingTime() time.Time {

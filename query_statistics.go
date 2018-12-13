@@ -2,7 +2,7 @@ package ravendb
 
 import "time"
 
-// TODO: is time.Time here a *ServerTime?
+// TODO: is time.Time here our *Time?
 // TODO: needs json annotations?
 type QueryStatistics struct {
 	_isStale          bool

@@ -33,7 +33,7 @@ type GetConflictsResult struct {
 */
 
 type Conflict struct {
-	LastModified ServerTime `json:"LastModified"`
+	LastModified Time       `json:"LastModified"`
 	ChangeVector string     `json:"ChangeVector"`
 	Doc          ObjectNode `json:"Doc"`
 }

@@ -4,7 +4,7 @@ import "time"
 
 type ScriptResolver struct {
 	Script           string    `json:"Script"`
-	LastModifiedTime time.Time `json:"LastModifiedTime"` // TODO: ServerTime?
+	LastModifiedTime time.Time `json:"LastModifiedTime"` // TODO: our Time?
 }
 
 func (r *ScriptResolver) getScript() string {
