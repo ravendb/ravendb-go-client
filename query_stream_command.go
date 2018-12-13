@@ -42,7 +42,7 @@ func (c *QueryStreamCommand) CreateRequest(node *ServerNode) (*http.Request, err
 	return NewHttpPost(url, d)
 }
 
-func (c *QueryStreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
+func (c *QueryStreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 
 	// TODO: return an error if response.Body is nil
 	streamResponse := &StreamResultResponse{

@@ -1,6 +1,6 @@
 package ravendb
 
-type ResponseDisposeHandling = string
+type responseDisposeHandling = string
 
 const (
 	ResponseDisposeHandling_MANUALLY  = "MANUALLY"

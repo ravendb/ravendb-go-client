@@ -45,7 +45,7 @@ func (c *HeadAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, 
 	return request, nil
 }
 
-func (c *HeadAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
+func (c *HeadAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	if response.StatusCode == http.StatusNotModified {
 		if c._changeVector != nil {
 			c.Result = *c._changeVector

@@ -108,7 +108,7 @@ func (c *RavenCommandBase) IsFailedWithNode(node *ServerNode) bool {
 
 // Note: in Java this is part of RavenCommand and can be virtual
 // That's imposssible in Go, so we replace with stand-alone function
-func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
+func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	// In Java this is overridden in HeadDocumentCommand, so hack it this way
 	if cmdHead, ok := cmd.(*HeadDocumentCommand); ok {
 		return cmdHead.ProcessResponse(cache, response, url)

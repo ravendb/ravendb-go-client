@@ -32,7 +32,7 @@ func (c *StreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	return NewHttpGet(url)
 }
 
-func (c *StreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
+func (c *StreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 
 	// TODO: return an error if response.Body is nil
 	streamResponse := &StreamResultResponse{

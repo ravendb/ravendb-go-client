@@ -79,7 +79,7 @@ func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (ResponseDisposeHandling, error) {
+func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	contentType := response.Header.Get("Content-Type")
 	changeVector := HttpExtensions_getEtagHeader(response)
 	hash := response.Header.Get("Attachment-Hash")
