@@ -422,6 +422,22 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 	return nil
 }
 
+// will convert **Foo => *Foo if tp is *Foo and o is **Foo
+// TODO: probably there's a better way
+// Test case: TestCachingOfDocumentInclude.cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache
+func matchValueToType(o interface{}, tp reflect.Type) interface{} {
+	vt := reflect.TypeOf(o)
+	if vt == tp {
+		return o
+	}
+	panicIf(vt.Kind() != reflect.Ptr, "couldn't match type ov v (%T) to %s\n", o, tp)
+	vt = vt.Elem()
+	panicIf(vt != tp, "couldn't match type ov v (%T) to %s\n", o, tp)
+	v := reflect.ValueOf(o)
+	v = v.Elem()
+	return v.Interface()
+}
+
 // TrackEntityOld tracks entity
 func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
 	var err error
@@ -430,13 +446,13 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	}
 
 	docInfo := s.documentsByID.getValue(id)
-	// TODO: it used to always disable this code path. After fixing the logic it crashes TestCachingOfDocumentInclude
-	// Re-enable this code path and fix the test
-	if false && docInfo != nil {
+	if docInfo != nil {
 		// the local instance may have been changed, we adhere to the current Unit of Work
 		// instance, and return that, ignoring anything new.
 
+		needsToMatchType := true
 		if docInfo.entity == nil {
+			needsToMatchType = false
 			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
 			if err != nil {
 				return nil, err
@@ -446,6 +462,11 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		if !noTracking {
 			delete(s.includedDocumentsByID, id)
 			setDocumentInfo(&s.documents, docInfo)
+		}
+		if needsToMatchType {
+			// TODO: probably there's a better way. Figure out why docInfo.entity is **Foo in the first place
+			// Test case: TestCachingOfDocumentInclude.cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache
+			return matchValueToType(docInfo.entity, entityType), nil
 		}
 		return docInfo.entity, nil
 	}
