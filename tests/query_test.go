@@ -76,23 +76,10 @@ func query_queryLazily(t *testing.T) {
 		assert.NoError(t, err)
 		queryResult := queryResultI.([]*User)
 		assert.Equal(t, 3, len(queryResult))
-		/* TODO:
-		Java checks for exact order but in Go order of results is random.
-		See https://github.com/ravendb/ravendb-go-client/issues/71
-		*/
 
-		/* This is what Java checks:
-		user := queryResult[0]
-		assert.Equal(t, *user.Name, "John")
-		*/
-
-		/* this is a test that doesn't depend on order */
-		var names []string
-		for _, user := range queryResult {
-			names = append(names, *user.Name)
-		}
-		sort.Strings(names)
-		assert.Equal(t, names, []string{"Jane", "John", "Tarzan"})
+		assert.Equal(t, *queryResult[0].Name, "John")
+		assert.Equal(t, *queryResult[1].Name, "Jane")
+		assert.Equal(t, *queryResult[2].Name, "Tarzan")
 	}
 }
 
