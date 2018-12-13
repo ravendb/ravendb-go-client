@@ -3,8 +3,6 @@ package tests
 import (
 	"reflect"
 	"runtime"
-	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -525,28 +523,15 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 
 		assert.Equal(t, len(list), 3)
 
-		// Note: unlike Java must sort result to account for randomized order
-		// of results because of https://github.com/ravendb/ravendb-go-client/issues/71
-		sort.Slice(list, func(i, j int) bool {
-			p1 := list[i]
-			p2 := list[j]
-			if strings.ToLower(p1.Title) < strings.ToLower(p2.Title) {
-				return true
-			}
-			if strings.ToLower(p1.Title) > strings.ToLower(p2.Title) {
-				return false
-			}
-			return strings.ToLower(p1.Desc) < strings.ToLower(p2.Desc)
-		})
-
 		var post *Post
-		post = list[0] // Note: 1 in Java
-		assert.Equal(t, post.Title, "doduck")
-		assert.Equal(t, post.Desc, "love programming")
 
-		post = list[1] // Note: 0 in Java
+		post = list[0]
 		assert.Equal(t, post.Title, "doduck")
 		assert.Equal(t, post.Desc, "prototype your idea")
+
+		post = list[1]
+		assert.Equal(t, post.Title, "doduck")
+		assert.Equal(t, post.Desc, "love programming")
 
 		post = list[2]
 		assert.Equal(t, post.Title, "We do")
