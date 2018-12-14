@@ -51,6 +51,7 @@ type RavenTestDriver struct {
 	securedStore         *ravendb.DocumentStore
 	securedServerProcess *Process
 
+	logsDir string
 	disposed bool
 }
 
@@ -209,7 +210,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	if err != nil {
 		return err
 	}
-	proc, err := RavenServerRunner_run(locator)
+	proc, err := RavenServerRunner_run(locator, d.logsDir)
 	if err != nil {
 		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
 		return err
@@ -623,7 +624,6 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 	ravendb.SetStateFromEnv()
 	detectServerPath()
 
-	gRavenLogsDir = ravenLogsDirFromTestName(t)
 
 	fmt.Printf("\nStarting test %s\n", t.Name())
 
@@ -652,7 +652,9 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 		}
 	}
 
-	return NewRavenTestDriver()
+	driver := NewRavenTestDriver()
+	driver.logsDir = ravenLogsDirFromTestName(t)
+	return driver
 }
 
 func destroyDriver(t *testing.T, driver *RavenTestDriver) {

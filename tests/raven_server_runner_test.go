@@ -15,8 +15,8 @@ type Process struct {
 	stdoutReader io.ReadCloser
 }
 
-func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
-	processStartInfo, err := getProcessStartInfo(locator)
+func RavenServerRunner_run(locator *RavenServerLocator, logsDir string) (*Process, error) {
+	processStartInfo, err := getProcessStartInfo(locator, logsDir)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
 	}, nil
 }
 
-func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error) {
+func getProcessStartInfo(locator *RavenServerLocator, logsDir string) (*ProcessStartInfo, error) {
 	path := locator.serverPath
 	if !ravendb.FileExists(path) {
 		return nil, fmt.Errorf("Server file was not found: %s", path)
@@ -58,9 +58,9 @@ func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error)
 		"--Testing.ParentProcessId=" + getProcessId(),
 		"--non-interactive",
 	}
-	if gRavenLogsDir != "" {
+	if logsDir != "" {
 		{
-			arg := "--Logs.Path=" + gRavenLogsDir
+			arg := "--Logs.Path=" + logsDir
 			commandArguments = append(commandArguments, arg)
 		}
 		{
@@ -70,7 +70,7 @@ func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error)
 		}
 	}
 	if ravendb.RavenServerVerbose {
-		if gRavenLogsDir == "" {
+		if logsDir == "" {
 			arg := "--Logs.Mode=Information"
 			commandArguments = append(commandArguments, arg)
 		}
