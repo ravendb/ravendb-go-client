@@ -624,12 +624,35 @@ func disableLogFailedRequests() func() {
 	}
 }
 
+var (
+	// if true, enables flaky tests
+	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
+	EnableFlakyTests = false
+
+	// if true, enable failing tests
+	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
+	EnableFailingTests = false
+)
+
+func setStateFromEnv() {
+	if !EnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
+		EnableFlakyTests = true
+		fmt.Printf("Setting EnableFlakyTests to true\n")
+	}
+
+	if !EnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
+		EnableFailingTests = true
+		fmt.Printf("Setting EnableFailingTests to true\n")
+	}
+}
+
 // In Java, RavenTestDriver is created/destroyed for each test
 // In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) *RavenTestDriver {
 	downloadServerIfNeeded()
 
+	setStateFromEnv()
 	ravendb.SetStateFromEnv()
 	detectServerPath()
 

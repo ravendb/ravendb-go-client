@@ -134,7 +134,7 @@ func TestAdvancedPatching(t *testing.T) {
 
 	// matches order of Java tests
 	advancedPatching_testWithVariables(t, driver)
-	if ravendb.EnableFailingTests {
+	if EnableFailingTests {
 		// TODO: fails because documentsByEntity cannot handle map[string]interface{}
 		advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t, driver)
 	}

@@ -564,7 +564,7 @@ func TestIndexesFromClient(t *testing.T) {
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/410576496
 	// also sometimes fails on macbook pro
 
-	if ravendb.EnableFailingTests && runtime.GOOS != "linux" {
+	if EnableFailingTests && runtime.GOOS != "linux" {
 		indexesFromClientTest_setLockModeAndSetPriority(t, driver)
 	}
 	indexesFromClientTest_getTerms(t, driver)
