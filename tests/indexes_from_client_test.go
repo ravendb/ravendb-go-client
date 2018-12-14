@@ -545,6 +545,7 @@ func TestIndexesFromClient(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
+	t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

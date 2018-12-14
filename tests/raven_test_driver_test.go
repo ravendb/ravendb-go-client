@@ -617,10 +617,14 @@ func maybePrintFailedRequestsLog() {
 // ...
 // restorer()
 func disableLogFailedRequests() func() {
+	// TODO: not compatible with parallel tests
+	// would have to make this per RavenServerDriver/store
+	/*
 	old := ravendb.LogFailedRequests
 	ravendb.LogFailedRequests = false
+	*/
 	return func() {
-		ravendb.LogFailedRequests = old
+		//ravendb.LogFailedRequests = old
 	}
 }
 
