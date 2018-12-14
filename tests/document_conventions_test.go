@@ -9,6 +9,8 @@ import (
 )
 
 func TestDefaultGetCollectionName(t *testing.T) {
+	t.Parallel()
+
 	name := ravendb.DefaultGetCollectionName(&User{})
 	assert.Equal(t, "Users", name)
 	name = ravendb.DefaultGetCollectionName(reflect.TypeOf(&User{}))
