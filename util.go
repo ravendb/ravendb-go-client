@@ -185,14 +185,6 @@ func FieldNames(js ObjectNode) []string {
 	return res
 }
 
-func FileExists(path string) bool {
-	st, err := os.Lstat(path)
-	if err != nil {
-		return false
-	}
-	return !st.IsDir()
-}
-
 func deepCopy(v interface{}) interface{} {
 	// TODO: implement me
 	return v

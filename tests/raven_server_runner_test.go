@@ -48,7 +48,7 @@ func RavenServerRunner_run(locator *RavenServerLocator, logsDir string) (*Proces
 
 func getProcessStartInfo(locator *RavenServerLocator, logsDir string) (*ProcessStartInfo, error) {
 	path := locator.serverPath
-	if !ravendb.FileExists(path) {
+	if !fileExists(path) {
 		return nil, fmt.Errorf("Server file was not found: %s", path)
 	}
 	commandArguments := []string{
