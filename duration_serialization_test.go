@@ -1,11 +1,10 @@
-package tests
+package ravendb
 
 import (
 	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +19,7 @@ func TestCanSerializeDuration(t *testing.T) {
 		{time.Millisecond * 5, `"00:00:00.0050000"`},
 	}
 	for _, test := range tests {
-		d2 := ravendb.Duration(test.d)
+		d2 := Duration(test.d)
 		d, err := json.Marshal(d2)
 		assert.NoError(t, err)
 		got := string(d)
@@ -40,11 +39,11 @@ func TestCanDeserializeDuration(t *testing.T) {
 		{`"00:00:00.1"`, time.Millisecond * 100},
 	}
 	for _, test := range tests {
-		var got ravendb.Duration
+		var got Duration
 		d := []byte(test.s)
 		err := json.Unmarshal(d, &got)
 		assert.NoError(t, err)
-		exp := ravendb.Duration(test.exp)
+		exp := Duration(test.exp)
 		assert.Equal(t, exp, got)
 	}
 }

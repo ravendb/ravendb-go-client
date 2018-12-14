@@ -1,8 +1,7 @@
-package tests
+package ravendb
 
 import (
 	"testing"
-	"github.com/ravendb/ravendb-go-client"
 )
 
 type WithID struct {
@@ -39,14 +38,14 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify can get/set field name ID of type string
 		exp := "hello"
 		s := WithID{ID: exp}
-		got, ok := ravendb.TryGetIDFromInstance(s)
+		got, ok := TryGetIDFromInstance(s)
 		if !ok {
 			t.Fatalf("TryGetIDFromInstance on %#v failed", s)
 		}
 		if got != exp {
 			t.Fatalf("got %v expected %v", got, exp)
 		}
-		got, ok = ravendb.TryGetIDFromInstance(&s)
+		got, ok = TryGetIDFromInstance(&s)
 		if !ok {
 			t.Fatalf("TryGetIDFromInstance on %#v failed", &s)
 		}
@@ -55,12 +54,12 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		}
 
 		exp = "new"
-		ok = ravendb.TrySetIDOnEntity(s, exp)
+		ok = TrySetIDOnEntity(s, exp)
 		// can't set on structs, only on pointer to structs
 		if ok || s.ID == exp {
 			t.Fatalf("TrySetIDOnEntity should not succeed on %#v", s)
 		}
-		ok = ravendb.TrySetIDOnEntity(&s, exp)
+		ok = TrySetIDOnEntity(&s, exp)
 		if !ok {
 			t.Fatalf("TrySetIDOnEntity failed on %#v", s)
 		}
@@ -73,21 +72,21 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify can't get/set field name Id of type string
 		exp := "hello"
 		s := WithId{Id: exp}
-		got, ok := ravendb.TryGetIDFromInstance(s)
+		got, ok := TryGetIDFromInstance(s)
 		if ok || got != "" {
 			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
-		got, ok = ravendb.TryGetIDFromInstance(&s)
+		got, ok = TryGetIDFromInstance(&s)
 		if ok || got != "" {
 			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
 		exp = "new"
-		ok = ravendb.TrySetIDOnEntity(s, exp)
+		ok = TrySetIDOnEntity(s, exp)
 		// can't set on structs, only on pointer to structs
 		if ok || s.Id == exp {
 			t.Fatalf("TrySetIDOnEntity should not succeed on %#v", s)
 		}
-		ok = ravendb.TrySetIDOnEntity(&s, exp)
+		ok = TrySetIDOnEntity(&s, exp)
 		if ok {
 			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
 		}
@@ -97,12 +96,12 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify doesn't get/set unexported field
 		exp := "hello"
 		s := Withid{id: exp}
-		got, ok := ravendb.TryGetIDFromInstance(s)
+		got, ok := TryGetIDFromInstance(s)
 		if ok || got != "" {
 			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
 		exp = "new"
-		ok = ravendb.TrySetIDOnEntity(s, exp)
+		ok = TrySetIDOnEntity(s, exp)
 		if ok {
 			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
 		}
@@ -112,11 +111,11 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify doesn't get/set if there's no ID field
 		exp := "new"
 		s := NoID{}
-		got, ok := ravendb.TryGetIDFromInstance(s)
+		got, ok := TryGetIDFromInstance(s)
 		if ok || got != "" {
 			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
-		ok = ravendb.TrySetIDOnEntity(s, exp)
+		ok = TrySetIDOnEntity(s, exp)
 		if ok {
 			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
 		}
@@ -126,11 +125,11 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify doesn't get/set if ID is not string
 		exp := "new"
 		s := WithIntID{ID: 5}
-		got, ok := ravendb.TryGetIDFromInstance(s)
+		got, ok := TryGetIDFromInstance(s)
 		if ok || got != "" {
 			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
 		}
-		ok = ravendb.TrySetIDOnEntity(s, exp)
+		ok = TrySetIDOnEntity(s, exp)
 		if ok {
 			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
 		}

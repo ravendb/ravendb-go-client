@@ -1,10 +1,9 @@
-package tests
+package ravendb
 
 import (
 	"sort"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,9 +18,9 @@ func TestStringArraySubtract(t *testing.T) {
 		{[]string{"a", "b"}, []string{"a"}, []string{"b"}},
 	}
 	for _, test := range tests {
-		got := ravendb.StringArraySubtract(test.a1, test.a2)
+		got := StringArraySubtract(test.a1, test.a2)
 		sort.Strings(got)
-		if !ravendb.StringArrayEq(test.exp, got) {
+		if !StringArrayEq(test.exp, got) {
 			t.Fatalf("got: %#v, exp: %#v", got, test.exp)
 		}
 	}
@@ -44,7 +43,7 @@ func TestStringArrayContains(t *testing.T) {
 		{[]string{}, "", false},
 	}
 	for _, test := range tests {
-		got := ravendb.StringArrayContains(test.a, test.s)
+		got := StringArrayContains(test.a, test.s)
 		assert.Equal(t, test.exp, got)
 	}
 }
@@ -63,8 +62,8 @@ func TestStringArrayRemoveDuplicates(t *testing.T) {
 		{[]string{"a", "A", "a", "z", "a"}, []string{"a", "z", "A"}},
 	}
 	for _, test := range tests {
-		got := ravendb.StringArrayRemoveDuplicates(test.a)
-		eq := ravendb.StringArrayEq(test.exp, got)
+		got := StringArrayRemoveDuplicates(test.a)
+		eq := StringArrayEq(test.exp, got)
 		assert.True(t, eq, "Expected: %v, got: %v", test.exp, got)
 	}
 }

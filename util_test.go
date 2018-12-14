@@ -1,10 +1,9 @@
-package tests
+package ravendb
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/ravendb/ravendb-go-client"
 )
 
 func TestInterfaceArrayContains(t *testing.T) {
@@ -24,7 +23,7 @@ func TestInterfaceArrayContains(t *testing.T) {
 		{[]interface{}{}, "", false},
 	}
 	for idx, test := range tests {
-		got := ravendb.InterfaceArrayContains(test.a, test.v)
+		got := InterfaceArrayContains(test.a, test.v)
 		assert.Equal(t, test.exp, got, "a: %v, v: %v, idx: %d", test.a, test.v, idx)
 	}
 }

@@ -1,18 +1,22 @@
-package tests
+package ravendb
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
+
+type User struct {
+	ID   string
+	Name string
+}
 
 func TestDefaultGetCollectionName(t *testing.T) {
 	t.Parallel()
 
-	name := ravendb.DefaultGetCollectionName(&User{})
+	name := DefaultGetCollectionName(&User{})
 	assert.Equal(t, "Users", name)
-	name = ravendb.DefaultGetCollectionName(reflect.TypeOf(&User{}))
+	name = DefaultGetCollectionName(reflect.TypeOf(&User{}))
 	assert.Equal(t, "Users", name)
 }
