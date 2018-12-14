@@ -484,6 +484,15 @@ func ravenLogsDirFromTestName(t *testing.T) string {
 	return path
 }
 
+
+func fileExists(path string) bool {
+	st, err := os.Lstat(path)
+	if err != nil {
+		return false
+	}
+	return !st.IsDir()
+}
+
 func deleteTestDriver(driver *RavenTestDriver) {
 	if driver == nil {
 		return
@@ -506,7 +515,7 @@ func getRavendbExePath() string {
 	if isWindows() {
 		path += ".exe"
 	}
-	if ravendb.FileExists(path) {
+	if fileExists(path) {
 		return path
 	}
 
