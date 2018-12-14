@@ -7,9 +7,9 @@ import (
 	"github.com/ravendb/ravendb-go-client"
 )
 
-func getTopologyTest_canGetTopology(t *testing.T) {
+func getTopologyTest_canGetTopology(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	command := ravendb.NewGetDatabaseTopologyCommand()
@@ -32,8 +32,9 @@ func TestGetTopology(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
-	getTopologyTest_canGetTopology(t)
+	getTopologyTest_canGetTopology(t, driver)
 }

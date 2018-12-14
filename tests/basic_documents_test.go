@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
+func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	documentId := "users/1"
@@ -56,9 +56,9 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T) {
 	}
 }
 
-func basicDocuments_get(t *testing.T) {
+func basicDocuments_get(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	dummy := ravendb.ValueToTree(&User{})
@@ -138,10 +138,11 @@ func TestBasicDocuments(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	basicDocuments_get(t)
-	basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t)
+	basicDocuments_get(t, driver)
+	basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t, driver)
 }

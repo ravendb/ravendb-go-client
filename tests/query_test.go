@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func query_querySimple(t *testing.T) {
+func query_querySimple(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -47,9 +47,9 @@ func query_querySimple(t *testing.T) {
 	}
 }
 
-func query_queryLazily(t *testing.T) {
+func query_queryLazily(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -83,9 +83,9 @@ func query_queryLazily(t *testing.T) {
 	}
 }
 
-func query_collectionsStats(t *testing.T) {
+func query_collectionsStats(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -115,9 +115,9 @@ func query_collectionsStats(t *testing.T) {
 	assert.Equal(t, coll, 2)
 }
 
-func query_queryWithWhereClause(t *testing.T) {
+func query_queryWithWhereClause(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -167,11 +167,11 @@ func query_queryWithWhereClause(t *testing.T) {
 	}
 }
 
-func query_queryMapReduceWithCount(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryMapReduceWithCount(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -202,11 +202,11 @@ func query_queryMapReduceWithCount(t *testing.T) {
 	}
 }
 
-func query_queryMapReduceWithSum(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryMapReduceWithSum(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -240,11 +240,11 @@ func query_queryMapReduceWithSum(t *testing.T) {
 	}
 }
 
-func query_queryMapReduceIndex(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryMapReduceIndex(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -271,11 +271,11 @@ func query_queryMapReduceIndex(t *testing.T) {
 	}
 }
 
-func query_querySingleProperty(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_querySingleProperty(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -296,11 +296,11 @@ func query_querySingleProperty(t *testing.T) {
 	}
 }
 
-func query_queryWithSelect(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithSelect(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -320,11 +320,11 @@ func query_queryWithSelect(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereIn(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithWhereIn(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -341,11 +341,11 @@ func query_queryWithWhereIn(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereBetween(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithWhereBetween(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -365,11 +365,11 @@ func query_queryWithWhereBetween(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereLessThan(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithWhereLessThan(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -389,11 +389,11 @@ func query_queryWithWhereLessThan(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereLessThanOrEqual(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithWhereLessThanOrEqual(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -410,11 +410,11 @@ func query_queryWithWhereLessThanOrEqual(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereGreaterThan(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithWhereGreaterThan(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -434,11 +434,11 @@ func query_queryWithWhereGreaterThan(t *testing.T) {
 	}
 }
 
-func query_queryWithWhereGreaterThanOrEqual(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithWhereGreaterThanOrEqual(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -460,11 +460,11 @@ type UserProjection struct {
 	Name string
 }
 
-func query_queryWithProjection(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithProjection(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -487,11 +487,11 @@ func query_queryWithProjection(t *testing.T) {
 	}
 }
 
-func query_queryWithProjection2(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithProjection2(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -514,11 +514,11 @@ func query_queryWithProjection2(t *testing.T) {
 	}
 }
 
-func query_queryDistinct(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryDistinct(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -537,11 +537,11 @@ func query_queryDistinct(t *testing.T) {
 	}
 }
 
-func query_querySearchWithOr(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_querySearchWithOr(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -558,11 +558,11 @@ func query_querySearchWithOr(t *testing.T) {
 	}
 }
 
-func query_queryNoTracking(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryNoTracking(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -584,11 +584,11 @@ func query_queryNoTracking(t *testing.T) {
 	}
 }
 
-func query_querySkipTake(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_querySkipTake(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -610,12 +610,12 @@ func query_querySkipTake(t *testing.T) {
 	}
 }
 
-func query_rawQuerySkipTake(t *testing.T) {
+func query_rawQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -635,12 +635,12 @@ func query_rawQuerySkipTake(t *testing.T) {
 	}
 }
 
-func query_parametersInRawQuery(t *testing.T) {
+func query_parametersInRawQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -659,11 +659,11 @@ func query_parametersInRawQuery(t *testing.T) {
 	}
 }
 
-func query_queryLucene(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryLucene(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -684,11 +684,11 @@ func query_queryLucene(t *testing.T) {
 	}
 }
 
-func query_queryWhereExact(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWhereExact(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -727,11 +727,11 @@ func query_queryWhereExact(t *testing.T) {
 	}
 }
 
-func query_queryWhereNot(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWhereNot(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -798,9 +798,9 @@ select new {
 	return res
 }
 
-func query_queryWithDuration(t *testing.T) {
+func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	// TODO: it fails with time.Now(), probably because non-UTC version
@@ -847,7 +847,7 @@ func query_queryWithDuration(t *testing.T) {
 		session.Close()
 	}
 
-	gRavenTestDriver.waitForIndexing(store, "", 0)
+	driver.waitForIndexing(store, "", 0)
 
 	{
 		session := openSessionMust(t, store)
@@ -889,11 +889,11 @@ func query_queryWithDuration(t *testing.T) {
 	}
 }
 
-func query_queryFirst(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryFirst(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 	{
 		session := openSessionMust(t, store)
 
@@ -913,11 +913,11 @@ func query_queryFirst(t *testing.T) {
 	}
 }
 
-func query_queryParameters(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryParameters(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 	{
 		session := openSessionMust(t, store)
 
@@ -932,11 +932,11 @@ func query_queryParameters(t *testing.T) {
 	}
 }
 
-func query_queryRandomOrder(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryRandomOrder(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 	{
 		session := openSessionMust(t, store)
 		{
@@ -959,11 +959,11 @@ func query_queryRandomOrder(t *testing.T) {
 	}
 }
 
-func query_queryWhereExists(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWhereExists(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 	{
 		session := openSessionMust(t, store)
 
@@ -992,11 +992,11 @@ func query_queryWhereExists(t *testing.T) {
 	}
 }
 
-func query_queryWithBoost(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithBoost(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	query_addUsers(t, store)
+	query_addUsers(t, store, driver)
 	{
 		session := openSessionMust(t, store)
 
@@ -1061,7 +1061,7 @@ func makeUsersByNameIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func query_addUsers(t *testing.T, store *ravendb.IDocumentStore) {
+func query_addUsers(t *testing.T, store *ravendb.IDocumentStore, driver *RavenTestDriver) {
 	var err error
 
 	{
@@ -1092,12 +1092,12 @@ func query_addUsers(t *testing.T, store *ravendb.IDocumentStore) {
 
 	err = store.ExecuteIndex(makeUsersByNameIndex())
 	assert.NoError(t, err)
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 }
 
-func query_queryWithCustomize(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func query_queryWithCustomize(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	err := store.ExecuteIndex(makeDogsIndex())
@@ -1250,9 +1250,9 @@ func makeDogsIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func query_queryLongRequest(t *testing.T) {
+func query_queryLongRequest(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -1278,9 +1278,9 @@ func query_queryLongRequest(t *testing.T) {
 	}
 }
 
-func query_queryByIndex(t *testing.T) {
+func query_queryByIndex(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	err = store.ExecuteIndex(makeDogsIndex())
@@ -1293,7 +1293,7 @@ func query_queryByIndex(t *testing.T) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 		assert.NoError(t, err)
 
 		newSession.Close()
@@ -1347,48 +1347,49 @@ func TestQuery(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	query_queryWhereExists(t)
-	query_querySearchWithOr(t)
+	query_queryWhereExists(t, driver)
+	query_querySearchWithOr(t, driver)
 
-	query_rawQuerySkipTake(t)
+	query_rawQuerySkipTake(t, driver)
 
 	if ravendb.EnableFlakyTests {
 		// https://github.com/ravendb/ravendb-go-client/issues/77
-		query_queryWithDuration(t)
+		query_queryWithDuration(t, driver)
 	}
-	query_queryWithWhereClause(t)
-	query_queryMapReduceIndex(t)
-	query_queryLazily(t)
-	query_queryLucene(t)
-	query_queryWithWhereGreaterThan(t)
-	query_querySimple(t)
-	query_queryWithSelect(t)
-	query_collectionsStats(t)
-	query_queryWithWhereBetween(t)
-	query_queryRandomOrder(t)
-	query_queryNoTracking(t)
-	query_queryLongRequest(t)
-	query_queryWithProjection2(t)
-	query_queryWhereNot(t)
-	query_querySkipTake(t)
-	query_queryWithProjection(t)
-	query_queryFirst(t)
-	query_querySingleProperty(t)
-	query_parametersInRawQuery(t)
-	query_queryWithWhereLessThan(t)
-	query_queryMapReduceWithCount(t)
-	query_queryWithWhereGreaterThanOrEqual(t)
-	query_queryWithCustomize(t)
-	query_queryWithBoost(t)
-	query_queryMapReduceWithSum(t)
-	query_queryWhereExact(t)
-	query_queryParameters(t)
-	query_queryByIndex(t)
-	query_queryWithWhereIn(t)
-	query_queryDistinct(t)
-	query_queryWithWhereLessThanOrEqual(t)
+	query_queryWithWhereClause(t, driver)
+	query_queryMapReduceIndex(t, driver)
+	query_queryLazily(t, driver)
+	query_queryLucene(t, driver)
+	query_queryWithWhereGreaterThan(t, driver)
+	query_querySimple(t, driver)
+	query_queryWithSelect(t, driver)
+	query_collectionsStats(t, driver)
+	query_queryWithWhereBetween(t, driver)
+	query_queryRandomOrder(t, driver)
+	query_queryNoTracking(t, driver)
+	query_queryLongRequest(t, driver)
+	query_queryWithProjection2(t, driver)
+	query_queryWhereNot(t, driver)
+	query_querySkipTake(t, driver)
+	query_queryWithProjection(t, driver)
+	query_queryFirst(t, driver)
+	query_querySingleProperty(t, driver)
+	query_parametersInRawQuery(t, driver)
+	query_queryWithWhereLessThan(t, driver)
+	query_queryMapReduceWithCount(t, driver)
+	query_queryWithWhereGreaterThanOrEqual(t, driver)
+	query_queryWithCustomize(t, driver)
+	query_queryWithBoost(t, driver)
+	query_queryMapReduceWithSum(t, driver)
+	query_queryWhereExact(t, driver)
+	query_queryParameters(t, driver)
+	query_queryByIndex(t, driver)
+	query_queryWithWhereIn(t, driver)
+	query_queryDistinct(t, driver)
+	query_queryWithWhereLessThanOrEqual(t, driver)
 }

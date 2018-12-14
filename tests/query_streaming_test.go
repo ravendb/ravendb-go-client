@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func queryStreaming_canStreamQueryResults(t *testing.T) {
+func queryStreaming_canStreamQueryResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -31,7 +31,7 @@ func queryStreaming_canStreamQueryResults(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	count := 0
@@ -58,9 +58,9 @@ func queryStreaming_canStreamQueryResults(t *testing.T) {
 	}
 }
 
-func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T) {
+func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -76,7 +76,7 @@ func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	{
@@ -106,9 +106,9 @@ func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T) {
 	}
 }
 
-func queryStreaming_canStreamRawQueryResults(t *testing.T) {
+func queryStreaming_canStreamRawQueryResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -124,7 +124,7 @@ func queryStreaming_canStreamRawQueryResults(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	count := 0
@@ -152,9 +152,9 @@ func queryStreaming_canStreamRawQueryResults(t *testing.T) {
 	}
 }
 
-func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T) {
+func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -170,7 +170,7 @@ func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	{
@@ -200,9 +200,9 @@ func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T) {
 	}
 }
 
-func queryStreaming_canStreamRawQueryIntoStream(t *testing.T) {
+func queryStreaming_canStreamRawQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -216,7 +216,7 @@ func queryStreaming_canStreamRawQueryIntoStream(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	{
@@ -235,9 +235,9 @@ func queryStreaming_canStreamRawQueryIntoStream(t *testing.T) {
 	}
 }
 
-func queryStreaming_canStreamQueryIntoStream(t *testing.T) {
+func queryStreaming_canStreamQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -251,7 +251,7 @@ func queryStreaming_canStreamQueryIntoStream(t *testing.T) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 	}
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	{
@@ -284,14 +284,15 @@ func TestQueryStreaming(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	queryStreaming_canStreamQueryIntoStream(t)
-	queryStreaming_canStreamQueryResultsWithQueryStatistics(t)
-	queryStreaming_canStreamQueryResults(t)
-	queryStreaming_canStreamRawQueryResults(t)
-	queryStreaming_canStreamRawQueryIntoStream(t)
-	queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t)
+	queryStreaming_canStreamQueryIntoStream(t, driver)
+	queryStreaming_canStreamQueryResultsWithQueryStatistics(t, driver)
+	queryStreaming_canStreamQueryResults(t, driver)
+	queryStreaming_canStreamRawQueryResults(t, driver)
+	queryStreaming_canStreamRawQueryIntoStream(t, driver)
+	queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t, driver)
 }

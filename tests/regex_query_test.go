@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T) {
+func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -68,9 +68,10 @@ func TestRegexQuery(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	regexQuery_queriesWithRegexFromDocumentQuery(t)
+	regexQuery_queriesWithRegexFromDocumentQuery(t, driver)
 }

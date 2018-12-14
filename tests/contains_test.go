@@ -18,9 +18,9 @@ func NewUserWithFavs() *UserWithFavs {
 	return &UserWithFavs{}
 }
 
-func containsTestcontainsTest(t *testing.T) {
+func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -81,8 +81,9 @@ func TestContains(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
-	containsTestcontainsTest(t)
+	containsTestcontainsTest(t, driver)
 }

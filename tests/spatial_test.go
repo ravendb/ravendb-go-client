@@ -53,9 +53,9 @@ func NewMyIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func spatial_weirdSpatialResults(t *testing.T) {
+func spatial_weirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -108,9 +108,9 @@ func spatial_weirdSpatialResults(t *testing.T) {
 	}
 }
 
-func spatial_matchSpatialResults(t *testing.T) {
+func spatial_matchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -168,14 +168,15 @@ func TestSpatial(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatial_weirdSpatialResults(t)
+	spatial_weirdSpatialResults(t, driver)
 	if ravendb.EnableFlakyTests {
 		// is flaky on CI e.g. https://travis-ci.org/kjk/ravendb-go-client/builds/416175659?utm_source=email&utm_medium=notification
 		// works on my mak
-		spatial_matchSpatialResults(t)
+		spatial_matchSpatialResults(t, driver)
 	}
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func documentStreaming_canStreamDocumentsStartingWith(t *testing.T) {
+func documentStreaming_canStreamDocumentsStartingWith(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -51,9 +51,9 @@ func documentStreaming_canStreamDocumentsStartingWith(t *testing.T) {
 	assert.Equal(t, count, 200)
 }
 
-func documentStreaming_streamWithoutIterationDoesntLeakConnection(t *testing.T) {
+func documentStreaming_streamWithoutIterationDoesntLeakConnection(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -85,10 +85,11 @@ func TestDocumentStreaming(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	documentStreaming_canStreamDocumentsStartingWith(t)
-	documentStreaming_streamWithoutIterationDoesntLeakConnection(t)
+	documentStreaming_canStreamDocumentsStartingWith(t, driver)
+	documentStreaming_streamWithoutIterationDoesntLeakConnection(t, driver)
 }

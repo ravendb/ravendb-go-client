@@ -37,9 +37,9 @@ const (
 	NIS = "NIS"
 )
 
-func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
+func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewOrders_All()
@@ -72,7 +72,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -115,9 +115,9 @@ func getFirstFacetValueOfRange(values []*ravendb.FacetValue, rang string) *raven
 	return nil
 }
 
-func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
+func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewOrders_All()
@@ -157,7 +157,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -200,9 +200,9 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T) {
 	}
 }
 
-func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
+func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewOrders_All()
@@ -242,7 +242,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -272,9 +272,9 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T) {
 	}
 }
 
-func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
+func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewOrders_All()
@@ -314,7 +314,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -340,9 +340,9 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T) {
 	}
 }
 
-func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
+func aggregation_canCorrectlyAggregate_Ranges(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewOrders_All()
@@ -382,7 +382,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -437,9 +437,9 @@ func now() time.Time {
 	return time.Now()
 }
 
-func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testing.T) {
+func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewItemsOrders_All()
@@ -489,7 +489,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 	end1 := ravendb.DateUtils_addDays(now(), -1)
 	end2 := now()
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	builder := ravendb.RangeBuilder_forPath("at")
@@ -539,16 +539,17 @@ func TestAggregation(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	aggregation_canCorrectlyAggregate_Double(t)
-	aggregation_canCorrectlyAggregate_Ranges(t)
-	aggregation_canCorrectlyAggregate_MultipleItems(t)
-	aggregation_canCorrectlyAggregate_MultipleAggregations(t)
+	aggregation_canCorrectlyAggregate_Double(t, driver)
+	aggregation_canCorrectlyAggregate_Ranges(t, driver)
+	aggregation_canCorrectlyAggregate_MultipleItems(t, driver)
+	aggregation_canCorrectlyAggregate_MultipleAggregations(t, driver)
 	if ravendb.EnableFailingTests {
-		aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t)
+		aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t, driver)
 	}
-	aggregation_canCorrectlyAggregate_DisplayName(t)
+	aggregation_canCorrectlyAggregate_DisplayName(t, driver)
 }

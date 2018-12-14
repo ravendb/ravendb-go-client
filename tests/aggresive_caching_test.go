@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func initAggressiveCaching(t *testing.T) *ravendb.DocumentStore {
+func initAggressiveCaching(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	store.DisableAggressiveCaching()
 
 	{
@@ -27,10 +27,10 @@ func initAggressiveCaching(t *testing.T) *ravendb.DocumentStore {
 	return store
 }
 
-func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T) {
+func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T, driver *RavenTestDriver) {
 	defer disableLogFailedRequests()()
 
-	store := initAggressiveCaching(t)
+	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
@@ -51,8 +51,8 @@ func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T) {
 	store.Close()
 }
 
-func aggressiveCaching_canAggressivelyCacheLoads(t *testing.T) {
-	store := initAggressiveCaching(t)
+func aggressiveCaching_canAggressivelyCacheLoads(t *testing.T, driver *RavenTestDriver) {
+	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
@@ -71,8 +71,8 @@ func aggressiveCaching_canAggressivelyCacheLoads(t *testing.T) {
 	assert.Equal(t, currNo, 1+oldNumOfRequests)
 }
 
-func aggressiveCaching_canAggressivelyCacheQueries(t *testing.T) {
-	store := initAggressiveCaching(t)
+func aggressiveCaching_canAggressivelyCacheQueries(t *testing.T, driver *RavenTestDriver) {
+	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
@@ -93,8 +93,8 @@ func aggressiveCaching_canAggressivelyCacheQueries(t *testing.T) {
 	assert.Equal(t, currNo, 1+oldNumOfRequests)
 }
 
-func aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t *testing.T) {
-	store := initAggressiveCaching(t)
+func aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t *testing.T, driver *RavenTestDriver) {
+	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
@@ -121,12 +121,13 @@ func TestAggressiveCaching(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	aggressiveCaching_canAggressivelyCacheQueries(t)
-	aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t)
-	aggressiveCaching_canAggressivelyCacheLoads(t)
-	aggressiveCaching_canAggressivelyCacheLoads_404(t)
+	aggressiveCaching_canAggressivelyCacheQueries(t, driver)
+	aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t, driver)
+	aggressiveCaching_canAggressivelyCacheLoads(t, driver)
+	aggressiveCaching_canAggressivelyCacheLoads_404(t, driver)
 }

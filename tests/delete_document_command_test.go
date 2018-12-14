@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
+func deleteDocumentCommandTest_canDeleteDocument(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -35,9 +35,9 @@ func deleteDocumentCommandTest_canDeleteDocument(t *testing.T) {
 	}
 }
 
-func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T) {
+func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	var changeVector *string
@@ -77,10 +77,11 @@ func TestDeleteDocumentCommand(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// follows execution order of java tests
-	deleteDocumentCommandTest_canDeleteDocument(t)
-	deleteDocumentCommandTest_canDeleteDocumentByEtag(t)
+	deleteDocumentCommandTest_canDeleteDocument(t, driver)
+	deleteDocumentCommandTest_canDeleteDocumentByEtag(t, driver)
 }

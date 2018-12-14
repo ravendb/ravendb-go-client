@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func uniqueValues_canReadNotExistingKey(t *testing.T) {
+func uniqueValues_canReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -22,9 +22,9 @@ func uniqueValues_canReadNotExistingKey(t *testing.T) {
 	}
 }
 
-func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
+func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -50,10 +50,10 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T) {
 	}
 }
 
-func uniqueValues_canPutUniqueString(t *testing.T) {
+func uniqueValues_canPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -73,9 +73,9 @@ func uniqueValues_canPutUniqueString(t *testing.T) {
 	}
 }
 
-func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
+func uniqueValues_canPutMultiDifferentValues(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -105,9 +105,9 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T) {
 	}
 }
 
-func uniqueValues_canListCompareExchange(t *testing.T) {
+func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -150,9 +150,9 @@ func uniqueValues_canListCompareExchange(t *testing.T) {
 	}
 }
 
-func uniqueValues_canRemoveUnique(t *testing.T) {
+func uniqueValues_canRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -172,9 +172,9 @@ func uniqueValues_canRemoveUnique(t *testing.T) {
 	}
 }
 
-func uniqueValues_removeUniqueFailed(t *testing.T) {
+func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -203,9 +203,9 @@ func uniqueValues_removeUniqueFailed(t *testing.T) {
 	}
 }
 
-func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
+func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -247,9 +247,9 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T) {
 	}
 }
 
-func uniqueValues_canGetIndexValue(t *testing.T) {
+func uniqueValues_canGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -284,17 +284,18 @@ func TestUniqueValues(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	uniqueValues_removeUniqueFailed(t)
-	uniqueValues_canGetIndexValue(t)
-	uniqueValues_canRemoveUnique(t)
-	uniqueValues_canWorkWithPrimitiveTypes(t)
-	uniqueValues_canReadNotExistingKey(t)
-	uniqueValues_canPutMultiDifferentValues(t)
-	uniqueValues_canPutUniqueString(t)
-	uniqueValues_canListCompareExchange(t)
-	uniqueValues_returnCurrentValueWhenPuttingConcurrently(t)
+	uniqueValues_removeUniqueFailed(t, driver)
+	uniqueValues_canGetIndexValue(t, driver)
+	uniqueValues_canRemoveUnique(t, driver)
+	uniqueValues_canWorkWithPrimitiveTypes(t, driver)
+	uniqueValues_canReadNotExistingKey(t, driver)
+	uniqueValues_canPutMultiDifferentValues(t, driver)
+	uniqueValues_canPutUniqueString(t, driver)
+	uniqueValues_canListCompareExchange(t, driver)
+	uniqueValues_returnCurrentValueWhenPuttingConcurrently(t, driver)
 }

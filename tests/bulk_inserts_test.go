@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
+func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T, driver *RavenTestDriver) {
 	fooBar1 := &FooBar{}
 	fooBar1.Name = "John Doe"
 
@@ -23,7 +23,7 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 	fooBar4.Name = "Mega Jane"
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -66,9 +66,9 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T) {
 	}
 }
 
-func bulkInsertsTest_killedToEarly(t *testing.T) {
+func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -89,9 +89,9 @@ func bulkInsertsTest_killedToEarly(t *testing.T) {
 	}
 }
 
-func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T) {
+func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -108,9 +108,9 @@ func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T) {
 	}
 }
 
-func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T) {
+func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	et := time.Now().Add(time.Hour * 24 * 365)
@@ -156,19 +156,20 @@ func TestBulkInserts(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	bulkInsertsTest_simpleBulkInsertShouldWork(t)
-	bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t)
+	bulkInsertsTest_simpleBulkInsertShouldWork(t, driver)
+	bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t, driver)
 
 	// TODO: this test is flaky. Sometimes it fails as in https://travis-ci.org/kjk/ravendb-go-client/builds/404729678
 	// it fails oftent if we comment out all other tests here.
 	// Looks like timing issue where the server doesn't yet see the command
 	// that we're trying to kill
 	if ravendb.EnableFlakyTests {
-		bulkInsertsTest_killedToEarly(t)
+		bulkInsertsTest_killedToEarly(t, driver)
 	}
-	bulkInsertsTest_canModifyMetadataWithBulkInsert(t)
+	bulkInsertsTest_canModifyMetadataWithBulkInsert(t, driver)
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
+func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -24,9 +24,9 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T) {
 	}
 }
 
-func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
+func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -71,9 +71,9 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T) {
 	}
 }
 
-func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *testing.T) {
+func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -103,11 +103,13 @@ func TestTrackEntity(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of java tests
-	trackEntityTest_loadingDeletedDocumentShouldReturnNull(t)
-	trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t)
-	trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t)
+	trackEntityTest_loadingDeletedDocumentShouldReturnNull(t, driver)
+	trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t, driver)
+	trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t, driver)
 }

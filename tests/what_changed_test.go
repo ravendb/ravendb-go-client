@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func whatChanged_whatChangedNewField(t *testing.T) {
+func whatChanged_whatChangedNewField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -48,9 +48,9 @@ func whatChanged_whatChangedNewField(t *testing.T) {
 	}
 }
 
-func whatChanged_whatChangedRemovedField(t *testing.T) {
+func whatChanged_whatChangedRemovedField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -91,9 +91,9 @@ func whatChanged_whatChangedRemovedField(t *testing.T) {
 	}
 }
 
-func whatChanged_whatChangedChangeField(t *testing.T) {
+func whatChanged_whatChangedChangeField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -136,9 +136,9 @@ func whatChanged_whatChangedChangeField(t *testing.T) {
 	}
 }
 
-func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
+func whatChanged_whatChangedArrayValueChanged(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -198,9 +198,9 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T) {
 	}
 }
 
-func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
+func whatChanged_what_Changed_Array_Value_Added(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -244,9 +244,9 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T) {
 	}
 }
 
-func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
+func whatChanged_what_Changed_Array_Value_Removed(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -292,12 +292,12 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T) {
 	}
 }
 
-func whatChanged_ravenDB_8169(t *testing.T) {
+func whatChanged_ravenDB_8169(t *testing.T, driver *RavenTestDriver) {
 	//Test that when old and new values are of different type
 	//but have the same value, we consider them unchanged
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -342,10 +342,10 @@ func whatChanged_ravenDB_8169(t *testing.T) {
 	}
 }
 
-func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T) {
+func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T, driver *RavenTestDriver) {
 	//RavenDB-9150
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -425,16 +425,17 @@ func TestWhatChanged(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	whatChanged_what_Changed_Array_Value_Removed(t)
-	whatChanged_whatChangedNewField(t)
-	whatChanged_what_Changed_Array_Value_Added(t)
-	whatChanged_whatChangedChangeField(t)
-	whatChanged_whatChangedArrayValueChanged(t)
-	whatChanged_ravenDB_8169(t)
-	whatChanged_whatChangedRemovedField(t)
-	whatChanged_whatChanged_should_be_idempotent_operation(t)
+	whatChanged_what_Changed_Array_Value_Removed(t, driver)
+	whatChanged_whatChangedNewField(t, driver)
+	whatChanged_what_Changed_Array_Value_Added(t, driver)
+	whatChanged_whatChangedChangeField(t, driver)
+	whatChanged_whatChangedArrayValueChanged(t, driver)
+	whatChanged_ravenDB_8169(t, driver)
+	whatChanged_whatChangedRemovedField(t, driver)
+	whatChanged_whatChanged_should_be_idempotent_operation(t, driver)
 }

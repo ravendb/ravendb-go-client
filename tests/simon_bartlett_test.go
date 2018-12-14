@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func simonBartlett_lineStringsShouldIntersect(t *testing.T) {
+func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewGeoIndex()
@@ -31,7 +31,7 @@ func simonBartlett_lineStringsShouldIntersect(t *testing.T) {
 		session.Close()
 	}
 
-	gRavenTestDriver.waitForIndexing(store, "", 0)
+	driver.waitForIndexing(store, "", 0)
 
 	{
 		session := openSessionMust(t, store)
@@ -61,9 +61,9 @@ func simonBartlett_lineStringsShouldIntersect(t *testing.T) {
 	}
 }
 
-func simonBartlett_circlesShouldNotIntersect(t *testing.T) {
+func simonBartlett_circlesShouldNotIntersect(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewGeoIndex()
@@ -85,7 +85,7 @@ func simonBartlett_circlesShouldNotIntersect(t *testing.T) {
 		session.Close()
 	}
 
-	gRavenTestDriver.waitForIndexing(store, "", 0)
+	driver.waitForIndexing(store, "", 0)
 
 	{
 		session := openSessionMust(t, store)
@@ -136,10 +136,11 @@ func TestSimonBartlett(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	simonBartlett_circlesShouldNotIntersect(t)
-	simonBartlett_lineStringsShouldIntersect(t)
+	simonBartlett_circlesShouldNotIntersect(t, driver)
+	simonBartlett_lineStringsShouldIntersect(t, driver)
 }
