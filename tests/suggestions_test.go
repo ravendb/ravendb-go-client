@@ -15,7 +15,7 @@ type User4 struct {
 	Email string `json:"email"`
 }
 
-func suggestions_setup(t *testing.T, store *ravendb.IDocumentStore) {
+func suggestions_setup(t *testing.T, driver *RavenTestDriver, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "test"
@@ -54,14 +54,14 @@ func suggestions_setup(t *testing.T, store *ravendb.IDocumentStore) {
 		session.Close()
 	}
 
-	gRavenTestDriver.waitForIndexing(store, "", 0)
+	driver.waitForIndexing(store, "", 0)
 }
 
-func suggestions_exactMatch(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func suggestions_exactMatch(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	suggestions_setup(t, store)
+	suggestions_setup(t, driver, store)
 	{
 		session := openSessionMust(t, store)
 
@@ -82,11 +82,11 @@ func suggestions_exactMatch(t *testing.T) {
 	}
 }
 
-func suggestions_usingLinq(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func suggestions_usingLinq(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	suggestions_setup(t, store)
+	suggestions_setup(t, driver, store)
 	{
 		s := openSessionMust(t, store)
 
@@ -106,11 +106,11 @@ func suggestions_usingLinq(t *testing.T) {
 	}
 }
 
-func suggestions_usingLinq_WithOptions(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func suggestions_usingLinq_WithOptions(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	suggestions_setup(t, store)
+	suggestions_setup(t, driver, store)
 	{
 		s := openSessionMust(t, store)
 
@@ -132,11 +132,11 @@ func suggestions_usingLinq_WithOptions(t *testing.T) {
 	}
 }
 
-func suggestions_usingLinq_Multiple_words(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func suggestions_usingLinq_Multiple_words(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	suggestions_setup(t, store)
+	suggestions_setup(t, driver, store)
 	{
 		s := openSessionMust(t, store)
 
@@ -160,11 +160,11 @@ func suggestions_usingLinq_Multiple_words(t *testing.T) {
 	}
 }
 
-func suggestions_withTypo(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func suggestions_withTypo(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	suggestions_setup(t, store)
+	suggestions_setup(t, driver, store)
 	{
 		s := openSessionMust(t, store)
 
@@ -202,9 +202,9 @@ func NewUsers4_ByName() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func suggestions_canGetSuggestions(t *testing.T) {
+func suggestions_canGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsers4_ByName()
@@ -244,7 +244,7 @@ func suggestions_canGetSuggestions(t *testing.T) {
 		s.Close()
 	}
 
-	gRavenTestDriver.waitForIndexing(store, "", 0)
+	driver.waitForIndexing(store, "", 0)
 
 	{
 		session := openSessionMust(t, store)
@@ -277,14 +277,15 @@ func TestSuggestions(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	suggestions_canGetSuggestions(t)
-	suggestions_usingLinq_Multiple_words(t)
-	suggestions_withTypo(t)
-	suggestions_usingLinq(t)
-	suggestions_usingLinq_WithOptions(t)
-	suggestions_exactMatch(t)
+	suggestions_canGetSuggestions(t, driver)
+	suggestions_usingLinq_Multiple_words(t, driver)
+	suggestions_withTypo(t, driver)
+	suggestions_usingLinq(t, driver)
+	suggestions_usingLinq_WithOptions(t, driver)
+	suggestions_exactMatch(t, driver)
 }

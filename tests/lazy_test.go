@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func lazy_canLazilyLoadEntity(t *testing.T) {
+func lazy_canLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -74,9 +74,9 @@ func lazy_canLazilyLoadEntity(t *testing.T) {
 	}
 }
 
-func lazy_canExecuteAllPendingLazyOperations(t *testing.T) {
+func lazy_canExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -119,9 +119,9 @@ func lazy_canExecuteAllPendingLazyOperations(t *testing.T) {
 	}
 }
 
-func lazy_withQueuedActions_Load(t *testing.T) {
+func lazy_withQueuedActions_Load(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -153,9 +153,9 @@ func lazy_withQueuedActions_Load(t *testing.T) {
 	}
 }
 
-func lazy_canUseCacheWhenLazyLoading(t *testing.T) {
+func lazy_canUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -197,12 +197,13 @@ func TestLazy(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	lazy_canExecuteAllPendingLazyOperations(t)
-	lazy_canLazilyLoadEntity(t)
-	lazy_canUseCacheWhenLazyLoading(t)
-	lazy_withQueuedActions_Load(t)
+	lazy_canExecuteAllPendingLazyOperations(t, driver)
+	lazy_canLazilyLoadEntity(t, driver)
+	lazy_canUseCacheWhenLazyLoading(t, driver)
+	lazy_withQueuedActions_Load(t, driver)
 }

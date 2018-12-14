@@ -43,7 +43,7 @@ var (
 	filteredExpectedOrder = []string{"shops/2-A", "shops/3-A", "shops/1-A"}
 )
 
-func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
+func spatialSorting_createData(t *testing.T, driver *RavenTestDriver, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "eventsByLatLng"
@@ -87,7 +87,7 @@ func spatialSorting_createData(t *testing.T, store *ravendb.IDocumentStore) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 }
 
@@ -96,12 +96,12 @@ func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string
 	assert.True(t, ok)
 }
 
-func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t *testing.T) {
+func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	spatialSorting_createData(t, store)
+	spatialSorting_createData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -135,11 +135,11 @@ func getShopIDs(shops []*Shop) []string {
 	return res
 }
 
-func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	spatialSorting_createData(t, store)
+	spatialSorting_createData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -159,11 +159,11 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T) {
 	}
 }
 
-func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	spatialSorting_createData(t, store)
+	spatialSorting_createData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -182,11 +182,11 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 	}
 }
 
-func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	spatialSorting_createData(t, store)
+	spatialSorting_createData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -224,11 +224,11 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T) {
 	}
 }
 
-func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	spatialSorting_createData(t, store)
+	spatialSorting_createData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -275,13 +275,14 @@ func TestSpatialSorting(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t)
-	spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t)
-	spatialSorting_canSortByDistanceWOFiltering(t)
-	spatialSorting_canSortByDistanceWOFilteringWDocQuery(t)
-	spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t)
+	spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t, driver)
+	spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t, driver)
+	spatialSorting_canSortByDistanceWOFiltering(t, driver)
+	spatialSorting_canSortByDistanceWOFilteringWDocQuery(t, driver)
+	spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t, driver)
 }

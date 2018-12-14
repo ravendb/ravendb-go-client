@@ -22,9 +22,9 @@ func NewSpatialIdx() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
+func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	err = NewSpatialIdx().Execute(store)
@@ -50,7 +50,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -72,9 +72,9 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T) {
 	}
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
+func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewSpatialIdx()
@@ -101,9 +101,9 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T) {
 	}
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t *testing.T) {
+func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewSpatialIdx()
@@ -129,7 +129,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -163,9 +163,9 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 	}
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T) {
+func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewSpatialIdx()
@@ -201,7 +201,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T)
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -285,12 +285,13 @@ func TestSpatialSearch(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatialSearch_can_do_spatial_search_with_client_api3(t)
-	spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t)
-	spatialSearch_can_do_spatial_search_with_client_api_add_order(t)
-	spatialSearch_can_do_spatial_search_with_client_api(t)
+	spatialSearch_can_do_spatial_search_with_client_api3(t, driver)
+	spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t, driver)
+	spatialSearch_can_do_spatial_search_with_client_api_add_order(t, driver)
+	spatialSearch_can_do_spatial_search_with_client_api(t, driver)
 }

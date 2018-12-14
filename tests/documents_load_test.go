@@ -18,9 +18,9 @@ type Bar struct {
 	Name   string
 }
 
-func documentsLoadTest_loadWithIncludes(t *testing.T) {
+func documentsLoadTest_loadWithIncludes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	barId := ""
@@ -71,7 +71,7 @@ func documentsLoadTest_loadWithIncludes(t *testing.T) {
 	}
 }
 
-func documentsLoadTest_loadWithIncludesAndMissingDocument(t *testing.T) {
+func documentsLoadTest_loadWithIncludesAndMissingDocument(t *testing.T, driver *RavenTestDriver) {
 	// TODO: is @Disabled
 }
 
@@ -80,10 +80,11 @@ func TestDocumentsLoad(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	documentsLoadTest_loadWithIncludes(t)
-	documentsLoadTest_loadWithIncludesAndMissingDocument(t)
+	documentsLoadTest_loadWithIncludes(t, driver)
+	documentsLoadTest_loadWithIncludesAndMissingDocument(t, driver)
 }

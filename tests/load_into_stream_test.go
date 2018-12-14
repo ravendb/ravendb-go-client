@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
+func loadIntoStream_canLoadByIdsIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	insertData(t, store)
@@ -48,9 +48,9 @@ func loadIntoStream_canLoadByIdsIntoStream(t *testing.T) {
 	}
 }
 
-func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T) {
+func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	insertData(t, store)
@@ -129,10 +129,11 @@ func TestLoadIntoStream(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	loadIntoStream_canLoadStartingWithIntoStream(t)
-	loadIntoStream_canLoadByIdsIntoStream(t)
+	loadIntoStream_canLoadStartingWithIntoStream(t, driver)
+	loadIntoStream_canLoadByIdsIntoStream(t, driver)
 }

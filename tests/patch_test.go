@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func patchTestcanPatchSingleDocument(t *testing.T) {
+func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -42,9 +42,9 @@ func patchTestcanPatchSingleDocument(t *testing.T) {
 	}
 }
 
-func patchTestcanPatchManyDocuments(t *testing.T) {
+func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -75,9 +75,9 @@ func patchTestcanPatchManyDocuments(t *testing.T) {
 	}
 }
 
-func patchTestthrowsOnInvalidScript(t *testing.T) {
+func patchTestthrowsOnInvalidScript(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -109,11 +109,12 @@ func TestPatch(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// order matches Java tests
-	patchTestcanPatchManyDocuments(t)
-	patchTestthrowsOnInvalidScript(t)
-	patchTestcanPatchSingleDocument(t)
+	patchTestcanPatchManyDocuments(t, driver)
+	patchTestthrowsOnInvalidScript(t, driver)
+	patchTestcanPatchSingleDocument(t, driver)
 }

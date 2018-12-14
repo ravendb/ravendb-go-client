@@ -7,9 +7,9 @@ import (
 	"github.com/ravendb/ravendb-go-client"
 )
 
-func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T) {
+func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	command := ravendb.NewGetNextOperationIdCommand()
@@ -23,9 +23,10 @@ func TestGetNextOperationIdCommand(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// follows execution order of java tests
-	getNextOperationIdCommandTest_canGetNextOperationId(t)
+	getNextOperationIdCommandTest_canGetNextOperationId(t, driver)
 }

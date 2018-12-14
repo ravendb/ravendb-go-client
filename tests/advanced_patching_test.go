@@ -17,9 +17,9 @@ type CustomType struct {
 	Date     time.Time `json:"date"`
 }
 
-func advancedPatching_testWithVariables(t *testing.T) {
+func advancedPatching_testWithVariables(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -57,10 +57,10 @@ func advancedPatching_testWithVariables(t *testing.T) {
 	}
 }
 
-func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T) {
+func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -126,14 +126,16 @@ func TestAdvancedPatching(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
+	t.Parallel()
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	advancedPatching_testWithVariables(t)
+	advancedPatching_testWithVariables(t, driver)
 	if ravendb.EnableFailingTests {
 		// TODO: fails because documentsByEntity cannot handle map[string]interface{}
-		advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t)
+		advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t, driver)
 	}
 }

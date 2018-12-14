@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T) {
+func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	err = store.Operations().Send(ravendb.NewPutCompareExchangeValueOperation("Tom", "Jerry", 0))
@@ -93,9 +93,10 @@ func TestQueriesWithCustomFunctions(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	queriesWithCustomFunctions_queryCmpXchgWhere(t)
+	queriesWithCustomFunctions_queryCmpXchgWhere(t, driver)
 }

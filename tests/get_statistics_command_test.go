@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getStatisticsCommandTest_canGetStats(t *testing.T) {
+func getStatisticsCommandTest_canGetStats(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	executor := store.GetRequestExecutor()
@@ -18,7 +18,7 @@ func getStatisticsCommandTest_canGetStats(t *testing.T) {
 	err = store.Maintenance().Send(sampleData)
 	assert.NoError(t, err)
 
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 	command := ravendb.NewGetStatisticsCommand()
 	err = executor.ExecuteCommand(command)
@@ -57,8 +57,9 @@ func TestGetStatisticsCommand(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
-	getStatisticsCommandTest_canGetStats(t)
+	getStatisticsCommandTest_canGetStats(t, driver)
 }

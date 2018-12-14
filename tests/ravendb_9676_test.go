@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T) {
+func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -97,9 +97,10 @@ func TestRavenDB9676(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t)
+	ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t, driver)
 }

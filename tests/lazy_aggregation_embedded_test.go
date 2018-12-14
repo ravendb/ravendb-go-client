@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func lazyAggregationEmbeddedLazy_test(t *testing.T) {
+func lazyAggregationEmbeddedLazy_test(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -43,7 +43,7 @@ func lazyAggregationEmbeddedLazy_test(t *testing.T) {
 		assert.NoError(t, err)
 
 		index.Execute(store)
-		gRavenTestDriver.waitForIndexing(store, "", 0)
+		driver.waitForIndexing(store, "", 0)
 
 		q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), index)
 		builder := func(f ravendb.IFacetBuilder) {
@@ -85,9 +85,10 @@ func TestLazyAggregationEmbeddedLazy(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	lazyAggregationEmbeddedLazy_test(t)
+	lazyAggregationEmbeddedLazy_test(t, driver)
 }

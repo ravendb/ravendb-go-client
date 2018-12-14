@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func storeTestRefreshTest(t *testing.T) {
+func storeTestRefreshTest(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -40,9 +40,9 @@ func storeTestRefreshTest(t *testing.T) {
 	}
 }
 
-func storeTestStoreDocument(t *testing.T) {
+func storeTestStoreDocument(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -65,9 +65,9 @@ func storeTestStoreDocument(t *testing.T) {
 	}
 }
 
-func storeTestStoreDocuments(t *testing.T) {
+func storeTestStoreDocuments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -93,9 +93,9 @@ func storeTestStoreDocuments(t *testing.T) {
 	}
 }
 
-func storeTestNotifyAfterStore(t *testing.T) {
+func storeTestNotifyAfterStore(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	storeLevelCallBack := []*ravendb.IMetadataDictionary{nil}
@@ -147,12 +147,13 @@ func TestStore(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of java tests
-	storeTestRefreshTest(t)
-	storeTestStoreDocument(t)
-	storeTestStoreDocuments(t)
-	storeTestNotifyAfterStore(t)
+	storeTestRefreshTest(t, driver)
+	storeTestStoreDocument(t, driver)
+	storeTestStoreDocuments(t, driver)
+	storeTestNotifyAfterStore(t, driver)
 }

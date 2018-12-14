@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
+func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -63,9 +63,9 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T) {
 	}
 }
 
-func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T) {
+func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -149,9 +149,10 @@ func TestNextAndSeedIdentities(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
-	nextAndSeedIdentitiesTest_nextIdentityFor(t)
-	nextAndSeedIdentitiesTest_seedIdentityFor(t)
+	nextAndSeedIdentitiesTest_nextIdentityFor(t, driver)
+	nextAndSeedIdentitiesTest_seedIdentityFor(t, driver)
 }

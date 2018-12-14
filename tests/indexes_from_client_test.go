@@ -43,9 +43,9 @@ func Posts_ByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func indexesFromClientTest_canReset(t *testing.T) {
+func indexesFromClientTest_canReset(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -63,7 +63,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	err = store.ExecuteIndex(userIndex)
 	assert.NoError(t, err)
 
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	command := ravendb.NewGetStatisticsCommand()
@@ -81,7 +81,7 @@ func indexesFromClientTest_canReset(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	command = ravendb.NewGetStatisticsCommand()
@@ -92,9 +92,9 @@ func indexesFromClientTest_canReset(t *testing.T) {
 	assert.True(t, secondIndexingTime.Sub(firstIndexingTime) > 0)
 }
 
-func indexesFromClientTest_canExecuteManyIndexes(t *testing.T) {
+func indexesFromClientTest_canExecuteManyIndexes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	indexes := []*ravendb.AbstractIndexCreationTask{NewUsersIndex()}
@@ -108,9 +108,9 @@ func indexesFromClientTest_canExecuteManyIndexes(t *testing.T) {
 	assert.Equal(t, len(indexNames), 1)
 }
 
-func indexesFromClientTest_canDelete(t *testing.T) {
+func indexesFromClientTest_canDelete(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	userIndex := NewUsersIndex()
@@ -128,9 +128,9 @@ func indexesFromClientTest_canDelete(t *testing.T) {
 	assert.Equal(t, len(statistics.Indexes), 0)
 }
 
-func indexesFromClientTest_canStopAndStart(t *testing.T) {
+func indexesFromClientTest_canStopAndStart(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	err = NewUsers_ByName().Execute(store)
@@ -197,9 +197,9 @@ func indexesFromClientTest_canStopAndStart(t *testing.T) {
 	}
 }
 
-func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
+func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 	{
 		session := openSessionMust(t, store)
@@ -272,9 +272,9 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T) {
 	}
 }
 
-func indexesFromClientTest_getTerms(t *testing.T) {
+func indexesFromClientTest_getTerms(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -324,9 +324,9 @@ func indexesFromClientTest_getTerms(t *testing.T) {
 	assert.True(t, ravendb.StringArrayContains(terms, "arek"))
 }
 
-func indexesFromClientTest_getIndexNames(t *testing.T) {
+func indexesFromClientTest_getIndexNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -381,9 +381,9 @@ func indexesFromClientTest_getIndexNames(t *testing.T) {
 	}
 }
 
-func indexesFromClientTest_canExplain(t *testing.T) {
+func indexesFromClientTest_canExplain(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	user1 := &User{}
@@ -438,9 +438,9 @@ func indexesFromClientTest_canExplain(t *testing.T) {
 	assert.NotEmpty(t, explanation.GetReason())
 }
 
-func indexesFromClientTest_moreLikeThis(t *testing.T) {
+func indexesFromClientTest_moreLikeThis(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -495,7 +495,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T) {
 	err = Posts_ByTitleAndDesc().Execute(store)
 	assert.NoError(t, err)
 
-	err = gRavenTestDriver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
 	{
@@ -546,25 +546,26 @@ func TestIndexesFromClient(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// order matches Java tests
-	indexesFromClientTest_canExecuteManyIndexes(t)
-	indexesFromClientTest_canDelete(t)
-	indexesFromClientTest_canReset(t)
-	indexesFromClientTest_getIndexNames(t)
-	indexesFromClientTest_canStopAndStart(t)
-	indexesFromClientTest_canExplain(t)
+	indexesFromClientTest_canExecuteManyIndexes(t, driver)
+	indexesFromClientTest_canDelete(t, driver)
+	indexesFromClientTest_canReset(t, driver)
+	indexesFromClientTest_getIndexNames(t, driver)
+	indexesFromClientTest_canStopAndStart(t, driver)
+	indexesFromClientTest_canExplain(t, driver)
 
-	indexesFromClientTest_moreLikeThis(t)
+	indexesFromClientTest_moreLikeThis(t, driver)
 
 	// TODO: this works on Mac but fails on Travis CI/Linux
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/410576496
 	// also sometimes fails on macbook pro
 
 	if ravendb.EnableFailingTests && runtime.GOOS != "linux" {
-		indexesFromClientTest_setLockModeAndSetPriority(t)
+		indexesFromClientTest_setLockModeAndSetPriority(t, driver)
 	}
-	indexesFromClientTest_getTerms(t)
+	indexesFromClientTest_getTerms(t, driver)
 }

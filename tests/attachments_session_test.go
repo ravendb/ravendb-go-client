@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func attachmentsSession_putAttachments(t *testing.T) {
+func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 	names := []string{"profile.png", "background-photo.jpg", "fileNAME_#$1^%_בעברית.txt"}
 
@@ -74,9 +74,9 @@ func attachmentsSession_putAttachments(t *testing.T) {
 	}
 }
 
-func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
+func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -103,9 +103,9 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T) {
 	}
 }
 
-func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T) {
+func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -131,9 +131,9 @@ func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testi
 	}
 }
 
-func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T) {
+func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -159,9 +159,9 @@ func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.
 	}
 }
 
-func attachmentsSession_deleteAttachments(t *testing.T) {
+func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -254,9 +254,9 @@ func attachmentsSession_deleteAttachments(t *testing.T) {
 	}
 }
 
-func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
+func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -319,10 +319,10 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T) {
 	}
 }
 
-func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
+func attachmentsSession_getAttachmentReleasesResources(t *testing.T, driver *RavenTestDriver) {
 	count := 30
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -359,9 +359,9 @@ func attachmentsSession_getAttachmentReleasesResources(t *testing.T) {
 	}
 }
 
-func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T) {
+func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -404,9 +404,9 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 	}
 }
 
-func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T) {
+func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -443,9 +443,9 @@ func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpB
 	}
 }
 
-func attachmentsSession_getAttachmentNames(t *testing.T) {
+func attachmentsSession_getAttachmentNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	names := []string{"profile.png"}
@@ -490,9 +490,9 @@ func attachmentsSession_getAttachmentNames(t *testing.T) {
 	}
 }
 
-func attachmentsSession_attachmentExists(t *testing.T) {
+func attachmentsSession_attachmentExists(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -538,39 +538,40 @@ func TestAttachmentsSession(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// TODO: those tests are flaky. Not often but they sometimes fail
 	// re-enable them when no longer flaky
 
 	// matches order of Java tests
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_putAttachments(t)
+		attachmentsSession_putAttachments(t, driver)
 	}
-	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t)
+	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
 
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_getAttachmentNames(t)
+		attachmentsSession_getAttachmentNames(t, driver)
 	}
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
+		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_deleteAttachments(t)
+		attachmentsSession_deleteAttachments(t, driver)
 	}
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_attachmentExists(t)
+		attachmentsSession_attachmentExists(t, driver)
 	}
-	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t)
+	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t, driver)
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t)
+		attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
-	attachmentsSession_throwIfStreamIsUseTwice(t)
+	attachmentsSession_throwIfStreamIsUseTwice(t, driver)
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_getAttachmentReleasesResources(t)
+		attachmentsSession_getAttachmentReleasesResources(t, driver)
 	}
 	if ravendb.EnableFlakyTests {
-		attachmentsSession_deleteAttachmentsUsingCommand(t)
+		attachmentsSession_deleteAttachmentsUsingCommand(t, driver)
 	}
 }

@@ -34,9 +34,9 @@ type Poc struct {
 	Obj  *User
 }
 
-func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
+func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -72,14 +72,14 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T) {
 	}
 }
 
-func crudTest_canCustomizePropertyNamingStrategy(t *testing.T) {
+func crudTest_canCustomizePropertyNamingStrategy(t *testing.T, driver *RavenTestDriver) {
 	// Note: not possible to tweak behavior of JSON serialization
 	// (entity mapper) in Go
 }
 
-func crudTest_crudOperations(t *testing.T) {
+func crudTest_crudOperations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -149,9 +149,9 @@ func crudTest_crudOperations(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
+func crudTest_crudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -236,9 +236,9 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
+func crudTest_crudOperationsWithArrayInObject(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -262,9 +262,9 @@ func crudTest_crudOperationsWithArrayInObject(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
+func crudTest_crudOperationsWithArrayInObject2(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -293,9 +293,9 @@ func crudTest_crudOperationsWithArrayInObject2(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
+func crudTest_crudOperationsWithArrayInObject3(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -320,9 +320,9 @@ func crudTest_crudOperationsWithArrayInObject3(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
+func crudTest_crudOperationsWithArrayInObject4(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -347,9 +347,9 @@ func crudTest_crudOperationsWithArrayInObject4(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithNull(t *testing.T) {
+func crudTest_crudOperationsWithNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -374,9 +374,9 @@ func crudTest_crudOperationsWithNull(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
+func crudTest_crudOperationsWithArrayOfObjects(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -519,9 +519,9 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T) {
 	}
 }
 
-func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
+func crudTest_crudOperationsWithArrayOfArrays(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -629,9 +629,9 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T) {
 	}
 }
 
-func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
+func crudTest_crudCanUpdatePropertyToNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -668,9 +668,9 @@ func crudTest_crudCanUpdatePropertyToNull(t *testing.T) {
 	}
 }
 
-func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T) {
+func crudTest_crudCanUpdatePropertyFromNullToObject(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -714,21 +714,22 @@ func TestCrud(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	crudTest_crudOperationsWithNull(t)
-	crudTest_crudOperationsWithArrayOfObjects(t)
-	crudTest_crudOperationsWithWhatChanged(t)
-	crudTest_crudOperations(t)
-	crudTest_crudOperationsWithArrayInObject(t)
-	crudTest_crudCanUpdatePropertyToNull(t)
-	crudTest_entitiesAreSavedUsingLowerCase(t)
-	crudTest_canCustomizePropertyNamingStrategy(t)
-	crudTest_crudCanUpdatePropertyFromNullToObject(t)
-	crudTest_crudOperationsWithArrayInObject2(t)
-	crudTest_crudOperationsWithArrayInObject3(t)
-	crudTest_crudOperationsWithArrayInObject4(t)
-	crudTest_crudOperationsWithArrayOfArrays(t)
+	crudTest_crudOperationsWithNull(t, driver)
+	crudTest_crudOperationsWithArrayOfObjects(t, driver)
+	crudTest_crudOperationsWithWhatChanged(t, driver)
+	crudTest_crudOperations(t, driver)
+	crudTest_crudOperationsWithArrayInObject(t, driver)
+	crudTest_crudCanUpdatePropertyToNull(t, driver)
+	crudTest_entitiesAreSavedUsingLowerCase(t, driver)
+	crudTest_canCustomizePropertyNamingStrategy(t, driver)
+	crudTest_crudCanUpdatePropertyFromNullToObject(t, driver)
+	crudTest_crudOperationsWithArrayInObject2(t, driver)
+	crudTest_crudOperationsWithArrayInObject3(t, driver)
+	crudTest_crudOperationsWithArrayInObject4(t, driver)
+	crudTest_crudOperationsWithArrayOfArrays(t, driver)
 }

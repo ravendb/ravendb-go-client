@@ -19,9 +19,9 @@ func NewUsers_Index() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func testIndexCanDeleteIndex(t *testing.T) {
+func testIndexCanDeleteIndex(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -45,9 +45,9 @@ func testIndexCanDeleteIndex(t *testing.T) {
 	assert.Equal(t, len(indexNames), 0)
 }
 
-func testIndexCanDisableAndEnableIndex(t *testing.T) {
+func testIndexCanDisableAndEnableIndex(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -85,9 +85,9 @@ func testIndexCanDisableAndEnableIndex(t *testing.T) {
 	}
 }
 
-func testIndexGetCanIndexes(t *testing.T) {
+func testIndexGetCanIndexes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -103,9 +103,9 @@ func testIndexGetCanIndexes(t *testing.T) {
 	}
 }
 
-func testIndexGetCanIndexesStats(t *testing.T) {
+func testIndexGetCanIndexesStats(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	index := NewUsersIndex()
 	err = index.Execute(store)
 	assert.NoError(t, err)
@@ -119,9 +119,9 @@ func testIndexGetCanIndexesStats(t *testing.T) {
 	}
 }
 
-func testIndexGetTerms(t *testing.T) {
+func testIndexGetTerms(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -139,7 +139,7 @@ func testIndexGetTerms(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	{
@@ -152,9 +152,9 @@ func testIndexGetTerms(t *testing.T) {
 	}
 }
 
-func testIndexHasIndexChanged(t *testing.T) {
+func testIndexHasIndexChanged(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -180,9 +180,9 @@ func testIndexHasIndexChanged(t *testing.T) {
 	}
 }
 
-func testIndexCanStopStartIndexing(t *testing.T) {
+func testIndexCanStopStartIndexing(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -224,9 +224,9 @@ func testIndexCanStopStartIndexing(t *testing.T) {
 	}
 }
 
-func testIndexCanStopStartIndex(t *testing.T) {
+func testIndexCanStopStartIndex(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -270,9 +270,9 @@ func testIndexCanStopStartIndex(t *testing.T) {
 	}
 }
 
-func testIndexCanSetIndexLockMode(t *testing.T) {
+func testIndexCanSetIndexLockMode(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -298,9 +298,9 @@ func testIndexCanSetIndexLockMode(t *testing.T) {
 	}
 }
 
-func testIndexCanSetIndexPriority(t *testing.T) {
+func testIndexCanSetIndexPriority(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersIndex()
@@ -320,9 +320,9 @@ func testIndexCanSetIndexPriority(t *testing.T) {
 	assert.Equal(t, newIndexDef.Priority, ravendb.IndexPriority_HIGH)
 }
 
-func testIndexCanListErrors(t *testing.T) {
+func testIndexCanListErrors(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewUsersInvalidIndex()
@@ -343,7 +343,7 @@ func testIndexCanListErrors(t *testing.T) {
 		session.Close()
 	}
 
-	err = gRavenTestDriver.waitForIndexing(store, store.GetDatabase(), 0)
+	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
 	op2 := ravendb.NewGetIndexErrorsOperation(nil)
@@ -359,10 +359,10 @@ func testIndexCanListErrors(t *testing.T) {
 	assert.Equal(t, len(perIndexErrors), 1)
 }
 
-func testIndexCanGetIndexStatistics(t *testing.T) {
+func testIndexCanGetIndexStatistics(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	userIndex := NewUsers_Index()
@@ -382,20 +382,21 @@ func TestIndexOperations(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// order matches Java tests
-	testIndexHasIndexChanged(t)
-	testIndexCanListErrors(t)
-	testIndexCanGetIndexStatistics(t)
-	testIndexCanSetIndexPriority(t)
-	testIndexCanDisableAndEnableIndex(t)
-	testIndexGetCanIndexes(t)
-	testIndexCanDeleteIndex(t)
-	testIndexCanStopStartIndexing(t)
-	testIndexCanGetIndexStatistics(t)
-	testIndexCanStopStartIndex(t)
-	testIndexCanSetIndexLockMode(t)
-	testIndexGetTerms(t)
+	testIndexHasIndexChanged(t, driver)
+	testIndexCanListErrors(t, driver)
+	testIndexCanGetIndexStatistics(t, driver)
+	testIndexCanSetIndexPriority(t, driver)
+	testIndexCanDisableAndEnableIndex(t, driver)
+	testIndexGetCanIndexes(t, driver)
+	testIndexCanDeleteIndex(t, driver)
+	testIndexCanStopStartIndexing(t, driver)
+	testIndexCanGetIndexStatistics(t, driver)
+	testIndexCanStopStartIndex(t, driver)
+	testIndexCanSetIndexLockMode(t, driver)
+	testIndexGetTerms(t, driver)
 }

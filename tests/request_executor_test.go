@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
 	dbgRequestExecutorTests = false
 )
 
-func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
+func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_failuresDoesNotBlockConnectionPool start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -43,12 +43,12 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T) {
 	}
 }
 
-func requestExecutorTest_canIssueManyRequests(t *testing.T) {
+func requestExecutorTest_canIssueManyRequests(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canIssueManyRequests start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -65,12 +65,12 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T) {
 	}
 }
 
-func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
+func requestExecutorTest_canFetchDatabasesNames(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canFetchDatabasesNames start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -89,12 +89,12 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T) {
 	}
 }
 
-func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T) {
+func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -111,12 +111,12 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T)
 	}
 }
 
-func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
+func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_throwsWhenDatabaseDoesNotExist start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -130,16 +130,16 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T) {
 	}
 }
 
-func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
+func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canCreateSingleNodeRequestExecutor start\n")
 	}
 	documentConventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
-		executor :=ravendb. RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(store.GetUrls()[0], store.GetDatabase(), nil, documentConventions)
+		executor := ravendb.RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(store.GetUrls()[0], store.GetDatabase(), nil, documentConventions)
 		nodes := executor.GetTopologyNodes()
 		assert.Equal(t, 1, len(nodes))
 
@@ -157,12 +157,12 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T) {
 	}
 }
 
-func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
+func requestExecutorTest_canChooseOnlineNode(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canChooseOnlineNode start\n")
 	}
 	documentConventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	url := store.GetUrls()[0]
@@ -183,7 +183,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T) {
 	}
 }
 
-func requestExecutorTest_failsWhenServerIsOffline(t *testing.T) {
+func requestExecutorTest_failsWhenServerIsOffline(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		logGoroutines("goroutines_req_executor_before.txt")
 		fmt.Printf("requestExecutorTest_failsWhenServerIsOffline start\n")
@@ -201,16 +201,18 @@ func TestRequestExecutor(t *testing.T) {
 	if dbTestsDisabled() {
 		return
 	}
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	requestExecutorTest_canFetchDatabasesNames(t)
-	requestExecutorTest_canIssueManyRequests(t)
-	requestExecutorTest_throwsWhenDatabaseDoesNotExist(t)
-	requestExecutorTest_failuresDoesNotBlockConnectionPool(t)
-	requestExecutorTest_canCreateSingleNodeRequestExecutor(t)
-	requestExecutorTest_failsWhenServerIsOffline(t)
-	requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t)
-	requestExecutorTest_canChooseOnlineNode(t)
+	requestExecutorTest_canFetchDatabasesNames(t, driver)
+	requestExecutorTest_canIssueManyRequests(t, driver)
+	requestExecutorTest_throwsWhenDatabaseDoesNotExist(t, driver)
+	requestExecutorTest_failuresDoesNotBlockConnectionPool(t, driver)
+	requestExecutorTest_canCreateSingleNodeRequestExecutor(t, driver)
+	requestExecutorTest_failsWhenServerIsOffline(t, driver)
+	requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t, driver)
+	requestExecutorTest_canChooseOnlineNode(t, driver)
 }

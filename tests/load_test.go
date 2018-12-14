@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func loadTest_loadCanUseCache(t *testing.T) {
+func loadTest_loadCanUseCache(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -44,9 +44,9 @@ func loadTest_loadCanUseCache(t *testing.T) {
 	}
 }
 
-func loadTest_loadDocumentById(t *testing.T) {
+func loadTest_loadDocumentById(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -72,9 +72,9 @@ func loadTest_loadDocumentById(t *testing.T) {
 	}
 }
 
-func loadTest_loaddocumentsByIDs(t *testing.T) {
+func loadTest_loaddocumentsByIDs(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -104,9 +104,9 @@ func loadTest_loaddocumentsByIDs(t *testing.T) {
 	}
 }
 
-func loadTest_loadNullShouldReturnNull(t *testing.T) {
+func loadTest_loadNullShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -137,9 +137,9 @@ func loadTest_loadNullShouldReturnNull(t *testing.T) {
 	}
 }
 
-func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T) {
+func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -175,9 +175,9 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 	}
 }
 
-func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T) {
+func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -221,9 +221,9 @@ func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T) {
 	}
 }
 
-func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
+func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	var ids []string
@@ -261,9 +261,9 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T) {
 	}
 }
 
-func loadTest_loadStartsWith(t *testing.T) {
+func loadTest_loadStartsWith(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -322,16 +322,17 @@ func TestLoad(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	loadTest_loadDocumentById(t)
-	loadTest_loadNullShouldReturnNull(t)
-	loadTest_loaddocumentsByIDs(t)
-	loadTest_shouldLoadManyIdsAsPostRequest(t)
-	loadTest_loadStartsWith(t)
-	loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t)
-	loadTest_loadDocumentWithIntArrayAndLongArray(t)
-	loadTest_loadCanUseCache(t)
+	loadTest_loadDocumentById(t, driver)
+	loadTest_loadNullShouldReturnNull(t, driver)
+	loadTest_loaddocumentsByIDs(t, driver)
+	loadTest_shouldLoadManyIdsAsPostRequest(t, driver)
+	loadTest_loadStartsWith(t, driver)
+	loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t, driver)
+	loadTest_loadDocumentWithIntArrayAndLongArray(t, driver)
+	loadTest_loadCanUseCache(t, driver)
 }

@@ -30,8 +30,6 @@ import (
 )
 
 var (
-	gRavenTestDriver *RavenTestDriver
-
 	// in Java those are static fields of RavenTestDriver
 	globalServer               *ravendb.DocumentStore
 	globalServerProcess        *Process
@@ -417,15 +415,15 @@ func dbTestsDisabled() bool {
 	return false
 }
 
-func getDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
-	store, err := gRavenTestDriver.getDocumentStore()
+func getDocumentStoreMust(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
+	store, err := driver.getDocumentStore()
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
 }
 
-func getSecuredDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
-	store, err := gRavenTestDriver.getSecuredDocumentStore()
+func getSecuredDocumentStoreMust(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
+	store, err := driver.getSecuredDocumentStore()
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
@@ -485,13 +483,12 @@ func ravenLogsDirFromTestName(t *testing.T) string {
 	return path
 }
 
-func deleteTestDriver() {
-	if gRavenTestDriver == nil {
+func deleteTestDriver(driver *RavenTestDriver) {
+	if driver == nil {
 		return
 	}
-	gRavenTestDriver.Close()
+	driver.Close()
 	killGlobalServerProcesses()
-	gRavenTestDriver = nil
 }
 
 var (
@@ -541,7 +538,11 @@ func downloadServerIfNeededWindows() {
 	fmt.Printf(" took %s\n", time.Since(timeStart))
 }
 
+var muServerDownload sync.Mutex
+
 func downloadServerIfNeeded() {
+	muServerDownload.Lock()
+	defer muServerDownload.Unlock()
 	if isWindows() {
 		downloadServerIfNeededWindows()
 		return
@@ -616,8 +617,7 @@ func disableLogFailedRequests() func() {
 // In Java, RavenTestDriver is created/destroyed for each test
 // In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test
-func createTestDriver(t *testing.T) func() {
-	panicIf(gRavenTestDriver != nil, "gravenTestDriver must be nil")
+func createTestDriver(t *testing.T) *RavenTestDriver {
 	downloadServerIfNeeded()
 
 	ravendb.SetStateFromEnv()
@@ -652,20 +652,20 @@ func createTestDriver(t *testing.T) func() {
 		}
 	}
 
-	gRavenTestDriver = NewRavenTestDriver()
+	return NewRavenTestDriver()
+}
 
-	return func() {
-		if t.Failed() {
-			maybePrintFailedRequestsLog()
-		}
-		deleteTestDriver()
-		ravendb.LogsLock()
-		defer ravendb.LogsUnlock()
-		w := ravendb.HTTPLoggerWriter
-		if w != nil {
-			w.Close()
-			ravendb.HTTPLoggerWriter = nil
-		}
+func destroyDriver(t *testing.T, driver *RavenTestDriver) {
+	if t.Failed() {
+		maybePrintFailedRequestsLog()
+	}
+	deleteTestDriver(driver)
+	ravendb.LogsLock()
+	defer ravendb.LogsUnlock()
+	w := ravendb.HTTPLoggerWriter
+	if w != nil {
+		w.Close()
+		ravendb.HTTPLoggerWriter = nil
 	}
 }
 

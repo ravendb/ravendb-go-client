@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ravendb_8761_can_group_by_array_values(t *testing.T) {
+func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	ravendb_8761_putDocs(t, store)
@@ -136,9 +136,9 @@ func ravendb_8761_can_group_by_array_values(t *testing.T) {
 	}
 }
 
-func ravendb_8761_can_group_by_array_content(t *testing.T) {
+func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	ravendb_8761_putDocs(t, store)
@@ -357,18 +357,19 @@ func TestRavenDB8761(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
 	if ravendb.EnableFailingTests {
 		// used to work with 4.0.6, fails with 4.1.2 on Windows and Linux
 		// https://ci.appveyor.com/project/ravendb/ravendb-go-client/builds/20134873
 		// https://travis-ci.org/ravendb/ravendb-go-client/builds/452178281
-		ravendb_8761_can_group_by_array_content(t)
+		ravendb_8761_can_group_by_array_content(t, driver)
 	}
 
 	if ravendb.EnableFlakyTests {
-		ravendb_8761_can_group_by_array_values(t)
+		ravendb_8761_can_group_by_array_values(t, driver)
 	}
 }

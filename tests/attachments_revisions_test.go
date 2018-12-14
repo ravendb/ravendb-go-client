@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func attachmentsRevisions_putAttachments(t *testing.T) {
+func attachmentsRevisions_putAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -141,9 +141,9 @@ func attachmentsRevisions_putAttachments(t *testing.T) {
 	}
 }
 
-func attachmentsRevisions_attachmentRevision(t *testing.T) {
+func attachmentsRevisions_attachmentRevision(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -352,8 +352,9 @@ func TestAttachmentsRevisions(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
 
@@ -362,9 +363,9 @@ func TestAttachmentsRevisions(t *testing.T) {
 	// The bytes sent seem to be exactly the same, Go fails with EOF
 	// Is it issue with not closing the request?
 	if ravendb.EnableFlakyTests {
-		attachmentsRevisions_putAttachments(t)
+		attachmentsRevisions_putAttachments(t, driver)
 	}
 	if ravendb.EnableFlakyTests {
-		attachmentsRevisions_attachmentRevision(t)
+		attachmentsRevisions_attachmentRevision(t, driver)
 	}
 }

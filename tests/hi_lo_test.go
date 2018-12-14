@@ -15,9 +15,9 @@ type Product struct {
 	ProductName string `json:"ProductName"`
 }
 
-func hiloTest_capacityShouldDouble(t *testing.T) {
+func hiloTest_capacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	hiLoIdGenerator := ravendb.NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
@@ -74,9 +74,9 @@ func hiloTest_capacityShouldDouble(t *testing.T) {
 	}
 }
 
-func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
+func hiloTest_returnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	newStore := ravendb.NewDocumentStore()
@@ -133,9 +133,9 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T) {
 	newStore.Close() //on document Store close, hilo-return should be called
 }
 
-func hiloTest_canNotGoDown(t *testing.T) {
+func hiloTest_canNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	session := openSessionMust(t, store)
@@ -172,9 +172,9 @@ func hiloTest_canNotGoDown(t *testing.T) {
 	session.Close()
 }
 
-func hiloTest_multiDb(t *testing.T) {
+func hiloTest_multiDb(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	session := openSessionMust(t, store)
@@ -207,12 +207,13 @@ func TestHiLo(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of java tests
-	hiloTest_capacityShouldDouble(t)
-	hiloTest_returnUnusedRangeOnClose(t)
-	hiloTest_canNotGoDown(t)
-	hiloTest_multiDb(t)
+	hiloTest_capacityShouldDouble(t, driver)
+	hiloTest_returnUnusedRangeOnClose(t, driver)
+	hiloTest_canNotGoDown(t, driver)
+	hiloTest_multiDb(t, driver)
 }

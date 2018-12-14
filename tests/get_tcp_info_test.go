@@ -3,12 +3,12 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
-func getTcpInfoTest_canGetTcpInfo(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func getTcpInfoTest_canGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	command := ravendb.NewGetTcpInfoCommand("test")
@@ -29,8 +29,9 @@ func TestGetTcpInfo(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
-	getTcpInfoTest_canGetTcpInfo(t)
+	getTcpInfoTest_canGetTcpInfo(t, driver)
 }

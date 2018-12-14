@@ -38,7 +38,7 @@ const (
 	_docId = "user2s/1-A"
 )
 
-func firstClassPatch_canPatch(t *testing.T) {
+func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil, nil}
 	stuff[0] = &Stuff{}
 	stuff[0].Key = 6
@@ -48,7 +48,7 @@ func firstClassPatch_canPatch(t *testing.T) {
 	user.Stuff = stuff
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -108,12 +108,12 @@ func firstClassPatch_canPatch(t *testing.T) {
 	}
 }
 
-func firstClassPatch_canPatchAndModify(t *testing.T) {
+func firstClassPatch_canPatchAndModify(t *testing.T, driver *RavenTestDriver) {
 	user := &User2{}
 	user.Numbers = []int{66}
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -143,7 +143,7 @@ func firstClassPatch_canPatchAndModify(t *testing.T) {
 	}
 }
 
-func firstClassPatch_canPatchComplex(t *testing.T) {
+func firstClassPatch_canPatchComplex(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil, nil}
 	stuff[0] = &Stuff{
 		Key: 6,
@@ -154,7 +154,7 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -254,7 +254,7 @@ func firstClassPatch_canPatchComplex(t *testing.T) {
 	}
 }
 
-func firstClassPatch_canAddToArray(t *testing.T) {
+func firstClassPatch_canAddToArray(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil}
 
 	stuff[0] = &Stuff{}
@@ -266,7 +266,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -380,7 +380,7 @@ func firstClassPatch_canAddToArray(t *testing.T) {
 	}
 }
 
-func firstClassPatch_canRemoveFromArray(t *testing.T) {
+func firstClassPatch_canRemoveFromArray(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil}
 	stuff[0] = &Stuff{
 		Key: 6,
@@ -397,7 +397,7 @@ func firstClassPatch_canRemoveFromArray(t *testing.T) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -446,7 +446,7 @@ func firstClassPatch_canRemoveFromArray(t *testing.T) {
 	}
 }
 
-func firstClassPatch_canIncrement(t *testing.T) {
+func firstClassPatch_canIncrement(t *testing.T, driver *RavenTestDriver) {
 	s := []*Stuff{nil, nil, nil}
 	s[0] = &Stuff{
 		Key: 6,
@@ -458,7 +458,7 @@ func firstClassPatch_canIncrement(t *testing.T) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -509,7 +509,7 @@ func firstClassPatch_canIncrement(t *testing.T) {
 	}
 }
 
-func firstClassPatch_shouldMergePatchCalls(t *testing.T) {
+func firstClassPatch_shouldMergePatchCalls(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil, nil}
 	stuff[0] = &Stuff{
 		Key: 6,
@@ -528,7 +528,7 @@ func firstClassPatch_shouldMergePatchCalls(t *testing.T) {
 	docId2 := "user2s/2-A"
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -611,15 +611,16 @@ func TestFirstClassPatch(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	firstClassPatch_canIncrement(t)
-	firstClassPatch_canAddToArray(t)
-	firstClassPatch_canRemoveFromArray(t)
-	firstClassPatch_shouldMergePatchCalls(t)
-	firstClassPatch_canPatch(t)
-	firstClassPatch_canPatchAndModify(t)
-	firstClassPatch_canPatchComplex(t)
+	firstClassPatch_canIncrement(t, driver)
+	firstClassPatch_canAddToArray(t, driver)
+	firstClassPatch_canRemoveFromArray(t, driver)
+	firstClassPatch_shouldMergePatchCalls(t, driver)
+	firstClassPatch_canPatch(t, driver)
+	firstClassPatch_canPatchAndModify(t, driver)
+	firstClassPatch_canPatchComplex(t, driver)
 }

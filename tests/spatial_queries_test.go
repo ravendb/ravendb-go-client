@@ -19,9 +19,9 @@ func NewSpatialQueriesInMemoryTestIdx() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func spatialQueries_canRunSpatialQueriesInMemory(t *testing.T) {
+func spatialQueries_canRunSpatialQueriesInMemory(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	err = NewSpatialQueriesInMemoryTestIdx().Execute(store)
@@ -58,9 +58,9 @@ func (l *Listing) setLongitude(longitude int64) {
 	l.Longitude = longitude
 }
 
-func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T) {
+func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	areaOneDocOne := NewDummyGeoDoc(55.6880508001, 13.5717346673)
@@ -121,9 +121,9 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T)
 	}
 }
 
-func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T) {
+func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	myHouse := NewDummyGeoDoc(44.757767, -93.355322)
@@ -201,11 +201,12 @@ func TestSpatialQueries(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatialQueries_canRunSpatialQueriesInMemory(t)
-	spatialQueries_canSuccessfullyQueryByMiles(t)
-	spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t)
+	spatialQueries_canRunSpatialQueriesInMemory(t, driver)
+	spatialQueries_canSuccessfullyQueryByMiles(t, driver)
+	spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t, driver)
 }

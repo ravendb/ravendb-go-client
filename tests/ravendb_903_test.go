@@ -14,7 +14,7 @@ type Product2 struct {
 	Description string `json:"description"`
 }
 
-func ravendb_903_test1(t *testing.T) {
+func ravendb_903_test1(t *testing.T, driver *RavenTestDriver) {
 
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
 		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Product2{}), index)
@@ -23,10 +23,10 @@ func ravendb_903_test1(t *testing.T) {
 		q = q.WhereEquals("name", "Bar")
 		return q
 	}
-	ravendb_903_doTest(t, fn)
+	ravendb_903_doTest(t, driver, fn)
 }
 
-func ravendb_903_test2(t *testing.T) {
+func ravendb_903_test2(t *testing.T, driver *RavenTestDriver) {
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
 		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Product2{}), index)
 		q = q.WhereEquals("name", "Bar")
@@ -34,13 +34,13 @@ func ravendb_903_test2(t *testing.T) {
 		q = q.Search("description", "Hello")
 		return q
 	}
-	ravendb_903_doTest(t, fn)
+	ravendb_903_doTest(t, driver, fn)
 
 }
 
-func ravendb_903_doTest(t *testing.T, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery) {
+func ravendb_903_doTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := NewTestIndex()
@@ -77,7 +77,7 @@ func ravendb_903_doTest(t *testing.T, queryFunction func(*ravendb.DocumentSessio
 		session.Close()
 	}
 
-	gRavenTestDriver.waitForIndexing(store, "", 0)
+	driver.waitForIndexing(store, "", 0)
 
 	{
 		var products []*Product2
@@ -103,10 +103,11 @@ func TestRavenDB903(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	ravendb_903_test1(t)
-	ravendb_903_test2(t)
+	ravendb_903_test1(t, driver)
+	ravendb_903_test2(t, driver)
 }

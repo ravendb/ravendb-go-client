@@ -76,26 +76,26 @@ func changesTest_singleDocumentChangesCommon(t *testing.T, store *ravendb.Docume
 	}
 }
 
-func changesTest_singleDocumentChanges(t *testing.T) {
-	store := getDocumentStoreMust(t)
+func changesTest_singleDocumentChanges(t *testing.T, driver *RavenTestDriver) {
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 	changesTest_singleDocumentChangesCommon(t, store)
 }
 
-func changesTest_changesWithHttps(t *testing.T) {
+func changesTest_changesWithHttps(t *testing.T, driver *RavenTestDriver) {
 	if isWindows() {
 		t.Skip("skipping https test on windows")
 		return
 	}
-	store := getSecuredDocumentStoreMust(t)
+	store := getSecuredDocumentStoreMust(t, driver)
 	defer store.Close()
 	changesTest_singleDocumentChangesCommon(t, store)
 }
 
-func changesTest_allDocumentsChanges(t *testing.T) {
+func changesTest_allDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	{
@@ -169,9 +169,9 @@ func changesTest_allDocumentsChanges(t *testing.T) {
 
 // Note: UsersByName is the same as makeUsersByNameIndex in query_test.go
 
-func changesTest_singleIndexChanges(t *testing.T) {
+func changesTest_singleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
@@ -212,9 +212,9 @@ func changesTest_singleIndexChanges(t *testing.T) {
 	}
 }
 
-func changesTest_allIndexChanges(t *testing.T) {
+func changesTest_allIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
@@ -254,9 +254,9 @@ func changesTest_allIndexChanges(t *testing.T) {
 	}
 }
 
-func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T) {
+func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	semaphore := make(chan bool, 1)
@@ -281,9 +281,9 @@ func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T) 
 	assert.NoError(t, err)
 }
 
-func changesTest_resourcesCleanup(t *testing.T) {
+func changesTest_resourcesCleanup(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t)
+	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
@@ -341,15 +341,16 @@ func TestChanges(t *testing.T) {
 		return
 	}
 
-	destroyDriver := createTestDriver(t)
-	defer recoverTest(t, destroyDriver)
+	driver := createTestDriver(t)
+	destroy := func() { destroyDriver(t, driver) }
+	defer recoverTest(t, destroy)
 
 	// follows execution order of java tests
-	changesTest_allDocumentsChanges(t)
-	changesTest_singleDocumentChanges(t)
-	changesTest_resourcesCleanup(t)
-	changesTest_changesWithHttps(t)
-	changesTest_singleIndexChanges(t)
-	changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t)
-	changesTest_allIndexChanges(t)
+	changesTest_allDocumentsChanges(t, driver)
+	changesTest_singleDocumentChanges(t, driver)
+	changesTest_resourcesCleanup(t, driver)
+	changesTest_changesWithHttps(t, driver)
+	changesTest_singleIndexChanges(t, driver)
+	changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t, driver)
+	changesTest_allIndexChanges(t, driver)
 }
