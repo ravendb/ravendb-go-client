@@ -29,15 +29,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	// in Java those are static fields of RavenTestDriver
-	globalServer               *ravendb.DocumentStore
-	globalServerProcess        *Process
-	globalSecuredServer        *ravendb.DocumentStore
-	globalSecuredServerProcess *Process
-	index                      int32
-)
-
 func must(err error) {
 	if err != nil {
 		panic(err.Error())
@@ -53,6 +44,12 @@ func panicIf(cond bool, format string, args ...interface{}) {
 
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
+
+	index                      int32
+	server               *ravendb.DocumentStore
+	serverProcess        *Process
+	securedStore         *ravendb.DocumentStore
+	securedServerProcess *Process
 
 	disposed bool
 }
@@ -130,7 +127,7 @@ func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, err
 
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
 
-	n := int(atomic.AddInt32(&index, 1))
+	n := int(atomic.AddInt32(&d.index, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := d.getGlobalServer(secured)
 	if documentStore == nil {
@@ -269,11 +266,11 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	store.GetConventions().SetDisableTopologyUpdates(true)
 
 	if secured {
-		globalSecuredServer = store
+		d.securedStore = store
 		clientCert := getTestClientCertificate()
 		store.SetCertificate(clientCert)
 	} else {
-		globalServer = store
+		d.server = store
 	}
 	err = store.Initialize()
 	return err
@@ -353,25 +350,25 @@ func killServer(procPtr **Process) {
 	*procPtr = nil
 }
 
-func killGlobalServerProcesses() {
-	killServer(&globalSecuredServerProcess)
-	killServer(&globalServerProcess)
-	globalSecuredServer = nil
-	globalServer = nil
+func (d *RavenTestDriver) killGlobalServerProcesses() {
+	killServer(&d.securedServerProcess)
+	killServer(&d.serverProcess)
+	d.securedStore = nil
+	d.server = nil
 }
 
 func (d *RavenTestDriver) getGlobalServer(secured bool) *ravendb.DocumentStore {
 	if secured {
-		return globalSecuredServer
+		return d.securedStore
 	}
-	return globalServer
+	return d.server
 }
 
 func (d *RavenTestDriver) setGlobalServerProcess(secured bool, p *Process) {
 	if secured {
-		globalSecuredServerProcess = p
+		d.securedServerProcess = p
 	} else {
-		globalServerProcess = p
+		d.serverProcess = p
 	}
 }
 
@@ -390,7 +387,10 @@ func (d *RavenTestDriver) Close() {
 }
 
 func shutdownTests() {
-	killGlobalServerProcesses()
+	// TODO: remember all RavenTestDriver instances and kill processes here
+	// maybe it's not even needed (in that RavenTestDriver.killProces()
+	// is called anyway)
+	// killGlobalServerProcesses()
 }
 
 var dbTestsDisabledAlreadyPrinted = false
@@ -488,7 +488,7 @@ func deleteTestDriver(driver *RavenTestDriver) {
 		return
 	}
 	driver.Close()
-	killGlobalServerProcesses()
+	driver.killGlobalServerProcesses()
 }
 
 var (
