@@ -546,32 +546,32 @@ func TestAttachmentsSession(t *testing.T) {
 	// re-enable them when no longer flaky
 
 	// matches order of Java tests
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_putAttachments(t, driver)
 	}
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
 
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_getAttachmentNames(t, driver)
 	}
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_deleteAttachments(t, driver)
 	}
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_attachmentExists(t, driver)
 	}
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t, driver)
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
 	attachmentsSession_throwIfStreamIsUseTwice(t, driver)
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_getAttachmentReleasesResources(t, driver)
 	}
-	if ravendb.EnableFlakyTests {
+	if EnableFlakyTests {
 		attachmentsSession_deleteAttachmentsUsingCommand(t, driver)
 	}
 }

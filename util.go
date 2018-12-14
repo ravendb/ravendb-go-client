@@ -32,14 +32,6 @@ var (
 	// can be enabled by setting LOG_ALL_REQUESTS env variable to "true"
 	LogAllRequests = false
 
-	// if true, enables flaky tests
-	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
-	EnableFlakyTests = false
-
-	// if true, enable failing tests
-	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
-	EnableFailingTests = false
-
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
 	RavenServerVerbose = false
@@ -74,16 +66,6 @@ func SetStateFromEnv() {
 	if !RavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
 		RavenServerVerbose = true
 		fmt.Printf("Setting RavenServerVerbose to true\n")
-	}
-
-	if !EnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
-		EnableFlakyTests = true
-		fmt.Printf("Setting EnableFlakyTests to true\n")
-	}
-
-	if !EnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
-		EnableFailingTests = true
-		fmt.Printf("Setting EnableFailingTests to true\n")
 	}
 }
 

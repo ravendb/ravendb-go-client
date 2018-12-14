@@ -212,7 +212,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDrive
 
 		user1.Age = 10
 
-		if ravendb.EnableFailingTests {
+		if EnableFailingTests {
 			// TODO: this returns 3 changes, showing user/2 as added
 			// which is probably wrong. Need to figure out why.
 			changes, err2 := newSession.Advanced().WhatChanged()
