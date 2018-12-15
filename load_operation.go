@@ -188,7 +188,7 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		if document == nil {
 			continue
 		}
-		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)
+		newDocumentInfo := getNewDocumentInfo(document)
 		o._session.documentsByID.add(newDocumentInfo)
 	}
 

@@ -94,7 +94,7 @@ func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 	//TreeMap<string, Object> finalResults = new TreeMap<>(string::compareToIgnoreCase);
 
 	for _, document := range getDocumentResult.Results {
-		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)
+		newDocumentInfo := getNewDocumentInfo(document)
 		o._sessionOperations.documentsByID.add(newDocumentInfo)
 
 		if newDocumentInfo.id == "" {

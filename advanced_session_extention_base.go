@@ -2,7 +2,7 @@ package ravendb
 
 type AdvancedSessionExtentionBase struct {
 	session             *InMemoryDocumentSessionOperations
-	documents           []*DocumentInfo
+	documents           []*documentInfo
 	requestExecutor     *RequestExecutor
 	sessionInfo         *SessionInfo
 	documentStore       *IDocumentStore

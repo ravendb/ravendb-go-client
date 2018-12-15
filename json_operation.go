@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
+func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
 	var docChanges []*DocumentsChanges
 
 	doc := documentInfo.document

@@ -54,7 +54,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	if err != nil {
 		return nil, err
 	}
-	documentInfo := NewDocumentInfo()
+	documentInfo := &documentInfo{}
 	documentInfo.id = id
 	documentInfo.changeVector = changeVector
 	documentInfo.document = document

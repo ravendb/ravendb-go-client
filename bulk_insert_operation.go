@@ -202,7 +202,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		}
 	}
 
-	documentInfo := NewDocumentInfo()
+	documentInfo := &documentInfo{}
 	documentInfo.metadataInstance = metadata
 	jsNode := EntityToJson_convertEntityToJson(entity, documentInfo)
 

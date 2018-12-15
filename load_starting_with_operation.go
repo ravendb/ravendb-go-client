@@ -55,7 +55,7 @@ func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
 	documents := result.Results
 
 	for _, document := range documents {
-		newDocumentInfo := DocumentInfo_getNewDocumentInfo(document)
+		newDocumentInfo := getNewDocumentInfo(document)
 		o._session.documentsByID.add(newDocumentInfo)
 		o._returnedIds = append(o._returnedIds, newDocumentInfo.id)
 	}

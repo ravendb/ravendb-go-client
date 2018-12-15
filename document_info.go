@@ -12,8 +12,8 @@ const (
 	ConcurrencyCheck_DISABLED
 )
 
-// DocumentInfo stores information about entity in a session
-type DocumentInfo struct {
+// documentInfo stores information about entity in a session
+type documentInfo struct {
 	id                   string
 	changeVector         *string
 	concurrencyCheckMode ConcurrencyCheckMode
@@ -26,11 +26,7 @@ type DocumentInfo struct {
 	collection           string
 }
 
-func NewDocumentInfo() *DocumentInfo {
-	return &DocumentInfo{}
-}
-
-func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
+func getNewDocumentInfo(document ObjectNode) *documentInfo {
 	metadataV, ok := document[Constants_Documents_Metadata_KEY]
 	// TODO: maybe convert to errors
 	panicIf(!ok, "Document must have a metadata")
@@ -47,7 +43,7 @@ func DocumentInfo_getNewDocumentInfo(document ObjectNode) *DocumentInfo {
 	// TODO: return an error?
 	panicIf(changeVector == nil, "Document must have a Change Vector")
 
-	newDocumentInfo := NewDocumentInfo()
+	newDocumentInfo := &documentInfo{}
 	newDocumentInfo.id = id
 	newDocumentInfo.document = document
 	newDocumentInfo.metadata = metadata

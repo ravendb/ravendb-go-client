@@ -21,7 +21,7 @@ func (e *EntityToJson) getMissingDictionary() map[interface{}]map[string]interfa
 	return e._missingDictionary
 }
 
-func EntityToJson_convertEntityToJson(entity interface{}, documentInfo *DocumentInfo) ObjectNode {
+func EntityToJson_convertEntityToJson(entity interface{}, documentInfo *documentInfo) ObjectNode {
 	// maybe we don't need to do anything?
 	if v, ok := entity.(ObjectNode); ok {
 		return v
@@ -88,7 +88,7 @@ func (e *EntityToJson) ConvertToEntity(entityType reflect.Type, id string, docum
 	return entity, nil
 }
 
-func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *DocumentInfo) {
+func EntityToJson_writeMetadata(jsonNode ObjectNode, documentInfo *documentInfo) {
 	if documentInfo == nil {
 		return
 	}

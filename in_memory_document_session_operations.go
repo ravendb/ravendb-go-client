@@ -49,14 +49,14 @@ type InMemoryDocumentSessionOperations struct {
 
 	// Translate between an ID and its associated entity
 	// TODO: ignore case for keys
-	includedDocumentsByID map[string]*DocumentInfo
+	includedDocumentsByID map[string]*documentInfo
 
 	// hold the data required to manage the data for RavenDB's Unit of Work
 	// TODO: this uses value semantics, so it works as expected for
 	// pointers to structs, but 2 different structs with the same content
 	// will match the same object. Should I disallow storing non-pointer structs?
 	// convert non-pointer structs to structs?
-	documents []*DocumentInfo
+	documents []*documentInfo
 
 	_documentStore *DocumentStore
 
@@ -94,8 +94,8 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsByID:                 newDocumentsByID(),
-		includedDocumentsByID:         map[string]*DocumentInfo{},
-		documents:                     []*DocumentInfo{},
+		includedDocumentsByID:         map[string]*documentInfo{},
+		documents:                     []*documentInfo{},
 		_documentStore:                store,
 		databaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
@@ -202,7 +202,7 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
 
-	documentInfo, err := s.GetDocumentInfo(instance)
+	documentInfo, err := s.getDocumentInfo(instance)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interfac
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}
 
-	documentInfo, err := s.GetDocumentInfo(instance)
+	documentInfo, err := s.getDocumentInfo(instance)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interfac
 	return res, false
 }
 
-func getDocumentInfoByEntity(docs []*DocumentInfo, entity interface{}) *DocumentInfo {
+func getDocumentInfoByEntity(docs []*documentInfo, entity interface{}) *documentInfo {
 	for _, doc := range docs {
 		if doc.entity == entity {
 			return doc
@@ -248,8 +248,8 @@ func getDocumentInfoByEntity(docs []*DocumentInfo, entity interface{}) *Document
 	return nil
 }
 
-// adds or replaces DocumentInfo in a list by entity
-func setDocumentInfo(docsRef *[]*DocumentInfo, toAdd *DocumentInfo) {
+// adds or replaces documentInfo in a list by entity
+func setDocumentInfo(docsRef *[]*documentInfo, toAdd *documentInfo) {
 	docs := *docsRef
 	entity := toAdd.entity
 	for i, doc := range docs {
@@ -261,8 +261,8 @@ func setDocumentInfo(docsRef *[]*DocumentInfo, toAdd *DocumentInfo) {
 	*docsRef = append(docs, toAdd)
 }
 
-// returns deleted DocumentInfo
-func deleteDocumentInfoByEntity(docsRef *[]*DocumentInfo, entity interface{}) *DocumentInfo {
+// returns deleted documentInfo
+func deleteDocumentInfoByEntity(docsRef *[]*documentInfo, entity interface{}) *documentInfo {
 	docs := *docsRef
 	for i, doc := range docs {
 		if doc.entity == entity {
@@ -278,9 +278,9 @@ func deleteDocumentInfoByEntity(docsRef *[]*DocumentInfo, entity interface{}) *D
 	return nil
 }
 
-// GetDocumentInfo returns DocumentInfo for a given instance
+// getDocumentInfo returns documentInfo for a given instance
 // Returns nil if not found
-func (s *InMemoryDocumentSessionOperations) GetDocumentInfo(instance interface{}) (*DocumentInfo, error) {
+func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}) (*documentInfo, error) {
 	documentInfo := getDocumentInfoByEntity(s.documents, instance)
 	if documentInfo != nil {
 		return documentInfo, nil
@@ -344,12 +344,12 @@ func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 	return nil
 }
 
-// TrackEntityInDocumentInfoOld tracks entity in DocumentInfo
-func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfoOld(clazz reflect.Type, documentFound *DocumentInfo) (interface{}, error) {
+// TrackEntityInDocumentInfoOld tracks entity in documentInfo
+func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfoOld(clazz reflect.Type, documentFound *documentInfo) (interface{}, error) {
 	return s.TrackEntityOld(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
-func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result interface{}, documentFound *DocumentInfo) error {
+func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result interface{}, documentFound *documentInfo) error {
 	return s.TrackEntity(result, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
@@ -411,7 +411,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 	}
 
 	if !noTracking {
-		newDocumentInfo := NewDocumentInfo()
+		newDocumentInfo := &documentInfo{}
 		newDocumentInfo.id = id
 		newDocumentInfo.document = document
 		newDocumentInfo.metadata = metadata
@@ -503,7 +503,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	}
 
 	if !noTracking {
-		newDocumentInfo := NewDocumentInfo()
+		newDocumentInfo := &documentInfo{}
 		newDocumentInfo.id = id
 		newDocumentInfo.document = document
 		newDocumentInfo.metadata = metadata
@@ -654,16 +654,16 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
 
-	s.StoreEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
+	s.storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) StoreEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
 		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
-	documentInfo := NewDocumentInfo()
+	documentInfo := &documentInfo{}
 	documentInfo.id = id
 	documentInfo.metadata = metadata
 	documentInfo.changeVector = changeVector
@@ -719,7 +719,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*SaveChange
 	return result, nil
 }
 
-func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(documentInfo *DocumentInfo) bool {
+func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(documentInfo *documentInfo) bool {
 	dirty := false
 	metadataInstance := documentInfo.metadataInstance
 	metadata := documentInfo.metadata
@@ -884,7 +884,7 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 	return err
 }
 
-func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj ObjectNode, documentInfo *DocumentInfo, changes map[string][]*DocumentsChanges) bool {
+func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
 	return JsonOperation_entityChanged(newObj, documentInfo, changes)
 }
 
@@ -902,7 +902,7 @@ func (s *InMemoryDocumentSessionOperations) WhatChanged() (map[string][]*Documen
 func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 	panic("NYI")
 	/*
-		for (Map.Entry<Object, DocumentInfo> entity : documentsByEntity.entrySet()) {
+		for (Map.Entry<Object, documentInfo> entity : documentsByEntity.entrySet()) {
 			ObjectNode document = entityToJson.convertEntityToJson(entity.getKey(), entity.getValue());
 			if (entityChanged(document, entity.getValue(), null)) {
 				return true;
@@ -938,7 +938,7 @@ func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[st
 // IgnoreChangesFor marks the entity as one that should be ignore for change tracking purposes,
 // it still takes part in the session, but is ignored for SaveChanges.
 func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity interface{}) {
-	docInfo, _ := s.GetDocumentInfo(entity)
+	docInfo, _ := s.getDocumentInfo(entity)
 	docInfo.ignoreChanges = true
 }
 
@@ -1028,7 +1028,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 		}
 		json, ok := fieldValue.(ObjectNode)
 		panicIf(!ok, "fieldValue of unsupported type %T", fieldValue)
-		newDocumentInfo := DocumentInfo_getNewDocumentInfo(json)
+		newDocumentInfo := getNewDocumentInfo(json)
 		if JsonExtensions_tryGetConflict(newDocumentInfo.metadata) {
 			continue
 		}
@@ -1103,7 +1103,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 	return true
 }
 
-func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, cmd *GetDocumentsCommand, documentInfo *DocumentInfo) error {
+func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, cmd *GetDocumentsCommand, documentInfo *documentInfo) error {
 	document := cmd.Result.Results[0]
 	if document == nil {
 		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.id)
