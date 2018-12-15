@@ -261,11 +261,11 @@ func maybePrettyPrintJSON(d []byte) []byte {
 		return d2
 	}
 	var m map[string]interface{}
-	err := jsonUnmarshal(d, &m)
+	err := json.Unmarshal(d, &m)
 	if err != nil {
 		return d
 	}
-	d2, err := jsonMarshalIndent(m, "", "  ")
+	d2, err := json.MarshalIndent(m, "", "  ")
 	if err != nil {
 		return d
 	}

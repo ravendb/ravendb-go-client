@@ -177,7 +177,7 @@ func TestSpatial(t *testing.T) {
 	spatial_weirdSpatialResults(t, driver)
 	if EnableFlakyTests {
 		// is flaky on CI e.g. https://travis-ci.org/kjk/ravendb-go-client/builds/416175659
-		// works on my mak
+		// works on my mac. Maybe time.Time json encoding issue
 		spatial_matchSpatialResults(t, driver)
 	}
 }

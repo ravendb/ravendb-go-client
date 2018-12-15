@@ -24,7 +24,6 @@ before_install:
   - tar xvjf RavenDB.tar.bz2
   - rm RavenDB.tar.bz2
   - ls -lah RavenDB
-  - go get -d -t -v ./...
 
 script:
   - ./scripts/travis_run_tests.sh
