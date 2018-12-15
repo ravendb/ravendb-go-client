@@ -176,7 +176,7 @@ func TestSpatial(t *testing.T) {
 	// matches order of Java tests
 	spatial_weirdSpatialResults(t, driver)
 	if EnableFlakyTests {
-		// is flaky on CI e.g. https://travis-ci.org/kjk/ravendb-go-client/builds/416175659?utm_source=email&utm_medium=notification
+		// is flaky on CI e.g. https://travis-ci.org/kjk/ravendb-go-client/builds/416175659
 		// works on my mak
 		spatial_matchSpatialResults(t, driver)
 	}

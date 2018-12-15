@@ -39,7 +39,7 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 }
 
 func jsonUnmarshal(d []byte, v interface{}) error {
-	return jsonUnmarshal(d, v)
+	return json.Unmarshal(d, v)
 }
 
 func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
