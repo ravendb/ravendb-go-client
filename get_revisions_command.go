@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -81,7 +80,7 @@ func (c *GetRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, er
 
 func (c *GetRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
 	var res JSONArrayResult
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

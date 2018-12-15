@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -41,8 +40,8 @@ func NewPutClientConfigurationCommand(conventions *DocumentConventions, configur
 	panicIf(conventions == nil, "conventions cannot be null")
 	panicIf(configuration == nil, "configuration cannot be null")
 
-	d, err := json.Marshal(configuration)
-	panicIf(err != nil, "json.Marshal failed with %s", err)
+	d, err := jsonMarshal(configuration)
+	panicIf(err != nil, "jsonMarshal failed with %s", err)
 	cmd := &PutClientConfigurationCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -53,7 +52,7 @@ func (c *GetIndexesStatisticsCommand) SetResponse(response []byte, fromCache boo
 	var res struct {
 		Results []*IndexStats `json:"Results"`
 	}
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

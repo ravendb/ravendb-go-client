@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -64,7 +63,7 @@ func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	m := map[string]interface{}{
 		"Indexes": c._indexToAdd,
 	}
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +73,7 @@ func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 
 func (c *PutIndexesCommand) SetResponse(response []byte, fromCache bool) error {
 	var res PutIndexesResponse
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

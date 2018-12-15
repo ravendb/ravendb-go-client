@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -64,7 +63,7 @@ func (c *PutCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.
 	m := map[string]interface{}{
 		"Object": c._value,
 	}
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err
 	}

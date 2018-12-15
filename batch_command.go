@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -81,7 +80,7 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	v := map[string]interface{}{
 		"Commands": a,
 	}
-	js, err := json.Marshal(v)
+	js, err := jsonMarshal(v)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +127,7 @@ func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }
 
 func (c *BatchCommand) appendOptions(sb string) string {

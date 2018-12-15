@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -39,5 +38,5 @@ func (c *GetConflictsCommand) SetResponse(response []byte, fromCache bool) error
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

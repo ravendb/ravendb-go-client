@@ -1,7 +1,5 @@
 package ravendb
 
-import "encoding/json"
-
 var _ ILazyOperation = &LazyAggregationQueryOperation{}
 
 type LazyAggregationQueryOperation struct {
@@ -67,7 +65,7 @@ func (o *LazyAggregationQueryOperation) handleResponse(response *GetResponse) er
 	}
 
 	var queryResult *QueryResult
-	err := json.Unmarshal(response.result, &queryResult)
+	err := jsonUnmarshal(response.result, &queryResult)
 	if err != nil {
 		return err
 	}

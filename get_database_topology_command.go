@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 )
@@ -35,5 +34,5 @@ func (c *GetDatabaseTopologyCommand) CreateRequest(node *ServerNode) (*http.Requ
 }
 
 func (c *GetDatabaseTopologyCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

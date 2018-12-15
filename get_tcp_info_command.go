@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -50,5 +49,5 @@ func (c *GetTcpInfoCommand) SetResponse(response []byte, fromCache bool) error {
 		return throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

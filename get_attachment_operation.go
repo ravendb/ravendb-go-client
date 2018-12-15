@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -69,7 +68,7 @@ func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, e
 			"Type":         "Revision",
 			"ChangeVector": c._changeVector,
 		}
-		d, err := json.Marshal(m)
+		d, err := jsonMarshal(m)
 		if err != nil {
 			return nil, err
 		}

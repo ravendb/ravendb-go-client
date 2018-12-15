@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -54,7 +53,7 @@ func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	}
 
 	m := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err
 	}
@@ -66,5 +65,5 @@ func (c *QueryCommand) SetResponse(response []byte, fromCache bool) error {
 		return nil
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

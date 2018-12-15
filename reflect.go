@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -212,11 +211,11 @@ func getJSONStructFieldNames(typ reflect.Type) []string {
 
 // given js value (most likely as map[string]interface{}) decode into res
 func decodeJSONAsStruct(js interface{}, res interface{}) error {
-	d, err := json.Marshal(js)
+	d, err := jsonMarshal(js)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(d, res)
+	return jsonUnmarshal(d, res)
 }
 
 // given a json represented as map and type of a struct
@@ -234,12 +233,12 @@ func MakeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error)
 		typ = typ.Elem()
 	}
 	rvNew := reflect.New(typ)
-	d, err := json.Marshal(js)
+	d, err := jsonMarshal(js)
 	if err != nil {
 		return nil, err
 	}
 	v := rvNew.Interface()
-	err = json.Unmarshal(d, v)
+	err = jsonUnmarshal(d, v)
 	if err != nil {
 		return nil, err
 	}

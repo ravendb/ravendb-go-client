@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -85,7 +84,7 @@ func (o *LazyStartsWithOperation) setRequiresRetry(requiresRetry bool) {
 
 func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 	var getDocumentResult *GetDocumentsResult
-	err := json.Unmarshal(response.result, &getDocumentResult)
+	err := jsonUnmarshal(response.result, &getDocumentResult)
 	if err != nil {
 		return err
 	}

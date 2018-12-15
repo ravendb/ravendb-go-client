@@ -69,7 +69,7 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 	}
 
 	m["Requests"] = requests
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Read
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(d, &results)
+	err = jsonUnmarshal(d, &results)
 	if err != nil {
 		return err
 	}

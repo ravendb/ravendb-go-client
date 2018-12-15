@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -33,7 +32,7 @@ func (c *GetNextOperationIdCommand) CreateRequest(node *ServerNode) (*http.Reque
 
 func (c *GetNextOperationIdCommand) SetResponse(response []byte, fromCache bool) error {
 	var res _GetNextOperationIdCommandResponse
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

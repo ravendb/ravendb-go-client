@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
@@ -218,7 +217,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 	m["Type"] = "PUT"
 	m["Document"] = jsNode
 
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return err
 	}

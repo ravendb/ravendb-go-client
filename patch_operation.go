@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -105,12 +104,12 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 	cmd := &PatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_id:           id,
-		_changeVector: changeVector,
-		_patch:        NewPatchOperationPayload(patch, patchIfMissing),
+		_id:                              id,
+		_changeVector:                    changeVector,
+		_patch:                           NewPatchOperationPayload(patch, patchIfMissing),
 		_skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
 		_returnDebugInformation:          returnDebugInformation,
-		_test: test,
+		_test:                            test,
 	}
 
 	return cmd
@@ -145,8 +144,8 @@ func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 		"Patch":          patch,
 		"PatchIfMissing": patchIfMissing,
 	}
-	d, err := json.Marshal(m)
-	panicIf(err != nil, "json.Marshal failed with %s", err)
+	d, err := jsonMarshal(m)
+	panicIf(err != nil, "jsonMarshal failed with %s", err)
 
 	request, err := NewHttpPatch(url, d)
 	if err != nil {
@@ -161,5 +160,5 @@ func (c *PatchCommand) SetResponse(response []byte, fromCache bool) error {
 		return nil
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

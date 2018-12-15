@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -39,7 +38,7 @@ func ExceptionDispatcher_throwException(response *http.Response) error {
 	}
 	var schema ExceptionSchema
 	if len(d) > 0 {
-		err = json.Unmarshal(d, &schema)
+		err = jsonUnmarshal(d, &schema)
 		if response.StatusCode == http.StatusConflict {
 			return ExceptionDispatcher_throwConflict(&schema, string(d))
 		}

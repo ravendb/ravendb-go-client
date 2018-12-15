@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -1083,7 +1082,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 		responseJson, err := ioutil.ReadAll(response.Body)
 		if err == nil {
 			var schema ExceptionSchema
-			json.Unmarshal(responseJson, &schema)
+			jsonUnmarshal(responseJson, &schema)
 			readException := ExceptionDispatcher_get(&schema, response.StatusCode)
 			failedNodes[chosenNode] = readException
 		} else {

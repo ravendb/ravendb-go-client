@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"reflect"
 )
 
@@ -17,7 +16,7 @@ func NewCompareExchangeResult() *CompareExchangeResult {
 
 func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []byte, conventions *DocumentConventions) (*CompareExchangeResult, error) {
 	var response map[string]interface{}
-	err := json.Unmarshal(responseString, &response)
+	err := jsonUnmarshal(responseString, &response)
 	if err != nil {
 		return nil, err
 	}

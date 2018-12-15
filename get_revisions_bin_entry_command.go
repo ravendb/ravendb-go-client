@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -45,5 +44,5 @@ func (c *GetRevisionsBinEntryCommand) SetResponse(response []byte, fromCache boo
 		return throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

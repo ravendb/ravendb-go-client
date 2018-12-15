@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -37,8 +36,8 @@ type IndexHasChangedCommand struct {
 }
 
 func NewIndexHasChangedCommand(conventions *DocumentConventions, definition *IndexDefinition) *IndexHasChangedCommand {
-	d, err := json.Marshal(definition)
-	panicIf(err != nil, "json.Marshal() failed with %s", err)
+	d, err := jsonMarshal(definition)
+	panicIf(err != nil, "jsonMarshal() failed with %s", err)
 	res := &IndexHasChangedCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 

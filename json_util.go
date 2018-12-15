@@ -31,6 +31,17 @@ type TreeNode = interface{}
 // equivalent of com.fasterxml.jackson.databind.node.ArrayNode
 type ArrayNode = []ObjectNode
 
+// we should use jsonMarshal instead of jsonMarshal so that it's easy
+// to change json marshalling in all code base (e.g. to use a faster
+// json library or ensure that values are marshalled correctly)
+func jsonMarshal(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
+}
+
+func jsonUnmarshal(d []byte, v interface{}) error {
+	return jsonUnmarshal(d, v)
+}
+
 func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
 	v, ok := doc[key]
 	if !ok {
@@ -105,10 +116,10 @@ func jsonGetAsBool(doc ObjectNode, key string) (bool, bool) {
 // converts a struct to JSON representations as map of string to value
 // TODO: could be faster
 func StructToJSONMap(v interface{}) map[string]interface{} {
-	d, err := json.Marshal(v)
+	d, err := jsonMarshal(v)
 	must(err)
 	var res map[string]interface{}
-	err = json.Unmarshal(d, &res)
+	err = jsonUnmarshal(d, &res)
 	must(err)
 	return res
 }
@@ -116,11 +127,11 @@ func StructToJSONMap(v interface{}) map[string]interface{} {
 // given a json in the form of map[string]interface{}, de-serialize it to a struct
 // TODO: could be faster
 func structFromJSONMap(js ObjectNode, v interface{}) error {
-	d, err := json.Marshal(js)
+	d, err := jsonMarshal(js)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(d, v)
+	return jsonUnmarshal(d, v)
 }
 
 // matches a Java naming from EnityMapper
@@ -133,17 +144,17 @@ func ValueToTree(v interface{}) ObjectNode {
 // TODO: possibly not the fastest way to do it
 /*
 func copyJSONMap(v map[string]interface{}) map[string]interface{} {
-	d, err := json.Marshal(v)
+	d, err := jsonMarshal(v)
 	must(err)
 	var res map[string]interface{}
-	err = json.Unmarshal(d, &res)
+	err = jsonUnmarshal(d, &res)
 	must(err)
 	return res
 }
 */
 
 // jsonDecodeFirst decode first JSON object from d
-// This is like json.Unmarshal() but allows for d
+// This is like jsonUnmarshal() but allows for d
 // to contain multiple JSON objects
 // This is for compatibility with Java's ObjectMapper.readTree()
 func jsonUnmarshalFirst(d []byte, v interface{}) error {
@@ -205,12 +216,13 @@ func asHex(d []byte) ([]byte, bool) {
 }
 
 // if d is a valid json, pretty-print it
+// only used for debugging
 func maybePrettyPrintJSON(d []byte) []byte {
 	if d2, ok := asHex(d); ok {
 		return d2
 	}
 	var m map[string]interface{}
-	err := json.Unmarshal(d, &m)
+	err := jsonUnmarshal(d, &m)
 	if err != nil {
 		return d
 	}

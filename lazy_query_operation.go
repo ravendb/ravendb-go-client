@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"reflect"
 )
 
@@ -61,7 +60,7 @@ func (o *LazyQueryOperation) handleResponse(response *GetResponse) error {
 	}
 
 	var queryResult *QueryResult
-	err := json.Unmarshal(response.result, &queryResult)
+	err := jsonUnmarshal(response.result, &queryResult)
 	if err != nil {
 		return err
 	}

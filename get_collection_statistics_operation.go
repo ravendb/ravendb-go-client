@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -48,5 +47,5 @@ func (c *GetCollectionStatisticsCommand) SetResponse(response []byte, fromCache 
 		return throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

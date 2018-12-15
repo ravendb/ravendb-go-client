@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -67,7 +66,7 @@ func (c *GetIndexErrorsCommand) SetResponse(response []byte, fromCache bool) err
 	var res struct {
 		Results []*IndexErrors
 	}
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

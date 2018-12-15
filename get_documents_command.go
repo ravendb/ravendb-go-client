@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -135,8 +134,8 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	m := map[string]interface{}{
 		"Ids": uniqueIds,
 	}
-	d, err := json.Marshal(m)
-	panicIf(err != nil, "json.Marshal() failed with %s", err)
+	d, err := jsonMarshal(m)
+	panicIf(err != nil, "jsonMarshal() failed with %s", err)
 	return NewHttpPost(url, d)
 }
 
@@ -145,5 +144,5 @@ func (c *GetDocumentsCommand) SetResponse(response []byte, fromCache bool) error
 		return nil
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

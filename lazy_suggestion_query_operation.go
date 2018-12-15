@@ -1,7 +1,5 @@
 package ravendb
 
-import "encoding/json"
-
 var _ ILazyOperation = &LazySuggestionQueryOperation{}
 
 type LazySuggestionQueryOperation struct {
@@ -54,7 +52,7 @@ func (o *LazySuggestionQueryOperation) handleResponse(response *GetResponse) err
 	}
 
 	var queryResult *QueryResult
-	err := json.Unmarshal(response.result, &queryResult)
+	err := jsonUnmarshal(response.result, &queryResult)
 	if err != nil {
 		return err
 	}

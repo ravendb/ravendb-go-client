@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -78,9 +77,9 @@ func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, e
 	}
 
 	m := JsonExtensions_writeIndexQuery(c._conventions, c._queryToDelete)
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	// TODO: return error instead?
-	panicIf(err != nil, "json.Marshal failed with %s", err)
+	panicIf(err != nil, "jsonMarshal failed with %s", err)
 
 	request, err := NewHttpDelete(url, d)
 	if err != nil {
@@ -94,5 +93,5 @@ func (c *DeleteByIndexCommand) SetResponse(response []byte, fromCache bool) erro
 		throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

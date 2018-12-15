@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 )
@@ -99,5 +98,5 @@ func (c *PutAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, e
 }
 
 func (c *PutAttachmentCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

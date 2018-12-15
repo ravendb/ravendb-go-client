@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -35,7 +34,7 @@ func (c *QueryStreamCommand) CreateRequest(node *ServerNode) (*http.Request, err
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/streams/queries"
 
 	m := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"reflect"
 )
 
@@ -123,7 +122,7 @@ func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
 		return nil
 	}
 	var multiLoadResult *GetDocumentsResult
-	err := json.Unmarshal(res, &multiLoadResult)
+	err := jsonUnmarshal(res, &multiLoadResult)
 	if err != nil {
 		return err
 	}

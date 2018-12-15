@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -52,8 +51,8 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 	// Note: compared to Java, we shortcut things by serializing to JSON
 	// here as it's simpler and faster than two-step serialization,
 	// first to ObjectNode and then to JSON
-	d, err := json.Marshal(parameters)
-	panicIf(err != nil, "json.Marshal failed with %s", err)
+	d, err := jsonMarshal(parameters)
+	panicIf(err != nil, "jsonMarshal failed with %s", err)
 	cmd := &SetIndexesPriorityCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -40,8 +39,8 @@ func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings
 	panicIf(conventions == nil, "Conventions cannot be null")
 	panicIf(compactSettings == nil, "CompactSettings cannot be null")
 
-	d, err := json.Marshal(compactSettings)
-	panicIf(err != nil, "json.Marshal failed with '%s'", err)
+	d, err := jsonMarshal(compactSettings)
+	panicIf(err != nil, "jsonMarshal failed with '%s'", err)
 	res := &CompactDatabaseCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -59,5 +58,5 @@ func (c *CompactDatabaseCommand) SetResponse(response []byte, fromCache bool) er
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

@@ -1,13 +1,12 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"reflect"
 )
 
 func CompareExchangeValueResultParser_getValues(clazz reflect.Type, response []byte, conventions *DocumentConventions) (map[string]*CompareExchangeValue, error) {
 	var jsonResponse map[string]interface{}
-	err := json.Unmarshal(response, &jsonResponse)
+	err := jsonUnmarshal(response, &jsonResponse)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,5 @@
 package ravendb
 
-import "encoding/json"
-
 type DocumentConflictException struct {
 	*ConflictException
 	DocId       string
@@ -22,7 +20,7 @@ func NewDocumentConflictExceptionFromMessage(message string) *DocumentConflictEx
 
 func NewDocumentConflictExceptionFromJSON(js string) error {
 	var jsonNode map[string]interface{}
-	err := json.Unmarshal([]byte(js), &jsonNode)
+	err := jsonUnmarshal([]byte(js), &jsonNode)
 	if err != nil {
 		return NewBadResponseException("Unable to parse server response: %s", err)
 	}

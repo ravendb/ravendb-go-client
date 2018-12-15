@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -31,5 +30,5 @@ func (c *GetClusterTopologyCommand) SetResponse(response []byte, fromCache bool)
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

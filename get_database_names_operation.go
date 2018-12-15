@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -63,7 +62,7 @@ func (c *GetDatabaseNamesCommand) SetResponse(response []byte, fromCache bool) e
 	}
 
 	var res GetDatabaseNamesResult
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

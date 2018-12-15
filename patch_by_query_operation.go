@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -75,8 +74,8 @@ func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, er
 		"Query": q,
 	}
 
-	d, err := json.Marshal(m)
-	panicIf(err != nil, "json.Marshal failed with %s", err)
+	d, err := jsonMarshal(m)
+	panicIf(err != nil, "jsonMarshal failed with %s", err)
 
 	request, err := NewHttpPatch(url, d)
 	if err != nil {
@@ -90,5 +89,5 @@ func (c *PatchByQueryCommand) SetResponse(response []byte, fromCache bool) error
 		throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

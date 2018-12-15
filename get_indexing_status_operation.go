@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -49,5 +48,5 @@ func (c *GetIndexingStatusCommand) SetResponse(response []byte, fromCache bool) 
 		return throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

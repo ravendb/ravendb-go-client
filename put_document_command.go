@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -36,7 +35,7 @@ func NewPutDocumentCommand(id string, changeVector *string, document ObjectNode)
 func (c *PutDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/docs?id=" + urlEncode(c._id)
 
-	d, err := json.Marshal(c._document)
+	d, err := jsonMarshal(c._document)
 	if err != nil {
 		return nil, err
 	}
@@ -49,5 +48,5 @@ func (c *PutDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, err
 }
 
 func (c *PutDocumentCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

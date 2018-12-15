@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 )
@@ -63,7 +62,7 @@ type DeleteDatabaseCommand struct {
 }
 
 func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *DeleteDatabaseParameters) *DeleteDatabaseCommand {
-	d, err := json.Marshal(parameters)
+	d, err := jsonMarshal(parameters)
 	must(err)
 
 	cmd := &DeleteDatabaseCommand{
@@ -80,5 +79,5 @@ func (c *DeleteDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, 
 }
 
 func (c *DeleteDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

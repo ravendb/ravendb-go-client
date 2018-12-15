@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -20,7 +19,7 @@ func TestCanSerializeDuration(t *testing.T) {
 	}
 	for _, test := range tests {
 		d2 := Duration(test.d)
-		d, err := json.Marshal(d2)
+		d, err := jsonMarshal(d2)
 		assert.NoError(t, err)
 		got := string(d)
 		assert.Equal(t, test.exp, got)
@@ -41,7 +40,7 @@ func TestCanDeserializeDuration(t *testing.T) {
 	for _, test := range tests {
 		var got Duration
 		d := []byte(test.s)
-		err := json.Unmarshal(d, &got)
+		err := jsonUnmarshal(d, &got)
 		assert.NoError(t, err)
 		exp := Duration(test.exp)
 		assert.Equal(t, exp, got)

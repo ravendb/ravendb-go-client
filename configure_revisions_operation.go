@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -49,7 +48,7 @@ func NewConfigureRevisionsCommand(conventions *DocumentConventions, configuratio
 func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/revisions/config"
 
-	d, err := json.Marshal(c._configuration)
+	d, err := jsonMarshal(c._configuration)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Reque
 }
 
 func (c *ConfigureRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }
 
 type ConfigureRevisionsOperationResult struct {

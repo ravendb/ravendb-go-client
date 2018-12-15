@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -54,5 +53,5 @@ func (c *NextHiLoCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 
 // SetResponse sets a response
 func (c *NextHiLoCommand) SetResponse(response []byte, fromCache bool) error {
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -56,8 +55,8 @@ func (c *ExplainQueryCommand) CreateRequest(node *ServerNode) (*http.Request, er
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/queries?debug=explain"
 
 	v := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
-	d, err := json.Marshal(v)
-	panicIf(err != nil, "json.Marshal() failed with %s", err)
+	d, err := jsonMarshal(v)
+	panicIf(err != nil, "jsonMarshal() failed with %s", err)
 	return NewHttpPost(url, d)
 }
 
@@ -65,7 +64,7 @@ func (c *ExplainQueryCommand) SetResponse(response []byte, fromCache bool) error
 	var res struct {
 		Results []*ExplainQueryResult
 	}
-	err := json.Unmarshal(response, &res)
+	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err
 	}

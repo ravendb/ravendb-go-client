@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -33,7 +32,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 		N: 5,
 	}
 	jsmap := StructToJSONMap(s)
-	vd, err := json.Marshal(s)
+	vd, err := jsonMarshal(s)
 	assert.NoError(t, err)
 	typ := reflect.TypeOf(s)
 	v2, err := MakeStructFromJSONMap(typ, jsmap)
@@ -41,7 +40,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 	vTyp := fmt.Sprintf("%T", s)
 	v2Typ := fmt.Sprintf("%T", v2)
 	assert.Equal(t, vTyp, v2Typ)
-	v2d, err := json.Marshal(v2)
+	v2d, err := jsonMarshal(v2)
 	assert.NoError(t, err)
 	if !bytes.Equal(vd, v2d) {
 		t.Fatalf("'%s' != '%s'", string(vd), string(v2d))

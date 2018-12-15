@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -47,7 +46,7 @@ func NewPutConnectionStringCommand(connectionString interface{}) *PutConnectionS
 func (c *PutConnectionStringCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/connection-strings"
 
-	d, err := json.Marshal(c._connectionString)
+	d, err := jsonMarshal(c._connectionString)
 	if err != nil {
 		// TODO: change err into RuntimeException() ?
 		return nil, err
@@ -60,5 +59,5 @@ func (c *PutConnectionStringCommand) SetResponse(response []byte, fromCache bool
 		return throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

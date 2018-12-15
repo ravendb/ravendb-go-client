@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -58,7 +57,7 @@ func (c *SeedIdentityForCommand) SetResponse(response []byte, fromCache bool) er
 	}
 
 	var jsonNode map[string]interface{}
-	err := json.Unmarshal(response, &jsonNode)
+	err := jsonUnmarshal(response, &jsonNode)
 	if err != nil {
 		return err
 	}

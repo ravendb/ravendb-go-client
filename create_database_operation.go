@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -58,7 +57,7 @@ func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, 
 	url := node.GetUrl() + "/admin/databases?name=" + c.databaseName
 	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
 
-	js, err := json.Marshal(c.databaseRecord)
+	js, err := jsonMarshal(c.databaseRecord)
 	if err != nil {
 		return nil, err
 	}
@@ -69,5 +68,5 @@ func (c *CreateDatabaseCommand) SetResponse(response []byte, fromCache bool) err
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }

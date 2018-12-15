@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -48,7 +47,7 @@ func (c *GetClientConfigurationCommand) SetResponse(response []byte, fromCache b
 		return nil
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }
 
 type GetClientConfigurationCommandResult struct {

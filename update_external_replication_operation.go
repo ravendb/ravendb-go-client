@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -51,7 +50,7 @@ func (c *UpdateExternalReplicationCommand) CreateRequest(node *ServerNode) (*htt
 	m := map[string]interface{}{
 		"Watcher": c._newWatcher,
 	}
-	d, err := json.Marshal(m)
+	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err
 	}
@@ -63,5 +62,5 @@ func (c *UpdateExternalReplicationCommand) SetResponse(response []byte, fromCach
 		return throwInvalidResponse()
 	}
 
-	return json.Unmarshal(response, &c.Result)
+	return jsonUnmarshal(response, &c.Result)
 }
