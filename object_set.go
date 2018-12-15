@@ -8,6 +8,7 @@ package ravendb
 // we could use a hash for a one-time pass but that would restrict
 // possible values to only hashables (e.g. not map)
 // TODO: write tests
+/*
 func removeDuplicatesFromObjectSet(a []interface{}) []interface{} {
 	n := len(a)
 	for i := 0; i < n; i++ {
@@ -30,6 +31,7 @@ func removeDuplicatesFromObjectSet(a []interface{}) []interface{} {
 	}
 	return a
 }
+*/
 
 // TODO: possibly use []interface{} to be more efficient, assuming this doesn't
 // grow to large number of items

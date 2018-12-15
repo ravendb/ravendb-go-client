@@ -705,6 +705,7 @@ func isNetworkTimeoutError(err error) bool {
 	return false
 }
 
+// Execute executes a command on a given node
 func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
 	request, err := re.CreateRequest(chosenNode, command)
 	if err != nil {
@@ -743,7 +744,6 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	}
 
 	//sp := time.Now()
-	responseDispose := ResponseDisposeHandling_AUTOMATIC
 	var response *http.Response
 	re.NumberOfServerRequests.incrementAndGet()
 	if re.shouldExecuteOnAll(chosenNode, command) {
@@ -810,6 +810,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		return nil // we either handled this already in the unsuccessful response or we are throwing
 	}
 
+	var responseDispose responseDisposeHandling
 	responseDispose, err = processCommandResponse(command, re.Cache, response, urlRef)
 	re._lastReturnedResponse.Store(time.Now())
 	if err != nil {
