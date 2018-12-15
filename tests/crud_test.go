@@ -131,7 +131,7 @@ func crudTest_crudOperations(t *testing.T, driver *RavenTestDriver) {
 		err = newSession.Load(&user4, "users/4")
 		assert.NoError(t, err)
 
-		err = newSession.DeleteEntity(&user4)
+		err = newSession.DeleteEntity(user4)
 		assert.NoError(t, err)
 		user1.Age = 10
 		err = newSession.SaveChanges()
@@ -207,7 +207,7 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDrive
 		err = newSession.Load(&user4, "users/4")
 		assert.NoError(t, err)
 
-		err = newSession.DeleteEntity(&user4)
+		err = newSession.DeleteEntity(user4)
 		assert.NoError(t, err)
 
 		user1.Age = 10

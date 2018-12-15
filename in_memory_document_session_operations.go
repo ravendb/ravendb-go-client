@@ -353,6 +353,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result int
 	return s.TrackEntity(result, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
+// TrackEntity tracks a given object
 func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document ObjectNode, metadata ObjectNode, noTracking bool) error {
 	if id == "" {
 		s.DeserializeFromTransformer2(result, "", document)
@@ -364,19 +365,21 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 	// Temporarily disable this code path (doesn't affect tests although possibly some currently failing
 	// tests are due to this.
 	// Re-enable this code path and fix crashes.
-	if false && docInfo != nil {
+	if docInfo != nil {
 		// the local instance may have been changed, we adhere to the current Unit of Work
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			s.entityToJson.ConvertToEntity2(docInfo.entity, id, document)
+			s.entityToJson.ConvertToEntity2(result, id, document)
+			docInfo.entity = result
+		} else {
+			setInterfaceToValue(result, docInfo.entity)
 		}
 
 		if !noTracking {
 			delete(s.includedDocumentsByID, id)
 			setDocumentInfo(&s.documents, docInfo)
 		}
-		setInterfaceToValue(result, docInfo.entity)
 		return nil
 	}
 

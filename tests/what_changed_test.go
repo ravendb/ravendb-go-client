@@ -265,6 +265,7 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T, driver *RavenTes
 		var arr *Arr
 		err = newSession.Load(&arr, "arr/1")
 		assert.NoError(t, err)
+		assert.Equal(t, 3, len(arr.Array))
 
 		arr.Array = []interface{}{"a"}
 
@@ -384,7 +385,7 @@ func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T, driver
 		assert.NoError(t, err)
 
 		user1.Age = 10
-		err = session.DeleteEntity(&user2)
+		err = session.DeleteEntity(user2)
 		assert.NoError(t, err)
 
 		changes, _ = session.Advanced().WhatChanged()

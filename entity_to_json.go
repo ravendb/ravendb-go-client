@@ -63,12 +63,12 @@ func setInterfaceToValue(result interface{}, v interface{}) {
 }
 
 func (e *EntityToJson) ConvertToEntity2(result interface{}, id string, document ObjectNode) {
-	entityType := reflect.TypeOf(result)
-	if isTypeObjectNode(entityType) {
+	if _, ok := result.(map[string]interface{}); ok {
 		setInterfaceToValue(result, document)
 		return
 	}
 	// TODO: deal with default values
+	entityType := reflect.TypeOf(result)
 	entity, _ := MakeStructFromJSONMap(entityType, document)
 	TrySetIDOnEntity(entity, id)
 	setInterfaceToValue(result, entity)

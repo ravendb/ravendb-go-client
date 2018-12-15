@@ -28,8 +28,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 
-	// TODO: should this be DeleteEntity(user)? Both?
-	err = newSession.DeleteEntity(&user)
+	err = newSession.DeleteEntity(user)
 	assert.NoError(t, err)
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
