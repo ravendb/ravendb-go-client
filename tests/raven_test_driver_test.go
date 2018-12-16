@@ -502,8 +502,8 @@ func deleteTestDriver(driver *RavenTestDriver) {
 
 var (
 	defaultUserAgent          = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
-	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.2-windows-x64.zip"
-	ravenWindowsZipPath       = "Ravendb-4.1.2.zip"
+	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
+	ravenWindowsZipPath       = "Ravendb-4.1.3.zip"
 )
 
 func getRavendbExePath() string {
