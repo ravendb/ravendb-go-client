@@ -370,7 +370,5 @@ func TestRavenDB8761(t *testing.T) {
 		ravendb_8761_can_group_by_array_content(t, driver)
 	}
 
-	if enableFlakyTests {
-		ravendb_8761_can_group_by_array_values(t, driver)
-	}
+	ravendb_8761_can_group_by_array_values(t, driver)
 }
