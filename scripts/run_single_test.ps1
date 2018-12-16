@@ -1,5 +1,5 @@
 
-# go test -vet=off -covermode=atomic -coverprofile=coverage.txt
+# go test -covermode=atomic -coverprofile=coverage.txt
 
 $Env:VERBOSE_LOG = "true"
 $Env:LOG_HTTP_REQUEST_SUMMARY = "true"
