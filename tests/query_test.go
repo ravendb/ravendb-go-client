@@ -1358,7 +1358,7 @@ func TestQuery(t *testing.T) {
 
 	query_rawQuerySkipTake(t, driver)
 
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		// https://github.com/ravendb/ravendb-go-client/issues/77
 		query_queryWithDuration(t, driver)
 	}

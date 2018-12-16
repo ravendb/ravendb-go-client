@@ -8,23 +8,14 @@ import (
 
 var (
 	// if true, does verbose logging.
-	// can be enabled by setting VERBOSE_LOG env variable to "true"
 	LogVerbose = false
 
 	// if true, logs summary of all HTTP requests i.e. "GET /foo" to stdout
-	// can be enabled by setting LOG_HTTP_REQUEST_SUMMARY env variable to "true"
 	LogRequestSummary = false
 
 	// if true, logs request and response of failed http requests (i.e. those returning
 	// status code >= 400) to stdout
-	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS env variable to "true"
 	LogFailedRequests = false
-
-	// if true, logs all http requests/responses to a file for further inspection
-	// this is for use in tests so the file has a fixed location:
-	// logs/trace_${test_name}_go.txt
-	// can be enabled by setting LOG_ALL_REQUESTS env variable to "true"
-	LogAllRequests = false
 )
 
 func dbg(format string, args ...interface{}) {

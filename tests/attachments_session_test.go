@@ -547,32 +547,32 @@ func TestAttachmentsSession(t *testing.T) {
 	// re-enable them when no longer flaky
 
 	// matches order of Java tests
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_putAttachments(t, driver)
 	}
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
 
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_getAttachmentNames(t, driver)
 	}
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_deleteAttachments(t, driver)
 	}
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_attachmentExists(t, driver)
 	}
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t, driver)
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
 	attachmentsSession_throwIfStreamIsUseTwice(t, driver)
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_getAttachmentReleasesResources(t, driver)
 	}
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		attachmentsSession_deleteAttachmentsUsingCommand(t, driver)
 	}
 }

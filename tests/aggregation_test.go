@@ -549,7 +549,7 @@ func TestAggregation(t *testing.T) {
 	aggregation_canCorrectlyAggregate_Ranges(t, driver)
 	aggregation_canCorrectlyAggregate_MultipleItems(t, driver)
 	aggregation_canCorrectlyAggregate_MultipleAggregations(t, driver)
-	if EnableFailingTests {
+	if enableFailingTests {
 		aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t, driver)
 	}
 	aggregation_canCorrectlyAggregate_DisplayName(t, driver)

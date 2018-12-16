@@ -45,13 +45,13 @@ func panicIf(cond bool, format string, args ...interface{}) {
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
-	index                      int32
+	index                int32
 	server               *ravendb.DocumentStore
 	serverProcess        *Process
 	securedStore         *ravendb.DocumentStore
 	securedServerProcess *Process
 
-	logsDir string
+	logsDir  string
 	disposed bool
 }
 
@@ -232,7 +232,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 			break
 		}
 		s := scanner.Text()
-		if RavenServerVerbose {
+		if ravenServerVerbose {
 			fmt.Printf("%s\n", s)
 		}
 		if !strings.HasPrefix(s, wantedPrefix) {
@@ -250,7 +250,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	}
 	fmt.Printf("Server started on: '%s'\n", url)
 
-	if RavenServerVerbose {
+	if ravenServerVerbose {
 		go func() {
 			_, err = io.Copy(os.Stdout, proc.stdoutReader)
 			if !(err == nil || err == io.EOF) {
@@ -484,7 +484,6 @@ func ravenLogsDirFromTestName(t *testing.T) string {
 	return path
 }
 
-
 func fileExists(path string) bool {
 	st, err := os.Lstat(path)
 	if err != nil {
@@ -602,7 +601,7 @@ func detectServerPath() {
 }
 
 func maybePrintFailedRequestsLog() {
-	if ravendb.LogFailedRequests && LogFailedRequestsDelayed {
+	if ravendb.LogFailedRequests && logFailedRequestsDelayed {
 		buf := ravendb.HTTPFailedRequestsLogger.(*bytes.Buffer)
 		os.Stdout.Write(buf.Bytes())
 		buf.Reset()
@@ -620,8 +619,8 @@ func disableLogFailedRequests() func() {
 	// TODO: not compatible with parallel tests
 	// would have to make this per RavenServerDriver/store
 	/*
-	old := ravendb.LogFailedRequests
-	ravendb.LogFailedRequests = false
+		old := ravendb.LogFailedRequests
+		ravendb.LogFailedRequests = false
 	*/
 	return func() {
 		//ravendb.LogFailedRequests = old
@@ -631,42 +630,46 @@ func disableLogFailedRequests() func() {
 var (
 	// if true, enables flaky tests
 	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
-	EnableFlakyTests = false
+	enableFlakyTests = false
 
 	// if true, enable failing tests
 	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
-	EnableFailingTests = false
+	enableFailingTests = false
 
 	// if true, printing of failed reqeusts is delayed until PrintFailedRequests
 	// is called.
 	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS_DELAYED env variable to "true"
-	LogFailedRequestsDelayed = false
+	logFailedRequestsDelayed = false
+
+	// if true, logs all http requests/responses to a file for further inspection
+	// this is for use in tests so the file has a fixed location:
+	// logs/trace_${test_name}_go.txt
+	logAllRequests = false
 
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
-	RavenServerVerbose = false
+	ravenServerVerbose = false
 )
 
-
 func setStateFromEnv() {
-	if !RavenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
-		RavenServerVerbose = true
-		fmt.Printf("Setting RavenServerVerbose to true\n")
+	if !ravenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
+		ravenServerVerbose = true
+		fmt.Printf("Setting ravenServerVerbose to true\n")
 	}
 
-	if !EnableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
-		EnableFlakyTests = true
-		fmt.Printf("Setting EnableFlakyTests to true\n")
+	if !enableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
+		enableFlakyTests = true
+		fmt.Printf("Setting enableFlakyTests to true\n")
 	}
 
-	if !EnableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
-		EnableFailingTests = true
-		fmt.Printf("Setting EnableFailingTests to true\n")
+	if !enableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
+		enableFailingTests = true
+		fmt.Printf("Setting enableFailingTests to true\n")
 	}
 
-	if !LogFailedRequestsDelayed && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS_DELAYED") {
-		LogFailedRequestsDelayed = true
-		fmt.Printf("Setting LogFailedRequestsDelayed to true\n")
+	if !logFailedRequestsDelayed && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS_DELAYED") {
+		logFailedRequestsDelayed = true
+		fmt.Printf("Setting logFailedRequestsDelayed to true\n")
 	}
 
 	if !ravendb.LogVerbose && isEnvVarTrue("VERBOSE_LOG") {
@@ -684,9 +687,9 @@ func setStateFromEnv() {
 		fmt.Printf("Setting LogFailedRequests to true\n")
 	}
 
-	if !ravendb.LogAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
-		ravendb.LogAllRequests = true
-		fmt.Printf("Setting LogAllRequests to true\n")
+	if !logAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
+		logAllRequests = true
+		fmt.Printf("Setting logAllRequests to true\n")
 	}
 }
 
@@ -705,7 +708,7 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 	defer ravendb.LogsUnlock()
 
 	ravendb.HTTPLoggerWriter = nil
-	if ravendb.LogAllRequests {
+	if logAllRequests {
 		var err error
 		path := httpLogPathFromTestName(t)
 		f, err := os.Create(path)
@@ -719,7 +722,7 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 
 	ravendb.HTTPFailedRequestsLogger = nil
 	if ravendb.LogFailedRequests {
-		if LogFailedRequestsDelayed {
+		if logFailedRequestsDelayed {
 			ravendb.HTTPFailedRequestsLogger = bytes.NewBuffer(nil)
 		} else {
 			ravendb.HTTPFailedRequestsLogger = os.Stdout
@@ -836,7 +839,7 @@ func HttpDl(url string, destPath string) error {
 
 func TestMain(m *testing.M) {
 
-	//RavenServerVerbose = true
+	//ravenServerVerbose = true
 
 	var code int
 

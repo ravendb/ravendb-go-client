@@ -21,7 +21,7 @@ func RavenServerRunner_run(locator *RavenServerLocator, logsDir string) (*Proces
 	cmd := exec.Command(processStartInfo.command, processStartInfo.arguments...)
 	stdoutReader, err := cmd.StdoutPipe()
 
-	if false && RavenServerVerbose {
+	if false && ravenServerVerbose {
 		cmd.Stderr = os.Stderr
 		// cmd.StdoutPipe() sets cmd.Stdout to a pipe writer
 		// we multi-plex it into os.Stdout
@@ -67,7 +67,7 @@ func getProcessStartInfo(locator *RavenServerLocator, logsDir string) (*ProcessS
 			commandArguments = append(commandArguments, arg)
 		}
 	}
-	if RavenServerVerbose {
+	if ravenServerVerbose {
 		if logsDir == "" {
 			arg := "--Logs.Mode=Information"
 			commandArguments = append(commandArguments, arg)

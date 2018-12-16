@@ -363,14 +363,14 @@ func TestRavenDB8761(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	if EnableFailingTests {
+	if enableFailingTests {
 		// used to work with 4.0.6, fails with 4.1.2 on Windows and Linux
 		// https://ci.appveyor.com/project/ravendb/ravendb-go-client/builds/20134873
 		// https://travis-ci.org/ravendb/ravendb-go-client/builds/452178281
 		ravendb_8761_can_group_by_array_content(t, driver)
 	}
 
-	if EnableFlakyTests {
+	if enableFlakyTests {
 		ravendb_8761_can_group_by_array_values(t, driver)
 	}
 }
