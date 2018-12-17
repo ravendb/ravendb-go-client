@@ -2,46 +2,12 @@ package tests
 
 import (
 	"reflect"
-	"runtime"
 	"testing"
 	"time"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
-
-func NewUsersIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("UsersIndex")
-	res.Map = "from user in docs.users select new { user.name }"
-	return res
-}
-
-func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
-	res.Map = "from u in docs.Users select new { u.name }"
-
-	res.Index("name", ravendb.FieldIndexing_SEARCH)
-
-	res.IndexSuggestions = append(res.IndexSuggestions, "name")
-
-	res.Store("name", ravendb.FieldStorage_YES)
-
-	return res
-}
-
-func Posts_ByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
-	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
-	res.Index("title", ravendb.FieldIndexing_SEARCH)
-	res.Store("title", ravendb.FieldStorage_YES)
-	res.Analyze("title", "Lucene.Net.Analysis.SimpleAnalyzer")
-
-	res.Index("desc", ravendb.FieldIndexing_SEARCH)
-	res.Store("desc", ravendb.FieldStorage_YES)
-	res.Analyze("desc", "Lucene.Net.Analysis.SimpleAnalyzer")
-
-	return res
-}
 
 func indexesFromClientTest_canReset(t *testing.T, driver *RavenTestDriver) {
 	var err error
@@ -106,6 +72,12 @@ func indexesFromClientTest_canExecuteManyIndexes(t *testing.T, driver *RavenTest
 	assert.NoError(t, err)
 	indexNames := indexNamesOperation.Command.Result
 	assert.Equal(t, len(indexNames), 1)
+}
+
+func NewUsersIndex() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("UsersIndex")
+	res.Map = "from user in docs.users select new { user.name }"
+	return res
 }
 
 func indexesFromClientTest_canDelete(t *testing.T, driver *RavenTestDriver) {
@@ -197,12 +169,31 @@ func indexesFromClientTest_canStopAndStart(t *testing.T, driver *RavenTestDriver
 	}
 }
 
+func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
+	res.Map = "from u in docs.Users select new { u.name }"
+
+	res.Index("name", ravendb.FieldIndexing_SEARCH)
+
+	res.IndexSuggestions = append(res.IndexSuggestions, "name")
+
+	res.Store("name", ravendb.FieldStorage_YES)
+
+	return res
+}
+
 func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
+
+	usersByName := NewUsers_ByName()
+
 	{
 		session := openSessionMust(t, store)
+
+		err = store.ExecuteIndex(usersByName)
+		assert.NoError(t, err)
 
 		user1 := &User{}
 		user1.setName("Fitzchak")
@@ -224,7 +215,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T, driver *Raven
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryInIndexOld(reflect.TypeOf(&User{}), usersByName)
 		q = q.WaitForNonStaleResults(0)
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
@@ -541,6 +532,20 @@ func indexesFromClientTest_moreLikeThis(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func Posts_ByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
+	res := ravendb.NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
+	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
+	res.Index("title", ravendb.FieldIndexing_SEARCH)
+	res.Store("title", ravendb.FieldStorage_YES)
+	res.Analyze("title", "Lucene.Net.Analysis.SimpleAnalyzer")
+
+	res.Index("desc", ravendb.FieldIndexing_SEARCH)
+	res.Store("desc", ravendb.FieldStorage_YES)
+	res.Analyze("desc", "Lucene.Net.Analysis.SimpleAnalyzer")
+
+	return res
+}
+
 func TestIndexesFromClient(t *testing.T) {
 	if dbTestsDisabled() {
 		return
@@ -558,15 +563,7 @@ func TestIndexesFromClient(t *testing.T) {
 	indexesFromClientTest_getIndexNames(t, driver)
 	indexesFromClientTest_canStopAndStart(t, driver)
 	indexesFromClientTest_canExplain(t, driver)
-
 	indexesFromClientTest_moreLikeThis(t, driver)
-
-	// TODO: this works on Mac but fails on Travis CI/Linux
-	// https://travis-ci.org/kjk/ravendb-go-client/builds/410576496
-	// also sometimes fails on macbook pro
-
-	if enableFailingTests && runtime.GOOS != "linux" {
-		indexesFromClientTest_setLockModeAndSetPriority(t, driver)
-	}
+	indexesFromClientTest_setLockModeAndSetPriority(t, driver)
 	indexesFromClientTest_getTerms(t, driver)
 }
