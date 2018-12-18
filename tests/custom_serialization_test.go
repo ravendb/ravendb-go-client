@@ -118,9 +118,6 @@ func (m *Money) UnmarshalJSON(d []byte) error {
 }
 
 func TestCustomSerialization(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

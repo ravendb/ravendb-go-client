@@ -145,9 +145,6 @@ func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T, driver *RavenTestDr
 }
 
 func TestNextAndSeedIdentities(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

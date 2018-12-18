@@ -348,9 +348,6 @@ func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, 
 }
 
 func TestAttachmentsRevisions(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

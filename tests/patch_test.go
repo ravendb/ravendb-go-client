@@ -105,9 +105,6 @@ func patchTestthrowsOnInvalidScript(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestPatch(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

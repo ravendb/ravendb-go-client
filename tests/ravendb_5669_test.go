@@ -133,9 +133,6 @@ func NewAnimal_Index() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestRavenDB5669(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

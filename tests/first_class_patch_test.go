@@ -610,9 +610,6 @@ func firstClassPatch_shouldMergePatchCalls(t *testing.T, driver *RavenTestDriver
 }
 
 func TestFirstClassPatch(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

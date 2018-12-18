@@ -562,9 +562,6 @@ func NewItemsOrders_All() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestAggregation(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -39,9 +39,6 @@ func compactTest_canCompactDatabase(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestCompact(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

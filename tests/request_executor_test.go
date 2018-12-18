@@ -198,9 +198,6 @@ func requestExecutorTest_failsWhenServerIsOffline(t *testing.T, driver *RavenTes
 }
 
 func TestRequestExecutor(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

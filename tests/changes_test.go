@@ -337,9 +337,6 @@ func changesTest_resourcesCleanup(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestChanges(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

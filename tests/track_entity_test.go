@@ -100,9 +100,6 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 }
 
 func TestTrackEntity(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

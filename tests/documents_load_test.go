@@ -76,9 +76,6 @@ func documentsLoadTest_loadWithIncludesAndMissingDocument(t *testing.T, driver *
 }
 
 func TestDocumentsLoad(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

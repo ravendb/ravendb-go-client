@@ -51,9 +51,6 @@ func loadTest_canDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestDeleteByQuery(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

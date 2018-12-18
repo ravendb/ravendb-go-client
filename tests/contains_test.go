@@ -77,9 +77,6 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestContains(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

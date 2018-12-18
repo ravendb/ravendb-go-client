@@ -132,9 +132,6 @@ func NewGeoIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestSimonBartlett(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -288,9 +288,6 @@ func cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_
 }
 
 func TestCachingOfDocumentInclude(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

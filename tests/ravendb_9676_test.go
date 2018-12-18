@@ -93,9 +93,6 @@ type Item struct {
 }
 
 func TestRavenDB9676(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

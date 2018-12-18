@@ -19,9 +19,6 @@ func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T, driver *R
 }
 
 func TestGetNextOperationIdCommand(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

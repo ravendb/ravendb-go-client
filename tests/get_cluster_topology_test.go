@@ -30,9 +30,6 @@ func getClusterTopologyTest_canGetTopology(t *testing.T, driver *RavenTestDriver
 }
 
 func TestGetClusterTopology(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

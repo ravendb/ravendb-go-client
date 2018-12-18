@@ -1340,9 +1340,6 @@ type ReduceResult struct {
 }
 
 func TestQuery(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

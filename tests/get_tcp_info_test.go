@@ -25,9 +25,6 @@ func getTcpInfoTest_canGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestGetTcpInfo(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

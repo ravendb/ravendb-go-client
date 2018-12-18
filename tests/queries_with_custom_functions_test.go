@@ -89,9 +89,6 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T, driver *RavenTes
 }
 
 func TestQueriesWithCustomFunctions(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

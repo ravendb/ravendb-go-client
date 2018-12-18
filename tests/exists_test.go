@@ -52,9 +52,6 @@ func existsTest_checkIfDocumentExists(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestExists(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

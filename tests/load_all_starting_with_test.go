@@ -62,9 +62,6 @@ func loadAllStartingWith_loadAllStartingWith(t *testing.T, driver *RavenTestDriv
 }
 
 func TestLoadAllStartingWith(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

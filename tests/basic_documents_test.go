@@ -134,9 +134,6 @@ func basicDocuments_get(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestBasicDocuments(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

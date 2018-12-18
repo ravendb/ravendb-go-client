@@ -273,9 +273,6 @@ func suggestions_canGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestSuggestions(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -193,9 +193,6 @@ func lazy_canUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestLazy(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

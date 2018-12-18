@@ -28,9 +28,6 @@ func getTopologyTest_canGetTopology(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestGetTopology(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

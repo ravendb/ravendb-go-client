@@ -73,9 +73,6 @@ func suggestionsLazy_usingLinq(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestSuggestionsLazy(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -164,9 +164,6 @@ func spatial_matchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestSpatial(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -394,23 +394,10 @@ func shutdownTests() {
 	// killGlobalServerProcesses()
 }
 
-var dbTestsDisabledAlreadyPrinted = false
-
 func isEnvVarTrue(name string) bool {
 	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
 	switch v {
 	case "yes", "true":
-		return true
-	}
-	return false
-}
-
-func dbTestsDisabled() bool {
-	if isEnvVarTrue("RAVEN_GO_NO_DB_TESTS") {
-		if !dbTestsDisabledAlreadyPrinted {
-			dbTestsDisabledAlreadyPrinted = true
-			fmt.Printf("DB tests are disabled\n")
-		}
 		return true
 	}
 	return false

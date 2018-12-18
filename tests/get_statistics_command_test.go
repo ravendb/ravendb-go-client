@@ -53,9 +53,6 @@ func getStatisticsCommandTest_canGetStats(t *testing.T, driver *RavenTestDriver)
 }
 
 func TestGetStatisticsCommand(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

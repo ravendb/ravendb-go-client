@@ -74,9 +74,6 @@ func deleteTest_deleteDocumentById(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestDelete(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

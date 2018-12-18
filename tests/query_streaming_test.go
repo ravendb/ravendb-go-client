@@ -280,9 +280,6 @@ func NewUsers_ByName2() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestQueryStreaming(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

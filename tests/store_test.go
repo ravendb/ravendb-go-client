@@ -143,9 +143,6 @@ func storeTestNotifyAfterStore(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestStore(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

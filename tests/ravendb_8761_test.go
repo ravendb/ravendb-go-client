@@ -353,9 +353,6 @@ func ravendb_8761_putDocs(t *testing.T, store *ravendb.IDocumentStore) {
 }
 
 func TestRavenDB8761(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

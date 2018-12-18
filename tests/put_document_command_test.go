@@ -37,9 +37,6 @@ func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T, driver *RavenTe
 }
 
 func TestPutDocumentCommand(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

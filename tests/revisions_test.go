@@ -89,9 +89,6 @@ func revisionsTest_revisions(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestRevisions(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

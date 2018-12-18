@@ -73,9 +73,6 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T, driver *Rav
 }
 
 func TestDeleteDocumentCommand(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

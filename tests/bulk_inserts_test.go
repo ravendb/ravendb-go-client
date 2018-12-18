@@ -153,9 +153,6 @@ type FooBar struct {
 }
 
 func TestBulkInserts(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

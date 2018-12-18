@@ -541,9 +541,6 @@ func attachmentsSession_attachmentExists(t *testing.T, driver *RavenTestDriver) 
 }
 
 func TestAttachmentsSession(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

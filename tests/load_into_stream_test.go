@@ -125,9 +125,6 @@ type Employee2 struct {
 }
 
 func TestLoadIntoStream(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

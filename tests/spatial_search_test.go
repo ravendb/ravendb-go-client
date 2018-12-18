@@ -283,9 +283,6 @@ func NewEventWithDateAndCapacity(venue string, latitude float64, longitude float
 }
 
 func TestSpatialSearch(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

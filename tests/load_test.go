@@ -318,9 +318,6 @@ func loadTest_loadStartsWith(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestLoad(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

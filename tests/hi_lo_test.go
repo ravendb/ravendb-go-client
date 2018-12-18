@@ -203,9 +203,6 @@ func hiloTest_multiDb(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestHiLo(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

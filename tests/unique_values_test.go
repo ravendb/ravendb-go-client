@@ -280,9 +280,6 @@ func uniqueValues_canGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestUniqueValues(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -693,9 +693,6 @@ func NewComplexDataIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestMoreLikeThis(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

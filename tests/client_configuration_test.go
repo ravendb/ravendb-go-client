@@ -47,9 +47,6 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T, driver 
 }
 
 func TestClientConfiguration(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

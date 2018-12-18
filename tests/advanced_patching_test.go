@@ -123,9 +123,6 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, d
 }
 
 func TestAdvancedPatching(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

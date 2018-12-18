@@ -197,9 +197,6 @@ func NewDummyGeoDoc(latitude float64, longitude float64) *DummyGeoDoc {
 }
 
 func TestSpatialQueries(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

@@ -99,9 +99,6 @@ func NewTestIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestRavenDB903(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

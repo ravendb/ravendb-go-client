@@ -117,9 +117,6 @@ func aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t *testing
 }
 
 func TestAggressiveCaching(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

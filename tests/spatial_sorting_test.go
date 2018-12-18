@@ -271,9 +271,6 @@ func getQueryShapeFromLatLon(lat float64, lng float64, radius float64) string {
 }
 
 func TestSpatialSorting(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)

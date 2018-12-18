@@ -81,9 +81,6 @@ func documentStreaming_streamWithoutIterationDoesntLeakConnection(t *testing.T, 
 }
 
 func TestDocumentStreaming(t *testing.T) {
-	if dbTestsDisabled() {
-		return
-	}
 	t.Parallel()
 
 	driver := createTestDriver(t)
