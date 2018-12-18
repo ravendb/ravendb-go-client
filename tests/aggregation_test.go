@@ -437,19 +437,35 @@ func now() ravendb.Time {
 	return ravendb.Time(time.Now())
 }
 
-func addDaysTime(t time.Time, nDays int) time.Time {
-	return t.AddDate(0, 0, nDays)
-}
-
-func addDays(t ravendb.Time, nDays int) ravendb.Time {
-	return ravendb.Time(addDaysTime(time.Time(t), nDays))
-}
-
 func setYears(t2 ravendb.Time, nYear int) ravendb.Time {
 	t := time.Time(t2)
 	diff := nYear - t.Year()
 	t = t.AddDate(diff, 0, 0)
 	return ravendb.Time(t)
+}
+
+func addYears(t ravendb.Time, nYears int) ravendb.Time {
+	t2 := time.Time(t)
+	t2 = t2.AddDate(nYears, 0, 0)
+	return ravendb.Time(t2)
+}
+
+func addDays(t ravendb.Time, nDays int) ravendb.Time {
+	t2 := time.Time(t)
+	t2 = t2.Add(time.Hour * 24 * time.Duration(nDays))
+	return ravendb.Time(t2)
+}
+
+func addHours(t ravendb.Time, nHours int) ravendb.Time {
+	t2 := time.Time(t)
+	t2 = t2.Add(time.Hour * time.Duration(nHours))
+	return ravendb.Time(t2)
+}
+
+func addMinutes(t ravendb.Time, nMinutes int) ravendb.Time {
+	t2 := time.Time(t)
+	t2 = t2.Add(time.Minute * time.Duration(nMinutes))
+	return ravendb.Time(t2)
 }
 
 func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testing.T, driver *RavenTestDriver) {

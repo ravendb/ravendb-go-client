@@ -803,10 +803,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	// TODO: it fails with time.Now(), probably because non-UTC version
-	// is not understood by the server as DateTime, see
-	// https://github.com/ravendb/ravendb-go-client/issues/77
-	now := time.Now().UTC()
+	now := ravendb.Time(time.Now())
 
 	index := NewOrderTime()
 	err = store.ExecuteIndex(index)
@@ -817,7 +814,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		order1 := &Order{
 			Company:   "hours",
-			OrderedAt: ravendb.DateUtils_addHours(now, -2),
+			OrderedAt: addHours(now, -2),
 			ShippedAt: now,
 		}
 
@@ -826,7 +823,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		order2 := &Order{
 			Company:   "days",
-			OrderedAt: addDaysTime(now, -2),
+			OrderedAt: addDays(now, -2),
 			ShippedAt: now,
 		}
 		err = session.Store(order2)
@@ -834,7 +831,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		order3 := &Order{
 			Company:   "minutes",
-			OrderedAt: ravendb.DateUtils_addMinutes(now, -2),
+			OrderedAt: addMinutes(now, -2),
 			ShippedAt: now,
 		}
 
@@ -1355,11 +1352,8 @@ func TestQuery(t *testing.T) {
 	// matches order of Java tests
 	query_queryWhereExists(t, driver)
 	query_querySearchWithOr(t, driver)
-
 	query_rawQuerySkipTake(t, driver)
-	if enableFlakyTests {
-		query_queryWithDuration(t, driver)
-	}
+	query_queryWithDuration(t, driver)
 	query_queryWithWhereClause(t, driver)
 	query_queryMapReduceIndex(t, driver)
 	query_queryLazily(t, driver)

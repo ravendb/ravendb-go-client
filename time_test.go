@@ -25,7 +25,19 @@ func TestTime(t *testing.T) {
 		s := string(d)
 		parts := strings.Split(s, ".")
 		fracPart := parts[len(parts)-1]
-		assert.Equal(t, 9, len(fracPart)) // 8 = 7 digits + Z + "
+		assert.Equal(t, 9, len(fracPart)) // 9 = 7 digits + Z + "
+		assert.True(t, strings.HasSuffix(s, `Z"`))
+	}
+
+	{
+		tt, err := time.Parse("2006-01-02T15:04:05.9999999Z", "2018-12-17T18:08:34.069973Z")
+		assert.NoError(t, err)
+		d, err := json.Marshal(Time(tt))
+		assert.NoError(t, err)
+		s := string(d)
+		parts := strings.Split(s, ".")
+		fracPart := parts[len(parts)-1]
+		assert.Equal(t, 9, len(fracPart)) // 9 = 7 digits + Z + "
 		assert.True(t, strings.HasSuffix(s, `Z"`))
 	}
 

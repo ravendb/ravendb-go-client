@@ -3,7 +3,6 @@ package tests
 import (
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
@@ -30,18 +29,20 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 	err = NewSpatialIdx().Execute(store)
 	assert.NoError(t, err)
 
+	now := now()
+
 	{
 		session := openSessionMust(t, store)
 
-		err = session.Store(NewEventWithDate("a/1", 38.9579000, -77.3572000, time.Now()))
+		err = session.Store(NewEventWithDate("a/1", 38.9579000, -77.3572000, now))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDate("a/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 1)))
+		err = session.Store(NewEventWithDate("a/2", 38.9690000, -77.3862000, addDays(now, 1)))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDate("b/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 2)))
+		err = session.Store(NewEventWithDate("b/2", 38.9690000, -77.3862000, addDays(now, 2)))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDate("c/3", 38.9510000, -77.4107000, ravendb.DateUtils_addYears(time.Now(), 3)))
+		err = session.Store(NewEventWithDate("c/3", 38.9510000, -77.4107000, addYears(now, 3)))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDate("d/1", 37.9510000, -77.4107000, ravendb.DateUtils_addYears(time.Now(), 3)))
+		err = session.Store(NewEventWithDate("d/1", 37.9510000, -77.4107000, addYears(now, 3)))
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -60,7 +61,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 		var statsRef *ravendb.QueryStatistics
 		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
 		q = q.Statistics(&statsRef)
-		q = q.WhereLessThanOrEqual("date", ravendb.DateUtils_addYears(time.Now(), 1))
+		q = q.WhereLessThanOrEqual("date", addYears(now, 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDescending("date")
 		err = q.ToList(&events)
@@ -110,18 +111,19 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
+	now := now()
 	{
 		session := openSessionMust(t, store)
 
-		err = session.Store(NewEventWithDateAndCapacity("a/1", 38.9579000, -77.3572000, time.Now(), 5000))
+		err = session.Store(NewEventWithDateAndCapacity("a/1", 38.9579000, -77.3572000, now, 5000))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDateAndCapacity("a/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 1), 5000))
+		err = session.Store(NewEventWithDateAndCapacity("a/2", 38.9690000, -77.3862000, addDays(now, 1), 5000))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDateAndCapacity("b/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 2), 2000))
+		err = session.Store(NewEventWithDateAndCapacity("b/2", 38.9690000, -77.3862000, addDays(now, 2), 2000))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDateAndCapacity("c/3", 38.9510000, -77.4107000, ravendb.DateUtils_addYears(time.Now(), 3), 1500))
+		err = session.Store(NewEventWithDateAndCapacity("c/3", 38.9510000, -77.4107000, addYears(now, 3), 1500))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDateAndCapacity("d/1", 37.9510000, -77.4107000, ravendb.DateUtils_addYears(time.Now(), 3), 1500))
+		err = session.Store(NewEventWithDateAndCapacity("d/1", 37.9510000, -77.4107000, addYears(now, 3), 1500))
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -249,7 +251,7 @@ type Event struct {
 	Venue     string    `json:"venue"`
 	Latitude  float64   `json:"latitude"`
 	Longitude float64   `json:"longitude"`
-	Date      time.Time `json:"date"`
+	Date      ravendb.Time `json:"date"`
 	Capacity  int       `json:"capacity"`
 }
 
@@ -261,7 +263,7 @@ func NewEvent(venue string, latitude float64, longitude float64) *Event {
 	}
 }
 
-func NewEventWithDate(venue string, latitude float64, longitude float64, date time.Time) *Event {
+func NewEventWithDate(venue string, latitude float64, longitude float64, date ravendb.Time) *Event {
 	return &Event{
 		Venue:     venue,
 		Latitude:  latitude,
@@ -270,7 +272,7 @@ func NewEventWithDate(venue string, latitude float64, longitude float64, date ti
 	}
 }
 
-func NewEventWithDateAndCapacity(venue string, latitude float64, longitude float64, date time.Time, capacity int) *Event {
+func NewEventWithDateAndCapacity(venue string, latitude float64, longitude float64, date ravendb.Time, capacity int) *Event {
 	return &Event{
 		Venue:     venue,
 		Latitude:  latitude,

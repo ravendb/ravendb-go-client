@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"strings"
 	"time"
 )
@@ -30,14 +29,13 @@ func (t Time) MarshalJSON() ([]byte, error) {
 		s = s[:len(s)-1] // remove 'Z'
 		s = s + ".0000000Z"
 	} else {
-		nToAdd := 9 - len(s) - dotIdx // 9: 7 + 1 for 'Z' and 1 for '.'
+		nToAdd := 9 - (len(s) - dotIdx) // 9: 7 + 1 for 'Z' and 1 for '.'
 		if nToAdd > 0 {
 			s = s[:len(s)-1] // remove 'Z'
 			for ; nToAdd > 0; nToAdd-- {
 				s = s + "0"
 			}
 			s = s + "Z"
-			fmt.Printf("s: '%s'\n", s)
 		}
 	}
 

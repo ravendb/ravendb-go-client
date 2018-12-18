@@ -1,14 +1,16 @@
 package tests
 
-import "time"
+import (
+	ravendb "github.com/ravendb/ravendb-go-client"
+)
 
 type Order struct {
 	ID        string
 	Company   string       `json:"company"`
 	Employee  string       `json:"employee"`
-	OrderedAt time.Time    `json:"orderedAt"`
-	RequireAt time.Time    `json:"requireAt"`
-	ShippedAt time.Time    `json:"shippedAt"`
+	OrderedAt ravendb.Time `json:"orderedAt"`
+	RequireAt ravendb.Time `json:"requireAt"`
+	ShippedAt ravendb.Time `json:"shippedAt"`
 	ShipTo    *Address     `json:"shipTo"`
 	ShipVia   string       `json:"shipVia"`
 	Freight   float64      `json:"freight"`
