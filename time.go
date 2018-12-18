@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 )
@@ -82,4 +83,17 @@ func (t *Time) toTimePtr() *time.Time {
 	}
 	res := time.Time(*t)
 	return &res
+}
+
+// RoundToServerTime rounds t to the same precision as round-tripping
+// to the server and back. Useful for comparing time.Time values for
+// equality with values returned by the server
+func RoundToServerTime(t time.Time) time.Time {
+	st := Time(t)
+	d, err := json.Marshal(st)
+	must(err)
+	var res Time
+	err = json.Unmarshal(d, &res)
+	must(err)
+	return time.Time(res)
 }
