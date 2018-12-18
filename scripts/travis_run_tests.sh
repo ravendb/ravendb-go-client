@@ -18,5 +18,5 @@ export RAVENDB_JAVA_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:
 echo "pwd:              ${wd}"
 echo "GOPATH:           ${GOPATH}"
 
-# go test -v -race  -vet=off -coverpkg=all -covermode=atomic -coverprofile=coverage.txt ./tests
-go test -v -parallel 1 -timeout 20m -race -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt . ./tests
+# go test -v -race -coverpkg=all -covermode=atomic -coverprofile=coverage.txt ./tests
+go test -v -race -parallel 1 -timeout 20m -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt . ./tests

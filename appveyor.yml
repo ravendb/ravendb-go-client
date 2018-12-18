@@ -1,8 +1,8 @@
 # based on https://github.com/joefitzgerald/go-plus/blob/master/appveyor.yml
 version: 4.0.{build}
 
-#  - Visual Studio 2017
 image:
+  - Visual Studio 2017
   - Ubuntu1804
 
 stack: go 1.11
@@ -48,10 +48,5 @@ test_script:
   # under 8 but sometimes appveyor is slower)
   - cmd: go test -parallel 1 -timeout 20m -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
   - sh: ./scripts/appveyor_run_tests.sh
-
-# https://help.appveyor.com/discussions/questions/1649-how-to-keep-a-build-artifact-when-tests-fail
-# https://www.appveyor.com/docs/packaging-artifacts/#pushing-artifacts-from-scripts
-after_test:
-  - ps: $root = Resolve-Path .\logs; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish }
 
 deploy: off
