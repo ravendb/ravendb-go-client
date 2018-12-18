@@ -433,8 +433,23 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T, driver *RavenTestDri
 	}
 }
 
-func now() time.Time {
-	return time.Now()
+func now() ravendb.Time {
+	return ravendb.Time(time.Now())
+}
+
+func addDaysTime(t time.Time, nDays int) time.Time {
+	return t.AddDate(0, 0, nDays)
+}
+
+func addDays(t ravendb.Time, nDays int) ravendb.Time {
+	return ravendb.Time(addDaysTime(time.Time(t), nDays))
+}
+
+func setYears(t2 ravendb.Time, nYear int) ravendb.Time {
+	t := time.Time(t2)
+	diff := nYear - t.Year()
+	t = t.AddDate(diff, 0, 0)
+	return ravendb.Time(t)
 }
 
 func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testing.T, driver *RavenTestDriver) {
@@ -456,7 +471,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 		item2 := &ItemsOrder{
 			Items: []string{"first", "second"},
-			At:    ravendb.DateUtils_addDays(now(), -1),
+			At:    addDays(now(), -1),
 		}
 
 		item3 := &ItemsOrder{
@@ -483,10 +498,10 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 		session.Close()
 	}
 
-	minValue := ravendb.DateUtils_setYears(now(), 1980)
+	minValue := setYears(now(), 1980)
 
-	end0 := ravendb.DateUtils_addDays(now(), -2)
-	end1 := ravendb.DateUtils_addDays(now(), -1)
+	end0 := addDays(now(), -2)
+	end1 := addDays(now(), -1)
 	end2 := now()
 
 	err = driver.waitForIndexing(store, "", 0)
@@ -500,8 +515,8 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 		q = q.WhereGreaterThanOrEqual("at", end0)
 		fn := func(f ravendb.IFacetBuilder) {
 			r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4
-			r2 := builder.IsGreaterThanOrEqualTo(end0).IsLessThan(end1) // 0
-			r3 := builder.IsGreaterThanOrEqualTo(end1).IsLessThan(end2) // 1
+			r2 := builder.IsGreaterThanOrEqualTo(end0).IsLessThan(end1) // 1
+			r3 := builder.IsGreaterThanOrEqualTo(end1).IsLessThan(end2) // 3
 			f.ByRanges(r1, r2, r3)
 		}
 		q2 := q.AggregateBy(fn)
@@ -511,20 +526,16 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 		facetResults := r["at"].Values
 		assert.Equal(t, facetResults[0].GetCount(), 4)
 
-		// TODO: comments in java code don't match the results
-		// The times are serialized differently.
-		// Go:   "2018-08-12T13:35:05.575851-07:00"
-		// Java: "2018-08-13T19:32:16.7240000Z"
-		assert.Equal(t, facetResults[1].GetCount(), 1) // we get 0
-		assert.Equal(t, facetResults[2].GetCount(), 3) // we get 1
+		assert.Equal(t, facetResults[1].GetCount(), 1)
+		assert.Equal(t, facetResults[2].GetCount(), 3)
 
 		session.Close()
 	}
 }
 
 type ItemsOrder struct {
-	Items []string  `json:"items"`
-	At    time.Time `json:"at"`
+	Items []string     `json:"items"`
+	At    ravendb.Time `json:"at"`
 }
 
 func NewItemsOrders_All() *ravendb.AbstractIndexCreationTask {
@@ -549,8 +560,6 @@ func TestAggregation(t *testing.T) {
 	aggregation_canCorrectlyAggregate_Ranges(t, driver)
 	aggregation_canCorrectlyAggregate_MultipleItems(t, driver)
 	aggregation_canCorrectlyAggregate_MultipleAggregations(t, driver)
-	if enableFailingTests {
-		aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t, driver)
-	}
+	aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t, driver)
 	aggregation_canCorrectlyAggregate_DisplayName(t, driver)
 }

@@ -826,7 +826,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		order2 := &Order{
 			Company:   "days",
-			OrderedAt: ravendb.DateUtils_addDays(now, -2),
+			OrderedAt: addDaysTime(now, -2),
 			ShippedAt: now,
 		}
 		err = session.Store(order2)
@@ -1357,9 +1357,7 @@ func TestQuery(t *testing.T) {
 	query_querySearchWithOr(t, driver)
 
 	query_rawQuerySkipTake(t, driver)
-
 	if enableFlakyTests {
-		// https://github.com/ravendb/ravendb-go-client/issues/77
 		query_queryWithDuration(t, driver)
 	}
 	query_queryWithWhereClause(t, driver)

@@ -35,9 +35,9 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 
 		err = session.Store(NewEventWithDate("a/1", 38.9579000, -77.3572000, time.Now()))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDate("a/2", 38.9690000, -77.3862000, ravendb.DateUtils_addDays(time.Now(), 1)))
+		err = session.Store(NewEventWithDate("a/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 1)))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDate("b/2", 38.9690000, -77.3862000, ravendb.DateUtils_addDays(time.Now(), 2)))
+		err = session.Store(NewEventWithDate("b/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 2)))
 		assert.NoError(t, err)
 		err = session.Store(NewEventWithDate("c/3", 38.9510000, -77.4107000, ravendb.DateUtils_addYears(time.Now(), 3)))
 		assert.NoError(t, err)
@@ -115,9 +115,9 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 
 		err = session.Store(NewEventWithDateAndCapacity("a/1", 38.9579000, -77.3572000, time.Now(), 5000))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDateAndCapacity("a/2", 38.9690000, -77.3862000, ravendb.DateUtils_addDays(time.Now(), 1), 5000))
+		err = session.Store(NewEventWithDateAndCapacity("a/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 1), 5000))
 		assert.NoError(t, err)
-		err = session.Store(NewEventWithDateAndCapacity("b/2", 38.9690000, -77.3862000, ravendb.DateUtils_addDays(time.Now(), 2), 2000))
+		err = session.Store(NewEventWithDateAndCapacity("b/2", 38.9690000, -77.3862000, addDaysTime(time.Now(), 2), 2000))
 		assert.NoError(t, err)
 		err = session.Store(NewEventWithDateAndCapacity("c/3", 38.9510000, -77.4107000, ravendb.DateUtils_addYears(time.Now(), 3), 1500))
 		assert.NoError(t, err)
