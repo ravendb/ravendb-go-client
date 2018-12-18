@@ -54,4 +54,9 @@ test_script:
   - cmd: go test -parallel 1 -timeout 20m -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
   - sh: ./scripts/travis_run_tests.sh
 
+# https://help.appveyor.com/discussions/questions/1649-how-to-keep-a-build-artifact-when-tests-fail
+# https://www.appveyor.com/docs/packaging-artifacts/#pushing-artifacts-from-scripts
+after_test:
+  - ps: $root = Resolve-Path .\logs; [IO.Directory]::GetFiles($root.Path, '*.*', 'AllDirectories') | % { Push-AppveyorArtifact $_ -FileName $_.Substring($root.Path.Length + 1) -DeploymentName to-publish }
+
 deploy: off
