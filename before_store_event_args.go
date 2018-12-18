@@ -1,7 +1,7 @@
 package ravendb
 
 type BeforeStoreEventArgs struct {
-	_documentMetadata *IMetadataDictionary
+	_documentMetadata *MetadataAsDictionary
 
 	session    *InMemoryDocumentSessionOperations
 	documentId string
@@ -32,7 +32,7 @@ func (a *BeforeStoreEventArgs) isMetadataAccessed() bool {
 	return a._documentMetadata != nil
 }
 
-func (a *BeforeStoreEventArgs) getDocumentMetadata() *IMetadataDictionary {
+func (a *BeforeStoreEventArgs) getDocumentMetadata() *MetadataAsDictionary {
 	if a._documentMetadata == nil {
 		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
 	}

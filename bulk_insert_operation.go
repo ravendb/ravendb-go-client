@@ -154,7 +154,7 @@ func (o *BulkInsertOperation) WaitForId() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadata *IMetadataDictionary) error {
+func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadata *MetadataAsDictionary) error {
 	if !o._concurrentCheck.compareAndSet(0, 1) {
 		return NewIllegalStateException("Bulk Insert Store methods cannot be executed concurrently.")
 	}
@@ -304,7 +304,7 @@ func (o *BulkInsertOperation) Store(entity interface{}) (string, error) {
 	return o.StoreWithMetadata(entity, nil)
 }
 
-func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *IMetadataDictionary) (string, error) {
+func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
 	var id string
 	if metadata == nil || !metadata.ContainsKey(Constants_Documents_Metadata_ID) {
 		id = o.GetId(entity)

@@ -358,15 +358,6 @@ func TestAttachmentsRevisions(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-
-	// TODO: this test is flaky. See bugs.txt
-	// Note: it also fails in Java on mac pro
-	// The bytes sent seem to be exactly the same, Go fails with EOF
-	// Is it issue with not closing the request?
-	if enableFlakyTests {
-		attachmentsRevisions_putAttachments(t, driver)
-	}
-	if enableFlakyTests {
-		attachmentsRevisions_attachmentRevision(t, driver)
-	}
+	attachmentsRevisions_putAttachments(t, driver)
+	attachmentsRevisions_attachmentRevision(t, driver)
 }

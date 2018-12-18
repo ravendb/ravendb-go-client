@@ -197,7 +197,7 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 }
 
 // GetMetadataFor gets the metadata for the specified entity.
-func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*IMetadataDictionary, error) {
+func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*MetadataAsDictionary, error) {
 	if instance == nil {
 		return nil, NewIllegalArgumentException("Instance cannot be null")
 	}

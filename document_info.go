@@ -20,7 +20,7 @@ type documentInfo struct {
 	ignoreChanges        bool
 	metadata             ObjectNode
 	document             ObjectNode
-	metadataInstance     *IMetadataDictionary
+	metadataInstance     *MetadataAsDictionary
 	entity               interface{}
 	newDocument          bool
 	collection           string

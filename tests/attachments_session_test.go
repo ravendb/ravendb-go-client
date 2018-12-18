@@ -65,8 +65,8 @@ func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
 		for _, v := range attachments {
 
 			//TODO: dig deeper into what type metadata.Get() returns. It used to be
-			// *ravendb.IMetadataDictionary and is now map[string]interface{}
-			//attachment := v.(*ravendb.IMetadataDictionary)
+			// *ravendb.MetadataDictionary and is now map[string]interface{}
+			//attachment := v.(*ravendb.MetadataDictionary)
 			//name, ok := attachment.Get("Name")
 
 			attachment := v.(map[string]interface{})

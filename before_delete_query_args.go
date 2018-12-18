@@ -1,7 +1,7 @@
 package ravendb
 
 type BeforeDeleteEventArgs struct {
-	_documentMetadata *IMetadataDictionary
+	_documentMetadata *MetadataAsDictionary
 
 	session    *InMemoryDocumentSessionOperations
 	documentId string
@@ -28,7 +28,7 @@ func (a *BeforeDeleteEventArgs) getEntity() interface{} {
 	return a.entity
 }
 
-func (a *BeforeDeleteEventArgs) getDocumentMetadata() *IMetadataDictionary {
+func (a *BeforeDeleteEventArgs) getDocumentMetadata() *MetadataAsDictionary {
 	if a._documentMetadata == nil {
 		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
 	}

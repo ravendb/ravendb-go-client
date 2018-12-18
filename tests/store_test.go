@@ -98,8 +98,8 @@ func storeTestNotifyAfterStore(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	storeLevelCallBack := []*ravendb.IMetadataDictionary{nil}
-	sessionLevelCallback := []*ravendb.IMetadataDictionary{nil}
+	storeLevelCallBack := []*ravendb.MetadataAsDictionary{nil}
+	sessionLevelCallback := []*ravendb.MetadataAsDictionary{nil}
 
 	fn := func(sender interface{}, event *ravendb.AfterSaveChangesEventArgs) {
 		storeLevelCallBack[0] = event.GetDocumentMetadata()
