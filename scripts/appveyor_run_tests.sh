@@ -26,8 +26,6 @@ go test -parallel 1 -v -timeout 50s ./tests -run ^TestFirstClassPatch$
 exitCode=$?
 ls -lah
 ls -lah logs
-for fn in ./logs/*; do
-    appveyor PushArtifact ${fn}
-done
-
+zip -r logs.zip logs
+appveyor PushArtifact logs.zip
 exit ${exitCode}
