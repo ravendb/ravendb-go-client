@@ -89,8 +89,10 @@ func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
 		now2 := time.Time(now)
 		if !ll.Equal(now2) {
 			fmt.Printf("loaded.LastLogin: %s, now: %s\n", ll, now2)
+		} else {
+			fmt.Printf("loaded.LastLogin equal: %s, now: %s\n", ll, now2)
 		}
-		assert.Equal(t, loaded.LastLogin, now)
+		assert.True(t, time.Time(loaded.LastLogin).Equal(time.Time(now)))
 
 		err = session.Advanced().PatchEntity(&loaded, "stuff[0].phone", "123456")
 		assert.NoError(t, err)
