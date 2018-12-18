@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// User2 describes a user
 // Note: conflicts with User in user_test.go
 type User2 struct {
 	Stuff     []*Stuff     `json:"stuff"`
@@ -15,6 +16,7 @@ type User2 struct {
 	Numbers   []int        `json:"numbers"`
 }
 
+// Stuff describes stuff
 type Stuff struct {
 	Key    int               `json:"key"`
 	Phone  *string           `json:"phone"`
@@ -23,12 +25,14 @@ type Stuff struct {
 	Dic    map[string]string `json:"dic"`
 }
 
+// Friend describes a friend
 type Friend struct {
 	Name string `json:"name"`
 	Age  int    `json:"age"`
 	Pet  *Pet   `json:"pet"`
 }
 
+// Pet describes a pet
 type Pet struct {
 	Name string `json:"name"`
 	Kind string `json:"kind"`
@@ -524,7 +528,7 @@ func firstClassPatch_shouldMergePatchCalls(t *testing.T, driver *RavenTestDriver
 		Stuff:   stuff,
 	}
 
-	docId2 := "user2s/2-A"
+	docID2 := "user2s/2-A"
 
 	var err error
 	store := getDocumentStoreMust(t, driver)
@@ -535,7 +539,7 @@ func firstClassPatch_shouldMergePatchCalls(t *testing.T, driver *RavenTestDriver
 
 		err = session.Store(user)
 		assert.NoError(t, err)
-		err = session.StoreWithID(user2, docId2)
+		err = session.StoreWithID(user2, docID2)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -556,11 +560,11 @@ func firstClassPatch_shouldMergePatchCalls(t *testing.T, driver *RavenTestDriver
 		assert.NoError(t, err)
 		assert.Equal(t, session.GetDeferredCommandsCount(), 1)
 
-		err = session.Advanced().PatchByID(docId2, "numbers[0]", 123)
+		err = session.Advanced().PatchByID(docID2, "numbers[0]", 123)
 		assert.NoError(t, err)
 		assert.Equal(t, session.GetDeferredCommandsCount(), 2)
 
-		err = session.Advanced().PatchByID(docId2, "lastLogin", now)
+		err = session.Advanced().PatchByID(docID2, "lastLogin", now)
 		assert.NoError(t, err)
 		assert.Equal(t, session.GetDeferredCommandsCount(), 2)
 

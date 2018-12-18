@@ -50,6 +50,7 @@ func unzipFile(f *zip.File, dstPath string) error {
 	return nil
 }
 
+// Unzip unzips a given zip file to a given directory
 func Unzip(zipPath string, destDir string) error {
 	st, err := os.Stat(zipPath)
 	if err != nil {
