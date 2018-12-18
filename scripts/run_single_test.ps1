@@ -21,6 +21,6 @@ go.exe clean -testcache
 #go.exe test -v -timeout 30s ./tests -run ^TestCachingOfDocumentInclude$
 #go.exe test -v -timeout 30s ./tests -run ^TestWhatChanged$
 
-go.exe test -parallel 1 -v -timeout 50s ./tests -run ^TestBulkInserts$
+go.exe test -parallel 1 -v -timeout 50s ./tests -run ^TestAttachmentsSession$
 
 #go.exe test -vet=off -v -timeout 15s github.com/ravendb/ravendb-go-client -run ^TestAttachmentsSession$

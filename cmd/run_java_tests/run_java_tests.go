@@ -66,12 +66,10 @@ func runJava() {
 
 	//runSingleJavaTest("AdvancedPatchingTest")
 	//runSingleJavaTest("AggregationTest")
-	// fails on mac pro with 4.0.6
-	//runSingleJavaTest("AttachmentsSessionTest")
-	// sometimes fails on mac pro
+	runSingleJavaTest("AttachmentsSessionTest")
 	// runSingleJavaTest("AttachmentsRevisionsTest")
 	//runSingleJavaTest("BasicDocumentsTest")
-	runSingleJavaTest("BulkInsertsTest")
+	//runSingleJavaTest("BulkInsertsTest")
 	//runSingleJavaTest("ClientConfigurationTest")
 	//runSingleJavaTest("CompactTest")
 	//runSingleJavaTest("ContainsTest")

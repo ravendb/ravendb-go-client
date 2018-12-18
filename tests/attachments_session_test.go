@@ -48,7 +48,7 @@ func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
 		var user *User
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
-		metadata, err := session.Advanced().GetMetadataFor(user)
+		metadata, err := session.Advanced().GetMetadataFor(&user)
 		assert.NoError(t, err)
 		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
 		assert.True(t, ok)
@@ -63,8 +63,15 @@ func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
 		sort.Strings(names)
 		var gotNames []string
 		for _, v := range attachments {
-			attachment := v.(*ravendb.IMetadataDictionary)
-			name, ok := attachment.Get("Name")
+
+			//TODO: dig deeper into what type metadata.Get() returns. It used to be
+			// *ravendb.IMetadataDictionary and is now map[string]interface{}
+			//attachment := v.(*ravendb.IMetadataDictionary)
+			//name, ok := attachment.Get("Name")
+
+			attachment := v.(map[string]interface{})
+			name, ok := attachment["Name"]
+
 			assert.True(t, ok)
 			gotNames = append(gotNames, name.(string))
 		}
@@ -543,13 +550,8 @@ func TestAttachmentsSession(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	// TODO: those tests are flaky. Not often but they sometimes fail
-	// re-enable them when no longer flaky
-
 	// matches order of Java tests
-	if enableFlakyTests {
-		attachmentsSession_putAttachments(t, driver)
-	}
+	attachmentsSession_putAttachments(t, driver)
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
 
 	if enableFlakyTests {
