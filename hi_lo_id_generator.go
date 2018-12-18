@@ -37,8 +37,8 @@ type HiLoIDGenerator struct {
 	serverTag               string
 }
 
-// NewHiLoIdGenerator creates a HiLoIDGenerator
-func NewHiLoIdGenerator(tag string, store *DocumentStore, dbName string, identityPartsSeparator string) *HiLoIDGenerator {
+// NewHiLoIDGenerator creates a HiLoIDGenerator
+func NewHiLoIDGenerator(tag string, store *DocumentStore, dbName string, identityPartsSeparator string) *HiLoIDGenerator {
 	return &HiLoIDGenerator{
 		_store:                  store,
 		_tag:                    tag,

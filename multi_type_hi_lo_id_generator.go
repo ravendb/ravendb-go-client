@@ -35,7 +35,7 @@ func (g *MultiTypeHiLoIDGenerator) GenerateDocumentID(entity interface{}) string
 	g._generatorLock.Lock()
 	value, ok := g._idGeneratorsByTag[tag]
 	if !ok {
-		value = NewHiLoIdGenerator(tag, g.store, g.dbName, g.conventions.GetIdentityPartsSeparator())
+		value = NewHiLoIDGenerator(tag, g.store, g.dbName, g.conventions.GetIdentityPartsSeparator())
 		g._idGeneratorsByTag[tag] = value
 	}
 	g._generatorLock.Unlock()

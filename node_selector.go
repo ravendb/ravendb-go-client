@@ -71,7 +71,7 @@ func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*Curr
 	return NewCurrentIndexAndNode(0, state.nodes[0]), nil
 }
 
-func (s *NodeSelector) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, error) {
+func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, error) {
 	state := s._state
 	index := sessionId % len(state.topology.GetNodes())
 

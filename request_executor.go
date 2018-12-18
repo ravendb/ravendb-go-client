@@ -517,7 +517,7 @@ func (re *RequestExecutor) chooseNodeForRequest(cmd RavenCommand, sessionInfo *S
 		if sessionInfo != nil {
 			sessionID = sessionInfo.SessionID
 		}
-		return re.getNodeBySessionId(sessionID)
+		return re.getNodeBySessionID(sessionID)
 	case ReadBalanceBehavior_FASTEST_NODE:
 		return re.getFastestNode()
 	default:
@@ -1199,10 +1199,10 @@ func (re *RequestExecutor) getPreferredNode() (*CurrentIndexAndNode, error) {
 	return re._nodeSelector.getPreferredNode()
 }
 
-func (re *RequestExecutor) getNodeBySessionId(sessionId int) (*CurrentIndexAndNode, error) {
+func (re *RequestExecutor) getNodeBySessionID(sessionID int) (*CurrentIndexAndNode, error) {
 	re.ensureNodeSelector()
 
-	return re._nodeSelector.getNodeBySessionId(sessionId)
+	return re._nodeSelector.getNodeBySessionID(sessionID)
 }
 
 func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
@@ -1234,6 +1234,7 @@ func (re *RequestExecutor) ensureNodeSelector() error {
 	return nil
 }
 
+// NodeStatus represents status of server node
 type NodeStatus struct {
 	_timerPeriod     time.Duration
 	_requestExecutor *RequestExecutor

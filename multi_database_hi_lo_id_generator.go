@@ -7,8 +7,8 @@ type MultiDatabaseHiLoIDGenerator struct {
 	_generators map[string]*MultiTypeHiLoIDGenerator
 }
 
-// NewMultiDatabaseHiLoIdGenerator creates new MultiDatabaseHiLoKeyGenerator
-func NewMultiDatabaseHiLoIdGenerator(store *DocumentStore, conventions *DocumentConventions) *MultiDatabaseHiLoIDGenerator {
+// NewMultiDatabaseHiLoIDGenerator creates new MultiDatabaseHiLoKeyGenerator
+func NewMultiDatabaseHiLoIDGenerator(store *DocumentStore, conventions *DocumentConventions) *MultiDatabaseHiLoIDGenerator {
 	return &MultiDatabaseHiLoIDGenerator{
 		store:       store,
 		conventions: conventions,

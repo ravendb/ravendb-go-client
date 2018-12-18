@@ -47,7 +47,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, d
 	{
 		session := openSessionMust(t, store)
 		person := &Person{}
-		person.setName("Grisha")
+		person.Name = "Grisha"
 		err = session.StoreWithID(person, documentID)
 		assert.NoError(t, err)
 		err = session.SaveChanges()

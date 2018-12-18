@@ -20,7 +20,7 @@ func hiloTest_capacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	hiLoIdGenerator := ravendb.NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
+	hiLoIdGenerator := ravendb.NewHiLoIDGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
 
 	{
 		session := openSessionMust(t, store)
@@ -150,7 +150,7 @@ func hiloTest_canNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 	assert.Nil(t, err)
 
-	hiLoKeyGenerator := ravendb.NewHiLoIdGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
+	hiLoKeyGenerator := ravendb.NewHiLoIDGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
 
 	nextID, err := hiLoKeyGenerator.NextID()
 	assert.Nil(t, err)
@@ -194,7 +194,7 @@ func hiloTest_multiDb(t *testing.T, driver *RavenTestDriver) {
 	err = session.SaveChanges()
 	assert.NoError(t, err)
 
-	multiDbHilo := ravendb.NewMultiDatabaseHiLoIdGenerator(store, store.GetConventions())
+	multiDbHilo := ravendb.NewMultiDatabaseHiLoIDGenerator(store, store.GetConventions())
 	generateDocumentKey := multiDbHilo.GenerateDocumentID("", &User{})
 	assert.Equal(t, generateDocumentKey, "users/65-A")
 	generateDocumentKey = multiDbHilo.GenerateDocumentID("", &Product{})

@@ -77,6 +77,6 @@ func (o *MoreLikeThisOptions) SetBoostFactor(boostFactor float32) {
 	o.BoostFactor = &boostFactor
 }
 
-func (o *MoreLikeThisOptions) SetStopWordsDocumentID(stopWordsDocumentId string) {
-	o.StopWordsDocumentID = &stopWordsDocumentId
+func (o *MoreLikeThisOptions) SetStopWordsDocumentID(stopWordsDocumentID string) {
+	o.StopWordsDocumentID = &stopWordsDocumentID
 }
