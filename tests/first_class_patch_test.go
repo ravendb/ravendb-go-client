@@ -10,9 +10,9 @@ import (
 
 // Note: conflicts with User in user_test.go
 type User2 struct {
-	Stuff     []*Stuff  `json:"stuff"`
-	LastLogin time.Time `json:"lastLogin"`
-	Numbers   []int     `json:"numbers"`
+	Stuff     []*Stuff     `json:"stuff"`
+	LastLogin ravendb.Time `json:"lastLogin"`
+	Numbers   []int        `json:"numbers"`
 }
 
 type Stuff struct {
@@ -61,10 +61,7 @@ func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	// TODO: test will fail if this is just time.Now() i.e. with timezone
-	// It looks like Java's new Date() is equivalent to UTC() but we still should
-	// decide if this should work with times that include a timezone
-	now := time.Now().UTC()
+	now := ravendb.Time(time.Now().UTC())
 	{
 		session := openSessionMust(t, store)
 

@@ -6,61 +6,8 @@ type GetConflictsResult struct {
 	LargestEtag int         `json:"LargestEtag"`
 }
 
-/*
-   public String GetID() {
-       return id;
-   }
-
-   public void setId(String id) {
-       this.id = id;
-   }
-
-   public Conflict[] getResults() {
-       return results;
-   }
-
-   public void setResults(Conflict[] results) {
-       this.results = results;
-   }
-
-   public long getLargestEtag() {
-       return largestEtag;
-   }
-
-   public void setLargestEtag(long largestEtag) {
-       this.largestEtag = largestEtag;
-   }
-*/
-
 type Conflict struct {
 	LastModified Time       `json:"LastModified"`
 	ChangeVector string     `json:"ChangeVector"`
 	Doc          ObjectNode `json:"Doc"`
 }
-
-/*
-       public Date getLastModified() {
-           return lastModified;
-       }
-
-       public void setLastModified(Date lastModified) {
-           this.lastModified = lastModified;
-       }
-
-       public String GetChangeVector() {
-           return changeVector;
-       }
-
-       public void setChangeVector(String changeVector) {
-           this.changeVector = changeVector;
-       }
-
-       public ObjectNode getDoc() {
-           return doc;
-       }
-
-       public void setDoc(ObjectNode doc) {
-           this.doc = doc;
-       }
-   }
-*/
