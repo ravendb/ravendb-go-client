@@ -18,7 +18,7 @@ type GetNextOperationIdCommand struct {
 	Result int
 }
 
-func NewGetNextOperationIdCommand() *GetNextOperationIdCommand {
+func NewGetNextOperationIDCommand() *GetNextOperationIdCommand {
 	cmd := &GetNextOperationIdCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 	}

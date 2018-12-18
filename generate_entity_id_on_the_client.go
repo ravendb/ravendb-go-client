@@ -2,27 +2,27 @@ package ravendb
 
 type GenIDFunc func(interface{}) string
 
-type GenerateEntityIdOnTheClient struct {
+type GenerateEntityIDOnTheClient struct {
 	_conventions *DocumentConventions
 	_generateId  GenIDFunc
 }
 
-func NewGenerateEntityIdOnTheClient(conventions *DocumentConventions, generateId GenIDFunc) *GenerateEntityIdOnTheClient {
-	return &GenerateEntityIdOnTheClient{
+func NewGenerateEntityIDOnTheClient(conventions *DocumentConventions, generateId GenIDFunc) *GenerateEntityIDOnTheClient {
+	return &GenerateEntityIDOnTheClient{
 		_conventions: conventions,
 		_generateId:  generateId,
 	}
 }
 
 // Attempts to get the document key from an instance
-func (g *GenerateEntityIdOnTheClient) tryGetIdFromInstance(entity interface{}) (string, bool) {
+func (g *GenerateEntityIDOnTheClient) tryGetIDFromInstance(entity interface{}) (string, bool) {
 	panicIf(entity == nil, "Entity cannot be null")
-	return tryGetIdFromInstance(entity)
+	return tryGetIDFromInstance(entity)
 }
 
 // Tries to get the identity.
-func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity interface{}) string {
-	id, ok := g.tryGetIdFromInstance(entity)
+func (g *GenerateEntityIDOnTheClient) getOrGenerateDocumentID(entity interface{}) string {
+	id, ok := g.tryGetIDFromInstance(entity)
 	if !ok || id == "" {
 		id = g._generateId(entity)
 	}
@@ -35,13 +35,13 @@ func (g *GenerateEntityIdOnTheClient) getOrGenerateDocumentId(entity interface{}
 	return id
 }
 
-func (g *GenerateEntityIdOnTheClient) generateDocumentKeyForStorage(entity interface{}) string {
-	id := g.getOrGenerateDocumentId(entity)
+func (g *GenerateEntityIDOnTheClient) generateDocumentKeyForStorage(entity interface{}) string {
+	id := g.getOrGenerateDocumentID(entity)
 	g.trySetIdentity(entity, id)
 	return id
 }
 
 // Tries to set the identity property
-func (g *GenerateEntityIdOnTheClient) trySetIdentity(entity interface{}, id string) {
+func (g *GenerateEntityIDOnTheClient) trySetIdentity(entity interface{}, id string) {
 	TrySetIDOnEntity(entity, id)
 }

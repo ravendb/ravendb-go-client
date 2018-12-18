@@ -497,8 +497,8 @@ func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *IAggregationDocumen
 	return NewAggregationDocumentQuery(q)
 }
 
-func (q *DocumentQuery) AggregateUsing(facetSetupDocumentId string) *IAggregationDocumentQuery {
-	q._aggregateUsing(facetSetupDocumentId)
+func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *IAggregationDocumentQuery {
+	q._aggregateUsing(facetSetupDocumentID)
 
 	return NewAggregationDocumentQuery(q)
 }

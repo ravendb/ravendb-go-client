@@ -12,7 +12,7 @@ func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T, driver *R
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	command := ravendb.NewGetNextOperationIdCommand()
+	command := ravendb.NewGetNextOperationIDCommand()
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.NoError(t, err)
 	assert.NotNil(t, command.Result)

@@ -163,16 +163,16 @@ func (c *DocumentConventions) GetIdentityProperty(clazz reflect.Type) string {
 	return GetIdentityProperty(clazz)
 }
 
-func (c *DocumentConventions) GetDocumentIdGenerator() DocumentIDGeneratorFunc {
+func (c *DocumentConventions) GetDocumentIDGenerator() DocumentIDGeneratorFunc {
 	return c._documentIDGenerator
 }
 
-func (c *DocumentConventions) SetDocumentIdGenerator(documentIDGenerator DocumentIDGeneratorFunc) {
+func (c *DocumentConventions) SetDocumentIDGenerator(documentIDGenerator DocumentIDGeneratorFunc) {
 	c._documentIDGenerator = documentIDGenerator
 }
 
 // Generates the document id.
-func (c *DocumentConventions) GenerateDocumentId(databaseName string, entity interface{}) string {
+func (c *DocumentConventions) GenerateDocumentID(databaseName string, entity interface{}) string {
 	return c._documentIDGenerator(databaseName, entity)
 }
 

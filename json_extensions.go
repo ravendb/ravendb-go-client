@@ -30,7 +30,7 @@ func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *Ind
 	}
 	params := query.queryParameters
 	if params != nil {
-		res["QueryParameters"] = EntityToJson_convertEntityToJson(params, nil)
+		res["QueryParameters"] = convertEntityToJSON(params, nil)
 	} else {
 		res["QueryParameters"] = nil
 	}

@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func tryGetIdFromInstance(entity interface{}) (string, bool) {
+func tryGetIDFromInstance(entity interface{}) (string, bool) {
 	return TryGetIDFromInstance(entity)
 }
 

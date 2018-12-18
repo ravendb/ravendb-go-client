@@ -25,7 +25,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T, driver
 		errorsCount := 0
 
 		for i := 0; i < 40; i++ {
-			command := ravendb.NewGetNextOperationIdCommand()
+			command := ravendb.NewGetNextOperationIDCommand()
 			err := executor.ExecuteCommand(command)
 			if err != nil {
 				errorsCount++
@@ -121,7 +121,7 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T, driver *Ra
 
 	{
 		executor := ravendb.RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
-		command := ravendb.NewGetNextOperationIdCommand()
+		command := ravendb.NewGetNextOperationIDCommand()
 		err := executor.ExecuteCommand(command)
 		_ = err.(*ravendb.DatabaseDoesNotExistException)
 	}
@@ -147,7 +147,7 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T, driver
 		assert.Equal(t, serverNode.GetUrl(), store.GetUrls()[0])
 		assert.Equal(t, serverNode.GetDatabase(), store.GetDatabase())
 
-		command := ravendb.NewGetNextOperationIdCommand()
+		command := ravendb.NewGetNextOperationIDCommand()
 		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
@@ -169,7 +169,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T, driver *RavenTestDriv
 	dbName := store.GetDatabase()
 	{
 		executor := ravendb.RequestExecutor_create([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, documentConventions)
-		command := ravendb.NewGetNextOperationIdCommand()
+		command := ravendb.NewGetNextOperationIDCommand()
 		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
@@ -190,7 +190,7 @@ func requestExecutorTest_failsWhenServerIsOffline(t *testing.T, driver *RavenTes
 	}
 	documentConventions := ravendb.NewDocumentConventions()
 	executor := ravendb.RequestExecutor_create([]string{"http://no_such_host:8081"}, "db1", nil, documentConventions)
-	command := ravendb.NewGetNextOperationIdCommand()
+	command := ravendb.NewGetNextOperationIDCommand()
 	err := executor.ExecuteCommand(command)
 	assert.Error(t, err)
 

@@ -61,7 +61,7 @@ func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 */
 
 type BulkInsertOperation struct {
-	_generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
+	_generateEntityIDOnTheClient *GenerateEntityIDOnTheClient
 	_requestExecutor             *RequestExecutor
 
 	_bulkInsertExecuteTask *CompletableFuture
@@ -85,7 +85,7 @@ type BulkInsertOperation struct {
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
 	re := store.GetRequestExecutorWithDatabase(database)
 	f := func(entity interface{}) string {
-		return re.GetConventions().GenerateDocumentId(database, entity)
+		return re.GetConventions().GenerateDocumentID(database, entity)
 	}
 
 	reader, writer := io.Pipe()
@@ -93,7 +93,7 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 	res := &BulkInsertOperation{
 		_conventions:                 store.GetConventions(),
 		_requestExecutor:             re,
-		_generateEntityIdOnTheClient: NewGenerateEntityIdOnTheClient(re.GetConventions(), f),
+		_generateEntityIDOnTheClient: NewGenerateEntityIDOnTheClient(re.GetConventions(), f),
 		_reader:                      reader,
 		_currentWriter:               writer,
 		_operationID:                 -1,
@@ -145,12 +145,12 @@ func (o *BulkInsertOperation) WaitForID() error {
 		return nil
 	}
 
-	bulkInsertGetIdRequest := NewGetNextOperationIdCommand()
-	o.err = o._requestExecutor.ExecuteCommand(bulkInsertGetIdRequest)
+	bulkInsertGetIDRequest := NewGetNextOperationIDCommand()
+	o.err = o._requestExecutor.ExecuteCommand(bulkInsertGetIDRequest)
 	if o.err != nil {
 		return o.err
 	}
-	o._operationID = bulkInsertGetIdRequest.Result
+	o._operationID = bulkInsertGetIDRequest.Result
 	return nil
 }
 
@@ -165,7 +165,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		return o.err
 	}
 
-	err := BulkInsertOperation_verifyValidId(id)
+	err := bulkInsertOperationVerifyValidID(id)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 
 	documentInfo := &documentInfo{}
 	documentInfo.metadataInstance = metadata
-	jsNode := EntityToJson_convertEntityToJson(entity, documentInfo)
+	jsNode := convertEntityToJSON(entity, documentInfo)
 
 	var b bytes.Buffer
 	if o._first {
@@ -318,15 +318,15 @@ func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *Me
 }
 
 func (o *BulkInsertOperation) GetID(entity interface{}) string {
-	idRef, ok := o._generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
+	idRef, ok := o._generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
 	if ok {
 		return idRef
 	}
 
-	idRef = o._generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity)
+	idRef = o._generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity)
 
 	// set id property if it was null
-	o._generateEntityIdOnTheClient.trySetIdentity(entity, idRef)
+	o._generateEntityIDOnTheClient.trySetIdentity(entity, idRef)
 	return idRef
 }
 
@@ -341,7 +341,7 @@ func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error)
 	return nil
 }
 
-func BulkInsertOperation_verifyValidId(id string) error {
+func bulkInsertOperationVerifyValidID(id string) error {
 	if stringIsEmpty(id) {
 		return NewIllegalStateException("Document id must have a non empty value")
 	}

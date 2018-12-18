@@ -50,7 +50,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 		indexToAdd.updateIndexTypeAndMaps()
 
 		panicIf(indexToAdd.Name == "", "Index name cannot be empty")
-		objectNode := EntityToJson_convertEntityToJson(indexToAdd, nil)
+		objectNode := convertEntityToJSON(indexToAdd, nil)
 		cmd._indexToAdd = append(cmd._indexToAdd, objectNode)
 	}
 

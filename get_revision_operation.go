@@ -50,7 +50,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	if metadata != nil {
 		changeVector = jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	}
-	entity, err := o._session.GetEntityToJson().ConvertToEntity(clazz, id, document)
+	entity, err := o._session.GetEntityToJSON().ConvertToEntity(clazz, id, document)
 	if err != nil {
 		return nil, err
 	}

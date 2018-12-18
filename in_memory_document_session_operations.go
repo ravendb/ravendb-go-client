@@ -74,8 +74,8 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: using value type so that lookups are based on value
 	deferredCommandsMap map[idTypeAndName]ICommandData
 
-	generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
-	entityToJson                *EntityToJson
+	generateEntityIDOnTheClient *GenerateEntityIDOnTheClient
+	entityToJSON                *EntityToJSON
 
 	// Note: in java DocumentSession inherits from InMemoryDocumentSessionOperations
 	// so we can upcast/downcast between them
@@ -106,8 +106,8 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	genIDFunc := func(entity interface{}) string {
 		return res.GenerateId(entity)
 	}
-	res.generateEntityIdOnTheClient = NewGenerateEntityIdOnTheClient(re.conventions, genIDFunc)
-	res.entityToJson = NewEntityToJson(res)
+	res.generateEntityIDOnTheClient = NewGenerateEntityIDOnTheClient(re.conventions, genIDFunc)
+	res.entityToJSON = NewEntityToJSON(res)
 	return res
 }
 
@@ -151,12 +151,12 @@ func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerIdx
 	s.onBeforeQuery[handlerIdx] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIdOnTheClient() *GenerateEntityIdOnTheClient {
-	return s.generateEntityIdOnTheClient
+func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIDOnTheClient() *GenerateEntityIDOnTheClient {
+	return s.generateEntityIDOnTheClient
 }
 
-func (s *InMemoryDocumentSessionOperations) GetEntityToJson() *EntityToJson {
-	return s.entityToJson
+func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *EntityToJSON {
+	return s.entityToJSON
 }
 
 // GetNumberOfEntitiesInUnitOfWork returns number of entinties
@@ -173,7 +173,7 @@ func (s *InMemoryDocumentSessionOperations) GetDatabaseName() string {
 }
 
 func (s *InMemoryDocumentSessionOperations) GenerateId(entity interface{}) string {
-	return s.GetConventions().GenerateDocumentId(s.GetDatabaseName(), entity)
+	return s.GetConventions().GenerateDocumentID(s.GetDatabaseName(), entity)
 }
 
 func (s *InMemoryDocumentSessionOperations) GetDocumentStore() *IDocumentStore {
@@ -286,7 +286,7 @@ func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}
 		return documentInfo, nil
 	}
 
-	id, ok := s.generateEntityIdOnTheClient.tryGetIdFromInstance(instance)
+	id, ok := s.generateEntityIDOnTheClient.tryGetIDFromInstance(instance)
 	if !ok {
 		return nil, NewIllegalStateException("Could not find the document id for %s", instance)
 	}
@@ -370,7 +370,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			s.entityToJson.ConvertToEntity2(result, id, document)
+			s.entityToJSON.ConvertToEntity2(result, id, document)
 			docInfo.entity = result
 		} else {
 			setInterfaceToValue(result, docInfo.entity)
@@ -387,7 +387,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 	if docInfo != nil {
 		noSet := true
 		if docInfo.entity == nil {
-			s.entityToJson.ConvertToEntity2(result, id, document)
+			s.entityToJSON.ConvertToEntity2(result, id, document)
 			docInfo.entity = result
 			noSet = false
 		}
@@ -403,7 +403,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		return nil
 	}
 
-	s.entityToJson.ConvertToEntity2(result, id, document)
+	s.entityToJSON.ConvertToEntity2(result, id, document)
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	if changeVector == nil {
@@ -456,7 +456,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		needsToMatchType := true
 		if docInfo.entity == nil {
 			needsToMatchType = false
-			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
+			docInfo.entity, err = s.entityToJSON.ConvertToEntity(entityType, id, document)
 			if err != nil {
 				return nil, err
 			}
@@ -477,7 +477,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	docInfo = s.includedDocumentsByID[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
-			docInfo.entity, err = s.entityToJson.ConvertToEntity(entityType, id, document)
+			docInfo.entity, err = s.entityToJSON.ConvertToEntity(entityType, id, document)
 			if err != nil {
 				return nil, err
 			}
@@ -492,7 +492,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		return docInfo.entity, nil
 	}
 
-	entity, err := s.entityToJson.ConvertToEntity(entityType, id, document)
+	entity, err := s.entityToJSON.ConvertToEntity(entityType, id, document)
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +548,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	var changeVector *string
 	documentInfo := s.documentsByID.getValue(id)
 	if documentInfo != nil {
-		newObj := EntityToJson_convertEntityToJson(documentInfo.entity, documentInfo)
+		newObj := convertEntityToJSON(documentInfo.entity, documentInfo)
 		if documentInfo.entity != nil && s.EntityChanged(newObj, documentInfo, nil) {
 			return NewIllegalStateException("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
@@ -572,7 +572,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 
 // Store stores entity in the session. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
-	_, hasID := s.generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
+	_, hasID := s.generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
 	concu := ConcurrencyCheck_AUTO
 	if !hasID {
 		concu = ConcurrencyCheck_FORCED
@@ -597,7 +597,7 @@ func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity in
 
 // TODO: should this return an error?
 func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneration(entity interface{}) {
-	err := NewNotImplementedException("You cannot set GenerateDocumentIdsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
+	err := NewNotImplementedException("You cannot set GenerateDocumentIDsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
 	must(err)
 }
 
@@ -615,13 +615,13 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 
 	if id == "" {
 		if s.generateDocumentKeysOnStore {
-			id = s.generateEntityIdOnTheClient.generateDocumentKeyForStorage(entity)
+			id = s.generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity)
 		} else {
 			s.RememberEntityForDocumentIdGeneration(entity)
 		}
 	} else {
 		// Store it back into the Id field so the client has access to it
-		s.generateEntityIdOnTheClient.trySetIdentity(entity, id)
+		s.generateEntityIDOnTheClient.trySetIdentity(entity, id)
 	}
 
 	tmp := newIDTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
@@ -815,7 +815,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 
 		dirtyMetadata := s.UpdateMetadataModifications(entityValue)
 
-		document := EntityToJson_convertEntityToJson(entityKey, entityValue)
+		document := convertEntityToJSON(entityKey, entityValue)
 
 		if !s.EntityChanged(document, entityValue, nil) && !dirtyMetadata {
 			continue
@@ -841,7 +841,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 				s.UpdateMetadataModifications(entityValue)
 			}
 			if beforeStoreEventArgs.isMetadataAccessed() || s.EntityChanged(document, entityValue, nil) {
-				document = EntityToJson_convertEntityToJson(entityKey, entityValue)
+				document = convertEntityToJSON(entityKey, entityValue)
 			}
 		}
 
@@ -903,7 +903,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 	panic("NYI")
 	/*
 		for (Map.Entry<Object, documentInfo> entity : documentsByEntity.entrySet()) {
-			ObjectNode document = entityToJson.convertEntityToJson(entity.getKey(), entity.getValue());
+			ObjectNode document = entityToJSON.convertEntityToJSON(entity.getKey(), entity.getValue());
 			if (entityChanged(document, entity.getValue(), null)) {
 				return true;
 			}
@@ -922,7 +922,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) bool 
 		return false
 	}
 
-	document := EntityToJson_convertEntityToJson(entity, documentInfo)
+	document := convertEntityToJSON(entity, documentInfo)
 	return s.EntityChanged(document, documentInfo, nil)
 }
 
@@ -930,7 +930,7 @@ func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[st
 	for _, docInfo := range s.documentsByID.inner {
 		s.UpdateMetadataModifications(docInfo)
 		entity := docInfo.entity
-		newObj := EntityToJson_convertEntityToJson(entity, docInfo)
+		newObj := convertEntityToJSON(entity, docInfo)
 		s.EntityChanged(newObj, docInfo, changes)
 	}
 }
@@ -1055,11 +1055,11 @@ func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results Arra
 }
 
 func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer2(result interface{}, id string, document ObjectNode) {
-	s.entityToJson.ConvertToEntity2(result, id, document)
+	s.entityToJSON.ConvertToEntity2(result, id, document)
 }
 
 func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) (interface{}, error) {
-	return s.entityToJson.ConvertToEntity(clazz, id, document)
+	return s.entityToJSON.ConvertToEntity(clazz, id, document)
 }
 
 func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
@@ -1119,7 +1119,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	}
 	documentInfo.document = document
 	var err error
-	documentInfo.entity, err = s.entityToJson.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
+	documentInfo.entity, err = s.entityToJSON.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
 	if err != nil {
 		return err
 	}

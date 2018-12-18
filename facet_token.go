@@ -5,7 +5,7 @@ import "strings"
 var _ queryToken = &facetToken{}
 
 type facetToken struct {
-	_facetSetupDocumentId string
+	_facetSetupDocumentID string
 	_aggregateByFieldName string
 	_alias                string
 	_ranges               []string
@@ -18,9 +18,9 @@ func (t *facetToken) GetName() string {
 	return firstNonEmptyString(t._alias, t._aggregateByFieldName)
 }
 
-func NewFacetTokenWithID(facetSetupDocumentId string) *facetToken {
+func NewFacetTokenWithID(facetSetupDocumentID string) *facetToken {
 	return &facetToken{
-		_facetSetupDocumentId: facetSetupDocumentId,
+		_facetSetupDocumentID: facetSetupDocumentID,
 	}
 }
 
@@ -36,9 +36,9 @@ func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string
 func (t *facetToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("facet(")
 
-	if t._facetSetupDocumentId != "" {
+	if t._facetSetupDocumentID != "" {
 		writer.WriteString("id('")
-		writer.WriteString(t._facetSetupDocumentId)
+		writer.WriteString(t._facetSetupDocumentID)
 		writer.WriteString("'))")
 
 		return
@@ -86,13 +86,13 @@ func (t *facetToken) writeTo(writer *strings.Builder) {
 	writer.WriteString(t._alias)
 }
 
-func createFacetToken(facetSetupDocumentId string) *facetToken {
-	if stringIsWhitespace(facetSetupDocumentId) {
-		//throw new IllegalArgumentException("facetSetupDocumentId cannot be null");
-		panicIf(true, "facetSetupDocumentId cannot be null")
+func createFacetToken(facetSetupDocumentID string) *facetToken {
+	if stringIsWhitespace(facetSetupDocumentID) {
+		//throw new IllegalArgumentException("facetSetupDocumentID cannot be null");
+		panicIf(true, "facetSetupDocumentID cannot be null")
 	}
 
-	return NewFacetTokenWithID(facetSetupDocumentId)
+	return NewFacetTokenWithID(facetSetupDocumentID)
 }
 
 func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{}) string) *facetToken {

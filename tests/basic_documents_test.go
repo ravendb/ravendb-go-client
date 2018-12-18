@@ -102,7 +102,7 @@ func basicDocuments_get(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		session := openSessionMust(t, store)
-		etojs := session.GetEntityToJson()
+		etojs := session.GetEntityToJSON()
 		user1I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/1", doc1)
 		assert.NoError(t, err)
 		user1 := user1I.(*User)
