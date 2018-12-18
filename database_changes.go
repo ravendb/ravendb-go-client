@@ -151,15 +151,15 @@ func (c *DatabaseChanges) getLastConnectionStateException() error {
 	return nil
 }
 
-func (c *DatabaseChanges) ForDocument(docId string) (IChangesObservable, error) {
-	counter, err := c.getOrAddConnectionState("docs/"+docId, "watch-doc", "unwatch-doc", docId)
+func (c *DatabaseChanges) ForDocument(docID string) (IChangesObservable, error) {
+	counter, err := c.getOrAddConnectionState("docs/"+docID, "watch-doc", "unwatch-doc", docID)
 	if err != nil {
 		return nil, err
 	}
 
 	filter := func(notification interface{}) bool {
 		v := notification.(*DocumentChange)
-		return strings.EqualFold(v.ID, docId)
+		return strings.EqualFold(v.ID, docID)
 	}
 	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filter)
 	return taskedObservable, nil
@@ -178,8 +178,8 @@ func (c *DatabaseChanges) ForAllDocuments() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) ForOperationId(operationId int) (IChangesObservable, error) {
-	opIDStr := strconv.Itoa(operationId)
+func (c *DatabaseChanges) ForOperationID(operationID int) (IChangesObservable, error) {
+	opIDStr := strconv.Itoa(operationID)
 	counter, err := c.getOrAddConnectionState("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (c *DatabaseChanges) ForOperationId(operationId int) (IChangesObservable, e
 
 	filter := func(notification interface{}) bool {
 		v := notification.(*OperationStatusChange)
-		return v.OperationID == operationId
+		return v.OperationID == operationID
 	}
 	taskedObservable := NewChangesObservable(ChangesType_OPERATION, counter, filter)
 	return taskedObservable, nil
@@ -215,19 +215,19 @@ func (c *DatabaseChanges) ForAllIndexes() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsStartingWith(docIdPrefix string) (IChangesObservable, error) {
-	counter, err := c.getOrAddConnectionState("prefixes/"+docIdPrefix, "watch-prefix", "unwatch-prefix", docIdPrefix)
+func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChangesObservable, error) {
+	counter, err := c.getOrAddConnectionState("prefixes/"+docIDPrefix, "watch-prefix", "unwatch-prefix", docIDPrefix)
 	if err != nil {
 		return nil, err
 	}
 	filter := func(notification interface{}) bool {
 		v := notification.(*DocumentChange)
-		n := len(docIdPrefix)
+		n := len(docIDPrefix)
 		if n > len(v.ID) {
 			return false
 		}
 		prefix := v.ID[:n]
-		return strings.EqualFold(prefix, docIdPrefix)
+		return strings.EqualFold(prefix, docIDPrefix)
 	}
 
 	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filter)

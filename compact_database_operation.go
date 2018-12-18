@@ -32,7 +32,7 @@ type CompactDatabaseCommand struct {
 
 	_compactSettings []byte // CompactSettings serialized to json
 
-	Result *OperationIdResult
+	Result *OperationIDResult
 }
 
 func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings *CompactSettings) *CompactDatabaseCommand {

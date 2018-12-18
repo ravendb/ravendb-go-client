@@ -1,16 +1,16 @@
 package ravendb
 
-// OperationIdResult is a result of commands like CompactDatabaseCommand
-type OperationIdResult struct {
+// OperationIDResult is a result of commands like CompactDatabaseCommand
+type OperationIDResult struct {
 	OperationId int `json:"OperationId"`
 }
 
-func (r *OperationIdResult) getOperationId() int {
+func (r *OperationIDResult) getOperationId() int {
 	return r.OperationId
 }
 
 /*
-    public void setOperationId(long operationId) {
-        this.operationId = operationId;
+    public void setOperationId(long operationID) {
+        this.operationID = operationID;
 	}
 */

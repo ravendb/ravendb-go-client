@@ -44,7 +44,7 @@ type DeleteByIndexCommand struct {
 	_queryToDelete *IndexQuery
 	_options       *QueryOperationOptions
 
-	Result *OperationIdResult
+	Result *OperationIDResult
 }
 
 func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByIndexCommand {

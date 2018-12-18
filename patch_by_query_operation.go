@@ -37,7 +37,7 @@ type PatchByQueryCommand struct {
 	_queryToUpdate *IndexQuery
 	_options       *QueryOperationOptions
 
-	Result *OperationIdResult
+	Result *OperationIDResult
 }
 
 func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *IndexQuery, options *QueryOperationOptions) *PatchByQueryCommand {

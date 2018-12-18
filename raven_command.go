@@ -194,9 +194,9 @@ func (c *RavenCommandBase) OnResponseFailure(response *http.Response) {
 }
 
 // Note: hackish solution due to lack of generics
-// For commands whose result is OperationIdResult, return it
-// When new command returning OperationIdResult are added, we must extend it
-func getCommandOperationIdResult(cmd RavenCommand) *OperationIdResult {
+// For commands whose result is OperationIDResult, return it
+// When new command returning OperationIDResult are added, we must extend it
+func getCommandOperationIDResult(cmd RavenCommand) *OperationIDResult {
 	switch c := cmd.(type) {
 	case *CompactDatabaseCommand:
 		return c.Result
@@ -206,6 +206,6 @@ func getCommandOperationIdResult(cmd RavenCommand) *OperationIdResult {
 		return c.Result
 	}
 
-	panicIf(true, "called on a command %T that doesn't return OperationIdResult", cmd)
+	panicIf(true, "called on a command %T that doesn't return OperationIDResult", cmd)
 	return nil
 }

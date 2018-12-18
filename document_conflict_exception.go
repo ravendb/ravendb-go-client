@@ -2,14 +2,14 @@ package ravendb
 
 type DocumentConflictException struct {
 	*ConflictException
-	DocId       string
+	DocID       string
 	LargestEtag int
 }
 
-func NewDocumentConflictException(message string, docId string, etag int) *DocumentConflictException {
+func NewDocumentConflictException(message string, docID string, etag int) *DocumentConflictException {
 	res := &DocumentConflictException{}
 	res.ConflictException = NewConflictException("%s", message)
-	res.DocId = docId
+	res.DocID = docID
 	res.LargestEtag = etag
 	return res
 }
@@ -30,21 +30,3 @@ func NewDocumentConflictExceptionFromJSON(js string) error {
 
 	return NewDocumentConflictException(message, docID, largestEtag)
 }
-
-/*
-   public String getDocId() {
-       return docId;
-   }
-
-   public void setDocId(String docId) {
-       this.docId = docId;
-   }
-
-   public long getLargestEtag() {
-       return largestEtag;
-   }
-
-   public void setLargestEtag(long largestEtag) {
-       this.largestEtag = largestEtag;
-   }
-*/

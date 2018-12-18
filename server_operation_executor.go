@@ -34,7 +34,7 @@ func (e *ServerOperationExecutor) SendAsync(operation IServerOperation) (*Operat
 	if err != nil {
 		return nil, err
 	}
-	result := getCommandOperationIdResult(command)
+	result := getCommandOperationIDResult(command)
 	return NewServerWideOperation(requestExecutor, requestExecutor.GetConventions(), result.getOperationId()), nil
 }
 
