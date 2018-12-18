@@ -62,7 +62,7 @@ func (o *LazyLoadOperation) createRequest() *GetRequest {
 	return getRequest
 }
 
-func (o *LazyLoadOperation) byId(id string) *LazyLoadOperation {
+func (o *LazyLoadOperation) byID(id string) *LazyLoadOperation {
 	if id == "" {
 		return o
 	}

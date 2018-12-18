@@ -70,7 +70,7 @@ type BulkInsertOperation struct {
 	_currentWriter *io.PipeWriter
 
 	_first       bool
-	_operationId int
+	_operationID int
 
 	useCompression bool
 
@@ -96,7 +96,7 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 		_generateEntityIdOnTheClient: NewGenerateEntityIdOnTheClient(re.GetConventions(), f),
 		_reader:                      reader,
 		_currentWriter:               writer,
-		_operationId:                 -1,
+		_operationID:                 -1,
 		_first:                       true,
 	}
 	return res
@@ -122,7 +122,7 @@ func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) err
 }
 
 func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedException {
-	stateRequest := NewGetOperationStateCommand(o._requestExecutor.GetConventions(), o._operationId)
+	stateRequest := NewGetOperationStateCommand(o._requestExecutor.GetConventions(), o._operationID)
 	err := o._requestExecutor.ExecuteCommand(stateRequest)
 	if err != nil {
 		return nil // TODO: return an error?
@@ -140,8 +140,8 @@ func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedExce
 	return nil
 }
 
-func (o *BulkInsertOperation) WaitForId() error {
-	if o._operationId != -1 {
+func (o *BulkInsertOperation) WaitForID() error {
+	if o._operationID != -1 {
 		return nil
 	}
 
@@ -150,7 +150,7 @@ func (o *BulkInsertOperation) WaitForId() error {
 	if o.err != nil {
 		return o.err
 	}
-	o._operationId = bulkInsertGetIdRequest.Result
+	o._operationID = bulkInsertGetIdRequest.Result
 	return nil
 }
 
@@ -169,7 +169,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 	if err != nil {
 		return err
 	}
-	o.err = o.WaitForId()
+	o.err = o.WaitForID()
 	if o.err != nil {
 		return o.err
 	}
@@ -241,7 +241,7 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	if o.Command != nil {
 		return nil
 	}
-	bulkCommand := NewBulkInsertCommand(o._operationId, o._reader, o.useCompression)
+	bulkCommand := NewBulkInsertCommand(o._operationID, o._reader, o.useCompression)
 	panicIf(o._bulkInsertExecuteTask != nil, "already started _bulkInsertExecuteTask")
 	o._bulkInsertExecuteTask = NewCompletableFuture()
 	go func() {
@@ -258,16 +258,16 @@ func (o *BulkInsertOperation) ensureCommand() error {
 }
 
 func (o *BulkInsertOperation) Abort() error {
-	if o._operationId == -1 {
+	if o._operationID == -1 {
 		return nil // nothing was done, nothing to kill
 	}
 
-	err := o.WaitForId()
+	err := o.WaitForID()
 	if err != nil {
 		return err
 	}
 
-	command := NewKillOperationCommand(strconv.Itoa(o._operationId))
+	command := NewKillOperationCommand(strconv.Itoa(o._operationID))
 	err = o._requestExecutor.ExecuteCommand(command)
 	//o._currentWriter.Close()
 	if err != nil {
@@ -278,7 +278,7 @@ func (o *BulkInsertOperation) Abort() error {
 }
 
 func (o *BulkInsertOperation) Close() error {
-	if o._operationId == -1 {
+	if o._operationID == -1 {
 		// closing without calling a single Store.
 		return nil
 	}
@@ -307,7 +307,7 @@ func (o *BulkInsertOperation) Store(entity interface{}) (string, error) {
 func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
 	var id string
 	if metadata == nil || !metadata.ContainsKey(Constants_Documents_Metadata_ID) {
-		id = o.GetId(entity)
+		id = o.GetID(entity)
 	} else {
 		idVal, ok := metadata.Get(Constants_Documents_Metadata_ID)
 		panicIf(!ok, "didn't find %s key in meatadata", Constants_Documents_Metadata_ID)
@@ -317,7 +317,7 @@ func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *Me
 	return id, o.StoreWithID(entity, id, metadata)
 }
 
-func (o *BulkInsertOperation) GetId(entity interface{}) string {
+func (o *BulkInsertOperation) GetID(entity interface{}) string {
 	idRef, ok := o._generateEntityIdOnTheClient.tryGetIdFromInstance(entity)
 	if ok {
 		return idRef

@@ -37,8 +37,8 @@ func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(
 	}
 
 	session := o.delegate.InMemoryDocumentSessionOperations
-	op := NewLoadOperation(session).byId(id)
-	lazyLoadOperation := NewLazyLoadOperation(clazz, session, op).byId(id)
+	op := NewLoadOperation(session).byID(id)
+	lazyLoadOperation := NewLazyLoadOperation(clazz, session, op).byID(id)
 	return o.delegate.addLazyOperation(clazz, lazyLoadOperation, onEval)
 }
 

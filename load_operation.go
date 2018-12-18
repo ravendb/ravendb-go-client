@@ -35,7 +35,7 @@ func (o *LoadOperation) CreateRequest() *GetDocumentsCommand {
 	return NewGetDocumentsCommand(o._idsToCheckOnServer, o._includes, false)
 }
 
-func (o *LoadOperation) byId(id string) *LoadOperation {
+func (o *LoadOperation) byID(id string) *LoadOperation {
 	if id == "" {
 		return o
 	}
@@ -70,7 +70,7 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 			continue
 		}
 		seen[idl] = struct{}{}
-		o.byId(id)
+		o.byID(id)
 	}
 	return o
 }

@@ -10,14 +10,14 @@ type PutAttachmentCommandData struct {
 
 var _ ICommandData = &PutAttachmentCommandData{} // verify interface match
 
-func NewPutAttachmentCommandData(documentId string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommandData {
-	panicIf(documentId == "", "DocumentId cannot be empty")
+func NewPutAttachmentCommandData(documentID string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommandData {
+	panicIf(documentID == "", "DocumentId cannot be empty")
 	panicIf(name == "", "Name cannot be empty")
 
 	res := &PutAttachmentCommandData{
 		CommandData: &CommandData{
 			Type:         CommandType_ATTACHMENT_PUT,
-			ID:           documentId,
+			ID:           documentID,
 			Name:         name,
 			ChangeVector: changeVector,
 		},

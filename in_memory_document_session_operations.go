@@ -72,7 +72,7 @@ type InMemoryDocumentSessionOperations struct {
 	deferredCommands []ICommandData
 
 	// Note: using value type so that lookups are based on value
-	deferredCommandsMap map[IdTypeAndName]ICommandData
+	deferredCommandsMap map[idTypeAndName]ICommandData
 
 	generateEntityIdOnTheClient *GenerateEntityIdOnTheClient
 	entityToJson                *EntityToJson
@@ -100,7 +100,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		databaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
-		deferredCommandsMap:           make(map[IdTypeAndName]ICommandData),
+		deferredCommandsMap:           make(map[idTypeAndName]ICommandData),
 	}
 
 	genIDFunc := func(entity interface{}) string {
@@ -624,7 +624,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		s.generateEntityIdOnTheClient.trySetIdentity(entity, id)
 	}
 
-	tmp := NewIdTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
+	tmp := newIDTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
 	if _, ok := s.deferredCommandsMap[tmp]; ok {
 		return NewIllegalStateException("Can't Store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
@@ -695,7 +695,7 @@ func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*SaveChange
 	result := NewSaveChangesData(s)
 
 	s.deferredCommands = nil
-	s.deferredCommandsMap = make(map[IdTypeAndName]ICommandData)
+	s.deferredCommandsMap = make(map[idTypeAndName]ICommandData)
 
 	err := s.prepareForEntitiesDeletion(result, nil)
 	if err != nil {
@@ -761,7 +761,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			docChanges = append(docChanges, change)
 			changes[documentInfo.id] = docChanges
 		} else {
-			idType := NewIdTypeAndName(documentInfo.id, CommandType_CLIENT_ANY_COMMAND, "")
+			idType := newIDTypeAndName(documentInfo.id, CommandType_CLIENT_ANY_COMMAND, "")
 			command := result.GetDeferredCommandsMap()[idType]
 			if command != nil {
 				err := s.throwInvalidDeletedDocumentWithDeferredCommand(command)
@@ -821,7 +821,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			continue
 		}
 
-		idType := NewIdTypeAndName(entityValue.id, CommandType_CLIENT_NOT_ATTACHMENT, "")
+		idType := newIDTypeAndName(entityValue.id, CommandType_CLIENT_NOT_ATTACHMENT, "")
 		command := result.deferredCommandsMap[idType]
 		if command != nil {
 			err := s.throwInvalidModifiedDocumentWithDeferredCommand(command)
@@ -977,15 +977,15 @@ func (s *InMemoryDocumentSessionOperations) DeferMany(commands []ICommandData) {
 }
 
 func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) {
-	idType := NewIdTypeAndName(command.getId(), command.getType(), command.GetName())
+	idType := newIDTypeAndName(command.getId(), command.getType(), command.GetName())
 	s.deferredCommandsMap[idType] = command
-	idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+	idType = newIDTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
 	s.deferredCommandsMap[idType] = command
 
 	cmdType := command.getType()
 	isAttachmentCmd := (cmdType == CommandType_ATTACHMENT_PUT) || (cmdType == CommandType_ATTACHMENT_DELETE)
 	if !isAttachmentCmd {
-		idType = NewIdTypeAndName(command.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
+		idType = newIDTypeAndName(command.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
 		s.deferredCommandsMap[idType] = command
 	}
 }
@@ -1264,7 +1264,7 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 
 type SaveChangesData struct {
 	deferredCommands    []ICommandData
-	deferredCommandsMap map[IdTypeAndName]ICommandData
+	deferredCommandsMap map[idTypeAndName]ICommandData
 	sessionCommands     []ICommandData
 	entities            []interface{}
 	options             *BatchOptions
@@ -1294,7 +1294,7 @@ func (d *SaveChangesData) GetOptions() *BatchOptions {
 	return d.options
 }
 
-func (d *SaveChangesData) GetDeferredCommandsMap() map[IdTypeAndName]ICommandData {
+func (d *SaveChangesData) GetDeferredCommandsMap() map[idTypeAndName]ICommandData {
 	return d.deferredCommandsMap
 }
 
@@ -1310,8 +1310,8 @@ func copyDeferredCommands(in []ICommandData) []ICommandData {
 	return append([]ICommandData(nil), in...)
 }
 
-func copyDeferredCommandsMap(in map[IdTypeAndName]ICommandData) map[IdTypeAndName]ICommandData {
-	res := map[IdTypeAndName]ICommandData{}
+func copyDeferredCommandsMap(in map[idTypeAndName]ICommandData) map[idTypeAndName]ICommandData {
+	res := map[idTypeAndName]ICommandData{}
 	for k, v := range in {
 		res[k] = v
 	}

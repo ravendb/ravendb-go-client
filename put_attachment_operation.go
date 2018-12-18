@@ -13,16 +13,16 @@ var (
 type PutAttachmentOperation struct {
 	Command *PutAttachmentCommand
 
-	_documentId   string
+	_documentID   string
 	_name         string
 	_stream       io.Reader
 	_contentType  string
 	_changeVector *string
 }
 
-func NewPutAttachmentOperation(documentId string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentOperation {
+func NewPutAttachmentOperation(documentID string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentOperation {
 	return &PutAttachmentOperation{
-		_documentId:   documentId,
+		_documentID:   documentID,
 		_name:         name,
 		_stream:       stream,
 		_contentType:  contentType,
@@ -31,7 +31,7 @@ func NewPutAttachmentOperation(documentId string, name string, stream io.Reader,
 }
 
 func (o *PutAttachmentOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewPutAttachmentCommand(o._documentId, o._name, o._stream, o._contentType, o._changeVector)
+	o.Command = NewPutAttachmentCommand(o._documentID, o._name, o._stream, o._contentType, o._changeVector)
 	return o.Command
 }
 
@@ -40,7 +40,7 @@ var _ RavenCommand = &PutAttachmentCommand{}
 type PutAttachmentCommand struct {
 	RavenCommandBase
 
-	_documentId   string
+	_documentID   string
 	_name         string
 	_stream       io.Reader
 	_contentType  string
@@ -50,12 +50,12 @@ type PutAttachmentCommand struct {
 }
 
 // TODO: should stream be io.ReadCloser? Who owns closing the attachment
-func NewPutAttachmentCommand(documentId string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommand {
+func NewPutAttachmentCommand(documentID string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommand {
 	// TODO: validation
 	cmd := &PutAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_documentId:   documentId,
+		_documentID:   documentID,
 		_name:         name,
 		_stream:       stream,
 		_contentType:  contentType,
@@ -67,7 +67,7 @@ func NewPutAttachmentCommand(documentId string, name string, stream io.Reader, c
 var noReader = true
 
 func (c *PutAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentID) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	if stringIsNotEmpty(c._contentType) {
 		url += "&contentType=" + UrlUtils_escapeDataString(c._contentType)

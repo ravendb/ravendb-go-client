@@ -35,7 +35,7 @@ type DocumentConventions struct {
 	// without explicit page size set
 	RaiseIfQueryPageSizeIsNotSet bool // TODO: rename to ErrorIfQueryPageSizeIsNotSet
 
-	_documentIdGenerator DocumentIDGeneratorFunc
+	_documentIDGenerator DocumentIDGeneratorFunc
 
 	_readBalanceBehavior                            ReadBalanceBehavior
 	_transformClassCollectionNameToDocumentIdPrefix func(string) string
@@ -164,16 +164,16 @@ func (c *DocumentConventions) GetIdentityProperty(clazz reflect.Type) string {
 }
 
 func (c *DocumentConventions) GetDocumentIdGenerator() DocumentIDGeneratorFunc {
-	return c._documentIdGenerator
+	return c._documentIDGenerator
 }
 
-func (c *DocumentConventions) SetDocumentIdGenerator(documentIdGenerator DocumentIDGeneratorFunc) {
-	c._documentIdGenerator = documentIdGenerator
+func (c *DocumentConventions) SetDocumentIdGenerator(documentIDGenerator DocumentIDGeneratorFunc) {
+	c._documentIDGenerator = documentIDGenerator
 }
 
 // Generates the document id.
 func (c *DocumentConventions) GenerateDocumentId(databaseName string, entity interface{}) string {
-	return c._documentIdGenerator(databaseName, entity)
+	return c._documentIDGenerator(databaseName, entity)
 }
 
 func (c *DocumentConventions) IsDisableTopologyUpdates() bool {

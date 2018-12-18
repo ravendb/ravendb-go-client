@@ -4,14 +4,14 @@ type BeforeDeleteEventArgs struct {
 	_documentMetadata *MetadataAsDictionary
 
 	session    *InMemoryDocumentSessionOperations
-	documentId string
+	documentID string
 	entity     interface{}
 }
 
-func NewBeforeDeleteEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity interface{}) *BeforeDeleteEventArgs {
+func NewBeforeDeleteEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *BeforeDeleteEventArgs {
 	return &BeforeDeleteEventArgs{
 		session:    session,
-		documentId: documentId,
+		documentID: documentID,
 		entity:     entity,
 	}
 }
@@ -21,7 +21,7 @@ func (a *BeforeDeleteEventArgs) getSession() *InMemoryDocumentSessionOperations 
 }
 
 func (a *BeforeDeleteEventArgs) GetDocumentID() string {
-	return a.documentId
+	return a.documentID
 }
 
 func (a *BeforeDeleteEventArgs) getEntity() interface{} {

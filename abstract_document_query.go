@@ -1765,8 +1765,8 @@ func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
 	q.selectTokens = append(q.selectTokens, FacetToken_createWithFacetBase(facet, add))
 }
 
-func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentId string) {
-	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentId))
+func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentID string) {
+	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentID))
 }
 
 func (q *AbstractDocumentQuery) Lazily() *Lazy {

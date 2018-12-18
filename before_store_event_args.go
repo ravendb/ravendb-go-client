@@ -4,14 +4,14 @@ type BeforeStoreEventArgs struct {
 	_documentMetadata *MetadataAsDictionary
 
 	session    *InMemoryDocumentSessionOperations
-	documentId string
+	documentID string
 	entity     interface{}
 }
 
-func NewBeforeStoreEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity interface{}) *BeforeStoreEventArgs {
+func NewBeforeStoreEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *BeforeStoreEventArgs {
 	return &BeforeStoreEventArgs{
 		session:    session,
-		documentId: documentId,
+		documentID: documentID,
 		entity:     entity,
 	}
 }
@@ -21,7 +21,7 @@ func (a *BeforeStoreEventArgs) getSession() *InMemoryDocumentSessionOperations {
 }
 
 func (a *BeforeStoreEventArgs) GetDocumentID() string {
-	return a.documentId
+	return a.documentID
 }
 
 func (a *BeforeStoreEventArgs) getEntity() interface{} {

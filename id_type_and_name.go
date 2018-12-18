@@ -1,20 +1,15 @@
 package ravendb
 
-type IdTypeAndName struct {
+type idTypeAndName struct {
 	id   string
 	typ  CommandType
 	name string
 }
 
-func NewIdTypeAndName(id string, typ CommandType, name string) IdTypeAndName {
-	return IdTypeAndName{
+func newIDTypeAndName(id string, typ CommandType, name string) idTypeAndName {
+	return idTypeAndName{
 		id:   id,
 		typ:  typ,
 		name: name,
 	}
-}
-
-// TODO: use NewIdTypeAndName instead
-func IdTypeAndName_create(id string, typ CommandType, name string) IdTypeAndName {
-	return NewIdTypeAndName(id, typ, name)
 }

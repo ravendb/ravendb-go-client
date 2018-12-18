@@ -51,32 +51,32 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 
 // contentType is optional
 // TODO: maybe split into Store() and storeWithContentType()
-func (s *DocumentSessionAttachmentsBase) Store(documentId string, name string, stream io.Reader, contentType string) error {
+func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, stream io.Reader, contentType string) error {
 	// TODO: validate args
 
 	deferredCommandsMap := s.deferredCommandsMap
 
-	key := IdTypeAndName_create(documentId, CommandType_DELETE, "")
+	key := newIDTypeAndName(documentID, CommandType_DELETE, "")
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered for this document to be deleted")
+		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentID + ", there is a deferred command registered for this document to be deleted")
 	}
 
-	key = IdTypeAndName_create(documentId, CommandType_ATTACHMENT_PUT, name)
+	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_PUT, name)
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered to create an attachment with the same name.")
+		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentID + ", there is a deferred command registered to create an attachment with the same name.")
 	}
 
-	key = IdTypeAndName_create(documentId, CommandType_ATTACHMENT_DELETE, name)
+	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_DELETE, name)
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentId + ", there is a deferred command registered to delete an attachment with the same name.")
+		return NewIllegalStateException("Cannot Store attachment" + name + " of document " + documentID + ", there is a deferred command registered to delete an attachment with the same name.")
 	}
 
-	documentInfo := s.documentsByID.getValue(documentId)
+	documentInfo := s.documentsByID.getValue(documentID)
 	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
-		return NewIllegalStateException("Cannot Store attachment " + name + " of document " + documentId + ", the document was already deleted in this session.")
+		return NewIllegalStateException("Cannot Store attachment " + name + " of document " + documentID + ", the document was already deleted in this session.")
 	}
 
-	cmdData := NewPutAttachmentCommandData(documentId, name, stream, contentType, nil)
+	cmdData := NewPutAttachmentCommandData(documentID, name, stream, contentType, nil)
 	s.DeferMany([]ICommandData{cmdData})
 	return nil
 }
@@ -102,36 +102,36 @@ func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name s
 }
 
 // Delete deletes entity with a given i
-func (s *DocumentSessionAttachmentsBase) Delete(documentId string, name string) error {
+func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) error {
 	// TODO: validate args
 
 	deferredCommandsMap := s.deferredCommandsMap
 
-	key := IdTypeAndName_create(documentId, CommandType_DELETE, "")
+	key := newIDTypeAndName(documentID, CommandType_DELETE, "")
 	if _, ok := deferredCommandsMap[key]; ok {
 		return nil // no-op
 	}
 
-	key = IdTypeAndName_create(documentId, CommandType_ATTACHMENT_DELETE, name)
+	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_DELETE, name)
 	if _, ok := deferredCommandsMap[key]; ok {
 		return nil // no-op
 	}
 
-	documentInfo := s.documentsByID.getValue(documentId)
+	documentInfo := s.documentsByID.getValue(documentID)
 	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
 		return nil //no-op
 	}
 
-	key = IdTypeAndName_create(documentId, CommandType_ATTACHMENT_PUT, name)
+	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_PUT, name)
 	if _, ok := deferredCommandsMap[key]; ok {
-		return NewIllegalStateException("Cannot delete attachment " + name + " of document " + documentId + ", there is a deferred command registered to create an attachment with the same name.")
+		return NewIllegalStateException("Cannot delete attachment " + name + " of document " + documentID + ", there is a deferred command registered to create an attachment with the same name.")
 	}
 
-	cmdData := NewDeleteAttachmentCommandData(documentId, name, nil)
+	cmdData := NewDeleteAttachmentCommandData(documentID, name, nil)
 	s.DeferMany([]ICommandData{cmdData})
 	return nil
 }
 
 func throwEntityNotInSession(entity interface{}) *IllegalArgumentException {
-	return NewIllegalArgumentException("%v is not associated with the session. Use documentId instead or track the entity in the session.", entity)
+	return NewIllegalArgumentException("%v is not associated with the session. Use documentID instead or track the entity in the session.", entity)
 }

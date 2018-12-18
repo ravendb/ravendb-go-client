@@ -12,8 +12,8 @@ func NewDocumentSessionAttachments(session *InMemoryDocumentSessionOperations) *
 	return res
 }
 
-func (s *DocumentSessionAttachments) Exists(documentId string, name string) (bool, error) {
-	command := NewHeadAttachmentCommand(documentId, name, nil)
+func (s *DocumentSessionAttachments) Exists(documentID string, name string) (bool, error) {
+	command := NewHeadAttachmentCommand(documentID, name, nil)
 	err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return false, err
@@ -22,8 +22,8 @@ func (s *DocumentSessionAttachments) Exists(documentId string, name string) (boo
 	return res, nil
 }
 
-func (s *DocumentSessionAttachments) Get(documentId string, name string) (*CloseableAttachmentResult, error) {
-	operation := NewGetAttachmentOperation(documentId, name, AttachmentType_DOCUMENT, "", nil)
+func (s *DocumentSessionAttachments) Get(documentID string, name string) (*CloseableAttachmentResult, error) {
+	operation := NewGetAttachmentOperation(documentID, name, AttachmentType_DOCUMENT, "", nil)
 	err := s.session.GetOperations().SendWithSessionInfo(operation, s.sessionInfo)
 	if err != nil {
 		return nil, err
@@ -40,8 +40,8 @@ func (s *DocumentSessionAttachments) GetEntity(entity interface{}, name string) 
 	return s.Get(document.id, name)
 }
 
-func (s *DocumentSessionAttachments) GetRevision(documentId string, name string, changeVector *string) (*CloseableAttachmentResult, error) {
-	operation := NewGetAttachmentOperation(documentId, name, AttachmentType_REVISION, "", changeVector)
+func (s *DocumentSessionAttachments) GetRevision(documentID string, name string, changeVector *string) (*CloseableAttachmentResult, error) {
+	operation := NewGetAttachmentOperation(documentID, name, AttachmentType_REVISION, "", changeVector)
 	err := s.session.GetOperations().SendWithSessionInfo(operation, s.sessionInfo)
 	if err != nil {
 		return nil, err

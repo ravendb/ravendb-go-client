@@ -14,7 +14,7 @@ type Operation struct {
 	IsServerWide bool
 }
 
-func (o *Operation) GetId() int {
+func (o *Operation) GetID() int {
 	return o._id
 }
 

@@ -5,11 +5,11 @@ type DeleteAttachmentCommandData struct {
 }
 
 // NewDeleteAttachmentCommandData creates CommandData for Delete Attachment command
-func NewDeleteAttachmentCommandData(documentId string, name string, changeVector *string) *DeleteAttachmentCommandData {
+func NewDeleteAttachmentCommandData(documentID string, name string, changeVector *string) *DeleteAttachmentCommandData {
 	res := &DeleteAttachmentCommandData{
 		&CommandData{
 			Type:         CommandType_DELETE,
-			ID:           documentId,
+			ID:           documentID,
 			Name:         name,
 			ChangeVector: changeVector,
 		},

@@ -4,14 +4,14 @@ type AfterSaveChangesEventArgs struct {
 	_documentMetadata *MetadataAsDictionary
 
 	Session    *InMemoryDocumentSessionOperations
-	DocumentId string
+	DocumentID string
 	Entity     interface{}
 }
 
-func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentId string, entity interface{}) *AfterSaveChangesEventArgs {
+func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *AfterSaveChangesEventArgs {
 	return &AfterSaveChangesEventArgs{
 		Session:    session,
-		DocumentId: documentId,
+		DocumentID: documentID,
 		Entity:     entity,
 	}
 }

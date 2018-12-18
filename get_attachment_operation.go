@@ -12,15 +12,15 @@ var (
 type GetAttachmentOperation struct {
 	Command *GetAttachmentCommand
 
-	_documentId   string
+	_documentID   string
 	_name         string
 	_type         AttachmentType
 	_changeVector *string
 }
 
-func NewGetAttachmentOperation(documentId string, name string, typ AttachmentType, contentType string, changeVector *string) *GetAttachmentOperation {
+func NewGetAttachmentOperation(documentID string, name string, typ AttachmentType, contentType string, changeVector *string) *GetAttachmentOperation {
 	return &GetAttachmentOperation{
-		_documentId:   documentId,
+		_documentID:   documentID,
 		_name:         name,
 		_type:         typ,
 		_changeVector: changeVector,
@@ -28,7 +28,7 @@ func NewGetAttachmentOperation(documentId string, name string, typ AttachmentTyp
 }
 
 func (o *GetAttachmentOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewGetAttachmentCommand(o._documentId, o._name, o._type, o._changeVector)
+	o.Command = NewGetAttachmentCommand(o._documentID, o._name, o._type, o._changeVector)
 	return o.Command
 }
 
@@ -37,7 +37,7 @@ var _ RavenCommand = &GetAttachmentCommand{}
 type GetAttachmentCommand struct {
 	RavenCommandBase
 
-	_documentId   string
+	_documentID   string
 	_name         string
 	_type         AttachmentType
 	_changeVector *string
@@ -46,12 +46,12 @@ type GetAttachmentCommand struct {
 }
 
 // TODO: should stream be io.ReadCloser? Who owns closing the attachment
-func NewGetAttachmentCommand(documentId string, name string, typ AttachmentType, changeVector *string) *GetAttachmentCommand {
+func NewGetAttachmentCommand(documentID string, name string, typ AttachmentType, changeVector *string) *GetAttachmentCommand {
 	// TODO: validation
 	cmd := &GetAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_documentId:   documentId,
+		_documentID:   documentID,
 		_name:         name,
 		_type:         typ,
 		_changeVector: changeVector,
@@ -61,7 +61,7 @@ func NewGetAttachmentCommand(documentId string, name string, typ AttachmentType,
 }
 
 func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentID) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	if c._type == AttachmentType_REVISION {
 		m := map[string]interface{}{
@@ -96,7 +96,7 @@ func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.
 			Size:        size,
 		},
 		ChangeVector: changeVector,
-		DocumentID:   c._documentId,
+		DocumentID:   c._documentID,
 	}
 
 	c.Result = NewCloseableAttachmentResult(response, attachmentDetails)

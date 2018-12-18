@@ -7,7 +7,7 @@ type GetConflictsResult struct {
 }
 
 /*
-   public String GetId() {
+   public String GetID() {
        return id;
    }
 

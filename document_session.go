@@ -276,7 +276,7 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	}
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 
-	loadOperation.byId(id)
+	loadOperation.byID(id)
 
 	command := loadOperation.CreateRequest()
 
@@ -504,7 +504,7 @@ func removeDeferredCommand(a []ICommandData, el ICommandData) []ICommandData {
 }
 
 func (s *DocumentSession) tryMergePatches(id string, patchRequest *PatchRequest) bool {
-	idType := IdTypeAndName_create(id, CommandType_PATCH, "")
+	idType := newIDTypeAndName(id, CommandType_PATCH, "")
 	command := s.deferredCommandsMap[idType]
 	if command == nil {
 		return false

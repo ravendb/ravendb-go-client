@@ -11,19 +11,19 @@ var (
 type HeadAttachmentCommand struct {
 	RavenCommandBase
 
-	_documentId   string
+	_documentID   string
 	_name         string
 	_changeVector *string
 
 	Result string // TODO: should this be *string?
 }
 
-func NewHeadAttachmentCommand(documentId string, name string, changeVector *string) *HeadAttachmentCommand {
+func NewHeadAttachmentCommand(documentID string, name string, changeVector *string) *HeadAttachmentCommand {
 	// TODO: validation
 	cmd := &HeadAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_documentId:   documentId,
+		_documentID:   documentID,
 		_name:         name,
 		_changeVector: changeVector,
 	}
@@ -31,7 +31,7 @@ func NewHeadAttachmentCommand(documentId string, name string, changeVector *stri
 }
 
 func (c *HeadAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentId) + "&name=" + UrlUtils_escapeDataString(c._name)
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentID) + "&name=" + UrlUtils_escapeDataString(c._name)
 
 	request, err := NewHttpGet(url)
 	if err != nil {

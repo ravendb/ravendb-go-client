@@ -13,13 +13,13 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, d
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	documentId := "users/1"
+	documentID := "users/1"
 	{
 		session := openSessionMust(t, store)
 		user := &User{}
 		user.setName("Grisha")
 
-		err = session.StoreWithID(user, documentId)
+		err = session.StoreWithID(user, documentID)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -28,7 +28,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, d
 
 	{
 		session := openSessionMust(t, store)
-		err = session.Delete(documentId)
+		err = session.Delete(documentID)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -38,7 +38,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, d
 	{
 		session := openSessionMust(t, store)
 		var user *User
-		err = session.Load(&user, documentId)
+		err = session.Load(&user, documentID)
 		assert.NoError(t, err)
 		assert.Nil(t, user)
 		session.Close()
@@ -48,7 +48,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, d
 		session := openSessionMust(t, store)
 		person := &Person{}
 		person.setName("Grisha")
-		err = session.StoreWithID(person, documentId)
+		err = session.StoreWithID(person, documentID)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
