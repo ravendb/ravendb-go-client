@@ -15,8 +15,8 @@ type DatabaseConnectionState struct {
 	_onDisconnect Runnable
 	onConnect     Runnable
 
-	_value        atomicInteger
-	lastException error
+	_value    atomicInteger
+	lastError error
 
 	onDocumentChangeNotification        []func(interface{})
 	onIndexChangeNotification           []func(interface{})
@@ -54,7 +54,7 @@ func (s *DatabaseConnectionState) dec() {
 func (s *DatabaseConnectionState) error(e error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.lastException = e
+	s.lastError = e
 	for _, f := range s.onError {
 		if f != nil {
 			f(e)

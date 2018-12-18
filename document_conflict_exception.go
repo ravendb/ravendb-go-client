@@ -7,7 +7,7 @@ type DocumentConflictError struct {
 	LargestEtag int
 }
 
-func NewDocumentConflictError(message string, docID string, etag int) *DocumentConflictError {
+func newDocumentConflictError(message string, docID string, etag int) *DocumentConflictError {
 	res := &DocumentConflictError{}
 	res.ConflictException = NewConflictException("%s", message)
 	res.DocID = docID
@@ -15,11 +15,11 @@ func NewDocumentConflictError(message string, docID string, etag int) *DocumentC
 	return res
 }
 
-func NewDocumentConflictErrorFromMessage(message string) *DocumentConflictError {
-	return NewDocumentConflictError(message, "", 0)
+func newDocumentConflictErrorFromMessage(message string) *DocumentConflictError {
+	return newDocumentConflictError(message, "", 0)
 }
 
-func NewDocumentConflictErrorFromJSON(js string) error {
+func newDocumentConflictErrorFromJSON(js string) error {
 	var jsonNode map[string]interface{}
 	err := jsonUnmarshal([]byte(js), &jsonNode)
 	if err != nil {
@@ -29,5 +29,5 @@ func NewDocumentConflictErrorFromJSON(js string) error {
 	message, _ := JsonGetAsText(jsonNode, "Message")
 	largestEtag, _ := jsonGetAsInt(jsonNode, "LargestEtag")
 
-	return NewDocumentConflictError(message, docID, largestEtag)
+	return newDocumentConflictError(message, docID, largestEtag)
 }

@@ -85,7 +85,7 @@ func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
 		}
 
 		assert.Error(t, err)
-		_, ok := err.(*ravendb.BulkInsertAbortedException)
+		_, ok := err.(*ravendb.BulkInsertAbortedError)
 		assert.True(t, ok)
 	}
 }

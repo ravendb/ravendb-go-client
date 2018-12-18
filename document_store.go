@@ -446,11 +446,11 @@ func (s *DocumentStore) createDatabaseChanges(database string) IDatabaseChanges 
 	return NewDatabaseChanges(re, database, onDispose)
 }
 
-func (s *DocumentStore) GetLastDatabaseChangesStateException() error {
-	return s.GetLastDatabaseChangesStateExceptionWithDatabaseName("")
+func (s *DocumentStore) GetLastDatabaseChangesStateError() error {
+	return s.GetLastDatabaseChangesStateErrorWithDatabaseName("")
 }
 
-func (s *DocumentStore) GetLastDatabaseChangesStateExceptionWithDatabaseName(database string) error {
+func (s *DocumentStore) GetLastDatabaseChangesStateErrorWithDatabaseName(database string) error {
 	if database == "" {
 		database = s.GetDatabase()
 	}
@@ -463,7 +463,7 @@ func (s *DocumentStore) GetLastDatabaseChangesStateExceptionWithDatabaseName(dat
 		return nil
 	}
 	ch := databaseChanges.(*DatabaseChanges)
-	return ch.getLastConnectionStateException()
+	return ch.getLastConnectionStateError()
 }
 
 func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) io.Closer {

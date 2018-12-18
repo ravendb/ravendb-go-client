@@ -111,17 +111,17 @@ func (o *BulkInsertOperation) SetUseCompression(useCompression bool) {
 }
 
 func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) error {
-	err := error(o.getExceptionFromOperation())
+	err := error(o.getErrorFromOperation())
 	if err == nil {
 		err = e
 	}
 	if err == nil {
 		err = flushEx
 	}
-	return NewBulkInsertAbortedException("Failed to execute bulk insert, error: %s", err)
+	return newBulkInsertAbortedError("Failed to execute bulk insert, error: %s", err)
 }
 
-func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedException {
+func (o *BulkInsertOperation) getErrorFromOperation() *BulkInsertAbortedError {
 	stateRequest := NewGetOperationStateCommand(o._requestExecutor.GetConventions(), o._operationID)
 	err := o._requestExecutor.ExecuteCommand(stateRequest)
 	if err != nil {
@@ -133,7 +133,7 @@ func (o *BulkInsertOperation) getExceptionFromOperation() *BulkInsertAbortedExce
 			typ, _ := jsonGetAsString(result, "$type")
 			if strings.HasPrefix(typ, "Raven.Client.Documents.Operations.OperationExceptionResult") {
 				errStr, _ := jsonGetAsString(result, "Error")
-				return NewBulkInsertAbortedException(errStr)
+				return newBulkInsertAbortedError(errStr)
 			}
 		}
 	}
@@ -225,7 +225,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 
 	_, o.err = o._currentWriter.Write(b.Bytes())
 	if o.err != nil {
-		err = o.getExceptionFromOperation()
+		err = o.getErrorFromOperation()
 		if err != nil {
 			o.err = err
 			return o.err
@@ -271,9 +271,9 @@ func (o *BulkInsertOperation) Abort() error {
 	err = o._requestExecutor.ExecuteCommand(command)
 	//o._currentWriter.Close()
 	if err != nil {
-		return NewBulkInsertAbortedException("%s", "Unable to kill ths bulk insert operation, because it was not found on the server.")
+		return newBulkInsertAbortedError("%s", "Unable to kill ths bulk insert operation, because it was not found on the server.")
 	}
-	o._currentWriter.CloseWithError(NewBulkInsertAbortedException("killed operation"))
+	o._currentWriter.CloseWithError(newBulkInsertAbortedError("killed operation"))
 	return nil
 }
 
@@ -332,11 +332,11 @@ func (o *BulkInsertOperation) GetID(entity interface{}) string {
 
 func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error) error {
 	// TODO: not sure how this translates
-	//_streamExposerContent.errorOnProcessingRequest(new BulkInsertAbortedException("Write to stream failed at document with id " + id, innerEx))
+	//_streamExposerContent.errorOnProcessingRequest(new BulkInsertAbortedError("Write to stream failed at document with id " + id, innerEx))
 
 	_, err := o._bulkInsertExecuteTask.Get()
 	if err != nil {
-		return ExceptionsUtils_unwrapException(err)
+		return unwrapError(err)
 	}
 	return nil
 }

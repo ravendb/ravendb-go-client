@@ -141,11 +141,11 @@ func (c *DatabaseChanges) ForIndex(indexName string) (IChangesObservable, error)
 	return taskedObservable, nil
 }
 
-func (c *DatabaseChanges) getLastConnectionStateException() error {
+func (c *DatabaseChanges) getLastConnectionStateError() error {
 	for _, counter := range c._counters {
-		valueLastException := counter.lastException
-		if valueLastException != nil {
-			return valueLastException
+		valueLastError := counter.lastError
+		if valueLastError != nil {
+			return valueLastError
 		}
 	}
 	return nil

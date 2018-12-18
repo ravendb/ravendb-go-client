@@ -1,11 +1,12 @@
 package ravendb
 
-type BulkInsertAbortedException struct {
+// BulkInsertAbortedError represents "bulk insert aborted" error
+type BulkInsertAbortedError struct {
 	RavenError
 }
 
-func NewBulkInsertAbortedException(format string, args ...interface{}) *BulkInsertAbortedException {
-	res := &BulkInsertAbortedException{
+func newBulkInsertAbortedError(format string, args ...interface{}) *BulkInsertAbortedError {
+	res := &BulkInsertAbortedError{
 		RavenError: *newRavenError(format, args...),
 	}
 	return res

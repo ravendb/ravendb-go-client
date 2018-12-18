@@ -229,7 +229,7 @@ func RequestExecutor_createForSingleNodeWithConfigurationUpdates(url string, dat
 }
 
 func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
-	initialUrls := RequestExecutor_validateUrls([]string{url}, certificate)
+	initialUrls := requestExecutorValidateUrls([]string{url}, certificate)
 	executor := NewRequestExecutor(databaseName, certificate, conventions, initialUrls)
 
 	topology := NewTopology()
@@ -252,7 +252,7 @@ func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, 
 func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 
 	initialUrls := []string{url}
-	url = RequestExecutor_validateUrls(initialUrls, certificate)[0]
+	url = requestExecutorValidateUrls(initialUrls, certificate)[0]
 
 	if conventions == nil {
 		conventions = DocumentConventions_defaultConventions()
@@ -591,7 +591,7 @@ type Tuple_String_Error struct {
 }
 
 func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableFuture {
-	initialUrls := RequestExecutor_validateUrls(inputUrls, re.certificate)
+	initialUrls := requestExecutorValidateUrls(inputUrls, re.certificate)
 
 	future := NewCompletableFuture()
 	var list []*Tuple_String_Error
@@ -662,19 +662,19 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 			a = append(a, s)
 		}
 		details := strings.Join(a, ", ")
-		err = re.throwExceptions(details)
+		err = re.throwError(details)
 		return
 	}
 	go f()
 	return future
 }
 
-func (re *RequestExecutor) throwExceptions(details string) error {
+func (re *RequestExecutor) throwError(details string) error {
 	err := newIllegalStateError("Failed to retrieve database topology from all known nodes \n" + details)
 	return err
 }
 
-func RequestExecutor_validateUrls(initialUrls []string, certificate *KeyStore) []string {
+func requestExecutorValidateUrls(initialUrls []string, certificate *KeyStore) []string {
 	// TODO: implement me
 	return initialUrls
 }
