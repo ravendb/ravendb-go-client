@@ -13,7 +13,7 @@ type PutClientConfigurationOperation struct {
 
 func NewPutClientConfigurationOperation(configuration *ClientConfiguration) (*PutClientConfigurationOperation, error) {
 	if configuration == nil {
-		return nil, NewIllegalArgumentException("Configuration cannot be null")
+		return nil, newIllegalArgumentError("Configuration cannot be null")
 	}
 
 	return &PutClientConfigurationOperation{

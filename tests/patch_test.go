@@ -99,7 +99,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T, driver *RavenTestDriver) {
 
 	err = op.WaitForCompletion()
 	assert.Error(t, err)
-	// TODO: make sure it's an instance of JavaScriptException ? Currently is RavenException
+	// TODO: make sure it's an instance of JavaScriptException ? Currently is RavenError
 	assert.True(t, strings.Contains(err.Error(), "Raven.Client.Exceptions.Documents.Patching.JavaScriptException"))
 
 }

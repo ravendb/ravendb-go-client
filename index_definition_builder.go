@@ -37,7 +37,7 @@ func NewIndexDefinitionBuilder(indexName string) *IndexDefinitionBuilder {
 func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventions, validateMap bool) *IndexDefinition {
 	if d.smap == "" && validateMap {
 		panicIf(true, "Map is required to generate an index, you cannot create an index without a valid Map property (in index "+d._indexName+").")
-		// TODO: return error IllegalStateException("Map is required to generate an index, you cannot create an index without a valid Map property (in index " + _indexName + ").");
+		// TODO: return error IllegalStateError("Map is required to generate an index, you cannot create an index without a valid Map property (in index " + _indexName + ").");
 	}
 
 	indexDefinition := NewIndexDefinition()

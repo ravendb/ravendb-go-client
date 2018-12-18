@@ -43,7 +43,7 @@ func createFromToken(indexName string, collectionName string, alias string) *fro
 func (t *fromToken) writeTo(writer *strings.Builder) {
 	if t.indexName == "" && t.collectionName == "" {
 		panicIf(true, "Either indexName or collectionName must be specified")
-		// NewIllegalStateException("Either indexName or collectionName must be specified");
+		// newIllegalStateError("Either indexName or collectionName must be specified");
 	}
 
 	if t.dynamic {
@@ -74,5 +74,5 @@ func (t *fromToken) writeTo(writer *strings.Builder) {
 
 func (t *fromToken) throwInvalidCollectionName() {
 	panicIf(true, "Collection name cannot contain a quote, but was: %s", t.collectionName)
-	// NewIllegalArgumentException("Collection name cannot contain a quote, but was: " + collectionName);
+	// newIllegalArgumentError("Collection name cannot contain a quote, but was: " + collectionName);
 }

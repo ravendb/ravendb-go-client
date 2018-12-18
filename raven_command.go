@@ -56,7 +56,7 @@ func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
 		return throwInvalidResponse()
 	}
 
-	return NewUnsupportedOperationException(c.ResponseType + " command must override the SetResponse method which expects response with the following type: " + c.ResponseType)
+	return newUnsupportedOperationError(c.ResponseType + " command must override the SetResponse method which expects response with the following type: " + c.ResponseType)
 }
 
 // TODO: this is only implemented on MultiGetCommand
@@ -96,7 +96,7 @@ func (c *RavenCommandBase) urlEncode(value string) string {
 
 func ensureIsNotNullOrString(value string, name string) error {
 	if value == "" {
-		return NewIllegalArgumentException("%s cannot be null or empty", name)
+		return newIllegalArgumentError("%s cannot be null or empty", name)
 	}
 	return nil
 }

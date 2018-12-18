@@ -1,12 +1,12 @@
 package ravendb
 
 type BulkInsertAbortedException struct {
-	RavenException
+	RavenError
 }
 
 func NewBulkInsertAbortedException(format string, args ...interface{}) *BulkInsertAbortedException {
 	res := &BulkInsertAbortedException{
-		RavenException: *NewRavenException(format, args...),
+		RavenError: *newRavenError(format, args...),
 	}
 	return res
 }

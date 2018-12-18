@@ -45,7 +45,7 @@ func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 }
 
 func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
-	return NewNotImplementedException("Not implemented")
+	return newNotImplementedError("Not implemented")
 }
 
 // TODO: port this. Currently send can't be over-written
@@ -156,7 +156,7 @@ func (o *BulkInsertOperation) WaitForID() error {
 
 func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadata *MetadataAsDictionary) error {
 	if !o._concurrentCheck.compareAndSet(0, 1) {
-		return NewIllegalStateException("Bulk Insert Store methods cannot be executed concurrently.")
+		return newIllegalStateError("Bulk Insert Store methods cannot be executed concurrently.")
 	}
 	defer o._concurrentCheck.set(0)
 
@@ -343,11 +343,11 @@ func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error)
 
 func bulkInsertOperationVerifyValidID(id string) error {
 	if stringIsEmpty(id) {
-		return NewIllegalStateException("Document id must have a non empty value")
+		return newIllegalStateError("Document id must have a non empty value")
 	}
 
 	if strings.HasSuffix(id, "|") {
-		return NewUnsupportedOperationException("Document ids cannot end with '|', but was called with %s", id)
+		return newUnsupportedOperationError("Document ids cannot end with '|', but was called with %s", id)
 	}
 	return nil
 }

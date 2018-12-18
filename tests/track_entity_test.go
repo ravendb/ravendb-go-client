@@ -17,7 +17,7 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T, dri
 		session := openSessionMust(t, store)
 		err = session.DeleteEntity(&User{})
 		assert.Error(t, err)
-		_ = err.(*ravendb.IllegalStateException)
+		_ = err.(*ravendb.IllegalStateError)
 		msg := err.Error()
 		assert.True(t, strings.HasSuffix(msg, "is not associated with the session, cannot delete unknown entity instance"))
 		session.Close()

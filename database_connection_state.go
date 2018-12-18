@@ -89,7 +89,7 @@ func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handl
 		idx = len(s.onOperationStatusChangeNotification)
 		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, handler)
 	default:
-		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
+		//throw new IllegalStateError("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
 	}
 	return idx
@@ -107,7 +107,7 @@ func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, id
 	case ChangesType_OPERATION:
 		s.onOperationStatusChangeNotification[idx] = nil
 	default:
-		//throw new IllegalStateException("ChangeType: " + type + " is not supported");
+		//throw new IllegalStateError("ChangeType: " + type + " is not supported");
 		panicIf(true, "ChangeType: %s is not supported", typ)
 	}
 }

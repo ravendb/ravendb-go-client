@@ -43,7 +43,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		batchResult := result[i]
 		if batchResult == nil {
 			return
-			//TODO: throw new IllegalArgumentException();
+			//TODO: throw new IllegalArgumentError();
 		}
 		typ, _ := JsonGetAsText(batchResult, "Type")
 		if typ != "PUT" {
@@ -57,12 +57,12 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		changeVector := jsonGetAsTextPointer(batchResult, Constants_Documents_Metadata_CHANGE_VECTOR)
 		if changeVector == nil {
 			return
-			//TODO: throw new IllegalStateException("PUT response is invalid. @change-vector is missing on " + documentInfo.GetID());
+			//TODO: throw new IllegalStateError("PUT response is invalid. @change-vector is missing on " + documentInfo.GetID());
 		}
 		id, _ := JsonGetAsText(batchResult, Constants_Documents_Metadata_ID)
 		if id == "" {
 			return
-			//TODO: throw new IllegalStateException("PUT response is invalid. @id is missing on " + documentInfo.GetID());
+			//TODO: throw new IllegalStateError("PUT response is invalid. @id is missing on " + documentInfo.GetID());
 		}
 
 		for propertyName, v := range batchResult {

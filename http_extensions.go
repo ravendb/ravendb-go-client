@@ -8,7 +8,7 @@ import (
 func HttpExtensions_getRequiredEtagHeader(response *http.Response) (*string, error) {
 	hdr := response.Header.Get(Constants_Headers_ETAG)
 	if hdr == "" {
-		return nil, NewIllegalStateException("Response did't had an ETag header")
+		return nil, newIllegalStateError("Response did't had an ETag header")
 	}
 	etag := HttpExtensions_etagHeaderToChangeVector(hdr)
 	return &etag, nil

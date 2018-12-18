@@ -2,47 +2,47 @@ package ravendb
 
 import "fmt"
 
-type ExceptionBase struct {
+type errorBase struct {
 	ErrorStr string
 }
 
 // Error makes it conform to error interface
-func (e *ExceptionBase) Error() string {
+func (e *errorBase) Error() string {
 	return e.ErrorStr
 }
 
-type RuntimeException struct {
-	ExceptionBase
+type RuntimeError struct {
+	errorBase
 }
 
-func NewRuntimeException(format string, args ...interface{}) *RuntimeException {
-	res := &RuntimeException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+func newRuntimeError(format string, args ...interface{}) *RuntimeError {
+	res := &RuntimeError{}
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
-type RavenException struct {
-	ExceptionBase
+type RavenError struct {
+	errorBase
 }
 
-func NewRavenException(format string, args ...interface{}) *RavenException {
-	res := &RavenException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+func newRavenError(format string, args ...interface{}) *RavenError {
+	res := &RavenError{}
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 type ConflictException struct {
-	RavenException
+	RavenError
 }
 
 func NewConflictException(format string, args ...interface{}) *ConflictException {
 	res := &ConflictException{}
-	res.RavenException = *NewRavenException(format, args...)
+	res.RavenError = *newRavenError(format, args...)
 	return res
 }
 
-type ConcurrencyException struct {
-	RavenException
+type ConcurrencyError struct {
+	RavenError
 
 	ExpectedETag         int
 	ActualETag           int
@@ -50,147 +50,141 @@ type ConcurrencyException struct {
 	ActualChangeVector   string
 }
 
-func NewConcurrencyException(format string, args ...interface{}) *ConcurrencyException {
-	res := &ConcurrencyException{}
-	res.RavenException = *NewRavenException(format, args...)
+func NewConcurrencyError(format string, args ...interface{}) *ConcurrencyError {
+	res := &ConcurrencyError{}
+	res.RavenError = *newRavenError(format, args...)
 	return res
 }
 
-type UnsupportedOperationException struct {
-	ExceptionBase
+type UnsupportedOperationError struct {
+	errorBase
 }
 
-func NewUnsupportedOperationException(format string, args ...interface{}) *UnsupportedOperationException {
-	res := &UnsupportedOperationException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+func newUnsupportedOperationError(format string, args ...interface{}) *UnsupportedOperationError {
+	res := &UnsupportedOperationError{}
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
-// IllegalStateException corresponds to Java's IllegalStateException
-type IllegalStateException struct {
-	ExceptionBase
+type IllegalStateError struct {
+	errorBase
 }
 
-// NewIllegalStateException creates a new IllegalStateError
-func NewIllegalStateException(format string, args ...interface{}) *IllegalStateException {
-	res := &IllegalStateException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+func newIllegalStateError(format string, args ...interface{}) *IllegalStateError {
+	res := &IllegalStateError{}
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
-// IllegalArgumentException corresponds to Java's IllegalArgumentException
-type IllegalArgumentException struct {
-	ExceptionBase
+type IllegalArgumentError struct {
+	errorBase
 }
 
-// NewIllegalArgumentException creates new IllegalArgumentError
-func NewIllegalArgumentException(format string, args ...interface{}) *IllegalArgumentException {
-	res := &IllegalArgumentException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+func newIllegalArgumentError(format string, args ...interface{}) *IllegalArgumentError {
+	res := &IllegalArgumentError{}
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
-// NotImplementedException corresponds to Java's NotImplementedException
-type NotImplementedException struct {
-	ExceptionBase
+type NotImplementedError struct {
+	errorBase
 }
 
-// NewNotImplementedException creates new NotImplementedError
-func NewNotImplementedException(format string, args ...interface{}) *NotImplementedException {
-	res := &NotImplementedException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+func newNotImplementedError(format string, args ...interface{}) *NotImplementedError {
+	res := &NotImplementedError{}
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // NonUniqueObjectException corresponds to Java's NonUniqueObjectException
 type NonUniqueObjectException struct {
-	ExceptionBase
+	errorBase
 }
 
 // NewNonUniqueObjectException creates new NonUniqueObjectError
 func NewNonUniqueObjectException(format string, args ...interface{}) *NonUniqueObjectException {
 	res := &NonUniqueObjectException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // DatabaseDoesNotExistException corresponds to Java's DatabaseDoesNotExistException
 type DatabaseDoesNotExistException struct {
-	ExceptionBase
+	errorBase
 }
 
 // NewDatabaseDoesNotExistException creates new NonUniqueObjectError
 func NewDatabaseDoesNotExistException(format string, args ...interface{}) *DatabaseDoesNotExistException {
 	res := &DatabaseDoesNotExistException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // AllTopologyNodesDownException corresponds to Java's AllTopologyNodesDownException
 type AllTopologyNodesDownException struct {
-	ExceptionBase
+	errorBase
 }
 
 // NewAllTopologyNodesDownException creates new AllTopologyNodesDownException
 func NewAllTopologyNodesDownException(format string, args ...interface{}) *AllTopologyNodesDownException {
 	res := &AllTopologyNodesDownException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // OperationCancelledException corresponds to Java's OperationCancelledException
 type OperationCancelledException struct {
-	ExceptionBase
+	errorBase
 }
 
 // NewOperationCancelledException creates new OperationCancelledException
 func NewOperationCancelledException(format string, args ...interface{}) *OperationCancelledException {
 	res := &OperationCancelledException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // AuthorizationException corresponds to Java's AuthorizationException
 type AuthorizationException struct {
-	ExceptionBase
+	errorBase
 }
 
 func NewAuthorizationException(format string, args ...interface{}) *AuthorizationException {
 	res := &AuthorizationException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // TimeoutException corresponds to Java's TimeoutException
 type TimeoutException struct {
-	ExceptionBase
+	errorBase
 }
 
 func NewTimeoutException(format string, args ...interface{}) *TimeoutException {
 	res := &TimeoutException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // IndexDoesNotExistException corresponds to Java's IndexDoesNotExistException
 type IndexDoesNotExistException struct {
-	ExceptionBase
+	errorBase
 }
 
 func NewIndexDoesNotExistException(format string, args ...interface{}) *IndexDoesNotExistException {
 	res := &IndexDoesNotExistException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 
 // BadResponseException corresponds to Java's BadResponseException
 type BadResponseException struct {
-	ExceptionBase
+	errorBase
 }
 
 func NewBadResponseException(format string, args ...interface{}) *BadResponseException {
 	res := &BadResponseException{}
-	res.ExceptionBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
 	return res
 }
 

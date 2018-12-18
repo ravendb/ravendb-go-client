@@ -29,7 +29,7 @@ func (b *RangeBuilder) CreateClone() *RangeBuilder {
 
 func (b *RangeBuilder) IsLessThan(value interface{}) *RangeBuilder {
 	if b.lessSet {
-		//throw new IllegalStateException("Less bound was already set")
+		//throw new IllegalStateError("Less bound was already set")
 		panic("Less bound was already set")
 	}
 
@@ -42,7 +42,7 @@ func (b *RangeBuilder) IsLessThan(value interface{}) *RangeBuilder {
 
 func (b *RangeBuilder) IsLessThanOrEqualTo(value interface{}) *RangeBuilder {
 	if b.lessSet {
-		//throw new IllegalStateException("Less bound was already set")
+		//throw new IllegalStateError("Less bound was already set")
 		panic("Less bound was already set")
 	}
 
@@ -55,7 +55,7 @@ func (b *RangeBuilder) IsLessThanOrEqualTo(value interface{}) *RangeBuilder {
 
 func (b *RangeBuilder) IsGreaterThan(value interface{}) *RangeBuilder {
 	if b.greaterSet {
-		//throw new IllegalStateException("Greater bound was already set")
+		//throw new IllegalStateError("Greater bound was already set")
 		panic("Greater bound was already set")
 	}
 
@@ -68,7 +68,7 @@ func (b *RangeBuilder) IsGreaterThan(value interface{}) *RangeBuilder {
 
 func (b *RangeBuilder) IsGreaterThanOrEqualTo(value interface{}) *RangeBuilder {
 	if b.greaterSet {
-		//throw new IllegalStateException("Greater bound was already set")
+		//throw new IllegalStateError("Greater bound was already set")
 		panic("Greater bound was already set")
 	}
 
@@ -84,7 +84,7 @@ func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(interface{
 	var greater string
 
 	if !b.lessSet && !b.greaterSet {
-		//throw new IllegalStateException("Bounds were not set")
+		//throw new IllegalStateError("Bounds were not set")
 		panic("Bounds were not set")
 	}
 

@@ -15,17 +15,17 @@ func ExceptionDispatcher_get2(message string, err string, typeAsString string, c
 		if strings.Contains(typeAsString, "DocumentConflictException") {
 			return NewDocumentConflictExceptionFromMessage(message)
 		}
-		return NewConcurrencyException(message)
+		return NewConcurrencyError(message)
 	}
 	// fmt.Printf("ExceptionDispatcher_get2: message='%s', err='%s', typeAsString='%s', code=%d\n", message, err, typeAsString, code)
 	// TODO: Java is more complicated, throws exception based on type returned by server.
 	// Not sure we can do it in Go
-	return NewRavenException("%s", err)
+	return newRavenError("%s", err)
 }
 
 func ExceptionDispatcher_throwException(response *http.Response) error {
 	if response == nil {
-		return NewIllegalArgumentException("Response cannot be null")
+		return newIllegalArgumentError("Response cannot be null")
 	}
 	var d []byte
 	var err error
@@ -33,7 +33,7 @@ func ExceptionDispatcher_throwException(response *http.Response) error {
 		d, err = ioutil.ReadAll(response.Body)
 		response.Body.Close()
 		if err != nil {
-			return NewRavenException("%s", err.Error())
+			return newRavenError("%s", err.Error())
 		}
 	}
 	var schema ExceptionSchema
@@ -47,14 +47,14 @@ func ExceptionDispatcher_throwException(response *http.Response) error {
 	//fmt.Printf("ExceptionDispatcher_throwException. schema: %#v\n", schema)
 	// TODO: Java is more complicated, throws exception based on type returned by server.
 	// Not sure we can do it in Go
-	return NewRavenException("ExceptionDispatcher_throwException: http response exception")
+	return newRavenError("ExceptionDispatcher_throwException: http response exception")
 }
 
 func ExceptionDispatcher_throwConflict(schema *ExceptionSchema, js string) error {
 	if strings.Contains(schema.getType(), "DocumentConflictException") {
 		return NewDocumentConflictExceptionFromJSON(js)
 	}
-	return NewConcurrencyException("%s", schema.getMessage())
+	return NewConcurrencyError("%s", schema.getMessage())
 }
 
 type ExceptionSchema struct {

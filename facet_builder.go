@@ -27,7 +27,7 @@ func NewFacetBuilder() *FacetBuilder {
 
 func (b *FacetBuilder) ByRanges(rng *RangeBuilder, ranges ...*RangeBuilder) IFacetOperations {
 	if rng == nil {
-		//throw new IllegalArgumentException("Range cannot be null")
+		//throw new IllegalArgumentError("Range cannot be null")
 		panic("Range cannot be null")
 	}
 

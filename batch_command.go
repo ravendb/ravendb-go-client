@@ -124,7 +124,7 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 
 func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
-		return NewIllegalStateException("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
+		return newIllegalStateError("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}
 
 	return jsonUnmarshal(response, &c.Result)
@@ -177,5 +177,5 @@ func (c *BatchCommand) Close() {
 
 // Note: in Java is in PutAttachmentCommandHelper.java
 func throwStreamAlready() error {
-	return NewIllegalStateException("It is forbidden to re-use the same InputStream for more than one attachment. Use a unique InputStream per put attachment command.")
+	return newIllegalStateError("It is forbidden to re-use the same InputStream for more than one attachment. Use a unique InputStream per put attachment command.")
 }

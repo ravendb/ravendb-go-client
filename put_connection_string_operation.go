@@ -48,7 +48,7 @@ func (c *PutConnectionStringCommand) CreateRequest(node *ServerNode) (*http.Requ
 
 	d, err := jsonMarshal(c._connectionString)
 	if err != nil {
-		// TODO: change err into RuntimeException() ?
+		// TODO: change err into RuntimeError() ?
 		return nil, err
 	}
 	return NewHttpPut(url, d)

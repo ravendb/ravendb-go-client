@@ -33,7 +33,7 @@ func (c *SpatialCriteriaCommon) toQueryTokenCommon(sc SpatialCriteria, fieldName
 	case SpatialRelation_INTERSECTS:
 		whereOperator = WhereOperator_SPATIAL_INTERSECTS
 	default:
-		//throw new IllegalArgumentException();
+		//throw new IllegalArgumentError();
 		panicIf(true, "Unknown relation '%s'", c._relation)
 	}
 

@@ -28,7 +28,7 @@ func (q *GroupByDocumentQuery) SelectKeyWithNameAndProjectedName(fieldName strin
 func (q *GroupByDocumentQuery) SelectSum(field *GroupByField, fields ...*GroupByField) *IDocumentQuery {
 	if field == nil {
 		panic("Field cannot be null")
-		//throw new IllegalArgumentException("Field cannot be null");
+		//throw new IllegalArgumentError("Field cannot be null");
 	}
 
 	q._query._groupBySum(field.FieldName, field.ProjectedName)

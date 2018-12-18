@@ -69,7 +69,7 @@ func deleteDocumentCommandTest_canDeleteDocumentByEtag(t *testing.T, driver *Rav
 	command := ravendb.NewDeleteDocumentCommand("users/1", changeVector)
 	err = store.GetRequestExecutor().ExecuteCommand(command)
 	assert.Error(t, err)
-	_ = err.(*ravendb.ConcurrencyException)
+	_ = err.(*ravendb.ConcurrencyError)
 }
 
 func TestDeleteDocumentCommand(t *testing.T) {

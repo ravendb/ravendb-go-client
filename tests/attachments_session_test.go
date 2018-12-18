@@ -103,7 +103,7 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T, driver *RavenTestD
 
 		err = session.SaveChanges()
 		assert.Error(t, err)
-		_, ok := err.(*ravendb.IllegalStateException)
+		_, ok := err.(*ravendb.IllegalStateError)
 		assert.True(t, ok)
 
 		session.Close()
@@ -131,7 +131,7 @@ func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testi
 
 		err = session.Advanced().Attachments().StoreEntity(user, "profile", stream2, "")
 		assert.Error(t, err)
-		_, ok := err.(*ravendb.IllegalStateException)
+		_, ok := err.(*ravendb.IllegalStateError)
 		assert.True(t, ok)
 
 		session.Close()
@@ -159,7 +159,7 @@ func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.
 
 		err = session.SaveChanges()
 		assert.Error(t, err)
-		_, ok := err.(*ravendb.IllegalStateException)
+		_, ok := err.(*ravendb.IllegalStateError)
 		assert.True(t, ok)
 
 		session.Close()

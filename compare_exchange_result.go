@@ -22,7 +22,7 @@ func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []
 	}
 	index, ok := jsonGetAsInt(response, "Index")
 	if !ok {
-		return nil, NewIllegalStateException("Response is invalid. Index is missing")
+		return nil, newIllegalStateError("Response is invalid. Index is missing")
 	}
 
 	successful, _ := jsonGetAsBool(response, "Successful")

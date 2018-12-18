@@ -51,7 +51,7 @@ func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) err
 
 func (e *MaintenanceOperationExecutor) assertDatabaseNameSet() error {
 	if e.databaseName == "" {
-		return NewIllegalStateException("Cannot use maintenance without a database defined, did you forget to call forDatabase?")
+		return newIllegalStateError("Cannot use maintenance without a database defined, did you forget to call forDatabase?")
 	}
 	return nil
 }

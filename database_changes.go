@@ -237,7 +237,7 @@ func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChanges
 
 func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (IChangesObservable, error) {
 	if collectionName == "" {
-		return nil, NewIllegalArgumentException("CollectionName cannot be empty")
+		return nil, newIllegalArgumentError("CollectionName cannot be empty")
 	}
 
 	counter, err := c.getOrAddConnectionState("collections/"+collectionName, "watch-collection", "unwatch-collection", collectionName)
@@ -264,7 +264,7 @@ func (c *DatabaseChanges) ForDocumentsInCollection(Class<?> clazz) (IChangesObse
 
 func (c *DatabaseChanges) ForDocumentsOfType(typeName string) (IChangesObservable, error) {
 	if typeName == "" {
-		return nil, NewIllegalArgumentException("TypeName cannot be empty")
+		return nil, newIllegalArgumentError("TypeName cannot be empty")
 	}
 
 	encodedTypeName := UrlUtils_escapeDataString(typeName)
@@ -288,7 +288,7 @@ func (c *DatabaseChanges) ForDocumentsOfType(typeName string) (IChangesObservabl
 /*
    public IChangesObservable<DocumentChange> ForDocumentsOfType(Class<?> clazz) {
        if (clazz == null) {
-           throw new IllegalArgumentException("Clazz cannot be null");
+           throw new IllegalArgumentError("Clazz cannot be null");
        }
 
        String className = _conventions.getFindJavaClassName().apply(clazz);
@@ -642,7 +642,7 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 			switch typ {
 			case "Error":
 				errStr, _ := jsonGetAsString(msgNode, "Error")
-				changes.notifyAboutError(NewRuntimeException("%s", errStr))
+				changes.notifyAboutError(newRuntimeError("%s", errStr))
 			case "Confirm":
 				commandID, ok := jsonGetAsInt(msgNode, "CommandId")
 				if ok {

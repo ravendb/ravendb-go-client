@@ -59,7 +59,7 @@ func (o *QueryOperation) assertPageSizeSet() {
 		return
 	}
 
-	//throw new IllegalStateException("Attempt to query without explicitly specifying a page size. " +
+	//throw new IllegalStateError("Attempt to query without explicitly specifying a page size. " +
 	//		"You can use .take() methods to set maximum number of results. By default the page //size is set to Integer.MAX_VALUE and can cause severe performance degradation.");
 	panicIf(true, "Attempt to query without explicitly specifying a page size. "+
 		"You can use .take() methods to set maximum number of results. By default the page size is set to Integer.MAX_VALUE and can cause severe performance degradation.")
@@ -129,7 +129,7 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 
 		el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
 		if err != nil {
-			return NewRuntimeException("Unable to read json: %s", err)
+			return newRuntimeError("Unable to read json: %s", err)
 		}
 		v2 := reflect.ValueOf(el)
 		sliceV2 = reflect.Append(sliceV2, v2)
@@ -161,7 +161,7 @@ func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) 
 			id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
 			el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
 			if err != nil {
-				return nil, NewRuntimeException("Unable to read json: %s", err)
+				return nil, newRuntimeError("Unable to read json: %s", err)
 			}
 			list = append(list, el)
 		}

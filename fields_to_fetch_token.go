@@ -21,12 +21,12 @@ func newFieldsToFetchToken(fieldsToFetch []string, projections []string, customF
 func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
 	if len(fieldsToFetch) == 0 {
 		panicIf(true, "fieldToFetch cannot be null")
-		//return NewIllegalArgumentException("fieldToFetch cannot be null");
+		//return newIllegalArgumentError("fieldToFetch cannot be null");
 	}
 
 	if !customFunction && len(projections) != len(fieldsToFetch) {
 		panicIf(true, "Length of projections must be the same as length of field to fetch")
-		// return NewIllegalArgumentException("Length of projections must be the same as length of field to fetch");
+		// return newIllegalArgumentError("Length of projections must be the same as length of field to fetch");
 	}
 
 	return newFieldsToFetchToken(fieldsToFetch, projections, customFunction)

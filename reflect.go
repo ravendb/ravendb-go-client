@@ -284,7 +284,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 		case reflect.Struct:
 			valIn, ok := val.(ObjectNode)
 			if !ok {
-				return nil, NewRavenException("can't convert value of type '%s' to a struct", val)
+				return nil, newRavenError("can't convert value of type '%s' to a struct", val)
 			}
 			v, err := MakeStructFromJSONMap(clazz, valIn)
 			return v, err
@@ -294,7 +294,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 	default:
 		panicIf(true, "%s", dbglog("converting to %s NYI", clazz.Kind().String()))
 	}
-	return nil, NewNotImplementedException("NYI")
+	return nil, newNotImplementedError("NYI")
 }
 
 // TODO: temporary name to match Java

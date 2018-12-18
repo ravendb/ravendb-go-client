@@ -15,39 +15,39 @@ func CompareExchangeValueResultParser_getValues(clazz reflect.Type, response []b
 
 	itemsI, ok := jsonResponse["Results"]
 	if !ok {
-		return nil, NewIllegalStateException("Response is invalid. Results is missing.")
+		return nil, newIllegalStateError("Response is invalid. Results is missing.")
 	}
 	items, ok := itemsI.([]interface{})
 	if !ok {
-		return nil, NewIllegalStateException("Response is invalid. Results is missing.")
+		return nil, newIllegalStateError("Response is invalid. Results is missing.")
 	}
 
 	for _, itemI := range items {
 		if itemI == nil {
-			return nil, NewIllegalStateException("Response is invalid. Item is null")
+			return nil, newIllegalStateError("Response is invalid. Item is null")
 		}
 		item, ok := itemI.(ObjectNode)
 		if !ok {
-			return nil, NewIllegalStateException("Response is invalid. Item is null")
+			return nil, newIllegalStateError("Response is invalid. Item is null")
 		}
 		key, ok := jsonGetAsString(item, "Key")
 		if !ok {
-			return nil, NewIllegalStateException("Response is invalid. Key is missing.")
+			return nil, newIllegalStateError("Response is invalid. Key is missing.")
 		}
 
 		index, ok := jsonGetAsInt(item, "Index")
 
 		if !ok {
-			return nil, NewIllegalStateException("Response is invalid. Index is missing")
+			return nil, newIllegalStateError("Response is invalid. Index is missing")
 		}
 
 		raw, ok := item["Value"]
 		if !ok || raw == nil {
-			return nil, NewIllegalStateException("Response is invalid. Value is missing.")
+			return nil, newIllegalStateError("Response is invalid. Value is missing.")
 		}
 		rawMap, ok := raw.(ObjectNode)
 		if !ok {
-			return nil, NewIllegalStateException("Response is invalid. Value is missing.")
+			return nil, newIllegalStateError("Response is invalid. Value is missing.")
 		}
 
 		if isTypePrimitive(clazz) {

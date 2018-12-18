@@ -199,7 +199,7 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 // GetMetadataFor gets the metadata for the specified entity.
 func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*MetadataAsDictionary, error) {
 	if instance == nil {
-		return nil, NewIllegalArgumentException("Instance cannot be null")
+		return nil, newIllegalArgumentError("Instance cannot be null")
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -220,7 +220,7 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 // empty string means there is not change vector
 func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (*string, error) {
 	if instance == nil {
-		return nil, NewIllegalArgumentException("Instance cannot be null")
+		return nil, newIllegalArgumentError("Instance cannot be null")
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -288,7 +288,7 @@ func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}
 
 	id, ok := s.generateEntityIDOnTheClient.tryGetIDFromInstance(instance)
 	if !ok {
-		return nil, NewIllegalStateException("Could not find the document id for %s", instance)
+		return nil, newIllegalStateError("Could not find the document id for %s", instance)
 	}
 
 	if err := s.assertNoNonUniqueInstance(instance, id); err != nil {
@@ -339,7 +339,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
-		return NewIllegalStateException("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
+		return newIllegalStateError("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
 	}
 	return nil
 }
@@ -407,7 +407,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	if changeVector == nil {
-		return NewIllegalStateException("Document %s must have Change Vector", id)
+		return newIllegalStateError("Document %s must have Change Vector", id)
 	}
 
 	if !noTracking {
@@ -499,7 +499,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 
 	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
 	if changeVector == nil {
-		return nil, NewIllegalStateException("Document %s must have Change Vector", id)
+		return nil, newIllegalStateError("Document %s must have Change Vector", id)
 	}
 
 	if !noTracking {
@@ -520,12 +520,12 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 // DeleteEntity marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) error {
 	if entity == nil {
-		return NewIllegalArgumentException("Entity cannot be null")
+		return newIllegalArgumentError("Entity cannot be null")
 	}
 
 	value := getDocumentInfoByEntity(s.documents, entity)
 	if value == nil {
-		return NewIllegalStateException("%#v is not associated with the session, cannot delete unknown entity instance", entity)
+		return newIllegalStateError("%#v is not associated with the session, cannot delete unknown entity instance", entity)
 	}
 
 	s.deletedEntities.add(entity)
@@ -542,7 +542,7 @@ func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
 
 func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector *string) error {
 	if id == "" {
-		return NewIllegalArgumentException("Id cannot be empty")
+		return newIllegalArgumentError("Id cannot be empty")
 	}
 
 	var changeVector *string
@@ -550,7 +550,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	if documentInfo != nil {
 		newObj := convertEntityToJSON(documentInfo.entity, documentInfo)
 		if documentInfo.entity != nil && s.EntityChanged(newObj, documentInfo, nil) {
-			return NewIllegalStateException("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
+			return newIllegalStateError("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
 
 		if documentInfo.entity != nil {
@@ -597,13 +597,13 @@ func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity in
 
 // TODO: should this return an error?
 func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneration(entity interface{}) {
-	err := NewNotImplementedException("You cannot set GenerateDocumentIDsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
+	err := newNotImplementedError("You cannot set GenerateDocumentIDsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
 	must(err)
 }
 
 func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	if nil == entity {
-		return NewIllegalArgumentException("Entity cannot be null")
+		return newIllegalArgumentError("Entity cannot be null")
 	}
 
 	value := getDocumentInfoByEntity(s.documents, entity)
@@ -626,11 +626,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 
 	tmp := newIDTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
 	if _, ok := s.deferredCommandsMap[tmp]; ok {
-		return NewIllegalStateException("Can't Store document, there is a deferred command registered for this document in the session. Document id: %s", id)
+		return newIllegalStateError("Can't Store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
 
 	if s.deletedEntities.contains(entity) {
-		return NewIllegalStateException("Can't Store object, it was already deleted in this session.  Document id: %s", id)
+		return newIllegalStateError("Can't Store object, it was already deleted in this session.  Document id: %s", id)
 	}
 
 	// we make the check here even if we just generated the ID
@@ -875,12 +875,12 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 }
 
 func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand ICommandData) error {
-	err := NewIllegalStateException("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
+	err := newIllegalStateError("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
 	return err
 }
 
 func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand ICommandData) error {
-	err := NewIllegalStateException("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
+	err := newIllegalStateError("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
 	return err
 }
 
@@ -1106,7 +1106,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, cmd *GetDocumentsCommand, documentInfo *documentInfo) error {
 	document := cmd.Result.Results[0]
 	if document == nil {
-		return NewIllegalStateException("Document '%s' no longer exists and was probably deleted", documentInfo.id)
+		return newIllegalStateError("Document '%s' no longer exists and was probably deleted", documentInfo.id)
 	}
 
 	value := document[Constants_Documents_Metadata_KEY]
@@ -1126,7 +1126,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 
 	err = BeanUtils_copyProperties(entity, documentInfo.entity)
 	if err != nil {
-		return NewRuntimeException("Unable to refresh entity: %s", err)
+		return newRuntimeError("Unable to refresh entity: %s", err)
 	}
 	return nil
 }
@@ -1186,7 +1186,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 
 	resultMap, ok := result.(map[string]interface{})
 	if !ok {
-		return nil, NewIllegalStateException("result must be of type map[string]interface{}, is: %T", result)
+		return nil, newIllegalStateError("result must be of type map[string]interface{}, is: %T", result)
 	}
 
 	if isMapStringToPtrStruct(clazz) {
@@ -1213,7 +1213,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 	}
 
 	if !isPtrStruct(clazz) {
-		return nil, NewIllegalStateException("expected clazz to be of type ptr-to-struct, is: %T", clazz)
+		return nil, newIllegalStateError("expected clazz to be of type ptr-to-struct, is: %T", clazz)
 	}
 
 	if len(resultMap) == 0 {
@@ -1251,7 +1251,7 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 	isCollection := stringIsNotEmpty(collectionName)
 
 	if isIndex && isCollection {
-		//throw new IllegalStateException("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.");
+		//throw new IllegalStateError("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.");
 		panic("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.")
 	}
 

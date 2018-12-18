@@ -140,7 +140,7 @@ func firstClassPatch_canPatchAndModify(t *testing.T, driver *RavenTestDriver) {
 		err = session.Advanced().PatchEntity(&loaded, "numbers[0]", 2)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
-		_ = err.(*ravendb.IllegalStateException)
+		_ = err.(*ravendb.IllegalStateError)
 
 		session.Close()
 	}

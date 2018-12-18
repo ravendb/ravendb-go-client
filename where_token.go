@@ -129,7 +129,7 @@ func (t *whereToken) writeMethod(writer *strings.Builder) bool {
 		default:
 			panicIf(true, "Unsupported method: %s", t.options.method.methodType)
 			// TODO: return as error?
-			//return NewIllegalArgumentException("Unsupported method: %s", options.method.methodType);
+			//return newIllegalArgumentError("Unsupported method: %s", options.method.methodType);
 		}
 
 		first := true

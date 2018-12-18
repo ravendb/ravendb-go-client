@@ -17,10 +17,10 @@ func ExceptionsUtils_unwrapException(e error) error {
 			return unwrapException(computationException.getCause());
 		}
 
-		if (e instanceof RuntimeException) {
-			return (RuntimeException)e;
+		if (e instanceof RuntimeError) {
+			return (RuntimeError)e;
 		}
 
-		return new RuntimeException(e);
+		return new RuntimeError(e);
 	*/
 }

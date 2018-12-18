@@ -99,7 +99,7 @@ func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *
 		bulkInsert := store.BulkInsert()
 		err = bulkInsert.StoreWithID(&FooBar{}, "foobars|", nil)
 		assert.Error(t, err)
-		_, ok := err.(*ravendb.UnsupportedOperationException)
+		_, ok := err.(*ravendb.UnsupportedOperationError)
 		assert.True(t, ok)
 		ok = strings.Contains(err.Error(), "Document ids cannot end with '|', but was called with foobars|")
 		assert.True(t, ok)

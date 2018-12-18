@@ -904,7 +904,7 @@ func query_queryFirst(t *testing.T, driver *RavenTestDriver) {
 
 		q := session.QueryOld(reflect.TypeOf(&User{}))
 		_, err = q.Single()
-		_ = err.(*ravendb.IllegalStateException)
+		_ = err.(*ravendb.IllegalStateError)
 
 		session.Close()
 	}

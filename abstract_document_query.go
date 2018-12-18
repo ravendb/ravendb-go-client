@@ -160,7 +160,7 @@ func (q *AbstractDocumentQuery) getQueryClass() reflect.Type {
 
 func (q *AbstractDocumentQuery) _usingDefaultOperator(operator QueryOperator) {
 	if len(q.whereTokens) > 0 {
-		//throw new IllegalStateException("Default operator can only be set before any where clause is added.");
+		//throw new IllegalStateError("Default operator can only be set before any where clause is added.");
 		panicIf(true, "Default operator can only be set before any where clause is added.")
 	}
 
@@ -223,7 +223,7 @@ func (q *AbstractDocumentQuery) assertNoRawQuery() {
 func (q *AbstractDocumentQuery) _addParameter(name string, value interface{}) {
 	name = strings.TrimPrefix(name, "$")
 	if _, ok := q.queryParameters[name]; ok {
-		// throw new IllegalStateException("The parameter " + name + " was already added");
+		// throw new IllegalStateError("The parameter " + name + " was already added");
 		panicIf(true, "The parameter "+name+" was already added")
 	}
 
@@ -242,7 +242,7 @@ func (q *AbstractDocumentQuery) _groupBy(fieldName string, fieldNames ...string)
 // TODO: better name
 func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
 	if !q.fromToken.isDynamic() {
-		//throw new IllegalStateException("groupBy only works with dynamic queries");
+		//throw new IllegalStateError("groupBy only works with dynamic queries");
 		panicIf(true, "groupBy only works with dynamic queries")
 	}
 
@@ -722,7 +722,7 @@ func (q *AbstractDocumentQuery) _andAlso() {
 
 	lastToken := tokens[n-1]
 	if _, ok := lastToken.(*queryOperatorToken); ok {
-		//throw new IllegalStateException("Cannot add AND, previous token was already an operator token.");
+		//throw new IllegalStateError("Cannot add AND, previous token was already an operator token.");
 		panicIf(true, "Cannot add AND, previous token was already an operator token.")
 	}
 
@@ -740,7 +740,7 @@ func (q *AbstractDocumentQuery) _orElse() {
 
 	lastToken := tokens[n-1]
 	if _, ok := lastToken.(*queryOperatorToken); ok {
-		//throw new IllegalStateException("Cannot add OR, previous token was already an operator token.");
+		//throw new IllegalStateError("Cannot add OR, previous token was already an operator token.");
 		panicIf(true, "Cannot add OR, previous token was already an operator token.")
 	}
 
@@ -756,19 +756,19 @@ func (q *AbstractDocumentQuery) _boost(boost float64) {
 	tokens := q.getCurrentWhereTokens()
 	n := len(tokens)
 	if n == 0 {
-		//throw new IllegalStateException("Missing where clause");
+		//throw new IllegalStateError("Missing where clause");
 		panicIf(true, "Missing where clause")
 	}
 
 	maybeWhereToken := tokens[n-1]
 	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
-		//throw new IllegalStateException("Missing where clause");
+		//throw new IllegalStateError("Missing where clause");
 		panicIf(true, "Missing where clause")
 	}
 
 	if boost <= 0.0 {
-		//throw new IllegalArgumentException("Boost factor must be a positive number");
+		//throw new IllegalArgumentError("Boost factor must be a positive number");
 		panicIf(true, "Boost factor must be a positive number")
 	}
 
@@ -779,19 +779,19 @@ func (q *AbstractDocumentQuery) _fuzzy(fuzzy float64) {
 	tokens := q.getCurrentWhereTokens()
 	n := len(tokens)
 	if n == 0 {
-		//throw new IllegalStateException("Missing where clause");
+		//throw new IllegalStateError("Missing where clause");
 		panicIf(true, "Missing where clause")
 	}
 
 	maybeWhereToken := tokens[n-1]
 	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
-		//throw new IllegalStateException("Missing where clause");
+		//throw new IllegalStateError("Missing where clause");
 		panicIf(true, "Missing where clause")
 	}
 
 	if fuzzy < 0.0 || fuzzy > 1.0 {
-		//throw new IllegalArgumentException("Fuzzy distance must be between 0.0 and 1.0");
+		//throw new IllegalArgumentError("Fuzzy distance must be between 0.0 and 1.0");
 		panicIf(true, "Fuzzy distance must be between 0.0 and 1.0")
 	}
 
@@ -803,19 +803,19 @@ func (q *AbstractDocumentQuery) _proximity(proximity int) {
 
 	n := len(tokens)
 	if n == 0 {
-		//throw new IllegalStateException("Missing where clause");
+		//throw new IllegalStateError("Missing where clause");
 		panicIf(true, "Missing where clause")
 	}
 
 	maybeWhereToken := tokens[n-1]
 	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
-		//throw new IllegalStateException("Missing where clause");
+		//throw new IllegalStateError("Missing where clause");
 		panicIf(true, "Missing where clause")
 	}
 
 	if proximity < 1 {
-		//throw new IllegalArgumentException("Proximity distance must be a positive number");
+		//throw new IllegalArgumentError("Proximity distance must be a positive number");
 		panicIf(true, "Proximity distance must be a positive number")
 	}
 
@@ -920,7 +920,7 @@ func (q *AbstractDocumentQuery) String() string {
 	}
 
 	if q._currentClauseDepth != 0 {
-		// throw new IllegalStateException("A clause was not closed correctly within this query, current clause depth = " + _currentClauseDepth);
+		// throw new IllegalStateError("A clause was not closed correctly within this query, current clause depth = " + _currentClauseDepth);
 		panicIf(true, "A clause was not closed correctly within this query, current clause depth = %d", q._currentClauseDepth)
 	}
 
@@ -987,7 +987,7 @@ func (q *AbstractDocumentQuery) _intersect() {
 		}
 	}
 
-	//throw new IllegalStateException("Cannot add INTERSECT at this point.");
+	//throw new IllegalStateError("Cannot add INTERSECT at this point.");
 	panicIf(true, "Cannot add INTERSECT at this point.")
 }
 
@@ -1039,7 +1039,7 @@ func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []interfac
 
 func (q *AbstractDocumentQuery) _distinct() {
 	panicIf(q.IsDistinct(), "The is already a distinct query")
-	//throw new IllegalStateException("The is already a distinct query");
+	//throw new IllegalStateError("The is already a distinct query");
 
 	if len(q.selectTokens) == 0 {
 		q.selectTokens = []queryToken{distinctTokenInstance}
@@ -1347,7 +1347,7 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokens() []queryToken {
 	n := len(q.whereTokens)
 
 	if n == 0 {
-		// throw new IllegalStateException("Cannot get moreLikeThisToken because there are no where token specified.");
+		// throw new IllegalStateError("Cannot get moreLikeThisToken because there are no where token specified.");
 		panicIf(true, "Cannot get moreLikeThisToken because there are no where token specified.")
 	}
 
@@ -1356,7 +1356,7 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokens() []queryToken {
 	if moreLikeThisToken, ok := lastToken.(*moreLikeThisToken); ok {
 		return moreLikeThisToken.whereTokens
 	} else {
-		//throw new IllegalStateException("Last token is not moreLikeThisToken");
+		//throw new IllegalStateError("Last token is not moreLikeThisToken");
 		panicIf(true, "Last token is not moreLikeThisToken")
 	}
 	return nil
@@ -1370,7 +1370,7 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]queryToken {
 	n := len(q.whereTokens)
 
 	if n == 0 {
-		// throw new IllegalStateException("Cannot get moreLikeThisToken because there are no where token specified.");
+		// throw new IllegalStateError("Cannot get moreLikeThisToken because there are no where token specified.");
 		panicIf(true, "Cannot get moreLikeThisToken because there are no where token specified.")
 	}
 
@@ -1379,7 +1379,7 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]queryToken {
 	if moreLikeThisToken, ok := lastToken.(*moreLikeThisToken); ok {
 		return &moreLikeThisToken.whereTokens
 	} else {
-		//throw new IllegalStateException("Last token is not moreLikeThisToken");
+		//throw new IllegalStateError("Last token is not moreLikeThisToken");
 		panicIf(true, "Last token is not moreLikeThisToken")
 	}
 	return nil
@@ -1480,7 +1480,7 @@ func (q *AbstractDocumentQuery) _spatial(fieldName string, shapeWkt string, rela
 	case SpatialRelation_INTERSECTS:
 		whereOperator = WhereOperator_SPATIAL_INTERSECTS
 	default:
-		//throw new IllegalArgumentException();
+		//throw new IllegalArgumentError();
 		panicIf(true, "unknown relation %s", relation)
 	}
 
@@ -1526,7 +1526,7 @@ func (q *AbstractDocumentQuery) _spatial3(fieldName string, criteria SpatialCrit
 
 func (q *AbstractDocumentQuery) _orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) {
 	if field == nil {
-		//throw new IllegalArgumentException("Field cannot be null");
+		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
 	ensure := func(fieldName string, isNestedPath bool) string {
@@ -1543,7 +1543,7 @@ func (q *AbstractDocumentQuery) _orderByDistanceLatLong(fieldName string, latitu
 
 func (q *AbstractDocumentQuery) _orderByDistance2(field DynamicSpatialField, shapeWkt string) {
 	if field == nil {
-		//throw new IllegalArgumentException("Field cannot be null");
+		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
 	ensure := func(fieldName string, isNestedPath bool) string {
@@ -1559,7 +1559,7 @@ func (q *AbstractDocumentQuery) _orderByDistance3(fieldName string, shapeWkt str
 
 func (q *AbstractDocumentQuery) _orderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) {
 	if field == nil {
-		//throw new IllegalArgumentException("Field cannot be null");
+		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
 	ensure := func(fieldName string, isNestedPath bool) string {
@@ -1575,7 +1575,7 @@ func (q *AbstractDocumentQuery) _orderByDistanceDescendingLatLong(fieldName stri
 
 func (q *AbstractDocumentQuery) _orderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) {
 	if field == nil {
-		//throw new IllegalArgumentException("Field cannot be null");
+		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
 	ensure := func(fieldName string, isNestedPath bool) string {
@@ -1669,7 +1669,7 @@ func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 	}
 
 	if len(result) > 1 {
-		return nil, NewIllegalStateException("Expected single result, got: %d", len(result))
+		return nil, newIllegalStateError("Expected single result, got: %d", len(result))
 	}
 
 	return result[0], nil
@@ -1681,7 +1681,7 @@ func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
 		return nil, err
 	}
 	if len(result) > 1 {
-		return nil, NewIllegalStateException("Expected single result, got: %d", len(result))
+		return nil, newIllegalStateError("Expected single result, got: %d", len(result))
 	}
 
 	if len(result) == 0 {
@@ -1755,7 +1755,7 @@ func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
 			continue
 		}
 
-		//throw new IllegalStateException("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
+		//throw new IllegalStateError("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
 		panicIf(true, "Aggregation query can select only facets while it got %T token", token)
 	}
 
@@ -1798,8 +1798,8 @@ func (q *AbstractDocumentQuery) CountLazily() *Lazy {
 // SuggestUsing adds a query part for suggestions
 func (q *AbstractDocumentQuery) _suggestUsing(suggestion SuggestionBase) {
 	if suggestion == nil {
-		panic(NewIllegalArgumentException("suggestion cannot be null"))
-		// throw new IllegalArgumentException("suggestion cannot be null");
+		panic(newIllegalArgumentError("suggestion cannot be null"))
+		// throw new IllegalArgumentError("suggestion cannot be null");
 	}
 
 	q.assertCanSuggest()
@@ -1819,8 +1819,8 @@ func (q *AbstractDocumentQuery) _suggestUsing(suggestion SuggestionBase) {
 			optionsParameterName: q.getOptionsParameterName(terms.Options),
 		}
 	} else {
-		// throw new UnsupportedOperationException("Unknown type of suggestion: " + suggestion.getClass());
-		panic(NewUnsupportedOperationException("Unknown type of suggestion: %T", suggestion))
+		// throw new UnsupportedOperationError("Unknown type of suggestion: " + suggestion.getClass());
+		panic(newUnsupportedOperationError("Unknown type of suggestion: %T", suggestion))
 	}
 	q.selectTokens = append(q.selectTokens, token)
 }
@@ -1836,17 +1836,17 @@ func (q *AbstractDocumentQuery) getOptionsParameterName(options *SuggestionOptio
 
 func (q *AbstractDocumentQuery) assertCanSuggest() {
 	if len(q.whereTokens) > 0 {
-		//throw new IllegalStateException("Cannot add suggest when WHERE statements are present.");
+		//throw new IllegalStateError("Cannot add suggest when WHERE statements are present.");
 		panicIf(true, "Cannot add suggest when WHERE statements are present.")
 	}
 
 	if len(q.selectTokens) > 0 {
-		//throw new IllegalStateException("Cannot add suggest when SELECT statements are present.");
+		//throw new IllegalStateError("Cannot add suggest when SELECT statements are present.");
 		panicIf(true, "Cannot add suggest when SELECT statements are present.")
 	}
 
 	if len(q.orderByTokens) > 0 {
-		//throw new IllegalStateException("Cannot add suggest when ORDER BY statements are present.");
+		//throw new IllegalStateError("Cannot add suggest when ORDER BY statements are present.");
 		panicIf(true, "Cannot add suggest when ORDER BY statements are present.")
 	}
 }

@@ -533,7 +533,7 @@ func (re *RequestExecutor) unlikelyExecuteInner(command RavenCommand, topologyUp
 		if re._firstTopologyUpdate == nil {
 			if len(re._lastKnownUrls) == 0 {
 				re.mu.Unlock()
-				return nil, NewIllegalStateException("No known topology and no previously known one, cannot proceed, likely a bug")
+				return nil, newIllegalStateError("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
 			re._firstTopologyUpdate = re.firstTopologyUpdate(re._lastKnownUrls)
@@ -629,7 +629,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 
 			if len(initialUrls) == 0 {
 				re._lastKnownUrls = initialUrls
-				err = NewIllegalStateException("Cannot get topology from server: %s", url)
+				err = newIllegalStateError("Cannot get topology from server: %s", url)
 				return
 			}
 			list = append(list, &Tuple_String_Error{url, err})
@@ -670,7 +670,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 }
 
 func (re *RequestExecutor) throwExceptions(details string) error {
-	err := NewIllegalStateException("Failed to retrieve database topology from all known nodes \n" + details)
+	err := newIllegalStateError("Failed to retrieve database topology from all known nodes \n" + details)
 	return err
 }
 
@@ -792,7 +792,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 			}
 
 			if len(command.GetBase().GetFailedNodes()) == 0 {
-				return NewIllegalStateException("Received unsuccessful response and couldn't recover from it. Also, no record of exceptions per failed nodes. This is weird and should not happen.")
+				return newIllegalStateError("Received unsuccessful response and couldn't recover from it. Also, no record of exceptions per failed nodes. This is weird and should not happen.")
 			}
 
 			if len(command.GetBase().GetFailedNodes()) == 1 {
@@ -1100,7 +1100,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 	// this would be connections that didn't have response, such as "couldn't connect to remote server"
 	if e == nil {
 		// TODO: not sure if this is needed or a sign of a buf
-		e = NewRavenException("")
+		e = newRavenError("")
 	}
 	exceptionSchema := NewExceptionSchema()
 	exceptionSchema.setUrl(request.URL.String())

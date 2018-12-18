@@ -25,7 +25,7 @@ func (o *StreamOperation) createRequestForIndexQuery(query *IndexQuery) *QuerySt
 	o._isQueryStream = true
 
 	if query.waitForNonStaleResults {
-		//throw new UnsupportedOperationException("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported");
+		//throw new UnsupportedOperationError("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported");
 		panic("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported")
 	}
 
@@ -82,7 +82,7 @@ func isDelimToken(tok json.Token, delim string) bool {
 */
 func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStreamResults, error) {
 	if response == nil {
-		return nil, NewIllegalStateException("The index does not exists, failed to stream results")
+		return nil, newIllegalStateError("The index does not exists, failed to stream results")
 	}
 	dec := json.NewDecoder(response.Stream)
 	tok, err := dec.Token()
@@ -91,7 +91,7 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 	}
 	// we expect start of json object
 	if !isDelimToken(tok, "{") {
-		return nil, NewIllegalStateException("Expected start object '{', got %T %s", tok, tok)
+		return nil, newIllegalStateError("Expected start object '{', got %T %s", tok, tok)
 	}
 
 	if o._isQueryStream {
@@ -110,7 +110,7 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 		return nil, err
 	}
 	if !isDelimToken(tok, "[") {
-		return nil, NewIllegalStateException("Expected start array '[', got %T %s", tok, tok)
+		return nil, newIllegalStateError("Expected start array '[', got %T %s", tok, tok)
 	}
 
 	return NewYieldStreamResults(response, dec), nil

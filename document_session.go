@@ -105,7 +105,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 func (s *DocumentSession) Refresh(entity interface{}) error {
 	documentInfo := getDocumentInfoByEntity(s.documents, entity)
 	if documentInfo == nil {
-		return NewIllegalStateException("Cannot refresh a transient instance")
+		return newIllegalStateError("Cannot refresh a transient instance")
 	}
 	if err := s.IncrementRequestCount(); err != nil {
 		return err
@@ -190,7 +190,7 @@ func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformatio
 		}
 		responseTimeInformation.durationBreakdown = append(responseTimeInformation.durationBreakdown, timeItem)
 		if response.requestHasErrors() {
-			return false, NewIllegalStateException("Got an error from server, status code: %d\n%s", response.statusCode, response.result)
+			return false, newIllegalStateError("Got an error from server, status code: %d\n%s", response.statusCode, response.result)
 		}
 		err = op.handleResponse(response)
 		if err != nil {

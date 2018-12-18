@@ -60,7 +60,7 @@ func (o *Operation) WaitForCompletion() error {
 
 		operationStatus, ok := JsonGetAsText(status, "Status")
 		if !ok {
-			return NewRavenException("missing 'Status' field in response")
+			return newRavenError("missing 'Status' field in response")
 		}
 		switch operationStatus {
 		case "Completed":
@@ -70,7 +70,7 @@ func (o *Operation) WaitForCompletion() error {
 		case "Faulted":
 			result, ok := status["Result"].(ObjectNode)
 			if !ok {
-				return NewRavenException("status has no 'Result' object. Status: #%v", status)
+				return newRavenError("status has no 'Result' object. Status: #%v", status)
 			}
 			var exceptionResult OperationExceptionResult
 			err = structFromJSONMap(result, &exceptionResult)

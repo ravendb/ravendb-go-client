@@ -29,7 +29,7 @@ func (g *generateEntityIDOnTheClient) getOrGenerateDocumentID(entity interface{}
 
 	/* TODO:
 	        if (id != null && id.startsWith("/")) {
-	            throw new IllegalStateException("Cannot use value '" + id + "' as a document id because it begins with a '/'");
+	            throw new IllegalStateError("Cannot use value '" + id + "' as a document id because it begins with a '/'");
 			}
 	*/
 	return id

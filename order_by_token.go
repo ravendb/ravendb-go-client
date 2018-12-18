@@ -43,7 +43,7 @@ func OrderByToken_createDistanceDescending2(fieldName string, shapeWktParameterN
 func OrderByToken_createRandom(seed string) *orderByToken {
 	if seed == "" {
 		panicIf(true, "seed cannot be null")
-		// NewIllegalArgumentException("seed cannot be null");
+		// newIllegalArgumentError("seed cannot be null");
 	}
 	seed = strings.Replace(seed, "'", "''", -1)
 	return newOrderByToken("random('"+seed+"')", false, OrderingType_STRING)

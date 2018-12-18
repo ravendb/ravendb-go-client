@@ -88,7 +88,7 @@ func (t *facetToken) writeTo(writer *strings.Builder) {
 
 func createFacetToken(facetSetupDocumentID string) *facetToken {
 	if stringIsWhitespace(facetSetupDocumentID) {
-		//throw new IllegalArgumentException("facetSetupDocumentID cannot be null");
+		//throw new IllegalArgumentError("facetSetupDocumentID cannot be null");
 		panicIf(true, "facetSetupDocumentID cannot be null")
 	}
 
@@ -148,7 +148,7 @@ func applyAggregations(facet FacetBase, token *facetToken) {
 			aggregationToken = facetAggregationTokenSum(value)
 		default:
 			panic("Unsupported aggregation method: " + key)
-			//throw new NotImplementedException("Unsupported aggregation method: " + aggregation.getKey());
+			//throw new NotImplementedError("Unsupported aggregation method: " + aggregation.getKey());
 		}
 
 		token._aggregations = append(token._aggregations, aggregationToken)
@@ -196,7 +196,7 @@ func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
 		writer.WriteString(")")
 	default:
 		panicIf(true, "Invalid aggregation mode: %s", t._aggregation)
-		//throw new IllegalArgumentException("Invalid aggregation mode: " + _aggregation);
+		//throw new IllegalArgumentError("Invalid aggregation mode: " + _aggregation);
 	}
 }
 
