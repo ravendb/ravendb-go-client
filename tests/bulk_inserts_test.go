@@ -77,18 +77,16 @@ func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
 		_, err = bulkInsert.Store(&FooBar{})
 		assert.NoError(t, err)
 		err = bulkInsert.Abort()
+		if err == nil {
+			_, err = bulkInsert.Store(&FooBar{})
+		}
+		if err == nil {
+			err = bulkInsert.Close()
+		}
+
 		assert.Error(t, err)
 		_, ok := err.(*ravendb.BulkInsertAbortedException)
 		assert.True(t, ok)
-
-		// Note: In Java Abort() throws an exception, so we never execute this code
-		if false {
-			_, err = bulkInsert.Store(&FooBar{})
-			assert.Error(t, err)
-
-			err = bulkInsert.Close()
-			assert.NoError(t, err)
-		}
 	}
 }
 

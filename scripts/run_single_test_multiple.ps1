@@ -11,11 +11,10 @@ $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
 $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$PSScriptRoot\..\RavenDB\Server\Raven.Server.exe"
 
-go.exe clean -testcache
-
 For ($i=0; $i -lt 10; $i++) {
 
-    go.exe test -parallel 1 -v -timeout 50s ./tests -run ^TestRavenDB8761$
+    go clean -testcache
+    go test -parallel 1 -v -timeout 50s ./tests -run ^TestBulkInserts$
 
     if ($lastexitcode -ne 0) {
         exit
