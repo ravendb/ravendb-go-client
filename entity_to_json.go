@@ -62,8 +62,15 @@ func setInterfaceToValue(result interface{}, v interface{}) {
 	out.Set(vin)
 }
 
+// ConvertToEntity2 converts document to a value result, matching type of result
 func (e *EntityToJson) ConvertToEntity2(result interface{}, id string, document ObjectNode) {
+	if _, ok := result.(*map[string]interface{}); ok {
+		setInterfaceToValue(result, document)
+		return
+	}
+
 	if _, ok := result.(map[string]interface{}); ok {
+		// TODO: is this codepath ever executed?
 		setInterfaceToValue(result, document)
 		return
 	}

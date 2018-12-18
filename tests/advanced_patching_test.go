@@ -116,7 +116,7 @@ func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, d
 		var jsonDoc ravendb.ObjectNode
 		err = session.Load(&jsonDoc, "NewItem/3")
 		assert.NoError(t, err)
-		assert.Equal(t, jsonDoc["copiedValue"], "1")
+		assert.Equal(t, jsonDoc["copiedValue"], float64(1))
 
 		session.Close()
 	}
@@ -134,8 +134,5 @@ func TestAdvancedPatching(t *testing.T) {
 
 	// matches order of Java tests
 	advancedPatching_testWithVariables(t, driver)
-	if enableFailingTests {
-		// TODO: fails because documentsByEntity cannot handle map[string]interface{}
-		advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t, driver)
-	}
+	advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t, driver)
 }
