@@ -24,7 +24,9 @@ echo "GOPATH:           ${GOPATH}"
 #go test -v -parallel 1 -timeout 20m -race -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt
 go test -parallel 1 -v -timeout 50s ./tests -run ^TestFirstClassPatch$
 exitCode=$?
-for fn in ./logs; do
+ls -lah
+ls -lah logs
+for fn in ./logs/*; do
     appveyor PushArtifact ${fn}
 done
 
