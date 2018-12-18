@@ -233,7 +233,7 @@ func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver)
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().GetMetadataFor(user)
+		metadata, err := session.Advanced().GetMetadataFor(&user)
 		assert.NoError(t, err)
 
 		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
@@ -299,7 +299,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T, driver *Rave
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().GetMetadataFor(user)
+		metadata, err := session.Advanced().GetMetadataFor(&user)
 		assert.NoError(t, err)
 
 		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
@@ -483,7 +483,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T, driver *RavenTestDriver
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		attachments, err := session.Advanced().Attachments().GetNames(user)
+		attachments, err := session.Advanced().Attachments().GetNames(&user)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(attachments), 1)
@@ -553,10 +553,8 @@ func TestAttachmentsSession(t *testing.T) {
 	// matches order of Java tests
 	attachmentsSession_putAttachments(t, driver)
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
+	attachmentsSession_getAttachmentNames(t, driver)
 
-	if enableFlakyTests {
-		attachmentsSession_getAttachmentNames(t, driver)
-	}
 	if enableFlakyTests {
 		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	}
