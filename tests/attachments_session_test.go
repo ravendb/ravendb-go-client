@@ -218,7 +218,7 @@ func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver)
 
 		err = session.Advanced().Attachments().Delete("users/1", "file2")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(user, "file4")
+		err = session.Advanced().Attachments().DeleteEntity(&user, "file4")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -397,11 +397,11 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.DeleteEntity(user)
+		err = session.DeleteEntity(&user)
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(user, "file")
+		err = session.Advanced().Attachments().DeleteEntity(&user, "file")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(user, "file") // this should be no-op
+		err = session.Advanced().Attachments().DeleteEntity(&user, "file") // this should be no-op
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -554,25 +554,12 @@ func TestAttachmentsSession(t *testing.T) {
 	attachmentsSession_putAttachments(t, driver)
 	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
 	attachmentsSession_getAttachmentNames(t, driver)
-
-	if enableFlakyTests {
-		attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
-	}
-	if enableFlakyTests {
-		attachmentsSession_deleteAttachments(t, driver)
-	}
-	if enableFlakyTests {
-		attachmentsSession_attachmentExists(t, driver)
-	}
+	attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
+	attachmentsSession_deleteAttachments(t, driver)
+	attachmentsSession_attachmentExists(t, driver)
 	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t, driver)
-	if enableFlakyTests {
-		attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
-	}
+	attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
 	attachmentsSession_throwIfStreamIsUseTwice(t, driver)
-	if enableFlakyTests {
-		attachmentsSession_getAttachmentReleasesResources(t, driver)
-	}
-	if enableFlakyTests {
-		attachmentsSession_deleteAttachmentsUsingCommand(t, driver)
-	}
+	attachmentsSession_getAttachmentReleasesResources(t, driver)
+	attachmentsSession_deleteAttachmentsUsingCommand(t, driver)
 }
