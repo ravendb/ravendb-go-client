@@ -27,11 +27,6 @@ environment:
   LOG_FAILED_HTTP_REQUESTS: true
   LOG_FAILED_HTTP_REQUESTS_DELAYED: true
 
-artifacts:
-  - path: logs
-    name: test_logs
-    type: zip
-
 install:
   - go version
   - go env

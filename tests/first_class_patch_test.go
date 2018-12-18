@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -62,6 +63,7 @@ func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	now := ravendb.Time(time.Now().UTC())
+	now = addDays(now, 2)
 	{
 		session := openSessionMust(t, store)
 
@@ -83,6 +85,11 @@ func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, loaded.Numbers[0], 31)
 
+		ll := time.Time(loaded.LastLogin)
+		now2 := time.Time(now)
+		if !ll.Equal(now2) {
+			fmt.Printf("loaded.LastLogin: %s, now: %s\n", ll, now2)
+		}
 		assert.Equal(t, loaded.LastLogin, now)
 
 		err = session.Advanced().PatchEntity(&loaded, "stuff[0].phone", "123456")
