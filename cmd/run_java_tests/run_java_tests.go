@@ -71,7 +71,7 @@ func runJava() {
 	// sometimes fails on mac pro
 	// runSingleJavaTest("AttachmentsRevisionsTest")
 	//runSingleJavaTest("BasicDocumentsTest")
-	//runSingleJavaTest("BulkInsertsTest")
+	runSingleJavaTest("BulkInsertsTest")
 	//runSingleJavaTest("ClientConfigurationTest")
 	//runSingleJavaTest("CompactTest")
 	//runSingleJavaTest("ContainsTest")
@@ -88,7 +88,7 @@ func runJava() {
 	//runSingleJavaTest("GetNextOperationIdCommandTest")
 	//runSingleJavaTest("HiLoTest")
 	//runSingleJavaTest("IndexOperationsTest")
-	runSingleJavaTest("IndexesFromClientTest")
+	//runSingleJavaTest("IndexesFromClientTest")
 	//runSingleJavaTest("LoadIntoStreamTest")
 	//runSingleJavaTest("LoadTest")
 	//runSingleJavaTest("NextAndSeedIdentitiesTest")

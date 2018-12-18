@@ -77,15 +77,18 @@ func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
 		_, err = bulkInsert.Store(&FooBar{})
 		assert.NoError(t, err)
 		err = bulkInsert.Abort()
-		assert.NoError(t, err)
-		_, err = bulkInsert.Store(&FooBar{})
 		assert.Error(t, err)
-
 		_, ok := err.(*ravendb.BulkInsertAbortedException)
 		assert.True(t, ok)
 
-		err = bulkInsert.Close()
-		assert.NoError(t, err)
+		// Note: In Java Abort() throws an exception, so we never execute this code
+		if false {
+			_, err = bulkInsert.Store(&FooBar{})
+			assert.Error(t, err)
+
+			err = bulkInsert.Close()
+			assert.NoError(t, err)
+		}
 	}
 }
 
@@ -164,13 +167,6 @@ func TestBulkInserts(t *testing.T) {
 	// matches order of Java tests
 	bulkInsertsTest_simpleBulkInsertShouldWork(t, driver)
 	bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t, driver)
-
-	// TODO: this test is flaky. Sometimes it fails as in https://travis-ci.org/kjk/ravendb-go-client/builds/404729678
-	// it fails oftent if we comment out all other tests here.
-	// Looks like timing issue where the server doesn't yet see the command
-	// that we're trying to kill
-	if enableFlakyTests {
-		bulkInsertsTest_killedToEarly(t, driver)
-	}
+	bulkInsertsTest_killedToEarly(t, driver)
 	bulkInsertsTest_canModifyMetadataWithBulkInsert(t, driver)
 }
