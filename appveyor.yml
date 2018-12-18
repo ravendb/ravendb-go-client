@@ -14,10 +14,7 @@ clone_depth: 5
 # shallow_clone: true
 # https://www.appveyor.com/blog/2014/06/04/shallow-clone-for-git-repositories/ ?
 
-# must use go 1.11 or later
 environment:
-  GOPATH: c:\gopath
-  GOVERSION: 1.11.2
   LOG_HTTP_REQUEST_SUMMARY: true
   LOG_FAILED_HTTP_REQUESTS: true
   LOG_FAILED_HTTP_REQUESTS_DELAYED: true
@@ -29,11 +26,8 @@ artifacts:
 
 clone_folder: c:\gopath\ravendb-go-client
 
+# https://www.appveyor.com/docs/windows-images-software/#golang
 install:
-  - set PATH=%GOPATH%\bin;c:\go\bin;%PATH%
-  - rmdir c:\go /s /q
-  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
-  - 7z x go%GOVERSION%.windows-amd64.zip -y -oC:\ > NUL
   - go version
   - go env
   - echo %CD%
