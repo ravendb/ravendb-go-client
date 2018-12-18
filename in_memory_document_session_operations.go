@@ -74,7 +74,7 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: using value type so that lookups are based on value
 	deferredCommandsMap map[idTypeAndName]ICommandData
 
-	generateEntityIDOnTheClient *GenerateEntityIDOnTheClient
+	generateEntityIDOnTheClient *generateEntityIDOnTheClient
 	entityToJSON                *EntityToJSON
 
 	// Note: in java DocumentSession inherits from InMemoryDocumentSessionOperations
@@ -106,7 +106,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	genIDFunc := func(entity interface{}) string {
 		return res.GenerateId(entity)
 	}
-	res.generateEntityIDOnTheClient = NewGenerateEntityIDOnTheClient(re.conventions, genIDFunc)
+	res.generateEntityIDOnTheClient = newgenerateEntityIDOnTheClient(re.conventions, genIDFunc)
 	res.entityToJSON = NewEntityToJSON(res)
 	return res
 }
@@ -151,7 +151,7 @@ func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerIdx
 	s.onBeforeQuery[handlerIdx] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIDOnTheClient() *GenerateEntityIDOnTheClient {
+func (s *InMemoryDocumentSessionOperations) GetgenerateEntityIDOnTheClient() *generateEntityIDOnTheClient {
 	return s.generateEntityIDOnTheClient
 }
 

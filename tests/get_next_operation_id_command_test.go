@@ -18,7 +18,7 @@ func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T, driver *R
 	assert.NotNil(t, command.Result)
 }
 
-func TestGetNextOperationIdCommand(t *testing.T) {
+func TestGetNextOperationIDCommand(t *testing.T) {
 	t.Parallel()
 
 	driver := createTestDriver(t)

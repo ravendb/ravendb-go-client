@@ -5,33 +5,38 @@ import (
 )
 
 var (
-	_ RavenCommand = &GetNextOperationIdCommand{}
+	_ RavenCommand = &GetNextOperationIDCommand{}
 )
 
-type _GetNextOperationIdCommandResponse struct {
+type _GetNextOperationIDCommandResponse struct {
 	ID int `json:"Id"`
 }
 
-type GetNextOperationIdCommand struct {
+// GetNextOperationIDCommand represents command for getting next
+// id from the server
+type GetNextOperationIDCommand struct {
 	RavenCommandBase
 
 	Result int
 }
 
-func NewGetNextOperationIDCommand() *GetNextOperationIdCommand {
-	cmd := &GetNextOperationIdCommand{
+// NewGetNextOperationIDCommand returns GetNextOperationIDCommand
+func NewGetNextOperationIDCommand() *GetNextOperationIDCommand {
+	cmd := &GetNextOperationIDCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 	}
 	return cmd
 }
 
-func (c *GetNextOperationIdCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+// CreateRequest creates a new request
+func (c *GetNextOperationIDCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/operations/next-operation-id"
 	return NewHttpGet(url)
 }
 
-func (c *GetNextOperationIdCommand) SetResponse(response []byte, fromCache bool) error {
-	var res _GetNextOperationIdCommandResponse
+// SetResponse sets JSON response
+func (c *GetNextOperationIDCommand) SetResponse(response []byte, fromCache bool) error {
+	var res _GetNextOperationIDCommandResponse
 	err := jsonUnmarshal(response, &res)
 	if err != nil {
 		return err

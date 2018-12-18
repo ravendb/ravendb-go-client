@@ -61,7 +61,7 @@ func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 */
 
 type BulkInsertOperation struct {
-	_generateEntityIDOnTheClient *GenerateEntityIDOnTheClient
+	_generateEntityIDOnTheClient *generateEntityIDOnTheClient
 	_requestExecutor             *RequestExecutor
 
 	_bulkInsertExecuteTask *CompletableFuture
@@ -93,7 +93,7 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 	res := &BulkInsertOperation{
 		_conventions:                 store.GetConventions(),
 		_requestExecutor:             re,
-		_generateEntityIDOnTheClient: NewGenerateEntityIDOnTheClient(re.GetConventions(), f),
+		_generateEntityIDOnTheClient: newgenerateEntityIDOnTheClient(re.GetConventions(), f),
 		_reader:                      reader,
 		_currentWriter:               writer,
 		_operationID:                 -1,

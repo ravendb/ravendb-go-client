@@ -38,7 +38,7 @@ type DocumentConventions struct {
 	_documentIDGenerator DocumentIDGeneratorFunc
 
 	_readBalanceBehavior                            ReadBalanceBehavior
-	_transformClassCollectionNameToDocumentIdPrefix func(string) string
+	_transformClassCollectionNameToDocumentIDPrefix func(string) string
 
 	_throwIfQueryPageSizeIsNotSet bool
 
@@ -62,7 +62,7 @@ func NewDocumentConventions() *DocumentConventions {
 		IdentityPartsSeparator:                          "/",
 		_disableTopologyUpdates:                         false,
 		RaiseIfQueryPageSizeIsNotSet:                    false,
-		_transformClassCollectionNameToDocumentIdPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
+		_transformClassCollectionNameToDocumentIDPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
 		_maxNumberOfRequestsPerSession:                  32,
 		_maxHttpCacheSize:                               128 * 1024 * 1024,
 	}
@@ -189,7 +189,7 @@ func (c *DocumentConventions) GetIdentityPartsSeparator() string {
 }
 
 func (c *DocumentConventions) GetTransformClassCollectionNameToDocumentIdPrefix() func(string) string {
-	return c._transformClassCollectionNameToDocumentIdPrefix
+	return c._transformClassCollectionNameToDocumentIDPrefix
 }
 
 func (c *DocumentConventions) DeserializeEntityFromJson(documentType reflect.Type, document TreeNode) (interface{}, error) {

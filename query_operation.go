@@ -234,7 +234,7 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 		identityProperty := session.GetConventions().GetIdentityProperty(clazz)
 		if identityProperty != "" {
 			if _, ok := document[identityProperty]; !ok {
-				session.GetGenerateEntityIDOnTheClient().trySetIdentity(result, id)
+				session.GetgenerateEntityIDOnTheClient().trySetIdentity(result, id)
 			}
 		}
 	}

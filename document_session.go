@@ -119,7 +119,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 	return s.refreshInternal(entity, command, documentInfo)
 }
 
-// TODO:    protected string generateId(Object entity) {
+// TODO:    protected string generateID(Object entity) {
 
 func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInformation, error) {
 	var requests []*GetRequest

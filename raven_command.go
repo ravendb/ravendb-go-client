@@ -11,6 +11,8 @@ var (
 	_ RavenCommand = &RavenCommandBase{}
 )
 
+// RavenCommand defines interface for server commands
+// TODO: should be private type, make the methods private as well
 type RavenCommand interface {
 	// those are meant to be over-written
 	CreateRequest(node *ServerNode) (*http.Request, error)
@@ -23,6 +25,7 @@ type RavenCommand interface {
 
 // TODO: optimize so that zero-values are default values so that we
 // don't need NewRavenCommandBase()
+// TODO: should be private type
 type RavenCommandBase struct {
 	StatusCode           int
 	ResponseType         RavenCommandResponseType

@@ -83,7 +83,7 @@ func runJava() {
 	//runSingleJavaTest("GetTcpInfoTest")
 	//runSingleJavaTest("GetClusterTopologyTest")
 	//runSingleJavaTest("GetStatisticsCommandTest")
-	//runSingleJavaTest("GetNextOperationIdCommandTest")
+	//runSingleJavaTest("GetNextOperationIDCommandTest")
 	//runSingleJavaTest("HiLoTest")
 	//runSingleJavaTest("IndexOperationsTest")
 	//runSingleJavaTest("IndexesFromClientTest")
