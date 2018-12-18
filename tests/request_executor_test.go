@@ -36,7 +36,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T, driver
 		databaseNamesOperation := ravendb.NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.GetCommand(conventions)
 		err := executor.ExecuteCommand(command)
-		_ = err.(*ravendb.DatabaseDoesNotExistException)
+		_ = err.(*ravendb.DatabaseDoesNotExistError)
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_failuresDoesNotBlockConnectionPool end\n")
@@ -104,7 +104,7 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T,
 		serverNode.SetDatabase("no_such")
 		future := executor.UpdateTopologyAsync(serverNode, 5000)
 		_, err := future.Get()
-		_ = err.(*ravendb.DatabaseDoesNotExistException)
+		_ = err.(*ravendb.DatabaseDoesNotExistError)
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb end\n")
@@ -123,7 +123,7 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T, driver *Ra
 		executor := ravendb.RequestExecutor_create(store.GetUrls(), "no_such_db", nil, conventions)
 		command := ravendb.NewGetNextOperationIDCommand()
 		err := executor.ExecuteCommand(command)
-		_ = err.(*ravendb.DatabaseDoesNotExistException)
+		_ = err.(*ravendb.DatabaseDoesNotExistError)
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_throwsWhenDatabaseDoesNotExist end\n")
@@ -194,7 +194,7 @@ func requestExecutorTest_failsWhenServerIsOffline(t *testing.T, driver *RavenTes
 	err := executor.ExecuteCommand(command)
 	assert.Error(t, err)
 
-	_ = err.(*ravendb.AllTopologyNodesDownException)
+	_ = err.(*ravendb.AllTopologyNodesDownError)
 }
 
 func TestRequestExecutor(t *testing.T) {

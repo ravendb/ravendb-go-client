@@ -620,7 +620,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 				}
 			}
 
-			if _, ok := (err).(*DatabaseDoesNotExistException); ok {
+			if _, ok := (err).(*DatabaseDoesNotExistError); ok {
 				// Will happen on all node in the cluster,
 				// so errors immediately
 				re._lastKnownUrls = initialUrls
@@ -788,7 +788,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		if !ok {
 			dbMissingHeader := response.Header.Get("Database-Missing")
 			if dbMissingHeader != "" {
-				return NewDatabaseDoesNotExistException(dbMissingHeader)
+				return newDatabaseDoesNotExistError(dbMissingHeader)
 			}
 
 			if len(command.GetBase().GetFailedNodes()) == 0 {
@@ -804,7 +804,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 				}
 			}
 
-			return NewAllTopologyNodesDownException("Received unsuccessful response from all servers and couldn't recover from it.")
+			return newAllTopologyNodesDownError("Received unsuccessful response from all servers and couldn't recover from it.")
 		}
 		return nil // we either handled this already in the unsuccessful response or we are throwing
 	}
@@ -880,7 +880,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 		message += "\nI was able to fetch " + re._topologyTakenFromNode.GetDatabase() + " topology from " + re._topologyTakenFromNode.GetUrl() + ".\n" + "Fetched topology: " + nodesStr
 	}
 
-	return NewAllTopologyNodesDownException("%s", message)
+	return newAllTopologyNodesDownError("%s", message)
 }
 
 func (re *RequestExecutor) inSpeedTestPhase() bool {
@@ -938,7 +938,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		}
 		return true, nil
 	case http.StatusForbidden:
-		err = NewAuthorizationException("Forbidden access to " + chosenNode.GetDatabase() + "@" + chosenNode.GetUrl() + ", " + request.Method + " " + request.URL.String())
+		err = newAuthorizationError("Forbidden access to " + chosenNode.GetDatabase() + "@" + chosenNode.GetUrl() + ", " + request.Method + " " + request.URL.String())
 	case http.StatusGone: // request not relevant for the chosen node - the database has been moved to a different one
 		if !shouldRetry {
 			return false, nil
@@ -962,17 +962,17 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		ok := re.handleServerDown(url, chosenNode, nodeIndex, command, request, response, nil, sessionInfo)
 		return ok, nil
 	case http.StatusConflict:
-		err = RequestExecutor_handleConflict(response)
+		err = requestExecutorHandleConflict(response)
 	default:
 		command.GetBase().OnResponseFailure(response)
-		err = ExceptionDispatcher_throwException(response)
+		err = exceptionDispatcherThrowError(response)
 	}
 	return false, err
 }
 
-func RequestExecutor_handleConflict(response *http.Response) error {
-	//fmt.Printf("RequestExecutor_handleConflict\n")
-	return ExceptionDispatcher_throwException(response)
+func requestExecutorHandleConflict(response *http.Response) error {
+	//fmt.Printf("requestExecutorHandleConflict\n")
+	return exceptionDispatcherThrowError(response)
 }
 
 //     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
@@ -1083,15 +1083,16 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 		if err == nil {
 			var schema ExceptionSchema
 			jsonUnmarshal(responseJson, &schema)
-			readException := ExceptionDispatcher_get(&schema, response.StatusCode)
+			readException := exceptionDispatcherGet(&schema, response.StatusCode)
 			failedNodes[chosenNode] = readException
 		} else {
-			exceptionSchema := NewExceptionSchema()
-			exceptionSchema.setUrl(request.URL.String())
-			exceptionSchema.setMessage("Get unrecognized response from the server")
-			exceptionSchema.setError(string(responseJson))
-			exceptionSchema.setType("Unparsable Server Response")
-			exceptionToUse := ExceptionDispatcher_get(exceptionSchema, response.StatusCode)
+			exceptionSchema := &ExceptionSchema{
+				URL:     request.URL.String(),
+				Type:    "Unparsable Server Response",
+				Message: "Get unrecognized response from the server",
+				Error:   string(responseJson),
+			}
+			exceptionToUse := exceptionDispatcherGet(exceptionSchema, response.StatusCode)
 
 			failedNodes[chosenNode] = exceptionToUse
 		}
@@ -1102,14 +1103,14 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 		// TODO: not sure if this is needed or a sign of a buf
 		e = newRavenError("")
 	}
-	exceptionSchema := NewExceptionSchema()
-	exceptionSchema.setUrl(request.URL.String())
-	exceptionSchema.setMessage(e.Error())
-	exceptionSchema.setError(e.Error())
-	errorType := fmt.Sprintf("%T", e)
-	exceptionSchema.setType(errorType)
+	exceptionSchema := &ExceptionSchema{
+		URL:     request.URL.String(),
+		Type:    fmt.Sprintf("%T", e),
+		Message: e.Error(),
+		Error:   e.Error(),
+	}
 
-	exceptionToUse := ExceptionDispatcher_get(exceptionSchema, http.StatusInternalServerError)
+	exceptionToUse := exceptionDispatcherGet(exceptionSchema, http.StatusInternalServerError)
 	failedNodes[chosenNode] = exceptionToUse
 }
 

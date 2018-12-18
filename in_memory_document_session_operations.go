@@ -688,7 +688,7 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity int
 		return nil
 	}
 
-	return NewNonUniqueObjectException("Attempted to associate a different object with id '" + id + "'.")
+	return newNonUniqueObjectError("Attempted to associate a different object with id '" + id + "'.")
 }
 
 func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*SaveChangesData, error) {

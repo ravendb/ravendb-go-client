@@ -55,7 +55,7 @@ func (t *CancellationToken) isCancellationRequested() bool {
 
 func (t *CancellationToken) throwIfCancellationRequested() error {
 	if t.isCancellationRequested() {
-		return NewOperationCancelledException("")
+		return newOperationCancelledError("")
 	}
 	return nil
 }

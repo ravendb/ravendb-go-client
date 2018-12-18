@@ -66,7 +66,7 @@ func (o *Operation) WaitForCompletion() error {
 		case "Completed":
 			return nil
 		case "Cancelled":
-			return NewOperationCancelledException("")
+			return newOperationCancelledError("")
 		case "Faulted":
 			result, ok := status["Result"].(ObjectNode)
 			if !ok {
@@ -77,7 +77,7 @@ func (o *Operation) WaitForCompletion() error {
 			if err != nil {
 				return err
 			}
-			return ExceptionDispatcher_get2(exceptionResult.Message, exceptionResult.Error, exceptionResult.Type, exceptionResult.StatusCode)
+			return exceptionDispatcherGet2(exceptionResult.Message, exceptionResult.Error, exceptionResult.Type, exceptionResult.StatusCode)
 		}
 
 		time.Sleep(500 * time.Millisecond)

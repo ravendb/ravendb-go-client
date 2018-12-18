@@ -145,7 +145,7 @@ func (f *CompletableFuture) getWithTimeout(dur time.Duration) (interface{}, erro
 			// completed, will return the result
 		case <-time.After(dur):
 			// timed out
-			return nil, NewTimeoutException("GetWithTimeout() timed out after %s", dur)
+			return nil, NewTimeoutError("GetWithTimeout() timed out after %s", dur)
 		}
 	}
 

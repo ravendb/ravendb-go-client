@@ -92,7 +92,7 @@ func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *
 		newUser.ID = "users/1"
 
 		err = session.Store(newUser)
-		_ = err.(*ravendb.NonUniqueObjectException)
+		_ = err.(*ravendb.NonUniqueObjectError)
 		msg := err.Error()
 		assert.True(t, strings.HasPrefix(msg, "Attempted to associate a different object with id 'users/1'"))
 		session.Close()

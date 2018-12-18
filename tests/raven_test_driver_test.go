@@ -330,7 +330,7 @@ func (d *RavenTestDriver) waitForIndexing(store *ravendb.DocumentStore, database
 				allIndexErrorsText = Arrays.stream(errors).map(x -> formatIndexErrors.apply(x)).collect(Collectors.joining(System.lineSeparator()));
 			}
 	*/
-	return ravendb.NewTimeoutException("The indexes stayed stale for more than %s.%s", timeout, allIndexErrorsText)
+	return ravendb.NewTimeoutError("The indexes stayed stale for more than %s.%s", timeout, allIndexErrorsText)
 }
 
 func killServer(procPtr **Process) {

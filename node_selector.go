@@ -65,7 +65,7 @@ func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*Curr
 	// if there are all marked as failed, we'll chose the first
 	// one so the user will get an error (or recover :-) );
 	if len(state.nodes) == 0 {
-		return nil, NewAllTopologyNodesDownException("There are no nodes in the topology at all")
+		return nil, newAllTopologyNodesDownError("There are no nodes in the topology at all")
 	}
 
 	return NewCurrentIndexAndNode(0, state.nodes[0]), nil

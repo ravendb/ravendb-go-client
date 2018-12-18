@@ -252,7 +252,7 @@ func (o *QueryOperation) setDisableEntitiesTracking(disableEntitiesTracking bool
 
 func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
 	if result == nil {
-		return NewIndexDoesNotExistException("Could not find index " + o._indexName)
+		return newIndexDoesNotExistError("Could not find index " + o._indexName)
 	}
 
 	err := QueryOperation_ensureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o._sp, o._session)
@@ -297,7 +297,7 @@ func QueryOperation_ensureIsAcceptable(result *QueryResult, waitForNonStaleResul
 	if waitForNonStaleResults && result.IsStale {
 		duration.stop()
 		msg := "Waited for " + duration.String() + " for the query to return non stale result."
-		return NewTimeoutException(msg)
+		return NewTimeoutError(msg)
 	}
 	return nil
 }

@@ -1,32 +1,33 @@
 package ravendb
 
-type DocumentConflictException struct {
+// DocumentConflictError represents document conflict error from the server
+type DocumentConflictError struct {
 	*ConflictException
 	DocID       string
 	LargestEtag int
 }
 
-func NewDocumentConflictException(message string, docID string, etag int) *DocumentConflictException {
-	res := &DocumentConflictException{}
+func NewDocumentConflictError(message string, docID string, etag int) *DocumentConflictError {
+	res := &DocumentConflictError{}
 	res.ConflictException = NewConflictException("%s", message)
 	res.DocID = docID
 	res.LargestEtag = etag
 	return res
 }
 
-func NewDocumentConflictExceptionFromMessage(message string) *DocumentConflictException {
-	return NewDocumentConflictException(message, "", 0)
+func NewDocumentConflictErrorFromMessage(message string) *DocumentConflictError {
+	return NewDocumentConflictError(message, "", 0)
 }
 
-func NewDocumentConflictExceptionFromJSON(js string) error {
+func NewDocumentConflictErrorFromJSON(js string) error {
 	var jsonNode map[string]interface{}
 	err := jsonUnmarshal([]byte(js), &jsonNode)
 	if err != nil {
-		return NewBadResponseException("Unable to parse server response: %s", err)
+		return newBadResponseError("Unable to parse server response: %s", err)
 	}
 	docID, _ := JsonGetAsText(jsonNode, "DocId")
 	message, _ := JsonGetAsText(jsonNode, "Message")
 	largestEtag, _ := jsonGetAsInt(jsonNode, "LargestEtag")
 
-	return NewDocumentConflictException(message, docID, largestEtag)
+	return NewDocumentConflictError(message, docID, largestEtag)
 }
