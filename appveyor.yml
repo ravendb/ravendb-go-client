@@ -32,7 +32,22 @@ artifacts:
     name: test_logs
     type: zip
 
-clone_folder: c:\gopath\ravendb-go-client
+for:
+-
+  matrix:
+    only:
+      - image: Ubuntu1804
+
+  clone_folder: /usr/ravendb-go-client
+
+for:
+-
+  matrix:
+    only:
+      - image: Visual Studio 2017
+
+  clone_folder: c:\gopath\ravendb-go-client
+
 
 # https://www.appveyor.com/docs/windows-images-software/#golang
 install:
