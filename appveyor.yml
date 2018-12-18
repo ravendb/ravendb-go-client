@@ -51,6 +51,7 @@ install:
 test_script:
   # default timeout is 10m which sometimes is not enough (usually we finish
   # under 8 but sometimes appveyor is slower)
-  - go test -parallel 1 -timeout 20m -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
+  - cmd: go test -parallel 1 -timeout 20m -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
+  - sh: ./scripts/travis_run_tests.sh
 
 deploy: off
