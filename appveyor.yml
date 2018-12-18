@@ -39,8 +39,6 @@ for:
       - image: Ubuntu1804
 
   clone_folder: /usr/ravendb-go-client
-
-for:
 -
   matrix:
     only:
