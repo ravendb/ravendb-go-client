@@ -38,7 +38,7 @@ install:
   - cmd: echo %CD%
   - sh: echo `pwd`
   - sh: sudo apt-get -qq update
-  - sh: sudo apt-get install -y libunwind8 wget libicu52 libssl-dev curl unzip gettext libcurl4-openssl-dev zlib1g uuid-dev bzip2 openssl sed
+  - sh: sudo apt-get install -y wget tar bzip2
   - sh: sudo cp ./certs/ca.crt /usr/local/share/ca-certificates/ca.crt
   - sh: sudo update-ca-certificates
   - sh: wget -O RavenDB.tar.bz2 https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-linux-x64.tar.bz2
