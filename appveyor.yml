@@ -1,6 +1,14 @@
 # based on https://github.com/joefitzgerald/go-plus/blob/master/appveyor.yml
 version: 4.0.{build}
 
+image:
+  - Visual Studio 2017
+  - Ubuntu1804
+
+stack: go 1.11
+
+build: off
+
 notifications:
   - provider: Email
     to:
@@ -31,11 +39,6 @@ install:
   - go version
   - go env
   - echo %CD%
-
-# by default appveyor assumes VS project built with MSBuild
-# this marks us as custom build and provides explicit build command
-build_script:
-  - go build
 
 test_script:
   # default timeout is 10m which sometimes is not enough (usually we finish
