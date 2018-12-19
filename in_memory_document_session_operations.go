@@ -210,8 +210,8 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 		return documentInfo.metadataInstance, nil
 	}
 
-	metadataAsJson := documentInfo.metadata
-	metadata := NewMetadataAsDictionaryWithSource(metadataAsJson)
+	metadataAsJSON := documentInfo.metadata
+	metadata := NewMetadataAsDictionaryWithSource(metadataAsJSON)
 	documentInfo.metadataInstance = metadata
 	return metadata, nil
 }
@@ -361,10 +361,6 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 	}
 
 	docInfo := s.documentsByID.getValue(id)
-	// TODO: this used to always be false. After fixing the logic it now crashes in ConvertToEntity2
-	// Temporarily disable this code path (doesn't affect tests although possibly some currently failing
-	// tests are due to this.
-	// Re-enable this code path and fix crashes.
 	if docInfo != nil {
 		// the local instance may have been changed, we adhere to the current Unit of Work
 		// instance, and return that, ignoring anything new.

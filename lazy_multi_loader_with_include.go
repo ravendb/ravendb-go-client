@@ -79,7 +79,7 @@ func (l *LazyMultiLoaderWithInclude) Load(clazz reflect.Type, id string) *Lazy {
 			for _, v := range m {
 				return v, nil
 			}
-			return nil, errors.New("impossible!")
+			return nil, errors.New("Impossible!")
 		}
 
 		//fmt.Printf("resultMap: %v, type=%T\n", resultMap, resultMap)

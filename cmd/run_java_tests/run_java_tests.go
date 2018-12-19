@@ -65,15 +65,15 @@ func runJava() {
 	// to start the second time
 
 	//runSingleJavaTest("AdvancedPatchingTest")
-	runSingleJavaTest("AggregationTest")
+	//runSingleJavaTest("AggregationTest")
 	//runSingleJavaTest("AttachmentsSessionTest")
-	// runSingleJavaTest("AttachmentsRevisionsTest")
+	//runSingleJavaTest("AttachmentsRevisionsTest")
 	//runSingleJavaTest("BasicDocumentsTest")
 	//runSingleJavaTest("BulkInsertsTest")
 	//runSingleJavaTest("ClientConfigurationTest")
 	//runSingleJavaTest("CompactTest")
 	//runSingleJavaTest("ContainsTest")
-	//runSingleJavaTest("CrudTest")
+	runSingleJavaTest("CrudTest")
 	//runSingleJavaTest("DeleteTest")
 	//runSingleJavaTest("DeleteDocumentCommandTest")
 	//runSingleJavaTest("DocumentsLoadTest")

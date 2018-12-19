@@ -1,8 +1,7 @@
 package ravendb
 
-// Note: Java has MetadataAsDictionary which is not needed in Go
+// Note: Java has IMetadataAsDictionary which is not needed in Go
 // so we use concrete type MetadataAsDictionary
-// type IMetadataAsDictionary = MetadataAsDictionary
 
 // MetadataAsDictionary describes metadata for a document
 type MetadataAsDictionary struct {
@@ -30,7 +29,7 @@ func NewMetadataAsDictionaryWithMetadata(metadata map[string]interface{}) *Metad
 	}
 }
 
-// NewMetadataAsDictionaryWithMetadata returns MetadataAsDictionary based on a given metadata and parent
+// NewMetadataAsDictionary returns MetadataAsDictionary based on a given metadata and parent
 func NewMetadataAsDictionary(metadata ObjectNode, parent *MetadataAsDictionary, parentKey string) *MetadataAsDictionary {
 	panicIf(parent == nil, "Parent cannot be null")
 	panicIf(parentKey == "", "ParentKey cannot be empty")
@@ -162,6 +161,7 @@ func (d *MetadataAsDictionary) ContainsKey(key string) bool {
 	return ok
 }
 
+// GetObjects returns metadata info for a given key
 // TODO: return an error instead of panicking on cast failures?
 func (d *MetadataAsDictionary) GetObjects(key string) []*MetadataAsDictionary {
 	objI, ok := d.Get(key)
@@ -185,6 +185,7 @@ func (d *MetadataAsDictionary) GetObjects(key string) []*MetadataAsDictionary {
 	return list
 }
 
+// Size returns number of metadata items
 func (d *MetadataAsDictionary) Size() int {
 	if d._metadata != nil {
 		return len(d._metadata)
