@@ -44,9 +44,6 @@ func NewObjectSet() *ObjectSet {
 		items: map[interface{}]struct{}{},
 	}
 }
-func (s *ObjectSet) isEmpty() bool {
-	return len(s.items) == 0
-}
 
 func (s *ObjectSet) add(o interface{}) {
 	s.items[o] = struct{}{}

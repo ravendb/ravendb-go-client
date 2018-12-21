@@ -7,31 +7,15 @@ var _ queryToken = &fromToken{}
 type fromToken struct {
 	collectionName string
 	indexName      string
-	dynamic        bool
+	isDynamic      bool
 	alias          string
-}
-
-func (t *fromToken) getCollectionName() string {
-	return t.collectionName
-}
-
-func (t *fromToken) getIndexName() string {
-	return t.indexName
-}
-
-func (t *fromToken) isDynamic() bool {
-	return t.dynamic
-}
-
-func (t *fromToken) getAlias() string {
-	return t.alias
 }
 
 func newFromToken(indexName string, collectionName string, alias string) *fromToken {
 	return &fromToken{
 		collectionName: collectionName,
 		indexName:      indexName,
-		dynamic:        collectionName != "",
+		isDynamic:      collectionName != "",
 		alias:          alias,
 	}
 }
@@ -46,7 +30,7 @@ func (t *fromToken) writeTo(writer *strings.Builder) {
 		// newIllegalStateError("Either indexName or collectionName must be specified");
 	}
 
-	if t.dynamic {
+	if t.isDynamic {
 		writer.WriteString("from ")
 
 		hasWhitespace := strings.ContainsAny(t.collectionName, " \t\r\n")

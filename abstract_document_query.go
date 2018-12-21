@@ -10,6 +10,7 @@ import (
 
 // Note: IAbstractDocumentQuery is AbstractDocumentQuery
 
+// AbstractDocumentQuery is a base class for describing a query
 type AbstractDocumentQuery struct {
 	clazz                    reflect.Type
 	_aliasToGroupByFieldName map[string]string
@@ -241,7 +242,7 @@ func (q *AbstractDocumentQuery) _groupBy(fieldName string, fieldNames ...string)
 
 // TODO: better name
 func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
-	if !q.fromToken.isDynamic() {
+	if !q.fromToken.isDynamic {
 		//throw new IllegalStateError("groupBy only works with dynamic queries");
 		panicIf(true, "groupBy only works with dynamic queries")
 	}

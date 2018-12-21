@@ -4,7 +4,3 @@ package ravendb
 type SessionInfo struct {
 	SessionID int
 }
-
-func (si *SessionInfo) getSessionId() int {
-	return si.SessionID
-}
