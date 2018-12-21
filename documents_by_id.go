@@ -31,7 +31,7 @@ func (d *documentsByID) add(info *documentInfo) {
 }
 
 func (d *documentsByID) remove(id string) bool {
-	if _, ok := d.inner[id]; ok {
+	if _, ok := d.inner[id]; !ok {
 		return false
 	}
 	delete(d.inner, id)

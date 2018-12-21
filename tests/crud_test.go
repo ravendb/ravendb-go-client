@@ -157,73 +157,74 @@ func crudTest_crudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDrive
 	{
 		newSession := openSessionMust(t, store)
 
-		user1 := &User{}
-		user1.setLastName("user1")
-		err = newSession.StoreWithID(user1, "users/1")
-		assert.NoError(t, err)
+		{
+			user1 := &User{}
+			user1.setLastName("user1")
+			err = newSession.StoreWithID(user1, "users/1")
+			assert.NoError(t, err)
 
-		user2 := &User{}
-		user2.setName("user2")
-		user1.Age = 1 // TODO: that's probably a bug in Java code
-		err = newSession.StoreWithID(user2, "users/2")
-		assert.NoError(t, err)
+			user2 := &User{}
+			user2.setName("user2")
+			user1.Age = 1 // TODO: that's probably a bug in Java code
+			err = newSession.StoreWithID(user2, "users/2")
+			assert.NoError(t, err)
 
-		user3 := &User{}
-		user3.setName("user3")
-		user3.Age = 1
-		err = newSession.StoreWithID(user3, "users/3")
-		assert.NoError(t, err)
+			user3 := &User{}
+			user3.setName("user3")
+			user3.Age = 1
+			err = newSession.StoreWithID(user3, "users/3")
+			assert.NoError(t, err)
 
-		user4 := &User{}
-		user4.setName("user4")
-		err = newSession.StoreWithID(user4, "users/4")
-		assert.NoError(t, err)
+			user4 := &User{}
+			user4.setName("user4")
+			err = newSession.StoreWithID(user4, "users/4")
+			assert.NoError(t, err)
 
-		err = newSession.DeleteEntity(user2)
-		assert.NoError(t, err)
-		user3.Age = 3
+			err = newSession.DeleteEntity(user2)
+			assert.NoError(t, err)
+			user3.Age = 3
 
-		changes, _ := newSession.Advanced().WhatChanged()
-		assert.Equal(t, len(changes), 4)
+			changes, _ := newSession.Advanced().WhatChanged()
+			assert.Equal(t, len(changes), 4)
 
-		err = newSession.SaveChanges()
-		assert.NoError(t, err)
-
-		var tempUser *User
-		err = newSession.Load(&tempUser, "users/2")
-		assert.NoError(t, err)
-		assert.Nil(t, tempUser)
-
-		tempUser = nil
-		err = newSession.Load(&tempUser, "users/3")
-		assert.NoError(t, err)
-		assert.Equal(t, tempUser.Age, 3)
-
-		user1 = nil
-		err = newSession.Load(&user1, "users/1")
-		assert.NoError(t, err)
-
-		user4 = nil
-		err = newSession.Load(&user4, "users/4")
-		assert.NoError(t, err)
-
-		err = newSession.DeleteEntity(user4)
-		assert.NoError(t, err)
-
-		user1.Age = 10
-
-		if enableFailingTests {
-			// TODO: this returns 3 changes, showing user/2 as added
-			// which is probably wrong. Need to figure out why.
-			changes, err2 := newSession.Advanced().WhatChanged()
-			assert.NoError(t, err2)
-			assert.Equal(t, len(changes), 2)
+			err = newSession.SaveChanges()
+			assert.NoError(t, err)
 		}
 
-		err = newSession.SaveChanges()
-		assert.NoError(t, err)
+		{
+			var user1, user2, user3, user4 *User
+			err = newSession.Load(&user2, "users/2")
+			assert.NoError(t, err)
+			assert.Nil(t, user2)
 
-		tempUser = nil
+			err = newSession.Load(&user3, "users/3")
+			assert.NoError(t, err)
+			assert.Equal(t, user3.Age, 3)
+
+			err = newSession.Load(&user1, "users/1")
+			assert.NoError(t, err)
+			assert.NotNil(t, user1)
+
+			err = newSession.Load(&user4, "users/4")
+			assert.NoError(t, err)
+			assert.NotNil(t, user4)
+
+			err = newSession.DeleteEntity(user4)
+			assert.NoError(t, err)
+
+			user1.Age = 10
+
+			var changes map[string][]*ravendb.DocumentsChanges
+			changes, err = newSession.Advanced().WhatChanged()
+			assert.NoError(t, err)
+			assert.Equal(t, len(changes), 2)
+
+			err = newSession.SaveChanges()
+			assert.NoError(t, err)
+
+		}
+
+		var tempUser *User
 		err = newSession.Load(&tempUser, "users/4")
 		assert.NoError(t, err)
 		assert.Nil(t, tempUser)
