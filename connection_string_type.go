@@ -1,9 +1,10 @@
 package ravendb
 
+// TODO: only used in ConnectionString which is unused
 type ConnectionStringType = string
 
 const (
-	ConnectionStringType_NONE  = "None"
-	ConnectionStringType_RAVEN = "Raven"
-	ConnectionStringType_SQL   = "Sql"
+	ConnectionStringTypeNone  = "None"
+	ConnectionStringTypeRaven = "Raven"
+	ConnectionStringTypeSQL   = "Sql"
 )

@@ -1,19 +1,9 @@
 package ravendb
 
+// ConnectionString represents connection string
+// TODO: unused
 type ConnectionString struct {
-	name string
+	Name string
 	// Note: Java has this as a virtual function getType()
-	typ ConnectionStringType
-}
-
-func (s *ConnectionString) GetName() string {
-	return s.name
-}
-
-func (s *ConnectionString) setName(name string) {
-	s.name = name
-}
-
-func (s *ConnectionString) getType() ConnectionStringType {
-	return s.typ
+	Type ConnectionStringType
 }
