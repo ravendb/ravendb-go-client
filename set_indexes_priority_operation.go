@@ -6,11 +6,13 @@ import (
 
 var _ IVoidMaintenanceOperation = &SetIndexesPriorityOperation{}
 
+// SetIndexesPriorityOperation represents operation for setting indexes priority
 type SetIndexesPriorityOperation struct {
 	_parameters *SetIndexesPriorityParameters
 	Command     *SetIndexesPriorityCommand
 }
 
+// NewSetIndexesPriorityOperation returns new SetIndexesPriorityParameters
 func NewSetIndexesPriorityOperation(indexName string, priority IndexPriority) *SetIndexesPriorityOperation {
 	panicIf(indexName == "", "indexName cannot be empty")
 
@@ -18,17 +20,12 @@ func NewSetIndexesPriorityOperation(indexName string, priority IndexPriority) *S
 		IndexNames: []string{indexName},
 		Priority:   priority,
 	}
-	return NewSetIndexesPriorityOperationWithParameters(p)
-}
-
-func NewSetIndexesPriorityOperationWithParameters(parameters *SetIndexesPriorityParameters) *SetIndexesPriorityOperation {
-	panicIf(parameters == nil, "parameters cannot be nil")
-
 	return &SetIndexesPriorityOperation{
-		_parameters: parameters,
+		_parameters: p,
 	}
 }
 
+// GetCommand returns a command
 func (o *SetIndexesPriorityOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewSetIndexesPriorityCommand(conventions, o._parameters)
 	return o.Command
@@ -38,12 +35,14 @@ var (
 	_ RavenCommand = &SetIndexesPriorityCommand{}
 )
 
+// SetIndexesPriorityCommand represents command to set indexes priority
 type SetIndexesPriorityCommand struct {
 	RavenCommandBase
 
 	_parameters []byte
 }
 
+// NewSetIndexesPriorityCommand returns new SetIndexesPriorityCommand
 func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *SetIndexesPriorityParameters) *SetIndexesPriorityCommand {
 	panicIf(conventions == nil, "conventions cannot be null")
 	panicIf(parameters == nil, "parameters cannot be null")
@@ -62,31 +61,17 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 	return cmd
 }
 
+// CreateRequest creates http request for the command
 func (c *SetIndexesPriorityCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes/set-priority"
 
 	return NewHttpPost(url, c._parameters)
 }
 
+// SetIndexesPriorityParameters represents arrgument for SetIndexPriorityCommand
 // Note: in Java it's Parameters class nested in SetIndexesPriorityOperation
-// Parameters is already taken
+// "Parameters" name is already taken
 type SetIndexesPriorityParameters struct {
 	IndexNames []string      `json:"IndexNames"`
 	Priority   IndexPriority `json:"Priority"`
-}
-
-func (p *SetIndexesPriorityParameters) getIndexNames() []string {
-	return p.IndexNames
-}
-
-func (p *SetIndexesPriorityParameters) setIndexNames(indexNames []string) {
-	p.IndexNames = indexNames
-}
-
-func (p *SetIndexesPriorityParameters) getPriority() IndexLockMode {
-	return p.Priority
-}
-
-func (p *SetIndexesPriorityParameters) setPriority(priority IndexLockMode) {
-	p.Priority = priority
 }
