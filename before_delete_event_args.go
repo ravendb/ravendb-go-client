@@ -1,37 +1,27 @@
 package ravendb
 
+// BeforeDeleteEventArgs describes
 type BeforeDeleteEventArgs struct {
-	_documentMetadata *MetadataAsDictionary
+	documentMetadata *MetadataAsDictionary
 
 	session    *InMemoryDocumentSessionOperations
-	documentID string
-	entity     interface{}
+	DocumentID string
+	Entity     interface{}
 }
 
-func NewBeforeDeleteEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *BeforeDeleteEventArgs {
+func newBeforeDeleteEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *BeforeDeleteEventArgs {
 	return &BeforeDeleteEventArgs{
 		session:    session,
-		documentID: documentID,
-		entity:     entity,
+		DocumentID: documentID,
+		Entity:     entity,
 	}
 }
 
-func (a *BeforeDeleteEventArgs) getSession() *InMemoryDocumentSessionOperations {
-	return a.session
-}
-
-func (a *BeforeDeleteEventArgs) GetDocumentID() string {
-	return a.documentID
-}
-
-func (a *BeforeDeleteEventArgs) getEntity() interface{} {
-	return a.entity
-}
-
-func (a *BeforeDeleteEventArgs) getDocumentMetadata() *MetadataAsDictionary {
-	if a._documentMetadata == nil {
-		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
+// GetDocumentMetadata returns metadata for the entity being deleted
+func (a *BeforeDeleteEventArgs) GetDocumentMetadata() *MetadataAsDictionary {
+	if a.documentMetadata == nil {
+		a.documentMetadata, _ = a.session.GetMetadataFor(a.Entity)
 	}
 
-	return a._documentMetadata
+	return a.documentMetadata
 }

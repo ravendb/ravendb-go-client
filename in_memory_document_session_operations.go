@@ -784,7 +784,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 				changeVector = nil
 			}
 
-			beforeDeleteEventArgs := NewBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.entity)
+			beforeDeleteEventArgs := newBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.entity)
 			for _, handler := range s.onBeforeDelete {
 				if handler != nil {
 					handler(s, beforeDeleteEventArgs)
