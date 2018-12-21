@@ -1,6 +1,7 @@
 package ravendb
 
-// TODO: make key lookups case-insensitive
+import "strings"
+
 type documentsByID struct {
 	inner map[string]*documentInfo
 }
@@ -12,18 +13,22 @@ func newDocumentsByID() *documentsByID {
 }
 
 func (d *documentsByID) getValue(id string) *documentInfo {
+	id = strings.ToLower(id)
 	return d.inner[id]
 }
 
 func (d *documentsByID) add(info *documentInfo) {
-	if _, ok := d.inner[info.id]; ok {
+	id := strings.ToLower(info.id)
+
+	if _, ok := d.inner[id]; ok {
 		return
 	}
 
-	d.inner[info.id] = info
+	d.inner[id] = info
 }
 
 func (d *documentsByID) remove(id string) bool {
+	id = strings.ToLower(id)
 	if _, ok := d.inner[id]; !ok {
 		return false
 	}
