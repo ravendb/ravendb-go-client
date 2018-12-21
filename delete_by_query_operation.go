@@ -49,7 +49,7 @@ type DeleteByIndexCommand struct {
 
 func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByIndexCommand {
 	if options == nil {
-		options = NewQueryOperationOptions()
+		options = &QueryOperationOptions{}
 	}
 	cmd := &DeleteByIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -64,16 +64,16 @@ func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *In
 func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	_options := c._options
 
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + fmt.Sprintf("/queries?allowStale=%v", _options.isAllowStale())
+	url := node.GetUrl() + "/databases/" + node.GetDatabase() + fmt.Sprintf("/queries?allowStale=%v", _options.allowStale)
 
-	if _options.getMaxOpsPerSecond() != 0 {
-		url += "&maxOpsPerSec=" + strconv.Itoa(_options.getMaxOpsPerSecond())
+	if _options.maxOpsPerSecond != 0 {
+		url += "&maxOpsPerSec=" + strconv.Itoa(_options.maxOpsPerSecond)
 	}
 
-	url += fmt.Sprintf("&details=%v", _options.isRetrieveDetails())
+	url += fmt.Sprintf("&details=%v", _options.retrieveDetails)
 
-	if _options.getStaleTimeout() != 0 {
-		url += "&staleTimeout=" + durationToTimeSpan(_options.getStaleTimeout())
+	if _options.staleTimeout != 0 {
+		url += "&staleTimeout=" + durationToTimeSpan(_options.staleTimeout)
 	}
 
 	m := JsonExtensions_writeIndexQuery(c._conventions, c._queryToDelete)
