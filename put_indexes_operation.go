@@ -8,18 +8,21 @@ var (
 	_ IMaintenanceOperation = &PutIndexesOperation{}
 )
 
+// PutIndexesOperation represents put indexes operation
 type PutIndexesOperation struct {
 	_indexToAdd []*IndexDefinition
 
 	Command *PutIndexesCommand
 }
 
+// NewPutIndexesOperation returns new PutIndexesOperation
 func NewPutIndexesOperation(indexToAdd ...*IndexDefinition) *PutIndexesOperation {
 	return &PutIndexesOperation{
 		_indexToAdd: indexToAdd,
 	}
 }
 
+// GetCommand returns a command for this operation
 func (o *PutIndexesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewPutIndexesCommand(conventions, o._indexToAdd)
 	return o.Command
@@ -27,6 +30,7 @@ func (o *PutIndexesOperation) GetCommand(conventions *DocumentConventions) Raven
 
 var _ RavenCommand = &PutIndexesCommand{}
 
+// PutIndexesCommand represents put indexes command
 type PutIndexesCommand struct {
 	RavenCommandBase
 
@@ -35,6 +39,7 @@ type PutIndexesCommand struct {
 	Result []*PutIndexResult
 }
 
+// NewPutIndexesCommand returns new PutIndexesCommand
 func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*IndexDefinition) *PutIndexesCommand {
 	panicIf(conventions == nil, "conventions cannot be nil")
 	panicIf(indexesToAdd == nil, "indexesToAdd cannot be nil")
@@ -57,6 +62,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	return cmd
 }
 
+// CreateRequest creates http request for this command
 func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/indexes"
 
@@ -67,10 +73,10 @@ func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Printf("\nPutIndexesCommand.CreateRequest:\n%s\n\n", string(d))
 	return NewHttpPut(url, d)
 }
 
+// SetResponse decodes http response
 func (c *PutIndexesCommand) SetResponse(response []byte, fromCache bool) error {
 	var res PutIndexesResponse
 	err := jsonUnmarshal(response, &res)
