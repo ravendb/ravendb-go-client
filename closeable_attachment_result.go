@@ -5,28 +5,27 @@ import (
 	"net/http"
 )
 
-type CloseableAttachmentResult struct {
-	details  *AttachmentDetails
+// Note: In Java it's CloseableAttachmentResult
+
+// AttachmentResult represents an attachment
+type AttachmentResult struct {
+	Data     io.Reader
+	Details  *AttachmentDetails
 	response *http.Response
 }
 
-func NewCloseableAttachmentResult(response *http.Response, details *AttachmentDetails) *CloseableAttachmentResult {
-	return &CloseableAttachmentResult{
-		details:  details,
+func newAttachmentResult(response *http.Response, details *AttachmentDetails) *AttachmentResult {
+	return &AttachmentResult{
+		Data:     response.Body,
+		Details:  details,
 		response: response,
 	}
 }
 
-func (r *CloseableAttachmentResult) GetData() io.Reader {
-	return r.response.Body
-}
-
-func (r *CloseableAttachmentResult) GetDetails() *AttachmentDetails {
-	return r.details
-}
-
-func (r *CloseableAttachmentResult) Close() {
+// Close closes the attachment
+func (r *AttachmentResult) Close() error {
 	if r.response.Body != nil {
-		r.response.Body.Close()
+		return r.response.Body.Close()
 	}
+	return nil
 }

@@ -208,10 +208,10 @@ func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver)
 
 		// test get attachment by its name
 		{
-			var attachmentResult *ravendb.CloseableAttachmentResult
+			var attachmentResult *ravendb.AttachmentResult
 			attachmentResult, err = session.Advanced().Attachments().Get("users/1", "file2")
 			assert.NoError(t, err)
-			name := attachmentResult.GetDetails().Name
+			name := attachmentResult.Details.Name
 			assert.Equal(t, name, "file2")
 			attachmentResult.Close()
 		}
@@ -249,7 +249,7 @@ func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver)
 		{
 			result, err := session.Advanced().Attachments().Get("users/1", "file1")
 			assert.NoError(t, err)
-			r := result.GetData()
+			r := result.Data
 			file1Bytes, err := ioutil.ReadAll(r)
 			assert.NoError(t, err)
 
@@ -314,7 +314,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T, driver *Rave
 		{
 			result, err := session.Advanced().Attachments().Get("users/1", "file1")
 			assert.NoError(t, err)
-			r := result.GetData()
+			r := result.Data
 			file1Bytes, err := ioutil.ReadAll(r)
 			assert.NoError(t, err)
 			assert.Equal(t, len(file1Bytes), 3)

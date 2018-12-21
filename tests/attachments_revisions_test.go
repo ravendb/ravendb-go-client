@@ -182,7 +182,7 @@ func attachmentsRevisions_attachmentRevision(t *testing.T, driver *RavenTestDriv
 			{
 				revision, err := session.Advanced().Attachments().GetRevision("users/1", "profile.png", changeVector)
 				assert.NoError(t, err)
-				r := revision.GetData()
+				r := revision.Data
 				bytes, err := ioutil.ReadAll(r)
 				assert.NoError(t, err)
 				assert.Equal(t, len(bytes), 3)

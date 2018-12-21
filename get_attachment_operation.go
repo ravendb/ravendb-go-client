@@ -42,7 +42,7 @@ type GetAttachmentCommand struct {
 	_type         AttachmentType
 	_changeVector *string
 
-	Result *CloseableAttachmentResult
+	Result *AttachmentResult
 }
 
 // TODO: should stream be io.ReadCloser? Who owns closing the attachment
@@ -99,6 +99,6 @@ func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.
 		DocumentID:   c._documentID,
 	}
 
-	c.Result = NewCloseableAttachmentResult(response, attachmentDetails)
+	c.Result = newAttachmentResult(response, attachmentDetails)
 	return ResponseDisposeHandling_MANUALLY, nil
 }
