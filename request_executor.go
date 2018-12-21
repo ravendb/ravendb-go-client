@@ -35,7 +35,7 @@ type RequestExecutor struct {
 	_lastReturnedResponse atomic.Value // atomic to avoid data races
 
 	_updateTopologyTimer *time.Timer
-	_nodeSelector        *NodeSelector
+	_nodeSelector        atomic.Value // atomic to avoid data races
 
 	NumberOfServerRequests  atomicInteger
 	topologyEtag            int
@@ -67,9 +67,18 @@ type RequestExecutor struct {
 	aggressiveCaching *AggressiveCacheOptions
 }
 
+func (re *RequestExecutor) getNodeSelector() *NodeSelector {
+	return re._nodeSelector.Load().(*NodeSelector)
+}
+
+func (re *RequestExecutor) setNodeSelector(s *NodeSelector) {
+	re._nodeSelector.Store(s)
+}
+
 func (re *RequestExecutor) GetTopology() *Topology {
-	if re._nodeSelector != nil {
-		return re._nodeSelector.getTopology()
+	nodeSelector := re.getNodeSelector()
+	if nodeSelector != nil {
+		return nodeSelector.getTopology()
 	}
 	return nil
 }
@@ -87,7 +96,7 @@ func (re *RequestExecutor) GetTopologyNodes() []*ServerNode {
 }
 
 func (re *RequestExecutor) GetUrl() string {
-	if re._nodeSelector == nil {
+	if re.getNodeSelector() == nil {
 		return ""
 	}
 
@@ -197,6 +206,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		conventions: conventions.Clone(),
 	}
 	res._lastReturnedResponse.Store(time.Now())
+	res.setNodeSelector(nil)
 	// TODO: create a different client if settings like compression
 	// or certificate differ
 	//res.httpClient = res.createClient()
@@ -241,7 +251,7 @@ func RequestExecutor_createForSingleNodeWithoutConfigurationUpdates(url string, 
 	// TODO: is Collections.singletonList in Java code subtly significant?
 	topology.SetNodes([]*ServerNode{serverNode})
 
-	executor._nodeSelector = NewNodeSelector(topology)
+	executor.setNodeSelector(NewNodeSelector(topology))
 	executor.topologyEtag = -2
 	executor._disableTopologyUpdates = true
 	executor._disableClientConfigurationUpdates = true
@@ -269,7 +279,7 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 
 	nodeSelector := NewNodeSelector(topology)
 
-	executor._nodeSelector = nodeSelector
+	executor.setNodeSelector(nodeSelector)
 	executor.topologyEtag = -2
 	executor._disableClientConfigurationUpdates = true
 	executor._disableTopologyUpdates = true
@@ -408,17 +418,19 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		newTopology := NewTopology()
 		newTopology.SetNodes(nodes)
 
-		if re._nodeSelector == nil {
-			re._nodeSelector = NewNodeSelector(newTopology)
+		nodeSelector := re.getNodeSelector()
+		if nodeSelector == nil {
+			nodeSelector = NewNodeSelector(newTopology)
+			re.setNodeSelector(nodeSelector)
 
 			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
-				re._nodeSelector.scheduleSpeedTest()
+				nodeSelector.scheduleSpeedTest()
 			}
-		} else if re._nodeSelector.onUpdateTopology(newTopology, forceUpdate) {
+		} else if nodeSelector.onUpdateTopology(newTopology, forceUpdate) {
 			re.disposeAllFailedNodesTimers()
 
 			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
-				re._nodeSelector.scheduleSpeedTest()
+				nodeSelector.scheduleSpeedTest()
 			}
 		}
 	}
@@ -456,18 +468,20 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 			return
 		}
 		result := command.Result
-		if re._nodeSelector == nil {
-			re._nodeSelector = NewNodeSelector(result)
+		nodeSelector := re.getNodeSelector()
+		if nodeSelector == nil {
+			nodeSelector = NewNodeSelector(result)
+			re.setNodeSelector(nodeSelector)
 			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
-				re._nodeSelector.scheduleSpeedTest()
+				nodeSelector.scheduleSpeedTest()
 			}
-		} else if re._nodeSelector.onUpdateTopology(result, forceUpdate) {
+		} else if nodeSelector.onUpdateTopology(result, forceUpdate) {
 			re.disposeAllFailedNodesTimers()
 			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
-				re._nodeSelector.scheduleSpeedTest()
+				nodeSelector.scheduleSpeedTest()
 			}
 		}
-		re.topologyEtag = re._nodeSelector.getTopology().GetEtag()
+		re.topologyEtag = nodeSelector.getTopology().GetEtag()
 		res = true
 	}
 
@@ -647,7 +661,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 			}
 		}
 		topology.SetNodes(topologyNodes)
-		re._nodeSelector = NewNodeSelector(topology)
+		re.setNodeSelector(NewNodeSelector(topology))
 		if len(initialUrls) > 0 {
 			re.initializeUpdateTopologyTimer()
 			return
@@ -860,16 +874,17 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 		"all of them seem to be down or not responding. I've tried to access the following nodes: "
 
 	var urls []string
-	if re._nodeSelector != nil {
-		for _, node := range re._nodeSelector.getTopology().GetNodes() {
+	nodeSelector := re.getNodeSelector()
+	if nodeSelector != nil {
+		for _, node := range nodeSelector.getTopology().GetNodes() {
 			url := node.GetUrl()
 			urls = append(urls, url)
 		}
 	}
 	message += strings.Join(urls, ", ")
 
-	if re._topologyTakenFromNode != nil {
-		nodes := re._nodeSelector.getTopology().GetNodes()
+	if nodeSelector != nil && re._topologyTakenFromNode != nil {
+		nodes := nodeSelector.getTopology().GetNodes()
 		var a []string
 		for _, n := range nodes {
 			s := "( url: " + n.GetUrl() + ", clusterTag: " + n.GetClusterTag() + ", serverRole: " + n.GetServerRole() + ")"
@@ -884,16 +899,18 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 }
 
 func (re *RequestExecutor) inSpeedTestPhase() bool {
-	return (re._nodeSelector != nil) && re._nodeSelector.inSpeedTestPhase()
+	nodeSelector := re.getNodeSelector()
+	return (nodeSelector != nil) && nodeSelector.inSpeedTestPhase()
 }
 
 func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command RavenCommand) bool {
-	multipleNodes := (re._nodeSelector != nil) && (len(re._nodeSelector.getTopology().GetNodes()) > 1)
+	nodeSelector := re.getNodeSelector()
+	multipleNodes := (nodeSelector != nil) && (len(nodeSelector.getTopology().GetNodes()) > 1)
 
 	cmd := command.GetBase()
 	return re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE &&
-		re._nodeSelector != nil &&
-		re._nodeSelector.inSpeedTestPhase() &&
+		nodeSelector != nil &&
+		nodeSelector.inSpeedTestPhase() &&
 		multipleNodes &&
 		cmd.IsReadRequest &&
 		cmd.ResponseType == RavenCommandResponseType_OBJECT &&
@@ -993,11 +1010,12 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 
 	re.spawnHealthChecks(chosenNode, nodeIndex)
 
-	if re._nodeSelector == nil {
+	nodeSelector := re.getNodeSelector()
+	if nodeSelector == nil {
 		return false
 	}
 
-	re._nodeSelector.onFailedRequest(nodeIndex)
+	nodeSelector.onFailedRequest(nodeIndex)
 
 	currentIndexAndNode, err := re.getPreferredNode()
 	if err != nil {
@@ -1054,8 +1072,9 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 		status.Close()
 	}
 
-	if re._nodeSelector != nil {
-		re._nodeSelector.restoreNodeIndex(idx)
+	nodeSelector := re.getNodeSelector()
+	if nodeSelector != nil {
+		nodeSelector.restoreNodeIndex(idx)
 	}
 }
 
@@ -1195,24 +1214,33 @@ func (re *RequestExecutor) createClient() *http.Client {
 }
 
 func (re *RequestExecutor) getPreferredNode() (*CurrentIndexAndNode, error) {
-	re.ensureNodeSelector()
+	ns, err := re.ensureNodeSelector()
+	if err != nil {
+		return nil, err
+	}
 
-	return re._nodeSelector.getPreferredNode()
+	return ns.getPreferredNode()
 }
 
 func (re *RequestExecutor) getNodeBySessionID(sessionID int) (*CurrentIndexAndNode, error) {
-	re.ensureNodeSelector()
+	ns, err := re.ensureNodeSelector()
+	if err != nil {
+		return nil, err
+	}
 
-	return re._nodeSelector.getNodeBySessionID(sessionID)
+	return ns.getNodeBySessionID(sessionID)
 }
 
 func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
-	re.ensureNodeSelector()
+	ns, err := re.ensureNodeSelector()
+	if err != nil {
+		return nil, err
+	}
 
-	return re._nodeSelector.getFastestNode()
+	return ns.getFastestNode()
 }
 
-func (re *RequestExecutor) ensureNodeSelector() error {
+func (re *RequestExecutor) ensureNodeSelector() (*NodeSelector, error) {
 	re.mu.Lock()
 	firstTopologyUpdate := re._firstTopologyUpdate
 	re.mu.Unlock()
@@ -1220,19 +1248,21 @@ func (re *RequestExecutor) ensureNodeSelector() error {
 	if firstTopologyUpdate != nil && !firstTopologyUpdate.IsDone() {
 		_, err := firstTopologyUpdate.Get()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	if re._nodeSelector == nil {
+	nodeSelector := re.getNodeSelector()
+	if nodeSelector == nil {
 		topology := NewTopology()
 
 		topology.SetNodes(re.GetTopologyNodes())
 		topology.SetEtag(re.topologyEtag)
 
-		re._nodeSelector = NewNodeSelector(topology)
+		nodeSelector = NewNodeSelector(topology)
+		re.setNodeSelector(nodeSelector)
 	}
-	return nil
+	return nodeSelector, nil
 }
 
 // NodeStatus represents status of server node
