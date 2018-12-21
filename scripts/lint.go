@@ -305,7 +305,7 @@ func main() {
 	megacheck()
 	maligned()
 	errcheck()
-	dupl()
+	//dupl() // too many results and mostly false positive
 	ineffassign()
 	unconvert()
 	goconst()
