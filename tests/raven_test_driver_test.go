@@ -684,15 +684,15 @@ func setStateFromEnv() {
 // In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) *RavenTestDriver {
+	ravendb.LogsLock()
+	defer ravendb.LogsUnlock()
+
 	downloadServerIfNeeded()
 
 	setStateFromEnv()
 	detectServerPath()
 
 	fmt.Printf("\nStarting test %s\n", t.Name())
-
-	ravendb.LogsLock()
-	defer ravendb.LogsUnlock()
 
 	ravendb.HTTPLoggerWriter = nil
 	if logAllRequests {
