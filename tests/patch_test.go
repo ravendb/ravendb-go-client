@@ -25,8 +25,10 @@ func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	patchOperation := ravendb.NewPatchOperation("users/1", nil,
-		ravendb.PatchRequest_forScript("this.name = \"Patched\""), nil, false)
+	patchRequest := &ravendb.PatchRequest{
+		Script: `this.name = "Patched"`,
+	}
+	patchOperation := ravendb.NewPatchOperation("users/1", nil, patchRequest, nil, false)
 	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
 	status := patchOperation.Command.Result

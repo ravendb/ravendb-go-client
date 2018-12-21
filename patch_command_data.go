@@ -23,14 +23,6 @@ func NewPatchCommandData(id string, changeVector *string, patch *PatchRequest, p
 	return res
 }
 
-func (d *PatchCommandData) getPatch() *PatchRequest {
-	return d.patch
-}
-
-func (d *PatchCommandData) getPatchIfMissing() *PatchRequest {
-	return d.patchIfMissing
-}
-
 func (d *PatchCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
 	res := d.baseJSON()
 	res["Patch"] = d.patch.Serialize()

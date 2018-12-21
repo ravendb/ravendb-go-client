@@ -416,15 +416,15 @@ func (s *DocumentSession) IncrementEntity(entity interface{}, path string, value
 }
 
 func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd interface{}) error {
-	patchRequest := NewPatchRequest()
+	patchRequest := &PatchRequest{}
 
 	valsCountStr := strconv.Itoa(s._valsCount)
-	patchRequest.SetScript("this." + path + " += args.val_" + valsCountStr + ";")
+	patchRequest.Script = "this." + path + " += args.val_" + valsCountStr + ";"
 
 	m := map[string]interface{}{
 		"val_" + valsCountStr: valueToAdd,
 	}
-	patchRequest.SetValues(m)
+	patchRequest.Values = m
 
 	s._valsCount++
 
@@ -446,13 +446,13 @@ func (s *DocumentSession) PatchEntity(entity interface{}, path string, value int
 }
 
 func (s *DocumentSession) PatchByID(id string, path string, value interface{}) error {
-	patchRequest := NewPatchRequest()
+	patchRequest := &PatchRequest{}
 	valsCountStr := strconv.Itoa(s._valsCount)
-	patchRequest.SetScript("this." + path + " = args.val_" + valsCountStr + ";")
+	patchRequest.Script = "this." + path + " = args.val_" + valsCountStr + ";"
 	m := map[string]interface{}{
 		"val_" + valsCountStr: value,
 	}
-	patchRequest.SetValues(m)
+	patchRequest.Values = m
 
 	s._valsCount++
 
@@ -479,9 +479,9 @@ func (s *DocumentSession) PatchArrayByID(id string, pathToArray string, arrayAdd
 
 	arrayAdder(scriptArray)
 
-	patchRequest := NewPatchRequest()
-	patchRequest.SetScript(scriptArray.getScript())
-	patchRequest.SetValues(scriptArray.Parameters)
+	patchRequest := &PatchRequest{}
+	patchRequest.Script = scriptArray.getScript()
+	patchRequest.Values = scriptArray.Parameters
 
 	if !s.tryMergePatches(id, patchRequest) {
 		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
@@ -516,16 +516,16 @@ func (s *DocumentSession) tryMergePatches(id string, patchRequest *PatchRequest)
 	// No need to call deferredCommandsMap.remove((id, CommandType.PATCH, null));
 
 	oldPatch := command.(*PatchCommandData)
-	newScript := oldPatch.getPatch().GetScript() + "\n" + patchRequest.GetScript()
-	newVals := cloneMapStringObject(oldPatch.getPatch().GetValues())
+	newScript := oldPatch.patch.Script + "\n" + patchRequest.Script
+	newVals := cloneMapStringObject(oldPatch.patch.Values)
 
-	for k, v := range patchRequest.GetValues() {
+	for k, v := range patchRequest.Values {
 		newVals[k] = v
 	}
 
-	newPatchRequest := NewPatchRequest()
-	newPatchRequest.SetScript(newScript)
-	newPatchRequest.SetValues(newVals)
+	newPatchRequest := &PatchRequest{}
+	newPatchRequest.Script = newScript
+	newPatchRequest.Values = newVals
 
 	cmdData := NewPatchCommandData(id, nil, newPatchRequest, nil)
 	s.Defer(cmdData)

@@ -36,12 +36,12 @@ func advancedPatching_testWithVariables(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	patchRequest := ravendb.NewPatchRequest()
-	patchRequest.SetScript("this.owner = args.v1")
+	patchRequest := &ravendb.PatchRequest{}
+	patchRequest.Script = "this.owner = args.v1"
 	m := map[string]interface{}{
 		"v1": "not-me",
 	}
-	patchRequest.SetValues(m)
+	patchRequest.Values = m
 	patchOperation := ravendb.NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
 	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
