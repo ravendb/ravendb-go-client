@@ -352,8 +352,6 @@ func (c *DatabaseChanges) Close() {
 			dbg("DatabaseChanges.Close(): client.Close() failed with %s\n", err)
 		}
 		c.setWsClient(nil)
-	} else {
-		//fmt.Printf("DatabaseChanges.Close(): c.getWsClient() returned nil\n")
 	}
 
 	c.mu.Lock()
@@ -380,11 +378,9 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	s := name
 	onDisconnect := func() {
 		if c.IsConnected() {
-			err := c.send(unwatchCommand, value)
-			if err != nil {
-				// if we are not connected then we unsubscribed already
-				// because connections drops with all subscriptions
-			}
+			c.send(unwatchCommand, value)
+			// ignoring error: if we are not connected then we unsubscribed
+			// already because connections drops with all subscriptions
 		}
 
 		c.mu.Lock()
@@ -522,10 +518,7 @@ func (c *DatabaseChanges) doWork() error {
 		c.mu.Unlock()
 
 		c.invokeConnectionStatusChanged()
-		_, err = processor.processing.Get()
-		/*if err != nil {
-			fmt.Printf("DatbaseChanges.precessing.Get() returned err %s\n", err)
-		}*/
+		processor.processing.Get()
 		c.invokeConnectionStatusChanged()
 		shouldReconnect := c.reconnectClient()
 		//fmt.Printf("DatabaseChanges.doWork: shouldReconnect=%v\n", shouldReconnect)

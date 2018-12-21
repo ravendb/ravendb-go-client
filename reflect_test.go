@@ -58,7 +58,7 @@ func TestIsStructy(t *testing.T) {
 	typ, ok = GetStructTypeOfValue(&v)
 	assert.True(t, ok && typ.Kind() == reflect.Struct)
 	v2 := "str"
-	typ, ok = GetStructTypeOfValue(v2)
+	_, ok = GetStructTypeOfValue(v2)
 	assert.False(t, ok)
 }
 

@@ -90,7 +90,7 @@ func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, e
 
 func (c *DeleteByIndexCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
-		throwInvalidResponse()
+		return throwInvalidResponse()
 	}
 
 	return jsonUnmarshal(response, &c.Result)

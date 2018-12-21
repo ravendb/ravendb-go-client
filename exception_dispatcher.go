@@ -38,7 +38,7 @@ func exceptionDispatcherThrowError(response *http.Response) error {
 	}
 	var schema ExceptionSchema
 	if len(d) > 0 {
-		err = jsonUnmarshal(d, &schema)
+		jsonUnmarshal(d, &schema)
 		if response.StatusCode == http.StatusConflict {
 			return exceptionDispatcherThrowConflict(&schema, string(d))
 		}

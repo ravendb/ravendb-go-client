@@ -370,10 +370,7 @@ func (s *DocumentSession) LoadStartingWithIntoStream(output io.Writer, args *Sta
 		args.PageSize = 25
 	}
 	_, err := s.loadStartingWithInternal(args.StartsWith, loadStartingWithOperation, output, args.Matches, args.Start, args.PageSize, args.Exclude, args.StartAfter)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *LoadStartingWithOperation, stream io.Writer,

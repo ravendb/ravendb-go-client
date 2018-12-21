@@ -35,7 +35,7 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 		return nil, fmt.Errorf("meta value '%s' is of type %T, expected []interface{}", Constants_Documents_Metadata_ATTACHMENTS, attachmentsI)
 	}
 	n := len(attachments)
-	results := make([]*AttachmentName, n, n)
+	results := make([]*AttachmentName, n)
 	clazz := reflect.TypeOf(&AttachmentName{})
 	for i := 0; i < n; i++ {
 		jsonNode := attachments[i]

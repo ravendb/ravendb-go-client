@@ -86,7 +86,7 @@ func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, er
 
 func (c *PatchByQueryCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
-		throwInvalidResponse()
+		return throwInvalidResponse()
 	}
 
 	return jsonUnmarshal(response, &c.Result)

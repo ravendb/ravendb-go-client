@@ -49,7 +49,7 @@ func (t *fromToken) writeTo(writer *strings.Builder) {
 	if t.dynamic {
 		writer.WriteString("from ")
 
-		hasWhitespace := (strings.IndexAny(t.collectionName, " \t\r\n") != -1)
+		hasWhitespace := strings.ContainsAny(t.collectionName, " \t\r\n")
 		if hasWhitespace {
 			if strings.Contains(t.collectionName, "\"") {
 				t.throwInvalidCollectionName()
