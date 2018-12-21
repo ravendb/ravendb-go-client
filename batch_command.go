@@ -138,33 +138,33 @@ func (c *BatchCommand) appendOptions(sb string) string {
 
 	sb += "?"
 
-	if _options.isWaitForReplicas() {
-		ts := durationToTimeSpan(_options.getWaitForReplicasTimeout())
+	if _options.waitForReplicas {
+		ts := durationToTimeSpan(_options.waitForReplicasTimeout)
 		sb += "&waitForReplicasTimeout=" + ts
 
-		if _options.isThrowOnTimeoutInWaitForReplicas() {
+		if _options.throwOnTimeoutInWaitForReplicas {
 			sb += "&throwOnTimeoutInWaitForReplicas=true"
 		}
 
 		sb += "&numberOfReplicasToWaitFor="
-		if _options.isMajority() {
+		if _options.majority {
 			sb += "majority"
 		} else {
-			sb += strconv.Itoa(_options.getNumberOfReplicasToWaitFor())
+			sb += strconv.Itoa(_options.numberOfReplicasToWaitFor)
 		}
 	}
 
-	if _options.isWaitForIndexes() {
-		ts := durationToTimeSpan(_options.getWaitForIndexesTimeout())
+	if _options.waitForIndexes {
+		ts := durationToTimeSpan(_options.waitForIndexesTimeout)
 		sb += "&waitForIndexesTimeout=" + ts
 
-		if _options.isThrowOnTimeoutInWaitForIndexes() {
+		if _options.throwOnTimeoutInWaitForIndexes {
 			sb += "&waitForIndexThrow=true"
 		} else {
 			sb += "&waitForIndexThrow=false"
 		}
 
-		for _, specificIndex := range _options.getWaitForSpecificIndexes() {
+		for _, specificIndex := range _options.waitForSpecificIndexes {
 			sb += "&waitForSpecificIndex=" + specificIndex
 		}
 	}
@@ -172,7 +172,7 @@ func (c *BatchCommand) appendOptions(sb string) string {
 }
 
 func (c *BatchCommand) Close() {
-	// empty
+	// no-op
 }
 
 // Note: in Java is in PutAttachmentCommandHelper.java
