@@ -104,7 +104,7 @@ func (d *MetadataAsDictionary) ConvertValue(key string, value interface{}) inter
 		return v
 	case []interface{}:
 		n := len(v)
-		res := make([]interface{}, n, n)
+		res := make([]interface{}, n)
 		for i, el := range v {
 			newEl := d.ConvertValue(key, el)
 			res[i] = newEl
@@ -173,7 +173,7 @@ func (d *MetadataAsDictionary) GetObjects(key string) []*MetadataAsDictionary {
 	if n == 0 {
 		return nil
 	}
-	list := make([]*MetadataAsDictionary, n, n)
+	list := make([]*MetadataAsDictionary, n)
 	for i := 0; i < n; i++ {
 		if d, ok := obj[i].(map[string]interface{}); ok {
 			list[i] = NewMetadataAsDictionaryWithMetadata(d)

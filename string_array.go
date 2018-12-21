@@ -60,15 +60,10 @@ func StringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, str
 }
 
 func StringArrayCopy(a []string) []string {
-	n := len(a)
-	if n == 0 {
+	if len(a) == 0 {
 		return nil
 	}
-	res := make([]string, n, n)
-	for i := 0; i < n; i++ {
-		res[i] = a[i]
-	}
-	return res
+	return append([]string{}, a...)
 }
 
 // return a1 - a2

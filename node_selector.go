@@ -227,8 +227,8 @@ func NewNodeSelectorState(currentNodeIndex int, topology *Topology) *NodeSelecto
 		currentNodeIndex: currentNodeIndex,
 		nodes:            nodes,
 	}
-	failures := make([]atomicInteger, len(nodes), len(nodes))
+	failures := make([]atomicInteger, len(nodes))
 	res.failures = failures
-	res.fastestRecords = make([]int, len(nodes), len(nodes))
+	res.fastestRecords = make([]int, len(nodes))
 	return res
 }

@@ -262,13 +262,13 @@ func getObjectNodeFieldNames(o ObjectNode) []string {
 	if n == 0 {
 		return nil
 	}
-	res := make([]string, n, n)
+	res := make([]string, n)
 	i := 0
 	for k := range o {
 		res[i] = k
 		i++
 	}
-	// Go randomizes order of map tranversal but it's useful to have it
+	// Go randomizes order of map traversal but it's useful to have it
 	// fixed e.g. for tests
 	sort.Strings(res)
 	return res

@@ -1067,7 +1067,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 		// Check if document was already loaded, the check if we've received it through include
 		documentInfo := s.documentsByID.getValue(id)
 		if documentInfo == nil {
-			documentInfo, _ = s.includedDocumentsByID[id]
+			documentInfo = s.includedDocumentsByID[id]
 			if documentInfo == nil {
 				return false
 			}

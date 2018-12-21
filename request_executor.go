@@ -89,10 +89,7 @@ func (re *RequestExecutor) GetTopologyNodes() []*ServerNode {
 	}
 	var res []*ServerNode
 	nodes := re.GetTopology().GetNodes()
-	for _, n := range nodes {
-		res = append(res, n)
-	}
-	return res
+	return append(res, nodes...)
 }
 
 func (re *RequestExecutor) GetUrl() string {
@@ -677,7 +674,6 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *CompletableF
 		}
 		details := strings.Join(a, ", ")
 		err = re.throwError(details)
-		return
 	}
 	go f()
 	return future

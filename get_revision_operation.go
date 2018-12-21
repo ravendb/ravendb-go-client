@@ -66,7 +66,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 
 func (o *GetRevisionOperation) GetRevisionsFor(clazz reflect.Type) ([]interface{}, error) {
 	resultsCount := len(o._result.getResults())
-	results := make([]interface{}, resultsCount, resultsCount)
+	results := make([]interface{}, resultsCount)
 	var err error
 	for i := 0; i < resultsCount; i++ {
 		document := o._result.getResults()[i]
@@ -81,7 +81,7 @@ func (o *GetRevisionOperation) GetRevisionsFor(clazz reflect.Type) ([]interface{
 
 func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary {
 	resultsCount := len(o._result.getResults())
-	results := make([]*MetadataAsDictionary, resultsCount, resultsCount)
+	results := make([]*MetadataAsDictionary, resultsCount)
 	for i := 0; i < resultsCount; i++ {
 		document := o._result.getResults()[i]
 
