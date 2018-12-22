@@ -145,7 +145,10 @@ func (s *DocumentStore) RegisterEvents(session *InMemoryDocumentSessionOperation
 func (s *DocumentStore) afterSessionCreated(session *InMemoryDocumentSessionOperations) {
 	for _, handler := range s.onSessionCreated {
 		if handler != nil {
-			handler(s, NewSessionCreatedEventArgs(session))
+			args := &SessionCreatedEventArgs{
+				Session: session,
+			}
+			handler(s, args)
 		}
 	}
 }

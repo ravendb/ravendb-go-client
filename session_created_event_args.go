@@ -1,15 +1,6 @@
 package ravendb
 
+// SessionCreatedEventArgs represents session created event args
 type SessionCreatedEventArgs struct {
-	session *InMemoryDocumentSessionOperations
-}
-
-func NewSessionCreatedEventArgs(session *InMemoryDocumentSessionOperations) *SessionCreatedEventArgs {
-	return &SessionCreatedEventArgs{
-		session: session,
-	}
-}
-
-func (a *SessionCreatedEventArgs) getSession() *InMemoryDocumentSessionOperations {
-	return a.session
+	Session *InMemoryDocumentSessionOperations
 }

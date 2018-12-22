@@ -170,7 +170,9 @@ func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInform
 }
 
 func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
-	multiGetOperation := NewMultiGetOperation(s.InMemoryDocumentSessionOperations)
+	multiGetOperation := &MultiGetOperation{
+		_session: s.InMemoryDocumentSessionOperations,
+	}
 	multiGetCommand := multiGetOperation.createRequest(requests)
 
 	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(multiGetCommand, s.sessionInfo)
