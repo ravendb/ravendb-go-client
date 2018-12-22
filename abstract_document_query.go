@@ -1612,12 +1612,11 @@ func (q *AbstractDocumentQuery) executeActualQuery() error {
 		err := q.theSession.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, q.theSession.sessionInfo)
 		q.queryOperation.setResult(command.Result)
 		context.Close()
-		// make sure context.Close() is executed
 		if err != nil {
 			return err
 		}
 	}
-	q.InvokeAfterQueryExecuted(q.queryOperation.getCurrentQueryResults())
+	q.InvokeAfterQueryExecuted(q.queryOperation.currentQueryResults)
 	return nil
 }
 
@@ -1628,7 +1627,7 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 		return nil, err
 	}
 
-	return q.queryOperation.getCurrentQueryResults().createSnapshot(), nil
+	return q.queryOperation.currentQueryResults.createSnapshot(), nil
 }
 
 // ToListOld returns the result of the query

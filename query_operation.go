@@ -6,44 +6,43 @@ import (
 	"reflect"
 )
 
+// QueryOperation describes query operation
 type QueryOperation struct {
-	_session                 *InMemoryDocumentSessionOperations
-	_indexName               string
-	indexQuery               *IndexQuery
-	_metadataOnly            bool
-	_indexEntriesOnly        bool
-	_currentQueryResults     *QueryResult
-	_fieldsToFetch           *fieldsToFetchToken
-	_sp                      *Stopwatch
-	_disableEntitiesTracking bool
+	_session                *InMemoryDocumentSessionOperations
+	_indexName              string
+	indexQuery              *IndexQuery
+	_metadataOnly           bool
+	_indexEntriesOnly       bool
+	currentQueryResults     *QueryResult
+	_fieldsToFetch          *fieldsToFetchToken
+	_sp                     *Stopwatch
+	disableEntitiesTracking bool
 
 	// static  Log logger = LogFactory.getLog(QueryOperation.class);
 }
 
+// NewQueryOperation returns new QueryOperation
 func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) *QueryOperation {
 	res := &QueryOperation{
-		_session:                 session,
-		_indexName:               indexName,
-		indexQuery:               indexQuery,
-		_fieldsToFetch:           fieldsToFetch,
-		_disableEntitiesTracking: disableEntitiesTracking,
-		_metadataOnly:            metadataOnly,
-		_indexEntriesOnly:        indexEntriesOnly,
+		_session:                session,
+		_indexName:              indexName,
+		indexQuery:              indexQuery,
+		_fieldsToFetch:          fieldsToFetch,
+		disableEntitiesTracking: disableEntitiesTracking,
+		_metadataOnly:           metadataOnly,
+		_indexEntriesOnly:       indexEntriesOnly,
 	}
 	//res.assertPageSizeSet()
 	return res
 }
 
+// CreateRequest creates a request
 func (o *QueryOperation) CreateRequest() *QueryCommand {
 	o._session.IncrementRequestCount()
 
 	//o.logQuery();
 
 	return NewQueryCommand(o._session.GetConventions(), o.indexQuery, o._metadataOnly, o._indexEntriesOnly)
-}
-
-func (o *QueryOperation) getCurrentQueryResults() *QueryResult {
-	return o._currentQueryResults
 }
 
 func (o *QueryOperation) setResult(queryResult *QueryResult) {
@@ -89,9 +88,9 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 }
 
 func (o *QueryOperation) completeNew(results interface{}) error {
-	queryResult := o._currentQueryResults.createSnapshot()
+	queryResult := o.currentQueryResults.createSnapshot()
 
-	if !o._disableEntitiesTracking {
+	if !o.disableEntitiesTracking {
 		o._session.RegisterIncludes(queryResult.Includes)
 	}
 	rt := reflect.TypeOf(results)
@@ -127,7 +126,7 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 		metadata := metadataI.(ObjectNode)
 		id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
 
-		el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
+		el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
 		if err != nil {
 			return newRuntimeError("Unable to read json: %s", err)
 		}
@@ -135,7 +134,7 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 		sliceV2 = reflect.Append(sliceV2, v2)
 	}
 
-	if !o._disableEntitiesTracking {
+	if !o.disableEntitiesTracking {
 		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
 	if sliceV2 != sliceV {
@@ -145,9 +144,9 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 }
 
 func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) {
-	queryResult := o._currentQueryResults.createSnapshot()
+	queryResult := o.currentQueryResults.createSnapshot()
 
-	if !o._disableEntitiesTracking {
+	if !o.disableEntitiesTracking {
 		o._session.RegisterIncludes(queryResult.Includes)
 	}
 
@@ -159,7 +158,7 @@ func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) 
 			panicIf(!ok, "missing metadata")
 			metadata := metadataI.(ObjectNode)
 			id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
-			el, err := QueryOperation_deserialize(clazz, id, document, metadata, o._fieldsToFetch, o._disableEntitiesTracking, o._session)
+			el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
 			if err != nil {
 				return nil, newRuntimeError("Unable to read json: %s", err)
 			}
@@ -167,7 +166,7 @@ func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) 
 		}
 	}
 
-	if !o._disableEntitiesTracking {
+	if !o.disableEntitiesTracking {
 		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
 
@@ -185,7 +184,7 @@ func jsonIsValueNode(v interface{}) bool {
 	return false
 }
 
-func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
+func queryOperationDeserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
 	_, ok := jsonGetAsBool(metadata, "@projection")
 	if !ok {
 		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)
@@ -242,24 +241,16 @@ func QueryOperation_deserialize(clazz reflect.Type, id string, document ObjectNo
 	return result, nil
 }
 
-func (o *QueryOperation) isDisableEntitiesTracking() bool {
-	return o._disableEntitiesTracking
-}
-
-func (o *QueryOperation) setDisableEntitiesTracking(disableEntitiesTracking bool) {
-	o._disableEntitiesTracking = disableEntitiesTracking
-}
-
 func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
 	if result == nil {
 		return newIndexDoesNotExistError("Could not find index " + o._indexName)
 	}
 
-	err := QueryOperation_ensureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o._sp, o._session)
+	err := queryOperationEnsureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o._sp, o._session)
 	if err != nil {
 		return err
 	}
-	o._currentQueryResults = result
+	o.currentQueryResults = result
 
 	// TODO: port me when we have logger
 	/*
@@ -293,7 +284,7 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 	return nil
 }
 
-func QueryOperation_ensureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *Stopwatch, session *InMemoryDocumentSessionOperations) error {
+func queryOperationEnsureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *Stopwatch, session *InMemoryDocumentSessionOperations) error {
 	if waitForNonStaleResults && result.IsStale {
 		duration.stop()
 		msg := "Waited for " + duration.String() + " for the query to return non stale result."
