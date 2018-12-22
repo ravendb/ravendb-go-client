@@ -27,7 +27,7 @@ type documentInfo struct {
 }
 
 func getNewDocumentInfo(document ObjectNode) *documentInfo {
-	metadataV, ok := document[Constants_Documents_Metadata_KEY]
+	metadataV, ok := document[MetadataKey]
 	// TODO: maybe convert to errors
 	panicIf(!ok, "Document must have a metadata")
 	metadata, ok := metadataV.(ObjectNode)
@@ -35,11 +35,11 @@ func getNewDocumentInfo(document ObjectNode) *documentInfo {
 
 	// TODO: return an error?
 
-	id, ok := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+	id, ok := JsonGetAsText(metadata, MetadataID)
 	// TODO: return an error?
 	panicIf(!ok || id == "", "Document must have an id")
 
-	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	// TODO: return an error?
 	panicIf(changeVector == nil, "Document must have a Change Vector")
 

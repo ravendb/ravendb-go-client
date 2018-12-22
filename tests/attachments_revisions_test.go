@@ -300,31 +300,31 @@ func assertNoRevisionAttachment(t *testing.T, revision *User, session *ravendb.D
 	assert.NoError(t, err)
 
 	if isDeleteRevision {
-		v, _ := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
+		v, _ := metadata.Get(ravendb.MetadataFlags)
 		s := v.(string)
 		assert.True(t, strings.Contains(s, "HasRevisions"))
 		assert.True(t, strings.Contains(s, "DeleteRevision"))
 	} else {
-		v, _ := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
+		v, _ := metadata.Get(ravendb.MetadataFlags)
 		s := v.(string)
 		assert.True(t, strings.Contains(s, "HasRevisions"))
 		assert.True(t, strings.Contains(s, "Revision"))
 	}
 
-	hasIt := metadata.ContainsKey(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
+	hasIt := metadata.ContainsKey(ravendb.MetadataAttachments)
 	assert.False(t, hasIt)
 }
 
 func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, revision *User, session *ravendb.DocumentSession) {
 	metadata, err := session.Advanced().GetMetadataFor(revision)
 	assert.NoError(t, err)
-	v, _ := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
+	v, _ := metadata.Get(ravendb.MetadataFlags)
 	s := v.(string)
 	assert.True(t, strings.Contains(s, "HasRevisions"))
 	assert.True(t, strings.Contains(s, "Revision"))
 	assert.True(t, strings.Contains(s, "Revision"))
 
-	attachments := metadata.GetObjects(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
+	attachments := metadata.GetObjects(ravendb.MetadataAttachments)
 	assert.Equal(t, len(attachments), expectedCount)
 
 	// Note: unlike Java, compare them after sorting

@@ -41,14 +41,14 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 
 	var metadata ObjectNode
 	id := ""
-	if v, ok := document[Constants_Documents_Metadata_KEY]; ok {
+	if v, ok := document[MetadataKey]; ok {
 		metadata = v.(ObjectNode)
-		id, _ = JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+		id, _ = JsonGetAsText(metadata, MetadataID)
 	}
 	var changeVector *string
 
 	if metadata != nil {
-		changeVector = jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+		changeVector = jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	}
 	entity, err := o._session.GetEntityToJSON().ConvertToEntity(clazz, id, document)
 	if err != nil {
@@ -86,7 +86,7 @@ func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary
 		document := o._result.getResults()[i]
 
 		var metadata ObjectNode
-		if v, ok := document[Constants_Documents_Metadata_KEY]; ok {
+		if v, ok := document[MetadataKey]; ok {
 			metadata = v.(ObjectNode)
 		}
 		results[i] = NewMetadataAsDictionaryWithSource(metadata)

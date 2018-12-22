@@ -122,11 +122,11 @@ func EntityToJSON_writeMetadata(jsonNode ObjectNode, documentInfo *documentInfo)
 	if collection != "" {
 		setMetadata = true
 
-		metadataNode[Constants_Documents_Metadata_COLLECTION] = collection
+		metadataNode[MetadataCollection] = collection
 	}
 
 	if setMetadata {
-		jsonNode[Constants_Documents_Metadata_KEY] = metadataNode
+		jsonNode[MetadataKey] = metadataNode
 	}
 }
 

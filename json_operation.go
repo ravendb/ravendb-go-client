@@ -74,10 +74,10 @@ func jsonOperationCompareJson(id string, originalJson ObjectNode, newJson Object
 
 	for _, prop := range newJsonProps {
 		switch prop {
-		case Constants_Documents_Metadata_LAST_MODIFIED,
-			Constants_Documents_Metadata_COLLECTION,
-			Constants_Documents_Metadata_CHANGE_VECTOR,
-			Constants_Documents_Metadata_ID:
+		case MetadataLastModified,
+			MetadataCollection,
+			MetadataChangeVector,
+			MetadataID:
 			continue
 		}
 		if StringArrayContains(newFields, prop) {

@@ -50,12 +50,12 @@ func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		metadata, err := session.Advanced().GetMetadataFor(&user)
 		assert.NoError(t, err)
-		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(ravendb.MetadataFlags)
 		assert.True(t, ok)
 		vStr := v.(string)
 		assert.Equal(t, vStr, "HasAttachments")
 
-		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(ravendb.MetadataAttachments)
 		assert.True(t, ok)
 		attachments := attachmentsI.([]interface{})
 		assert.Equal(t, len(attachments), 3)
@@ -236,11 +236,11 @@ func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver)
 		metadata, err := session.Advanced().GetMetadataFor(&user)
 		assert.NoError(t, err)
 
-		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(ravendb.MetadataFlags)
 		assert.True(t, ok)
 		assert.Equal(t, v, "HasAttachments")
 
-		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(ravendb.MetadataAttachments)
 		assert.True(t, ok)
 		attachments := attachmentsI.([]interface{})
 
@@ -302,11 +302,11 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T, driver *Rave
 		metadata, err := session.Advanced().GetMetadataFor(&user)
 		assert.NoError(t, err)
 
-		v, ok := metadata.Get(ravendb.Constants_Documents_Metadata_FLAGS)
+		v, ok := metadata.Get(ravendb.MetadataFlags)
 		assert.True(t, ok)
 		assert.Equal(t, v, "HasAttachments")
 
-		attachmentsI, ok := metadata.Get(ravendb.Constants_Documents_Metadata_ATTACHMENTS)
+		attachmentsI, ok := metadata.Get(ravendb.MetadataAttachments)
 		assert.True(t, ok)
 		attachments := attachmentsI.([]interface{})
 		assert.Equal(t, len(attachments), 1)

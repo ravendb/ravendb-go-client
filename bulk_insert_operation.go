@@ -188,16 +188,16 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		metadata = &MetadataAsDictionary{}
 	}
 
-	if !metadata.ContainsKey(Constants_Documents_Metadata_COLLECTION) {
+	if !metadata.ContainsKey(MetadataCollection) {
 		collection := o._requestExecutor.GetConventions().GetCollectionName(entity)
 		if collection != "" {
-			metadata.Put(Constants_Documents_Metadata_COLLECTION, collection)
+			metadata.Put(MetadataCollection, collection)
 		}
 	}
-	if !metadata.ContainsKey(Constants_Documents_Metadata_RAVEN_GO_TYPE) {
+	if !metadata.ContainsKey(MetadataRavenGoType) {
 		goType := o._requestExecutor.GetConventions().GetGoTypeName(entity)
 		if goType != "" {
-			metadata.Put(Constants_Documents_Metadata_RAVEN_GO_TYPE, goType)
+			metadata.Put(MetadataRavenGoType, goType)
 		}
 	}
 
@@ -306,11 +306,11 @@ func (o *BulkInsertOperation) Store(entity interface{}) (string, error) {
 
 func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
 	var id string
-	if metadata == nil || !metadata.ContainsKey(Constants_Documents_Metadata_ID) {
+	if metadata == nil || !metadata.ContainsKey(MetadataID) {
 		id = o.GetID(entity)
 	} else {
-		idVal, ok := metadata.Get(Constants_Documents_Metadata_ID)
-		panicIf(!ok, "didn't find %s key in meatadata", Constants_Documents_Metadata_ID)
+		idVal, ok := metadata.Get(MetadataID)
+		panicIf(!ok, "didn't find %s key in meatadata", MetadataID)
 		id = idVal.(string)
 	}
 

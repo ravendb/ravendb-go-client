@@ -227,7 +227,7 @@ func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interfac
 	if err != nil {
 		return nil, err
 	}
-	changeVector := jsonGetAsTextPointer(documentInfo.metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(documentInfo.metadata, MetadataChangeVector)
 	return changeVector, nil
 }
 
@@ -401,7 +401,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 	s.entityToJSON.ConvertToEntity2(result, id, document)
 
-	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	if changeVector == nil {
 		return newIllegalStateError("Document %s must have Change Vector", id)
 	}
@@ -493,7 +493,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		return nil, err
 	}
 
-	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	if changeVector == nil {
 		return nil, newIllegalStateError("Document %s must have Change Vector", id)
 	}
@@ -640,11 +640,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 	collectionName := s._requestExecutor.GetConventions().GetCollectionName(entity)
 	metadata := ObjectNode{}
 	if collectionName != "" {
-		metadata[Constants_Documents_Metadata_COLLECTION] = collectionName
+		metadata[MetadataCollection] = collectionName
 	}
 	goType := s._requestExecutor.GetConventions().GetGoTypeName(entity)
 	if goType != "" {
-		metadata[Constants_Documents_Metadata_RAVEN_GO_TYPE] = goType
+		metadata[MetadataRavenGoType] = goType
 	}
 	if id != "" {
 		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
@@ -1106,12 +1106,12 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 		return newIllegalStateError("Document '%s' no longer exists and was probably deleted", documentInfo.id)
 	}
 
-	value := document[Constants_Documents_Metadata_KEY]
+	value := document[MetadataKey]
 	meta := value.(ObjectNode)
 	documentInfo.metadata = meta
 
 	if documentInfo.metadata != nil {
-		changeVector := jsonGetAsTextPointer(meta, Constants_Documents_Metadata_CHANGE_VECTOR)
+		changeVector := jsonGetAsTextPointer(meta, MetadataChangeVector)
 		documentInfo.changeVector = changeVector
 	}
 	documentInfo.document = document

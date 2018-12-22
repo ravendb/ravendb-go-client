@@ -410,7 +410,7 @@ func (s *DocumentSession) IncrementEntity(entity interface{}, path string, value
 		return err
 	}
 	// TODO: return an error if no id or id not string
-	id, _ := metadata.Get(Constants_Documents_Metadata_ID)
+	id, _ := metadata.Get(MetadataID)
 	return s.IncrementByID(id.(string), path, valueToAdd)
 }
 
@@ -440,7 +440,7 @@ func (s *DocumentSession) PatchEntity(entity interface{}, path string, value int
 		return err
 	}
 	// TODO: return an error if no id or id not string
-	id, _ := metadata.Get(Constants_Documents_Metadata_ID)
+	id, _ := metadata.Get(MetadataID)
 	return s.PatchByID(id.(string), path, value)
 }
 
@@ -468,7 +468,7 @@ func (s *DocumentSession) PatchArrayInEntity(entity interface{}, pathToArray str
 		return err
 	}
 	// TODO: return an error if no id or id not string
-	id, _ := metadata.Get(Constants_Documents_Metadata_ID)
+	id, _ := metadata.Get(MetadataID)
 	return s.PatchArrayByID(id.(string), pathToArray, arrayAdder)
 }
 
@@ -657,7 +657,7 @@ func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode,
 		return nil, fmt.Errorf("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
 	}
 
-	metadataV, ok := document[Constants_Documents_Metadata_KEY]
+	metadataV, ok := document[MetadataKey]
 	if !ok {
 		fmt.Printf("document: %#v\n", document)
 		// TODO: maybe convert to errors
@@ -666,12 +666,12 @@ func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode,
 	metadata, ok := metadataV.(ObjectNode)
 	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
 
-	changeVector := jsonGetAsTextPointer(metadata, Constants_Documents_Metadata_CHANGE_VECTOR)
+	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	// TODO: return an error?
 	panicIf(changeVector == nil, "Document must have a Change Vector")
 
 	// MapReduce indexes return reduce results that don't have @id property
-	id, _ := jsonGetAsString(metadata, Constants_Documents_Metadata_ID)
+	id, _ := jsonGetAsString(metadata, MetadataID)
 
 	entity, err := queryOperationDeserialize(rt, id, document, metadata, fieldsToFetch, true, s.InMemoryDocumentSessionOperations)
 	if err != nil {

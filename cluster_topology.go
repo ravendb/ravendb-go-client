@@ -1,6 +1,7 @@
 package ravendb
 
 // ClusterTopology is a part of ClusterTopologyResponse
+// TODO: should be private?
 type ClusterTopology struct {
 	LastNodeID string `json:"LastNodeId"`
 	TopologyID string `json:"TopologyId"`
@@ -11,7 +12,8 @@ type ClusterTopology struct {
 	Watchers    map[string]string `json:"Watchers"`
 }
 
-func (t *ClusterTopology) contains(node string) bool {
+// Contains returns true if topology contains a given node
+func (t *ClusterTopology) Contains(node string) bool {
 	if t.Members != nil {
 		if _, ok := t.Members[node]; ok {
 			return true

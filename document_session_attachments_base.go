@@ -25,14 +25,14 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 		return nil, throwEntityNotInSession(entity)
 	}
 	meta := document.metadata
-	attachmentsI, ok := meta[Constants_Documents_Metadata_ATTACHMENTS]
+	attachmentsI, ok := meta[MetadataAttachments]
 	if !ok {
 		return nil, nil
 	}
 
 	attachments, ok := attachmentsI.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("meta value '%s' is of type %T, expected []interface{}", Constants_Documents_Metadata_ATTACHMENTS, attachmentsI)
+		return nil, fmt.Errorf("meta value '%s' is of type %T, expected []interface{}", MetadataAttachments, attachmentsI)
 	}
 	n := len(attachments)
 	results := make([]*AttachmentName, n)

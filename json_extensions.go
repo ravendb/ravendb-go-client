@@ -38,7 +38,7 @@ func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *Ind
 }
 
 func JsonExtensions_tryGetConflict(metadata ObjectNode) bool {
-	v, ok := metadata[Constants_Documents_Metadata_CONFLICT]
+	v, ok := metadata[MetadataConflict]
 	if !ok {
 		return false
 	}

@@ -123,7 +123,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T, driver *Raven
 		fooBar := &FooBar{}
 		fooBar.Name = "Jon Show"
 		metadata := &ravendb.MetadataAsDictionary{}
-		metadata.Put(ravendb.Constants_Documents_Metadata_EXPIRES, expirationDate)
+		metadata.Put(ravendb.MetadataExpires, expirationDate)
 
 		_, err = bulkInsert.StoreWithMetadata(fooBar, metadata)
 		assert.NoError(t, err)
@@ -142,7 +142,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T, driver *Raven
 		meta, err := session.Advanced().GetMetadataFor(&entity)
 		assert.NoError(t, err)
 
-		metadataExpirationDate, ok := meta.Get(ravendb.Constants_Documents_Metadata_EXPIRES)
+		metadataExpirationDate, ok := meta.Get(ravendb.MetadataExpires)
 		assert.True(t, ok)
 		assert.Equal(t, metadataExpirationDate, expirationDate)
 	}

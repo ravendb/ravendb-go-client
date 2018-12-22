@@ -76,7 +76,7 @@ func revisionsTest_revisions(t *testing.T, driver *RavenTestDriver) {
 
 		dict := metadataSkipFirst[0]
 		var changeVector string
-		chvi, ok := dict.Get(ravendb.Constants_Documents_Metadata_CHANGE_VECTOR)
+		chvi, ok := dict.Get(ravendb.MetadataChangeVector)
 		if ok {
 			changeVector = chvi.(string)
 		}

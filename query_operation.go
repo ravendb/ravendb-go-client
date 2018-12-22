@@ -121,10 +121,10 @@ func (o *QueryOperation) completeNew(results interface{}) error {
 
 	clazz := sliceElemPtrType
 	for _, document := range queryResult.Results {
-		metadataI, ok := document[Constants_Documents_Metadata_KEY]
+		metadataI, ok := document[MetadataKey]
 		panicIf(!ok, "missing metadata")
 		metadata := metadataI.(ObjectNode)
-		id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+		id, _ := JsonGetAsText(metadata, MetadataID)
 
 		el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
 		if err != nil {
@@ -154,10 +154,10 @@ func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) 
 	{
 		results := queryResult.Results
 		for _, document := range results {
-			metadataI, ok := document[Constants_Documents_Metadata_KEY]
+			metadataI, ok := document[MetadataKey]
 			panicIf(!ok, "missing metadata")
 			metadata := metadataI.(ObjectNode)
-			id, _ := JsonGetAsText(metadata, Constants_Documents_Metadata_ID)
+			id, _ := JsonGetAsText(metadata, MetadataID)
 			el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
 			if err != nil {
 				return nil, newRuntimeError("Unable to read json: %s", err)

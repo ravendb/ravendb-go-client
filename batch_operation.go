@@ -54,12 +54,12 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		if documentInfo == nil {
 			continue
 		}
-		changeVector := jsonGetAsTextPointer(batchResult, Constants_Documents_Metadata_CHANGE_VECTOR)
+		changeVector := jsonGetAsTextPointer(batchResult, MetadataChangeVector)
 		if changeVector == nil {
 			return
 			//TODO: throw new IllegalStateError("PUT response is invalid. @change-vector is missing on " + documentInfo.GetID());
 		}
-		id, _ := JsonGetAsText(batchResult, Constants_Documents_Metadata_ID)
+		id, _ := JsonGetAsText(batchResult, MetadataID)
 		if id == "" {
 			return
 			//TODO: throw new IllegalStateError("PUT response is invalid. @id is missing on " + documentInfo.GetID());
@@ -77,7 +77,7 @@ func (b *BatchOperation) setResult(result ArrayNode) {
 		documentInfo.id = id
 		documentInfo.changeVector = changeVector
 		doc := documentInfo.document
-		doc[Constants_Documents_Metadata_KEY] = documentInfo.metadata
+		doc[MetadataKey] = documentInfo.metadata
 		documentInfo.metadataInstance = nil
 
 		b._session.documentsByID.add(documentInfo)
