@@ -14,13 +14,8 @@ notifications:
     to:
       - kkowalczyk@gmail.com
 
-skip_tags: true
-
-clone_depth: 5
-
-# TODO: should I use
-# shallow_clone: true
 # https://www.appveyor.com/blog/2014/06/04/shallow-clone-for-git-repositories/ ?
+shallow_clone: true
 
 environment:
   LOG_HTTP_REQUEST_SUMMARY: true
@@ -46,7 +41,7 @@ install:
 test_script:
   # default timeout is 10m which sometimes is not enough (usually we finish
   # under 8 but sometimes appveyor is slower)
-  - cmd: go test -parallel 1 -timeout 20m -v "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
+  - cmd: go test -v -parallel 1 -timeout 20m "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
   - sh: ./scripts/appveyor_run_tests.sh
 
 deploy: off
