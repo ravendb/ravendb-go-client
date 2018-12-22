@@ -87,13 +87,13 @@ func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, 
 //TBD expr  IDocumentQuery<T> AddOrder<TValue>(Expression<Func<T, TValue>> propertySelector, bool descending, OrderingType ordering)
 
 /*
- IDocumentQuery<T> addAfterQueryExecutedListener(Consumer<QueryResult> action) {
+ IDocumentQuery<T> AddAfterQueryExecutedListener(Consumer<QueryResult> action) {
 	_addAfterQueryExecutedListener(action);
 	return this;
 }
 
 
- IDocumentQuery<T> removeAfterQueryExecutedListener(Consumer<QueryResult> action) {
+ IDocumentQuery<T> RemoveAfterQueryExecutedListener(Consumer<QueryResult> action) {
 	_removeAfterQueryExecutedListener(action);
 	return this;
 }
@@ -385,13 +385,13 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 //TBD expr  IDocumentQuery<T> OrderByDescending<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
 /*
- IDocumentQuery<T> addBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
+ IDocumentQuery<T> AddBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
 	_addBeforeQueryExecutedListener(action);
 	return this;
 }
 
 
- IDocumentQuery<T> removeBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
+ IDocumentQuery<T> RemoveBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
 	_removeBeforeQueryExecutedListener(action);
 	return this;
 }

@@ -1595,7 +1595,9 @@ func (q *AbstractDocumentQuery) initSync() error {
 		return nil
 	}
 
-	delegate := NewDocumentQueryCustomizationDelegate(q)
+	delegate := &DocumentQueryCustomization{
+		query: q,
+	}
 	beforeQueryEventArgs := NewBeforeQueryEventArgs(q.theSession, delegate)
 	q.theSession.OnBeforeQueryInvoke(beforeQueryEventArgs)
 

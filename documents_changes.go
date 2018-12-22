@@ -4,7 +4,7 @@ package ravendb
 type ChangeType int
 
 const (
-	// TODO: make those into a string?
+	// TODO: make those into a string? q q
 	DocumentChangeDocumentDeleted ChangeType = iota
 	DocumentChangeDocumentAdded
 	DocumentChangeFieldChanged
