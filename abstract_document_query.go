@@ -1702,7 +1702,7 @@ func (q *AbstractDocumentQuery) Count() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return queryResult.getTotalResults(), nil
+	return queryResult.TotalResults, nil
 }
 
 func (q *AbstractDocumentQuery) Any() (bool, error) {
@@ -1723,7 +1723,7 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return queryResult.getTotalResults() > 0, nil
+	return queryResult.TotalResults > 0, nil
 }
 
 func (q *AbstractDocumentQuery) executeQueryOperationNew(results interface{}, take int) error {

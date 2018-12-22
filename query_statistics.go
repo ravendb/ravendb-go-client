@@ -115,17 +115,17 @@ func (s *QueryStatistics) SetResultSize(resultSize int64) {
 
 func (s *QueryStatistics) UpdateQueryStats(qr *QueryResult) {
 	s._isStale = qr.IsStale
-	s.durationInMs = qr.getDurationInMs()
-	s.totalResults = qr.getTotalResults()
-	s.skippedResults = qr.getSkippedResults()
+	s.durationInMs = qr.DurationInMs
+	s.totalResults = qr.TotalResults
+	s.skippedResults = qr.SkippedResults
 	s.timestamp = qr.IndexTimestamp.toTime()
 	s.indexName = qr.IndexName
 	s.indexTimestamp = qr.IndexTimestamp.toTime()
-	s.timingsInMs = qr.getTimingsInMs()
+	s.timingsInMs = qr.TimingsInMs
 	s.lastQueryTime = qr.LastQueryTime.toTime()
-	s.resultSize = qr.getResultSize()
+	s.resultSize = qr.ResultSize
 	s.resultEtag = qr.ResultEtag
-	s.scoreExplanations = qr.getScoreExplanations()
+	s.scoreExplanations = qr.ScoreExplanations
 }
 
 func (s *QueryStatistics) GetScoreExplanations() map[string]string {
