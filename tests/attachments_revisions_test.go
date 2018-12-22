@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"runtime"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
@@ -353,6 +354,12 @@ func TestAttachmentsRevisions(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
+
+	// Those are flaky on mac and mac only. I suspect server issue
+	// see https://github.com/ravendb/ravendb-go-client/issues/92
+	if runtime.GOOS == "darwin" && !enableFlakyTests {
+		return
+	}
 
 	// matches order of Java tests
 	attachmentsRevisions_putAttachments(t, driver)
