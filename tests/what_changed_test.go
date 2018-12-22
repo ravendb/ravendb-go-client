@@ -40,7 +40,7 @@ func whatChanged_whatChangedNewField(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			change := changes[0]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_NEW_FIELD)
+			assert.Equal(t, change.Change, ravendb.DocumentChangeNewField)
 			err = newSession.SaveChanges()
 			assert.NoError(t, err)
 		}
@@ -82,7 +82,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T, driver *RavenTestDriver) 
 
 		{
 			change := changes[0]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_REMOVED_FIELD)
+			assert.Equal(t, change.Change, ravendb.DocumentChangeRemovedField)
 		}
 
 		err = newSession.SaveChanges()
@@ -122,12 +122,12 @@ func whatChanged_whatChangedChangeField(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			change := changes[0]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_REMOVED_FIELD)
+			assert.Equal(t, change.Change, ravendb.DocumentChangeRemovedField)
 		}
 
 		{
 			change := changes[1]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_NEW_FIELD)
+			assert.Equal(t, change.Change, ravendb.DocumentChangeNewField)
 		}
 
 		err = newSession.SaveChanges()
@@ -156,7 +156,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T, driver *RavenTestDri
 
 		{
 			change := changes[0]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_DOCUMENT_ADDED)
+			assert.Equal(t, change.Change, ravendb.DocumentChangeDocumentAdded)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
 		}
@@ -177,19 +177,19 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T, driver *RavenTestDri
 
 			{
 				change := changes[0]
-				assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
-				oldValue := change.GetFieldOldValue()
+				assert.Equal(t, change.Change, ravendb.DocumentChangeArrayValueChanged)
+				oldValue := change.FieldOldValue
 				assert.Equal(t, oldValue, 1.0)
-				newValue := change.GetFieldNewValue()
+				newValue := change.FieldNewValue
 				assert.Equal(t, newValue, 2.0)
 			}
 
 			{
 				change := changes[1]
-				assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
-				oldValueStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
+				assert.Equal(t, change.Change, ravendb.DocumentChangeArrayValueChanged)
+				oldValueStr := fmt.Sprintf("%#v", change.FieldOldValue)
 				assert.Equal(t, oldValueStr, "\"b\"")
-				newValueStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
+				newValueStr := fmt.Sprintf("%#v", change.FieldNewValue)
 				assert.Equal(t, newValueStr, "\"c\"")
 			}
 			newSession.Close()
@@ -229,16 +229,16 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T, driver *RavenTestD
 
 		{
 			change := changes[0]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
+			assert.Equal(t, change.Change, ravendb.DocumentChangeArrayValueAdded)
+			newValStr := fmt.Sprintf("%#v", change.FieldNewValue)
 			assert.Equal(t, newValStr, "\"c\"")
-			assert.Nil(t, change.GetFieldOldValue())
+			assert.Nil(t, change.FieldOldValue)
 		}
 		{
 			change := changes[1]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
-			assert.Equal(t, change.GetFieldNewValue(), float64(2))
-			assert.Nil(t, change.GetFieldOldValue())
+			assert.Equal(t, change.Change, ravendb.DocumentChangeArrayValueAdded)
+			assert.Equal(t, change.FieldNewValue, float64(2))
+			assert.Nil(t, change.FieldOldValue)
 		}
 		newSession.Close()
 	}
@@ -276,18 +276,18 @@ func whatChanged_what_Changed_Array_Value_Removed(t *testing.T, driver *RavenTes
 
 		{
 			change := changes[0]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
-			assert.Equal(t, change.GetFieldOldValue(), float64(1))
-			assert.Nil(t, change.GetFieldNewValue())
+			assert.Equal(t, change.Change, ravendb.DocumentChangeArrayValueRemoved)
+			assert.Equal(t, change.FieldOldValue, float64(1))
+			assert.Nil(t, change.FieldNewValue)
 		}
 
 		{
 			change := changes[1]
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+			assert.Equal(t, change.Change, ravendb.DocumentChangeArrayValueRemoved)
 
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
+			oldValStr := fmt.Sprintf("%#v", change.FieldOldValue)
 			assert.Equal(t, oldValStr, "\"b\"")
-			assert.Nil(t, change.GetFieldNewValue())
+			assert.Nil(t, change.FieldNewValue)
 		}
 		newSession.Close()
 	}

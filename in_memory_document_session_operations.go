@@ -749,10 +749,11 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 		}
 		if changes != nil {
 			docChanges := []*DocumentsChanges{}
-			change := NewDocumentsChanges()
-			change.setFieldNewValue("")
-			change.setFieldOldValue("")
-			change.setChange(DocumentsChanges_ChangeType_DOCUMENT_DELETED)
+			change := &DocumentsChanges{
+				FieldNewValue: "",
+				FieldOldValue: "",
+				Change:        DocumentChangeDocumentDeleted,
+			}
 
 			docChanges = append(docChanges, change)
 			changes[documentInfo.id] = docChanges
@@ -881,7 +882,7 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 }
 
 func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
-	return JsonOperation_entityChanged(newObj, documentInfo, changes)
+	return jsonOperationEntityChanged(newObj, documentInfo, changes)
 }
 
 func (s *InMemoryDocumentSessionOperations) WhatChanged() (map[string][]*DocumentsChanges, error) {

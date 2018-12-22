@@ -422,41 +422,41 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T, driver *RavenTestDr
 		// of declaration in a class. In Go it's alphabetical
 		{
 			change := family1Changes[0]
-			assert.Equal(t, change.GetFieldName(), "Age")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, change.FieldName, "Age")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldVal := change.FieldOldValue
 			assert.Equal(t, oldVal, 8.0)
-			newVal := change.GetFieldNewValue()
+			newVal := change.FieldNewValue
 			assert.Equal(t, newVal, 4.0)
 		}
 
 		{
 			change := family1Changes[1]
-			assert.Equal(t, change.GetFieldName(), "Name")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
+			assert.Equal(t, change.FieldName, "Name")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldValStr := fmt.Sprintf("%#v", change.FieldOldValue)
 			assert.Equal(t, oldValStr, "\"Hibernating Rhinos\"")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.FieldNewValue)
 			assert.Equal(t, newValStr, "\"RavenDB\"")
 		}
 
 		{
 			change := family1Changes[2]
-			assert.Equal(t, change.GetFieldName(), "Age")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, change.FieldName, "Age")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldVal := change.FieldOldValue
 			assert.Equal(t, oldVal, 4.0)
-			newVal := change.GetFieldNewValue()
+			newVal := change.FieldNewValue
 			assert.Equal(t, newVal, 8.0)
 		}
 
 		{
 			change := family1Changes[3]
-			assert.Equal(t, change.GetFieldName(), "Name")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
+			assert.Equal(t, change.FieldName, "Name")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldValStr := fmt.Sprintf("%#v", change.FieldOldValue)
 			assert.Equal(t, oldValStr, "\"RavenDB\"")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.FieldNewValue)
 			assert.Equal(t, newValStr, "\"Hibernating Rhinos\"")
 		}
 
@@ -479,41 +479,41 @@ func crudTest_crudOperationsWithArrayOfObjects(t *testing.T, driver *RavenTestDr
 		// Note: the order of fields in Go is different than in Java. In Go it's alphabetic.
 		{
 			change := family1Changes[0]
-			assert.Equal(t, change.GetFieldName(), "Age")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, change.FieldName, "Age")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldVal := change.FieldOldValue
 			assert.Equal(t, oldVal, 8.0)
-			newVal := change.GetFieldNewValue()
+			newVal := change.FieldNewValue
 			assert.Equal(t, newVal, 5.0)
 		}
 
 		{
 			change := family1Changes[1]
-			assert.Equal(t, change.GetFieldName(), "Name")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
+			assert.Equal(t, change.FieldName, "Name")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldValStr := fmt.Sprintf("%#v", change.FieldOldValue)
 			assert.Equal(t, oldValStr, "\"Hibernating Rhinos\"")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.FieldNewValue)
 			assert.Equal(t, newValStr, "\"Toli\"")
 		}
 
 		{
 			change := family1Changes[2]
-			assert.Equal(t, change.GetFieldName(), "Age")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldVal := change.GetFieldOldValue()
+			assert.Equal(t, change.FieldName, "Age")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldVal := change.FieldOldValue
 			assert.Equal(t, oldVal, 4.0)
-			newVal := change.GetFieldNewValue()
+			newVal := change.FieldNewValue
 			assert.Equal(t, newVal, 15.0)
 		}
 
 		{
 			change := family1Changes[3]
-			assert.Equal(t, change.GetFieldName(), "Name")
-			assert.Equal(t, change.GetChange(), ravendb.DocumentsChanges_ChangeType_FIELD_CHANGED)
-			oldValStr := fmt.Sprintf("%#v", change.GetFieldOldValue())
+			assert.Equal(t, change.FieldName, "Name")
+			assert.Equal(t, change.Change, ravendb.DocumentChangeFieldChanged)
+			oldValStr := fmt.Sprintf("%#v", change.FieldOldValue)
 			assert.Equal(t, oldValStr, "\"RavenDB\"")
-			newValStr := fmt.Sprintf("%#v", change.GetFieldNewValue())
+			newValStr := fmt.Sprintf("%#v", change.FieldNewValue)
 			assert.Equal(t, newValStr, "\"Boki\"")
 		}
 		newSession.Close()
@@ -560,30 +560,30 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T, driver *RavenTestDri
 		assert.Equal(t, len(change), 4)
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[0].GetFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[0].FieldOldValue)
 			assert.Equal(t, oldValueStr, "\"a\"")
-			newValueStr := fmt.Sprintf("%#v", change[0].GetFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[0].FieldNewValue)
 			assert.Equal(t, newValueStr, "\"d\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[1].GetFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[1].FieldOldValue)
 			assert.Equal(t, oldValueStr, "\"b\"")
-			newValueStr := fmt.Sprintf("%#v", change[1].GetFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[1].FieldNewValue)
 			assert.Equal(t, newValueStr, "\"c\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[2].GetFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[2].FieldOldValue)
 			assert.Equal(t, oldValueStr, "\"c\"")
-			newValueStr := fmt.Sprintf("%#v", change[2].GetFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[2].FieldNewValue)
 			assert.Equal(t, newValueStr, "\"a\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[3].GetFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[3].FieldOldValue)
 			assert.Equal(t, oldValueStr, "\"d\"")
-			newValueStr := fmt.Sprintf("%#v", change[3].GetFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[3].FieldNewValue)
 			assert.Equal(t, newValueStr, "\"b\"")
 		}
 
@@ -611,16 +611,16 @@ func crudTest_crudOperationsWithArrayOfArrays(t *testing.T, driver *RavenTestDri
 		assert.Equal(t, len(change), 2)
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[0].GetFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[0].FieldOldValue)
 			assert.Equal(t, oldValueStr, "\"d\"")
-			newValueStr := fmt.Sprintf("%#v", change[0].GetFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[0].FieldNewValue)
 			assert.Equal(t, newValueStr, "\"q\"")
 		}
 
 		{
-			oldValueStr := fmt.Sprintf("%#v", change[1].GetFieldOldValue())
+			oldValueStr := fmt.Sprintf("%#v", change[1].FieldOldValue)
 			assert.Equal(t, oldValueStr, "\"c\"")
-			newValueStr := fmt.Sprintf("%#v", change[1].GetFieldNewValue())
+			newValueStr := fmt.Sprintf("%#v", change[1].FieldNewValue)
 			assert.Equal(t, newValueStr, "\"w\"")
 		}
 

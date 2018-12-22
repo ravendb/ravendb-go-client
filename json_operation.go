@@ -5,20 +5,20 @@ import (
 	"sort"
 )
 
-func JsonOperation_entityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
+func jsonOperationEntityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
 	var docChanges []*DocumentsChanges
 
 	doc := documentInfo.document
 	if !documentInfo.newDocument && doc != nil {
 		id := documentInfo.id
-		return JsonOperation_compareJson(id, doc, newObj, changes, &docChanges)
+		return jsonOperationCompareJson(id, doc, newObj, changes, &docChanges)
 	}
 
 	if changes == nil {
 		return true
 	}
 
-	JsonOperation_newChange("", nil, nil, &docChanges, DocumentsChanges_ChangeType_DOCUMENT_ADDED)
+	jsonOperationNewChange("", nil, nil, &docChanges, DocumentChangeDocumentAdded)
 	id := documentInfo.id
 	a := changes[id]
 	a = append(a, docChanges...)
@@ -59,7 +59,7 @@ func isJSONStringEqual(oldPropVal string, newProp interface{}) bool {
 	return false
 }
 
-func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson ObjectNode, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges) bool {
+func jsonOperationCompareJson(id string, originalJson ObjectNode, newJson ObjectNode, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges) bool {
 	newJsonProps := getObjectNodeFieldNames(newJson)
 	oldJsonProps := getObjectNodeFieldNames(originalJson)
 	newFields := StringArraySubtract(newJsonProps, oldJsonProps)
@@ -69,7 +69,7 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 		if changes == nil {
 			return true
 		}
-		JsonOperation_newChange(field, nil, nil, docChanges, DocumentsChanges_ChangeType_REMOVED_FIELD)
+		jsonOperationNewChange(field, nil, nil, docChanges, DocumentChangeRemovedField)
 	}
 
 	for _, prop := range newJsonProps {
@@ -85,7 +85,7 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 				return true
 			}
 			v := newJson[prop]
-			JsonOperation_newChange(prop, v, nil, docChanges, DocumentsChanges_ChangeType_NEW_FIELD)
+			jsonOperationNewChange(prop, v, nil, docChanges, DocumentChangeNewField)
 			continue
 		}
 		newProp := newJson[prop]
@@ -98,7 +98,7 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 			if changes == nil {
 				return true
 			}
-			JsonOperation_newChange(prop, newProp, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+			jsonOperationNewChange(prop, newProp, oldProp, docChanges, DocumentChangeFieldChanged)
 		case string:
 			if isJSONStringEqual(newPropVal, oldProp) {
 				break
@@ -106,7 +106,7 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 			if changes == nil {
 				return true
 			}
-			JsonOperation_newChange(prop, newProp, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+			jsonOperationNewChange(prop, newProp, oldProp, docChanges, DocumentChangeFieldChanged)
 		case bool:
 			isJSONBoolEqual(newPropVal, oldProp)
 		case []interface{}:
@@ -115,11 +115,11 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 					return true
 				}
 
-				JsonOperation_newChange(prop, newProp, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+				jsonOperationNewChange(prop, newProp, oldProp, docChanges, DocumentChangeFieldChanged)
 				break
 			}
 
-			changed := JsonOperation_compareJsonArray(id, oldProp.([]interface{}), newProp.([]interface{}), changes, docChanges, prop)
+			changed := jsonOperationCompareJsonArray(id, oldProp.([]interface{}), newProp.([]interface{}), changes, docChanges, prop)
 			if changes == nil && changed {
 				return true
 			}
@@ -131,10 +131,10 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 				if changes == nil {
 					return true
 				}
-				JsonOperation_newChange(prop, newProp, nil, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+				jsonOperationNewChange(prop, newProp, nil, docChanges, DocumentChangeFieldChanged)
 				break
 			}
-			changed := JsonOperation_compareJson(id, oldPropVal, newPropVal, changes, docChanges)
+			changed := jsonOperationCompareJson(id, oldPropVal, newPropVal, changes, docChanges)
 			if changes == nil && changed {
 				return true
 			}
@@ -146,7 +146,7 @@ func JsonOperation_compareJson(id string, originalJson ObjectNode, newJson Objec
 				if changes == nil {
 					return true
 				}
-				JsonOperation_newChange(prop, nil, oldProp, docChanges, DocumentsChanges_ChangeType_FIELD_CHANGED)
+				jsonOperationNewChange(prop, nil, oldProp, docChanges, DocumentChangeFieldChanged)
 				break
 			}
 			// TODO: array, nil
@@ -167,7 +167,7 @@ func isInstanceOfArrayOfInterface(v interface{}) bool {
 	return ok
 }
 
-func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray []interface{}, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges, propName string) bool {
+func jsonOperationCompareJsonArray(id string, oldArray []interface{}, newArray []interface{}, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges, propName string) bool {
 	// if we don't care about the changes
 	if len(oldArray) != len(newArray) && changes == nil {
 		return true
@@ -186,26 +186,26 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 		switch oldVal.(type) {
 		case ObjectNode:
 			if _, ok := newVal.(ObjectNode); ok {
-				newChanged := JsonOperation_compareJson(id, oldVal.(ObjectNode), newVal.(ObjectNode), changes, docChanges)
+				newChanged := jsonOperationCompareJson(id, oldVal.(ObjectNode), newVal.(ObjectNode), changes, docChanges)
 				if newChanged {
 					changed = newChanged
 				}
 			} else {
 				changed = true
 				if changes != nil {
-					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+					jsonOperationNewChange(propName, newVal, oldVal, docChanges, DocumentChangeArrayValueAdded)
 				}
 			}
 		case []interface{}:
 			if _, ok := newVal.([]interface{}); ok {
-				newChanged := JsonOperation_compareJsonArray(id, oldVal.([]interface{}), newVal.([]interface{}), changes, docChanges, propName)
+				newChanged := jsonOperationCompareJsonArray(id, oldVal.([]interface{}), newVal.([]interface{}), changes, docChanges, propName)
 				if newChanged {
 					changed = newChanged
 				}
 			} else {
 				changed = true
 				if changes != nil {
-					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+					jsonOperationNewChange(propName, newVal, oldVal, docChanges, DocumentChangeArrayValueChanged)
 				}
 			}
 		default:
@@ -214,7 +214,7 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 				if newVal != nil {
 					changed = true
 					if changes != nil {
-						JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+						jsonOperationNewChange(propName, newVal, oldVal, docChanges, DocumentChangeArrayValueChanged)
 					}
 				}
 				break
@@ -224,7 +224,7 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 			newValStr := fmt.Sprintf("%v", newVal)
 			if oldValStr != newValStr {
 				if changes != nil {
-					JsonOperation_newChange(propName, newVal, oldVal, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED)
+					jsonOperationNewChange(propName, newVal, oldVal, docChanges, DocumentChangeArrayValueChanged)
 				}
 				changed = true
 			}
@@ -238,22 +238,23 @@ func JsonOperation_compareJsonArray(id string, oldArray []interface{}, newArray 
 
 	// if one of the arrays is larger than the other
 	for ; position < len(oldArray); position++ {
-		JsonOperation_newChange(propName, nil, oldArray[position], docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED)
+		jsonOperationNewChange(propName, nil, oldArray[position], docChanges, DocumentChangeArrayValueRemoved)
 	}
 
 	for ; position < len(newArray); position++ {
-		JsonOperation_newChange(propName, newArray[position], nil, docChanges, DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED)
+		jsonOperationNewChange(propName, newArray[position], nil, docChanges, DocumentChangeArrayValueAdded)
 	}
 
 	return changed
 }
 
-func JsonOperation_newChange(name string, newValue interface{}, oldValue interface{}, docChanges *[]*DocumentsChanges, change ChangeType) {
-	documentsChanges := NewDocumentsChanges()
-	documentsChanges.setFieldName(name)
-	documentsChanges.setFieldNewValue(newValue)
-	documentsChanges.setFieldOldValue(oldValue)
-	documentsChanges.setChange(change)
+func jsonOperationNewChange(name string, newValue interface{}, oldValue interface{}, docChanges *[]*DocumentsChanges, change ChangeType) {
+	documentsChanges := &DocumentsChanges{
+		FieldNewValue: newValue,
+		FieldOldValue: oldValue,
+		FieldName:     name,
+		Change:        change,
+	}
 	*docChanges = append(*docChanges, documentsChanges)
 }
 

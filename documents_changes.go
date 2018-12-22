@@ -1,84 +1,30 @@
 package ravendb
 
+// ChangeType describes a type of a change in a document
 type ChangeType int
 
 const (
-	DocumentsChanges_ChangeType_DOCUMENT_DELETED ChangeType = iota
-	DocumentsChanges_ChangeType_DOCUMENT_ADDED
-	DocumentsChanges_ChangeType_FIELD_CHANGED
-	DocumentsChanges_ChangeType_NEW_FIELD
-	DocumentsChanges_ChangeType_REMOVED_FIELD
-	DocumentsChanges_ChangeType_ARRAY_VALUE_CHANGED
-	DocumentsChanges_ChangeType_ARRAY_VALUE_ADDED
-	DocumentsChanges_ChangeType_ARRAY_VALUE_REMOVED
-	DocumentsChanges_ChangeType_FIELD_TYPE_CHANGED
-	DocumentsChanges_ChangeType_ENTITY_TYPE_CHANGED
+	// TODO: make those into a string?
+	DocumentChangeDocumentDeleted ChangeType = iota
+	DocumentChangeDocumentAdded
+	DocumentChangeFieldChanged
+	DocumentChangeNewField
+	DocumentChangeRemovedField
+	DocumentChangeArrayValueChanged
+	DocumentChangeArrayValueAdded
+	DocumentChangeArrayValueRemoved
+	DocumentChangeFieldTypeChanged
+	DocumentChangeEntityTypeChanged
 )
 
+// DocumentsChanges describes a change in a document
 type DocumentsChanges struct {
-	fieldOldValue interface{}
-
-	fieldNewValue interface{}
-
-	fieldOldType JsonNodeType
-
-	fieldNewType JsonNodeType
-
-	change ChangeType
-
-	fieldName string
-}
-
-func NewDocumentsChanges() *DocumentsChanges {
-	return &DocumentsChanges{}
-}
-
-func (c *DocumentsChanges) GetFieldOldValue() interface{} {
-	return c.fieldOldValue
-}
-
-func (c *DocumentsChanges) setFieldOldValue(fieldOldValue interface{}) {
-	c.fieldOldValue = fieldOldValue
-}
-
-func (c *DocumentsChanges) GetFieldNewValue() interface{} {
-	return c.fieldNewValue
-}
-
-func (c *DocumentsChanges) setFieldNewValue(fieldNewValue interface{}) {
-	c.fieldNewValue = fieldNewValue
-}
-
-func (c *DocumentsChanges) getFieldOldType() JsonNodeType {
-	return c.fieldOldType
-}
-
-func (c *DocumentsChanges) setFieldOldType(fieldOldType JsonNodeType) {
-	c.fieldOldType = fieldOldType
-}
-
-func (c *DocumentsChanges) getFieldNewType() JsonNodeType {
-	return c.fieldNewType
-}
-
-func (c *DocumentsChanges) setFieldNewType(fieldNewType JsonNodeType) {
-	c.fieldNewType = fieldNewType
-}
-
-func (c *DocumentsChanges) GetChange() ChangeType {
-	return c.change
-}
-
-func (c *DocumentsChanges) setChange(change ChangeType) {
-	c.change = change
-}
-
-func (c *DocumentsChanges) GetFieldName() string {
-	return c.fieldName
-}
-
-func (c *DocumentsChanges) setFieldName(fieldName string) {
-	c.fieldName = fieldName
+	FieldOldValue interface{}
+	FieldNewValue interface{}
+	FieldOldType  JsonNodeType
+	FieldNewType  JsonNodeType
+	Change        ChangeType
+	FieldName     string
 }
 
 /*
