@@ -5,7 +5,7 @@ func NewGeographyDefaultOptions() *SpatialOptions {
 	return NewGeographyDefaultOptionsWithRadius(SpatialUnitsKilometers)
 }
 
-// NewGeographyDefaultOptionsWithRadius returns default geogrpahy SpatialOptions
+// NewGeographyDefaultOptionsWithRadius returns default geography SpatialOptions
 // with a a given radius
 func NewGeographyDefaultOptionsWithRadius(circleRadiusUnits SpatialUnits) *SpatialOptions {
 	return NewGeographyGeohashPrefixTreeIndexWithRadius(0, circleRadiusUnits)

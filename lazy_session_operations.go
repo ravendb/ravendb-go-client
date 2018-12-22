@@ -42,7 +42,7 @@ func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(
 	return o.delegate.addLazyOperation(clazz, lazyLoadOperation, onEval)
 }
 
-// LoadStartingWith returns Lazy object for lazily loading mutliple value
+// LoadStartingWith returns Lazy object for lazily loading multiple value
 // of a given type and matching args
 func (o *LazySessionOperations) LoadStartingWith(clazz reflect.Type, args *StartsWithArgs) *Lazy {
 	session := o.delegate.InMemoryDocumentSessionOperations

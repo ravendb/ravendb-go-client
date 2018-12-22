@@ -300,15 +300,17 @@ func main() {
 	goVetShadow()
 	deadcode()
 	varcheck()
-	structcheck()
+	// struct check and maligned return the same info and for sake of
+	// easier porting we wouldn't act on their advice
+	// structcheck()
+	// maligned()
 	aligncheck()
 	megacheck()
-	maligned()
 	errcheck()
-	//dupl() // too many results and mostly false positive
+	// dupl() // too many results and mostly false positive
 	ineffassign()
 	unconvert()
-	goconst()
+	// goconst()  // not especially interesing
 	misspell()
 	nakedret()
 
