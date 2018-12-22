@@ -1,8 +1,9 @@
 package ravendb
 
+// SpatialFieldType describe spatial field
 type SpatialFieldType = string
 
 const (
-	SpatialFieldType_GEOGRAPHY = "Geography"
-	SpatialFieldType_CARTESIAN = "Cartesian"
+	SpatialFieldGeography = "Geography"
+	SpatialFieldCartesian = "Cartesian"
 )

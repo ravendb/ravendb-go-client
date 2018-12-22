@@ -2,11 +2,12 @@ package ravendb
 
 const (
 	//about 4.78 meters at equator, should be good enough (see: http://unterbahn.com/2009/11/metric-dimensions-of-geohash-partitions-at-the-equator/)
-	SpatialOptions_DEFAULT_GEOHASH_LEVEL = 9
+	SpatialOptionsDefaultGeohashLevel = 9
 	//about 4.78 meters at equator, should be good enough
-	SpatialOptions_DEFAULT_QUAD_TREE_LEVEL = 23
+	SpatialOptionsDefaultQuadTreeLevel = 23
 )
 
+/// SpatialOptions describes spatial options
 type SpatialOptions struct {
 	Type         SpatialFieldType      `json:"Type"`
 	Strategy     SpatialSearchStrategy `json:"Strategy"`
@@ -20,20 +21,16 @@ type SpatialOptions struct {
 	Units SpatialUnits `json:"Units"`
 }
 
+// NewSpatialOptions returns new SpatialOptions with default values
 func NewSpatialOptions() *SpatialOptions {
 	return &SpatialOptions{
-		Type:         SpatialFieldType_GEOGRAPHY,
-		Strategy:     SpatialSearchStrategy_GEOHASH_PREFIX_TREE,
-		MaxTreeLevel: SpatialOptions_DEFAULT_GEOHASH_LEVEL,
+		Type:         SpatialFieldGeography,
+		Strategy:     SpatialSearchStrategyGeohashPrefixTree,
+		MaxTreeLevel: SpatialOptionsDefaultGeohashLevel,
 		MinX:         -180,
 		MaxX:         180,
 		MinY:         -90,
 		MaxY:         90,
-		Units:        SpatialUnits_KILOMETERS,
+		Units:        SpatialUnitsKilometers,
 	}
-}
-
-func SpatialOptionsDup(options *SpatialOptions) *SpatialOptions {
-	var res SpatialOptions = *options
-	return &res
 }

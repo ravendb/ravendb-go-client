@@ -19,7 +19,7 @@ func ShapeToken_circle(radiusParameterName string, latitudeParameterName string,
 		return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ")")
 	}
 
-	if radiusUnits == SpatialUnits_KILOMETERS {
+	if radiusUnits == SpatialUnitsKilometers {
 		return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Kilometers')")
 	}
 	return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Miles')")

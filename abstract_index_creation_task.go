@@ -116,8 +116,8 @@ func (t *AbstractIndexCreationTask) Index(field string, indexing FieldIndexing) 
 }
 
 // Spatial registers field to be spatially indexed
-func (t *AbstractIndexCreationTask) Spatial(field string, indexing func(*SpatialOptionsFactory) *SpatialOptions) {
-	v := indexing(NewSpatialOptionsFactory())
+func (t *AbstractIndexCreationTask) Spatial(field string, indexing func() *SpatialOptions) {
+	v := indexing()
 	t.SpatialOptionsStrings[field] = v
 }
 

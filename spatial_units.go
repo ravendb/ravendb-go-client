@@ -1,8 +1,9 @@
 package ravendb
 
+// SpatialUnits describes units used for spatial queries
 type SpatialUnits = string
 
 const (
-	SpatialUnits_KILOMETERS = "Kilometers"
-	SpatialUnits_MILES      = "Miles"
+	SpatialUnitsKilometers = "Kilometers"
+	SpatialUnitsMiles      = "Miles"
 )

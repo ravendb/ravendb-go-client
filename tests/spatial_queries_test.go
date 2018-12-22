@@ -162,7 +162,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 
 		var matchesWithinMiles []*DummyGeoDoc
 		q = session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
-		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnits_MILES)
+		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnitsMiles)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&matchesWithinMiles)
 		assert.NoError(t, err)
@@ -173,7 +173,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 
 		var matchesWithinKilometers []*DummyGeoDoc
 		q = session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), ravendb.Query_index("FindByLatLng"))
-		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnits_KILOMETERS)
+		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnitsKilometers)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&matchesWithinKilometers)
 		assert.NoError(t, err)
