@@ -269,12 +269,13 @@ func (s *DocumentStore) Close() {
 
 // OpenSession opens a new session to document Store.
 func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
-	return s.OpenSessionWithOptions(NewSessionOptions())
+	return s.OpenSessionWithOptions(&SessionOptions{})
 }
 
 func (s *DocumentStore) OpenSessionWithDatabase(database string) (*DocumentSession, error) {
-	sessionOptions := NewSessionOptions()
-	sessionOptions.setDatabase(database)
+	sessionOptions := &SessionOptions{
+		Database: database,
+	}
 	return s.OpenSessionWithOptions(sessionOptions)
 }
 
@@ -283,8 +284,8 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	s.ensureNotClosed()
 
 	sessionID := NewUUID().String()
-	databaseName := firstNonEmptyString(options.getDatabase(), s.GetDatabase())
-	requestExecutor := options.getRequestExecutor()
+	databaseName := firstNonEmptyString(options.Database, s.GetDatabase())
+	requestExecutor := options.RequestExecutor
 	if requestExecutor == nil {
 		requestExecutor = s.GetRequestExecutorWithDatabase(databaseName)
 	}
