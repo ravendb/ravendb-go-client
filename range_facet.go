@@ -2,14 +2,16 @@ package ravendb
 
 var _ FacetBase = &RangeFacet{}
 
+// RangeFacet describes range facet
 type RangeFacet struct {
 	FacetBaseCommon
 
 	_parent FacetBase
 
-	ranges []string
+	Ranges []string
 }
 
+// NewRnageFacet returns new RangeFacet
 // parent is optional (can be nil)
 func NewRangeFacet(parent FacetBase) *RangeFacet {
 	return &RangeFacet{
@@ -18,14 +20,7 @@ func NewRangeFacet(parent FacetBase) *RangeFacet {
 	}
 }
 
-func (f *RangeFacet) getRanges() []string {
-	return f.ranges
-}
-
-func (f *RangeFacet) setRanges(ranges []string) {
-	f.ranges = ranges
-}
-
+// ToFacetToken converts RangeFacet to a token
 func (f *RangeFacet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
 	if f._parent != nil {
 		return f._parent.ToFacetToken(addQueryParameter)

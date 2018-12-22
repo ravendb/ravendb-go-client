@@ -2,6 +2,9 @@ package ravendb
 
 import "strings"
 
+// TODO: change to an alias:
+//  type documentsByID map[string]*documentInfo
+
 type documentsByID struct {
 	inner map[string]*documentInfo
 }
@@ -34,12 +37,4 @@ func (d *documentsByID) remove(id string) bool {
 	}
 	delete(d.inner, id)
 	return true
-}
-
-func (d *documentsByID) clear() {
-	d.inner = map[string]*documentInfo{}
-}
-
-func (d *documentsByID) getCount() int {
-	return len(d.inner)
 }

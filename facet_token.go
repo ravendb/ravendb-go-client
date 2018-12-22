@@ -106,7 +106,7 @@ func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{})
 func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
-	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), facet.getRanges(), optionsParameterName)
+	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), facet.Ranges, optionsParameterName)
 
 	applyAggregations(facet, token)
 
@@ -156,7 +156,7 @@ func applyAggregations(facet FacetBase, token *facetToken) {
 }
 
 func getOptionsParameterName(facet FacetBase, addQueryParameter func(interface{}) string) string {
-	if facet.GetOptions() == nil || facet.GetOptions() == getDefaultFacetOptions() {
+	if facet.GetOptions() == nil || facet.GetOptions() == DefaultFacetOptions {
 		return ""
 	}
 	return addQueryParameter(facet.GetOptions())
