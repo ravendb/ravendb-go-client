@@ -92,7 +92,7 @@ func spatialSorting_createData(t *testing.T, driver *RavenTestDriver, store *rav
 }
 
 func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string) {
-	ok := ravendb.StringArrayContainsExactly(resultIDs, expectedOrder)
+	ok := stringArrayContainsExactly(resultIDs, expectedOrder)
 	assert.True(t, ok)
 }
 
@@ -217,7 +217,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
 
 		ids := getShopIDs(shops)
-		ravendb.StringArrayReverse(ids)
+		stringArrayReverse(ids)
 		assertResultsOrder(t, ids, filteredExpectedOrder)
 
 		session.Close()
@@ -259,7 +259,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, d
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
 
 		ids := getShopIDs(shops)
-		ravendb.StringArrayReverse(ids)
+		stringArrayReverse(ids)
 		assertResultsOrder(t, ids, filteredExpectedOrder)
 
 		session.Close()

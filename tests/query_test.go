@@ -862,7 +862,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 				delay = append(delay, company)
 			}
 			sort.Strings(delay)
-			ravendb.StringArrayEq(delay, []string{"hours", "minutes"})
+			stringArrayEq(delay, []string{"hours", "minutes"})
 		}
 
 		{
@@ -878,7 +878,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 				delay2 = append(delay2, company)
 			}
 			sort.Strings(delay2)
-			ravendb.StringArrayEq(delay2, []string{"days"})
+			stringArrayEq(delay2, []string{"days"})
 
 		}
 
@@ -1014,7 +1014,7 @@ func query_queryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		for _, user := range users {
 			names = append(names, *user.Name)
 		}
-		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
+		assert.True(t, stringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
 		users = nil
 		q = session.QueryOld(reflect.TypeOf(&User{}))
@@ -1034,7 +1034,7 @@ func query_queryWithBoost(t *testing.T, driver *RavenTestDriver) {
 			names = append(names, *user.Name)
 		}
 
-		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"John", "John", "Tarzan"}))
+		assert.True(t, stringArrayContainsSequence(names, []string{"John", "John", "Tarzan"}))
 
 		session.Close()
 	}
@@ -1328,7 +1328,7 @@ func query_queryByIndex(t *testing.T, driver *RavenTestDriver) {
 		}
 		sort.Strings(names)
 
-		assert.True(t, ravendb.StringArrayContainsSequence(names, []string{"Beethoven", "Benji", "Scooby Doo"}))
+		assert.True(t, stringArrayContainsSequence(names, []string{"Beethoven", "Benji", "Scooby Doo"}))
 		newSession.Close()
 	}
 }

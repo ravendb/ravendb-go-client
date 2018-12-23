@@ -32,7 +32,7 @@ func testIndexCanDeleteIndex(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	indexNames := op.Command.Result
-	assert.True(t, ravendb.StringArrayContains(indexNames, "UsersIndex"))
+	assert.True(t, stringArrayContains(indexNames, "UsersIndex"))
 
 	op2 := ravendb.NewDeleteIndexOperation("UsersIndex")
 	err = store.Maintenance().Send(op2)

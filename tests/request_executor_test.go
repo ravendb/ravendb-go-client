@@ -82,7 +82,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T, driver *RavenTestD
 		assert.NoError(t, err)
 
 		dbNames := command.Result
-		assert.True(t, ravendb.StringArrayContains(dbNames, store.GetDatabase()))
+		assert.True(t, stringArrayContains(dbNames, store.GetDatabase()))
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canFetchDatabasesNames end\n")

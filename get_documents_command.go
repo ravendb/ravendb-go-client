@@ -113,8 +113,8 @@ func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, er
 }
 
 func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
-	uniqueIds := StringArrayCopy(c._ids)
-	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
+	uniqueIds := stringArrayCopy(c._ids)
+	uniqueIds = stringArrayRemoveDuplicatesNoCase(uniqueIds)
 	totalLen := 0
 	for _, s := range uniqueIds {
 		totalLen += len(s)

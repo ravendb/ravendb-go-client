@@ -320,7 +320,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 
 // IsDeleted returns true if document with this id is deleted in this Session
 func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
-	return StringArrayContainsNoCase(s._knownMissingIds, id)
+	return stringArrayContainsNoCase(s._knownMissingIds, id)
 }
 
 // GetDocumentID returns id of a given instance
@@ -647,7 +647,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		metadata[MetadataRavenGoType] = goType
 	}
 	if id != "" {
-		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
+		s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
 
 	s.storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
@@ -657,7 +657,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
-		s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
+		s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
 	documentInfo := &documentInfo{}
 	documentInfo.id = id
@@ -1009,7 +1009,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterMissing(id string) {
 
 // UnregisterMissing unregisters missing value id
 func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
-	s._knownMissingIds = StringArrayRemoveNoCase(s._knownMissingIds, id)
+	s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
 }
 
 // RegisterIncludes registers includes object
@@ -1061,7 +1061,7 @@ func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz ref
 
 func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
 	for _, id := range ids {
-		if StringArrayContainsNoCase(s._knownMissingIds, id) {
+		if stringArrayContainsNoCase(s._knownMissingIds, id) {
 			continue
 		}
 

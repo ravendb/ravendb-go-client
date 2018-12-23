@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"io/ioutil"
 	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
-	"runtime"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
@@ -339,7 +339,7 @@ func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, 
 		attachmentNames[i] = anameStr
 	}
 
-	orderedNames := ravendb.StringArrayCopy(names)
+	orderedNames := append([]string{}, names...)
 	if len(orderedNames) > expectedCount {
 		orderedNames = orderedNames[:expectedCount]
 	}

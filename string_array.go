@@ -5,7 +5,11 @@ import (
 	"strings"
 )
 
-func StringArrayRemoveNoCase(a []string, s string) []string {
+const (
+	unlikelySep = "\x02\x01\x03"
+)
+
+func stringArrayRemoveNoCase(a []string, s string) []string {
 	n := len(a)
 	if n == 0 {
 		return a
@@ -19,7 +23,7 @@ func StringArrayRemoveNoCase(a []string, s string) []string {
 	return stringArrayRemoveAtIndexes(a, toRemove)
 }
 
-func StringArrayRemove(pa *[]string, s string) bool {
+func stringArrayRemove(pa *[]string, s string) bool {
 	a := *pa
 	n := len(a)
 	if n == 0 {
@@ -39,27 +43,7 @@ func StringArrayRemove(pa *[]string, s string) bool {
 	return true
 }
 
-func StringArrayRemoveCustomCompare(pa *[]string, s string, cmp func(string, string) bool) bool {
-	a := *pa
-	n := len(a)
-	if n == 0 {
-		return false
-	}
-
-	var toRemove []int
-	for i, s1 := range a {
-		if cmp(s1, s) {
-			toRemove = append(toRemove, i)
-		}
-	}
-	if len(toRemove) == 0 {
-		return false
-	}
-	*pa = stringArrayRemoveAtIndexes(a, toRemove)
-	return true
-}
-
-func StringArrayCopy(a []string) []string {
+func stringArrayCopy(a []string) []string {
 	if len(a) == 0 {
 		return nil
 	}
@@ -67,7 +51,7 @@ func StringArrayCopy(a []string) []string {
 }
 
 // return a1 - a2
-func StringArraySubtract(a1, a2 []string) []string {
+func stringArraySubtract(a1, a2 []string) []string {
 	if len(a2) == 0 {
 		return a1
 	}
@@ -92,7 +76,7 @@ func StringArraySubtract(a1, a2 []string) []string {
 	return res
 }
 
-func StringArrayContains(a []string, s string) bool {
+func stringArrayContains(a []string, s string) bool {
 	for _, el := range a {
 		if el == s {
 			return true
@@ -101,68 +85,15 @@ func StringArrayContains(a []string, s string) bool {
 	return false
 }
 
-// StringArrayContainsNoCase returns true if a contains s using case-insensitive
+// stringArrayContainsNoCase returns true if a contains s using case-insensitive
 // comparison
-func StringArrayContainsNoCase(a []string, s string) bool {
+func stringArrayContainsNoCase(a []string, s string) bool {
 	for _, el := range a {
 		if strings.EqualFold(el, s) {
 			return true
 		}
 	}
 	return false
-}
-
-// StringArrayEq returns true if arrays have the same content, ignoring order
-func StringArrayEq(a1, a2 []string) bool {
-	if len(a1) != len(a2) {
-		return false
-	}
-	if len(a1) == 0 {
-		return true
-	}
-	a1c := StringArrayCopy(a1)
-	a2c := StringArrayCopy(a2)
-	sort.Strings(a1c)
-	sort.Strings(a2c)
-	for i, s := range a1c {
-		if s != a2c[i] {
-			return false
-		}
-	}
-	return true
-}
-
-const (
-	unlikelySep = "\x02\x01\x03"
-)
-
-// equivalent of Java's containsSequence http://joel-costigliola.github.io/assertj/core/api/org/assertj/core/api/ListAssert.html#containsSequence(ELEMENT...)
-// checks if a1 contains sub-sequence a2
-func StringArrayContainsSequence(a1, a2 []string) bool {
-	// TODO: technically it's possible for this to have false positive
-	// but it's very unlikely
-	s1 := strings.Join(a1, unlikelySep)
-	s2 := strings.Join(a2, unlikelySep)
-	return strings.Contains(s1, s2)
-}
-
-func StringArrayContainsExactly(a1, a2 []string) bool {
-	if len(a1) != len(a2) {
-		return false
-	}
-	for i, s := range a1 {
-		if s != a2[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func StringArrayReverse(a []string) {
-	n := len(a)
-	for i := 0; i < n/2; i++ {
-		a[i], a[n-1-i] = a[n-1-i], a[i]
-	}
 }
 
 func stringArrayRemoveAtIndexes(a []string, toRemove []int) []string {
@@ -182,8 +113,8 @@ func stringArrayRemoveAtIndexes(a []string, toRemove []int) []string {
 	return a[:n-len(toRemove)]
 }
 
-// StringArrayRemoveDuplicates removes duplicate strings from a
-func StringArrayRemoveDuplicates(a []string) []string {
+// stringArrayRemoveDuplicates removes duplicate strings from a
+func stringArrayRemoveDuplicates(a []string) []string {
 	n := len(a)
 	if n < 2 {
 		return a
@@ -201,8 +132,8 @@ func StringArrayRemoveDuplicates(a []string) []string {
 	return stringArrayRemoveAtIndexes(a, toRemove)
 }
 
-// StringArrayRemoveDuplicatesNoCase removes duplicate strings from a, ignoring case
-func StringArrayRemoveDuplicatesNoCase(a []string) []string {
+// stringArrayRemoveDuplicatesNoCase removes duplicate strings from a, ignoring case
+func stringArrayRemoveDuplicatesNoCase(a []string) []string {
 	n := len(a)
 	if n < 2 {
 		return a

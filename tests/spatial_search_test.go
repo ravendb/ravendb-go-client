@@ -159,7 +159,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 			a = append(a, event.Venue)
 		}
 
-		assert.True(t, ravendb.StringArrayContainsExactly(a, []string{"c/3", "b/2"}))
+		assert.True(t, stringArrayContainsExactly(a, []string{"c/3", "b/2"}))
 
 		session.Close()
 	}
@@ -221,7 +221,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T,
 		for _, event := range events {
 			a = append(a, event.Venue)
 		}
-		assert.True(t, ravendb.StringArrayContainsExactly(a, []string{"a/2", "b/2", "c/2", "a/1", "b/1", "c/1", "a/3", "b/3", "c/3"}))
+		assert.True(t, stringArrayContainsExactly(a, []string{"a/2", "b/2", "c/2", "a/1", "b/1", "c/1", "a/3", "b/3", "c/3"}))
 
 		session.Close()
 	}
@@ -241,18 +241,18 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T,
 		for _, event := range events {
 			a = append(a, event.Venue)
 		}
-		assert.True(t, ravendb.StringArrayContainsExactly(a, []string{"a/1", "a/2", "a/3", "b/1", "b/2", "b/3", "c/1", "c/2", "c/3"}))
+		assert.True(t, stringArrayContainsExactly(a, []string{"a/1", "a/2", "a/3", "b/1", "b/2", "b/3", "c/1", "c/2", "c/3"}))
 
 		session.Close()
 	}
 }
 
 type Event struct {
-	Venue     string    `json:"venue"`
-	Latitude  float64   `json:"latitude"`
-	Longitude float64   `json:"longitude"`
+	Venue     string       `json:"venue"`
+	Latitude  float64      `json:"latitude"`
+	Longitude float64      `json:"longitude"`
 	Date      ravendb.Time `json:"date"`
-	Capacity  int       `json:"capacity"`
+	Capacity  int          `json:"capacity"`
 }
 
 func NewEvent(venue string, latitude float64, longitude float64) *Event {

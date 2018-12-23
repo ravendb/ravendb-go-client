@@ -80,7 +80,7 @@ func (d *IndexDefinition) updateIndexTypeAndMaps() {
 	if d.IndexType == "" || d.IndexType == IndexType_NONE {
 		d.IndexType = d.detectStaticIndexType()
 	}
-	d.Maps = StringArrayRemoveDuplicates(d.Maps)
+	d.Maps = stringArrayRemoveDuplicates(d.Maps)
 }
 
 func (d *IndexDefinition) GetType() IndexType {

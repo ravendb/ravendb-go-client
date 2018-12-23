@@ -311,8 +311,8 @@ func indexesFromClientTest_getTerms(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 	terms := op.Command.Result
 	assert.Equal(t, len(terms), 2)
-	assert.True(t, ravendb.StringArrayContains(terms, "fitzchak"))
-	assert.True(t, ravendb.StringArrayContains(terms, "arek"))
+	assert.True(t, stringArrayContains(terms, "fitzchak"))
+	assert.True(t, stringArrayContains(terms, "arek"))
 }
 
 func indexesFromClientTest_getIndexNames(t *testing.T, driver *RavenTestDriver) {
@@ -367,7 +367,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T, driver *RavenTestDriver) 
 		indexNames := op.Command.Result
 
 		assert.Equal(t, len(indexNames), 1)
-		assert.True(t, ravendb.StringArrayContains(indexNames, indexName))
+		assert.True(t, stringArrayContains(indexNames, indexName))
 		session.Close()
 	}
 }

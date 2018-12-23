@@ -265,7 +265,7 @@ func suggestions_canGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 
 		su := suggestionQueryResult["name"].Suggestions
 		assert.Equal(t, len(su), 5)
-		ok := ravendb.StringArrayContainsSequence(su, []string{"john", "jones", "johnson", "david", "jack"})
+		ok := stringArrayContainsSequence(su, []string{"john", "jones", "johnson", "david", "jack"})
 		assert.True(t, ok)
 
 		session.Close()

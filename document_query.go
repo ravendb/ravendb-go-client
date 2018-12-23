@@ -459,7 +459,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	query.theWaitForNonStaleResults = q.theWaitForNonStaleResults
 	query.negate = q.negate
 	//noinspection unchecked
-	query.includes = StringArrayCopy(q.includes)
+	query.includes = stringArrayCopy(q.includes)
 	// TODO: should this be deep copy so that adding/removing in one
 	// doesn't affect the other?
 	query.beforeQueryExecutedCallback = q.beforeQueryExecutedCallback

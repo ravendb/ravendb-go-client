@@ -58,7 +58,7 @@ func (o *LoadOperation) withIncludes(includes []string) *LoadOperation {
 }
 
 func (o *LoadOperation) byIds(ids []string) *LoadOperation {
-	o._ids = StringArrayCopy(ids)
+	o._ids = stringArrayCopy(ids)
 
 	seen := map[string]struct{}{}
 	for _, id := range ids {
@@ -144,9 +144,9 @@ func (o *LoadOperation) getDocuments(results interface{}) error {
 		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
 	}
 
-	uniqueIds := StringArrayCopy(o._ids)
-	StringArrayRemove(&uniqueIds, "")
-	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
+	uniqueIds := stringArrayCopy(o._ids)
+	stringArrayRemove(&uniqueIds, "")
+	uniqueIds = stringArrayRemoveDuplicatesNoCase(uniqueIds)
 	for _, id := range uniqueIds {
 		v, err := o.getDocumentWithIDOld(mapElemPtrType, id)
 		if err != nil {
@@ -161,9 +161,9 @@ func (o *LoadOperation) getDocuments(results interface{}) error {
 }
 
 func (o *LoadOperation) getDocumentsOld(clazz reflect.Type) (map[string]interface{}, error) {
-	uniqueIds := StringArrayCopy(o._ids)
-	StringArrayRemove(&uniqueIds, "")
-	uniqueIds = StringArrayRemoveDuplicatesNoCase(uniqueIds)
+	uniqueIds := stringArrayCopy(o._ids)
+	stringArrayRemove(&uniqueIds, "")
+	uniqueIds = stringArrayRemoveDuplicatesNoCase(uniqueIds)
 	res := make(map[string]interface{})
 	for _, id := range uniqueIds {
 		v, err := o.getDocumentWithIDOld(clazz, id)

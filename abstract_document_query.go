@@ -944,7 +944,7 @@ func (q *AbstractDocumentQuery) buildInclude(queryText *strings.Builder) {
 		return
 	}
 
-	q.includes = StringArrayRemoveDuplicates(q.includes)
+	q.includes = stringArrayRemoveDuplicates(q.includes)
 	queryText.WriteString(" include ")
 	for i, include := range q.includes {
 		if i > 0 {

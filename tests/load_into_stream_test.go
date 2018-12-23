@@ -41,7 +41,7 @@ func loadIntoStream_canLoadByIdsIntoStream(t *testing.T, driver *RavenTestDriver
 		for _, v := range a {
 			v2 := v.(ravendb.ObjectNode)
 			s, _ := ravendb.JsonGetAsText(v2, "firstName")
-			assert.True(t, ravendb.StringArrayContains(names, s))
+			assert.True(t, stringArrayContains(names, s))
 		}
 
 		session.Close()
@@ -79,7 +79,7 @@ func loadIntoStream_canLoadStartingWithIntoStream(t *testing.T, driver *RavenTes
 		for _, v := range a {
 			v2 := v.(ravendb.ObjectNode)
 			s, _ := ravendb.JsonGetAsText(v2, "firstName")
-			assert.True(t, ravendb.StringArrayContains(names, s))
+			assert.True(t, stringArrayContains(names, s))
 		}
 
 		session.Close()

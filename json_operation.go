@@ -62,8 +62,8 @@ func isJSONStringEqual(oldPropVal string, newProp interface{}) bool {
 func jsonOperationCompareJson(id string, originalJson ObjectNode, newJson ObjectNode, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges) bool {
 	newJsonProps := getObjectNodeFieldNames(newJson)
 	oldJsonProps := getObjectNodeFieldNames(originalJson)
-	newFields := StringArraySubtract(newJsonProps, oldJsonProps)
-	removedFields := StringArraySubtract(oldJsonProps, newJsonProps)
+	newFields := stringArraySubtract(newJsonProps, oldJsonProps)
+	removedFields := stringArraySubtract(oldJsonProps, newJsonProps)
 
 	for _, field := range removedFields {
 		if changes == nil {
@@ -80,7 +80,7 @@ func jsonOperationCompareJson(id string, originalJson ObjectNode, newJson Object
 			MetadataID:
 			continue
 		}
-		if StringArrayContains(newFields, prop) {
+		if stringArrayContains(newFields, prop) {
 			if changes == nil {
 				return true
 			}

@@ -298,7 +298,7 @@ func loadTest_loadStartsWith(t *testing.T, driver *RavenTestDriver) {
 
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
 		for _, user := range users {
-			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
+			assert.True(t, stringArrayContains(userIDs, user.ID))
 		}
 
 		users = nil
@@ -311,7 +311,7 @@ func loadTest_loadStartsWith(t *testing.T, driver *RavenTestDriver) {
 
 		userIDs = []string{"Abc", "Afa"}
 		for _, user := range users {
-			assert.True(t, ravendb.StringArrayContains(userIDs, user.ID))
+			assert.True(t, stringArrayContains(userIDs, user.ID))
 		}
 		newSession.Close()
 	}
