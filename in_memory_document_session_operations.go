@@ -620,7 +620,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		s.generateEntityIDOnTheClient.trySetIdentity(entity, id)
 	}
 
-	tmp := newIDTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
+	tmp := newIDTypeAndName(id, CommandClientAnyCommand, "")
 	if _, ok := s.deferredCommandsMap[tmp]; ok {
 		return newIllegalStateError("Can't Store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
@@ -758,7 +758,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			docChanges = append(docChanges, change)
 			changes[documentInfo.id] = docChanges
 		} else {
-			idType := newIDTypeAndName(documentInfo.id, CommandType_CLIENT_ANY_COMMAND, "")
+			idType := newIDTypeAndName(documentInfo.id, CommandClientAnyCommand, "")
 			command := result.GetDeferredCommandsMap()[idType]
 			if command != nil {
 				err := s.throwInvalidDeletedDocumentWithDeferredCommand(command)
@@ -818,7 +818,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			continue
 		}
 
-		idType := newIDTypeAndName(entityValue.id, CommandType_CLIENT_NOT_ATTACHMENT, "")
+		idType := newIDTypeAndName(entityValue.id, CommandClientNotAttachment, "")
 		command := result.deferredCommandsMap[idType]
 		if command != nil {
 			err := s.throwInvalidModifiedDocumentWithDeferredCommand(command)
@@ -865,7 +865,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 		} else {
 			changeVector = nil // TODO: redundant
 		}
-		cmdData := NewPutCommandDataWithJson(entityValue.id, changeVector, document)
+		cmdData := NewPutCommandDataWithJSON(entityValue.id, changeVector, document)
 		result.AddSessionCommandData(cmdData)
 	}
 	return nil
@@ -976,13 +976,13 @@ func (s *InMemoryDocumentSessionOperations) DeferMany(commands []ICommandData) {
 func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) {
 	idType := newIDTypeAndName(command.getId(), command.getType(), command.getName())
 	s.deferredCommandsMap[idType] = command
-	idType = newIDTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
+	idType = newIDTypeAndName(command.getId(), CommandClientAnyCommand, "")
 	s.deferredCommandsMap[idType] = command
 
 	cmdType := command.getType()
-	isAttachmentCmd := (cmdType == CommandType_ATTACHMENT_PUT) || (cmdType == CommandType_ATTACHMENT_DELETE)
+	isAttachmentCmd := (cmdType == CommandAttachmentPut) || (cmdType == CommandAttachmentDelete)
 	if !isAttachmentCmd {
-		idType = newIDTypeAndName(command.getId(), CommandType_CLIENT_NOT_ATTACHMENT, "")
+		idType = newIDTypeAndName(command.getId(), CommandClientNotAttachment, "")
 		s.deferredCommandsMap[idType] = command
 	}
 }

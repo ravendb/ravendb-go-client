@@ -1,14 +1,15 @@
 package ravendb
 
+// DeleteCommandData represents data for delete command
 type DeleteCommandData struct {
-	*CommandData
+	CommandData
 }
 
-// NewDeleteCommandData creates CommandData for Delete command
+// NewDeleteCommandData creates ICommandData for Delete command
 func NewDeleteCommandData(id string, changeVector *string) ICommandData {
 	res := &DeleteCommandData{
-		&CommandData{
-			Type:         CommandType_DELETE,
+		CommandData{
+			Type:         CommandDelete,
 			ID:           id,
 			ChangeVector: changeVector,
 		},

@@ -56,17 +56,17 @@ func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, s
 
 	deferredCommandsMap := s.deferredCommandsMap
 
-	key := newIDTypeAndName(documentID, CommandType_DELETE, "")
+	key := newIDTypeAndName(documentID, CommandDelete, "")
 	if _, ok := deferredCommandsMap[key]; ok {
 		return newIllegalStateError("Cannot Store attachment" + name + " of document " + documentID + ", there is a deferred command registered for this document to be deleted")
 	}
 
-	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_PUT, name)
+	key = newIDTypeAndName(documentID, CommandAttachmentPut, name)
 	if _, ok := deferredCommandsMap[key]; ok {
 		return newIllegalStateError("Cannot Store attachment" + name + " of document " + documentID + ", there is a deferred command registered to create an attachment with the same name.")
 	}
 
-	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_DELETE, name)
+	key = newIDTypeAndName(documentID, CommandAttachmentDelete, name)
 	if _, ok := deferredCommandsMap[key]; ok {
 		return newIllegalStateError("Cannot Store attachment" + name + " of document " + documentID + ", there is a deferred command registered to delete an attachment with the same name.")
 	}
@@ -107,12 +107,12 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) 
 
 	deferredCommandsMap := s.deferredCommandsMap
 
-	key := newIDTypeAndName(documentID, CommandType_DELETE, "")
+	key := newIDTypeAndName(documentID, CommandDelete, "")
 	if _, ok := deferredCommandsMap[key]; ok {
 		return nil // no-op
 	}
 
-	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_DELETE, name)
+	key = newIDTypeAndName(documentID, CommandAttachmentDelete, name)
 	if _, ok := deferredCommandsMap[key]; ok {
 		return nil // no-op
 	}
@@ -122,7 +122,7 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) 
 		return nil //no-op
 	}
 
-	key = newIDTypeAndName(documentID, CommandType_ATTACHMENT_PUT, name)
+	key = newIDTypeAndName(documentID, CommandAttachmentPut, name)
 	if _, ok := deferredCommandsMap[key]; ok {
 		return newIllegalStateError("Cannot delete attachment " + name + " of document " + documentID + ", there is a deferred command registered to create an attachment with the same name.")
 	}

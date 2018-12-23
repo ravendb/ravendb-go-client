@@ -503,7 +503,7 @@ func removeDeferredCommand(a []ICommandData, el ICommandData) []ICommandData {
 }
 
 func (s *DocumentSession) tryMergePatches(id string, patchRequest *PatchRequest) bool {
-	idType := newIDTypeAndName(id, CommandType_PATCH, "")
+	idType := newIDTypeAndName(id, CommandPatch, "")
 	command := s.deferredCommandsMap[idType]
 	if command == nil {
 		return false

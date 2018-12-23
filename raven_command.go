@@ -166,8 +166,8 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return ResponseDisposeHandling_AUTOMATIC, err
 	}
 
-	cmd.SetResponseRaw(response, response.Body)
-	return ResponseDisposeHandling_AUTOMATIC, nil
+	err := cmd.SetResponseRaw(response, response.Body)
+	return ResponseDisposeHandling_AUTOMATIC, err
 }
 
 func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response *http.Response, responseJson []byte) {

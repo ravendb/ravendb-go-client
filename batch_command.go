@@ -15,6 +15,7 @@ var (
 	_ RavenCommand = &BatchCommand{}
 )
 
+// BatchCommand represents batch command
 type BatchCommand struct {
 	RavenCommandBase
 
@@ -26,11 +27,8 @@ type BatchCommand struct {
 	Result *JSONArrayResult
 }
 
-func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData) (*BatchCommand, error) {
-	return NewBatchCommandWithOptions(conventions, commands, nil)
-}
-
-func NewBatchCommandWithOptions(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) (*BatchCommand, error) {
+// NewBatchCommand returns new BatchCommand
+func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) (*BatchCommand, error) {
 	panicIf(conventions == nil, "conventions cannot be nil")
 	panicIf(len(commands) == 0, "commands cannot be empty")
 
@@ -65,6 +63,7 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
+// CreateRequest creates http request
 func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/bulk_docs"
 	url = c.appendOptions(url)
@@ -90,7 +89,10 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	writer.WriteField("main", string(js))
+	err = writer.WriteField("main", string(js))
+	if err != nil {
+		return nil, err
+	}
 
 	nameCounter := 1
 	for _, stream := range c._attachmentStreams {
@@ -122,6 +124,7 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	return req, nil
 }
 
+// SetResponse sets response
 func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return newIllegalStateError("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
@@ -171,8 +174,9 @@ func (c *BatchCommand) appendOptions(sb string) string {
 	return sb
 }
 
-func (c *BatchCommand) Close() {
+func (c *BatchCommand) Close() error {
 	// no-op
+	return nil
 }
 
 // Note: in Java is in PutAttachmentCommandHelper.java

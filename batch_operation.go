@@ -31,7 +31,7 @@ func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
 
 	b._entities = result.GetEntities()
 
-	return NewBatchCommandWithOptions(b._session.GetConventions(), result.GetSessionCommands(), result.GetOptions())
+	return NewBatchCommand(b._session.GetConventions(), result.GetSessionCommands(), result.GetOptions())
 }
 
 func (b *BatchOperation) setResult(result ArrayNode) {

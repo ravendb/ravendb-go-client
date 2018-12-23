@@ -8,7 +8,7 @@ type DeleteAttachmentCommandData struct {
 func NewDeleteAttachmentCommandData(documentID string, name string, changeVector *string) *DeleteAttachmentCommandData {
 	res := &DeleteAttachmentCommandData{
 		&CommandData{
-			Type:         CommandType_DELETE,
+			Type:         CommandDelete,
 			ID:           documentID,
 			Name:         name,
 			ChangeVector: changeVector,

@@ -16,7 +16,7 @@ func NewPutAttachmentCommandData(documentID string, name string, stream io.Reade
 
 	res := &PutAttachmentCommandData{
 		CommandData: &CommandData{
-			Type:         CommandType_ATTACHMENT_PUT,
+			Type:         CommandAttachmentPut,
 			ID:           documentID,
 			Name:         name,
 			ChangeVector: changeVector,

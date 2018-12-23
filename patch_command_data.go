@@ -14,7 +14,7 @@ func NewPatchCommandData(id string, changeVector *string, patch *PatchRequest, p
 	res := &PatchCommandData{
 		CommandData: &CommandData{
 			ID:           id,
-			Type:         CommandType_PATCH,
+			Type:         CommandPatch,
 			ChangeVector: changeVector,
 		},
 		patch:          patch,

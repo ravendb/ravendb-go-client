@@ -1,18 +1,20 @@
 package ravendb
 
-type PutCommandDataWithJson struct {
+// PutCommandDataWithJSON represents data for put command with json
+type PutCommandDataWithJSON struct {
 	*CommandData
 	document ObjectNode
 }
 
-var _ ICommandData = &PutCommandDataWithJson{} // verify interface match
+var _ ICommandData = &PutCommandDataWithJSON{} // verify interface match
 
-func NewPutCommandDataWithJson(id string, changeVector *string, document ObjectNode) *PutCommandDataWithJson {
+//NewPutCommandDataWithJSON returns new PutCommandDataWithJSON
+func NewPutCommandDataWithJSON(id string, changeVector *string, document ObjectNode) *PutCommandDataWithJSON {
 	panicIf(document == nil, "Document cannot be nil")
 
-	res := &PutCommandDataWithJson{
+	res := &PutCommandDataWithJSON{
 		CommandData: &CommandData{
-			Type:         CommandType_PUT,
+			Type:         CommandPut,
 			ID:           id,
 			ChangeVector: changeVector,
 		},
@@ -21,7 +23,7 @@ func NewPutCommandDataWithJson(id string, changeVector *string, document ObjectN
 	return res
 }
 
-func (d *PutCommandDataWithJson) serialize(conventions *DocumentConventions) (interface{}, error) {
+func (d *PutCommandDataWithJSON) serialize(conventions *DocumentConventions) (interface{}, error) {
 	js := d.baseJSON()
 	js["Document"] = d.document
 	return js, nil
