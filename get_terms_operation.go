@@ -7,6 +7,7 @@ import (
 
 var _ IMaintenanceOperation = &GetTermsOperation{}
 
+// GetTermsOperation represents "get terms" operation
 type GetTermsOperation struct {
 	_indexName string
 	_field     string
@@ -16,11 +17,8 @@ type GetTermsOperation struct {
 	Command *GetTermsCommand
 }
 
-func NewGetTermsOperation(indexName string, field string, fromValue string) *GetTermsOperation {
-	return NewGetTermsOperationWithPageSize(indexName, field, fromValue, 0)
-}
-
-func NewGetTermsOperationWithPageSize(indexName string, field string, fromValue string, pageSize int) *GetTermsOperation {
+// NewGetTermsOperation returns GetTermsOperation. pageSize 0 means default size
+func NewGetTermsOperation(indexName string, field string, fromValue string, pageSize int) *GetTermsOperation {
 	panicIf(indexName == "", "Index name connot be empty")
 	panicIf(field == "", "Field name connot be empty")
 	return &GetTermsOperation{
@@ -31,6 +29,7 @@ func NewGetTermsOperationWithPageSize(indexName string, field string, fromValue 
 	}
 }
 
+// GetCommand returns command for this operation
 func (o *GetTermsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewGetTermsCommand(o._indexName, o._field, o._fromValue, o._pageSize)
 	return o.Command
@@ -40,6 +39,7 @@ var (
 	_ RavenCommand = &GetTermsCommand{}
 )
 
+// GetTermsCommand represents "get terms" command
 type GetTermsCommand struct {
 	RavenCommandBase
 
@@ -51,6 +51,7 @@ type GetTermsCommand struct {
 	Result []string
 }
 
+// NewGetTermsCommand returns new GetTermsCommand
 func NewGetTermsCommand(indexName string, field string, fromValue string, pageSize int) *GetTermsCommand {
 	panicIf(indexName == "", "Index name connot be empty")
 
@@ -66,6 +67,7 @@ func NewGetTermsCommand(indexName string, field string, fromValue string, pageSi
 	return res
 }
 
+// CreateRequest creates a request
 func (c *GetTermsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	pageSize := ""
 	if c._pageSize > 0 {
@@ -76,6 +78,7 @@ func (c *GetTermsCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 	return NewHttpGet(url)
 }
 
+// SetResponse sets a response
 func (c *GetTermsCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
