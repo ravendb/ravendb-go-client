@@ -306,7 +306,7 @@ func indexesFromClientTest_getTerms(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	op := ravendb.NewGetTermsOperationWithPageSize(indexName, "name", "", 128)
+	op := ravendb.NewGetTermsOperation(indexName, "name", "", 128)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	terms := op.Command.Result

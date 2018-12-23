@@ -143,7 +143,7 @@ func testIndexGetTerms(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	{
-		op := ravendb.NewGetTermsOperation("UsersIndex", "name", "")
+		op := ravendb.NewGetTermsOperation("UsersIndex", "name", "", 0)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		terms := op.Command.Result
