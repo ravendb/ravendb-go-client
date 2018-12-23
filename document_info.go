@@ -5,11 +5,11 @@ type ConcurrencyCheckMode int
 
 const (
 	// ConcurrencyCheckAuto is automatic optimistic concurrency check depending on UseOptimisticConcurrency setting or provided Change Vector
-	ConcurrencyCheck_AUTO ConcurrencyCheckMode = iota
+	ConcurrencyCheckAuto ConcurrencyCheckMode = iota
 	// ConcurrencyCheckForced forces optimistic concurrency check even if UseOptimisticConcurrency is not set
-	ConcurrencyCheck_FORCED
+	ConcurrencyCheckForced
 	// ConcurrencyCheckDisabled disables optimistic concurrency check even if UseOptimisticConcurrency is set
-	ConcurrencyCheck_DISABLED
+	ConcurrencyCheckDisabled
 )
 
 // documentInfo stores information about entity in a session

@@ -569,23 +569,23 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 // Store stores entity in the session. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
 	_, hasID := s.generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
-	concu := ConcurrencyCheck_AUTO
+	concu := ConcurrencyCheckAuto
 	if !hasID {
-		concu = ConcurrencyCheck_FORCED
+		concu = ConcurrencyCheckForced
 	}
 	return s.storeInternal(entity, nil, "", concu)
 }
 
 // StoreWithID stores  entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreWithID(entity interface{}, id string) error {
-	return s.storeInternal(entity, nil, id, ConcurrencyCheck_AUTO)
+	return s.storeInternal(entity, nil, id, ConcurrencyCheckAuto)
 }
 
 // StoreWithChangeVectorAndID stores entity in the session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity interface{}, changeVector *string, id string) error {
-	concurr := ConcurrencyCheck_DISABLED
+	concurr := ConcurrencyCheckDisabled
 	if changeVector != nil {
-		concurr = ConcurrencyCheck_FORCED
+		concurr = ConcurrencyCheckForced
 	}
 
 	return s.storeInternal(entity, changeVector, id, concurr)
@@ -853,14 +853,14 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 
 		var changeVector *string
 		if s.useOptimisticConcurrency {
-			if entityValue.concurrencyCheckMode != ConcurrencyCheck_DISABLED {
+			if entityValue.concurrencyCheckMode != ConcurrencyCheckDisabled {
 				// if the user didn't provide a change vector, we'll test for an empty one
 				tmp := ""
 				changeVector = firstNonNilString(entityValue.changeVector, &tmp)
 			} else {
 				changeVector = nil // TODO: redundant
 			}
-		} else if entityValue.concurrencyCheckMode == ConcurrencyCheck_FORCED {
+		} else if entityValue.concurrencyCheckMode == ConcurrencyCheckForced {
 			changeVector = entityValue.changeVector
 		} else {
 			changeVector = nil // TODO: redundant
