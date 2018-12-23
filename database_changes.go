@@ -29,7 +29,7 @@ type DatabaseChanges struct {
 	muClient sync.Mutex
 
 	_task *CompletableFuture
-	_cts  *CancellationTokenSource
+	_cts  *cancellationTokenSource
 	_tcs  *CompletableFuture
 
 	mu             sync.Mutex // protects _confirmations and _counters maps
@@ -49,7 +49,7 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		_conventions:                     requestExecutor.GetConventions(),
 		_database:                        databaseName,
 		_tcs:                             NewCompletableFuture(),
-		_cts:                             NewCancellationTokenSource(),
+		_cts:                             &cancellationTokenSource{},
 		_onDispose:                       onDispose,
 		_connectionStatusEventHandlerIdx: -1,
 		_confirmations:                   map[int]*CompletableFuture{},
