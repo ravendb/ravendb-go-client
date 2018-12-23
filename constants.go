@@ -27,14 +27,11 @@ const (
 	//TBD CUSTOM_SORT_FIELD_NAME = "__customSort";
 	Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT = 0.025
 
-	Constants_Headers_REQUEST_TIME                 = "Raven-Request-Time"
-	Constants_Headers_REFRESH_TOPOLOGY             = "Refresh-Topology"
-	Constants_Headers_TOPOLOGY_ETAG                = "Topology-Etag"
-	Constants_Headers_CLIENT_CONFIGURATION_ETAG    = "Client-Configuration-Etag"
-	Constants_Headers_REFRESH_CLIENT_CONFIGURATION = "Refresh-Client-Configuration"
-	Constants_Headers_ETAG                         = "ETag"
-	Constants_Headers_IF_NONE_MATCH                = "If-None-Match"
-	Constants_Headers_TRANSFER_ENCODING            = "Transfer-Encoding"
-	Constants_Headers_CONTENT_ENCODING             = "Content-Encoding"
-	Constants_Headers_CONTENT_LENGTH               = "Content-Length"
+	headersRequestTime                = "Raven-Request-Time"
+	headersRefreshTopology            = "Refresh-Topology"
+	headersTopologyEtag               = "Topology-Etag"
+	headersClientConfigurationEtag    = "Client-Configuration-Etag"
+	headersRefreshClientConfiguration = "Refresh-Client-Configuration"
+	headersEtag                       = "ETag"
+	headersIfNoneMatch                = "If-None-Match"
 )

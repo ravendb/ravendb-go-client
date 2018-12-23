@@ -6,7 +6,7 @@ import (
 )
 
 func HttpExtensions_getRequiredEtagHeader(response *http.Response) (*string, error) {
-	hdr := response.Header.Get(Constants_Headers_ETAG)
+	hdr := response.Header.Get(headersEtag)
 	if hdr == "" {
 		return nil, newIllegalStateError("Response did't had an ETag header")
 	}
@@ -15,7 +15,7 @@ func HttpExtensions_getRequiredEtagHeader(response *http.Response) (*string, err
 }
 
 func HttpExtensions_getEtagHeader(response *http.Response) *string {
-	hdr := response.Header.Get(Constants_Headers_ETAG)
+	hdr := response.Header.Get(headersEtag)
 	if hdr == "" {
 		return nil
 	}
@@ -24,7 +24,7 @@ func HttpExtensions_getEtagHeader(response *http.Response) *string {
 }
 
 func HttpExtensions_getEtagHeaderFromMap(headers map[string]string) *string {
-	hdr := headers[Constants_Headers_ETAG]
+	hdr := headers[headersEtag]
 	if hdr == "" {
 		return nil
 	}

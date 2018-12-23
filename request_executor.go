@@ -739,17 +739,17 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 			}
 		}
 
-		request.Header.Set("If-None-Match", "\""+*cachedChangeVector+"\"")
+		request.Header.Set(headersIfNoneMatch, "\""+*cachedChangeVector+"\"")
 	}
 
 	if !re._disableClientConfigurationUpdates {
 		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
-		request.Header.Set(Constants_Headers_CLIENT_CONFIGURATION_ETAG, etag)
+		request.Header.Set(headersClientConfigurationEtag, etag)
 	}
 
 	if !re._disableTopologyUpdates {
 		etag := `"` + strconv.Itoa(re.topologyEtag) + `"`
-		request.Header.Set(Constants_Headers_TOPOLOGY_ETAG, etag)
+		request.Header.Set(headersTopologyEtag, etag)
 	}
 
 	//sp := time.Now()
@@ -776,8 +776,8 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 
 	command.GetBase().StatusCode = response.StatusCode
 
-	refreshTopology := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_TOPOLOGY)
-	refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, Constants_Headers_REFRESH_CLIENT_CONFIGURATION)
+	refreshTopology := HttpExtensions_getBooleanHeader(response, headersRefreshTopology)
+	refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, headersRefreshClientConfiguration)
 
 	if response.StatusCode == http.StatusNotModified {
 		cachedItem.notModified()

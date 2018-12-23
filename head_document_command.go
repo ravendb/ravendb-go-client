@@ -38,7 +38,7 @@ func (c *HeadDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, er
 	}
 
 	if c._changeVector != nil {
-		request.Header.Set("If-None-Match", *c._changeVector)
+		request.Header.Set(headersIfNoneMatch, *c._changeVector)
 	}
 
 	return request, nil

@@ -44,7 +44,7 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 			item, cachedChangeVector, _ := c._cache.get(cacheKey)
 			headers := map[string]string{}
 			if cachedChangeVector != nil {
-				headers["If-None-Match"] = "\"" + *cachedChangeVector + "\""
+				headers[headersIfNoneMatch] = "\"" + *cachedChangeVector + "\""
 			}
 			for k, v := range command.headers {
 				headers[k] = v

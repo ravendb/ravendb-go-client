@@ -182,7 +182,7 @@ func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformatio
 	responses := multiGetCommand.Result
 	for i, op := range s.pendingLazyOperations {
 		response := responses[i]
-		tempReqTime := response.headers[Constants_Headers_REQUEST_TIME]
+		tempReqTime := response.headers[headersRequestTime]
 		totalTime, _ := strconv.Atoi(tempReqTime)
 		uri := requests[i].getUrlAndQuery()
 		dur := time.Millisecond * time.Duration(totalTime)
