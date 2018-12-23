@@ -47,7 +47,7 @@ func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	return NewHttpPostReader(url, c._stream)
 }
 
-// SetResponse sets reponse
+// SetResponse sets response
 func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 	return newNotImplementedError("Not implemented")
 }

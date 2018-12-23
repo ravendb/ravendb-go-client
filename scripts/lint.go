@@ -257,7 +257,7 @@ func runToolByName(tool string) {
 		goVet()
 	case "vetshadow", "shadow":
 		goVetShadow()
-	case "dead", "deadcode":
+	case "dead", "deadcode", "unused":
 		deadcode()
 	case "var", "varcheck":
 		varcheck()
@@ -310,7 +310,7 @@ func main() {
 	// dupl() // too many results and mostly false positive
 	ineffassign()
 	unconvert()
-	// goconst()  // not especially interesing
+	// goconst()  // not especially interesting
 	misspell()
 	nakedret()
 
