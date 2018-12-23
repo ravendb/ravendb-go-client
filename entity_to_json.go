@@ -10,7 +10,7 @@ type EntityToJSON struct {
 	//private final Map<Object, Map<string, Object>> _missingDictionary = new TreeMap<>((o1, o2) -> o1 == o2 ? 0 : 1);
 }
 
-// All the listeners for this Session
+// All the listeners for this session
 func NewEntityToJSON(session *InMemoryDocumentSessionOperations) *EntityToJSON {
 	return &EntityToJSON{
 		_session: session,

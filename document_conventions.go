@@ -31,7 +31,7 @@ type DocumentConventions struct {
 	MaxLengthOfQueryUsingGetURL int
 	IdentityPartsSeparator      string
 	_disableTopologyUpdates     bool
-	// If set to 'true' then it will return an error when any query is performed (in Session)
+	// If set to 'true' then it will return an error when any query is performed (in session)
 	// without explicit page size set
 	RaiseIfQueryPageSizeIsNotSet bool // TODO: rename to ErrorIfQueryPageSizeIsNotSet
 

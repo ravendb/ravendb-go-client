@@ -554,7 +554,7 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
-	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have Session")
+	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 

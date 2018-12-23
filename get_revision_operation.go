@@ -17,7 +17,7 @@ func NewGetRevisionOperationWithChangeVector(session *InMemoryDocumentSessionOpe
 }
 
 func NewGetRevisionOperationRange(session *InMemoryDocumentSessionOperations, id string, start int, pageSize int, metadataOnly bool) *GetRevisionOperation {
-	panicIf(session == nil, "Session cannot be null")
+	panicIf(session == nil, "session cannot be null")
 	panicIf(id == "", "Id cannot be null")
 	return &GetRevisionOperation{
 		_session: session,

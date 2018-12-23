@@ -501,7 +501,7 @@ func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
 	return re.ExecuteCommandWithSessionInfo(command, nil)
 }
 
-// execute(command, Session) in java
+// execute(command, session) in java
 func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
 	if (topologyUpdate != nil && topologyUpdate.IsDone()) || re._disableTopologyUpdates {

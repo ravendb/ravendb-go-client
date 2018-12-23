@@ -70,7 +70,7 @@ func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) 
 /*
 
    public <T> Map<String, T> get(Class<T> clazz, String[] changeVectors) {
-       GetRevisionOperation operation = new GetRevisionOperation(Session, changeVectors);
+       GetRevisionOperation operation = new GetRevisionOperation(session, changeVectors);
 
        GetRevisionsCommand command = operation.CreateRequest();
        requestExecutor.execute(command, sessionInfo);

@@ -295,7 +295,7 @@ func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}
 		return nil, err
 	}
 
-	err := fmt.Errorf("Document %#v doesn't exist in the Session", instance)
+	err := fmt.Errorf("Document %#v doesn't exist in the session", instance)
 	return nil, err
 }
 
@@ -318,7 +318,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 	return found
 }
 
-// IsDeleted returns true if document with this id is deleted in this Session
+// IsDeleted returns true if document with this id is deleted in this session
 func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
 	return stringArrayContainsNoCase(s._knownMissingIds, id)
 }
@@ -339,7 +339,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
-		return newIllegalStateError("exceeded max number of reqeusts per Session of %d", s.maxNumberOfRequestsPerSession)
+		return newIllegalStateError("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
 	}
 	return nil
 }
@@ -521,7 +521,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 
 	value := getDocumentInfoByEntity(s.documents, entity)
 	if value == nil {
-		return newIllegalStateError("%#v is not associated with the Session, cannot delete unknown entity instance", entity)
+		return newIllegalStateError("%#v is not associated with the session, cannot delete unknown entity instance", entity)
 	}
 
 	s.deletedEntities.add(entity)
@@ -566,7 +566,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	return nil
 }
 
-// Store stores entity in the Session. The entity will be saved when SaveChanges is called.
+// Store stores entity in the session. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
 	_, hasID := s.generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
 	concu := ConcurrencyCheck_AUTO
@@ -576,12 +576,12 @@ func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
 	return s.storeInternal(entity, nil, "", concu)
 }
 
-// StoreWithID stores  entity in the Session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
+// StoreWithID stores  entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreWithID(entity interface{}, id string) error {
 	return s.storeInternal(entity, nil, id, ConcurrencyCheck_AUTO)
 }
 
-// StoreWithChangeVectorAndID stores entity in the Session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
+// StoreWithChangeVectorAndID stores entity in the session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity interface{}, changeVector *string, id string) error {
 	concurr := ConcurrencyCheck_DISABLED
 	if changeVector != nil {
@@ -622,11 +622,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 
 	tmp := newIDTypeAndName(id, CommandType_CLIENT_ANY_COMMAND, "")
 	if _, ok := s.deferredCommandsMap[tmp]; ok {
-		return newIllegalStateError("Can't Store document, there is a deferred command registered for this document in the Session. Document id: %s", id)
+		return newIllegalStateError("Can't Store document, there is a deferred command registered for this document in the session. Document id: %s", id)
 	}
 
 	if s.deletedEntities.contains(entity) {
-		return newIllegalStateError("Can't Store object, it was already deleted in this Session.  Document id: %s", id)
+		return newIllegalStateError("Can't Store object, it was already deleted in this session.  Document id: %s", id)
 	}
 
 	// we make the check here even if we just generated the ID
@@ -872,12 +872,12 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 }
 
 func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand ICommandData) error {
-	err := newIllegalStateError("Cannot perform save because document " + resultCommand.getId() + " has been modified by the Session and is also taking part in deferred " + resultCommand.getType() + " command")
+	err := newIllegalStateError("Cannot perform save because document " + resultCommand.getId() + " has been modified by the session and is also taking part in deferred " + resultCommand.getType() + " command")
 	return err
 }
 
 func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDeferredCommand(resultCommand ICommandData) error {
-	err := newIllegalStateError("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the Session and is also taking part in deferred " + resultCommand.getType() + " command")
+	err := newIllegalStateError("Cannot perform save because document " + resultCommand.getId() + " has been deleted by the session and is also taking part in deferred " + resultCommand.getType() + " command")
 	return err
 }
 
@@ -895,7 +895,7 @@ func (s *InMemoryDocumentSessionOperations) WhatChanged() (map[string][]*Documen
 	return changes, nil
 }
 
-// Gets a value indicating whether any of the entities tracked by the Session has changes.
+// Gets a value indicating whether any of the entities tracked by the session has changes.
 func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 	panic("NYI")
 	/*
@@ -933,13 +933,13 @@ func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[st
 }
 
 // IgnoreChangesFor marks the entity as one that should be ignore for change tracking purposes,
-// it still takes part in the Session, but is ignored for SaveChanges.
+// it still takes part in the session, but is ignored for SaveChanges.
 func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity interface{}) {
 	docInfo, _ := s.getDocumentInfo(entity)
 	docInfo.ignoreChanges = true
 }
 
-// Evict evicts the specified entity from the Session.
+// Evict evicts the specified entity from the session.
 // Remove the entity from the delete queue and stops tracking changes for this entity.
 func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) {
 	deleted := deleteDocumentInfoByEntity(&s.documents, entity)
@@ -950,7 +950,7 @@ func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) {
 	s.deletedEntities.remove(entity)
 }
 
-// Clear clears the Session
+// Clear clears the session
 func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.documents = nil
 	s.deletedEntities.clear()
