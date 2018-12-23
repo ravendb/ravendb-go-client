@@ -73,7 +73,7 @@ func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, s
 
 	documentInfo := s.documentsByID.getValue(documentID)
 	if documentInfo != nil && s.deletedEntities.contains(documentInfo.entity) {
-		return newIllegalStateError("Cannot Store attachment " + name + " of document " + documentID + ", the document was already deleted in this session.")
+		return newIllegalStateError("Cannot Store attachment " + name + " of document " + documentID + ", the document was already deleted in this Session.")
 	}
 
 	cmdData := NewPutAttachmentCommandData(documentID, name, stream, contentType, nil)
@@ -133,5 +133,5 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) 
 }
 
 func throwEntityNotInSession(entity interface{}) *IllegalArgumentError {
-	return newIllegalArgumentError("%v is not associated with the session. Use documentID instead or track the entity in the session.", entity)
+	return newIllegalArgumentError("%v is not associated with the Session. Use documentID instead or track the entity in the Session.", entity)
 }

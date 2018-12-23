@@ -1,6 +1,6 @@
 package ravendb
 
-// SessionInfo describes a session
+// SessionInfo describes a Session
 type SessionInfo struct {
 	SessionID int
 }

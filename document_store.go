@@ -270,7 +270,7 @@ func (s *DocumentStore) Close() {
 	}
 }
 
-// OpenSession opens a new session to document Store.
+// OpenSession opens a new Session to document Store.
 func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
 	return s.OpenSessionWithOptions(&SessionOptions{})
 }

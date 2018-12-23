@@ -12,7 +12,7 @@ const (
 	ConcurrencyCheck_DISABLED
 )
 
-// documentInfo stores information about entity in a session
+// documentInfo stores information about entity in a Session
 type documentInfo struct {
 	id                   string
 	changeVector         *string

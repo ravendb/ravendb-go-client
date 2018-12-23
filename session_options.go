@@ -1,6 +1,6 @@
 package ravendb
 
-// SessionOptions describes session options
+// SessionOptions describes Session options
 type SessionOptions struct {
 	Database        string
 	RequestExecutor *RequestExecutor
