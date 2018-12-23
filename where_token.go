@@ -281,7 +281,7 @@ func (t *whereToken) specialOperator(writer *strings.Builder) {
 		writer.WriteString(", ")
 		options.whereShape.writeTo(writer)
 
-		if math.Abs(options.distanceErrorPct-Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT) > 1e-40 {
+		if math.Abs(options.distanceErrorPct-IndexingSpatialDefaultDistnaceErrorPct) > 1e-40 {
 			writer.WriteString(", ")
 			builderWriteFloat64(writer, options.distanceErrorPct)
 		}

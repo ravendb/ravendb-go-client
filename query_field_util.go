@@ -2,10 +2,10 @@ package ravendb
 
 func QueryFieldUtil_escapeIfNecessary(name string) string {
 	if stringIsEmpty(name) ||
-		Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME == name ||
-		Constants_Documents_Indexing_Fields_REDUCE_KEY_HASH_FIELD_NAME == name ||
-		Constants_Documents_Indexing_Fields_REDUCE_KEY_KEY_VALUE_FIELD_NAME == name ||
-		Constants_Documents_Indexing_Fields_SPATIAL_SHAPE_FIELD_NAME == name {
+		IndexingFieldNameDocumentID == name ||
+		IndexingFieldNameReduceKeyHash == name ||
+		IndexingFieldNameReduceKeyValue == name ||
+		IndexingFieldsNameSpatialShare == name {
 		return name
 	}
 

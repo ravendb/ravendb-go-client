@@ -1299,7 +1299,7 @@ func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedP
 	}
 
 	if fieldName == DocumentConventions_identityPropertyName {
-		return Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME
+		return IndexingFieldNameDocumentID
 	}
 
 	return QueryFieldUtil_escapeIfNecessary(fieldName)

@@ -123,7 +123,7 @@ func (t *AbstractIndexCreationTask) Spatial(field string, indexing func() *Spati
 
 // StoreAllFields selects if we're storing all fields or not
 func (t *AbstractIndexCreationTask) StoreAllFields(storage FieldStorage) {
-	t.StoresStrings[Constants_Documents_Indexing_Fields_ALL_FIELDS] = storage
+	t.StoresStrings[IndexingFieldAllFields] = storage
 }
 
 // Store registers field to be stored

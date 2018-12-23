@@ -1042,7 +1042,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results Arra
 	/*
 		for _, result := range results {
 			for _, include := range includePaths {
-				if include == Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME {
+				if include == IndexingFieldNameDocumentID {
 					continue
 				}
 				// TODO: IncludesUtil.include() but it's a no-op in Java code

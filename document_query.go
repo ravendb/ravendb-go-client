@@ -416,7 +416,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 
 			for idx, p := range fields {
 				if p == identityProperty {
-					fields[idx] = Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME
+					fields[idx] = IndexingFieldNameDocumentID
 				}
 			}
 		}
@@ -529,12 +529,12 @@ func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*Spatial
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, float64 radius, float64 latitude, float64 longitude, SpatialUnits? radiusUnits, float64 distanceErrorPct)
 
 func (q *DocumentQuery) WithinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64) *IDocumentQuery {
-	q._withinRadiusOf(fieldName, radius, latitude, longitude, "", Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	q._withinRadiusOf(fieldName, radius, latitude, longitude, "", IndexingSpatialDefaultDistnaceErrorPct)
 	return q
 }
 
 func (q *DocumentQuery) WithinRadiusOfWithUnits(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits) *IDocumentQuery {
-	q._withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	q._withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, IndexingSpatialDefaultDistnaceErrorPct)
 	return q
 }
 
@@ -546,7 +546,7 @@ func (q *DocumentQuery) WithinRadiusOfWithUnitsAndError(fieldName string, radius
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.RelatesToShape<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt, SpatialRelation relation, float64 distanceErrorPct)
 
 func (q *DocumentQuery) RelatesToShape(fieldName string, shapeWkt string, relation SpatialRelation) *IDocumentQuery {
-	return q.RelatesToShapeWithError(fieldName, shapeWkt, relation, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return q.RelatesToShapeWithError(fieldName, shapeWkt, relation, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (q *DocumentQuery) RelatesToShapeWithError(fieldName string, shapeWkt string, relation SpatialRelation, distanceErrorPct float64) *IDocumentQuery {

@@ -185,7 +185,7 @@ func jsonIsValueNode(v interface{}) bool {
 }
 
 func queryOperationDeserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
-	_, ok := jsonGetAsBool(metadata, "@projection")
+	_, ok := jsonGetAsBool(metadata, MetadataProjection)
 	if !ok {
 		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)
 	}

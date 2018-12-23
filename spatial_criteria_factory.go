@@ -12,7 +12,7 @@ func NewSpatialCriteriaFactory() *SpatialCriteriaFactory {
 }
 
 func (f *SpatialCriteriaFactory) RelatesToShape(shapeWkt string, relation SpatialRelation) *WktCriteria {
-	return f.RelatesToShapeWithError(shapeWkt, relation, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return f.RelatesToShapeWithError(shapeWkt, relation, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (f *SpatialCriteriaFactory) RelatesToShapeWithError(shapeWkt string, relation SpatialRelation, distErrorPercent float64) *WktCriteria {
@@ -20,7 +20,7 @@ func (f *SpatialCriteriaFactory) RelatesToShapeWithError(shapeWkt string, relati
 }
 
 func (f *SpatialCriteriaFactory) Intersects(shapeWkt string) *WktCriteria {
-	return f.IntersectsWithError(shapeWkt, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return f.IntersectsWithError(shapeWkt, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (f *SpatialCriteriaFactory) IntersectsWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
@@ -28,7 +28,7 @@ func (f *SpatialCriteriaFactory) IntersectsWithError(shapeWkt string, distErrorP
 }
 
 func (f *SpatialCriteriaFactory) Contains(shapeWkt string) *WktCriteria {
-	return f.ContainsWithError(shapeWkt, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return f.ContainsWithError(shapeWkt, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (f *SpatialCriteriaFactory) ContainsWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
@@ -36,7 +36,7 @@ func (f *SpatialCriteriaFactory) ContainsWithError(shapeWkt string, distErrorPer
 }
 
 func (f *SpatialCriteriaFactory) Disjoint(shapeWkt string) *WktCriteria {
-	return f.DisjointWithError(shapeWkt, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return f.DisjointWithError(shapeWkt, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (f *SpatialCriteriaFactory) DisjointWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
@@ -44,7 +44,7 @@ func (f *SpatialCriteriaFactory) DisjointWithError(shapeWkt string, distErrorPer
 }
 
 func (f *SpatialCriteriaFactory) Within(shapeWkt string) *WktCriteria {
-	return f.WithinWithError(shapeWkt, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return f.WithinWithError(shapeWkt, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (f *SpatialCriteriaFactory) WithinWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
@@ -56,7 +56,7 @@ func (f *SpatialCriteriaFactory) WithinRadius(radius float64, latitude float64, 
 }
 
 func (f *SpatialCriteriaFactory) WithinRadiusWithUnits(radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits) *CircleCriteria {
-	return f.WithinRadiusWithUnitsAndError(radius, latitude, longitude, radiusUnits, Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT)
+	return f.WithinRadiusWithUnitsAndError(radius, latitude, longitude, radiusUnits, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
 func (f *SpatialCriteriaFactory) WithinRadiusWithUnitsAndError(radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distErrorPercent float64) *CircleCriteria {

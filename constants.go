@@ -18,14 +18,14 @@ const (
 	MetadataChangeVector = "@change-vector"
 	MetadataExpires      = "@expires"
 
-	Constants_Documents_Indexing_SIDE_BY_SIDE_INDEX_NAME_PREFIX         = "ReplacementOf/"
-	Constants_Documents_Indexing_Fields_DOCUMENT_ID_FIELD_NAME          = "id()"
-	Constants_Documents_Indexing_Fields_REDUCE_KEY_HASH_FIELD_NAME      = "hash(key())"
-	Constants_Documents_Indexing_Fields_REDUCE_KEY_KEY_VALUE_FIELD_NAME = "key()"
-	Constants_Documents_Indexing_Fields_ALL_FIELDS                      = "__all_fields"
-	Constants_Documents_Indexing_Fields_SPATIAL_SHAPE_FIELD_NAME        = "spatial(shape)"
+	IndexingSideBySideIndexNamePrefix = "ReplacementOf/"
+	IndexingFieldNameDocumentID       = "id()"
+	IndexingFieldNameReduceKeyHash    = "hash(key())"
+	IndexingFieldNameReduceKeyValue   = "key()"
+	IndexingFieldAllFields            = "__all_fields"
+	IndexingFieldsNameSpatialShare    = "spatial(shape)"
 	//TBD CUSTOM_SORT_FIELD_NAME = "__customSort";
-	Constants_Documents_Indexing_Spatial_DEFAULT_DISTANCE_ERROR_PCT = 0.025
+	IndexingSpatialDefaultDistnaceErrorPct = 0.025
 
 	headersRequestTime                = "Raven-Request-Time"
 	headersRefreshTopology            = "Refresh-Topology"
