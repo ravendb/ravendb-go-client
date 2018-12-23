@@ -10,14 +10,14 @@ var _ IChangesObservable = &ChangesObservable{}
 // ChangesObservable is for observing changes in a database
 type ChangesObservable struct {
 	_type            ChangesType
-	_connectionState IChangesConnectionState
+	_connectionState *DatabaseConnectionState
 	_filter          func(interface{}) bool
 	mu               sync.Mutex
 	_subscribers     map[IObserver]bool
 }
 
 // NewChangesObservable returns a new ChangesObservable
-func NewChangesObservable(typ ChangesType, connectionState IChangesConnectionState, filter func(interface{}) bool) *ChangesObservable {
+func NewChangesObservable(typ ChangesType, connectionState *DatabaseConnectionState, filter func(interface{}) bool) *ChangesObservable {
 	return &ChangesObservable{
 		_type:            typ,
 		_connectionState: connectionState,

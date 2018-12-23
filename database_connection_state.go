@@ -5,10 +5,10 @@ import (
 	"sync"
 )
 
-var (
-	_ IChangesConnectionState = &DatabaseConnectionState{}
-)
+// Note: in Java IChangesConnectionState hides DatabaseConnectionState
 
+// DatabaseConnectionState represents state of database connection
+// TODO: make private
 type DatabaseConnectionState struct {
 	onError []func(error)
 
@@ -62,11 +62,14 @@ func (s *DatabaseConnectionState) error(e error) {
 	}
 }
 
-func (s *DatabaseConnectionState) Close() {
+// Close closes the connection
+func (s *DatabaseConnectionState) Close() error {
 	// Note: not clearing as in Java because removeOnChangeNotification()
 	// can be called after Close()
+	return nil
 }
 
+// NewDatabaseConnectionState returns new DatabaseConnectionState
 func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *DatabaseConnectionState {
 	return &DatabaseConnectionState{
 		onConnect:     onConnect,
