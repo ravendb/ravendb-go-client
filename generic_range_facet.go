@@ -1,11 +1,13 @@
 package ravendb
 
+// GenericRangeFacet represents generic range facet
 type GenericRangeFacet struct {
 	FacetBaseCommon
 	_parent FacetBase
-	ranges  []*RangeBuilder
+	Ranges  []*RangeBuilder
 }
 
+// NewGenericRangeFacet returns new GenericRangeFacet
 // parent is optional, can be nil
 func NewGenericRangeFacet(parent FacetBase) *GenericRangeFacet {
 	return &GenericRangeFacet{
@@ -14,26 +16,20 @@ func NewGenericRangeFacet(parent FacetBase) *GenericRangeFacet {
 	}
 }
 
-func GenericRangeFacet_parse(rangeBuilder *RangeBuilder, addQueryParameter func(interface{}) string) string {
+// GenericRangeFacetParse parses generic range facet
+func GenericRangeFacetParse(rangeBuilder *RangeBuilder, addQueryParameter func(interface{}) string) string {
 	return rangeBuilder.GetStringRepresentation(addQueryParameter)
 }
 
-func (f *GenericRangeFacet) getRanges() []*RangeBuilder {
-	return f.ranges
-}
-
-func (f *GenericRangeFacet) setRanges(ranges []*RangeBuilder) {
-	f.ranges = ranges
-}
-
+// ToFacetToken returns facetToken from GenericRangeFacet
 func (f *GenericRangeFacet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
 	if f._parent != nil {
 		return f._parent.ToFacetToken(addQueryParameter)
 	}
 
-	return FacetToken_createWithGenericRangeFacet(f, addQueryParameter)
+	return createFacetTokenWithGenericRangeFacet(f, addQueryParameter)
 }
 
 func (f *GenericRangeFacet) addRange(rng *RangeBuilder) {
-	f.ranges = append(f.ranges, rng)
+	f.Ranges = append(f.Ranges, rng)
 }

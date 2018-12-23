@@ -113,12 +113,12 @@ func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(in
 	return token
 }
 
-func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(interface{}) string) *facetToken {
+func createFacetTokenWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
 	var ranges []string
-	for _, rangeBuilder := range facet.getRanges() {
-		ranges = append(ranges, GenericRangeFacet_parse(rangeBuilder, addQueryParameter))
+	for _, rangeBuilder := range facet.Ranges {
+		ranges = append(ranges, GenericRangeFacetParse(rangeBuilder, addQueryParameter))
 	}
 
 	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), ranges, optionsParameterName)
@@ -127,7 +127,7 @@ func FacetToken_createWithGenericRangeFacet(facet *GenericRangeFacet, addQueryPa
 	return token
 }
 
-func FacetToken_createWithFacetBase(facet FacetBase, addQueryParameter func(interface{}) string) *facetToken {
+func createFacetTokenWithFacetBase(facet FacetBase, addQueryParameter func(interface{}) string) *facetToken {
 	// this is just a dispatcher
 	return facet.ToFacetToken(addQueryParameter)
 }

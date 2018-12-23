@@ -1764,7 +1764,7 @@ func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {
 	add := func(o interface{}) string {
 		return q.addQueryParameter(o)
 	}
-	q.selectTokens = append(q.selectTokens, FacetToken_createWithFacetBase(facet, add))
+	q.selectTokens = append(q.selectTokens, createFacetTokenWithFacetBase(facet, add))
 }
 
 func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentID string) {
