@@ -29,16 +29,16 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T, driver *RavenTestD
 	{
 		bulkInsert := store.BulkInsert()
 
-		_, err = bulkInsert.Store(fooBar1)
+		_, err = bulkInsert.Store(fooBar1, nil)
 		assert.NoError(t, err)
 
-		_, err = bulkInsert.Store(fooBar2)
+		_, err = bulkInsert.Store(fooBar2, nil)
 		assert.NoError(t, err)
 
-		_, err = bulkInsert.Store(fooBar3)
+		_, err = bulkInsert.Store(fooBar3, nil)
 		assert.NoError(t, err)
 
-		_, err = bulkInsert.Store(fooBar4)
+		_, err = bulkInsert.Store(fooBar4, nil)
 		assert.NoError(t, err)
 
 		err = bulkInsert.Close()
@@ -74,11 +74,11 @@ func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
 	{
 		bulkInsert := store.BulkInsert()
 
-		_, err = bulkInsert.Store(&FooBar{})
+		_, err = bulkInsert.Store(&FooBar{}, nil)
 		assert.NoError(t, err)
 		err = bulkInsert.Abort()
 		if err == nil {
-			_, err = bulkInsert.Store(&FooBar{})
+			_, err = bulkInsert.Store(&FooBar{}, nil)
 		}
 		if err == nil {
 			err = bulkInsert.Close()
@@ -125,7 +125,7 @@ func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T, driver *Raven
 		metadata := &ravendb.MetadataAsDictionary{}
 		metadata.Put(ravendb.MetadataExpires, expirationDate)
 
-		_, err = bulkInsert.StoreWithMetadata(fooBar, metadata)
+		_, err = bulkInsert.Store(fooBar, metadata)
 		assert.NoError(t, err)
 
 		err = bulkInsert.Close()

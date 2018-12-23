@@ -14,6 +14,7 @@ import (
 
 var _ RavenCommand = &BulkInsertCommand{}
 
+// BulkInsertCommand describes build insert command
 type BulkInsertCommand struct {
 	RavenCommandBase
 
@@ -26,6 +27,7 @@ type BulkInsertCommand struct {
 	Result *http.Response
 }
 
+// NewBulkInsertCommand returns new BulkInsertCommand
 func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkInsertCommand {
 	cmd := &BulkInsertCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -37,6 +39,7 @@ func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkIn
 	return cmd
 }
 
+// CreateRequest creates a request
 func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/bulk_insert?id=" + strconv.Itoa(c._id)
 	// TODO: implement compression. It must be attached to the writer
@@ -44,6 +47,7 @@ func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	return NewHttpPostReader(url, c._stream)
 }
 
+// SetResponse sets reponse
 func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 	return newNotImplementedError("Not implemented")
 }
@@ -60,6 +64,7 @@ func (c *BulkInsertCommand) SetResponse(response []byte, fromCache bool) error {
 }
 */
 
+// BulkInsertOperation represents bulk insert operation
 type BulkInsertOperation struct {
 	_generateEntityIDOnTheClient *generateEntityIDOnTheClient
 	_requestExecutor             *RequestExecutor
@@ -82,6 +87,7 @@ type BulkInsertOperation struct {
 	Command *BulkInsertCommand
 }
 
+// NewBulkInsertOperation returns new BulkInsertOperation
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
 	re := store.GetRequestExecutorWithDatabase(database)
 	f := func(entity interface{}) string {
@@ -100,14 +106,6 @@ func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertO
 		_first:                       true,
 	}
 	return res
-}
-
-func (o *BulkInsertOperation) IsUseCompression() bool {
-	return o.useCompression
-}
-
-func (o *BulkInsertOperation) SetUseCompression(useCompression bool) {
-	o.useCompression = useCompression
 }
 
 func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) error {
@@ -140,6 +138,7 @@ func (o *BulkInsertOperation) getErrorFromOperation() *BulkInsertAbortedError {
 	return nil
 }
 
+// WaitForID waits for operation id to finish
 func (o *BulkInsertOperation) WaitForID() error {
 	if o._operationID != -1 {
 		return nil
@@ -154,6 +153,7 @@ func (o *BulkInsertOperation) WaitForID() error {
 	return nil
 }
 
+// StoreWithID stores an entity with a given id
 func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadata *MetadataAsDictionary) error {
 	if !o._concurrentCheck.compareAndSet(0, 1) {
 		return newIllegalStateError("Bulk Insert Store methods cannot be executed concurrently.")
@@ -257,6 +257,7 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	return nil
 }
 
+// Abort aborts insert operation
 func (o *BulkInsertOperation) Abort() error {
 	if o._operationID == -1 {
 		return nil // nothing was done, nothing to kill
@@ -277,6 +278,7 @@ func (o *BulkInsertOperation) Abort() error {
 	return nil
 }
 
+// Close closes operation
 func (o *BulkInsertOperation) Close() error {
 	if o._operationID == -1 {
 		// closing without calling a single Store.
@@ -300,11 +302,8 @@ func (o *BulkInsertOperation) Close() error {
 	return nil
 }
 
-func (o *BulkInsertOperation) Store(entity interface{}) (string, error) {
-	return o.StoreWithMetadata(entity, nil)
-}
-
-func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
+// Store stores entity. metadata can be nil
+func (o *BulkInsertOperation) Store(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
 	var id string
 	if metadata == nil || !metadata.ContainsKey(MetadataID) {
 		id = o.GetID(entity)
@@ -317,6 +316,7 @@ func (o *BulkInsertOperation) StoreWithMetadata(entity interface{}, metadata *Me
 	return id, o.StoreWithID(entity, id, metadata)
 }
 
+// GetID returns id for an entity
 func (o *BulkInsertOperation) GetID(entity interface{}) string {
 	idRef, ok := o._generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
 	if ok {
