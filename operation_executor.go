@@ -57,7 +57,7 @@ func (e *OperationExecutor) SendAsyncWithSessionInfo(operation IOperation, sessi
 		return nil, err
 	}
 
-	changes := func() IDatabaseChanges {
+	changes := func() *DatabaseChanges {
 		return e.store.Changes()
 	}
 	result := getCommandOperationIDResult(command)

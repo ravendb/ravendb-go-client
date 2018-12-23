@@ -11,9 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var (
-	_ IDatabaseChanges = &DatabaseChanges{}
-)
+// In Java it's hidden behind IDatabaseChanges which also contains IConnectableChanges
 
 // DatabaseChanges notifies about changes to a database
 type DatabaseChanges struct {

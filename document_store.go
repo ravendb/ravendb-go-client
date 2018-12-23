@@ -27,8 +27,8 @@ type DocumentStore struct {
 	_certificate *KeyStore
 	database     string // name of the database
 
-	// maps database name to IDatabaseChanges. Must be protected with mutex
-	_databaseChanges map[string]IDatabaseChanges
+	// maps database name to DatabaseChanges. Must be protected with mutex
+	_databaseChanges map[string]*DatabaseChanges
 
 	// Note: access must be protected with mu
 	// ConcurrentMap<String, Lazy<EvictItemsFromCacheBasedOnChanges>>
@@ -188,7 +188,7 @@ func NewDocumentStore() *DocumentStore {
 	s := &DocumentStore{
 		requestsExecutors:       map[string]*RequestExecutor{},
 		conventions:             NewDocumentConventions(),
-		_databaseChanges:        map[string]IDatabaseChanges{},
+		_databaseChanges:        map[string]*DatabaseChanges{},
 		_aggressiveCacheChanges: map[string]*Lazy{},
 	}
 	return s
@@ -414,11 +414,11 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 	return res
 }
 
-func (s *DocumentStore) Changes() IDatabaseChanges {
+func (s *DocumentStore) Changes() *DatabaseChanges {
 	return s.ChangesWithDatabaseName("")
 }
 
-func (s *DocumentStore) ChangesWithDatabaseName(database string) IDatabaseChanges {
+func (s *DocumentStore) ChangesWithDatabaseName(database string) *DatabaseChanges {
 	s.assertInitialized()
 
 	if database == "" {
@@ -440,7 +440,7 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) IDatabaseChange
 	return changes
 }
 
-func (s *DocumentStore) createDatabaseChanges(database string) IDatabaseChanges {
+func (s *DocumentStore) createDatabaseChanges(database string) *DatabaseChanges {
 	onDispose := func() {
 		s.mu.Lock()
 		delete(s._databaseChanges, database)
@@ -466,7 +466,7 @@ func (s *DocumentStore) GetLastDatabaseChangesStateErrorWithDatabaseName(databas
 	if !ok {
 		return nil
 	}
-	ch := databaseChanges.(*DatabaseChanges)
+	ch := databaseChanges
 	return ch.getLastConnectionStateError()
 }
 
