@@ -8,6 +8,7 @@ import (
 
 var _ ILazyOperation = &LazyStartsWithOperation{}
 
+// LazyStartsWithOperation represents lazy starts with operation
 type LazyStartsWithOperation struct {
 	_clazz             reflect.Type
 	_idPrefix          string
@@ -23,6 +24,7 @@ type LazyStartsWithOperation struct {
 	requiresRetry bool
 }
 
+// NewLazyStartsWithOperation returns new LazyStartsWithOperation
 // TODO: convert to use StartsWithArgs
 func NewLazyStartsWithOperation(clazz reflect.Type, idPrefix string, matches string, exclude string, start int, pageSize int, sessionOperations *InMemoryDocumentSessionOperations, startAfter string) *LazyStartsWithOperation {
 	return &LazyStartsWithOperation{
@@ -58,28 +60,19 @@ func (o *LazyStartsWithOperation) createRequest() *GetRequest {
 	return request
 }
 
+// needed for ILazyOperation
 func (o *LazyStartsWithOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyStartsWithOperation) setResult(result interface{}) {
-	o.result = result
-}
-
+// needed for ILazyOperation
 func (o *LazyStartsWithOperation) getQueryResult() *QueryResult {
 	return o.queryResult
 }
 
-func (o *LazyStartsWithOperation) setQueryResult(queryResult *QueryResult) {
-	o.queryResult = queryResult
-}
-
+// needed for ILazyOperation
 func (o *LazyStartsWithOperation) isRequiresRetry() bool {
 	return o.requiresRetry
-}
-
-func (o *LazyStartsWithOperation) setRequiresRetry(requiresRetry bool) {
-	o.requiresRetry = requiresRetry
 }
 
 func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {

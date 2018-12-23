@@ -32,7 +32,7 @@ func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 	err = store.Operations().Send(patchOperation)
 	assert.NoError(t, err)
 	status := patchOperation.Command.Result
-	assert.Equal(t, status.GetStatus(), ravendb.PatchStatus_PATCHED)
+	assert.Equal(t, status.Status, ravendb.PatchStatusPatched)
 
 	{
 		session := openSessionMust(t, store)

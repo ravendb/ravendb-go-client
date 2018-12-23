@@ -2,6 +2,7 @@ package ravendb
 
 var _ ILazyOperation = &LazyAggregationQueryOperation{}
 
+// LazyAggregationQueryOperation represents lazy aggregation query operation
 type LazyAggregationQueryOperation struct {
 	_conventions              *DocumentConventions
 	_indexQuery               *IndexQuery
@@ -13,6 +14,7 @@ type LazyAggregationQueryOperation struct {
 	requiresRetry bool
 }
 
+// NewLazyAggregationQueryOperation returns LazyAggregationQueryOperation
 func NewLazyAggregationQueryOperation(conventions *DocumentConventions, indexQuery *IndexQuery, invokeAfterQueryExecuted func(*QueryResult),
 	processResults func(*QueryResult, *DocumentConventions) (map[string]*FacetResult, error)) *LazyAggregationQueryOperation {
 	return &LazyAggregationQueryOperation{
@@ -33,28 +35,19 @@ func (o *LazyAggregationQueryOperation) createRequest() *GetRequest {
 	return request
 }
 
+// needed for ILazyOperation
 func (o *LazyAggregationQueryOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyAggregationQueryOperation) setResult(result interface{}) {
-	o.result = result
-}
-
+// needed for ILazyOperation
 func (o *LazyAggregationQueryOperation) getQueryResult() *QueryResult {
 	return o.queryResult
 }
 
-func (o *LazyAggregationQueryOperation) setQueryResult(queryResult *QueryResult) {
-	o.queryResult = queryResult
-}
-
+// needed for ILazyOperation
 func (o *LazyAggregationQueryOperation) isRequiresRetry() bool {
 	return o.requiresRetry
-}
-
-func (o *LazyAggregationQueryOperation) setRequiresRetry(requiresRetry bool) {
-	o.requiresRetry = requiresRetry
 }
 
 func (o *LazyAggregationQueryOperation) handleResponse(response *GetResponse) error {

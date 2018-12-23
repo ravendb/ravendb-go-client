@@ -6,6 +6,7 @@ import (
 
 var _ ILazyOperation = &LazyLoadOperation{}
 
+// LazyLoadOperation represents lazy load operation
 type LazyLoadOperation struct {
 	_clazz         reflect.Type
 	_session       *InMemoryDocumentSessionOperations
@@ -18,6 +19,7 @@ type LazyLoadOperation struct {
 	requiresRetry bool
 }
 
+// NewLazyLoadOperation returns new LazyLoadOperation
 func NewLazyLoadOperation(clazz reflect.Type, session *InMemoryDocumentSessionOperations, loadOperation *LoadOperation) *LazyLoadOperation {
 	return &LazyLoadOperation{
 		_clazz:         clazz,
@@ -85,28 +87,19 @@ func (o *LazyLoadOperation) withIncludes(includes []string) *LazyLoadOperation {
 	return o
 }
 
+// needed for ILazyOperation
 func (o *LazyLoadOperation) getResult() interface{} {
 	return o.result
 }
 
-func (o *LazyLoadOperation) setResult(result interface{}) {
-	o.result = result
-}
-
+// needed for ILazyOperation
 func (o *LazyLoadOperation) getQueryResult() *QueryResult {
 	return o.queryResult
 }
 
-func (o *LazyLoadOperation) setQueryResult(queryResult *QueryResult) {
-	o.queryResult = queryResult
-}
-
+// needed for ILazyOperation
 func (o *LazyLoadOperation) isRequiresRetry() bool {
 	return o.requiresRetry
-}
-
-func (o *LazyLoadOperation) setRequiresRetry(requiresRetry bool) {
-	o.requiresRetry = requiresRetry
 }
 
 func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {

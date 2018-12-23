@@ -21,8 +21,10 @@ func (b *MoreLikeThisBuilder) UsingAnyDocument() IMoreLikeThisOperations {
 	return b
 }
 
-func (b *MoreLikeThisBuilder) UsingDocument(documentJson string) IMoreLikeThisOperations {
-	b.moreLikeThis = NewMoreLikeThisUsingDocument(documentJson)
+func (b *MoreLikeThisBuilder) UsingDocument(documentJSON string) IMoreLikeThisOperations {
+	b.moreLikeThis = &MoreLikeThisUsingDocument{
+		documentJSON: documentJSON,
+	}
 
 	return b
 }

@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-const (
-	unlikelySep = "\x02\x01\x03"
-)
-
 func stringArrayRemoveNoCase(a []string, s string) []string {
 	n := len(a)
 	if n == 0 {
