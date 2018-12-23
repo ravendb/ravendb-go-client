@@ -58,7 +58,9 @@ var _ RavenCommand = &PatchCommand{}
 type PatchCommand struct {
 	RavenCommandBase
 
-	_conventions                     *DocumentConventions
+	// TODO: unused
+	//_conventions                     *DocumentConventions
+
 	_id                              string
 	_changeVector                    *string
 	_patch                           *PatchOperationPayload
