@@ -1,9 +1,10 @@
 package ravendb
 
+// ICommandData represents command data
 type ICommandData interface {
 	getId() string
-	GetName() string
-	GetChangeVector() *string
+	getName() string
+	getChangeVector() *string
 	getType() CommandType
 	serialize(conventions *DocumentConventions) (interface{}, error)
 }
@@ -20,7 +21,7 @@ func (d *CommandData) getId() string {
 	return d.ID
 }
 
-func (d *CommandData) GetName() string {
+func (d *CommandData) getName() string {
 	return d.Name
 }
 
@@ -28,7 +29,7 @@ func (d *CommandData) getType() string {
 	return d.Type
 }
 
-func (d *CommandData) GetChangeVector() *string {
+func (d *CommandData) getChangeVector() *string {
 	return d.ChangeVector
 }
 

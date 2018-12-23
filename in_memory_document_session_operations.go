@@ -974,7 +974,7 @@ func (s *InMemoryDocumentSessionOperations) DeferMany(commands []ICommandData) {
 }
 
 func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) {
-	idType := newIDTypeAndName(command.getId(), command.getType(), command.GetName())
+	idType := newIDTypeAndName(command.getId(), command.getType(), command.getName())
 	s.deferredCommandsMap[idType] = command
 	idType = newIDTypeAndName(command.getId(), CommandType_CLIENT_ANY_COMMAND, "")
 	s.deferredCommandsMap[idType] = command
