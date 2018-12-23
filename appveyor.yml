@@ -14,9 +14,6 @@ notifications:
     to:
       - kkowalczyk@gmail.com
 
-# https://www.appveyor.com/blog/2014/06/04/shallow-clone-for-git-repositories/ ?
-shallow_clone: true
-
 environment:
   LOG_HTTP_REQUEST_SUMMARY: true
   LOG_FAILED_HTTP_REQUESTS: true
