@@ -253,7 +253,10 @@ func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy 
 func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type, ids []string, includes []string, onEval func(interface{})) *Lazy {
 	if s.checkIfIdAlreadyIncluded(ids, includes) {
 		fn := func() (interface{}, error) {
-			return s.LoadMultiOld(clazz, ids)
+			resultType := reflect.MapOf(stringType, clazz)
+			result := reflect.MakeMap(resultType).Interface()
+			err := s.LoadMulti(result, ids)
+			return result, err
 		}
 		return NewLazy(fn)
 	}
@@ -303,15 +306,6 @@ func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
 		return err
 	}
 	return loadOperation.getDocuments(results)
-}
-
-func (s *DocumentSession) LoadMultiOld(clazz reflect.Type, ids []string) (map[string]interface{}, error) {
-	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-	err := s.loadInternalWithOperation(ids, loadOperation, nil)
-	if err != nil {
-		return nil, err
-	}
-	return loadOperation.getDocumentsOld(clazz)
 }
 
 func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {

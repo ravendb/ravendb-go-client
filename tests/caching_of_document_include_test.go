@@ -295,7 +295,7 @@ func TestCachingOfDocumentInclude(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	//cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cacheg(t)
+	cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache(t, driver)
 	cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cacheLazy(t, driver)
 	cofi_can_cache_document_with_includes(t, driver)
 	cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cacheAsync(t, driver)
