@@ -69,7 +69,7 @@ type BulkInsertOperation struct {
 	_generateEntityIDOnTheClient *generateEntityIDOnTheClient
 	_requestExecutor             *RequestExecutor
 
-	_bulkInsertExecuteTask *CompletableFuture
+	_bulkInsertExecuteTask *completableFuture
 
 	_reader        *io.PipeReader
 	_currentWriter *io.PipeWriter
@@ -178,7 +178,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		return o.err
 	}
 
-	if o._bulkInsertExecuteTask.IsCompletedExceptionally() {
+	if o._bulkInsertExecuteTask.isCompletedExceptionally() {
 		_, err = o._bulkInsertExecuteTask.Get()
 		panicIf(err == nil, "err should not be nil")
 		return o.throwBulkInsertAborted(err, nil)
@@ -243,13 +243,13 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	}
 	bulkCommand := NewBulkInsertCommand(o._operationID, o._reader, o.useCompression)
 	panicIf(o._bulkInsertExecuteTask != nil, "already started _bulkInsertExecuteTask")
-	o._bulkInsertExecuteTask = NewCompletableFuture()
+	o._bulkInsertExecuteTask = newCompletableFuture()
 	go func() {
 		err := o._requestExecutor.ExecuteCommand(bulkCommand)
 		if err != nil {
-			o._bulkInsertExecuteTask.CompleteExceptionally(err)
+			o._bulkInsertExecuteTask.completeWithError(err)
 		} else {
-			o._bulkInsertExecuteTask.Complete(nil)
+			o._bulkInsertExecuteTask.complete(nil)
 		}
 	}()
 

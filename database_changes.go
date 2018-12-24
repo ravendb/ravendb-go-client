@@ -28,12 +28,12 @@ type DatabaseChanges struct {
 	_client  *websocket.Conn
 	muClient sync.Mutex
 
-	_task *CompletableFuture
+	_task *completableFuture
 	_cts  *cancellationTokenSource
-	_tcs  *CompletableFuture
+	_tcs  *completableFuture
 
 	mu             sync.Mutex // protects _confirmations and _counters maps
-	_confirmations map[int]*CompletableFuture
+	_confirmations map[int]*completableFuture
 	_counters      map[string]*DatabaseConnectionState
 
 	_immediateConnection atomicInteger
@@ -48,21 +48,21 @@ func NewDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		_requestExecutor:                 requestExecutor,
 		_conventions:                     requestExecutor.GetConventions(),
 		_database:                        databaseName,
-		_tcs:                             NewCompletableFuture(),
+		_tcs:                             newCompletableFuture(),
 		_cts:                             &cancellationTokenSource{},
 		_onDispose:                       onDispose,
 		_connectionStatusEventHandlerIdx: -1,
-		_confirmations:                   map[int]*CompletableFuture{},
+		_confirmations:                   map[int]*completableFuture{},
 		_counters:                        map[string]*DatabaseConnectionState{},
 	}
 
-	res._task = NewCompletableFuture()
+	res._task = newCompletableFuture()
 	go func() {
 		err := res.doWork()
 		if err != nil {
-			res._task.CompleteExceptionally(err)
+			res._task.completeWithError(err)
 		} else {
-			res._task.Complete(nil)
+			res._task.complete(nil)
 		}
 	}()
 
@@ -78,12 +78,12 @@ func (c *DatabaseChanges) onConnectionStatusChanged() {
 	defer c.semRelease()
 
 	if c.IsConnected() {
-		c._tcs.Complete(c)
+		c._tcs.complete(c)
 		return
 	}
 
-	if c._tcs.IsDone() {
-		c._tcs = NewCompletableFuture()
+	if c._tcs.isDone() {
+		c._tcs = newCompletableFuture()
 	}
 }
 
@@ -332,7 +332,7 @@ func (c *DatabaseChanges) Close() {
 	//fmt.Printf("DatabaseChanges.Close()\n")
 	c.mu.Lock()
 	for _, confirmation := range c._confirmations {
-		confirmation.Cancel(false)
+		confirmation.cancel(false)
 	}
 	c.mu.Unlock()
 
@@ -412,7 +412,7 @@ func (c *DatabaseChanges) semRelease() {
 }
 
 func (c *DatabaseChanges) send(command, value string) error {
-	taskCompletionSource := NewCompletableFuture()
+	taskCompletionSource := newCompletableFuture()
 
 	c.semAcquire()
 
@@ -438,7 +438,7 @@ func (c *DatabaseChanges) send(command, value string) error {
 		return err
 	}
 
-	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
+	_, err = taskCompletionSource.getWithTimeout(time.Second * 15)
 	return err
 }
 
@@ -522,7 +522,7 @@ func (c *DatabaseChanges) doWork() error {
 		//fmt.Printf("DatabaseChanges.doWork: shouldReconnect=%v\n", shouldReconnect)
 
 		for _, confirmation := range c._confirmations {
-			confirmation.Cancel(false)
+			confirmation.cancel(false)
 		}
 
 		for k := range c._confirmations {
@@ -602,13 +602,13 @@ func (c *DatabaseChanges) notifyAboutError(e error) {
 }
 
 type WebSocketChangesProcessor struct {
-	processing *CompletableFuture
+	processing *completableFuture
 	client     *websocket.Conn
 }
 
 func NewWebSocketChangesProcessor(client *websocket.Conn) *WebSocketChangesProcessor {
 	return &WebSocketChangesProcessor{
-		processing: NewCompletableFuture(),
+		processing: newCompletableFuture(),
 		client:     client,
 	}
 }
@@ -641,7 +641,7 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 					future := changes._confirmations[commandID]
 					changes.semRelease()
 					if future != nil {
-						future.Complete(nil)
+						future.complete(nil)
 					}
 				}
 			default:
@@ -657,5 +657,5 @@ func (p *WebSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 	// TODO: check for io.EOF for clean connection close?
 	//fmt.Printf("DatabaseChanges.processMessages() ended with %s\n", err)
 	changes.notifyAboutError(err)
-	p.processing.CompleteExceptionally(err)
+	p.processing.completeWithError(err)
 }
