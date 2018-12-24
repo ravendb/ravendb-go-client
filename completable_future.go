@@ -6,7 +6,6 @@ import (
 )
 
 // TODO: write tests
-// TODO: make private to package if not exposed in public APIs
 
 /*
 Note:
