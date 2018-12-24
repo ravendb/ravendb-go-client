@@ -5,7 +5,10 @@ language: go
 
 notifications:
   email:
-    - kkowalczyk@gmail.com
+    recipients:
+      - kkowalczyk@gmail.com
+    on_success: always
+    on_failure: always
 
 go:
   - 1.11
