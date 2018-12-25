@@ -73,7 +73,7 @@ func (c *PutCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.
 
 func (c *PutCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
 	tp := reflect.TypeOf(c._value)
-	res, err := CompareExchangeResult_parseFromString(tp, response, c._conventions)
+	res, err := parseCompareExchangeResultFromString(tp, response, c._conventions)
 	if err != nil {
 		return err
 	}

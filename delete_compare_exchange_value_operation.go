@@ -66,6 +66,6 @@ func (c *RemoveCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*ht
 
 func (c *RemoveCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
 	var err error
-	c.Result, err = CompareExchangeResult_parseFromString(c._clazz, response, c._conventions)
+	c.Result, err = parseCompareExchangeResultFromString(c._clazz, response, c._conventions)
 	return err
 }

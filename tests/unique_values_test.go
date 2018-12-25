@@ -95,13 +95,13 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T, driver *RavenTestDriv
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 
-		val := res.GetValue().(*User)
+		val := res.Value.(*User)
 		assert.Equal(t, *val.Name, "Karmel")
-		assert.True(t, res.IsSuccessful())
+		assert.True(t, res.IsSuccessful)
 
-		val2 := res2.GetValue().(*User)
+		val2 := res2.Value.(*User)
 		assert.Equal(t, *val2.Name, "Karmel")
-		assert.True(t, res.IsSuccessful())
+		assert.True(t, res.IsSuccessful)
 	}
 }
 
@@ -117,7 +117,7 @@ func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) 
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res1 := op.Command.Result
-		val1 := res1.GetValue().(*User)
+		val1 := res1.Value.(*User)
 
 		user2 := &User{}
 		user2.setName("Karmel")
@@ -126,13 +126,13 @@ func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) 
 		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
-		val2 := res2.GetValue().(*User)
+		val2 := res2.Value.(*User)
 
 		assert.Equal(t, *val1.Name, "Karmel")
-		assert.True(t, res1.IsSuccessful())
+		assert.True(t, res1.IsSuccessful)
 
 		assert.Equal(t, *val2.Name, "Karmel")
-		assert.True(t, res2.IsSuccessful())
+		assert.True(t, res2.IsSuccessful)
 	}
 	{
 		op := ravendb.NewGetCompareExchangeValuesOperation(reflect.TypeOf(&User{}), "test", -1, -1)
@@ -160,14 +160,14 @@ func uniqueValues_canRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
-		val := res.GetValue().(string)
+		val := res.Value.(string)
 		assert.Equal(t, val, "Karmel")
-		assert.True(t, res.IsSuccessful())
+		assert.True(t, res.IsSuccessful)
 		{
-			op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", res.GetIndex())
+			op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", res.Index)
 			err = store.Operations().Send(op)
 			assert.NoError(t, err)
-			assert.True(t, res.IsSuccessful())
+			assert.True(t, res.IsSuccessful)
 		}
 	}
 }
@@ -182,16 +182,16 @@ func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
-		val := res.GetValue().(string)
+		val := res.Value.(string)
 		assert.Equal(t, val, "Karmel")
-		assert.True(t, res.IsSuccessful())
+		assert.True(t, res.IsSuccessful)
 	}
 	{
 		op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", 0)
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
-		assert.False(t, res.IsSuccessful())
+		assert.False(t, res.IsSuccessful)
 	}
 	{
 		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(""), "test")
@@ -225,24 +225,24 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T, driver
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 
-		assert.True(t, res.IsSuccessful())
-		assert.False(t, res2.IsSuccessful())
+		assert.True(t, res.IsSuccessful)
+		assert.False(t, res2.IsSuccessful)
 
-		val := res.GetValue().(*User)
+		val := res.Value.(*User)
 		assert.Equal(t, *val.Name, "Karmel")
 
-		val2 := res2.GetValue().(*User)
+		val2 := res2.Value.(*User)
 		assert.Equal(t, *val2.Name, "Karmel")
 
 		user3 := &User{}
 		user3.setName("Karmel2")
 
-		op3 := ravendb.NewPutCompareExchangeValueOperation("test", user3, res2.GetIndex())
+		op3 := ravendb.NewPutCompareExchangeValueOperation("test", user3, res2.Index)
 		err = store.Operations().Send(op3)
 		assert.NoError(t, err)
 		res2 = op3.Command.Result
-		assert.True(t, res2.IsSuccessful())
-		val2 = res2.GetValue().(*User)
+		assert.True(t, res2.IsSuccessful)
+		val2 = res2.Value.(*User)
 		assert.Equal(t, *val2.Name, "Karmel2")
 	}
 }
@@ -273,8 +273,8 @@ func uniqueValues_canGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
-		assert.True(t, res2.IsSuccessful())
-		val2 := res2.GetValue().(*User)
+		assert.True(t, res2.IsSuccessful)
+		val2 := res2.Value.(*User)
 		assert.Equal(t, *val2.Name, "Karmel2")
 	}
 }

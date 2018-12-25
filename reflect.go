@@ -11,7 +11,7 @@ import (
 // functionality related to reflection
 
 // Go port of com.google.common.base.Defaults to make porting Java easier
-func Defaults_defaultValue(clazz reflect.Type) interface{} {
+func getDefaultValueForType(clazz reflect.Type) interface{} {
 	rv := reflect.Zero(clazz)
 	return rv.Interface()
 }
@@ -96,7 +96,7 @@ func getStructTypeOfReflectValue(rv reflect.Value) (reflect.Type, bool) {
 	return typ, false
 }
 
-func GetStructTypeOfValue(v interface{}) (reflect.Type, bool) {
+func getStructTypeOfValue(v interface{}) (reflect.Type, bool) {
 	rv := reflect.ValueOf(v)
 	return getStructTypeOfReflectValue(rv)
 }
@@ -167,7 +167,7 @@ func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 	case []interface{}:
 		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
 	case ObjectNode:
-		return MakeStructFromJSONMap(typ, v)
+		return makeStructFromJSONMap(typ, v)
 	}
 	panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
 	return nil, fmt.Errorf("don't know how to convert value of type %v to reflect type %s", js, typ.Name())
@@ -219,7 +219,7 @@ func decodeJSONAsStruct(js interface{}, res interface{}) error {
 }
 
 // given a json represented as map and type of a struct
-func MakeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
+func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
 	if typ == reflect.TypeOf(ObjectNode{}) {
 		return js, nil
 	}
@@ -286,7 +286,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 			if !ok {
 				return nil, newRavenError("can't convert value of type '%s' to a struct", val)
 			}
-			v, err := MakeStructFromJSONMap(clazz, valIn)
+			v, err := makeStructFromJSONMap(clazz, valIn)
 			return v, err
 		default:
 			panicIf(true, "%s", dbglog("converting to pointer of '%s' NYI", clazz.Kind().String()))
@@ -297,8 +297,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 	return nil, newNotImplementedError("NYI")
 }
 
-// TODO: temporary name to match Java
 // TODO: include github.com/jinzhu/copier to avoid dependency
-func BeanUtils_copyProperties(dest interface{}, src interface{}) error {
+func copyValueProperties(dest interface{}, src interface{}) error {
 	return copier.Copy(dest, src)
 }

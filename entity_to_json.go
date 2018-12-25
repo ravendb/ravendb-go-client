@@ -76,7 +76,7 @@ func (e *EntityToJSON) ConvertToEntity2(result interface{}, id string, document 
 	}
 	// TODO: deal with default values
 	entityType := reflect.TypeOf(result)
-	entity, _ := MakeStructFromJSONMap(entityType, document)
+	entity, _ := makeStructFromJSONMap(entityType, document)
 	TrySetIDOnEntity(entity, id)
 	setInterfaceToValue(result, entity)
 }
@@ -87,7 +87,7 @@ func (e *EntityToJSON) ConvertToEntity(entityType reflect.Type, id string, docum
 		return document, nil
 	}
 	// TODO: deal with default values
-	entity, err := MakeStructFromJSONMap(entityType, document)
+	entity, err := makeStructFromJSONMap(entityType, document)
 	if err != nil {
 		return nil, err
 	}

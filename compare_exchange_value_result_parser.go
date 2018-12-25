@@ -62,7 +62,7 @@ func CompareExchangeValueResultParser_getValues(clazz reflect.Type, response []b
 		} else {
 			object, ok := rawMap["Object"]
 			if !ok || object == nil {
-				v := NewCompareExchangeValue(key, index, Defaults_defaultValue(clazz))
+				v := NewCompareExchangeValue(key, index, getDefaultValueForType(clazz))
 				results[key] = v
 			} else {
 				converted, err := convertValue(object, clazz)

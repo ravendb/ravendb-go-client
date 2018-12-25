@@ -1121,7 +1121,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 		return err
 	}
 
-	err = BeanUtils_copyProperties(entity, documentInfo.entity)
+	err = copyValueProperties(entity, documentInfo.entity)
 	if err != nil {
 		return newRuntimeError("Unable to refresh entity: %s", err)
 	}
@@ -1155,7 +1155,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Typ
 	//fmt.Printf("getOperationResult(): clazz is '%s', result is '%v' of type '%T'\n", clazz, result, result)
 
 	if result == nil {
-		res := Defaults_defaultValue(clazz)
+		res := getDefaultValueForType(clazz)
 		//fmt.Printf("getOperationResult(): returning result '%#v' of type 'T%s'\n", res, res)
 		return res, nil
 	}

@@ -1650,7 +1650,7 @@ func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 		return nil, err
 	}
 	if len(result) == 0 {
-		return Defaults_defaultValue(q.clazz), nil
+		return getDefaultValueForType(q.clazz), nil
 	}
 	return result[0], nil
 }
@@ -1678,7 +1678,7 @@ func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
 	}
 
 	if len(result) == 0 {
-		return Defaults_defaultValue(q.clazz), nil
+		return getDefaultValueForType(q.clazz), nil
 	}
 	return result[0], nil
 }

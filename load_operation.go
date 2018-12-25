@@ -103,11 +103,11 @@ func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 
 func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (interface{}, error) {
 	if id == "" {
-		return Defaults_defaultValue(clazz), nil
+		return getDefaultValueForType(clazz), nil
 	}
 
 	if o._session.IsDeleted(id) {
-		return Defaults_defaultValue(clazz), nil
+		return getDefaultValueForType(clazz), nil
 	}
 
 	doc := o._session.documentsByID.getValue(id)
@@ -115,7 +115,7 @@ func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (int
 		doc = o._session.includedDocumentsByID[id]
 	}
 	if doc == nil {
-		return Defaults_defaultValue(clazz), nil
+		return getDefaultValueForType(clazz), nil
 	}
 
 	return o._session.TrackEntityInDocumentInfoOld(clazz, doc)

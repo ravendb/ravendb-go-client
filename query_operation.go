@@ -203,13 +203,13 @@ func queryOperationDeserialize(clazz reflect.Type, id string, document ObjectNod
 				if res != nil {
 					return res, nil
 				}
-				return Defaults_defaultValue(clazz), nil
+				return getDefaultValueForType(clazz), nil
 			}
 		}
 
 		inner, ok := document[fieldsToFetch.projections[0]]
 		if !ok {
-			return Defaults_defaultValue(clazz), nil
+			return getDefaultValueForType(clazz), nil
 		}
 
 		if fieldsToFetch.fieldsToFetch != nil && fieldsToFetch.fieldsToFetch[0] == fieldsToFetch.projections[0] {

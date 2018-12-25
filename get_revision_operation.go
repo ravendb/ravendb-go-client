@@ -36,7 +36,7 @@ func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {
 // Note: in Java it's getRevision
 func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document ObjectNode) (interface{}, error) {
 	if document == nil {
-		return Defaults_defaultValue(clazz), nil
+		return getDefaultValueForType(clazz), nil
 	}
 
 	var metadata ObjectNode
@@ -96,7 +96,7 @@ func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary
 
 func (o *GetRevisionOperation) GetRevision(clazz reflect.Type) (interface{}, error) {
 	if o._result == nil {
-		return Defaults_defaultValue(clazz), nil
+		return getDefaultValueForType(clazz), nil
 	}
 
 	document := o._result.getResults()[0]

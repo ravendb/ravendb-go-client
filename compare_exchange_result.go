@@ -4,17 +4,14 @@ import (
 	"reflect"
 )
 
+// CompareExchangeResult describes result of compare exchange
 type CompareExchangeResult struct {
-	value      interface{}
-	index      int
-	successful bool
+	Value        interface{}
+	Index        int
+	IsSuccessful bool
 }
 
-func NewCompareExchangeResult() *CompareExchangeResult {
-	return &CompareExchangeResult{}
-}
-
-func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []byte, conventions *DocumentConventions) (*CompareExchangeResult, error) {
+func parseCompareExchangeResultFromString(clazz reflect.Type, responseString []byte, conventions *DocumentConventions) (*CompareExchangeResult, error) {
 	var response map[string]interface{}
 	err := jsonUnmarshal(responseString, &response)
 	if err != nil {
@@ -36,10 +33,10 @@ func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []
 	}
 
 	if val == nil {
-		exchangeResult := NewCompareExchangeResult()
-		exchangeResult.index = index
-		exchangeResult.value = Defaults_defaultValue(clazz)
-		exchangeResult.successful = successful
+		exchangeResult := &CompareExchangeResult{}
+		exchangeResult.Index = index
+		exchangeResult.Value = getDefaultValueForType(clazz)
+		exchangeResult.IsSuccessful = successful
 		return exchangeResult, nil
 	}
 
@@ -48,33 +45,9 @@ func CompareExchangeResult_parseFromString(clazz reflect.Type, responseString []
 		return nil, err
 	}
 
-	exchangeResult := NewCompareExchangeResult()
-	exchangeResult.index = index
-	exchangeResult.value = result
-	exchangeResult.successful = successful
+	exchangeResult := &CompareExchangeResult{}
+	exchangeResult.Index = index
+	exchangeResult.Value = result
+	exchangeResult.IsSuccessful = successful
 	return exchangeResult, nil
-}
-
-func (r *CompareExchangeResult) GetValue() interface{} {
-	return r.value
-}
-
-func (r *CompareExchangeResult) SetValue(value interface{}) {
-	r.value = value
-}
-
-func (r *CompareExchangeResult) GetIndex() int {
-	return r.index
-}
-
-func (r *CompareExchangeResult) SetIndex(index int) {
-	r.index = index
-}
-
-func (r *CompareExchangeResult) IsSuccessful() bool {
-	return r.successful
-}
-
-func (r *CompareExchangeResult) SetSuccessful(successful bool) {
-	r.successful = successful
 }
