@@ -16,7 +16,7 @@ type SuggestionDocumentQuery struct {
 func NewSuggestionDocumentQuery(source *DocumentQuery) *SuggestionDocumentQuery {
 	return &SuggestionDocumentQuery{
 		_source:  source,
-		_session: source.GetSession(),
+		_session: source.getSession(),
 	}
 }
 

@@ -14,7 +14,7 @@ type AggregationQueryBase struct {
 
 func NewAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
 	return &AggregationQueryBase{
-		_session: source.GetSession(),
+		_session: source.getSession(),
 		_source:  source.AbstractDocumentQuery,
 	}
 

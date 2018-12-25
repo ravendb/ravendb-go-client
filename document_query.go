@@ -408,7 +408,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	if queryData != nil && len(queryData.fields) > 0 {
 		fields := queryData.fields
 
-		identityProperty := q.GetConventions().GetIdentityProperty(resultClass)
+		identityProperty := q.getConventions().GetIdentityProperty(resultClass)
 
 		if identityProperty != "" {
 			// make a copy, just in case, because we might modify it
@@ -438,8 +438,8 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	}
 	query := NewDocumentQueryWithTokenOld(resultClass,
 		q.theSession,
-		q.GetIndexName(),
-		q.GetCollectionName(),
+		q.indexName,
+		q.collectionName,
 		q.isGroupBy,
 		declareToken,
 		loadTokens,

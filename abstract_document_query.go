@@ -70,15 +70,7 @@ type AbstractDocumentQuery struct {
 	queryOperation *QueryOperation
 }
 
-func (q *AbstractDocumentQuery) GetIndexName() string {
-	return q.indexName
-}
-
-func (q *AbstractDocumentQuery) GetCollectionName() string {
-	return q.collectionName
-}
-
-func (q *AbstractDocumentQuery) IsDistinct() bool {
+func (q *AbstractDocumentQuery) isDistinct() bool {
 	if len(q.selectTokens) == 0 {
 		return false
 	}
@@ -86,15 +78,15 @@ func (q *AbstractDocumentQuery) IsDistinct() bool {
 	return ok
 }
 
-func (q *AbstractDocumentQuery) GetConventions() *DocumentConventions {
+func (q *AbstractDocumentQuery) getConventions() *DocumentConventions {
 	return q._conventions
 }
 
-func (q *AbstractDocumentQuery) GetSession() *InMemoryDocumentSessionOperations {
+func (q *AbstractDocumentQuery) getSession() *InMemoryDocumentSessionOperations {
 	return q.theSession
 }
 
-func (q *AbstractDocumentQuery) IsDynamicMapReduce() bool {
+func (q *AbstractDocumentQuery) isDynamicMapReduce() bool {
 	return len(q.groupByTokens) > 0
 }
 
@@ -155,10 +147,6 @@ func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexN
 	return res
 }
 
-func (q *AbstractDocumentQuery) getQueryClass() reflect.Type {
-	return q.clazz
-}
-
 func (q *AbstractDocumentQuery) _usingDefaultOperator(operator QueryOperator) {
 	if len(q.whereTokens) > 0 {
 		//throw new IllegalStateError("Default operator can only be set before any where clause is added.");
@@ -189,7 +177,7 @@ func (q *AbstractDocumentQuery) GetIndexQuery() *IndexQuery {
 	return indexQuery
 }
 
-func (q *AbstractDocumentQuery) GetProjectionFields() []string {
+func (q *AbstractDocumentQuery) getProjectionFields() []string {
 
 	if q.fieldsToFetchToken != nil && q.fieldsToFetchToken.projections != nil {
 		return q.fieldsToFetchToken.projections
@@ -1039,7 +1027,7 @@ func (q *AbstractDocumentQuery) _containsAll(fieldName string, values []interfac
 }
 
 func (q *AbstractDocumentQuery) _distinct() {
-	panicIf(q.IsDistinct(), "The is already a distinct query")
+	panicIf(q.isDistinct(), "The is already a distinct query")
 	//throw new IllegalStateError("The is already a distinct query");
 
 	if len(q.selectTokens) == 0 {
@@ -1708,7 +1696,7 @@ func (q *AbstractDocumentQuery) Count() (int, error) {
 }
 
 func (q *AbstractDocumentQuery) Any() (bool, error) {
-	if q.IsDistinct() {
+	if q.isDistinct() {
 		// for distinct it is cheaper to do count 1
 		res, err := q.executeQueryOperationOld(1)
 		if err != nil {
