@@ -8,18 +8,21 @@ var (
 	_ IServerOperation = &CompactDatabaseOperation{}
 )
 
+// CompactDatabaseOperation describes "compact database" operation
 type CompactDatabaseOperation struct {
 	_compactSettings *CompactSettings
 
 	Command *CompactDatabaseCommand
 }
 
+// NewCompactDatabaseOperation returns new CompactDatabaseOperation
 func NewCompactDatabaseOperation(compactSettings *CompactSettings) *CompactDatabaseOperation {
 	return &CompactDatabaseOperation{
 		_compactSettings: compactSettings,
 	}
 }
 
+// GetCommand returns a comman
 func (o *CompactDatabaseOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	o.Command = NewCompactDatabaseCommand(conventions, o._compactSettings)
 	return o.Command
@@ -27,6 +30,7 @@ func (o *CompactDatabaseOperation) GetCommand(conventions *DocumentConventions) 
 
 var _ RavenCommand = &CompactDatabaseCommand{}
 
+// CompactDatabaseCommand describes "compact database" command
 type CompactDatabaseCommand struct {
 	RavenCommandBase
 
@@ -35,6 +39,7 @@ type CompactDatabaseCommand struct {
 	Result *OperationIDResult
 }
 
+//NewCompactDatabaseCommand returns new CompactDatabaseCommand
 func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings *CompactSettings) *CompactDatabaseCommand {
 	panicIf(conventions == nil, "Conventions cannot be null")
 	panicIf(compactSettings == nil, "CompactSettings cannot be null")
@@ -49,11 +54,13 @@ func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings
 	return res
 }
 
+// CreateRequest creates a request
 func (c *CompactDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/admin/compact"
 	return NewHttpPost(url, c._compactSettings)
 }
 
+// SetResponse sets a reponse
 func (c *CompactDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()

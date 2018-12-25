@@ -10,15 +10,3 @@ type ClusterTopologyResponse struct {
 	// note: the response returns more info
 	// see https://app.quicktype.io?share=pzquGxXJcXyMncfA9JPa for fuller definition
 }
-
-func (r *ClusterTopologyResponse) GetLeader() string {
-	return r.Leader
-}
-
-func (r *ClusterTopologyResponse) GetNodeTag() string {
-	return r.NodeTag
-}
-
-func (r *ClusterTopologyResponse) GetTopology() *ClusterTopology {
-	return r.Topology
-}

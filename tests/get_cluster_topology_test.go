@@ -18,10 +18,10 @@ func getClusterTopologyTest_canGetTopology(t *testing.T, driver *RavenTestDriver
 	result := command.Result
 	assert.NotNil(t, result)
 
-	assert.NotEmpty(t, result.GetLeader())
-	assert.NotEmpty(t, result.GetNodeTag())
+	assert.NotEmpty(t, result.Leader)
+	assert.NotEmpty(t, result.NodeTag)
 
-	topology := result.GetTopology()
+	topology := result.Topology
 	assert.NotNil(t, topology)
 	assert.NotEmpty(t, topology.TopologyID)
 	assert.Equal(t, 1, len(topology.Members))

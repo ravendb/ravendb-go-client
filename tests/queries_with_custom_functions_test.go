@@ -51,8 +51,8 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T, driver *RavenTes
 
 		var users []*User
 		q := session.Advanced().DocumentQueryOld(reflect.TypeOf(&User{}))
-		q = q.WhereEquals("name", ravendb.CmpXchg_value("Hera"))
-		q = q.WhereEquals("lastName", ravendb.CmpXchg_value("Tom"))
+		q = q.WhereEquals("name", ravendb.CmpXchgValue("Hera"))
+		q = q.WhereEquals("lastName", ravendb.CmpXchgValue("Tom"))
 
 		query := q.GetIndexQuery().GetQuery()
 		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
@@ -67,7 +67,7 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T, driver *RavenTes
 
 		users = nil
 		q = session.Advanced().DocumentQueryOld(reflect.TypeOf(&User{}))
-		q = q.WhereNotEquals("name", ravendb.CmpXchg_value("Hera"))
+		q = q.WhereNotEquals("name", ravendb.CmpXchgValue("Hera"))
 		err = q.ToList(&users)
 		assert.NoError(t, err)
 

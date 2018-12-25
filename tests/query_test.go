@@ -110,8 +110,8 @@ func query_collectionsStats(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	stats := op.Command.Result
-	assert.Equal(t, stats.GetCountOfDocuments(), 2)
-	coll := stats.GetCollections()["Users"]
+	assert.Equal(t, stats.CountOfDocuments, 2)
+	coll := stats.Collections["Users"]
 	assert.Equal(t, coll, 2)
 }
 

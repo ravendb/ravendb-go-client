@@ -3,7 +3,7 @@ package ravendb
 import "reflect"
 
 // TODO: verify this is the same as Java
-func ClassUtils_isPrimitiveOrWrapper(t reflect.Type) bool {
+func isPrimitiveOrWrapper(t reflect.Type) bool {
 	kind := t.Kind()
 
 	/*

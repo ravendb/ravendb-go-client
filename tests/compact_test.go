@@ -24,9 +24,9 @@ func compactTest_canCompactDatabase(t *testing.T, driver *RavenTestDriver) {
 		newSession.Close()
 	}
 
-	compactSettings := ravendb.NewCompactSettings()
-	compactSettings.SetDatabaseName(store.GetDatabase())
-	compactSettings.SetDocuments(true)
+	compactSettings := &ravendb.CompactSettings{}
+	compactSettings.DatabaseName = store.GetDatabase()
+	compactSettings.Documents = true
 
 	compactOp := ravendb.NewCompactDatabaseOperation(compactSettings)
 	operation, err := store.Maintenance().Server().SendAsync(compactOp)

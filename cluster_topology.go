@@ -12,8 +12,8 @@ type ClusterTopology struct {
 	Watchers    map[string]string `json:"Watchers"`
 }
 
-// Contains returns true if topology contains a given node
-func (t *ClusterTopology) Contains(node string) bool {
+// contains returns true if topology contains a given node
+func (t *ClusterTopology) contains(node string) bool {
 	if t.Members != nil {
 		if _, ok := t.Members[node]; ok {
 			return true
@@ -61,8 +61,8 @@ func (t *ClusterTopology) getUrlFromTag(tag string) string {
 	return ""
 }
 
-// GetAllNodes returns all nodes
-func (t *ClusterTopology) GetAllNodes() map[string]string {
+// getAllNodes returns all nodes
+func (t *ClusterTopology) getAllNodes() map[string]string {
 	res := map[string]string{}
 	for name, uri := range t.Members {
 		res[name] = uri

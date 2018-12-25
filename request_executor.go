@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	RequestExecutor_failureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperationWithDebugTag("failure=check")
+	requestExecutorFailureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperationWithDebugTag("failure=check")
 )
 
 // public static Consumer<HttpRequestBase> requestPostProcessor = null;
@@ -22,6 +22,10 @@ var (
 const (
 	goClientVersion = "4.0.0"
 )
+
+// Note: for simplicty ClusterRequestExecutor logic is implemented in RequestExecutor
+// because Go doesn't support inheritance
+type ClusterRequestExecutor = RequestExecutor
 
 // RequestExecutor describes executor of HTTP requests
 type RequestExecutor struct {
@@ -404,7 +408,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			return
 		}
 		results := command.Result
-		members := results.GetTopology().Members
+		members := results.Topology.Members
 		var nodes []*ServerNode
 		for key, value := range members {
 			serverNode := NewServerNode()
@@ -1085,7 +1089,7 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 	if re.isCluster {
 		return re.clusterPerformHealthCheck(serverNode, nodeIndex)
 	}
-	command := RequestExecutor_failureCheckOperation.GetCommand(re.conventions)
+	command := requestExecutorFailureCheckOperation.GetCommand(re.conventions)
 	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 

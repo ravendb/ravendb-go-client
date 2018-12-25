@@ -1,5 +1,6 @@
 package ravendb
 
+// CircleCriteria describes circle criteria
 type CircleCriteria struct {
 	SpatialCriteriaCommon
 	_radius      float64
@@ -8,6 +9,7 @@ type CircleCriteria struct {
 	_radiusUnits SpatialUnits
 }
 
+// NewCircleCriteria returns new CircleCriteria
 func NewCircleCriteria(radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, relation SpatialRelation, distErrorPercent float64) *CircleCriteria {
 
 	res := &CircleCriteria{
@@ -21,10 +23,12 @@ func NewCircleCriteria(radius float64, latitude float64, longitude float64, radi
 	return res
 }
 
+// ToQueryToken creates a token
 func (c *CircleCriteria) ToQueryToken(fieldName string, addQueryParameter func(interface{}) string) queryToken {
 	return c.SpatialCriteriaCommon.toQueryTokenCommon(c, fieldName, addQueryParameter)
 }
 
+// GetShapeToken returns shapeToken
 func (c *CircleCriteria) GetShapeToken(addQueryParameter func(interface{}) string) *shapeToken {
 	return ShapeToken_circle(addQueryParameter(c._radius), addQueryParameter(c._latitude),
 		addQueryParameter(c._longitude), c._radiusUnits)

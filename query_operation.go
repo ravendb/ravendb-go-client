@@ -192,7 +192,7 @@ func queryOperationDeserialize(clazz reflect.Type, id string, document ObjectNod
 	if fieldsToFetch != nil && len(fieldsToFetch.projections) == 1 {
 		// we only select a single field
 		isString := clazz.Kind() == reflect.String
-		if isString || ClassUtils_isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
+		if isString || isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
 			projectField := fieldsToFetch.projections[0]
 			jsonNode, ok := document[projectField]
 			if ok && jsonIsValueNode(jsonNode) {
