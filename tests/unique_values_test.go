@@ -45,7 +45,7 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDrive
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.NotNil(t, res)
-		v := res.GetValue().(int)
+		v := res.Value.(int)
 		assert.Equal(t, v, 5)
 	}
 }
@@ -68,7 +68,7 @@ func uniqueValues_canPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		res := op2.Command.Result
-		val := res.GetValue().(string)
+		val := res.Value.(string)
 		assert.Equal(t, val, "Karmel")
 	}
 }
@@ -141,10 +141,10 @@ func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) 
 		values := op.Command.Result
 		assert.Equal(t, len(values), 2)
 
-		v := values["test"].GetValue().(*User)
+		v := values["test"].Value.(*User)
 		assert.Equal(t, *v.Name, "Karmel")
 
-		v = values["test2"].GetValue().(*User)
+		v = values["test2"].Value.(*User)
 		assert.Equal(t, *v.Name, "Karmel")
 
 	}
@@ -198,7 +198,7 @@ func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		readValue := op.Command.Result
-		val := readValue.GetValue().(string)
+		val := readValue.Value.(string)
 		assert.Equal(t, val, "Karmel")
 	}
 }
@@ -264,12 +264,12 @@ func uniqueValues_canGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 		err = store.Operations().Send(op)
 		assert.NoError(t, err)
 		res := op.Command.Result
-		val := res.GetValue().(*User)
+		val := res.Value.(*User)
 		assert.Equal(t, *val.Name, "Karmel")
 
 		user2 := &User{}
 		user2.setName("Karmel2")
-		op2 := ravendb.NewPutCompareExchangeValueOperation("test", user2, res.GetIndex())
+		op2 := ravendb.NewPutCompareExchangeValueOperation("test", user2, res.Index)
 		err = store.Operations().Send(op2)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
