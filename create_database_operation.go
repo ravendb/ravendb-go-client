@@ -5,15 +5,18 @@ import (
 	"strconv"
 )
 
+// CreateDatabaseOperation represents "create database" operation
 type CreateDatabaseOperation struct {
 	databaseRecord    *DatabaseRecord
 	replicationFactor int
 }
 
+// NewCreateDatabaseOperation returns CreateDatabaseOperation
 func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *CreateDatabaseOperation {
 	return NewCreateDatabaseOperationWithReplicationFactor(databaseRecord, 1)
 }
 
+// NewCreateDatabaseOperationWithReplicationFactor returns CreateDatabaseOperation
 func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseOperation {
 	return &CreateDatabaseOperation{
 		databaseRecord:    databaseRecord,
@@ -21,6 +24,7 @@ func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRec
 	}
 }
 
+// GetCommand returns command for this operation
 func (o *CreateDatabaseOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
 	return NewCreateDatabaseCommand(conventions, o.databaseRecord, o.replicationFactor)
 }
@@ -29,6 +33,7 @@ var (
 	_ RavenCommand = &CreateDatabaseCommand{}
 )
 
+// CreateDatabaseCommand represents "create database" command
 type CreateDatabaseCommand struct {
 	RavenCommandBase
 
@@ -40,6 +45,7 @@ type CreateDatabaseCommand struct {
 	Result *DatabasePutResult
 }
 
+// NewCreateDatabaseCommand returns new CreateDatabaseCommand
 func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseCommand {
 	panicIf(databaseRecord.DatabaseName == "", "databaseRecord.DatabaseName cannot be empty")
 	cmd := &CreateDatabaseCommand{
@@ -53,6 +59,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 	return cmd
 }
 
+// CreateRequest creates http request for the command
 func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/admin/databases?name=" + c.databaseName
 	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
@@ -64,6 +71,7 @@ func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, 
 	return NewHttpPut(url, js)
 }
 
+// SetResponse sets response
 func (c *CreateDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()

@@ -60,7 +60,7 @@ func (c *GetCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.
 }
 
 func (c *GetCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
-	res, err := CompareExchangeValueResultParser_getValue(c._clazz, response, c._conventions)
+	res, err := compareExchangeValueResultParserGetValue(c._clazz, response, c._conventions)
 	if err != nil {
 		return err
 	}

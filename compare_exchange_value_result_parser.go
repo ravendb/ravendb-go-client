@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func CompareExchangeValueResultParser_getValues(clazz reflect.Type, response []byte, conventions *DocumentConventions) (map[string]*CompareExchangeValue, error) {
+func compareExchangeValueResultParserGetValues(clazz reflect.Type, response []byte, conventions *DocumentConventions) (map[string]*CompareExchangeValue, error) {
 	var jsonResponse map[string]interface{}
 	err := jsonUnmarshal(response, &jsonResponse)
 	if err != nil {
@@ -78,12 +78,12 @@ func CompareExchangeValueResultParser_getValues(clazz reflect.Type, response []b
 	return results, nil
 }
 
-func CompareExchangeValueResultParser_getValue(clazz reflect.Type, response []byte, conventions *DocumentConventions) (*CompareExchangeValue, error) {
+func compareExchangeValueResultParserGetValue(clazz reflect.Type, response []byte, conventions *DocumentConventions) (*CompareExchangeValue, error) {
 	if response == nil {
 		return nil, nil
 	}
 
-	values, err := CompareExchangeValueResultParser_getValues(clazz, response, conventions)
+	values, err := compareExchangeValueResultParserGetValues(clazz, response, conventions)
 	if err != nil {
 		return nil, err
 	}
