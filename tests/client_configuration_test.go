@@ -26,7 +26,7 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T, driver 
 	configurationToSave := &ravendb.ClientConfiguration{
 		Etag:                          123,
 		MaxNumberOfRequestsPerSession: 80,
-		ReadBalanceBehavior:           ravendb.ReadBalanceBehavior_FASTEST_NODE,
+		ReadBalanceBehavior:           ravendb.ReadBalanceBehaviorFastestNode,
 		IsDisabled:                    true,
 	}
 
@@ -43,7 +43,7 @@ func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T, driver 
 	assert.True(t, newConfiguration.Etag > configurationToSave.Etag)
 	assert.True(t, newConfiguration.IsDisabled)
 	assert.Equal(t, newConfiguration.MaxNumberOfRequestsPerSession, 80)
-	assert.Equal(t, newConfiguration.ReadBalanceBehavior, ravendb.ReadBalanceBehavior_FASTEST_NODE)
+	assert.Equal(t, newConfiguration.ReadBalanceBehavior, ravendb.ReadBalanceBehaviorFastestNode)
 }
 
 func TestClientConfiguration(t *testing.T) {

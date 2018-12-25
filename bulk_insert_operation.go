@@ -195,7 +195,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		}
 	}
 	if !metadata.ContainsKey(MetadataRavenGoType) {
-		goType := o._requestExecutor.GetConventions().GetGoTypeName(entity)
+		goType := o._requestExecutor.GetConventions().getGoTypeName(entity)
 		if goType != "" {
 			metadata.Put(MetadataRavenGoType, goType)
 		}

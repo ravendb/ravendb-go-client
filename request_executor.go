@@ -196,7 +196,7 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		_updateClientConfigurationSemaphore: NewSemaphore(1),
 
 		Cache:                NewHttpCache(conventions.getMaxHttpCacheSize()),
-		_readBalanceBehavior: conventions.GetReadBalanceBehavior(),
+		_readBalanceBehavior: conventions.ReadBalanceBehavior,
 		_databaseName:        databaseName,
 		certificate:          certificate,
 
@@ -262,7 +262,7 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 	url = requestExecutorValidateUrls(initialUrls, certificate)[0]
 
 	if conventions == nil {
-		conventions = DocumentConventions_defaultConventions()
+		conventions = getDefaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
 	executor.MakeCluster()
@@ -291,7 +291,7 @@ func (re *RequestExecutor) MakeCluster() {
 
 func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 	if conventions == nil {
-		conventions = DocumentConventions_defaultConventions()
+		conventions = getDefaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
 	executor.MakeCluster()
@@ -420,13 +420,13 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			nodeSelector = NewNodeSelector(newTopology)
 			re.setNodeSelector(nodeSelector)
 
-			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		} else if nodeSelector.onUpdateTopology(newTopology, forceUpdate) {
 			re.disposeAllFailedNodesTimers()
 
-			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		}
@@ -469,12 +469,12 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		if nodeSelector == nil {
 			nodeSelector = NewNodeSelector(result)
 			re.setNodeSelector(nodeSelector)
-			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		} else if nodeSelector.onUpdateTopology(result, forceUpdate) {
 			re.disposeAllFailedNodesTimers()
-			if re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE {
+			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		}
@@ -521,18 +521,18 @@ func (re *RequestExecutor) chooseNodeForRequest(cmd RavenCommand, sessionInfo *S
 	}
 
 	switch re._readBalanceBehavior {
-	case ReadBalanceBehavior_NONE:
+	case ReadBalanceBehaviorNone:
 		return re.getPreferredNode()
-	case ReadBalanceBehavior_ROUND_ROBIN:
+	case ReadBalanceBehaviorRoundRobin:
 		sessionID := 0
 		if sessionInfo != nil {
 			sessionID = sessionInfo.SessionID
 		}
 		return re.getNodeBySessionID(sessionID)
-	case ReadBalanceBehavior_FASTEST_NODE:
+	case ReadBalanceBehaviorFastestNode:
 		return re.getFastestNode()
 	default:
-		panicIf(true, "Unknown re._readBalanceBehavior: '%s'", re._readBalanceBehavior)
+		panicIf(true, "Unknown re.ReadBalanceBehavior: '%s'", re._readBalanceBehavior)
 	}
 	return nil, nil
 }
@@ -904,7 +904,7 @@ func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command Ra
 	multipleNodes := (nodeSelector != nil) && (len(nodeSelector.getTopology().GetNodes()) > 1)
 
 	cmd := command.GetBase()
-	return re._readBalanceBehavior == ReadBalanceBehavior_FASTEST_NODE &&
+	return re._readBalanceBehavior == ReadBalanceBehaviorFastestNode &&
 		nodeSelector != nil &&
 		nodeSelector.inSpeedTestPhase() &&
 		multipleNodes &&

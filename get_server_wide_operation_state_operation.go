@@ -10,7 +10,7 @@ type GetServerWideOperationStateOperation struct {
 }
 
 func (o *GetServerWideOperationStateOperation) GetCommand(conventions *DocumentConventions) *GetServerWideOperationStateCommand {
-	return NewGetServerWideOperationStateCommand(DocumentConventions_defaultConventions(), o._id)
+	return NewGetServerWideOperationStateCommand(getDefaultConventions(), o._id)
 }
 
 type GetServerWideOperationStateCommand struct {

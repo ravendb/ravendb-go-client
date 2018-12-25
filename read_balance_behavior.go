@@ -1,9 +1,10 @@
 package ravendb
 
+// ReadBalanceBehavior defines the type of read balancing
 type ReadBalanceBehavior = string
 
 const (
-	ReadBalanceBehavior_NONE         = "None" // TODO: should this be "" ?
-	ReadBalanceBehavior_ROUND_ROBIN  = "RoundRobin"
-	ReadBalanceBehavior_FASTEST_NODE = "FastestNode"
+	ReadBalanceBehaviorNone        = "None" // TODO: should this be "" ?
+	ReadBalanceBehaviorRoundRobin  = "RoundRobin"
+	ReadBalanceBehaviorFastestNode = "FastestNode"
 )

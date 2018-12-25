@@ -642,7 +642,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 	if collectionName != "" {
 		metadata[MetadataCollection] = collectionName
 	}
-	goType := s._requestExecutor.GetConventions().GetGoTypeName(entity)
+	goType := s._requestExecutor.GetConventions().getGoTypeName(entity)
 	if goType != "" {
 		metadata[MetadataRavenGoType] = goType
 	}

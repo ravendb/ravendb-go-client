@@ -37,34 +37,37 @@ type DocumentConventions struct {
 
 	_documentIDGenerator DocumentIDGeneratorFunc
 
-	_readBalanceBehavior                            ReadBalanceBehavior
+	ReadBalanceBehavior                             ReadBalanceBehavior
 	_transformClassCollectionNameToDocumentIDPrefix func(string) string
 
 	_throwIfQueryPageSizeIsNotSet bool
 
 	_maxHttpCacheSize int
-	mu                sync.Mutex
+
+	// a pointer to silence go vet when copying DocumentConventions wholesale
+	mu *sync.Mutex
 }
 
 // Note: Java has it as frozen global variable (possibly for perf) but Go
 // has no notion of frozen objects so for safety we create new object
 // (avoids accidental modification of shared, global state)
 // TODO: replace with direct calls to NewDocumentConventions()
-func DocumentConventions_defaultConventions() *DocumentConventions {
+func getDefaultConventions() *DocumentConventions {
 	return NewDocumentConventions()
 }
 
 // NewDocumentConventions creates DocumentConventions with default values
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
-		_readBalanceBehavior:                            ReadBalanceBehavior_NONE,
+		ReadBalanceBehavior:                             ReadBalanceBehaviorNone,
 		MaxLengthOfQueryUsingGetURL:                     1024 + 512,
 		IdentityPartsSeparator:                          "/",
 		_disableTopologyUpdates:                         false,
 		RaiseIfQueryPageSizeIsNotSet:                    false,
-		_transformClassCollectionNameToDocumentIDPrefix: DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix,
+		_transformClassCollectionNameToDocumentIDPrefix: getDefaultTransformCollectionNameToDocumentIdPrefix,
 		_maxNumberOfRequestsPerSession:                  32,
 		_maxHttpCacheSize:                               128 * 1024 * 1024,
+		mu:                                              &sync.Mutex{},
 	}
 }
 
@@ -106,7 +109,7 @@ func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 	if configuration.IsDisabled && c._originalConfiguration != nil {
 		// need to revert to original values
 		c._maxNumberOfRequestsPerSession = c._originalConfiguration.MaxNumberOfRequestsPerSession
-		c._readBalanceBehavior = c._originalConfiguration.ReadBalanceBehavior
+		c.ReadBalanceBehavior = c._originalConfiguration.ReadBalanceBehavior
 
 		c._originalConfiguration = nil
 		return
@@ -116,15 +119,15 @@ func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 		c._originalConfiguration = &ClientConfiguration{}
 		c._originalConfiguration.Etag = -1
 		c._originalConfiguration.MaxNumberOfRequestsPerSession = c._maxNumberOfRequestsPerSession
-		c._originalConfiguration.ReadBalanceBehavior = c._readBalanceBehavior
+		c._originalConfiguration.ReadBalanceBehavior = c.ReadBalanceBehavior
 	}
 
 	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.MaxNumberOfRequestsPerSession, c._originalConfiguration.MaxNumberOfRequestsPerSession)
 
-	c._readBalanceBehavior = firstNonEmptyString(configuration.ReadBalanceBehavior, c._originalConfiguration.ReadBalanceBehavior)
+	c.ReadBalanceBehavior = firstNonEmptyString(configuration.ReadBalanceBehavior, c._originalConfiguration.ReadBalanceBehavior)
 }
 
-func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collectionName string) string {
+func getDefaultTransformCollectionNameToDocumentIdPrefix(collectionName string) string {
 	upperCount := 0
 	for _, c := range collectionName {
 		if unicode.IsUpper(c) {
@@ -143,18 +146,14 @@ func DocumentConventions_defaultTransformCollectionNameToDocumentIdPrefix(collec
 	return collectionName
 }
 
-func (c *DocumentConventions) GetReadBalanceBehavior() ReadBalanceBehavior {
-	return c._readBalanceBehavior
-}
-
 func (c *DocumentConventions) Clone() *DocumentConventions {
 	res := *c
 	// mutex carries its locking state so we need to re-initialize it
-	res.mu = sync.Mutex{}
+	res.mu = &sync.Mutex{}
 	return &res
 }
 
-func (c *DocumentConventions) GetGoTypeName(entity interface{}) string {
+func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
 	return GetFullTypeName(entity)
 }
 
