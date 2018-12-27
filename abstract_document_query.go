@@ -236,7 +236,8 @@ func (q *AbstractDocumentQuery) _groupBy(fieldName string, fieldNames ...string)
 
 // TODO: better name
 func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
-	if !q.fromToken.isDynamic {
+	// TODO: if q.fromToken is nil, needs to do this check in ToList()
+	if q.fromToken != nil && !q.fromToken.isDynamic {
 		//throw new IllegalStateError("groupBy only works with dynamic queries");
 		panicIf(true, "groupBy only works with dynamic queries")
 	}

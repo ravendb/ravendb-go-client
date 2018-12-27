@@ -570,6 +570,13 @@ func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
+// QueryType creates a new query over documents of a given type
+// TODO: accept Foo{} in addition to *Foo{} to make the API more forgiving
+func (s *DocumentSession) QueryType(clazz reflect.Type) *DocumentQuery {
+	panicIf(s == nil, "s shouldn't be nil here")
+	return s.DocumentQueryAllOld(clazz, "", "", false)
+}
+
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
 	if stringIsNotEmpty(collectionOrIndexName.getCollection()) {
