@@ -888,6 +888,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 }
 
 func query_queryFirst(t *testing.T, driver *RavenTestDriver) {
+	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
@@ -895,9 +896,11 @@ func query_queryFirst(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		first, err := session.QueryOld(reflect.TypeOf(&User{})).First()
+		var first *User
+		err = session.Query().First(&first)
 		assert.NoError(t, err)
 		assert.NotNil(t, first)
+		assert.Equal(t, first.ID, "users/1")
 
 		single, err := session.QueryOld(reflect.TypeOf(&User{})).WhereEquals("name", "Tarzan").Single()
 		assert.NoError(t, err)

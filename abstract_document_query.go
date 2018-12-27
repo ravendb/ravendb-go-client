@@ -1652,6 +1652,25 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 	return rt, nil
 }
 
+func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
+	if q.clazz == nil {
+		// query was created without providing the type to query
+		panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
+		panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
+		panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
+		tp := reflect.TypeOf(result)
+		// convert **struct => *struct
+		// TODO: what to do if tp is not **struct ?
+		if tp.Kind() == reflect.Ptr && tp.Elem().Kind() == reflect.Ptr {
+			tp = tp.Elem()
+		}
+		q.clazz = tp
+		s := q.theSession
+		indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
+		q.fromToken = createFromToken(indexName, collectionName, "")
+	}
+}
+
 // ToList returns results of the query as *[]*struct
 func (q *AbstractDocumentQuery) ToList(results interface{}) error {
 	if results == nil {
@@ -1663,31 +1682,39 @@ func (q *AbstractDocumentQuery) ToList(results interface{}) error {
 		panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
 		panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
 		panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
-		clazz, err := getTypeFromQueryResults(results)
+		var err error
+		q.clazz, err = getTypeFromQueryResults(results)
 		if err != nil {
 			return err
 		}
-		q.clazz = clazz
 		s := q.theSession
-		indexName, collectionName := s.processQueryParameters(clazz, "", "", s.GetConventions())
+		indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
 		q.fromToken = createFromToken(indexName, collectionName, "")
 	}
 
-	return q.executeQueryOperationNew(results, 0)
+	return q.executeQueryOperation(results, 0)
 }
 
-// First returns first result of a query
-func (q *AbstractDocumentQuery) First() (interface{}, error) {
-	result, err := q.executeQueryOperationOld(1)
+func (q *AbstractDocumentQuery) First(result interface{}) error {
+	if result == nil {
+		return fmt.Errorf("result can't be nil")
+	}
+	q.setClazzFromResult(result)
+
+	// TODO: use executeQueryOperation by making []q.clazz
+	results, err := q.executeQueryOperationOld(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if len(result) == 0 {
-		return nil, nil
+	if len(results) == 0 {
+		return nil
 	}
-	return result[0], nil
+	res := results[0]
+	setInterfaceToValue(result, res)
+	return nil
 }
 
+// TODO: consider removing. It's not very useful in Go
 func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
 	result, err := q.executeQueryOperationOld(1)
 	if err != nil {
@@ -1760,7 +1787,7 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	return queryResult.TotalResults > 0, nil
 }
 
-func (q *AbstractDocumentQuery) executeQueryOperationNew(results interface{}, take int) error {
+func (q *AbstractDocumentQuery) executeQueryOperation(results interface{}, take int) error {
 	if take != 0 && (q.pageSize == nil || *q.pageSize > take) {
 		q._take(&take)
 	}
