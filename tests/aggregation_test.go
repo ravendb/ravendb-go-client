@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
@@ -78,7 +77,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDri
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), index)
+		q := session.QueryInIndex(index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("region").MaxOn("total").MinOn("total")
 		}
@@ -163,7 +162,7 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T, driver *Raven
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&AggOrder{}), index)
+		q := session.QueryInIndex(index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").SumOn("total")
 		}
@@ -248,7 +247,7 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T, driver
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&AggOrder{}), index)
+		q := session.QueryInIndex(index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").MaxOn("total").MinOn("total")
 		}
@@ -320,7 +319,7 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T, driver *RavenTe
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&AggOrder{}), index)
+		q := session.QueryInIndex(index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").WithDisplayName("productMax").MaxOn("total")
 		}
@@ -389,7 +388,7 @@ func aggregation_canCorrectlyAggregate_Ranges(t *testing.T, driver *RavenTestDri
 		session := openSessionMust(t, store)
 		_range := ravendb.RangeBuilder_forPath("total")
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), index)
+		q := session.QueryInIndex(index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("product").SumOn("total")
 		}
@@ -527,7 +526,7 @@ func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testi
 
 	{
 		session := openSessionMust(t, store)
-		q := session.QueryInIndexOld(reflect.TypeOf(&ItemsOrder{}), index)
+		q := session.QueryInIndex(index)
 		q = q.WhereGreaterThanOrEqual("at", end0)
 		fn := func(f ravendb.IFacetBuilder) {
 			r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4

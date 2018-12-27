@@ -535,6 +535,10 @@ func cloneMapStringObject(m map[string]interface{}) map[string]interface{} {
 
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
+func (s *DocumentSession) DocumentQueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
+}
+
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, index.GetIndexName(), "", index.IsMapReduce())
@@ -593,6 +597,10 @@ func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrInde
 // QueryWithQuery creaates a query with given query arguments
 func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *DocumentQuery {
 	return s.DocumentQueryAll(collectionOrIndexName.IndexName, collectionOrIndexName.Collection, false)
+}
+
+func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
+	return s.DocumentQueryInIndex(index)
 }
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
