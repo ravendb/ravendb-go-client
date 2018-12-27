@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -44,7 +43,7 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T, driver *
 		session := openSessionMust(t, store)
 
 		var items []*Item
-		q := session.QueryOld(reflect.TypeOf(&Item{}))
+		q := session.Query()
 		q = q.WaitForNonStaleResults(0)
 		f := ravendb.NewPointField("latitude", "longitude")
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
@@ -66,7 +65,7 @@ func ravendb_9676_canOrderByDistanceOnDynamicSpatialField(t *testing.T, driver *
 		assert.Equal(t, item.Name, "Item2")
 
 		items = nil
-		q = session.QueryOld(reflect.TypeOf(&Item{}))
+		q = session.Query()
 		q = q.WaitForNonStaleResults(0)
 		f = ravendb.NewPointField("latitude", "longitude")
 		q = q.Spatial2(f, fn)

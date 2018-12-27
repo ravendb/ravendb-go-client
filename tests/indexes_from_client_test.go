@@ -294,7 +294,7 @@ func indexesFromClientTest_getTerms(t *testing.T, driver *RavenTestDriver) {
 
 		var stats *ravendb.QueryStatistics
 		var notUsed []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
@@ -346,7 +346,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T, driver *RavenTestDriver) 
 
 		var notUsed []*User
 		var stats *ravendb.QueryStatistics
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
@@ -401,13 +401,13 @@ func indexesFromClientTest_canExplain(t *testing.T, driver *RavenTestDriver) {
 
 		var notUsed []*User
 		var statsRef *ravendb.QueryStatistics
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
 		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
 
-		q = session.QueryOld(reflect.TypeOf(&User{}))
+		q = session.Query()
 		q = q.Statistics(&statsRef)
 		q = q.WhereGreaterThan("age", 10)
 		err = q.ToList(&notUsed)
