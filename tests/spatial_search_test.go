@@ -59,7 +59,10 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 
 		var events []*Event
 		var statsRef *ravendb.QueryStatistics
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
+		queryIndex := &ravendb.Query{
+			IndexName: "SpatialIdx",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
 		q = q.Statistics(&statsRef)
 		q = q.WhereLessThanOrEqual("date", addYears(now, 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
@@ -140,7 +143,10 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		var queryStats *ravendb.QueryStatistics
 
 		var events []*Event
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("SpatialIdx"))
+		queryIndex := &ravendb.Query{
+			IndexName: "SpatialIdx",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
 		q = q.Statistics(&queryStats)
 		q = q.OpenSubclause()
 		q = q.WhereGreaterThanOrEqual("capacity", 0)
@@ -210,7 +216,10 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T,
 		session := openSessionMust(t, store)
 
 		var events []*Event
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
+		queryIndex := &ravendb.Query{
+			IndexName: "spatialIdx",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
@@ -230,7 +239,10 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T,
 		session := openSessionMust(t, store)
 
 		var events []*Event
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), ravendb.Query_index("spatialIdx"))
+		queryIndex := &ravendb.Query{
+			IndexName: "spatialIdx",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)

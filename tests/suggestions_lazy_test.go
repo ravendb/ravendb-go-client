@@ -51,7 +51,10 @@ func suggestionsLazy_usingLinq(t *testing.T, driver *RavenTestDriver) {
 		s := openSessionMust(t, store)
 		oldRequests := s.Advanced().GetNumberOfRequests()
 
-		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
+		queryIndex := &ravendb.Query{
+			IndexName: "test",
+		}
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Owen")
 		}

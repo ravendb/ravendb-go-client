@@ -68,7 +68,10 @@ func suggestions_exactMatch(t *testing.T, driver *RavenTestDriver) {
 		options := ravendb.NewSuggestionOptions()
 		options.PageSize = 10
 
-		q := session.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
+		queryIndex := &ravendb.Query{
+			IndexName: "test",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Oren").WithOptions(options)
 		}
@@ -90,7 +93,10 @@ func suggestions_usingLinq(t *testing.T, driver *RavenTestDriver) {
 	{
 		s := openSessionMust(t, store)
 
-		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
+		queryIndex := &ravendb.Query{
+			IndexName: "test",
+		}
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Owen")
 		}
@@ -116,7 +122,10 @@ func suggestions_usingLinq_WithOptions(t *testing.T, driver *RavenTestDriver) {
 
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.4
-		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
+		queryIndex := &ravendb.Query{
+			IndexName: "test",
+		}
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Owen").WithOptions(options)
 		}
@@ -144,7 +153,10 @@ func suggestions_usingLinq_Multiple_words(t *testing.T, driver *RavenTestDriver)
 		options.Accuracy = 0.4
 		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
 
-		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
+		queryIndex := &ravendb.Query{
+			IndexName: "test",
+		}
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "John Steinback").WithOptions(options)
 		}
@@ -173,7 +185,10 @@ func suggestions_withTypo(t *testing.T, driver *RavenTestDriver) {
 		options.PageSize = 10
 		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
 
-		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), ravendb.Query_index("test"))
+		queryIndex := &ravendb.Query{
+			IndexName: "test",
+		}
+		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Oern").WithOptions(options)
 		}

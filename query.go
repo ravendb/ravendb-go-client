@@ -1,30 +1,11 @@
 package ravendb
 
+// Query represents arguments for query.
+// You can provide either name of the collection to query
+// or name of the index to query
+// TODO: not a great name. Maybe replace with methods on DocumentQuery:
+// InCollection() and InIndex()
 type Query struct {
-	collection string
-	indexName  string
-}
-
-func NewQuery() *Query {
-	return &Query{}
-}
-
-func (q *Query) getCollection() string {
-	return q.collection
-}
-
-func (q *Query) getIndexName() string {
-	return q.indexName
-}
-
-func Query_index(indexName string) *Query {
-	return &Query{
-		indexName: indexName,
-	}
-}
-
-func Query_collection(collectionName string) *Query {
-	return &Query{
-		collection: collectionName,
-	}
+	Collection string
+	IndexName  string
 }

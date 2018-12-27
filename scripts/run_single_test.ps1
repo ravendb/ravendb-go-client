@@ -18,4 +18,4 @@ go.exe clean -testcache
 
 #go.exe test -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-go.exe test -v -parallel 1 -timeout 50s ./tests -run ^TestRavenDB8761$
+go.exe test -v -parallel 1 -timeout 50s ./tests -run ^TestQuery$

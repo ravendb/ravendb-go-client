@@ -142,19 +142,22 @@ func query_queryWithWhereClause(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		var queryResult []*User
-		q := session.QueryWithQueryOld(reflect.TypeOf(&User{}), ravendb.Query_collection("users"))
+		queryUsers := &ravendb.Query{
+			Collection: "users",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&User{}), queryUsers)
 		q = q.WhereStartsWith("name", "J")
 		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 
 		var queryResult2 []*User
-		q2 := session.QueryWithQueryOld(reflect.TypeOf(&User{}), ravendb.Query_collection("users"))
+		q2 := session.QueryWithQueryOld(reflect.TypeOf(&User{}), queryUsers)
 		q2 = q2.WhereEquals("name", "Tarzan")
 		err = q2.ToList(&queryResult2)
 		assert.NoError(t, err)
 
 		var queryResult3 []*User
-		q3 := session.QueryWithQueryOld(reflect.TypeOf(&User{}), ravendb.Query_collection("users"))
+		q3 := session.QueryWithQueryOld(reflect.TypeOf(&User{}), queryUsers)
 		q3 = q3.WhereEndsWith("name", "n")
 		err = q3.ToList(&queryResult3)
 		assert.NoError(t, err)
@@ -248,7 +251,10 @@ func query_queryMapReduceIndex(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q := session.QueryWithQueryOld(reflect.TypeOf(&ReduceResult{}), ravendb.Query_index("UsersByName"))
+		queryIndex := &ravendb.Query{
+			IndexName: "UsersByName",
+		}
+		q := session.QueryWithQueryOld(reflect.TypeOf(&ReduceResult{}), queryIndex)
 		q = q.OrderByDescending("count")
 		err := q.ToList(&results)
 		assert.NoError(t, err)

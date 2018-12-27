@@ -579,11 +579,11 @@ func (s *DocumentSession) QueryType(clazz reflect.Type) *DocumentQuery {
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
-	if stringIsNotEmpty(collectionOrIndexName.getCollection()) {
-		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.getCollection(), false)
+	if stringIsNotEmpty(collectionOrIndexName.Collection) {
+		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.Collection, false)
 	}
 
-	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.getIndexName(), "", false)
+	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.IndexName, "", false)
 }
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
