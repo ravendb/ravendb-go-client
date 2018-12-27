@@ -41,7 +41,7 @@ func loadTest_canDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			session := openSessionMust(t, store)
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.QueryType(reflect.TypeOf(&User{}))
 			count, err := q.Count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)

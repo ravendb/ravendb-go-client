@@ -177,7 +177,7 @@ func query_queryMapReduceWithCount(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q := session.QueryType(reflect.TypeOf(&User{}))
+		q := session.QueryOld(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
@@ -281,7 +281,7 @@ func query_querySingleProperty(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingType_LONG)
 		q = q.SelectFields(reflect.TypeOf(int(0)), "age")
 		ages, err := q.ToListOld()
@@ -445,7 +445,7 @@ func query_queryWithWhereGreaterThanOrEqual(t *testing.T, driver *RavenTestDrive
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereGreaterThanOrEqual("age", 3)
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -470,7 +470,7 @@ func query_queryWithProjection(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q = q.SelectFields(reflect.TypeOf(&UserProjection{}))
 		var projections []*UserProjection
 		err := q.ToList(&projections)
@@ -497,7 +497,7 @@ func query_queryWithProjection2(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q = q.SelectFields(reflect.TypeOf(&UserProjection{}), "lastName")
 		var projections []*UserProjection
 		err := q.ToList(&projections)
@@ -524,7 +524,7 @@ func query_queryDistinct(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q = q.SelectFields(reflect.TypeOf(""), "name")
 		q = q.Distinct()
 		uniqueNames, err := q.ToListOld()
@@ -548,7 +548,7 @@ func query_querySearchWithOr(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var uniqueNames []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperator_OR)
 		err := q.ToList(&uniqueNames)
 		assert.NoError(t, err)
@@ -569,7 +569,7 @@ func query_queryNoTracking(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.NoTracking()
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -595,7 +595,7 @@ func query_querySkipTake(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.OrderBy("name")
 		q = q.Skip(2)
 		q = q.Take(1)
@@ -670,7 +670,7 @@ func query_queryLucene(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereLucene("name", "Tarzan")
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -696,7 +696,7 @@ func query_queryWhereExact(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var users []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereEquals("name", "tarzan")
 			err := q.ToList(&users)
 			assert.NoError(t, err)
@@ -706,7 +706,7 @@ func query_queryWhereExact(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var users []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereEquals("name", "tarzan").Exact()
 			err := q.ToList(&users)
 			assert.NoError(t, err)
@@ -716,7 +716,7 @@ func query_queryWhereExact(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var users []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereEquals("name", "Tarzan").Exact()
 			err := q.ToList(&users)
 			assert.NoError(t, err)
@@ -739,7 +739,7 @@ func query_queryWhereNot(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.Not()
 			q = q.WhereEquals("name", "tarzan")
 			err := q.ToList(&res)
@@ -751,7 +751,7 @@ func query_queryWhereNot(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereNotEquals("name", "tarzan")
 			err := q.ToList(&res)
 
@@ -762,7 +762,7 @@ func query_queryWhereNot(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereNotEquals("name", "Tarzan").Exact()
 			err := q.ToList(&res)
 
@@ -939,7 +939,7 @@ func query_queryRandomOrder(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{})).RandomOrdering()
+			q := session.Query().RandomOrdering()
 			err := q.ToList(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
@@ -947,7 +947,7 @@ func query_queryRandomOrder(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{})).RandomOrderingWithSeed("123")
+			q := session.Query().RandomOrderingWithSeed("123")
 			err := q.ToList(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
@@ -967,7 +967,7 @@ func query_queryWhereExists(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereExists("name")
 			err := q.ToList(&res)
 			assert.NoError(t, err)
@@ -976,7 +976,7 @@ func query_queryWhereExists(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q := session.QueryOld(reflect.TypeOf(&User{}))
+			q := session.Query()
 			q = q.WhereExists("name")
 			q = q.AndAlso()
 			q = q.Not()
@@ -999,7 +999,7 @@ func query_queryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(5)
 		q = q.OrElse()
@@ -1018,7 +1018,7 @@ func query_queryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		assert.True(t, stringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
 		users = nil
-		q = session.QueryOld(reflect.TypeOf(&User{}))
+		q = session.Query()
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(2)
 		q = q.OrElse()
