@@ -62,7 +62,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 		queryIndex := &ravendb.Query{
 			IndexName: "SpatialIdx",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.Statistics(&statsRef)
 		q = q.WhereLessThanOrEqual("date", addYears(now, 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
@@ -146,7 +146,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 		queryIndex := &ravendb.Query{
 			IndexName: "SpatialIdx",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.Statistics(&queryStats)
 		q = q.OpenSubclause()
 		q = q.WhereGreaterThanOrEqual("capacity", 0)
@@ -219,7 +219,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T,
 		queryIndex := &ravendb.Query{
 			IndexName: "spatialIdx",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
@@ -242,7 +242,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T,
 		queryIndex := &ravendb.Query{
 			IndexName: "spatialIdx",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Event{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)

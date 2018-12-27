@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -102,7 +101,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T,
 		queryIndex := &ravendb.Query{
 			IndexName: "FindByLatLng",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
@@ -112,7 +111,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T,
 		radius := float64(5.0)
 
 		var nearbyDocs []*DummyGeoDoc
-		q = session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), queryIndex)
+		q = session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOf("coordinates", radius, lat, lng)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&nearbyDocs)
@@ -156,7 +155,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 		queryIndex := &ravendb.Query{
 			IndexName: "FindByLatLng",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&notUsed)
 		assert.NoError(t, err)
@@ -167,7 +166,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 		// We should find both my house and the gym.
 
 		var matchesWithinMiles []*DummyGeoDoc
-		q = session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), queryIndex)
+		q = session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnitsMiles)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&matchesWithinMiles)
@@ -178,7 +177,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 		// We should find only my house, since the gym is ~11 kilometers out.
 
 		var matchesWithinKilometers []*DummyGeoDoc
-		q = session.QueryWithQueryOld(reflect.TypeOf(&DummyGeoDoc{}), queryIndex)
+		q = session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnitsKilometers)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&matchesWithinKilometers)

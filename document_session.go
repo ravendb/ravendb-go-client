@@ -590,12 +590,9 @@ func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrInde
 	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.IndexName, "", false)
 }
 
+// QueryWithQuery creaates a query with given query arguments
 func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *DocumentQuery {
-	if stringIsNotEmpty(collectionOrIndexName.Collection) {
-		return s.DocumentQueryAll("", collectionOrIndexName.Collection, false)
-	}
-
-	return s.DocumentQueryAll(collectionOrIndexName.IndexName, "", false)
+	return s.DocumentQueryAll(collectionOrIndexName.IndexName, collectionOrIndexName.Collection, false)
 }
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type

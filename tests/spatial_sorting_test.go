@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -110,7 +109,7 @@ func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQu
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLng",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			res := f.Within(getQueryShapeFromLatLon(FILTERED_LAT, FILTERED_LNG, FILTERED_RADIUS))
 			return res
@@ -151,7 +150,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLng",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
 
 		err := q.ToList(&shops)
@@ -178,7 +177,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLngWSpecialField",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
 		err := q.ToList(&shops)
 		assert.NoError(t, err)
@@ -204,7 +203,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLng",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		err := q.ToList(&shops)
 
@@ -224,7 +223,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLng",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDistanceDescendingLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
 		err := q.ToList(&shops)
 
@@ -252,7 +251,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, d
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLngWSpecialField",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		err := q.ToList(&shops)
 
@@ -272,7 +271,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, d
 		queryIndex := &ravendb.Query{
 			IndexName: "eventsByLatLngWSpecialField",
 		}
-		q := session.QueryWithQueryOld(reflect.TypeOf(&Shop{}), queryIndex)
+		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDistanceDescendingLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
 		err := q.ToList(&shops)
 
