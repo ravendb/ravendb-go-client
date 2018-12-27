@@ -31,7 +31,6 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		q3 := q2.GroupBy("lines[].product")
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "productName")
 		q2 = q3.SelectCount()
-		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -68,7 +67,6 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("shipTo.country", "country")
 		q2 = q3.SelectCount()
-		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -107,7 +105,6 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantity")
 		q2 = q3.SelectCount()
-		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -190,7 +187,6 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
-		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -229,7 +225,6 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
-		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -269,7 +264,6 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantities")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
-		q2 = q2.OfType(reflect.TypeOf(&ProductCount{}))
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 

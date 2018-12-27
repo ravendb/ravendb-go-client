@@ -177,13 +177,11 @@ func query_queryMapReduceWithCount(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
 		q = q.OrderByDescending("count")
-		// TODO: OfType is not needed. See https://github.com/ravendb/ravendb-go-client/issues/95
-		q = q.OfType(reflect.TypeOf(&ReduceResult{}))
 		err := q.ToList(&results)
 		assert.NoError(t, err)
 
@@ -221,7 +219,6 @@ func query_queryMapReduceWithSum(t *testing.T, driver *RavenTestDriver) {
 		}
 		q = q2.SelectSum(f)
 		q = q.OrderByDescending("age")
-		q = q.OfType(reflect.TypeOf(&ReduceResult{}))
 		err := q.ToList(&results)
 		assert.NoError(t, err)
 

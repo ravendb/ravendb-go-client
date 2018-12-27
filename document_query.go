@@ -358,6 +358,7 @@ func (q *DocumentQuery) RandomOrderingWithSeed(seed string) *DocumentQuery {
 
 //TBD 4.1  IDocumentQuery<T> customSortUsing(string typeName, bool descending)
 
+// GroupBy makes a query grouped by fields
 func (q *DocumentQuery) GroupBy(fieldName string, fieldNames ...string) *IGroupByDocumentQuery {
 	q._groupBy(fieldName, fieldNames...)
 
@@ -370,10 +371,7 @@ func (q *DocumentQuery) GroupBy2(field *GroupBy, fields ...*GroupBy) *IGroupByDo
 	return NewGroupByDocumentQuery(q)
 }
 
-func (q *DocumentQuery) OfType(tResultClass reflect.Type) *IDocumentQuery {
-	return q.createDocumentQueryInternal(tResultClass)
-}
-
+// OrderBy makes a query ordered by a given field
 func (q *DocumentQuery) OrderBy(field string) *IDocumentQuery {
 	return q.OrderByWithOrdering(field, OrderingType_STRING)
 }
