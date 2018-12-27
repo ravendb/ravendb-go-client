@@ -1401,10 +1401,6 @@ func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 	}
 }
 
-func (q *AbstractDocumentQuery) GetQueryOperation() *QueryOperation {
-	return q.queryOperation
-}
-
 func (q *AbstractDocumentQuery) _addBeforeQueryExecutedListener(action func(*IndexQuery)) int {
 	q.beforeQueryExecutedCallback = append(q.beforeQueryExecutedCallback, action)
 	return len(q.beforeQueryExecutedCallback) - 1
@@ -1695,6 +1691,7 @@ func (q *AbstractDocumentQuery) ToList(results interface{}) error {
 	return q.executeQueryOperation(results, 0)
 }
 
+// First runs a query and returns a first result.
 func (q *AbstractDocumentQuery) First(result interface{}) error {
 	if result == nil {
 		return fmt.Errorf("result can't be nil")
@@ -1714,17 +1711,27 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 	return nil
 }
 
-func (q *AbstractDocumentQuery) Single() (interface{}, error) {
-	result, err := q.executeQueryOperationOld(2)
+// Single runs a query that expects only a single result.
+// If there is more than one result, it retuns IllegalStateError.
+func (q *AbstractDocumentQuery) Single(result interface{}) error {
+	if result == nil {
+		return fmt.Errorf("result can't be nil")
+	}
+	q.setClazzFromResult(result)
+
+	// TODO: use executeQueryOperation by making []q.clazz
+	results, err := q.executeQueryOperationOld(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if len(result) > 1 {
-		return nil, newIllegalStateError("Expected single result, got: %d", len(result))
+	if len(results) > 1 {
+		return newIllegalStateError("Expected single result, got: %d", len(results))
 	}
 
-	return result[0], nil
+	res := results[0]
+	setInterfaceToValue(result, res)
+	return nil
 }
 
 func (q *AbstractDocumentQuery) Count() (int, error) {

@@ -902,13 +902,22 @@ func query_queryFirst(t *testing.T, driver *RavenTestDriver) {
 		assert.NotNil(t, first)
 		assert.Equal(t, first.ID, "users/1")
 
-		single, err := session.QueryOld(reflect.TypeOf(&User{})).WhereEquals("name", "Tarzan").Single()
-		assert.NoError(t, err)
-		assert.NotNil(t, single)
+		{
+			var single *User
+			q := session.Query().WhereEquals("name", "Tarzan")
+			err = q.Single(&single)
+			assert.NoError(t, err)
+			assert.NotNil(t, single)
+			assert.Equal(t, *single.Name, "Tarzan")
+		}
 
-		q := session.QueryOld(reflect.TypeOf(&User{}))
-		_, err = q.Single()
-		_ = err.(*ravendb.IllegalStateError)
+		{
+			var single *User
+			q := session.Query()
+			err = q.Single(&single)
+			assert.Nil(t, single)
+			_ = err.(*ravendb.IllegalStateError)
+		}
 
 		session.Close()
 	}

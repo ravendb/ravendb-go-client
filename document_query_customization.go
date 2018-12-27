@@ -11,7 +11,7 @@ type DocumentQueryCustomization struct {
 
 // GetQueryOperation returns raw query operation that will be sent to the server
 func (d *DocumentQueryCustomization) GetQueryOperation() *QueryOperation {
-	return d.query.GetQueryOperation()
+	return d.query.queryOperation
 }
 
 // AddBeforeQueryExecutedListener allows you to modify index query before it's executed
