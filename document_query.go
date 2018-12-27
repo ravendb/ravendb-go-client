@@ -5,16 +5,22 @@ import (
 	"time"
 )
 
+// TODO: remove those interfaces
 type IDocumentQueryBase = DocumentQuery
-
 type IDocumentQueryBaseSingle = DocumentQuery
-
 type IDocumentQuery = DocumentQuery
-
 type IFilterDocumentQueryBase = DocumentQuery
 
+// DocumentQuery describes a query
 type DocumentQuery struct {
 	*AbstractDocumentQuery
+}
+
+// NewDocumentQuery returns new DocumentQuery
+func NewDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
+	return &DocumentQuery{
+		AbstractDocumentQuery: NewAbstractDocumentQuery(session, indexName, collectionName, isGroupBy, nil, nil, ""),
+	}
 }
 
 func NewDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
@@ -29,6 +35,7 @@ func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentS
 	}
 }
 
+// SelectFields select fields in a query
 func (q *DocumentQuery) SelectFields(projectionClass reflect.Type, fields ...string) *DocumentQuery {
 	if len(fields) > 0 {
 		queryData := NewQueryData(fields, fields)
@@ -40,20 +47,25 @@ func (q *DocumentQuery) SelectFields(projectionClass reflect.Type, fields ...str
 	return q.SelectFieldsWithQueryData(projectionClass, NewQueryData(newFields, projections))
 }
 
+// SelectFieldsWithQueryData selects fields in query
 func (q *DocumentQuery) SelectFieldsWithQueryData(projectionClass reflect.Type, queryData *QueryData) *DocumentQuery {
 	return q.createDocumentQueryInternalWithQueryData(projectionClass, queryData)
 }
 
+// Distinct marks query as distinct
 func (q *DocumentQuery) Distinct() *DocumentQuery {
 	q._distinct()
 	return q
 }
 
+// OrderByScore orders results of the query by score
 func (q *DocumentQuery) OrderByScore() *DocumentQuery {
 	q._orderByScore()
 	return q
 }
 
+// OrderByScoreDescending orders results of the query by score
+// in descending order
 func (q *DocumentQuery) OrderByScoreDescending() *DocumentQuery {
 	q._orderByScoreDescending()
 	return q

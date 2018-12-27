@@ -547,13 +547,21 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
-	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
+	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 
+// RawQuery returns new DocumentQuery representing a raw query
 func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
 	return NewRawDocumentQuery(s.InMemoryDocumentSessionOperations, query)
+}
+
+// Query return a new DocumentQuery
+func (s *DocumentSession) Query() *DocumentQuery {
+	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
+	// we delay setting clazz, indexName and collectionName until TolList()
+	return NewDocumentQuery(s.InMemoryDocumentSessionOperations, "", "", false)
 }
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type

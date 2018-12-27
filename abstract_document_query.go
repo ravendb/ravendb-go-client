@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -121,6 +122,7 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 	return res
 }
 
+// NewAbstractDocumentQuery returns new AbstractDocumentQuery
 func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
 		defaultOperator:          QueryOperator_AND,
@@ -134,7 +136,11 @@ func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexN
 		queryParameters:          make(map[string]interface{}),
 		queryStats:               NewQueryStatistics(),
 	}
-	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
+	// if those are not provided, we delay creating fromToken
+	// until ToList()
+	if indexName != "" || collectionName != "" || fromAlias != "" {
+		res.fromToken = createFromToken(indexName, collectionName, fromAlias)
+	}
 	f := func(queryResult *QueryResult) {
 		res.UpdateStatsAndHighlightings(queryResult)
 	}
@@ -1627,8 +1633,45 @@ func (q *AbstractDocumentQuery) ToListOld() ([]interface{}, error) {
 	return q.executeQueryOperationOld(0)
 }
 
+// given *[]*struct return type of *struct
+func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
+	badTypeErr := fmt.Errorf("expected value of type *[]*struct, got %T", results)
+	rt := reflect.TypeOf(results)
+	if rt.Kind() != reflect.Ptr {
+		return nil, badTypeErr
+	}
+	rt = rt.Elem()
+	if rt.Kind() != reflect.Slice {
+		return nil, badTypeErr
+	}
+	rt = rt.Elem()
+	if rt.Kind() != reflect.Ptr {
+		return nil, badTypeErr
+	}
+	return rt, nil
+}
+
 // ToList returns results of the query as *[]*struct
 func (q *AbstractDocumentQuery) ToList(results interface{}) error {
+	if results == nil {
+		return fmt.Errorf("results can't be nil")
+	}
+
+	if q.clazz == nil {
+		// query was created without providing the type to query
+		panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
+		panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
+		panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
+		clazz, err := getTypeFromQueryResults(results)
+		if err != nil {
+			return err
+		}
+		q.clazz = clazz
+		s := q.theSession
+		indexName, collectionName := s.processQueryParameters(clazz, "", "", s.GetConventions())
+		q.fromToken = createFromToken(indexName, collectionName, "")
+	}
+
 	return q.executeQueryOperationNew(results, 0)
 }
 

@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -63,7 +62,7 @@ func customSerialization_testSerialization(t *testing.T, driver *RavenTestDriver
 		session := openSessionMust(t, store)
 
 		var productsForTwoDollars []*Product3
-		q := session.QueryOld(reflect.TypeOf(&Product3{}))
+		q := session.Query()
 		q = q.WhereEquals("price", NewMoney(2, Dollar))
 		err := q.ToList(&productsForTwoDollars)
 		assert.NoError(t, err)
