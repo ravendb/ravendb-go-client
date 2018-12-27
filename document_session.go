@@ -545,7 +545,11 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
-// TODO: convert to use result interface{} instead of clazz reflect.Type
+func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
+	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
+	return NewDocumentQuery(s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
+}
+
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
@@ -577,13 +581,21 @@ func (s *DocumentSession) QueryType(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
-// TODO: convert to use result interface{} instead of clazz reflect.Type
+// TODO: remove
 func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
 	if stringIsNotEmpty(collectionOrIndexName.Collection) {
 		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.Collection, false)
 	}
 
 	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.IndexName, "", false)
+}
+
+func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *DocumentQuery {
+	if stringIsNotEmpty(collectionOrIndexName.Collection) {
+		return s.DocumentQueryAll("", collectionOrIndexName.Collection, false)
+	}
+
+	return s.DocumentQueryAll(collectionOrIndexName.IndexName, "", false)
 }
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type

@@ -1675,17 +1675,14 @@ func (q *AbstractDocumentQuery) ToList(results interface{}) error {
 
 	if q.clazz == nil {
 		// query was created without providing the type to query
-		panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
-		panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
-		panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
 		var err error
 		q.clazz, err = getTypeFromQueryResults(results)
 		if err != nil {
 			return err
 		}
 		s := q.theSession
-		indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
-		q.fromToken = createFromToken(indexName, collectionName, "")
+		q.indexName, q.collectionName = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
+		q.fromToken = createFromToken(q.indexName, q.collectionName, "")
 	}
 
 	return q.executeQueryOperation(results, 0)
