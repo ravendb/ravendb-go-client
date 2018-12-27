@@ -1,10 +1,9 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,8 +68,7 @@ func suggestions_exactMatch(t *testing.T, driver *RavenTestDriver) {
 		options.PageSize = 10
 
 		queryIndex := &ravendb.Query{
-			Collection: "user4s",
-			IndexName:  "test",
+			IndexName: "test",
 		}
 		q := session.QueryWithQuery(queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
@@ -95,8 +93,7 @@ func suggestions_usingLinq(t *testing.T, driver *RavenTestDriver) {
 		s := openSessionMust(t, store)
 
 		queryIndex := &ravendb.Query{
-			Collection: "user4s",
-			IndexName:  "test",
+			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
@@ -124,10 +121,8 @@ func suggestions_usingLinq_WithOptions(t *testing.T, driver *RavenTestDriver) {
 
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.4
-		tp := reflect.TypeOf(&User4{})
 		queryIndex := &ravendb.Query{
-			Collection: ravendb.DefaultGetCollectionName(tp),
-			IndexName:  "test",
+			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
@@ -190,8 +185,7 @@ func suggestions_withTypo(t *testing.T, driver *RavenTestDriver) {
 		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
 
 		queryIndex := &ravendb.Query{
-			Collection: "user4s",
-			IndexName:  "test",
+			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
@@ -275,7 +269,7 @@ func suggestions_canGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 		options.Distance = ravendb.StringDistanceTypes_JARO_WINKLER
 		options.SortMode = ravendb.SuggestionSortMode_POPULARITY
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&User4{}), index)
+		q := session.QueryInIndex(index)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "johne", "davi").WithOptions(options)
 		}
@@ -300,10 +294,10 @@ func TestSuggestions(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	//suggestions_canGetSuggestions(t, driver)
+	suggestions_canGetSuggestions(t, driver)
 	suggestions_usingLinq_Multiple_words(t, driver)
-	//suggestions_withTypo(t, driver)
-	//suggestions_usingLinq(t, driver)
-	//suggestions_usingLinq_WithOptions(t, driver)
-	//suggestions_exactMatch(t, driver)
+	suggestions_withTypo(t, driver)
+	suggestions_usingLinq(t, driver)
+	suggestions_usingLinq_WithOptions(t, driver)
+	suggestions_exactMatch(t, driver)
 }

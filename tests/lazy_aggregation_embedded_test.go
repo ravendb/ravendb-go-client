@@ -1,10 +1,9 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +44,7 @@ func lazyAggregationEmbeddedLazy_test(t *testing.T, driver *RavenTestDriver) {
 		index.Execute(store)
 		driver.waitForIndexing(store, "", 0)
 
-		q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), index)
+		q := session.QueryInIndex(index)
 		builder := func(f ravendb.IFacetBuilder) {
 			f.ByField("AssigneeID").WithDisplayName("AssigneeID")
 		}
