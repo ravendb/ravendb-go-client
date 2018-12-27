@@ -177,11 +177,12 @@ func query_queryMapReduceWithCount(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
 		q = q.OrderByDescending("count")
+		// TODO: OfType is not needed. See https://github.com/ravendb/ravendb-go-client/issues/95
 		q = q.OfType(reflect.TypeOf(&ReduceResult{}))
 		err := q.ToList(&results)
 		assert.NoError(t, err)
@@ -212,7 +213,7 @@ func query_queryMapReduceWithSum(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.QueryType(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		f := &ravendb.GroupByField{
@@ -330,7 +331,7 @@ func query_queryWithWhereIn(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereIn("name", []interface{}{"Tarzan", "no_such"})
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -351,7 +352,7 @@ func query_queryWithWhereBetween(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereBetween("age", 4, 5)
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -375,7 +376,7 @@ func query_queryWithWhereLessThan(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereLessThan("age", 3)
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -399,7 +400,7 @@ func query_queryWithWhereLessThanOrEqual(t *testing.T, driver *RavenTestDriver) 
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereLessThanOrEqual("age", 3)
 		err := q.ToList(&users)
 		assert.NoError(t, err)
@@ -420,7 +421,7 @@ func query_queryWithWhereGreaterThan(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
+		q := session.Query()
 		q = q.WhereGreaterThan("age", 3)
 		err := q.ToList(&users)
 		assert.NoError(t, err)
