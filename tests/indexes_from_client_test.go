@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
@@ -215,7 +214,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T, driver *Raven
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.QueryInIndexOld(reflect.TypeOf(&User{}), usersByName)
+		q := session.QueryInIndex(usersByName)
 		q = q.WaitForNonStaleResults(0)
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
@@ -497,7 +496,7 @@ func indexesFromClientTest_moreLikeThis(t *testing.T, driver *RavenTestDriver) {
 		options.SetMinimumTermFrequency(0)
 
 		var list []*Post
-		q := session.QueryInIndexOld(reflect.TypeOf(&Post{}), Posts_ByTitleAndDesc())
+		q := session.QueryInIndex(Posts_ByTitleAndDesc())
 
 		fn1 := func(x *ravendb.IFilterDocumentQueryBase) {
 			x.WhereEquals("id()", "posts/1")
