@@ -1714,18 +1714,6 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 	return nil
 }
 
-// TODO: consider removing. It's not very useful in Go
-func (q *AbstractDocumentQuery) FirstOrDefault() (interface{}, error) {
-	result, err := q.executeQueryOperationOld(1)
-	if err != nil {
-		return nil, err
-	}
-	if len(result) == 0 {
-		return getDefaultValueForType(q.clazz), nil
-	}
-	return result[0], nil
-}
-
 func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 	result, err := q.executeQueryOperationOld(2)
 	if err != nil {
@@ -1736,21 +1724,6 @@ func (q *AbstractDocumentQuery) Single() (interface{}, error) {
 		return nil, newIllegalStateError("Expected single result, got: %d", len(result))
 	}
 
-	return result[0], nil
-}
-
-func (q *AbstractDocumentQuery) SingleOrDefault() (interface{}, error) {
-	result, err := q.executeQueryOperationOld(2)
-	if err != nil {
-		return nil, err
-	}
-	if len(result) > 1 {
-		return nil, newIllegalStateError("Expected single result, got: %d", len(result))
-	}
-
-	if len(result) == 0 {
-		return getDefaultValueForType(q.clazz), nil
-	}
 	return result[0], nil
 }
 
