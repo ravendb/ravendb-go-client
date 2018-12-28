@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -88,7 +87,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T, driver *
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Event{}), index)
+		q := session.Advanced().DocumentQueryInIndex(index)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.WithinRadius(5, 38.9103000, -77.3942)
 		}

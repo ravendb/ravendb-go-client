@@ -540,11 +540,6 @@ func (s *DocumentSession) DocumentQueryInIndex(index *AbstractIndexCreationTask)
 }
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
-func (s *DocumentSession) DocumentQueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAllOld(clazz, index.GetIndexName(), "", index.IsMapReduce())
-}
-
-// TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
@@ -605,7 +600,7 @@ func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *Docume
 
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryInIndexOld(clazz, index)
+	return s.DocumentQueryAllOld(clazz, index.GetIndexName(), "", index.IsMapReduce())
 }
 
 func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
