@@ -1,10 +1,9 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,8 +35,7 @@ func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDri
 	{
 		session := openSessionMust(t, store)
 
-		// TODO: does it matter what type we send?
-		q := session.QueryInIndexOld(reflect.TypeOf(&GeoDocument{}), index)
+		q := session.QueryInIndex(index)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.RelatesToShape("LINESTRING (1 0, 1 1, 1 2)", ravendb.SpatialRelation_INTERSECTS)
 		}
@@ -48,8 +46,7 @@ func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDri
 
 		assert.Equal(t, count, 1)
 
-		// TODO: does it matter what type we send?
-		q = session.QueryInIndexOld(reflect.TypeOf(&GeoDocument{}), index)
+		q = session.QueryInIndex(index)
 		q = q.RelatesToShape("WKT", "LINESTRING (1 0, 1 1, 1 2)", ravendb.SpatialRelation_INTERSECTS)
 		q = q.WaitForNonStaleResults(0)
 		count, err = q.Count()
@@ -91,7 +88,7 @@ func simonBartlett_circlesShouldNotIntersect(t *testing.T, driver *RavenTestDriv
 		session := openSessionMust(t, store)
 
 		// Should not intersect, as there is 1 Degree between the two shapes
-		q := session.QueryInIndexOld(reflect.TypeOf(&GeoDocument{}), index)
+		q := session.QueryInIndex(index)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.RelatesToShape("CIRCLE(0.000000 3.000000 d=110)", ravendb.SpatialRelation_INTERSECTS)
 		}
@@ -104,7 +101,7 @@ func simonBartlett_circlesShouldNotIntersect(t *testing.T, driver *RavenTestDriv
 
 		assert.Equal(t, count, 0)
 
-		q = session.QueryInIndexOld(reflect.TypeOf(&GeoDocument{}), index)
+		q = session.QueryInIndex(index)
 		q = q.RelatesToShape("WKT", "CIRCLE(0.000000 3.000000 d=110)", ravendb.SpatialRelation_INTERSECTS)
 		q = q.WaitForNonStaleResults(0)
 		count, err = q.Count()
