@@ -62,7 +62,7 @@ func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T, driver *RavenTestD
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 	}
 
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
+	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
 
 func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTestDriver) {
@@ -134,7 +134,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, d
 		session := openSessionMust(t, store)
 		options := ravendb.NewMoreLikeThisOptions()
 		options.Fields = []string{"body"}
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", id)
@@ -174,7 +174,7 @@ func moreLikeThis_canGetResultsUsingStorage(t *testing.T, driver *RavenTestDrive
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 	}
 
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
+	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
 
 func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *RavenTestDriver) {
@@ -198,7 +198,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *
 		id = session.Advanced().GetDocumentID(list[0])
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 	}
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, id)
+	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
 
 func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T, driver *RavenTestDriver) {
@@ -223,7 +223,7 @@ func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T, driver *RavenTestD
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 
 	}
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, reflect.TypeOf(&Data{}), dataIndex, store, key)
+	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, key)
 }
 
 func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) {
@@ -252,7 +252,7 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) 
 
 	{
 		session := openSessionMust(t, store)
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", key)
@@ -298,7 +298,7 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *R
 		v2 := 5
 		options.MinimumDocumentFrequency = &v2
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", key1)
@@ -333,7 +333,7 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *R
 	{
 		session := openSessionMust(t, store)
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", key2)
@@ -382,7 +382,7 @@ func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T, driver *RavenTestDriv
 		options.Fields = []string{"body"}
 		options.SetMinimumDocumentFrequency(2)
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", key)
@@ -435,7 +435,7 @@ func moreLikeThis_can_Use_Boost_Param(t *testing.T, driver *RavenTestDriver) {
 		options.SetMinimumTermFrequency(2)
 		options.SetBoost(true)
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", key)
@@ -501,7 +501,7 @@ func moreLikeThis_can_Use_Stop_Words(t *testing.T, driver *RavenTestDriver) {
 		options.SetMinimumDocumentFrequency(1)
 		options.SetStopWordsDocumentID("Config/Stopwords")
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", key)
@@ -545,7 +545,7 @@ func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestD
 		options.SetMinimumTermFrequency(1)
 		options.SetMinimumDocumentFrequency(1)
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			o := f.UsingDocument("{ \"body\": \"A test\" }")
 			o.WithOptions(options)
@@ -592,7 +592,7 @@ func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.
 		options.SetMinimumTermFrequency(1)
 		options.SetMinimumDocumentFrequency(1)
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&ComplexData{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			o := f.UsingDocument("{ \"Property\": { \"Body\": \"test\" } }")
 			o.WithOptions(options)
@@ -605,23 +605,24 @@ func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.
 	}
 }
 
-func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, clazz reflect.Type, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
+func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
 	session := openSessionMust(t, store)
 
 	options := ravendb.NewMoreLikeThisOptions()
 	options.Fields = []string{"body"}
 
-	q := session.QueryInIndexOld(clazz, index)
+	q := session.QueryInIndex(index)
 	fn1 := func(b *ravendb.IFilterDocumentQueryBase) {
 		b.WhereEquals("id()", documentKey)
 	}
 	fn2 := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 		f.UsingDocumentWithBuilder(fn1).WithOptions(options)
 	}
+	var data []*Data
 	q = q.MoreLikeThisWithBuilder(fn2)
-	list, err := q.ToListOld()
+	err := q.ToList(&data)
 	assert.NoError(t, err)
-	assert.True(t, len(list) > 0)
+	assert.True(t, len(data) > 0)
 
 	session.Close()
 }
