@@ -26,11 +26,11 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		err = q.ToList(&productCounts1)
 		assert.NoError(t, err)
 
-		var productCounts2 []*ProductCount
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy("lines[].product")
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "productName")
 		q2 = q3.SelectCount()
+		var productCounts2 []*ProductCount
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -181,12 +181,12 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		err = q.ToList(&productCounts1)
 		assert.NoError(t, err)
 
-		var productCounts2 []*ProductCount
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
+		var productCounts2 []*ProductCount
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -219,12 +219,12 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		err = q.ToList(&productCounts1)
 		assert.NoError(t, err)
 
-		var productCounts2 []*ProductCount
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"), ravendb.GroupBy_field("shipTo.country"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
+		var productCounts2 []*ProductCount
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
@@ -257,13 +257,13 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		err = q.ToList(&productCounts1)
 		assert.NoError(t, err)
 
-		var productCounts2 []*ProductCount
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.GroupBy_array("lines[].product"), ravendb.GroupBy_array("lines[].quantity"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantities")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
+		var productCounts2 []*ProductCount
 		err = q2.ToList(&productCounts2)
 		assert.NoError(t, err)
 
