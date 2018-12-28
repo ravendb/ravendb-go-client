@@ -37,8 +37,8 @@ func query_querySimple(t *testing.T, driver *RavenTestDriver) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
+		q := session.Advanced().DocumentQueryAll("", "users", false)
 		var queryResult []*User
-		q := session.Advanced().DocumentQueryAllOld(reflect.TypeOf(&User{}), "", "users", false)
 		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 3)
@@ -1128,11 +1128,11 @@ func query_queryWithCustomize(t *testing.T, driver *RavenTestDriver) {
 	{
 		newSession := openSessionMust(t, store)
 
-		var queryResult []*DogsIndex_Result
-		q := newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q := newSession.Advanced().DocumentQueryAll("DogsIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
 		q = q.OrderByWithOrdering("name", ravendb.OrderingType_ALPHA_NUMERIC)
 		q = q.WhereGreaterThan("age", 2)
+		var queryResult []*DogsIndex_Result
 		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 
@@ -1280,9 +1280,9 @@ func query_queryLongRequest(t *testing.T, driver *RavenTestDriver) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		var queryResult []*User
-		q := newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&User{}), "", "Users", false)
+		q := newSession.Advanced().DocumentQueryAll("", "Users", false)
 		q = q.WhereEquals("name", longName)
+		var queryResult []*User
 		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 1)
@@ -1315,11 +1315,11 @@ func query_queryByIndex(t *testing.T, driver *RavenTestDriver) {
 	{
 		newSession := openSessionMust(t, store)
 
-		var queryResult []*DogsIndex_Result
-		q := newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q := newSession.Advanced().DocumentQueryAll("DogsIndex", "", false)
 		q = q.WhereGreaterThan("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
+		var queryResult []*DogsIndex_Result
 		err := q.ToList(&queryResult)
 		assert.NoError(t, err)
 
@@ -1327,11 +1327,11 @@ func query_queryByIndex(t *testing.T, driver *RavenTestDriver) {
 		r := queryResult[0]
 		assert.Equal(t, r.Name, "Brian")
 
-		var queryResult2 []*DogsIndex_Result
-		q = newSession.Advanced().DocumentQueryAllOld(reflect.TypeOf(&DogsIndex_Result{}), "DogsIndex", "", false)
+		q = newSession.Advanced().DocumentQueryAll("DogsIndex", "", false)
 		q = q.WhereLessThanOrEqual("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
+		var queryResult2 []*DogsIndex_Result
 		err = q.ToList(&queryResult2)
 		assert.NoError(t, err)
 

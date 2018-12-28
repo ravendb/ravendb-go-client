@@ -80,16 +80,15 @@ func (c *DocumentConventions) Freeze() {
 }
 
 func (c *DocumentConventions) GetCollectionName(entityOrClazz interface{}) string {
-	return DefaultGetCollectionName(entityOrClazz)
+	return GetCollectionNameForType(entityOrClazz)
 }
 
 func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 	return c._throwIfQueryPageSizeIsNotSet
 }
 
-func DefaultGetCollectionName(entityOrClazz interface{}) string {
-	// TODO: caching
-	name := GetShortTypeNameName(entityOrClazz)
+func GetCollectionNameForType(entityOrClazz interface{}) string {
+	name := getShortTypeNameName(entityOrClazz)
 	return inflect.ToPlural(name)
 }
 
@@ -159,7 +158,7 @@ func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
 
 // returns "" if no identity property
 func (c *DocumentConventions) GetIdentityProperty(clazz reflect.Type) string {
-	return GetIdentityProperty(clazz)
+	return getIdentityProperty(clazz)
 }
 
 func (c *DocumentConventions) GetDocumentIDGenerator() DocumentIDGeneratorFunc {

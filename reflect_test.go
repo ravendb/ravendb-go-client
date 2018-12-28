@@ -20,9 +20,9 @@ func TestTypeName(t *testing.T) {
 	assert.Equal(t, "ravendb.FooStruct", name)
 	name = GetFullTypeName(&v)
 	assert.Equal(t, "ravendb.FooStruct", name)
-	name = GetShortTypeNameName(v)
+	name = getShortTypeNameName(v)
 	assert.Equal(t, "FooStruct", name)
-	name = GetShortTypeNameName(&v)
+	name = getShortTypeNameName(&v)
 	assert.Equal(t, "FooStruct", name)
 }
 
@@ -63,11 +63,11 @@ func TestIsStructy(t *testing.T) {
 }
 
 func TestGetIdentityProperty(t *testing.T) {
-	got := GetIdentityProperty(reflect.TypeOf(""))
+	got := getIdentityProperty(reflect.TypeOf(""))
 	assert.Equal(t, "", got)
-	got = GetIdentityProperty(reflect.TypeOf(User{}))
+	got = getIdentityProperty(reflect.TypeOf(User{}))
 	assert.Equal(t, "ID", got)
-	got = GetIdentityProperty(reflect.TypeOf(&User{}))
+	got = getIdentityProperty(reflect.TypeOf(&User{}))
 	assert.Equal(t, "ID", got)
 
 	{
@@ -75,7 +75,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			Id string
 		}{}
-		got = GetIdentityProperty(reflect.TypeOf(v))
+		got = getIdentityProperty(reflect.TypeOf(v))
 		assert.Equal(t, "", got)
 	}
 
@@ -84,7 +84,7 @@ func TestGetIdentityProperty(t *testing.T) {
 		v := struct {
 			ID int
 		}{}
-		got = GetIdentityProperty(reflect.TypeOf(v))
+		got = getIdentityProperty(reflect.TypeOf(v))
 		assert.Equal(t, "", got)
 	}
 

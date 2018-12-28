@@ -35,7 +35,7 @@ func GetFullTypeName(v interface{}) string {
 // Note: this emulates Java's operator over-loading to support
 // GefaultGetCollectionName.
 // We should have separate functions for reflect.Type and regular value
-func GetShortTypeNameName(v interface{}) string {
+func getShortTypeNameName(v interface{}) string {
 	var typ reflect.Type
 	var ok bool
 	if typ, ok = v.(reflect.Type); ok {
@@ -54,7 +54,7 @@ func GetShortTypeNameName(v interface{}) string {
 }
 
 // identity property is field of type string with name ID
-func GetIdentityProperty(typ reflect.Type) string {
+func getIdentityProperty(typ reflect.Type) string {
 	for typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
