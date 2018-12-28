@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func attachmentsRevisions_putAttachments(t *testing.T, driver *RavenTestDriver) {
+func attachmentsRevisionsPutAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -142,7 +142,7 @@ func attachmentsRevisions_putAttachments(t *testing.T, driver *RavenTestDriver) 
 	}
 }
 
-func attachmentsRevisions_attachmentRevision(t *testing.T, driver *RavenTestDriver) {
+func attachmentsRevisionsAttachmentRevision(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -362,6 +362,6 @@ func TestAttachmentsRevisions(t *testing.T) {
 	}
 
 	// matches order of Java tests
-	attachmentsRevisions_putAttachments(t, driver)
-	attachmentsRevisions_attachmentRevision(t, driver)
+	attachmentsRevisionsPutAttachments(t, driver)
+	attachmentsRevisionsAttachmentRevision(t, driver)
 }

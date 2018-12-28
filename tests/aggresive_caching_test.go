@@ -26,7 +26,7 @@ func initAggressiveCaching(t *testing.T, driver *RavenTestDriver) *ravendb.Docum
 	return store
 }
 
-func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T, driver *RavenTestDriver) {
+func aggressiveCachingCanAggressivelyCacheLoads404(t *testing.T, driver *RavenTestDriver) {
 	defer disableLogFailedRequests()()
 
 	store := initAggressiveCaching(t, driver)
@@ -50,7 +50,7 @@ func aggressiveCaching_canAggressivelyCacheLoads_404(t *testing.T, driver *Raven
 	store.Close()
 }
 
-func aggressiveCaching_canAggressivelyCacheLoads(t *testing.T, driver *RavenTestDriver) {
+func aggressiveCachingCanAggressivelyCacheLoads(t *testing.T, driver *RavenTestDriver) {
 	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
@@ -70,7 +70,7 @@ func aggressiveCaching_canAggressivelyCacheLoads(t *testing.T, driver *RavenTest
 	assert.Equal(t, currNo, 1+oldNumOfRequests)
 }
 
-func aggressiveCaching_canAggressivelyCacheQueries(t *testing.T, driver *RavenTestDriver) {
+func aggressiveCachingCanAggressivelyCacheQueries(t *testing.T, driver *RavenTestDriver) {
 	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
@@ -92,7 +92,7 @@ func aggressiveCaching_canAggressivelyCacheQueries(t *testing.T, driver *RavenTe
 	assert.Equal(t, currNo, 1+oldNumOfRequests)
 }
 
-func aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t *testing.T, driver *RavenTestDriver) {
+func aggressiveCachingWaitForNonStaleResultsIgnoresAggressiveCaching(t *testing.T, driver *RavenTestDriver) {
 	store := initAggressiveCaching(t, driver)
 	requestExecutor := store.GetRequestExecutor()
 
@@ -123,8 +123,8 @@ func TestAggressiveCaching(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	aggressiveCaching_canAggressivelyCacheQueries(t, driver)
-	aggressiveCaching_waitForNonStaleResultsIgnoresAggressiveCaching(t, driver)
-	aggressiveCaching_canAggressivelyCacheLoads(t, driver)
-	aggressiveCaching_canAggressivelyCacheLoads_404(t, driver)
+	aggressiveCachingCanAggressivelyCacheQueries(t, driver)
+	aggressiveCachingWaitForNonStaleResultsIgnoresAggressiveCaching(t, driver)
+	aggressiveCachingCanAggressivelyCacheLoads(t, driver)
+	aggressiveCachingCanAggressivelyCacheLoads404(t, driver)
 }

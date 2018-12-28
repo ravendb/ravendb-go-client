@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func NewOrders_All() *ravendb.AbstractIndexCreationTask {
+func NewOrdersAll() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("Orders_All")
 	res.Map = "docs.AggOrders.Select(order => new { order.currency,\n" +
 		"                          order.product,\n" +
@@ -37,11 +37,12 @@ const (
 )
 
 func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDriver) {
+
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	index := NewOrders_All()
+	index := NewOrdersAll()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -114,12 +115,12 @@ func getFirstFacetValueOfRange(values []*ravendb.FacetValue, rang string) *raven
 	return nil
 }
 
-func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T, driver *RavenTestDriver) {
+func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	index := NewOrders_All()
+	index := NewOrdersAll()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -199,12 +200,12 @@ func aggregation_canCorrectlyAggregate_MultipleItems(t *testing.T, driver *Raven
 	}
 }
 
-func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T, driver *RavenTestDriver) {
+func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	index := NewOrders_All()
+	index := NewOrdersAll()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -271,12 +272,12 @@ func aggregation_canCorrectlyAggregate_MultipleAggregations(t *testing.T, driver
 	}
 }
 
-func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T, driver *RavenTestDriver) {
+func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	index := NewOrders_All()
+	index := NewOrdersAll()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -339,12 +340,12 @@ func aggregation_canCorrectlyAggregate_DisplayName(t *testing.T, driver *RavenTe
 	}
 }
 
-func aggregation_canCorrectlyAggregate_Ranges(t *testing.T, driver *RavenTestDriver) {
+func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	index := NewOrders_All()
+	index := NewOrdersAll()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -467,12 +468,12 @@ func addMinutes(t ravendb.Time, nMinutes int) ravendb.Time {
 	return ravendb.Time(t2)
 }
 
-func aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t *testing.T, driver *RavenTestDriver) {
+func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
-	index := NewItemsOrders_All()
+	index := NewItemsOrdersAll()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -553,7 +554,7 @@ type ItemsOrder struct {
 	At    ravendb.Time `json:"at"`
 }
 
-func NewItemsOrders_All() *ravendb.AbstractIndexCreationTask {
+func NewItemsOrdersAll() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("ItemsOrders_All")
 	res.Map = "docs.ItemsOrders.Select(order => new { order.at,\n" +
 		"                          order.items })"
@@ -569,9 +570,9 @@ func TestAggregation(t *testing.T) {
 
 	// matches order of Java tests
 	aggregation_canCorrectlyAggregate_Double(t, driver)
-	aggregation_canCorrectlyAggregate_Ranges(t, driver)
-	aggregation_canCorrectlyAggregate_MultipleItems(t, driver)
-	aggregation_canCorrectlyAggregate_MultipleAggregations(t, driver)
-	aggregation_canCorrectlyAggregate_DateTimeDataType_WithRangeCounts(t, driver)
-	aggregation_canCorrectlyAggregate_DisplayName(t, driver)
+	aggregationCanCorrectlyAggregateRanges(t, driver)
+	aggregationCanCorrectlyAggregateMultipleItems(t, driver)
+	aggregationCanCorrectlyAggregateMultipleAggregations(t, driver)
+	aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t, driver)
+	aggregationCanCorrectlyAggregateDisplayName(t, driver)
 }

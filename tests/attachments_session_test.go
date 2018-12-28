@@ -3,16 +3,16 @@ package tests
 import (
 	"bytes"
 	"io/ioutil"
+	"runtime"
 	"sort"
 	"strconv"
 	"testing"
-	"runtime"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
-func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionPutAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -82,7 +82,7 @@ func attachmentsSession_putAttachments(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionThrowIfStreamIsUseTwice(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -111,7 +111,7 @@ func attachmentsSession_throwIfStreamIsUseTwice(t *testing.T, driver *RavenTestD
 	}
 }
 
-func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionThrowWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -139,7 +139,7 @@ func attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t *testi
 	}
 }
 
-func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionPutDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -167,7 +167,7 @@ func attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t *testing.
 	}
 }
 
-func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionDeleteAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -262,7 +262,7 @@ func attachmentsSession_deleteAttachments(t *testing.T, driver *RavenTestDriver)
 	}
 }
 
-func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionDeleteAttachmentsUsingCommand(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -327,7 +327,7 @@ func attachmentsSession_deleteAttachmentsUsingCommand(t *testing.T, driver *Rave
 	}
 }
 
-func attachmentsSession_getAttachmentReleasesResources(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionGetAttachmentReleasesResources(t *testing.T, driver *RavenTestDriver) {
 	count := 30
 	var err error
 	store := getDocumentStoreMust(t, driver)
@@ -367,7 +367,7 @@ func attachmentsSession_getAttachmentReleasesResources(t *testing.T, driver *Rav
 	}
 }
 
-func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionDeleteDocumentAndThanItsAttachmentsThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -412,7 +412,7 @@ func attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldB
 	}
 }
 
-func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionDeleteDocumentByCommandAndThanItsAttachmentsThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -451,7 +451,7 @@ func attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpB
 	}
 }
 
-func attachmentsSession_getAttachmentNames(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionGetAttachmentNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -498,7 +498,7 @@ func attachmentsSession_getAttachmentNames(t *testing.T, driver *RavenTestDriver
 	}
 }
 
-func attachmentsSession_attachmentExists(t *testing.T, driver *RavenTestDriver) {
+func attachmentsSessionAttachmentExists(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -555,15 +555,15 @@ func TestAttachmentsSession(t *testing.T) {
 	}
 
 	// matches order of Java tests
-	attachmentsSession_putAttachments(t, driver)
-	attachmentsSession_putDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
-	attachmentsSession_getAttachmentNames(t, driver)
-	attachmentsSession_deleteDocumentByCommandAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
-	attachmentsSession_deleteAttachments(t, driver)
-	attachmentsSession_attachmentExists(t, driver)
-	attachmentsSession_throwWhenTwoAttachmentsWithTheSameNameInSession(t, driver)
-	attachmentsSession_deleteDocumentAndThanItsAttachments_ThisIsNoOpButShouldBeSupported(t, driver)
-	attachmentsSession_throwIfStreamIsUseTwice(t, driver)
-	attachmentsSession_getAttachmentReleasesResources(t, driver)
-	attachmentsSession_deleteAttachmentsUsingCommand(t, driver)
+	attachmentsSessionPutAttachments(t, driver)
+	attachmentsSessionPutDocumentAndAttachmentAndDeleteShouldThrow(t, driver)
+	attachmentsSessionGetAttachmentNames(t, driver)
+	attachmentsSessionDeleteDocumentByCommandAndThanItsAttachmentsThisIsNoOpButShouldBeSupported(t, driver)
+	attachmentsSessionDeleteAttachments(t, driver)
+	attachmentsSessionAttachmentExists(t, driver)
+	attachmentsSessionThrowWhenTwoAttachmentsWithTheSameNameInSession(t, driver)
+	attachmentsSessionDeleteDocumentAndThanItsAttachmentsThisIsNoOpButShouldBeSupported(t, driver)
+	attachmentsSessionThrowIfStreamIsUseTwice(t, driver)
+	attachmentsSessionGetAttachmentReleasesResources(t, driver)
+	attachmentsSessionDeleteAttachmentsUsingCommand(t, driver)
 }

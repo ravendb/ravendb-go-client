@@ -17,7 +17,7 @@ type CustomType struct {
 	Date     time.Time `json:"date"`
 }
 
-func advancedPatching_testWithVariables(t *testing.T, driver *RavenTestDriver) {
+func advancedPatchingTestWithVariables(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -57,7 +57,7 @@ func advancedPatching_testWithVariables(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, driver *RavenTestDriver) {
+func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
 	store := getDocumentStoreMust(t, driver)
@@ -130,6 +130,6 @@ func TestAdvancedPatching(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	advancedPatching_testWithVariables(t, driver)
-	advancedPatching_canCreateDocumentsIfPatchingAppliedByIndex(t, driver)
+	advancedPatchingTestWithVariables(t, driver)
+	advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t, driver)
 }
