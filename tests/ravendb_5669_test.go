@@ -1,10 +1,9 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +22,7 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T, driver *R
 		session := openSessionMust(t, store)
 
 		var results []*Animal
-		query := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Animal{}), index)
+		query := session.Advanced().DocumentQueryInIndex(index)
 
 		query.OpenSubclause()
 
@@ -57,8 +56,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T, driver *RavenTestDriver)
 	{
 		session := openSessionMust(t, store)
 
-		var results []*Animal
-		query := session.Advanced().DocumentQueryInIndexOld(reflect.TypeOf(&Animal{}), index)
+		query := session.Advanced().DocumentQueryInIndex(index)
 
 		query.OpenSubclause()
 
@@ -74,6 +72,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T, driver *RavenTestDriver)
 
 		query.CloseSubclause()
 
+		var results []*Animal
 		err = query.ToList(&results)
 		assert.NoError(t, err)
 		assert.Equal(t, len(results), 1)

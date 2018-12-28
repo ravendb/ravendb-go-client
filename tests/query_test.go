@@ -855,7 +855,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var orders []*Order
-			q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), NewOrderTime())
+			q := session.QueryInIndex(NewOrderTime())
 			q = q.WhereLessThan("delay", time.Hour*3)
 			err := q.ToList(&orders)
 			assert.NoError(t, err)
@@ -871,7 +871,7 @@ func query_queryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var orders []*Order
-			q := session.QueryInIndexOld(reflect.TypeOf(&Order{}), NewOrderTime())
+			q := session.QueryInIndex(NewOrderTime())
 			q = q.WhereGreaterThan("delay", time.Hour*3)
 			err := q.ToList(&orders)
 			assert.NoError(t, err)
