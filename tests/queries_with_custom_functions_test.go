@@ -1,10 +1,9 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,24 +48,23 @@ func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T, driver *RavenTes
 	{
 		session := openSessionMust(t, store)
 
-		var users []*User
-		q := session.Advanced().DocumentQueryOld(reflect.TypeOf(&User{}))
+		q := session.Advanced().DocumentQuery()
 		q = q.WhereEquals("name", ravendb.CmpXchgValue("Hera"))
 		q = q.WhereEquals("lastName", ravendb.CmpXchgValue("Tom"))
 
-		query := q.GetIndexQuery().GetQuery()
-		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
-
+		var users []*User
 		err = q.ToList(&users)
 		assert.NoError(t, err)
-
 		assert.Equal(t, len(users), 1)
 
 		user := users[0]
 		assert.Equal(t, *user.Name, "Zeus")
 
+		query := q.GetIndexQuery().GetQuery()
+		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
+
 		users = nil
-		q = session.Advanced().DocumentQueryOld(reflect.TypeOf(&User{}))
+		q = session.Advanced().DocumentQuery()
 		q = q.WhereNotEquals("name", ravendb.CmpXchgValue("Hera"))
 		err = q.ToList(&users)
 		assert.NoError(t, err)

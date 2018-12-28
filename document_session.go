@@ -539,6 +539,10 @@ func (s *DocumentSession) DocumentQueryInIndex(index *AbstractIndexCreationTask)
 	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
 }
 
+func (s *DocumentSession) DocumentQuery() *DocumentQuery {
+	return s.DocumentQueryAll("", "", false)
+}
+
 // TODO: convert to use result interface{} instead of clazz reflect.Type
 func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)

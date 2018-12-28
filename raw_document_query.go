@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"reflect"
 	"time"
 )
 
@@ -9,13 +8,6 @@ type IRawDocumentQuery = RawDocumentQuery
 
 type RawDocumentQuery struct {
 	*AbstractDocumentQuery
-}
-
-func NewRawDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, rawQuery string) *RawDocumentQuery {
-	res := &RawDocumentQuery{}
-	res.AbstractDocumentQuery = NewAbstractDocumentQueryOld(clazz, session, "", "", false, nil, nil, "")
-	res.queryRaw = rawQuery
-	return res
 }
 
 func NewRawDocumentQuery(session *InMemoryDocumentSessionOperations, rawQuery string) *RawDocumentQuery {
