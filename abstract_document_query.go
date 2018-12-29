@@ -1822,7 +1822,7 @@ func (q *AbstractDocumentQuery) LazilyWithOnEval(onEval func(interface{})) *Lazy
 	lazyQueryOperation := NewLazyQueryOperation(q.clazz, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
 
 	at := reflect.SliceOf(q.clazz)
-	return q.theSession.session.addLazyOperation(at, lazyQueryOperation, onEval)
+	return q.theSession.session.addLazyOperationOld(at, lazyQueryOperation, onEval)
 }
 
 func (q *AbstractDocumentQuery) CountLazily() *Lazy {

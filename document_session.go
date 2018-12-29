@@ -209,7 +209,7 @@ func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
-func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
+func (s *DocumentSession) addLazyOperationOld(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
 	fn := func() (interface{}, error) {
@@ -218,7 +218,7 @@ func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOp
 			return nil, err
 		}
 		res := operation.getResult()
-		return s.getOperationResult(clazz, res)
+		return s.getOperationResultOld(clazz, res)
 	}
 	lazyValue := NewLazy(fn)
 	if onEval != nil {
@@ -226,7 +226,7 @@ func (s *DocumentSession) addLazyOperation(clazz reflect.Type, operation ILazyOp
 			s.onEvaluateLazy = map[ILazyOperation]func(interface{}){}
 		}
 		fn := func(theResult interface{}) {
-			res, _ := s.getOperationResult(clazz, theResult)
+			res, _ := s.getOperationResultOld(clazz, theResult)
 			onEval(res)
 		}
 		s.onEvaluateLazy[operation] = fn
@@ -271,7 +271,7 @@ func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type, ids []string, inc
 
 	at := reflect.MapOf(stringType, clazz)
 
-	return s.addLazyOperation(at, lazyOp, onEval)
+	return s.addLazyOperationOld(at, lazyOp, onEval)
 }
 
 func (s *DocumentSession) Load(result interface{}, id string) error {

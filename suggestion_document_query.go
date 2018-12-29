@@ -66,7 +66,7 @@ func (q *SuggestionDocumentQuery) ExecuteLazy(onEval func(v interface{})) *Lazy 
 	}
 
 	op := NewLazySuggestionQueryOperation(q._session.Conventions, q._query, afterFn, processFn)
-	return q._session.session.addLazyOperation(clazz, op, onEval)
+	return q._session.session.addLazyOperationOld(clazz, op, onEval)
 }
 
 func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {

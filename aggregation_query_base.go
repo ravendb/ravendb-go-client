@@ -50,7 +50,7 @@ func (q *AggregationQueryBase) ExecuteLazy(onEval func(interface{})) *Lazy {
 	}
 	op := NewLazyAggregationQueryOperation(q._session.Conventions, q._query, afterFn, processResultFn)
 	clazz := reflect.TypeOf(map[string]*FacetResult{})
-	return q._session.session.addLazyOperation(clazz, op, onEval)
+	return q._session.session.addLazyOperationOld(clazz, op, onEval)
 }
 
 /*

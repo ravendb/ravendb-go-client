@@ -1147,7 +1147,7 @@ func isMapStringToPtrStruct(t reflect.Type) bool {
 	return isPtrStruct(t.Elem())
 }
 
-func (s *InMemoryDocumentSessionOperations) getOperationResult(clazz reflect.Type, result interface{}) (interface{}, error) {
+func (s *InMemoryDocumentSessionOperations) getOperationResultOld(clazz reflect.Type, result interface{}) (interface{}, error) {
 	// result is map[string]interface{}, where interface{} is ptr-to-struct
 	// clazz describes what type the caller wanted ([]*struct, map[string]*struct or *struct)
 	// this converts result to type of clazz

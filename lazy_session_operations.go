@@ -39,7 +39,7 @@ func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(
 	session := o.delegate.InMemoryDocumentSessionOperations
 	op := NewLoadOperation(session).byID(id)
 	lazyLoadOperation := NewLazyLoadOperation(clazz, session, op).byID(id)
-	return o.delegate.addLazyOperation(clazz, lazyLoadOperation, onEval)
+	return o.delegate.addLazyOperationOld(clazz, lazyLoadOperation, onEval)
 }
 
 // LoadStartingWith returns Lazy object for lazily loading multiple value
@@ -49,7 +49,7 @@ func (o *LazySessionOperations) LoadStartingWith(clazz reflect.Type, args *Start
 	operation := NewLazyStartsWithOperation(clazz, args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
 
 	t := reflect.MapOf(stringType, clazz)
-	return o.delegate.addLazyOperation(t, operation, nil)
+	return o.delegate.addLazyOperationOld(t, operation, nil)
 }
 
 // LoadMulti returns Lazy object for lazily loading multiple values
