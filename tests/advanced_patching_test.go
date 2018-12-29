@@ -1,11 +1,10 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -96,7 +95,7 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 	{
 		session := openSessionMust(t, store)
 		var notUsed []*CustomType
-		q := session.Advanced().DocumentQueryAllOld(reflect.TypeOf(&CustomType{}), "TestIndex", "", false)
+		q := session.Advanced().DocumentQueryAll("TestIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
 		err = q.ToList(&notUsed)
 		assert.NoError(t, err)

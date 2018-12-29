@@ -11,7 +11,7 @@ $Env:LOG_ALL_REQUESTS = "true"
 $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
 
-$wd = Join-Path "$PSScriptRoot" ".."
+$wd = Join-Path $PSScriptRoot ".."
 $ravdir = Join-Path $wd "RavenDB" "Server"
 
 if ($IsMacOS) {
@@ -28,6 +28,6 @@ if ($IsMacOS) {
 
 go clean -testcache
 
-#go.exe test -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
+#go test -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-go test -v -race -timeout 50s ./tests -run ^TestAggregation$
+go test -v -race -timeout 50s ./tests -run ^TestAdvancedPatching$
