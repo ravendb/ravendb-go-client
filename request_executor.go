@@ -1100,12 +1100,12 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 	if response != nil && response.Body != nil {
 		responseJson, err := ioutil.ReadAll(response.Body)
 		if err == nil {
-			var schema ExceptionSchema
+			var schema exceptionSchema
 			jsonUnmarshal(responseJson, &schema)
 			readException := exceptionDispatcherGet(&schema, response.StatusCode)
 			failedNodes[chosenNode] = readException
 		} else {
-			exceptionSchema := &ExceptionSchema{
+			exceptionSchema := &exceptionSchema{
 				URL:     request.URL.String(),
 				Type:    "Unparsable Server Response",
 				Message: "Get unrecognized response from the server",
@@ -1122,7 +1122,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 		// TODO: not sure if this is needed or a sign of a buf
 		e = newRavenError("")
 	}
-	exceptionSchema := &ExceptionSchema{
+	exceptionSchema := &exceptionSchema{
 		URL:     request.URL.String(),
 		Type:    fmt.Sprintf("%T", e),
 		Message: e.Error(),

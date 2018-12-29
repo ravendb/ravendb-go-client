@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func exceptionDispatcherGet(schema *ExceptionSchema, code int) error {
+func exceptionDispatcherGet(schema *exceptionSchema, code int) error {
 	return exceptionDispatcherGet2(schema.Message, schema.Error, schema.Type, code)
 }
 
@@ -36,7 +36,7 @@ func exceptionDispatcherThrowError(response *http.Response) error {
 			return newRavenError("%s", err.Error())
 		}
 	}
-	var schema ExceptionSchema
+	var schema exceptionSchema
 	if len(d) > 0 {
 		jsonUnmarshal(d, &schema)
 		if response.StatusCode == http.StatusConflict {
@@ -50,14 +50,14 @@ func exceptionDispatcherThrowError(response *http.Response) error {
 	return newRavenError("exceptionDispatcherThrowError: http response exception")
 }
 
-func exceptionDispatcherThrowConflict(schema *ExceptionSchema, js string) error {
+func exceptionDispatcherThrowConflict(schema *exceptionSchema, js string) error {
 	if strings.Contains(schema.Type, "DocumentConflictError") {
 		return newDocumentConflictErrorFromJSON(js)
 	}
 	return newConcurrencyError("%s", schema.Message)
 }
 
-type ExceptionSchema struct {
+type exceptionSchema struct {
 	URL     string `json:"Url"`
 	Type    string `json:"Type"`
 	Message string `json:"Message"`
