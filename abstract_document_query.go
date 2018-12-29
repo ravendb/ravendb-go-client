@@ -1695,16 +1695,24 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 	}
 	q.setClazzFromResult(result)
 
-	// TODO: use executeQueryOperation by making []q.clazz
-	results, err := q.executeQueryOperationOld(1)
+	tp := reflect.TypeOf(result)
+	// **struct => *struct
+	if tp.Kind() == reflect.Ptr && tp.Elem().Kind() == reflect.Ptr {
+		tp = tp.Elem()
+	}
+	// create a pointer to a slice. executeQueryOperation creates the actual slice
+	sliceType := reflect.SliceOf(tp)
+	slicePtr := reflect.New(sliceType)
+	err := q.executeQueryOperation(slicePtr.Interface(), 1)
 	if err != nil {
 		return err
 	}
-	if len(results) == 0 {
+	slice := slicePtr.Elem()
+	if slice.Len() < 1 {
 		return nil
 	}
-	res := results[0]
-	setInterfaceToValue(result, res)
+	el := slice.Index(0)
+	setInterfaceToValue(result, el.Interface())
 	return nil
 }
 
@@ -1774,7 +1782,7 @@ func (q *AbstractDocumentQuery) executeQueryOperation(results interface{}, take 
 		return err
 	}
 
-	return q.queryOperation.completeNew(results)
+	return q.queryOperation.complete(results)
 }
 
 func (q *AbstractDocumentQuery) executeQueryOperationOld(take int) ([]interface{}, error) {

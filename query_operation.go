@@ -87,7 +87,7 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 	return o._session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o._session.GetDatabaseName())
 }
 
-func (o *QueryOperation) completeNew(results interface{}) error {
+func (o *QueryOperation) complete(results interface{}) error {
 	queryResult := o.currentQueryResults.createSnapshot()
 
 	if !o.disableEntitiesTracking {
