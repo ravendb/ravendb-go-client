@@ -899,11 +899,13 @@ func query_queryFirst(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		var first *User
-		err = session.Query().First(&first)
-		assert.NoError(t, err)
-		assert.NotNil(t, first)
-		assert.Equal(t, first.ID, "users/1")
+		{
+			var first *User
+			err = session.Query().First(&first)
+			assert.NoError(t, err)
+			assert.NotNil(t, first)
+			assert.Equal(t, first.ID, "users/1")
+		}
 
 		{
 			var single *User
