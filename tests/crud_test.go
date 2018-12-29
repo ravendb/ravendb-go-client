@@ -56,8 +56,8 @@ func crudTest_entitiesAreSavedUsingLowerCase(t *testing.T, driver *RavenTestDriv
 	assert.NoError(t, err)
 
 	result := documentsCommand.Result
-	userJson := result.Results[0]
-	_, exists := userJson["lastName"]
+	userJSON := result.Results[0]
+	_, exists := userJSON["lastName"]
 	assert.True(t, exists)
 
 	{

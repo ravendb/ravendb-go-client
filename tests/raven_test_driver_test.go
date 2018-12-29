@@ -589,6 +589,9 @@ func detectServerPath() {
 
 func maybePrintFailedRequestsLog() {
 	if ravendb.LogFailedRequests && logFailedRequestsDelayed {
+		ravendb.LogsLock()
+		defer ravendb.LogsUnlock()
+
 		buf := ravendb.HTTPFailedRequestsLogger.(*bytes.Buffer)
 		os.Stdout.Write(buf.Bytes())
 		buf.Reset()
