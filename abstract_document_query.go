@@ -1737,7 +1737,6 @@ func (q *AbstractDocumentQuery) Single(result interface{}) error {
 		return err
 	}
 	slice := slicePtr.Elem()
-	fmt.Printf("Single: len: %d\n", slice.Len())
 	if slice.Len() > 1 {
 		return newIllegalStateError("Expected single result, got: %d", slice.Len())
 	}
@@ -1758,14 +1757,26 @@ func (q *AbstractDocumentQuery) Count() (int, error) {
 	return queryResult.TotalResults, nil
 }
 
+// Any returns true if query returns at least one result
+// TODO: write tests
 func (q *AbstractDocumentQuery) Any() (bool, error) {
 	if q.isDistinct() {
 		// for distinct it is cheaper to do count 1
-		res, err := q.executeQueryOperationOld(1)
+
+		tp := q.clazz
+		// **struct => *struct
+		if tp.Kind() == reflect.Ptr && tp.Elem().Kind() == reflect.Ptr {
+			tp = tp.Elem()
+		}
+		// create a pointer to a slice. executeQueryOperation creates the actual slice
+		sliceType := reflect.SliceOf(tp)
+		slicePtr := reflect.New(sliceType)
+		err := q.executeQueryOperation(slicePtr.Interface(), 1)
 		if err != nil {
 			return false, err
 		}
-		return len(res) > 0, nil
+		slice := slicePtr.Elem()
+		return slice.Len() > 0, nil
 	}
 
 	{
