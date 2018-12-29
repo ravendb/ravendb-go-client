@@ -10,7 +10,7 @@ import (
 
 func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -76,7 +76,7 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 
 func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -121,7 +121,7 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 
 func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -155,7 +155,7 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 
 func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

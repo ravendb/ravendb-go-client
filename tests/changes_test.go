@@ -77,7 +77,7 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 }
 
 func changesTestSingleDocumentChanges(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 	changesTestSingleDocumentChangesCommon(t, store)
 }
@@ -95,7 +95,7 @@ func changesTestChangesWithHttps(t *testing.T, driver *RavenTestDriver) {
 func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -171,7 +171,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 
 func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
@@ -214,7 +214,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 
 func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
@@ -256,7 +256,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 
 func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	semaphore := make(chan bool, 1)
@@ -283,7 +283,7 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 
 func changesTestResourcesCleanup(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := makeUsersByNameIndex()

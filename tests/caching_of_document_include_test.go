@@ -19,7 +19,7 @@ type User5 struct {
 
 func cofiCanCacheDocumentWithIncludes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -75,7 +75,7 @@ func cofiCanCacheDocumentWithIncludes(t *testing.T, driver *RavenTestDriver) {
 
 func cofiCanvAoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheAsync(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -126,7 +126,7 @@ func cofiCanvAoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheAsync(
 
 func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -178,7 +178,7 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 
 func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCache(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -228,7 +228,7 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCache(t *te
 
 func cofiCanAvoidUsingServerForMultiloadWithIncludeIfEverythingIsInSessionCache(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

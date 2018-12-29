@@ -28,4 +28,4 @@ go clean -testcache
 
 #go test -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-go test -v -race -timeout 50s ./tests -run ^TestAdvancedPatching$
+go test -v -race -timeout 50s ./tests -run ^TestQuery$

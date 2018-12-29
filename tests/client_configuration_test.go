@@ -8,7 +8,7 @@ import (
 )
 
 func clientConfigurationCanHandleNoConfiguration(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	operation := ravendb.NewGetClientConfigurationOperation()
@@ -20,7 +20,7 @@ func clientConfigurationCanHandleNoConfiguration(t *testing.T, driver *RavenTest
 }
 
 func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	configurationToSave := &ravendb.ClientConfiguration{

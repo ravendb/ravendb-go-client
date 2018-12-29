@@ -97,7 +97,7 @@ func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string
 
 func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	spatialSorting_createData(t, driver, store)
@@ -138,7 +138,7 @@ func getShopIDs(shops []*Shop) []string {
 }
 
 func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	spatialSorting_createData(t, driver, store)
@@ -165,7 +165,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *
 }
 
 func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	spatialSorting_createData(t, driver, store)
@@ -191,7 +191,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 }
 
 func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	spatialSorting_createData(t, driver, store)
@@ -239,7 +239,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 }
 
 func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	spatialSorting_createData(t, driver, store)

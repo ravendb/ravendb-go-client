@@ -9,7 +9,7 @@ import (
 
 func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -65,7 +65,7 @@ func nextAndSeedIdentitiesTest_nextIdentityFor(t *testing.T, driver *RavenTestDr
 
 func nextAndSeedIdentitiesTest_seedIdentityFor(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

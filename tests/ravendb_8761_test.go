@@ -10,7 +10,7 @@ import (
 
 func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	ravendb_8761_putDocs(t, store)
@@ -135,7 +135,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 
 func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	ravendb_8761_putDocs(t, store)

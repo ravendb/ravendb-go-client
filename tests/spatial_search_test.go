@@ -22,7 +22,7 @@ func NewSpatialIdx() *ravendb.AbstractIndexCreationTask {
 
 func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	err = NewSpatialIdx().Execute(store)
@@ -77,7 +77,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 
 func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewSpatialIdx()
@@ -106,7 +106,7 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T, driver *
 
 func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewSpatialIdx()
@@ -172,7 +172,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 
 func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewSpatialIdx()

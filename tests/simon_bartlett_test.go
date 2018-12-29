@@ -9,7 +9,7 @@ import (
 
 func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewGeoIndex()
@@ -60,7 +60,7 @@ func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDri
 
 func simonBartlett_circlesShouldNotIntersect(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewGeoIndex()

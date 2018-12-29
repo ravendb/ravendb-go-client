@@ -17,7 +17,7 @@ type Product struct {
 
 func hiloTestCapacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	hiLoIdGenerator := ravendb.NewHiLoIDGenerator("users", store, store.GetDatabase(), store.GetConventions().GetIdentityPartsSeparator())
@@ -76,7 +76,7 @@ func hiloTestCapacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 
 func hiloTestReturnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	newStore := ravendb.NewDocumentStore()
@@ -135,7 +135,7 @@ func hiloTestReturnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 
 func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	session := openSessionMust(t, store)
@@ -174,7 +174,7 @@ func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 
 func hiloTestMultiDb(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	session := openSessionMust(t, store)

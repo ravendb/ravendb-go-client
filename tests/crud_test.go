@@ -36,7 +36,7 @@ type Poc struct {
 
 func crudTestEntitiesAreSavedUsingLowerCase(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -79,7 +79,7 @@ func crudTestCanCustomizePropertyNamingStrategy(t *testing.T, driver *RavenTestD
 
 func crudTestCrudOperations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -151,7 +151,7 @@ func crudTestCrudOperations(t *testing.T, driver *RavenTestDriver) {
 
 func crudTestCrudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -239,7 +239,7 @@ func crudTestCrudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDriver
 
 func crudTestCrudOperationsWithArrayInObject(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -265,7 +265,7 @@ func crudTestCrudOperationsWithArrayInObject(t *testing.T, driver *RavenTestDriv
 
 func crudTestCrudOperationsWithArrayInObject2(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -296,7 +296,7 @@ func crudTestCrudOperationsWithArrayInObject2(t *testing.T, driver *RavenTestDri
 
 func crudTestCrudOperationsWithArrayInObject3(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -323,7 +323,7 @@ func crudTestCrudOperationsWithArrayInObject3(t *testing.T, driver *RavenTestDri
 
 func crudTestCrudOperationsWithArrayInObject4(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -350,7 +350,7 @@ func crudTestCrudOperationsWithArrayInObject4(t *testing.T, driver *RavenTestDri
 
 func crudTestCrudOperationsWithNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -377,7 +377,7 @@ func crudTestCrudOperationsWithNull(t *testing.T, driver *RavenTestDriver) {
 
 func crudTestCrudOperationsWithArrayOfObjects(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -522,7 +522,7 @@ func crudTestCrudOperationsWithArrayOfObjects(t *testing.T, driver *RavenTestDri
 
 func crudTestCrudOperationsWithArrayOfArrays(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -632,7 +632,7 @@ func crudTestCrudOperationsWithArrayOfArrays(t *testing.T, driver *RavenTestDriv
 
 func crudTestCrudCanUpdatePropertyToNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -671,7 +671,7 @@ func crudTestCrudCanUpdatePropertyToNull(t *testing.T, driver *RavenTestDriver) 
 
 func crudTestCrudCanUpdatePropertyFromNullToObject(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

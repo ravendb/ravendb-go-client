@@ -9,7 +9,7 @@ import (
 
 func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewAnimal_Index()
@@ -44,7 +44,7 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T, driver *R
 
 func ravendb5669_workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewAnimal_Index()

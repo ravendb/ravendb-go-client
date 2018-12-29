@@ -55,7 +55,7 @@ func NewMyIndex() *ravendb.AbstractIndexCreationTask {
 
 func spatial_weirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -110,7 +110,7 @@ func spatial_weirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 
 func spatial_matchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

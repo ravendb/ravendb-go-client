@@ -10,7 +10,7 @@ import (
 
 func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -26,7 +26,7 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T, dri
 
 func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -73,7 +73,7 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T, driver
 
 func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

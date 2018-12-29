@@ -10,7 +10,7 @@ import (
 
 func loadTest_loadCanUseCache(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -46,7 +46,7 @@ func loadTest_loadCanUseCache(t *testing.T, driver *RavenTestDriver) {
 
 func loadTest_loadDocumentById(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -74,7 +74,7 @@ func loadTest_loadDocumentById(t *testing.T, driver *RavenTestDriver) {
 
 func loadTest_loaddocumentsByIDs(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -106,7 +106,7 @@ func loadTest_loaddocumentsByIDs(t *testing.T, driver *RavenTestDriver) {
 
 func loadTest_loadNullShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -139,7 +139,7 @@ func loadTest_loadNullShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 
 func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -177,7 +177,7 @@ func loadTest_loadMultiIdsWithNullShouldReturnDictionaryWithoutNulls(t *testing.
 
 func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -225,7 +225,7 @@ func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T, driver *RavenTe
 
 func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	var ids []string
@@ -265,7 +265,7 @@ func loadTest_shouldLoadManyIdsAsPostRequest(t *testing.T, driver *RavenTestDriv
 
 func loadTest_loadStartsWith(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

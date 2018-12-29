@@ -10,7 +10,7 @@ import (
 
 func documentStreamingCanStreamDocumentsStartingWith(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -53,7 +53,7 @@ func documentStreamingCanStreamDocumentsStartingWith(t *testing.T, driver *Raven
 
 func documentStreamingStreamWithoutIterationDoesntLeakConnection(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

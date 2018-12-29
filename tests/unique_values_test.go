@@ -10,7 +10,7 @@ import (
 
 func uniqueValues_canReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -24,7 +24,7 @@ func uniqueValues_canReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
 
 func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -53,7 +53,7 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDrive
 func uniqueValues_canPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -75,7 +75,7 @@ func uniqueValues_canPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 
 func uniqueValues_canPutMultiDifferentValues(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -107,7 +107,7 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T, driver *RavenTestDriv
 
 func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -152,7 +152,7 @@ func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) 
 
 func uniqueValues_canRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -174,7 +174,7 @@ func uniqueValues_canRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 
 func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -205,7 +205,7 @@ func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 
 func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -249,7 +249,7 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T, driver
 
 func uniqueValues_canGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

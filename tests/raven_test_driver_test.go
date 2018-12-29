@@ -373,6 +373,13 @@ func (d *RavenTestDriver) setGlobalServerProcess(secured bool, p *Process) {
 	}
 }
 
+func (d *RavenTestDriver) getDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
+	store, err := d.getDocumentStore()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+	return store
+}
+
 func (d *RavenTestDriver) Close() {
 	if d.disposed {
 		return
@@ -404,10 +411,7 @@ func isEnvVarTrue(name string) bool {
 }
 
 func getDocumentStoreMust(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
-	store, err := driver.getDocumentStore()
-	assert.NoError(t, err)
-	assert.NotNil(t, store)
-	return store
+	return driver.getDocumentStoreMust(t)
 }
 
 func getSecuredDocumentStoreMust(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {

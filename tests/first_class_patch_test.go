@@ -52,7 +52,7 @@ func firstClassPatchCanPatch(t *testing.T, driver *RavenTestDriver) {
 	user.Stuff = stuff
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -116,7 +116,7 @@ func firstClassPatchCanPatchAndModify(t *testing.T, driver *RavenTestDriver) {
 	user.Numbers = []int{66}
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -157,7 +157,7 @@ func firstClassPatchCanPatchComplex(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -269,7 +269,7 @@ func firstClassPatchCanAddToArray(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -400,7 +400,7 @@ func firstClassPatchCanRemoveFromArray(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -461,7 +461,7 @@ func firstClassPatchCanIncrement(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -531,7 +531,7 @@ func firstClassPatchShouldMergePatchCalls(t *testing.T, driver *RavenTestDriver)
 	docID2 := "user2s/2-A"
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

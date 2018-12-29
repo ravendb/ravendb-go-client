@@ -10,7 +10,7 @@ import (
 
 func whatChanged_whatChangedNewField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -50,7 +50,7 @@ func whatChanged_whatChangedNewField(t *testing.T, driver *RavenTestDriver) {
 
 func whatChanged_whatChangedRemovedField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -93,7 +93,7 @@ func whatChanged_whatChangedRemovedField(t *testing.T, driver *RavenTestDriver) 
 
 func whatChanged_whatChangedChangeField(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -138,7 +138,7 @@ func whatChanged_whatChangedChangeField(t *testing.T, driver *RavenTestDriver) {
 
 func whatChanged_whatChangedArrayValueChanged(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -200,7 +200,7 @@ func whatChanged_whatChangedArrayValueChanged(t *testing.T, driver *RavenTestDri
 
 func whatChanged_what_Changed_Array_Value_Added(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -246,7 +246,7 @@ func whatChanged_what_Changed_Array_Value_Added(t *testing.T, driver *RavenTestD
 
 func whatChanged_what_Changed_Array_Value_Removed(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -298,7 +298,7 @@ func whatChanged_ravenDB_8169(t *testing.T, driver *RavenTestDriver) {
 	//but have the same value, we consider them unchanged
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -346,7 +346,7 @@ func whatChanged_ravenDB_8169(t *testing.T, driver *RavenTestDriver) {
 func whatChanged_whatChanged_should_be_idempotent_operation(t *testing.T, driver *RavenTestDriver) {
 	//RavenDB-9150
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

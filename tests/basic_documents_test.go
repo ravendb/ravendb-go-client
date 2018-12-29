@@ -10,7 +10,7 @@ import (
 
 func basicDocumentscanChangeDocumentCollectionWithDeleteAndSave(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	documentID := "users/1"
@@ -58,7 +58,7 @@ func basicDocumentscanChangeDocumentCollectionWithDeleteAndSave(t *testing.T, dr
 
 func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	dummy := ravendb.ValueToTree(&User{})

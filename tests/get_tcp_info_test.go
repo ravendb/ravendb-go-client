@@ -8,7 +8,7 @@ import (
 )
 
 func getTcpInfoTestCanGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	command := ravendb.NewGetTcpInfoCommand("test")

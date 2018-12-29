@@ -18,7 +18,7 @@ type Xyz struct {
 
 func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	doc1 := &Abc{

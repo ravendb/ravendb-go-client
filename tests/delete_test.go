@@ -8,7 +8,7 @@ import (
 
 func deleteTestDeleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	newSession := openSessionMust(t, store)
@@ -41,7 +41,7 @@ func deleteTestDeleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
 }
 
 func deleteTestDeleteDocumentById(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	newSession := openSessionMust(t, store)

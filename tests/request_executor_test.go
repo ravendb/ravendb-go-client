@@ -17,7 +17,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T, driver
 		fmt.Printf("requestExecutorTest_failuresDoesNotBlockConnectionPool start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -48,7 +48,7 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T, driver *RavenTestDri
 		fmt.Printf("requestExecutorTest_canIssueManyRequests start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -70,7 +70,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T, driver *RavenTestD
 		fmt.Printf("requestExecutorTest_canFetchDatabasesNames start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -94,7 +94,7 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T,
 		fmt.Printf("requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -116,7 +116,7 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T, driver *Ra
 		fmt.Printf("requestExecutorTest_throwsWhenDatabaseDoesNotExist start\n")
 	}
 	conventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -135,7 +135,7 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T, driver
 		fmt.Printf("requestExecutorTest_canCreateSingleNodeRequestExecutor start\n")
 	}
 	documentConventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -162,7 +162,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T, driver *RavenTestDriv
 		fmt.Printf("requestExecutorTest_canChooseOnlineNode start\n")
 	}
 	documentConventions := ravendb.NewDocumentConventions()
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	url := store.GetUrls()[0]

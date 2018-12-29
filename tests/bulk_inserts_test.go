@@ -23,7 +23,7 @@ func bulkInsertsTestSimpleBulkInsertShouldWork(t *testing.T, driver *RavenTestDr
 	fooBar4.Name = "Mega Jane"
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -68,7 +68,7 @@ func bulkInsertsTestSimpleBulkInsertShouldWork(t *testing.T, driver *RavenTestDr
 
 func bulkInsertsTestKilledToEarly(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -92,7 +92,7 @@ func bulkInsertsTestKilledToEarly(t *testing.T, driver *RavenTestDriver) {
 
 func bulkInsertsTestShouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -111,7 +111,7 @@ func bulkInsertsTestShouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *R
 
 func bulkInsertsTestCanModifyMetadataWithBulkInsert(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	et := time.Now().Add(time.Hour * 24 * 365)

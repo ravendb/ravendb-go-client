@@ -14,7 +14,7 @@ import (
 
 func queryStreaming_canStreamQueryResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -59,7 +59,7 @@ func queryStreaming_canStreamQueryResults(t *testing.T, driver *RavenTestDriver)
 
 func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -107,7 +107,7 @@ func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T, drive
 
 func queryStreaming_canStreamRawQueryResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -153,7 +153,7 @@ func queryStreaming_canStreamRawQueryResults(t *testing.T, driver *RavenTestDriv
 
 func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -201,7 +201,7 @@ func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T, dr
 
 func queryStreaming_canStreamRawQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers_ByName2()
@@ -236,7 +236,7 @@ func queryStreaming_canStreamRawQueryIntoStream(t *testing.T, driver *RavenTestD
 
 func queryStreaming_canStreamQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers_ByName2()

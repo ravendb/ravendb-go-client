@@ -14,7 +14,7 @@ import (
 
 func attachmentsSessionPutAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 	names := []string{"profile.png", "background-photo.jpg", "fileNAME_#$1^%_בעברית.txt"}
 
@@ -84,7 +84,7 @@ func attachmentsSessionPutAttachments(t *testing.T, driver *RavenTestDriver) {
 
 func attachmentsSessionThrowIfStreamIsUseTwice(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -113,7 +113,7 @@ func attachmentsSessionThrowIfStreamIsUseTwice(t *testing.T, driver *RavenTestDr
 
 func attachmentsSessionThrowWhenTwoAttachmentsWithTheSameNameInSession(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -141,7 +141,7 @@ func attachmentsSessionThrowWhenTwoAttachmentsWithTheSameNameInSession(t *testin
 
 func attachmentsSessionPutDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -169,7 +169,7 @@ func attachmentsSessionPutDocumentAndAttachmentAndDeleteShouldThrow(t *testing.T
 
 func attachmentsSessionDeleteAttachments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -264,7 +264,7 @@ func attachmentsSessionDeleteAttachments(t *testing.T, driver *RavenTestDriver) 
 
 func attachmentsSessionDeleteAttachmentsUsingCommand(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -330,7 +330,7 @@ func attachmentsSessionDeleteAttachmentsUsingCommand(t *testing.T, driver *Raven
 func attachmentsSessionGetAttachmentReleasesResources(t *testing.T, driver *RavenTestDriver) {
 	count := 30
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -369,7 +369,7 @@ func attachmentsSessionGetAttachmentReleasesResources(t *testing.T, driver *Rave
 
 func attachmentsSessionDeleteDocumentAndThanItsAttachmentsThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -414,7 +414,7 @@ func attachmentsSessionDeleteDocumentAndThanItsAttachmentsThisIsNoOpButShouldBeS
 
 func attachmentsSessionDeleteDocumentByCommandAndThanItsAttachmentsThisIsNoOpButShouldBeSupported(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -453,7 +453,7 @@ func attachmentsSessionDeleteDocumentByCommandAndThanItsAttachmentsThisIsNoOpBut
 
 func attachmentsSessionGetAttachmentNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	names := []string{"profile.png"}
@@ -500,7 +500,7 @@ func attachmentsSessionGetAttachmentNames(t *testing.T, driver *RavenTestDriver)
 
 func attachmentsSessionAttachmentExists(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

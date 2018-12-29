@@ -10,7 +10,7 @@ import (
 
 func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -59,7 +59,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 
 func indexesFromClientTestCanExecuteManyIndexes(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	indexes := []*ravendb.AbstractIndexCreationTask{NewUsersIndex()}
@@ -81,7 +81,7 @@ func NewUsersIndex() *ravendb.AbstractIndexCreationTask {
 
 func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	userIndex := NewUsersIndex()
@@ -101,7 +101,7 @@ func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 
 func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	err = NewUsers_ByName().Execute(store)
@@ -183,7 +183,7 @@ func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
 
 func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	usersByName := NewUsers_ByName()
@@ -264,7 +264,7 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 
 func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -316,7 +316,7 @@ func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 
 func indexesFromClientTestGetIndexNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -373,7 +373,7 @@ func indexesFromClientTestGetIndexNames(t *testing.T, driver *RavenTestDriver) {
 
 func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	user1 := &User{}
@@ -430,7 +430,7 @@ func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 
 func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{

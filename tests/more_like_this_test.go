@@ -43,7 +43,7 @@ func getDataList() []*Data {
 
 func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	var id string
@@ -67,7 +67,7 @@ func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T, driver *RavenTestD
 
 func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	var id string
@@ -111,7 +111,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenT
 
 func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	var id string
@@ -154,7 +154,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, d
 
 func moreLikeThis_canGetResultsUsingStorage(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	var id string
@@ -179,7 +179,7 @@ func moreLikeThis_canGetResultsUsingStorage(t *testing.T, driver *RavenTestDrive
 
 func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	var id string
@@ -203,7 +203,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *
 
 func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
@@ -228,7 +228,7 @@ func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T, driver *RavenTestD
 
 func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
@@ -269,7 +269,7 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) 
 
 func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	key1 := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
@@ -350,7 +350,7 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *R
 
 func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
@@ -400,7 +400,7 @@ func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T, driver *RavenTestDriv
 
 func moreLikeThis_can_Use_Boost_Param(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
@@ -454,7 +454,7 @@ func moreLikeThis_can_Use_Boost_Param(t *testing.T, driver *RavenTestDriver) {
 
 func moreLikeThis_can_Use_Stop_Words(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
@@ -519,7 +519,7 @@ func moreLikeThis_can_Use_Stop_Words(t *testing.T, driver *RavenTestDriver) {
 
 func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	dataIndex := NewDataIndex()
@@ -560,7 +560,7 @@ func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestD
 
 func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	dataIndex := NewComplexDataIndex()

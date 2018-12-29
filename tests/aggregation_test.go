@@ -39,7 +39,7 @@ const (
 func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewOrdersAll()
@@ -117,7 +117,7 @@ func getFirstFacetValueOfRange(values []*ravendb.FacetValue, rang string) *raven
 
 func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewOrdersAll()
@@ -202,7 +202,7 @@ func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTe
 
 func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewOrdersAll()
@@ -274,7 +274,7 @@ func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *
 
 func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewOrdersAll()
@@ -342,7 +342,7 @@ func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTest
 
 func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewOrdersAll()
@@ -470,7 +470,7 @@ func addMinutes(t ravendb.Time, nMinutes int) ravendb.Time {
 
 func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewItemsOrdersAll()

@@ -39,7 +39,7 @@ func ravendb_903_test2(t *testing.T, driver *RavenTestDriver) {
 
 func ravendb_903_doTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewTestIndex()

@@ -10,7 +10,7 @@ import (
 
 func initAggressiveCaching(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	store.DisableAggressiveCaching()
 
 	{

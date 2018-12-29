@@ -20,7 +20,7 @@ func NewSpatialQueriesInMemoryTestIdx() *ravendb.AbstractIndexCreationTask {
 
 func spatialQueries_canRunSpatialQueriesInMemory(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	err = NewSpatialQueriesInMemoryTestIdx().Execute(store)
@@ -59,7 +59,7 @@ func (l *Listing) setLongitude(longitude int64) {
 
 func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	areaOneDocOne := NewDummyGeoDoc(55.6880508001, 13.5717346673)
@@ -125,7 +125,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T,
 
 func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	myHouse := NewDummyGeoDoc(44.757767, -93.355322)

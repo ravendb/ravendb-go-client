@@ -9,7 +9,7 @@ import (
 
 func storeTestRefreshTest(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -42,7 +42,7 @@ func storeTestRefreshTest(t *testing.T, driver *RavenTestDriver) {
 
 func storeTestStoreDocument(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -67,7 +67,7 @@ func storeTestStoreDocument(t *testing.T, driver *RavenTestDriver) {
 
 func storeTestStoreDocuments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -95,7 +95,7 @@ func storeTestStoreDocuments(t *testing.T, driver *RavenTestDriver) {
 
 func storeTestNotifyAfterStore(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	storeLevelCallBack := []*ravendb.MetadataAsDictionary{nil}

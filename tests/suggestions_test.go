@@ -57,7 +57,7 @@ func suggestions_setup(t *testing.T, driver *RavenTestDriver, store *ravendb.IDo
 }
 
 func suggestions_exactMatch(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	suggestions_setup(t, driver, store)
@@ -85,7 +85,7 @@ func suggestions_exactMatch(t *testing.T, driver *RavenTestDriver) {
 }
 
 func suggestions_usingLinq(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	suggestions_setup(t, driver, store)
@@ -112,7 +112,7 @@ func suggestions_usingLinq(t *testing.T, driver *RavenTestDriver) {
 }
 
 func suggestions_usingLinq_WithOptions(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	suggestions_setup(t, driver, store)
@@ -141,7 +141,7 @@ func suggestions_usingLinq_WithOptions(t *testing.T, driver *RavenTestDriver) {
 }
 
 func suggestions_usingLinq_Multiple_words(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	suggestions_setup(t, driver, store)
@@ -172,7 +172,7 @@ func suggestions_usingLinq_Multiple_words(t *testing.T, driver *RavenTestDriver)
 }
 
 func suggestions_withTypo(t *testing.T, driver *RavenTestDriver) {
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	suggestions_setup(t, driver, store)
@@ -218,7 +218,7 @@ func NewUsers4_ByName() *ravendb.AbstractIndexCreationTask {
 
 func suggestions_canGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	index := NewUsers4_ByName()

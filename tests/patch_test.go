@@ -10,7 +10,7 @@ import (
 
 func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -46,7 +46,7 @@ func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 
 func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
@@ -79,7 +79,7 @@ func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 
 func patchTestthrowsOnInvalidScript(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getDocumentStoreMust(t, driver)
+	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
