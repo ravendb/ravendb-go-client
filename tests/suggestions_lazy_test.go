@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -54,7 +53,7 @@ func suggestionsLazy_usingLinq(t *testing.T, driver *RavenTestDriver) {
 		queryIndex := &ravendb.Query{
 			IndexName: "test",
 		}
-		q := s.QueryWithQueryOld(reflect.TypeOf(&User4{}), queryIndex)
+		q := s.QueryWithQuery(queryIndex)
 		fn := func(x ravendb.ISuggestionBuilder) {
 			x.ByField("name", "Owen")
 		}

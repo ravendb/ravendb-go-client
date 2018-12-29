@@ -584,15 +584,6 @@ func (s *DocumentSession) QueryType(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
-// TODO: remove
-func (s *DocumentSession) QueryWithQueryOld(clazz reflect.Type, collectionOrIndexName *Query) *DocumentQuery {
-	if stringIsNotEmpty(collectionOrIndexName.Collection) {
-		return s.DocumentQueryAllOld(clazz, "", collectionOrIndexName.Collection, false)
-	}
-
-	return s.DocumentQueryAllOld(clazz, collectionOrIndexName.IndexName, "", false)
-}
-
 // QueryWithQuery creaates a query with given query arguments
 func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *DocumentQuery {
 	return s.DocumentQueryAll(collectionOrIndexName.IndexName, collectionOrIndexName.Collection, false)
