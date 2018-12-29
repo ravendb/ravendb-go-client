@@ -228,10 +228,10 @@ func (q *AbstractDocumentQuery) _addParameter(name string, value interface{}) {
 func (q *AbstractDocumentQuery) _groupBy(fieldName string, fieldNames ...string) {
 	var mapping []*GroupBy
 	for _, x := range fieldNames {
-		el := GroupBy_field(x)
+		el := NewGroupByField(x)
 		mapping = append(mapping, el)
 	}
-	q._groupBy2(GroupBy_field(fieldName), mapping...)
+	q._groupBy2(NewGroupByField(fieldName), mapping...)
 }
 
 // TODO: better name
@@ -245,17 +245,17 @@ func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
 	q.assertNoRawQuery()
 	q.isGroupBy = true
 
-	fieldName := q.ensureValidFieldName(field.getField(), false)
+	fieldName := q.ensureValidFieldName(field.Field, false)
 
-	q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, field.getMethod()))
+	q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, field.Method))
 
 	if len(fields) == 0 {
 		return
 	}
 
 	for _, item := range fields {
-		fieldName = q.ensureValidFieldName(item.getField(), false)
-		q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, item.getMethod()))
+		fieldName = q.ensureValidFieldName(item.Field, false)
+		q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, item.Method))
 	}
 }
 

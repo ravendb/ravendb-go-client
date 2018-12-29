@@ -17,7 +17,7 @@ func NewGroupByToken(fieldName string, method GroupByMethod) *GroupByToken {
 }
 
 func GroupByToken_create(fieldName string) *GroupByToken {
-	return GroupByToken_createWithMethod(fieldName, GroupByMethod_NONE)
+	return GroupByToken_createWithMethod(fieldName, GroupByMethodNone)
 }
 
 func GroupByToken_createWithMethod(fieldName string, method GroupByMethod) *GroupByToken {
@@ -26,11 +26,11 @@ func GroupByToken_createWithMethod(fieldName string, method GroupByMethod) *Grou
 
 func (t *GroupByToken) writeTo(writer *strings.Builder) {
 	_method := t._method
-	if _method != GroupByMethod_NONE {
+	if _method != GroupByMethodNone {
 		writer.WriteString("Array(")
 	}
 	writeQueryTokenField(writer, t._fieldName)
-	if _method != GroupByMethod_NONE {
+	if _method != GroupByMethodNone {
 		writer.WriteString(")")
 	}
 }

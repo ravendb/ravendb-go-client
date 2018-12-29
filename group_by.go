@@ -1,33 +1,23 @@
 package ravendb
 
+// GroupBy represents arguments to "group by" query
 type GroupBy struct {
-	field  string
-	method GroupByMethod
+	Field  string
+	Method GroupByMethod
 }
 
-func NewGroupBy() *GroupBy {
-	// empty
-	return &GroupBy{}
-}
-
-func (g *GroupBy) getField() string {
-	return g.field
-}
-
-func (g *GroupBy) getMethod() GroupByMethod {
-	return g.method
-}
-
-func GroupBy_field(fieldName string) *GroupBy {
+// NewGroupByField returns new GroupBy for a field
+func NewGroupByField(fieldName string) *GroupBy {
 	return &GroupBy{
-		field:  fieldName,
-		method: GroupByMethod_NONE,
+		Field:  fieldName,
+		Method: GroupByMethodNone,
 	}
 }
 
-func GroupBy_array(fieldName string) *GroupBy {
+// NewGroupByField returns new GroupBy for an array
+func NewGroupByArray(fieldName string) *GroupBy {
 	return &GroupBy{
-		field:  fieldName,
-		method: GroupByMethod_ARRAY,
+		Field:  fieldName,
+		Method: GroupByMethodArray,
 	}
 }
