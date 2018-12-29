@@ -15,7 +15,7 @@ type Product struct {
 	ProductName string `json:"ProductName"`
 }
 
-func hiloTest_capacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
+func hiloTestCapacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -74,7 +74,7 @@ func hiloTest_capacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func hiloTest_returnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
+func hiloTestReturnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -133,7 +133,7 @@ func hiloTest_returnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 	newStore.Close() //on document Store close, hilo-return should be called
 }
 
-func hiloTest_canNotGoDown(t *testing.T, driver *RavenTestDriver) {
+func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -172,7 +172,7 @@ func hiloTest_canNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	session.Close()
 }
 
-func hiloTest_multiDb(t *testing.T, driver *RavenTestDriver) {
+func hiloTestMultiDb(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -210,8 +210,8 @@ func TestHiLo(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of java tests
-	hiloTest_capacityShouldDouble(t, driver)
-	hiloTest_returnUnusedRangeOnClose(t, driver)
-	hiloTest_canNotGoDown(t, driver)
-	hiloTest_multiDb(t, driver)
+	hiloTestCapacityShouldDouble(t, driver)
+	hiloTestReturnUnusedRangeOnClose(t, driver)
+	hiloTestCanNotGoDown(t, driver)
+	hiloTestMultiDb(t, driver)
 }

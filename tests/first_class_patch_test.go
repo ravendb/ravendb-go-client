@@ -42,7 +42,7 @@ const (
 	_docId = "user2s/1-A"
 )
 
-func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchCanPatch(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil, nil}
 	stuff[0] = &Stuff{}
 	stuff[0].Key = 6
@@ -111,7 +111,7 @@ func firstClassPatch_canPatch(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func firstClassPatch_canPatchAndModify(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchCanPatchAndModify(t *testing.T, driver *RavenTestDriver) {
 	user := &User2{}
 	user.Numbers = []int{66}
 
@@ -146,7 +146,7 @@ func firstClassPatch_canPatchAndModify(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func firstClassPatch_canPatchComplex(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchCanPatchComplex(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil, nil}
 	stuff[0] = &Stuff{
 		Key: 6,
@@ -257,7 +257,7 @@ func firstClassPatch_canPatchComplex(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func firstClassPatch_canAddToArray(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchCanAddToArray(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil}
 
 	stuff[0] = &Stuff{}
@@ -383,7 +383,7 @@ func firstClassPatch_canAddToArray(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func firstClassPatch_canRemoveFromArray(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchCanRemoveFromArray(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil}
 	stuff[0] = &Stuff{
 		Key: 6,
@@ -449,7 +449,7 @@ func firstClassPatch_canRemoveFromArray(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func firstClassPatch_canIncrement(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchCanIncrement(t *testing.T, driver *RavenTestDriver) {
 	s := []*Stuff{nil, nil, nil}
 	s[0] = &Stuff{
 		Key: 6,
@@ -512,7 +512,7 @@ func firstClassPatch_canIncrement(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func firstClassPatch_shouldMergePatchCalls(t *testing.T, driver *RavenTestDriver) {
+func firstClassPatchShouldMergePatchCalls(t *testing.T, driver *RavenTestDriver) {
 	stuff := []*Stuff{nil, nil, nil}
 	stuff[0] = &Stuff{
 		Key: 6,
@@ -617,11 +617,11 @@ func TestFirstClassPatch(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	firstClassPatch_canIncrement(t, driver)
-	firstClassPatch_canAddToArray(t, driver)
-	firstClassPatch_canRemoveFromArray(t, driver)
-	firstClassPatch_shouldMergePatchCalls(t, driver)
-	firstClassPatch_canPatch(t, driver)
-	firstClassPatch_canPatchAndModify(t, driver)
-	firstClassPatch_canPatchComplex(t, driver)
+	firstClassPatchCanIncrement(t, driver)
+	firstClassPatchCanAddToArray(t, driver)
+	firstClassPatchCanRemoveFromArray(t, driver)
+	firstClassPatchShouldMergePatchCalls(t, driver)
+	firstClassPatchCanPatch(t, driver)
+	firstClassPatchCanPatchAndModify(t, driver)
+	firstClassPatchCanPatchComplex(t, driver)
 }

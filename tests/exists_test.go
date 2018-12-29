@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func existsTest_checkIfDocumentExists(t *testing.T, driver *RavenTestDriver) {
+func existsTestCheckIfDocumentExists(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -58,5 +58,5 @@ func TestExists(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	existsTest_checkIfDocumentExists(t, driver)
+	existsTestCheckIfDocumentExists(t, driver)
 }

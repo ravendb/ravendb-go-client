@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T, driver *RavenTestDriver) {
+func bulkInsertsTestSimpleBulkInsertShouldWork(t *testing.T, driver *RavenTestDriver) {
 	fooBar1 := &FooBar{}
 	fooBar1.Name = "John Doe"
 
@@ -66,7 +66,7 @@ func bulkInsertsTest_simpleBulkInsertShouldWork(t *testing.T, driver *RavenTestD
 	}
 }
 
-func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
+func bulkInsertsTestKilledToEarly(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -90,7 +90,7 @@ func bulkInsertsTest_killedToEarly(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *RavenTestDriver) {
+func bulkInsertsTestShouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -109,7 +109,7 @@ func bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *
 	}
 }
 
-func bulkInsertsTest_canModifyMetadataWithBulkInsert(t *testing.T, driver *RavenTestDriver) {
+func bulkInsertsTestCanModifyMetadataWithBulkInsert(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -160,8 +160,8 @@ func TestBulkInserts(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	bulkInsertsTest_simpleBulkInsertShouldWork(t, driver)
-	bulkInsertsTest_shouldNotAcceptIdsEndingWithPipeLine(t, driver)
-	bulkInsertsTest_killedToEarly(t, driver)
-	bulkInsertsTest_canModifyMetadataWithBulkInsert(t, driver)
+	bulkInsertsTestSimpleBulkInsertShouldWork(t, driver)
+	bulkInsertsTestShouldNotAcceptIdsEndingWithPipeLine(t, driver)
+	bulkInsertsTestKilledToEarly(t, driver)
+	bulkInsertsTestCanModifyMetadataWithBulkInsert(t, driver)
 }

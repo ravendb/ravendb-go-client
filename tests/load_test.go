@@ -182,18 +182,20 @@ func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T, driver *RavenTe
 
 	{
 		session := openSessionMust(t, store)
-		geek1 := NewGeekPerson()
-		geek1.setName("Bebop")
-		geek1.setFavoritePrimes([]int{13, 43, 443, 997})
-		geek1.setFavoriteVeryLargePrimes([]int64{5000000029, 5000000039})
+		geek1 := &GeekPerson{
+			Name:                    "Bebop",
+			FavoritePrimes:          []int{13, 43, 443, 997},
+			FavoriteVeryLargePrimes: []int64{5000000029, 5000000039},
+		}
 
 		err = session.StoreWithID(geek1, "geeks/1")
 		assert.NoError(t, err)
 
-		geek2 := NewGeekPerson()
-		geek2.setName("Rocksteady")
-		geek2.setFavoritePrimes([]int{2, 3, 5, 7})
-		geek2.setFavoriteVeryLargePrimes([]int64{999999999989})
+		geek2 := &GeekPerson{
+			Name:                    "Rocksteady",
+			FavoritePrimes:          []int{2, 3, 5, 7},
+			FavoriteVeryLargePrimes: []int64{999999999989},
+		}
 
 		err = session.StoreWithID(geek2, "geeks/2")
 		assert.NoError(t, err)
@@ -212,11 +214,11 @@ func loadTest_loadDocumentWithIntArrayAndLongArray(t *testing.T, driver *RavenTe
 		err = newSession.Load(&geek2, "geeks/2")
 		assert.NoError(t, err)
 
-		assert.Equal(t, 43, geek1.getFavoritePrimes()[1])
-		assert.Equal(t, int64(5000000039), geek1.getFavoriteVeryLargePrimes()[1])
+		assert.Equal(t, 43, geek1.FavoritePrimes[1])
+		assert.Equal(t, int64(5000000039), geek1.FavoriteVeryLargePrimes[1])
 
-		assert.Equal(t, 7, geek2.getFavoritePrimes()[3])
-		assert.Equal(t, int64(999999999989), geek2.getFavoriteVeryLargePrimes()[0])
+		assert.Equal(t, 7, geek2.FavoritePrimes[3])
+		assert.Equal(t, int64(999999999989), geek2.FavoriteVeryLargePrimes[0])
 		newSession.Close()
 	}
 }

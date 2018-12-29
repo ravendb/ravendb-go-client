@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getStatisticsCommandTest_canGetStats(t *testing.T, driver *RavenTestDriver) {
+func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -59,5 +59,5 @@ func TestGetStatisticsCommand(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	getStatisticsCommandTest_canGetStats(t, driver)
+	getStatisticsCommandTestCanGetStats(t, driver)
 }

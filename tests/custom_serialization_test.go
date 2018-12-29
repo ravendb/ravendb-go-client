@@ -15,7 +15,7 @@ const (
 	Euro   = "EUR"
 )
 
-func customSerialization_testSerialization(t *testing.T, driver *RavenTestDriver) {
+func customSerializationTestSerialization(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -124,5 +124,5 @@ func TestCustomSerialization(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	customSerialization_testSerialization(t, driver)
+	customSerializationTestSerialization(t, driver)
 }

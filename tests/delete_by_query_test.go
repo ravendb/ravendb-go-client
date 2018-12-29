@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func loadTest_canDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
+func loadTestCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -58,5 +58,5 @@ func TestDeleteByQuery(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	loadTest_canDeleteByQuery(t, driver)
+	loadTestCanDeleteByQuery(t, driver)
 }

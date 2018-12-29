@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func httpsTest_canConnectWithCertificate(t *testing.T, driver *RavenTestDriver) {
+func httpsTestCanConnectWithCertificate(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getSecuredDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -38,5 +38,5 @@ func TestHttps(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of java tests
-	httpsTest_canConnectWithCertificate(t, driver)
+	httpsTestCanConnectWithCertificate(t, driver)
 }

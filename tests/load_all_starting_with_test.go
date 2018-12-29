@@ -16,7 +16,7 @@ type Xyz struct {
 	ID string
 }
 
-func loadAllStartingWith_loadAllStartingWith(t *testing.T, driver *RavenTestDriver) {
+func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -69,5 +69,5 @@ func TestLoadAllStartingWith(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	loadAllStartingWith_loadAllStartingWith(t, driver)
+	loadAllStartingWithLoadAllStartingWith(t, driver)
 }

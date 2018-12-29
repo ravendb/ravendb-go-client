@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, driver *RavenTestDriver) {
+func basicDocumentscanChangeDocumentCollectionWithDeleteAndSave(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -56,7 +56,7 @@ func basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t *testing.T, d
 	}
 }
 
-func basicDocuments_get(t *testing.T, driver *RavenTestDriver) {
+func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -141,6 +141,6 @@ func TestBasicDocuments(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	basicDocuments_get(t, driver)
-	basicDocuments_canChangeDocumentCollectionWithDeleteAndSave(t, driver)
+	basicDocumentsGet(t, driver)
+	basicDocumentscanChangeDocumentCollectionWithDeleteAndSave(t, driver)
 }

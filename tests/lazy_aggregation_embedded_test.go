@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func lazyAggregationEmbeddedLazy_test(t *testing.T, driver *RavenTestDriver) {
+func lazyAggregationEmbeddedLazyTest(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -87,5 +87,5 @@ func TestLazyAggregationEmbeddedLazy(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	lazyAggregationEmbeddedLazy_test(t, driver)
+	lazyAggregationEmbeddedLazyTest(t, driver)
 }

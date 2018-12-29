@@ -3,11 +3,11 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
-func getTopologyTest_canGetTopology(t *testing.T, driver *RavenTestDriver) {
+func getTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -34,5 +34,5 @@ func TestGetTopology(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	getTopologyTest_canGetTopology(t, driver)
+	getTopologyTestCanGetTopology(t, driver)
 }

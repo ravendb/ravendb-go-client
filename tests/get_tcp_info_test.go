@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getTcpInfoTest_canGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
+func getTcpInfoTestCanGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
@@ -31,5 +31,5 @@ func TestGetTcpInfo(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	getTcpInfoTest_canGetTcpInfo(t, driver)
+	getTcpInfoTestCanGetTcpInfo(t, driver)
 }

@@ -3,11 +3,11 @@ package tests
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
-func getNextOperationIdCommandTest_canGetNextOperationId(t *testing.T, driver *RavenTestDriver) {
+func getNextOperationIdCommandTestCanGetNextOperationId(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -26,5 +26,5 @@ func TestGetNextOperationIDCommand(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// follows execution order of java tests
-	getNextOperationIdCommandTest_canGetNextOperationId(t, driver)
+	getNextOperationIdCommandTestCanGetNextOperationId(t, driver)
 }

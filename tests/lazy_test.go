@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func lazy_canLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
+func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -74,7 +74,7 @@ func lazy_canLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func lazy_canExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDriver) {
+func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -119,7 +119,7 @@ func lazy_canExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDriv
 	}
 }
 
-func lazy_withQueuedActions_Load(t *testing.T, driver *RavenTestDriver) {
+func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -153,7 +153,7 @@ func lazy_withQueuedActions_Load(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func lazy_canUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
+func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -200,8 +200,8 @@ func TestLazy(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	lazy_canExecuteAllPendingLazyOperations(t, driver)
-	lazy_canLazilyLoadEntity(t, driver)
-	lazy_canUseCacheWhenLazyLoading(t, driver)
-	lazy_withQueuedActions_Load(t, driver)
+	lazyCanExecuteAllPendingLazyOperations(t, driver)
+	lazyCanLazilyLoadEntity(t, driver)
+	lazyCanUseCacheWhenLazyLoading(t, driver)
+	lazyWithQueuedActionsLoad(t, driver)
 }

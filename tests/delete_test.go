@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func deleteTest_deleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
+func deleteTestDeleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -40,7 +40,7 @@ func deleteTest_deleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
 	newSession.Close()
 }
 
-func deleteTest_deleteDocumentById(t *testing.T, driver *RavenTestDriver) {
+func deleteTestDeleteDocumentById(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
@@ -81,6 +81,6 @@ func TestDelete(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	deleteTest_deleteDocumentByEntity(t, driver)
-	deleteTest_deleteDocumentById(t, driver)
+	deleteTestDeleteDocumentByEntity(t, driver)
+	deleteTestDeleteDocumentById(t, driver)
 }

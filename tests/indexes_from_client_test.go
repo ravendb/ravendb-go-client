@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func indexesFromClientTest_canReset(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -57,7 +57,7 @@ func indexesFromClientTest_canReset(t *testing.T, driver *RavenTestDriver) {
 	assert.True(t, secondIndexingTime.Sub(firstIndexingTime) > 0)
 }
 
-func indexesFromClientTest_canExecuteManyIndexes(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestCanExecuteManyIndexes(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -79,7 +79,7 @@ func NewUsersIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func indexesFromClientTest_canDelete(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -99,7 +99,7 @@ func indexesFromClientTest_canDelete(t *testing.T, driver *RavenTestDriver) {
 	assert.Equal(t, len(statistics.Indexes), 0)
 }
 
-func indexesFromClientTest_canStopAndStart(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -181,7 +181,7 @@ func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -262,7 +262,7 @@ func indexesFromClientTest_setLockModeAndSetPriority(t *testing.T, driver *Raven
 	}
 }
 
-func indexesFromClientTest_getTerms(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -314,7 +314,7 @@ func indexesFromClientTest_getTerms(t *testing.T, driver *RavenTestDriver) {
 	assert.True(t, stringArrayContains(terms, "arek"))
 }
 
-func indexesFromClientTest_getIndexNames(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestGetIndexNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -371,7 +371,7 @@ func indexesFromClientTest_getIndexNames(t *testing.T, driver *RavenTestDriver) 
 	}
 }
 
-func indexesFromClientTest_canExplain(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -428,7 +428,7 @@ func indexesFromClientTest_canExplain(t *testing.T, driver *RavenTestDriver) {
 	assert.NotEmpty(t, explanation.GetReason())
 }
 
-func indexesFromClientTest_moreLikeThis(t *testing.T, driver *RavenTestDriver) {
+func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -553,13 +553,13 @@ func TestIndexesFromClient(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// order matches Java tests
-	indexesFromClientTest_canExecuteManyIndexes(t, driver)
-	indexesFromClientTest_canDelete(t, driver)
-	indexesFromClientTest_canReset(t, driver)
-	indexesFromClientTest_getIndexNames(t, driver)
-	indexesFromClientTest_canStopAndStart(t, driver)
-	indexesFromClientTest_canExplain(t, driver)
-	indexesFromClientTest_moreLikeThis(t, driver)
-	indexesFromClientTest_setLockModeAndSetPriority(t, driver)
-	indexesFromClientTest_getTerms(t, driver)
+	indexesFromClientTestCanExecuteManyIndexes(t, driver)
+	indexesFromClientTestCanDelete(t, driver)
+	indexesFromClientTestCanReset(t, driver)
+	indexesFromClientTestGetIndexNames(t, driver)
+	indexesFromClientTestCanStopAndStart(t, driver)
+	indexesFromClientTestCanExplain(t, driver)
+	indexesFromClientTestMoreLikeThis(t, driver)
+	indexesFromClientTestSetLockModeAndSetPriority(t, driver)
+	indexesFromClientTestGetTerms(t, driver)
 }

@@ -17,7 +17,7 @@ type User5 struct {
 	Active    bool
 }
 
-func cofi_can_cache_document_with_includes(t *testing.T, driver *RavenTestDriver) {
+func cofiCanCacheDocumentWithIncludes(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -73,7 +73,7 @@ func cofi_can_cache_document_with_includes(t *testing.T, driver *RavenTestDriver
 	}
 }
 
-func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cacheAsync(t *testing.T, driver *RavenTestDriver) {
+func cofiCanvAoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheAsync(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -124,7 +124,7 @@ func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_sessi
 
 }
 
-func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cacheLazy(t *testing.T, driver *RavenTestDriver) {
+func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -176,7 +176,7 @@ func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_sessi
 	}
 }
 
-func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cache(t *testing.T, driver *RavenTestDriver) {
+func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCache(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -226,7 +226,7 @@ func cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_sessi
 	}
 }
 
-func cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache(t *testing.T, driver *RavenTestDriver) {
+func cofiCanAvoidUsingServerForMultiloadWithIncludeIfEverythingIsInSessionCache(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -295,9 +295,9 @@ func TestCachingOfDocumentInclude(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache(t, driver)
-	cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cacheLazy(t, driver)
-	cofi_can_cache_document_with_includes(t, driver)
-	cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cacheAsync(t, driver)
-	cofi_can_avoid_using_server_for_load_with_include_if_everything_is_in_session_cache(t, driver)
+	cofiCanAvoidUsingServerForMultiloadWithIncludeIfEverythingIsInSessionCache(t, driver)
+	cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t, driver)
+	cofiCanCacheDocumentWithIncludes(t, driver)
+	cofiCanvAoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheAsync(t, driver)
+	cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCache(t, driver)
 }

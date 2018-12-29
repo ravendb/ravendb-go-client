@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getClusterTopologyTest_canGetTopology(t *testing.T, driver *RavenTestDriver) {
+func getClusterTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -36,5 +36,5 @@ func TestGetClusterTopology(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	getClusterTopologyTest_canGetTopology(t, driver)
+	getClusterTopologyTestCanGetTopology(t, driver)
 }

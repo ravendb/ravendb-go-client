@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func changesTest_singleDocumentChangesCommon(t *testing.T, store *ravendb.DocumentStore) {
+func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.DocumentStore) {
 	changesList := make(chan *ravendb.DocumentChange, 8)
 
 	changes := store.Changes()
@@ -76,23 +76,23 @@ func changesTest_singleDocumentChangesCommon(t *testing.T, store *ravendb.Docume
 	}
 }
 
-func changesTest_singleDocumentChanges(t *testing.T, driver *RavenTestDriver) {
+func changesTestSingleDocumentChanges(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
-	changesTest_singleDocumentChangesCommon(t, store)
+	changesTestSingleDocumentChangesCommon(t, store)
 }
 
-func changesTest_changesWithHttps(t *testing.T, driver *RavenTestDriver) {
+func changesTestChangesWithHttps(t *testing.T, driver *RavenTestDriver) {
 	if isWindows() {
 		t.Skip("skipping https test on windows")
 		return
 	}
 	store := getSecuredDocumentStoreMust(t, driver)
 	defer store.Close()
-	changesTest_singleDocumentChangesCommon(t, store)
+	changesTestSingleDocumentChangesCommon(t, store)
 }
 
-func changesTest_allDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
+func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
 	store := getDocumentStoreMust(t, driver)
@@ -169,7 +169,7 @@ func changesTest_allDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 
 // Note: UsersByName is the same as makeUsersByNameIndex in query_test.go
 
-func changesTest_singleIndexChanges(t *testing.T, driver *RavenTestDriver) {
+func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -212,7 +212,7 @@ func changesTest_singleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func changesTest_allIndexChanges(t *testing.T, driver *RavenTestDriver) {
+func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -254,7 +254,7 @@ func changesTest_allIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T, driver *RavenTestDriver) {
+func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -281,7 +281,7 @@ func changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t *testing.T, 
 	assert.NoError(t, err)
 }
 
-func changesTest_resourcesCleanup(t *testing.T, driver *RavenTestDriver) {
+func changesTestResourcesCleanup(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -344,11 +344,11 @@ func TestChanges(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// follows execution order of java tests
-	changesTest_allDocumentsChanges(t, driver)
-	changesTest_singleDocumentChanges(t, driver)
-	changesTest_resourcesCleanup(t, driver)
-	changesTest_changesWithHttps(t, driver)
-	changesTest_singleIndexChanges(t, driver)
-	changesTest_notificationOnWrongDatabase_ShouldNotCrashServer(t, driver)
-	changesTest_allIndexChanges(t, driver)
+	changesTestAllDocumentsChanges(t, driver)
+	changesTestSingleDocumentChanges(t, driver)
+	changesTestResourcesCleanup(t, driver)
+	changesTestChangesWithHttps(t, driver)
+	changesTestSingleIndexChanges(t, driver)
+	changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t, driver)
+	changesTestAllIndexChanges(t, driver)
 }

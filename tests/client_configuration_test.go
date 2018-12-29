@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func clientConfiguration_canHandleNoConfiguration(t *testing.T, driver *RavenTestDriver) {
+func clientConfigurationCanHandleNoConfiguration(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
@@ -19,7 +19,7 @@ func clientConfiguration_canHandleNoConfiguration(t *testing.T, driver *RavenTes
 	//TODO: java checks that result.getEtag() is not nil, which does not apply
 }
 
-func clientConfiguration_canSaveAndReadClientConfiguration(t *testing.T, driver *RavenTestDriver) {
+func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *RavenTestDriver) {
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
 
@@ -54,6 +54,6 @@ func TestClientConfiguration(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	clientConfiguration_canHandleNoConfiguration(t, driver)
-	clientConfiguration_canSaveAndReadClientConfiguration(t, driver)
+	clientConfigurationCanHandleNoConfiguration(t, driver)
+	clientConfigurationCanSaveAndReadClientConfiguration(t, driver)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func compactTest_canCompactDatabase(t *testing.T, driver *RavenTestDriver) {
+func compactTestCanCompactDatabase(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := getDocumentStoreMust(t, driver)
 	defer store.Close()
@@ -46,5 +46,5 @@ func TestCompact(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// follows execution order of java tests
-	compactTest_canCompactDatabase(t, driver)
+	compactTestCanCompactDatabase(t, driver)
 }
