@@ -209,6 +209,9 @@ func getJSONFieldName(field reflect.StructField) string {
 // fields := ravendb.FieldsFor(&MyType{})
 // q = q.SelectFields(fields...)
 func FieldsFor(s interface{}) []string {
+	// Note: Java code returns "class" as first element. It is sent to the
+	// server in "select" statement but I think it's always ignored
+	// (because doesn't exist in the index)
 	v := reflect.ValueOf(s)
 	// if pointer get the underlying element≤
 	for v.Kind() == reflect.Ptr {

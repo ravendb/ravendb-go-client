@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDriver) {
+func simonBartlettLineStringsShouldIntersect(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -58,7 +58,7 @@ func simonBartlett_lineStringsShouldIntersect(t *testing.T, driver *RavenTestDri
 	}
 }
 
-func simonBartlett_circlesShouldNotIntersect(t *testing.T, driver *RavenTestDriver) {
+func simonBartlettCirclesShouldNotIntersect(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -136,6 +136,6 @@ func TestSimonBartlett(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	simonBartlett_circlesShouldNotIntersect(t, driver)
-	simonBartlett_lineStringsShouldIntersect(t, driver)
+	simonBartlettCirclesShouldNotIntersect(t, driver)
+	simonBartlettLineStringsShouldIntersect(t, driver)
 }

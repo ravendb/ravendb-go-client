@@ -482,7 +482,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	err = Posts_ByTitleAndDesc().Execute(store)
+	err = PostsByTitleAndDesc().Execute(store)
 	assert.NoError(t, err)
 
 	err = driver.waitForIndexing(store, "", 0)
@@ -496,7 +496,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 		options.SetMinimumTermFrequency(0)
 
 		var list []*Post
-		q := session.QueryInIndex(Posts_ByTitleAndDesc())
+		q := session.QueryInIndex(PostsByTitleAndDesc())
 
 		fn1 := func(x *ravendb.IFilterDocumentQueryBase) {
 			x.WhereEquals("id()", "posts/1")
@@ -531,7 +531,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func Posts_ByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
+func PostsByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
 	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
 	res.Index("title", ravendb.FieldIndexing_SEARCH)

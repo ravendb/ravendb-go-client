@@ -18,7 +18,7 @@ func NewSpatialQueriesInMemoryTestIdx() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func spatialQueries_canRunSpatialQueriesInMemory(t *testing.T, driver *RavenTestDriver) {
+func spatialQueriesCanRunSpatialQueriesInMemory(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -57,7 +57,7 @@ func (l *Listing) setLongitude(longitude int64) {
 	l.Longitude = longitude
 }
 
-func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T, driver *RavenTestDriver) {
+func spatialQueriesCanSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -123,7 +123,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T,
 	}
 }
 
-func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestDriver) {
+func spatialQueriesCanSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -209,7 +209,7 @@ func TestSpatialQueries(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatialQueries_canRunSpatialQueriesInMemory(t, driver)
-	spatialQueries_canSuccessfullyQueryByMiles(t, driver)
-	spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t, driver)
+	spatialQueriesCanRunSpatialQueriesInMemory(t, driver)
+	spatialQueriesCanSuccessfullyQueryByMiles(t, driver)
+	spatialQueriesCanSuccessfullyDoSpatialQueryOfNearbyLocations(t, driver)
 }

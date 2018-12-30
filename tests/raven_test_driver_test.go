@@ -533,7 +533,7 @@ func downloadServerIfNeededWindows() {
 	destDir := "RavenDB"
 	fmt.Printf("Unzipping %s to %s...", ravenWindowsZipPath, destDir)
 	timeStart := time.Now()
-	err = Unzip(ravenWindowsZipPath, destDir)
+	err = unzip(ravenWindowsZipPath, destDir)
 	must(err)
 	fmt.Printf(" took %s\n", time.Since(timeStart))
 }

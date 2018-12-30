@@ -41,7 +41,7 @@ func getDataList() []*Data {
 	return items
 }
 
-func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanGetResultsUsingTermVectors(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -62,10 +62,10 @@ func moreLikeThis_canGetResultsUsingTermVectors(t *testing.T, driver *RavenTestD
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 	}
 
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
+	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
 
-func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -109,7 +109,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenT
 	}
 }
 
-func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -152,7 +152,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, d
 	}
 }
 
-func moreLikeThis_canGetResultsUsingStorage(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanGetResultsUsingStorage(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -174,10 +174,10 @@ func moreLikeThis_canGetResultsUsingStorage(t *testing.T, driver *RavenTestDrive
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 	}
 
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
+	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
 
-func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -198,10 +198,10 @@ func moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *
 		id = session.Advanced().GetDocumentID(list[0])
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 	}
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
+	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
 
-func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisTestWithLotsOfRandomData(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -223,10 +223,10 @@ func moreLikeThis_test_With_Lots_Of_Random_Data(t *testing.T, driver *RavenTestD
 		driver.waitForIndexing(store, store.GetDatabase(), 0)
 
 	}
-	moreLikeThis_assertMoreLikeThisHasMatchesFor(t, dataIndex, store, key)
+	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, key)
 }
 
-func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisDoNotPassFieldNames(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -267,7 +267,7 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) 
 	}
 }
 
-func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -348,7 +348,7 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *R
 	}
 }
 
-func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanUseMinDocFreqParam(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -398,7 +398,7 @@ func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T, driver *RavenTestDriv
 	}
 }
 
-func moreLikeThis_can_Use_Boost_Param(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanUseBoostParam(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -452,7 +452,7 @@ func moreLikeThis_can_Use_Boost_Param(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func moreLikeThis_can_Use_Stop_Words(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanUseStopWords(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -517,7 +517,7 @@ func moreLikeThis_can_Use_Stop_Words(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -558,7 +558,7 @@ func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestD
 	}
 }
 
-func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T, driver *RavenTestDriver) {
+func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -605,7 +605,7 @@ func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.
 	}
 }
 
-func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
+func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
 	session := openSessionMust(t, store)
 
 	options := ravendb.NewMoreLikeThisOptions()
@@ -701,17 +701,17 @@ func TestMoreLikeThis(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// order matches Java tests
-	moreLikeThis_can_Use_Stop_Words(t, driver)
-	moreLikeThis_can_Use_Boost_Param(t, driver)
-	moreLikeThis_canGetResultsUsingTermVectors(t, driver)
-	moreLikeThis_can_Use_Min_Doc_Freq_Param(t, driver)
-	moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t, driver)
-	moreLikeThis_test_With_Lots_Of_Random_Data(t, driver)
-	moreLikeThis_canMakeDynamicDocumentQueries(t, driver)
-	moreLikeThis_canGetResultsUsingTermVectorsAndStorage(t, driver)
-	moreLikeThis_canGetResultsUsingStorage(t, driver)
-	moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t, driver)
-	moreLikeThis_do_Not_Pass_FieldNames(t, driver)
-	moreLikeThis_canGetResultsUsingTermVectorsLazy(t, driver)
-	moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t, driver)
+	moreLikeThisCanUseStopWords(t, driver)
+	moreLikeThisCanUseBoostParam(t, driver)
+	moreLikeThisCanGetResultsUsingTermVectors(t, driver)
+	moreLikeThisCanUseMinDocFreqParam(t, driver)
+	moreLikeThisEachFieldShouldUseCorrectAnalyzer(t, driver)
+	moreLikeThisTestWithLotsOfRandomData(t, driver)
+	moreLikeThisCanMakeDynamicDocumentQueries(t, driver)
+	moreLikeThisCanGetResultsUsingTermVectorsAndStorage(t, driver)
+	moreLikeThisCanGetResultsUsingStorage(t, driver)
+	moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t, driver)
+	moreLikeThisDoNotPassFieldNames(t, driver)
+	moreLikeThisCanGetResultsUsingTermVectorsLazy(t, driver)
+	moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t, driver)
 }

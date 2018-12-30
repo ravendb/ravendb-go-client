@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T, driver *RavenTestDriver) {
+func trackEntityTestDeletingEntityThatIsNotTrackedShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -24,7 +24,7 @@ func trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t *testing.T, dri
 	}
 }
 
-func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
+func trackEntityTestLoadingDeletedDocumentShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -71,7 +71,7 @@ func trackEntityTest_loadingDeletedDocumentShouldReturnNull(t *testing.T, driver
 	}
 }
 
-func trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t *testing.T, driver *RavenTestDriver) {
+func trackEntityTestStoringDocumentWithTheSameIdInTheSameSessionShouldThrow(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -107,7 +107,7 @@ func TestTrackEntity(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of java tests
-	trackEntityTest_loadingDeletedDocumentShouldReturnNull(t, driver)
-	trackEntityTest_deletingEntityThatIsNotTrackedShouldThrow(t, driver)
-	trackEntityTest_storingDocumentWithTheSameIdInTheSameSessionShouldThrow(t, driver)
+	trackEntityTestLoadingDeletedDocumentShouldReturnNull(t, driver)
+	trackEntityTestDeletingEntityThatIsNotTrackedShouldThrow(t, driver)
+	trackEntityTestStoringDocumentWithTheSameIdInTheSameSessionShouldThrow(t, driver)
 }

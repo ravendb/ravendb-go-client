@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T, driver *RavenTestDriver) {
+func ravendb5669WorkingTestWithDifferentSearchTermOrder(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewAnimal_Index()
+	index := NewAnimalIndex()
 	err = store.ExecuteIndex(index)
 	assert.NoError(t, err)
 
-	ravendb5669_storeAnimals(t, store, driver)
+	ravendb5669storeAnimals(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -42,16 +42,16 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T, driver *R
 	}
 }
 
-func ravendb5669_workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) {
+func ravendb5669workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewAnimal_Index()
+	index := NewAnimalIndex()
 	err = store.ExecuteIndex(index)
 	assert.NoError(t, err)
 
-	ravendb5669_storeAnimals(t, store, driver)
+	ravendb5669storeAnimals(t, store, driver)
 
 	{
 		session := openSessionMust(t, store)
@@ -81,7 +81,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T, driver *RavenTestDriver)
 	}
 }
 
-func ravendb5669_storeAnimals(t *testing.T, store *ravendb.DocumentStore, driver *RavenTestDriver) {
+func ravendb5669storeAnimals(t *testing.T, store *ravendb.DocumentStore, driver *RavenTestDriver) {
 	var err error
 
 	{
@@ -122,7 +122,7 @@ type Animal struct {
 	Name string `json:"name"`
 }
 
-func NewAnimal_Index() *ravendb.AbstractIndexCreationTask {
+func NewAnimalIndex() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("Animal_Index")
 	res.Map = "from animal in docs.Animals select new { name = animal.name, type = animal.type }"
 
@@ -139,6 +139,6 @@ func TestRavenDB5669(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	ravendb5669_workingTestWithSubclause(t, driver)
-	ravendb5669_workingTestWithDifferentSearchTermOrder(t, driver)
+	ravendb5669workingTestWithSubclause(t, driver)
+	ravendb5669WorkingTestWithDifferentSearchTermOrder(t, driver)
 }

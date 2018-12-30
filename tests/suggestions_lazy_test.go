@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func suggestionsLazy_usingLinq(t *testing.T, driver *RavenTestDriver) {
+func suggestionsLazyUsingLinq(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -82,5 +82,5 @@ func TestSuggestionsLazy(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	suggestionsLazy_usingLinq(t, driver)
+	suggestionsLazyUsingLinq(t, driver)
 }

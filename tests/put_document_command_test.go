@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func putDocumentCOmmand_canPutDocumentUsingCommand(t *testing.T, driver *RavenTestDriver) {
+func putDocumentCommandCanPutDocumentUsingCommand(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -43,5 +43,5 @@ func TestPutDocumentCommand(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	putDocumentCOmmand_canPutDocumentUsingCommand(t, driver)
+	putDocumentCommandCanPutDocumentUsingCommand(t, driver)
 }

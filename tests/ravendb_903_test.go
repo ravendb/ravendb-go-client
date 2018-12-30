@@ -13,7 +13,7 @@ type Product2 struct {
 	Description string `json:"description"`
 }
 
-func ravendb_903_test1(t *testing.T, driver *RavenTestDriver) {
+func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
 		q := session.Advanced().DocumentQueryInIndex(index)
@@ -22,10 +22,10 @@ func ravendb_903_test1(t *testing.T, driver *RavenTestDriver) {
 		q = q.WhereEquals("name", "Bar")
 		return q
 	}
-	ravendb_903_doTest(t, driver, fn)
+	ravendb903DoTest(t, driver, fn)
 }
 
-func ravendb_903_test2(t *testing.T, driver *RavenTestDriver) {
+func ravendb903Test2(t *testing.T, driver *RavenTestDriver) {
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
 		q := session.Advanced().DocumentQueryInIndex(index)
 		q = q.WhereEquals("name", "Bar")
@@ -33,11 +33,11 @@ func ravendb_903_test2(t *testing.T, driver *RavenTestDriver) {
 		q = q.Search("description", "Hello")
 		return q
 	}
-	ravendb_903_doTest(t, driver, fn)
+	ravendb903DoTest(t, driver, fn)
 
 }
 
-func ravendb_903_doTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery) {
+func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -105,6 +105,6 @@ func TestRavenDB903(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	ravendb_903_test1(t, driver)
-	ravendb_903_test2(t, driver)
+	ravendb903Test1(t, driver)
+	ravendb903Test2(t, driver)
 }

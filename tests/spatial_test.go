@@ -52,7 +52,7 @@ func NewMyIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func spatial_weirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
+func spatialWeirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -107,7 +107,7 @@ func spatial_weirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func spatial_matchSpatialResults(t *testing.T, driver *RavenTestDriver) {
+func spatialMatchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -170,6 +170,6 @@ func TestSpatial(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatial_weirdSpatialResults(t, driver)
-	spatial_matchSpatialResults(t, driver)
+	spatialWeirdSpatialResults(t, driver)
+	spatialMatchSpatialResults(t, driver)
 }

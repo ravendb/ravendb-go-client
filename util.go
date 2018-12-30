@@ -112,15 +112,6 @@ func deepCopy(v interface{}) interface{} {
 	return v
 }
 
-func InterfaceArrayContains(a []interface{}, v interface{}) bool {
-	for _, el := range a {
-		if el == v {
-			return true
-		}
-	}
-	return false
-}
-
 func builderWriteInt(b *strings.Builder, n int) {
 	b.WriteString(strconv.Itoa(n))
 }

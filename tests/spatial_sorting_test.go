@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	FILTERED_LAT    = float64(44.419575)
-	FILTERED_LNG    = float64(34.042618)
-	SORTED_LAT      = float64(44.417398)
-	SORTED_LNG      = float64(34.042575)
-	FILTERED_RADIUS = float64(100)
+	FilteredLat    = float64(44.419575)
+	FilteredLng    = float64(34.042618)
+	SortedLat      = float64(44.417398)
+	SortedLng      = float64(34.042575)
+	FilteredRadius = float64(100)
 )
 
 type Shop struct {
@@ -42,7 +42,7 @@ var (
 	filteredExpectedOrder = []string{"shops/2-A", "shops/3-A", "shops/1-A"}
 )
 
-func spatialSorting_createData(t *testing.T, driver *RavenTestDriver, store *ravendb.IDocumentStore) {
+func spatialSortingCreateData(t *testing.T, driver *RavenTestDriver, store *ravendb.IDocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "eventsByLatLng"
@@ -95,12 +95,13 @@ func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string
 	assert.True(t, ok)
 }
 
-func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t *testing.T, driver *RavenTestDriver) {
+func spatialSortingCanFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t *testing.T,
+	driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	spatialSorting_createData(t, driver, store)
+	spatialSortingCreateData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -111,12 +112,12 @@ func spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQu
 		}
 		q := session.QueryWithQuery(queryIndex)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
-			res := f.Within(getQueryShapeFromLatLon(FILTERED_LAT, FILTERED_LNG, FILTERED_RADIUS))
+			res := f.Within(getQueryShapeFromLatLon(FilteredLat, FilteredLng, FilteredRadius))
 			return res
 		}
 
 		q = q.Spatial3("coordinates", fn)
-		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
+		q = q.OrderByDistanceLatLong("coordinates", SortedLat, SortedLng)
 		err = q.GetResults(&shops)
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
@@ -137,11 +138,11 @@ func getShopIDs(shops []*Shop) []string {
 	return res
 }
 
-func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *RavenTestDriver) {
+func spatialSortingCanSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	spatialSorting_createData(t, driver, store)
+	spatialSortingCreateData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -151,7 +152,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *
 			IndexName: "eventsByLatLng",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		q = q.OrderByDistanceLatLong("coordinates", SORTED_LAT, SORTED_LNG)
+		q = q.OrderByDistanceLatLong("coordinates", SortedLat, SortedLng)
 
 		err := q.GetResults(&shops)
 		assert.NoError(t, err)
@@ -164,11 +165,11 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *
 	}
 }
 
-func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
+func spatialSortingCanSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	spatialSorting_createData(t, driver, store)
+	spatialSortingCreateData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -178,7 +179,7 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 			IndexName: "eventsByLatLngWSpecialField",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		q = q.OrderByDistanceLatLong("mySpacialField", SORTED_LAT, SORTED_LNG)
+		q = q.OrderByDistanceLatLong("mySpacialField", SortedLat, SortedLng)
 		err := q.GetResults(&shops)
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
@@ -190,11 +191,11 @@ func spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *tes
 	}
 }
 
-func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTestDriver) {
+func spatialSortingCanSortByDistanceWOFiltering(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	spatialSorting_createData(t, driver, store)
+	spatialSortingCreateData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -204,7 +205,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 			IndexName: "eventsByLatLng",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		q = q.OrderByDistanceLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
+		q = q.OrderByDistanceLatLong("coordinates", FilteredLat, FilteredLng)
 		err := q.GetResults(&shops)
 
 		assert.NoError(t, err)
@@ -224,7 +225,7 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 			IndexName: "eventsByLatLng",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		q = q.OrderByDistanceDescendingLatLong("coordinates", FILTERED_LAT, FILTERED_LNG)
+		q = q.OrderByDistanceDescendingLatLong("coordinates", FilteredLat, FilteredLng)
 		err := q.GetResults(&shops)
 
 		assert.NoError(t, err)
@@ -238,11 +239,11 @@ func spatialSorting_canSortByDistanceWOFiltering(t *testing.T, driver *RavenTest
 	}
 }
 
-func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
+func spatialSortingCanSortByDistanceWOFilteringBySpecifiedField(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	spatialSorting_createData(t, driver, store)
+	spatialSortingCreateData(t, driver, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -252,7 +253,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, d
 			IndexName: "eventsByLatLngWSpecialField",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		q = q.OrderByDistanceLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
+		q = q.OrderByDistanceLatLong("mySpacialField", FilteredLat, FilteredLng)
 		err := q.GetResults(&shops)
 
 		assert.NoError(t, err)
@@ -272,7 +273,7 @@ func spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t *testing.T, d
 			IndexName: "eventsByLatLngWSpecialField",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		q = q.OrderByDistanceDescendingLatLong("mySpacialField", FILTERED_LAT, FILTERED_LNG)
+		q = q.OrderByDistanceDescendingLatLong("mySpacialField", FilteredLat, FilteredLng)
 		err := q.GetResults(&shops)
 
 		assert.NoError(t, err)
@@ -298,9 +299,9 @@ func TestSpatialSorting(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatialSorting_canSortByDistanceWOFilteringBySpecifiedField(t, driver)
-	spatialSorting_canFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t, driver)
-	spatialSorting_canSortByDistanceWOFiltering(t, driver)
-	spatialSorting_canSortByDistanceWOFilteringWDocQuery(t, driver)
-	spatialSorting_canSortByDistanceWOFilteringWDocQueryBySpecifiedField(t, driver)
+	spatialSortingCanSortByDistanceWOFilteringBySpecifiedField(t, driver)
+	spatialSortingCanFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t, driver)
+	spatialSortingCanSortByDistanceWOFiltering(t, driver)
+	spatialSortingCanSortByDistanceWOFilteringWDocQuery(t, driver)
+	spatialSortingCanSortByDistanceWOFilteringWDocQueryBySpecifiedField(t, driver)
 }

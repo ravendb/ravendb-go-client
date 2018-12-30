@@ -20,7 +20,7 @@ func NewSpatialIdx() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *RavenTestDriver) {
+func spatialSearchCanDoSpatialSearchWithClientApi(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -75,7 +75,7 @@ func spatialSearch_can_do_spatial_search_with_client_api(t *testing.T, driver *R
 	}
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T, driver *RavenTestDriver) {
+func spatialSearchCanDoSpatialSearchWithClientApi3(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -104,7 +104,8 @@ func spatialSearch_can_do_spatial_search_with_client_api3(t *testing.T, driver *
 	}
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t *testing.T, driver *RavenTestDriver) {
+func spatialSearchCanDoSpatialSearchWithClientApiWithinGivenCapacity(t *testing.T, driver *RavenTestDriver) {
+
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -170,7 +171,7 @@ func spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t
 	}
 }
 
-func spatialSearch_can_do_spatial_search_with_client_api_add_order(t *testing.T, driver *RavenTestDriver) {
+func spatialSearchCanDoSpatialSearchWithClientApiAddOrder(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -301,8 +302,8 @@ func TestSpatialSearch(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	spatialSearch_can_do_spatial_search_with_client_api3(t, driver)
-	spatialSearch_can_do_spatial_search_with_client_api_within_given_capacity(t, driver)
-	spatialSearch_can_do_spatial_search_with_client_api_add_order(t, driver)
-	spatialSearch_can_do_spatial_search_with_client_api(t, driver)
+	spatialSearchCanDoSpatialSearchWithClientApi3(t, driver)
+	spatialSearchCanDoSpatialSearchWithClientApiWithinGivenCapacity(t, driver)
+	spatialSearchCanDoSpatialSearchWithClientApiAddOrder(t, driver)
+	spatialSearchCanDoSpatialSearchWithClientApi(t, driver)
 }

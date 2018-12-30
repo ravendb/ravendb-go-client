@@ -12,7 +12,7 @@ var (
 	dbgRequestExecutorTests = false
 )
 
-func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestFailuresDoesNotBlockConnectionPool(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_failuresDoesNotBlockConnectionPool start\n")
 	}
@@ -43,7 +43,7 @@ func requestExecutorTest_failuresDoesNotBlockConnectionPool(t *testing.T, driver
 	}
 }
 
-func requestExecutorTest_canIssueManyRequests(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestCanIssueManyRequests(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canIssueManyRequests start\n")
 	}
@@ -65,7 +65,7 @@ func requestExecutorTest_canIssueManyRequests(t *testing.T, driver *RavenTestDri
 	}
 }
 
-func requestExecutorTest_canFetchDatabasesNames(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestCanFetchDatabasesNames(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canFetchDatabasesNames start\n")
 	}
@@ -89,7 +89,7 @@ func requestExecutorTest_canFetchDatabasesNames(t *testing.T, driver *RavenTestD
 	}
 }
 
-func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestThrowsWhenUpdatingTopologyOfNotExistingDb(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb start\n")
 	}
@@ -111,7 +111,7 @@ func requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t *testing.T,
 	}
 }
 
-func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestThrowsWhenDatabaseDoesNotExist(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_throwsWhenDatabaseDoesNotExist start\n")
 	}
@@ -130,7 +130,7 @@ func requestExecutorTest_throwsWhenDatabaseDoesNotExist(t *testing.T, driver *Ra
 	}
 }
 
-func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestCanCreateSingleNodeRequestExecutor(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canCreateSingleNodeRequestExecutor start\n")
 	}
@@ -157,7 +157,7 @@ func requestExecutorTest_canCreateSingleNodeRequestExecutor(t *testing.T, driver
 	}
 }
 
-func requestExecutorTest_canChooseOnlineNode(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestCanChooseOnlineNode(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canChooseOnlineNode start\n")
 	}
@@ -183,7 +183,7 @@ func requestExecutorTest_canChooseOnlineNode(t *testing.T, driver *RavenTestDriv
 	}
 }
 
-func requestExecutorTest_failsWhenServerIsOffline(t *testing.T, driver *RavenTestDriver) {
+func requestExecutorTestFailsWhenServerIsOffline(t *testing.T, driver *RavenTestDriver) {
 	if dbgRequestExecutorTests {
 		logGoroutines("goroutines_req_executor_before.txt")
 		fmt.Printf("requestExecutorTest_failsWhenServerIsOffline start\n")
@@ -205,12 +205,12 @@ func TestRequestExecutor(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	requestExecutorTest_canFetchDatabasesNames(t, driver)
-	requestExecutorTest_canIssueManyRequests(t, driver)
-	requestExecutorTest_throwsWhenDatabaseDoesNotExist(t, driver)
-	requestExecutorTest_failuresDoesNotBlockConnectionPool(t, driver)
-	requestExecutorTest_canCreateSingleNodeRequestExecutor(t, driver)
-	requestExecutorTest_failsWhenServerIsOffline(t, driver)
-	requestExecutorTest_throwsWhenUpdatingTopologyOfNotExistingDb(t, driver)
-	requestExecutorTest_canChooseOnlineNode(t, driver)
+	requestExecutorTestCanFetchDatabasesNames(t, driver)
+	requestExecutorTestCanIssueManyRequests(t, driver)
+	requestExecutorTestThrowsWhenDatabaseDoesNotExist(t, driver)
+	requestExecutorTestFailuresDoesNotBlockConnectionPool(t, driver)
+	requestExecutorTestCanCreateSingleNodeRequestExecutor(t, driver)
+	requestExecutorTestFailsWhenServerIsOffline(t, driver)
+	requestExecutorTestThrowsWhenUpdatingTopologyOfNotExistingDb(t, driver)
+	requestExecutorTestCanChooseOnlineNode(t, driver)
 }

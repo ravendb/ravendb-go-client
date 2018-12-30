@@ -12,12 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func queryStreaming_canStreamQueryResults(t *testing.T, driver *RavenTestDriver) {
+func queryStreamingCanStreamQueryResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewUsers_ByName2()
+	index := NewUsersByName2()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -57,12 +57,12 @@ func queryStreaming_canStreamQueryResults(t *testing.T, driver *RavenTestDriver)
 	}
 }
 
-func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
+func queryStreamingCanStreamQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewUsers_ByName2()
+	index := NewUsersByName2()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -105,12 +105,12 @@ func queryStreaming_canStreamQueryResultsWithQueryStatistics(t *testing.T, drive
 	}
 }
 
-func queryStreaming_canStreamRawQueryResults(t *testing.T, driver *RavenTestDriver) {
+func queryStreamingCanStreamRawQueryResults(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewUsers_ByName2()
+	index := NewUsersByName2()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -151,12 +151,12 @@ func queryStreaming_canStreamRawQueryResults(t *testing.T, driver *RavenTestDriv
 	}
 }
 
-func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
+func queryStreamingCanStreamRawQueryResultsWithQueryStatistics(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewUsers_ByName2()
+	index := NewUsersByName2()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -199,12 +199,12 @@ func queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t *testing.T, dr
 	}
 }
 
-func queryStreaming_canStreamRawQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
+func queryStreamingCanStreamRawQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewUsers_ByName2()
+	index := NewUsersByName2()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -234,12 +234,12 @@ func queryStreaming_canStreamRawQueryIntoStream(t *testing.T, driver *RavenTestD
 	}
 }
 
-func queryStreaming_canStreamQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
+func queryStreamingCanStreamQueryIntoStream(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	index := NewUsers_ByName2()
+	index := NewUsersByName2()
 	err = index.Execute(store)
 	assert.NoError(t, err)
 
@@ -269,7 +269,7 @@ func queryStreaming_canStreamQueryIntoStream(t *testing.T, driver *RavenTestDriv
 }
 
 // avoid conflicts with NewUsers_ByName in indexes_from_client_test.go
-func NewUsers_ByName2() *ravendb.AbstractIndexCreationTask {
+func NewUsersByName2() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName2")
 	res.Map = "from u in docs.Users select new { u.name, lastName = u.lastName.Boost(10) }"
 	res.Index("name", ravendb.FieldIndexing_SEARCH)
@@ -286,10 +286,10 @@ func TestQueryStreaming(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	queryStreaming_canStreamQueryIntoStream(t, driver)
-	queryStreaming_canStreamQueryResultsWithQueryStatistics(t, driver)
-	queryStreaming_canStreamQueryResults(t, driver)
-	queryStreaming_canStreamRawQueryResults(t, driver)
-	queryStreaming_canStreamRawQueryIntoStream(t, driver)
-	queryStreaming_canStreamRawQueryResultsWithQueryStatistics(t, driver)
+	queryStreamingCanStreamQueryIntoStream(t, driver)
+	queryStreamingCanStreamQueryResultsWithQueryStatistics(t, driver)
+	queryStreamingCanStreamQueryResults(t, driver)
+	queryStreamingCanStreamRawQueryResults(t, driver)
+	queryStreamingCanStreamRawQueryIntoStream(t, driver)
+	queryStreamingCanStreamRawQueryResultsWithQueryStatistics(t, driver)
 }

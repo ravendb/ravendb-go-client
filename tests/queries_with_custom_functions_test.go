@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func queriesWithCustomFunctions_queryCmpXchgWhere(t *testing.T, driver *RavenTestDriver) {
+func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -94,5 +94,5 @@ func TestQueriesWithCustomFunctions(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	queriesWithCustomFunctions_queryCmpXchgWhere(t, driver)
+	queriesWithCustomFunctionsQueryCmpXchgWhere(t, driver)
 }

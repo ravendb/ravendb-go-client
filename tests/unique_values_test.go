@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func uniqueValues_canReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -22,7 +22,7 @@ func uniqueValues_canReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -50,7 +50,7 @@ func uniqueValues_canWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDrive
 	}
 }
 
-func uniqueValues_canPutUniqueString(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -73,7 +73,7 @@ func uniqueValues_canPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func uniqueValues_canPutMultiDifferentValues(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanPutMultiDifferentValues(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -105,7 +105,7 @@ func uniqueValues_canPutMultiDifferentValues(t *testing.T, driver *RavenTestDriv
 	}
 }
 
-func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -150,7 +150,7 @@ func uniqueValues_canListCompareExchange(t *testing.T, driver *RavenTestDriver) 
 	}
 }
 
-func uniqueValues_canRemoveUnique(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -172,7 +172,7 @@ func uniqueValues_canRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesRemoveUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -203,7 +203,7 @@ func uniqueValues_removeUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesReturnCurrentValueWhenPuttingConcurrently(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -247,7 +247,7 @@ func uniqueValues_returnCurrentValueWhenPuttingConcurrently(t *testing.T, driver
 	}
 }
 
-func uniqueValues_canGetIndexValue(t *testing.T, driver *RavenTestDriver) {
+func uniqueValuesCanGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -287,13 +287,13 @@ func TestUniqueValues(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	uniqueValues_removeUniqueFailed(t, driver)
-	uniqueValues_canGetIndexValue(t, driver)
-	uniqueValues_canRemoveUnique(t, driver)
-	uniqueValues_canWorkWithPrimitiveTypes(t, driver)
-	uniqueValues_canReadNotExistingKey(t, driver)
-	uniqueValues_canPutMultiDifferentValues(t, driver)
-	uniqueValues_canPutUniqueString(t, driver)
-	uniqueValues_canListCompareExchange(t, driver)
-	uniqueValues_returnCurrentValueWhenPuttingConcurrently(t, driver)
+	uniqueValuesRemoveUniqueFailed(t, driver)
+	uniqueValuesCanGetIndexValue(t, driver)
+	uniqueValuesCanRemoveUnique(t, driver)
+	uniqueValuesCanWorkWithPrimitiveTypes(t, driver)
+	uniqueValuesCanReadNotExistingKey(t, driver)
+	uniqueValuesCanPutMultiDifferentValues(t, driver)
+	uniqueValuesCanPutUniqueString(t, driver)
+	uniqueValuesCanListCompareExchange(t, driver)
+	uniqueValuesReturnCurrentValueWhenPuttingConcurrently(t, driver)
 }

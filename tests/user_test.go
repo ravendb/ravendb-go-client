@@ -1,6 +1,5 @@
 package tests
 
-// for tests only
 type User struct {
 	ID        string
 	Name      *string `json:"name"`

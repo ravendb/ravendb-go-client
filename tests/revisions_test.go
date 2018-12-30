@@ -20,7 +20,7 @@ func collectUserNamesSorted(a []interface{}) []string {
 	return names
 }
 
-func revisionsTest_revisions(t *testing.T, driver *RavenTestDriver) {
+func revisionsTestRevisions(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -95,5 +95,5 @@ func TestRevisions(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	revisionsTest_revisions(t, driver)
+	revisionsTestRevisions(t, driver)
 }

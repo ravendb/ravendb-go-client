@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ravendb_10641_canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver) {
+func ravendb10641canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -123,5 +123,5 @@ func TestRavenDB10641(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	ravendb_10641_canEditObjectsInMetadata(t, driver)
+	ravendb10641canEditObjectsInMetadata(t, driver)
 }

@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDriver) {
+func ravendb8761canGroupByArrayValues(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	ravendb_8761_putDocs(t, store)
+	ravendb8761putDocs(t, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -133,12 +133,12 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 	}
 }
 
-func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriver) {
+func ravendb8761canGroupByArrayContent(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	ravendb_8761_putDocs(t, store)
+	ravendb8761putDocs(t, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -297,7 +297,7 @@ type ProductCount struct {
 	Quantities  []int    `json:"quantities"`
 }
 
-func ravendb_8761_putDocs(t *testing.T, store *ravendb.IDocumentStore) {
+func ravendb8761putDocs(t *testing.T, store *ravendb.IDocumentStore) {
 	var err error
 
 	session := openSessionMust(t, store)
@@ -354,7 +354,7 @@ func TestRavenDB8761(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches the order of Java tests
-	ravendb_8761_can_group_by_array_content(t, driver)
+	ravendb8761canGroupByArrayContent(t, driver)
 
-	ravendb_8761_can_group_by_array_values(t, driver)
+	ravendb8761canGroupByArrayValues(t, driver)
 }
