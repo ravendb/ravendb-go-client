@@ -173,39 +173,55 @@ func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 	return nil, fmt.Errorf("don't know how to convert value of type %v to reflect type %s", js, typ.Name())
 }
 
-// returns names of struct fields as serialized to JSON
-func getJSONStructFieldNames(typ reflect.Type) []string {
-	for typ.Kind() == reflect.Ptr {
-		typ = typ.Elem()
-	}
-	panicIf(typ.Kind() != reflect.Struct, "we only support reflect.Struct, we got %s", typ.Kind())
-	rvNew := reflect.New(typ)
-	rv := reflect.ValueOf(rvNew)
-	structType := rv.Type()
-	var res []string
-	for i := 0; i < rv.NumField(); i++ {
-		structField := structType.Field(i)
-		isExported := structField.PkgPath == ""
-		if !isExported {
-			continue
-		}
-		name := structField.Name
-		tag := structField.Tag
-		jsonTag := tag.Get("json")
-		if jsonTag == "" {
-			res = append(res, name)
-			continue
-		}
-		// this could be "json,omitempty" etc. Extract just the name
-		idx := strings.IndexByte(jsonTag, ',')
-		if idx == -1 {
-			res = append(res, jsonTag)
-			continue
-		}
-		s := strings.TrimSpace(jsonTag[:idx-1])
-		res = append(res, s)
+// get name of struct field for json serialization
+// empty string means we should skip this field
+func getJSONFieldName(field reflect.StructField) string {
+	// skip unexported fields
+	if field.PkgPath != "" {
+		return ""
 	}
 
+	tag := field.Tag.Get("json")
+	// if no tag, use field name
+	if tag == "" {
+		return field.Name
+	}
+	// skip if explicitly marked as non-json serializable
+	// TODO: write tests for this
+	if tag == "-" {
+		return ""
+	}
+	// this could be "name,omitempty" etc.; extract just the name
+	if idx := strings.IndexByte(tag, ','); idx != -1 {
+		name := tag[:idx-1]
+		// if it's sth. like ",omitempty", use field name
+		// TODO: write tests for this
+		if name == "" {
+			return field.Name
+		}
+		return name
+	}
+	return tag
+}
+
+// FieldsFor returns names of all fields for the value of a struct type.
+// They can be used in e.g. DocumentQuery.SelectFields:
+// fields := ravendb.FieldsFor(&MyType{})
+// q = q.SelectFields(fields...)
+func FieldsFor(s interface{}) []string {
+	v := reflect.ValueOf(s)
+	// if pointer get the underlying element≤
+	for v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	panicIf(v.Kind() != reflect.Struct, "argument must be struct, we got %T", s)
+	t := v.Type()
+	var res []string
+	for i := 0; i < t.NumField(); i++ {
+		if name := getJSONFieldName(t.Field(i)); name != "" {
+			res = append(res, name)
+		}
+	}
 	return res
 }
 

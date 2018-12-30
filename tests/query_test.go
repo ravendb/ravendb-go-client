@@ -287,14 +287,15 @@ func queryQuerySingleProperty(t *testing.T, driver *RavenTestDriver) {
 
 		q := session.QueryType(reflect.TypeOf(&User{}))
 		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingType_LONG)
-		q = q.SelectFields(reflect.TypeOf(int(0)), "age")
-		ages, err := q.ToListOld()
+		q = q.SelectFields("age")
+		var ages []int
+		err := q.ToList(&ages)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(ages), 3)
 
-		for _, n := range []int{5, 3, 2} {
-			assert.True(t, ravendb.InterfaceArrayContains(ages, n))
+		for i, n := range []int{5, 3, 2} {
+			assert.Equal(t, ages[i], n)
 		}
 
 		session.Close()
@@ -310,9 +311,9 @@ func queryQueryWithSelect(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
+		q := session.Query()
+		q = q.SelectFields("age")
 		var usersAge []*User
-		q := session.QueryOld(reflect.TypeOf(&User{}))
-		q = q.SelectFields(reflect.TypeOf(&User{}), "age")
 		err := q.ToList(&usersAge)
 		assert.NoError(t, err)
 
@@ -461,8 +462,10 @@ func queryQueryWithWhereGreaterThanOrEqual(t *testing.T, driver *RavenTestDriver
 }
 
 type UserProjection struct {
-	ID   string
-	Name string
+	ID string
+	// Note: this annotation is important because UsersByName
+	// index uses lowercase "name" property
+	Name string `json:"name"`
 }
 
 func queryQueryWithProjection(t *testing.T, driver *RavenTestDriver) {
@@ -475,8 +478,8 @@ func queryQueryWithProjection(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		q := session.QueryType(reflect.TypeOf(&User{}))
-		// Note: no need to SelectFields() for just the type
-		// because its deduced from the argument ToList()
+		fields := ravendb.FieldsFor(&UserProjection{})
+		q = q.SelectFields(fields...)
 		var projections []*UserProjection
 		err := q.ToList(&projections)
 		assert.NoError(t, err)
@@ -504,7 +507,7 @@ func queryQueryWithProjection2(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		q := session.QueryType(reflect.TypeOf(&User{}))
-		q = q.SelectFields(reflect.TypeOf(&UserProjection{}), "lastName")
+		q = q.SelectFields("lastName")
 		var projections []*UserProjection
 		err := q.ToList(&projections)
 		assert.NoError(t, err)
@@ -531,14 +534,16 @@ func queryQueryDistinct(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		q := session.QueryType(reflect.TypeOf(&User{}))
-		q = q.SelectFields(reflect.TypeOf(""), "name")
+		q = q.SelectFields("name")
 		q = q.Distinct()
-		uniqueNames, err := q.ToListOld()
+		var uniqueNames []string
+		err := q.ToList(&uniqueNames)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 2)
-		assert.True(t, ravendb.InterfaceArrayContains(uniqueNames, "Tarzan"))
-		assert.True(t, ravendb.InterfaceArrayContains(uniqueNames, "John"))
+		// TODO: not sure if order guaranteed. maybe sort before compare?
+		assert.Equal(t, uniqueNames[0], "John")
+		assert.Equal(t, uniqueNames[1], "Tarzan")
 
 		session.Close()
 	}

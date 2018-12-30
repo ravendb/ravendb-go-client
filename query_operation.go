@@ -96,30 +96,23 @@ func (o *QueryOperation) complete(results interface{}) error {
 	rt := reflect.TypeOf(results)
 
 	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Slice {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. rt: %s", results, rt)
+		return fmt.Errorf("results should *[]<type>, is %T. rt: %s", results, rt)
 	}
 	rv := reflect.ValueOf(results)
 	sliceV := rv.Elem()
-
-	// slice element should be a pointer to a struct
-	sliceElemPtrType := sliceV.Type().Elem()
-	if sliceElemPtrType.Kind() != reflect.Ptr {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemPtrType: %s", results, sliceElemPtrType)
-	}
-
-	sliceElemType := sliceElemPtrType.Elem()
-	if sliceElemType.Kind() != reflect.Struct {
-		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemType: %s", results, sliceElemType)
-	}
 	// if this is a pointer to nil slice, create a new slice
 	// otherwise we use the slice that was provided by the caller
+	// TODO: should this always be a new slice? (in which case we should error
+	// if provided non-nil slice, since that implies user error
+	// r at least we should reset the slice to empty. Appending to existing
+	// slice might be confusing/unexpected to callers
 	if sliceV.IsNil() {
 		sliceV.Set(reflect.MakeSlice(sliceV.Type(), 0, 0))
 	}
 
 	sliceV2 := sliceV
 
-	clazz := sliceElemPtrType
+	clazz := sliceV.Type().Elem()
 	for _, document := range queryResult.Results {
 		metadataI, ok := document[MetadataKey]
 		panicIf(!ok, "missing metadata")

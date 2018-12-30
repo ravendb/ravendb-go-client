@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,12 +48,13 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 
 		q := session.QueryType(reflect.TypeOf(&UserWithFavs{}))
 		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
-		q = q.SelectFields(reflect.TypeOf(""), "Name")
-		pascalOrGoDeveloperNames, err := q.ToListOld()
+		q = q.SelectFields("Name")
+		var pascalOrGoDeveloperNames []string
+		err = q.ToList(&pascalOrGoDeveloperNames)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(pascalOrGoDeveloperNames))
-		assert.True(t, ravendb.InterfaceArrayContains(pascalOrGoDeveloperNames, "Jane"))
-		assert.True(t, ravendb.InterfaceArrayContains(pascalOrGoDeveloperNames, "Tarzan"))
+		assert.Equal(t, pascalOrGoDeveloperNames[0], "Tarzan")
+		assert.Equal(t, pascalOrGoDeveloperNames[1], "Jane")
 
 		session.Close()
 	}
@@ -64,12 +64,13 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 
 		q := session.QueryType(reflect.TypeOf(&UserWithFavs{}))
 		q = q.ContainsAll("Favourites", []interface{}{"java"})
-		q = q.SelectFields(reflect.TypeOf(""), "Name")
-		javaDevelopers, err := q.ToListOld()
+		q = q.SelectFields("Name")
+		var javaDevelopers []string
+		err = q.ToList(&javaDevelopers)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(javaDevelopers))
-		assert.True(t, ravendb.InterfaceArrayContains(javaDevelopers, "John"))
-		assert.True(t, ravendb.InterfaceArrayContains(javaDevelopers, "Tarzan"))
+		assert.Equal(t, javaDevelopers[0], "John")
+		assert.Equal(t, javaDevelopers[1], "Tarzan")
 
 		session.Close()
 	}

@@ -69,6 +69,10 @@ type AbstractDocumentQuery struct {
 	afterStreamExecutedCallback []func(ObjectNode)
 
 	queryOperation *QueryOperation
+
+	// SelectFields logic has to be delayed until ToList
+	// because only then we know the type of the result
+	selectFieldsArgs *QueryData
 }
 
 func (q *AbstractDocumentQuery) isDistinct() bool {
@@ -1624,15 +1628,9 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 	return q.queryOperation.currentQueryResults.createSnapshot(), nil
 }
 
-// ToListOld returns the result of the query
-// Note: toList() is the same as iterator() because Go has no iterators
-func (q *AbstractDocumentQuery) ToListOld() ([]interface{}, error) {
-	return q.executeQueryOperationOld(0)
-}
-
-// given *[]*struct return type of *struct
+// given *[]<type> return type of <type>
 func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
-	badTypeErr := fmt.Errorf("expected value of type *[]*struct, got %T", results)
+	badTypeErr := fmt.Errorf("expected value of type *[]<type>, got %T", results)
 	rt := reflect.TypeOf(results)
 	if rt.Kind() != reflect.Ptr {
 		return nil, badTypeErr
@@ -1642,9 +1640,6 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 		return nil, badTypeErr
 	}
 	rt = rt.Elem()
-	if rt.Kind() != reflect.Ptr {
-		return nil, badTypeErr
-	}
 	return rt, nil
 }
 
@@ -1667,10 +1662,30 @@ func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 	}
 }
 
+// return q.createDocumentQueryInternalWithQueryData(projectionClass, queryData)
+
 // ToList returns results of the query as *[]*struct
 func (q *AbstractDocumentQuery) ToList(results interface{}) error {
 	if results == nil {
 		return fmt.Errorf("results can't be nil")
+	}
+
+	// delayed SelectFields logic
+	if q.selectFieldsArgs != nil {
+		hadClazz := (q.clazz != nil)
+		// query was created without providing the type to query
+		projectionClass, err := getTypeFromQueryResults(results)
+		if err != nil {
+			return err
+		}
+		dq := q.createDocumentQueryInternalWithQueryData(projectionClass, q.selectFieldsArgs)
+		q = dq.AbstractDocumentQuery
+		panicIf(q.clazz != projectionClass, "q.clazz != projectionClass")
+		if !hadClazz {
+			s := q.theSession
+			q.indexName, q.collectionName = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
+			q.fromToken = createFromToken(q.indexName, q.collectionName, "")
+		}
 	}
 
 	if q.clazz == nil {
@@ -1801,19 +1816,6 @@ func (q *AbstractDocumentQuery) executeQueryOperation(results interface{}, take 
 	}
 
 	return q.queryOperation.complete(results)
-}
-
-func (q *AbstractDocumentQuery) executeQueryOperationOld(take int) ([]interface{}, error) {
-	if take != 0 && (q.pageSize == nil || *q.pageSize > take) {
-		q._take(&take)
-	}
-
-	err := q.initSync()
-	if err != nil {
-		return nil, err
-	}
-
-	return q.queryOperation.completeOld(q.clazz)
 }
 
 func (q *AbstractDocumentQuery) _aggregateBy(facet FacetBase) {

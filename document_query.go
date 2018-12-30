@@ -35,22 +35,31 @@ func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentS
 	}
 }
 
-// SelectFields select fields in a query
-func (q *DocumentQuery) SelectFields(projectionClass reflect.Type, fields ...string) *DocumentQuery {
-	if len(fields) > 0 {
-		queryData := NewQueryData(fields, fields)
-		return q.SelectFieldsWithQueryData(projectionClass, queryData)
+// SelectFields limits the returned values to one or more fields of the queried type.
+// To select fields for the whole type, do:
+// fields := ravendb.FieldsFor(&MyType{})
+// q = q.SelectFields(fields...)
+func (q *DocumentQuery) SelectFields(fields ...string) *DocumentQuery {
+	// Note: we delay executing the logic until ToList because only then
+	// we know the type of the result
+	panicIf(len(fields) == 0, "must provide at least one field")
+	for _, field := range fields {
+		panicIf(field == "", "field cannot be empty string")
 	}
-
-	projections := getJSONStructFieldNames(projectionClass)
-	newFields := projections // java re-does the same calculations
-	return q.SelectFieldsWithQueryData(projectionClass, NewQueryData(newFields, projections))
+	q.selectFieldsArgs = &QueryData{
+		Fields:      fields,
+		Projections: fields,
+	}
+	return q
 }
 
-// SelectFieldsWithQueryData selects fields in query
-func (q *DocumentQuery) SelectFieldsWithQueryData(projectionClass reflect.Type, queryData *QueryData) *DocumentQuery {
-	return q.createDocumentQueryInternalWithQueryData(projectionClass, queryData)
+/*
+TODO: should expose this version?
+func (q *DocumentQuery) SelectFieldsWithQueryData(queryData *QueryData) *DocumentQuery {
+	q.selectFieldsArgs = queryData
+	return q
 }
+*/
 
 // Distinct marks query as distinct
 func (q *DocumentQuery) Distinct() *DocumentQuery {
@@ -411,12 +420,13 @@ func (q *DocumentQuery) createDocumentQueryInternal(resultClass reflect.Type) *D
 	return q.createDocumentQueryInternalWithQueryData(resultClass, nil)
 }
 
-func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
+// Note: had to move it down to AbstractDocumentQuery
+func (q *AbstractDocumentQuery) createDocumentQueryInternalWithQueryData(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
 
 	var newFieldsToFetch *fieldsToFetchToken
 
-	if queryData != nil && len(queryData.fields) > 0 {
-		fields := queryData.fields
+	if queryData != nil && len(queryData.Fields) > 0 {
+		fields := queryData.Fields
 
 		identityProperty := q.getConventions().GetIdentityProperty(resultClass)
 
@@ -431,7 +441,7 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 			}
 		}
 
-		newFieldsToFetch = FieldsToFetchToken_create(fields, queryData.projections, queryData.isCustomFunction)
+		newFieldsToFetch = FieldsToFetchToken_create(fields, queryData.Projections, queryData.IsCustomFunction)
 	}
 
 	if newFieldsToFetch != nil {
@@ -442,9 +452,9 @@ func (q *DocumentQuery) createDocumentQueryInternalWithQueryData(resultClass ref
 	var loadTokens []*loadToken
 	var fromAlias string
 	if queryData != nil {
-		declareToken = queryData.declareToken
-		loadTokens = queryData.loadTokens
-		fromAlias = queryData.fromAlias
+		declareToken = queryData.DeclareToken
+		loadTokens = queryData.LoadTokens
+		fromAlias = queryData.FromAlias
 	}
 	query := NewDocumentQueryWithTokenOld(resultClass,
 		q.theSession,
