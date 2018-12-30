@@ -34,7 +34,7 @@ func ravendb5669_workingTestWithDifferentSearchTermOrder(t *testing.T, driver *R
 
 		query.CloseSubclause()
 
-		err = query.ToList(&results)
+		err = query.GetResults(&results)
 		assert.NoError(t, err)
 		assert.Equal(t, len(results), 1)
 
@@ -73,7 +73,7 @@ func ravendb5669_workingTestWithSubclause(t *testing.T, driver *RavenTestDriver)
 		query.CloseSubclause()
 
 		var results []*Animal
-		err = query.ToList(&results)
+		err = query.GetResults(&results)
 		assert.NoError(t, err)
 		assert.Equal(t, len(results), 1)
 

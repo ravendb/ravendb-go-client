@@ -63,7 +63,7 @@ func crudTestEntitiesAreSavedUsingLowerCase(t *testing.T, driver *RavenTestDrive
 	{
 		newSession := openSessionMust(t, store)
 		var users []*User
-		err = newSession.Advanced().RawQuery("from Users where lastName = 'user1'").ToList(&users)
+		err = newSession.Advanced().RawQuery("from Users where lastName = 'user1'").GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)

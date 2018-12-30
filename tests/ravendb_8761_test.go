@@ -23,7 +23,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 			"  order by count()\n" +
 			"  select key() as productName, count() as count")
 		q = q.WaitForNonStaleResults()
-		err = q.ToList(&productCounts1)
+		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
@@ -31,7 +31,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "productName")
 		q2 = q3.SelectCount()
 		var productCounts2 []*ProductCount
-		err = q2.ToList(&productCounts2)
+		err = q2.GetResults(&productCounts2)
 		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}
@@ -58,7 +58,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 			" group by lines[].product, shipTo.country\n" +
 			" order by count() \n" +
 			" select lines[].product as productName, shipTo.country as country, count() as count")
-		err = q.ToList(&productCounts1)
+		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		var productCounts2 []*ProductCount
@@ -67,7 +67,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("shipTo.country", "country")
 		q2 = q3.SelectCount()
-		err = q2.ToList(&productCounts2)
+		err = q2.GetResults(&productCounts2)
 		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}
@@ -96,7 +96,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 			" group by lines[].product, lines[].quantity\n" +
 			" order by lines[].quantity\n" +
 			" select lines[].product as productName, lines[].quantity as quantity, count() as count")
-		err = q.ToList(&productCounts1)
+		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		var productCounts2 []*ProductCount
@@ -105,7 +105,7 @@ func ravendb_8761_can_group_by_array_values(t *testing.T, driver *RavenTestDrive
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantity")
 		q2 = q3.SelectCount()
-		err = q2.ToList(&productCounts2)
+		err = q2.GetResults(&productCounts2)
 		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}
@@ -178,7 +178,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 			" order by count()\n" +
 			" select key() as products, count() as count")
 		q = q.WaitForNonStaleResults()
-		err = q.ToList(&productCounts1)
+		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
@@ -187,7 +187,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
 		var productCounts2 []*ProductCount
-		err = q2.ToList(&productCounts2)
+		err = q2.GetResults(&productCounts2)
 		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}
@@ -216,7 +216,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 			" order by count()\n" +
 			" select lines[].product as products, shipTo.country as country, count() as count")
 		q = q.WaitForNonStaleResults()
-		err = q.ToList(&productCounts1)
+		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
@@ -225,7 +225,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
 		var productCounts2 []*ProductCount
-		err = q2.ToList(&productCounts2)
+		err = q2.GetResults(&productCounts2)
 		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}
@@ -254,7 +254,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 			" order by lines[].quantity\n" +
 			" select lines[].product as products, lines[].quantity as quantities, count() as count")
 		q = q.WaitForNonStaleResults()
-		err = q.ToList(&productCounts1)
+		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		q2 := session.Advanced().DocumentQueryOld(reflect.TypeOf(&Order{}))
@@ -264,7 +264,7 @@ func ravendb_8761_can_group_by_array_content(t *testing.T, driver *RavenTestDriv
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
 		var productCounts2 []*ProductCount
-		err = q2.ToList(&productCounts2)
+		err = q2.GetResults(&productCounts2)
 		assert.NoError(t, err)
 
 		combined := [][]*ProductCount{productCounts1, productCounts2}

@@ -64,7 +64,7 @@ func customSerializationTestSerialization(t *testing.T, driver *RavenTestDriver)
 		var productsForTwoDollars []*Product3
 		q := session.Query()
 		q = q.WhereEquals("price", NewMoney(2, Dollar))
-		err := q.ToList(&productsForTwoDollars)
+		err := q.GetResults(&productsForTwoDollars)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(productsForTwoDollars), 1)

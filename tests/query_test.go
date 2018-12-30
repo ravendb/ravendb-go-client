@@ -40,7 +40,7 @@ func queryQuerySimple(t *testing.T, driver *RavenTestDriver) {
 
 		q := session.Advanced().DocumentQueryAll("", "users", false)
 		var queryResult []*User
-		err := q.ToList(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 3)
 
@@ -148,19 +148,19 @@ func queryQueryWithWhereClause(t *testing.T, driver *RavenTestDriver) {
 		}
 		q := session.QueryWithQuery(queryUsers)
 		q = q.WhereStartsWith("name", "J")
-		err := q.ToList(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 
 		var queryResult2 []*User
 		q2 := session.QueryWithQuery(queryUsers)
 		q2 = q2.WhereEquals("name", "Tarzan")
-		err = q2.ToList(&queryResult2)
+		err = q2.GetResults(&queryResult2)
 		assert.NoError(t, err)
 
 		var queryResult3 []*User
 		q3 := session.QueryWithQuery(queryUsers)
 		q3 = q3.WhereEndsWith("name", "n")
-		err = q3.ToList(&queryResult3)
+		err = q3.GetResults(&queryResult3)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 2)
@@ -186,7 +186,7 @@ func queryQueryMapReduceWithCount(t *testing.T, driver *RavenTestDriver) {
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
 		q = q.OrderByDescending("count")
-		err := q.ToList(&results)
+		err := q.GetResults(&results)
 		assert.NoError(t, err)
 
 		{
@@ -223,7 +223,7 @@ func queryQueryMapReduceWithSum(t *testing.T, driver *RavenTestDriver) {
 		}
 		q = q2.SelectSum(f)
 		q = q.OrderByDescending("age")
-		err := q.ToList(&results)
+		err := q.GetResults(&results)
 		assert.NoError(t, err)
 
 		{
@@ -257,7 +257,7 @@ func queryQueryMapReduceIndex(t *testing.T, driver *RavenTestDriver) {
 		}
 		q := session.QueryWithQuery(queryIndex)
 		q = q.OrderByDescending("count")
-		err := q.ToList(&results)
+		err := q.GetResults(&results)
 		assert.NoError(t, err)
 
 		{
@@ -289,7 +289,7 @@ func queryQuerySingleProperty(t *testing.T, driver *RavenTestDriver) {
 		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingType_LONG)
 		q = q.SelectFields("age")
 		var ages []int
-		err := q.ToList(&ages)
+		err := q.GetResults(&ages)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(ages), 3)
@@ -314,7 +314,7 @@ func queryQueryWithSelect(t *testing.T, driver *RavenTestDriver) {
 		q := session.Query()
 		q = q.SelectFields("age")
 		var usersAge []*User
-		err := q.ToList(&usersAge)
+		err := q.GetResults(&usersAge)
 		assert.NoError(t, err)
 
 		for _, user := range usersAge {
@@ -338,7 +338,7 @@ func queryQueryWithWhereIn(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.WhereIn("name", []interface{}{"Tarzan", "no_such"})
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -359,7 +359,7 @@ func queryQueryWithWhereBetween(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.WhereBetween("age", 4, 5)
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -383,7 +383,7 @@ func queryQueryWithWhereLessThan(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.WhereLessThan("age", 3)
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -407,7 +407,7 @@ func queryQueryWithWhereLessThanOrEqual(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.WhereLessThanOrEqual("age", 3)
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -428,7 +428,7 @@ func queryQueryWithWhereGreaterThan(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.WhereGreaterThan("age", 3)
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -452,7 +452,7 @@ func queryQueryWithWhereGreaterThanOrEqual(t *testing.T, driver *RavenTestDriver
 		var users []*User
 		q := session.Query()
 		q = q.WhereGreaterThanOrEqual("age", 3)
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -481,7 +481,7 @@ func queryQueryWithProjection(t *testing.T, driver *RavenTestDriver) {
 		fields := ravendb.FieldsFor(&UserProjection{})
 		q = q.SelectFields(fields...)
 		var projections []*UserProjection
-		err := q.ToList(&projections)
+		err := q.GetResults(&projections)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -509,7 +509,7 @@ func queryQueryWithProjection2(t *testing.T, driver *RavenTestDriver) {
 		q := session.QueryType(reflect.TypeOf(&User{}))
 		q = q.SelectFields("lastName")
 		var projections []*UserProjection
-		err := q.ToList(&projections)
+		err := q.GetResults(&projections)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -537,7 +537,7 @@ func queryQueryDistinct(t *testing.T, driver *RavenTestDriver) {
 		q = q.SelectFields("name")
 		q = q.Distinct()
 		var uniqueNames []string
-		err := q.ToList(&uniqueNames)
+		err := q.GetResults(&uniqueNames)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 2)
@@ -561,7 +561,7 @@ func queryQuerySearchWithOr(t *testing.T, driver *RavenTestDriver) {
 		var uniqueNames []*User
 		q := session.Query()
 		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperator_OR)
-		err := q.ToList(&uniqueNames)
+		err := q.GetResults(&uniqueNames)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 3)
@@ -582,7 +582,7 @@ func queryQueryNoTracking(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.NoTracking()
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -610,7 +610,7 @@ func queryQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 		q = q.OrderBy("name")
 		q = q.Skip(2)
 		q = q.Take(1)
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -636,7 +636,7 @@ func queryRawQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 		q := session.RawQuery("from users")
 		q = q.Skip(2)
 		q = q.Take(1)
-		err = q.ToList(&users)
+		err = q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -660,7 +660,7 @@ func queryParametersInRawQuery(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.RawQuery("from users where age == $p0")
 		q = q.AddParameter("p0", 5)
-		err = q.ToList(&users)
+		err = q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -683,7 +683,7 @@ func queryQueryLucene(t *testing.T, driver *RavenTestDriver) {
 		var users []*User
 		q := session.Query()
 		q = q.WhereLucene("name", "Tarzan")
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -709,7 +709,7 @@ func queryQueryWhereExact(t *testing.T, driver *RavenTestDriver) {
 			var users []*User
 			q := session.Query()
 			q = q.WhereEquals("name", "tarzan")
-			err := q.ToList(&users)
+			err := q.GetResults(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1)
@@ -719,7 +719,7 @@ func queryQueryWhereExact(t *testing.T, driver *RavenTestDriver) {
 			var users []*User
 			q := session.Query()
 			q = q.WhereEquals("name", "tarzan").Exact()
-			err := q.ToList(&users)
+			err := q.GetResults(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 0) // we queried for tarzan with exact
@@ -729,7 +729,7 @@ func queryQueryWhereExact(t *testing.T, driver *RavenTestDriver) {
 			var users []*User
 			q := session.Query()
 			q = q.WhereEquals("name", "Tarzan").Exact()
-			err := q.ToList(&users)
+			err := q.GetResults(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1) // we queried for Tarzan with exact
@@ -753,7 +753,7 @@ func queryQueryWhereNot(t *testing.T, driver *RavenTestDriver) {
 			q := session.Query()
 			q = q.Not()
 			q = q.WhereEquals("name", "tarzan")
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 
 			assert.NoError(t, err)
 
@@ -764,7 +764,7 @@ func queryQueryWhereNot(t *testing.T, driver *RavenTestDriver) {
 			var res []*User
 			q := session.Query()
 			q = q.WhereNotEquals("name", "tarzan")
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 
 			assert.NoError(t, err)
 
@@ -775,7 +775,7 @@ func queryQueryWhereNot(t *testing.T, driver *RavenTestDriver) {
 			var res []*User
 			q := session.Query()
 			q = q.WhereNotEquals("name", "Tarzan").Exact()
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 
 			assert.NoError(t, err)
 
@@ -865,7 +865,7 @@ func queryQueryWithDuration(t *testing.T, driver *RavenTestDriver) {
 			var orders []*Order
 			q := session.QueryInIndex(NewOrderTime())
 			q = q.WhereLessThan("delay", time.Hour*3)
-			err := q.ToList(&orders)
+			err := q.GetResults(&orders)
 			assert.NoError(t, err)
 
 			var delay []string
@@ -881,7 +881,7 @@ func queryQueryWithDuration(t *testing.T, driver *RavenTestDriver) {
 			var orders []*Order
 			q := session.QueryInIndex(NewOrderTime())
 			q = q.WhereGreaterThan("delay", time.Hour*3)
-			err := q.ToList(&orders)
+			err := q.GetResults(&orders)
 			assert.NoError(t, err)
 
 			var delay2 []string
@@ -965,7 +965,7 @@ func queryQueryRandomOrder(t *testing.T, driver *RavenTestDriver) {
 		{
 			var res []*User
 			q := session.Query().RandomOrdering()
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -973,7 +973,7 @@ func queryQueryRandomOrder(t *testing.T, driver *RavenTestDriver) {
 		{
 			var res []*User
 			q := session.Query().RandomOrderingWithSeed("123")
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -994,7 +994,7 @@ func queryQueryWhereExists(t *testing.T, driver *RavenTestDriver) {
 			var res []*User
 			q := session.Query()
 			q = q.WhereExists("name")
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -1006,7 +1006,7 @@ func queryQueryWhereExists(t *testing.T, driver *RavenTestDriver) {
 			q = q.AndAlso()
 			q = q.Not()
 			q = q.WhereExists("no_such_field")
-			err := q.ToList(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -1031,7 +1031,7 @@ func queryQueryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(2)
 		q = q.OrderByScore()
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -1050,7 +1050,7 @@ func queryQueryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(5)
 		q = q.OrderByScore()
-		err = q.ToList(&users)
+		err = q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -1143,7 +1143,7 @@ func queryQueryWithCustomize(t *testing.T, driver *RavenTestDriver) {
 		q = q.OrderByWithOrdering("name", ravendb.OrderingType_ALPHA_NUMERIC)
 		q = q.WhereGreaterThan("age", 2)
 		var queryResult []*DogsIndex_Result
-		err := q.ToList(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 4)
@@ -1293,7 +1293,7 @@ func queryQueryLongRequest(t *testing.T, driver *RavenTestDriver) {
 		q := newSession.Advanced().DocumentQueryAll("", "Users", false)
 		q = q.WhereEquals("name", longName)
 		var queryResult []*User
-		err := q.ToList(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 1)
 
@@ -1330,7 +1330,7 @@ func queryQueryByIndex(t *testing.T, driver *RavenTestDriver) {
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
 		var queryResult []*DogsIndex_Result
-		err := q.ToList(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 1)
@@ -1342,7 +1342,7 @@ func queryQueryByIndex(t *testing.T, driver *RavenTestDriver) {
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
 		var queryResult2 []*DogsIndex_Result
-		err = q.ToList(&queryResult2)
+		err = q.GetResults(&queryResult2)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult2), 3)

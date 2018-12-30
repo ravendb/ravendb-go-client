@@ -82,7 +82,7 @@ func ravendb_903_doTest(t *testing.T, driver *RavenTestDriver, queryFunction fun
 		var products []*Product2
 		session := openSessionMust(t, store)
 		query := queryFunction(session, index)
-		err = query.ToList(&products)
+		err = query.GetResults(&products)
 		assert.NoError(t, err)
 		assert.Equal(t, len(products), 1)
 

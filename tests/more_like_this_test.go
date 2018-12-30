@@ -144,7 +144,7 @@ func moreLikeThis_canGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, d
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
 		assert.Equal(t, len(list), 7)
@@ -261,7 +261,7 @@ func moreLikeThis_do_Not_Pass_FieldNames(t *testing.T, driver *RavenTestDriver) 
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.Equal(t, 9, len(list)) // TODO: should this be 10? 1?
 	}
@@ -308,7 +308,7 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *R
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.Empty(t, list)
 	}
@@ -342,7 +342,7 @@ func moreLikeThis_each_Field_Should_Use_Correct_Analyzer(t *testing.T, driver *R
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
 	}
@@ -392,7 +392,7 @@ func moreLikeThis_can_Use_Min_Doc_Freq_Param(t *testing.T, driver *RavenTestDriv
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
 	}
@@ -445,7 +445,7 @@ func moreLikeThis_can_Use_Boost_Param(t *testing.T, driver *RavenTestDriver) {
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
 		assert.Equal(t, list[0].Body, "I have a test tomorrow.")
@@ -511,7 +511,7 @@ func moreLikeThis_can_Use_Stop_Words(t *testing.T, driver *RavenTestDriver) {
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.Equal(t, len(list), 5)
 	}
@@ -552,7 +552,7 @@ func moreLikeThis_canMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestD
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*Data
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.Equal(t, len(list), 7)
 	}
@@ -599,7 +599,7 @@ func moreLikeThis_canMakeDynamicDocumentQueriesWithComplexProperties(t *testing.
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
 		var list []*ComplexData
-		err = query.ToList(&list)
+		err = query.GetResults(&list)
 		assert.NoError(t, err)
 		assert.Equal(t, len(list), 1)
 	}
@@ -620,7 +620,7 @@ func moreLikeThis_assertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.A
 	}
 	var data []*Data
 	q = q.MoreLikeThisWithBuilder(fn2)
-	err := q.ToList(&data)
+	err := q.GetResults(&data)
 	assert.NoError(t, err)
 	assert.True(t, len(data) > 0)
 

@@ -219,7 +219,7 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 		// TODO: should this be Name (name of the struct field) and we would
 		// convert that to json tag (if necessary) internally?
 		q = q.WhereEquals("name", "Arek")
-		err := q.ToList(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 1)
 	}
@@ -297,7 +297,7 @@ func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
-		err := q.ToList(&notUsed)
+		err := q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
 		indexName = stats.GetIndexName()
@@ -349,7 +349,7 @@ func indexesFromClientTestGetIndexNames(t *testing.T, driver *RavenTestDriver) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
-		err := q.ToList(&notUsed)
+		err := q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
 		indexName = stats.GetIndexName()
@@ -403,13 +403,13 @@ func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 		q := session.Query()
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
-		err = q.ToList(&notUsed)
+		err = q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
 		q = session.Query()
 		q = q.Statistics(&statsRef)
 		q = q.WhereGreaterThan("age", 10)
-		err = q.ToList(&notUsed)
+		err = q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
 		session.Close()
@@ -508,7 +508,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 
 		q = q.MoreLikeThisWithBuilder(fn2)
 
-		err := q.ToList(&list)
+		err := q.GetResults(&list)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(list), 3)

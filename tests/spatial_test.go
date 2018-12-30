@@ -96,7 +96,7 @@ func spatial_weirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 		q = q.Take(50)
 
 		var result []*MyDocument
-		err = q.ToList(&result)
+		err = q.GetResults(&result)
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.GetTotalResults(), 0)
@@ -151,7 +151,7 @@ func spatial_matchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 		q = q.Take(50)
 
 		var result []*MyDocument
-		err = q.ToList(&result)
+		err = q.GetResults(&result)
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.GetTotalResults(), 1)

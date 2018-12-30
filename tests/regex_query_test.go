@@ -39,7 +39,7 @@ func regexQuery_queriesWithRegexFromDocumentQuery(t *testing.T, driver *RavenTes
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
 		var result []*RegexMe
-		err = query.ToList(&result)
+		err = query.GetResults(&result)
 		assert.NoError(t, err)
 		assert.Equal(t, len(result), 4)
 

@@ -103,7 +103,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T,
 		}
 		q := session.QueryWithQuery(queryIndex)
 		q = q.WaitForNonStaleResults(0)
-		err = q.ToList(&notUsed)
+		err = q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
 		lat := float64(55.6836422426)
@@ -114,7 +114,7 @@ func spatialQueries_canSuccessfullyDoSpatialQueryOfNearbyLocations(t *testing.T,
 		q = session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOf("coordinates", radius, lat, lng)
 		q = q.WaitForNonStaleResults(0)
-		err = q.ToList(&nearbyDocs)
+		err = q.GetResults(&nearbyDocs)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(nearbyDocs), 3)
@@ -157,7 +157,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 		}
 		q := session.QueryWithQuery(queryIndex)
 		q = q.WaitForNonStaleResults(0)
-		err = q.ToList(&notUsed)
+		err = q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
 		radius := float64(8)
@@ -169,7 +169,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 		q = session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnitsMiles)
 		q = q.WaitForNonStaleResults(0)
-		err = q.ToList(&matchesWithinMiles)
+		err = q.GetResults(&matchesWithinMiles)
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinMiles), 2)
 
@@ -180,7 +180,7 @@ func spatialQueries_canSuccessfullyQueryByMiles(t *testing.T, driver *RavenTestD
 		q = session.QueryWithQuery(queryIndex)
 		q = q.WithinRadiusOfWithUnits("coordinates", radius, myHouse.Latitude, myHouse.Longitude, ravendb.SpatialUnitsKilometers)
 		q = q.WaitForNonStaleResults(0)
-		err = q.ToList(&matchesWithinKilometers)
+		err = q.GetResults(&matchesWithinKilometers)
 		assert.NoError(t, err)
 		assert.Equal(t, len(matchesWithinKilometers), 1)
 
