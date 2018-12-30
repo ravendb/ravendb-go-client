@@ -1664,8 +1664,10 @@ func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 
 // return q.createDocumentQueryInternalWithQueryData(projectionClass, queryData)
 
-// ToList returns results of the query as *[]*struct
+// GetResults executes the query and sets results to returned values.
+// results should be of type *[]<type>
 // TODO: name it Execute() instead?
+// Note: ToList in java
 func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
 	if results == nil {
 		return fmt.Errorf("results can't be nil")
