@@ -26,7 +26,7 @@ func (o *LazySessionOperations) Include(path string) *LazyMultiLoaderWithInclude
 
 // Load returns Lazy object for lazily loading a value of a given type and id
 // from the database
-func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(interface{})) *Lazy {
+func (o *LazySessionOperations) LoadOld(clazz reflect.Type, id string, onEval func(interface{})) *Lazy {
 	if o.delegate.IsLoaded(id) {
 		fn := func() (interface{}, error) {
 			//return o.delegate.LoadOld(clazz, id)
@@ -38,13 +38,27 @@ func (o *LazySessionOperations) Load(clazz reflect.Type, id string, onEval func(
 
 	session := o.delegate.InMemoryDocumentSessionOperations
 	op := NewLoadOperation(session).byID(id)
-	lazyLoadOperation := NewLazyLoadOperation(clazz, session, op).byID(id)
+	lazyLoadOperation := NewLazyLoadOperationOld(clazz, session, op).byID(id)
 	return o.delegate.addLazyOperationOld(clazz, lazyLoadOperation, onEval)
+}
+
+func (o *LazySessionOperations) Load(result interface{}, id string, onEval func(interface{})) *Lazy {
+	if o.delegate.IsLoaded(id) {
+		fn := func(result interface{}) error {
+			return o.delegate.Load(result, id)
+		}
+		return NewLazy2(result, fn)
+	}
+
+	session := o.delegate.InMemoryDocumentSessionOperations
+	op := NewLoadOperation(session).byID(id)
+	lazyLoadOperation := NewLazyLoadOperation(result, session, op).byID(id)
+	return o.delegate.addLazyOperation(result, lazyLoadOperation, onEval)
 }
 
 // LoadStartingWith returns Lazy object for lazily loading multiple value
 // of a given type and matching args
-func (o *LazySessionOperations) LoadStartingWith(clazz reflect.Type, args *StartsWithArgs) *Lazy {
+func (o *LazySessionOperations) LoadStartingWithOld(clazz reflect.Type, args *StartsWithArgs) *Lazy {
 	session := o.delegate.InMemoryDocumentSessionOperations
 	operation := NewLazyStartsWithOperation(clazz, args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
 
@@ -54,6 +68,6 @@ func (o *LazySessionOperations) LoadStartingWith(clazz reflect.Type, args *Start
 
 // LoadMulti returns Lazy object for lazily loading multiple values
 // of a given type and with given ids
-func (o *LazySessionOperations) LoadMulti(clazz reflect.Type, ids []string, onEval func(interface{})) *Lazy {
+func (o *LazySessionOperations) LoadMultiOld(clazz reflect.Type, ids []string, onEval func(interface{})) *Lazy {
 	return o.delegate.lazyLoadInternal(clazz, ids, nil, onEval)
 }

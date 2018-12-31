@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -1145,6 +1146,11 @@ func isMapStringToPtrStruct(t reflect.Type) bool {
 	}
 
 	return isPtrStruct(t.Elem())
+}
+
+func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
+	fmt.Printf("InMemoryDocumentSessionOperations.getOperationResult: trying to set results (%T) to result (%T)\n", results, result)
+	return errors.New("NYI")
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResultOld(clazz reflect.Type, result interface{}) (interface{}, error) {

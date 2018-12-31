@@ -1,31 +1,34 @@
 package ravendb
 
-var _ ILazyOperation = &LazyLoadOperation{}
+import (
+	"reflect"
+)
 
-// LazyLoadOperation represents lazy load operation
-type LazyLoadOperation struct {
+var _ ILazyOperation = &LazyLoadOperationOld{}
+
+// LazyLoadOperationOld represents lazy load operation
+type LazyLoadOperationOld struct {
+	_clazz         reflect.Type
 	_session       *InMemoryDocumentSessionOperations
 	_loadOperation *LoadOperation
 	_ids           []string
 	_includes      []string
 
-	// value provided by the caller where we'll store the result
-	result interface{}
-
+	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
 
-// NewLazyLoadOperation returns new LazyLoadOperation
-func NewLazyLoadOperation(results interface{}, session *InMemoryDocumentSessionOperations, loadOperation *LoadOperation) *LazyLoadOperation {
-	return &LazyLoadOperation{
-		result:         results,
+// NewLazyLoadOperation returns new LazyLoadOperationOld
+func NewLazyLoadOperationOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, loadOperation *LoadOperation) *LazyLoadOperationOld {
+	return &LazyLoadOperationOld{
+		_clazz:         clazz,
 		_session:       session,
 		_loadOperation: loadOperation,
 	}
 }
 
-func (o *LazyLoadOperation) createRequest() *GetRequest {
+func (o *LazyLoadOperationOld) createRequest() *GetRequest {
 	var idsToCheckOnServer []string
 	for _, id := range o._ids {
 		if !o._session.IsLoadedOrDeleted(id) {
@@ -50,7 +53,7 @@ func (o *LazyLoadOperation) createRequest() *GetRequest {
 
 	if !hasItems {
 		// no need to hit the server
-		_ = o._loadOperation.getDocuments(o.result)
+		o.result = o._loadOperation.getDocuments(o._clazz)
 		return nil
 	}
 
@@ -61,7 +64,7 @@ func (o *LazyLoadOperation) createRequest() *GetRequest {
 	return getRequest
 }
 
-func (o *LazyLoadOperation) byID(id string) *LazyLoadOperation {
+func (o *LazyLoadOperationOld) byID(id string) *LazyLoadOperationOld {
 	if id == "" {
 		return o
 	}
@@ -73,33 +76,33 @@ func (o *LazyLoadOperation) byID(id string) *LazyLoadOperation {
 	return o
 }
 
-func (o *LazyLoadOperation) byIds(ids []string) *LazyLoadOperation {
+func (o *LazyLoadOperationOld) byIds(ids []string) *LazyLoadOperationOld {
 	o._ids = ids
 
 	return o
 }
 
-func (o *LazyLoadOperation) withIncludes(includes []string) *LazyLoadOperation {
+func (o *LazyLoadOperationOld) withIncludes(includes []string) *LazyLoadOperationOld {
 	o._includes = includes
 	return o
 }
 
 // needed for ILazyOperation
-func (o *LazyLoadOperation) getResult() interface{} {
+func (o *LazyLoadOperationOld) getResult() interface{} {
 	return o.result
 }
 
 // needed for ILazyOperation
-func (o *LazyLoadOperation) getQueryResult() *QueryResult {
+func (o *LazyLoadOperationOld) getQueryResult() *QueryResult {
 	return o.queryResult
 }
 
 // needed for ILazyOperation
-func (o *LazyLoadOperation) isRequiresRetry() bool {
+func (o *LazyLoadOperationOld) isRequiresRetry() bool {
 	return o.requiresRetry
 }
 
-func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
+func (o *LazyLoadOperationOld) handleResponse(response *GetResponse) error {
 	if response.isForceRetry {
 		o.result = nil
 		o.requiresRetry = true
@@ -119,16 +122,12 @@ func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
 	return o.handleResponse2(multiLoadResult)
 }
 
-func (o *LazyLoadOperation) handleResponse2(loadResult *GetDocumentsResult) error {
+func (o *LazyLoadOperationOld) handleResponse2(loadResult *GetDocumentsResult) error {
 	o._loadOperation.setResult(loadResult)
 
 	var err error
 	if !o.requiresRetry {
-		err = o._loadOperation.getDocuments(o.result)
-		// TODO: a better way to distinguish between a Load() and LoadMulti() operation
-		if err != nil && len(o._ids) == 1 {
-			err = o._loadOperation.getDocument(o.result)
-		}
+		o.result, err = o._loadOperation.getDocumentsOld(o._clazz)
 	}
 	return err
 }
