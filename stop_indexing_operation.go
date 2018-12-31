@@ -31,7 +31,7 @@ func NewStopIndexingCommand() *StopIndexingCommand {
 	cmd := &StopIndexingCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

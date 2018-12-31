@@ -75,7 +75,7 @@ type InMemoryDocumentSessionOperations struct {
 	deferredCommandsMap map[idTypeAndName]ICommandData
 
 	generateEntityIDOnTheClient *generateEntityIDOnTheClient
-	entityToJSON                *EntityToJSON
+	entityToJSON                *entityToJSON
 
 	// Note: in java DocumentSession inherits from InMemoryDocumentSessionOperations
 	// so we can upcast/downcast between them
@@ -107,7 +107,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		return res.GenerateId(entity)
 	}
 	res.generateEntityIDOnTheClient = newgenerateEntityIDOnTheClient(re.conventions, genIDFunc)
-	res.entityToJSON = NewEntityToJSON(res)
+	res.entityToJSON = newEntityToJSON(res)
 	return res
 }
 
@@ -155,7 +155,7 @@ func (s *InMemoryDocumentSessionOperations) GetgenerateEntityIDOnTheClient() *ge
 	return s.generateEntityIDOnTheClient
 }
 
-func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *EntityToJSON {
+func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *entityToJSON {
 	return s.entityToJSON
 }
 
@@ -1026,7 +1026,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 		json, ok := fieldValue.(ObjectNode)
 		panicIf(!ok, "fieldValue of unsupported type %T", fieldValue)
 		newDocumentInfo := getNewDocumentInfo(json)
-		if JsonExtensions_tryGetConflict(newDocumentInfo.metadata) {
+		if jsonExtensionsTryGetConflict(newDocumentInfo.metadata) {
 			continue
 		}
 

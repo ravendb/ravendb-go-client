@@ -15,5 +15,5 @@ func NewIndexQueryContent(conventions *DocumentConventions, query *IndexQuery) *
 }
 
 func (q *IndexQueryContent) writeContent() map[string]interface{} {
-	return JsonExtensions_writeIndexQuery(q._conventions, q._query)
+	return jsonExtensionsWriteIndexQuery(q._conventions, q._query)
 }

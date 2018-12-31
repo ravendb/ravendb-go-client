@@ -31,7 +31,7 @@ func NewStartIndexingCommand() *StartIndexingCommand {
 	cmd := &StartIndexingCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

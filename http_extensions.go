@@ -5,35 +5,35 @@ import (
 	"strings"
 )
 
-func HttpExtensions_getRequiredEtagHeader(response *http.Response) (*string, error) {
+func gttpExtensionsGetRequiredEtagHeader(response *http.Response) (*string, error) {
 	hdr := response.Header.Get(headersEtag)
 	if hdr == "" {
 		return nil, newIllegalStateError("Response did't had an ETag header")
 	}
-	etag := HttpExtensions_etagHeaderToChangeVector(hdr)
+	etag := httpExtensionsEtagHeaderToChangeVector(hdr)
 	return &etag, nil
 }
 
-func HttpExtensions_getEtagHeader(response *http.Response) *string {
+func gttpExtensionsGetEtagHeader(response *http.Response) *string {
 	hdr := response.Header.Get(headersEtag)
 	if hdr == "" {
 		return nil
 	}
-	res := HttpExtensions_etagHeaderToChangeVector(hdr)
+	res := httpExtensionsEtagHeaderToChangeVector(hdr)
 	return &res
 }
 
-func HttpExtensions_getEtagHeaderFromMap(headers map[string]string) *string {
+func gttpExtensionsGetEtagHeaderFromMap(headers map[string]string) *string {
 	hdr := headers[headersEtag]
 	if hdr == "" {
 		return nil
 	}
-	res := HttpExtensions_etagHeaderToChangeVector(hdr)
+	res := httpExtensionsEtagHeaderToChangeVector(hdr)
 	return &res
 }
 
 // TODO: add test
-func HttpExtensions_etagHeaderToChangeVector(responseHeader string) string {
+func httpExtensionsEtagHeaderToChangeVector(responseHeader string) string {
 	panicIf(responseHeader == "", "Response did't had an ETag header")
 
 	if strings.HasPrefix(responseHeader, `"`) {
@@ -43,7 +43,7 @@ func HttpExtensions_etagHeaderToChangeVector(responseHeader string) string {
 	return responseHeader
 }
 
-func HttpExtensions_getBooleanHeader(response *http.Response, header string) bool {
+func httpExtensionsGetBooleanHeader(response *http.Response, header string) bool {
 	hdr := response.Header.Get(header)
 	return strings.EqualFold(hdr, "true")
 }

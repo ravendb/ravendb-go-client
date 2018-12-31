@@ -1,7 +1,6 @@
 package ravendb
 
-// TODO: change the name to better reflect what it does
-func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *IndexQuery) map[string]interface{} {
+func jsonExtensionsWriteIndexQuery(conventions *DocumentConventions, query *IndexQuery) map[string]interface{} {
 	res := map[string]interface{}{}
 	res["Query"] = query.query
 	if query.pageSize > 0 {
@@ -37,7 +36,7 @@ func JsonExtensions_writeIndexQuery(conventions *DocumentConventions, query *Ind
 	return res
 }
 
-func JsonExtensions_tryGetConflict(metadata ObjectNode) bool {
+func jsonExtensionsTryGetConflict(metadata ObjectNode) bool {
 	v, ok := metadata[MetadataConflict]
 	if !ok {
 		return false

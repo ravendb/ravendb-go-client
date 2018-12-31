@@ -48,17 +48,17 @@ func (c *HeadDocumentCommand) ProcessResponse(cache *HttpCache, response *http.R
 	statusCode := response.StatusCode
 	if statusCode == http.StatusNotModified {
 		c.Result = c._changeVector
-		return ResponseDisposeHandling_AUTOMATIC, nil
+		return responseDisposeHandlingAutomatic, nil
 	}
 
 	if statusCode == http.StatusNotFound {
 		c.Result = nil
-		return ResponseDisposeHandling_AUTOMATIC, nil
+		return responseDisposeHandlingAutomatic, nil
 	}
 
 	var err error
-	c.Result, err = HttpExtensions_getRequiredEtagHeader(response)
-	return ResponseDisposeHandling_AUTOMATIC, err
+	c.Result, err = gttpExtensionsGetRequiredEtagHeader(response)
+	return responseDisposeHandlingAutomatic, err
 }
 
 func (c *HeadDocumentCommand) SetResponse(response []byte, fromCache bool) error {

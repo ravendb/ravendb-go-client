@@ -50,7 +50,7 @@ func spatialSortingCreateData(t *testing.T, driver *RavenTestDriver, store *rave
 
 	fields := make(map[string]*ravendb.IndexFieldOptions)
 	options := ravendb.NewIndexFieldOptions()
-	options.Indexing = ravendb.FieldIndexing_EXACT
+	options.Indexing = ravendb.FieldIndexingExact
 	fields["tag"] = options
 	indexDefinition.Fields = fields
 
@@ -63,7 +63,7 @@ func spatialSortingCreateData(t *testing.T, driver *RavenTestDriver, store *rave
 	indexDefinition2.Maps = []string{"from e in docs.Shops select new { e.venue, mySpacialField = CreateSpatialField(e.latitude, e.longitude) }"}
 
 	indexFieldOptions := ravendb.NewIndexFieldOptions()
-	indexFieldOptions.Indexing = ravendb.FieldIndexing_EXACT
+	indexFieldOptions.Indexing = ravendb.FieldIndexingExact
 	fields = map[string]*ravendb.IndexFieldOptions{
 		"tag": indexFieldOptions,
 	}

@@ -4,7 +4,7 @@ package ravendb
 type ReadBalanceBehavior = string
 
 const (
-	ReadBalanceBehaviorNone        = "None" // TODO: should this be "" ?
+	ReadBalanceBehaviorNone        = "None"
 	ReadBalanceBehaviorRoundRobin  = "RoundRobin"
 	ReadBalanceBehaviorFastestNode = "FastestNode"
 )

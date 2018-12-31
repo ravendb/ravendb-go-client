@@ -20,12 +20,12 @@ func QueryFieldUtil_escapeIfNecessary(name string) string {
 		}
 
 		if i == 0 {
-			if !Character_isLetter(c) && c != '_' && c != '@' && !insideEscaped {
+			if !isLetter(c) && c != '_' && c != '@' && !insideEscaped {
 				escape = true
 				break
 			}
 		} else {
-			if !Character_isLetterOrDigit(c) && c != '_' && c != '-' && c != '@' && c != '.' && c != '[' && c != ']' && !insideEscaped {
+			if !isLetterOrDigit(c) && c != '_' && c != '-' && c != '@' && c != '.' && c != '[' && c != ']' && !insideEscaped {
 				escape = true
 				break
 			}

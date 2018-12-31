@@ -19,7 +19,7 @@ func NewKillOperationCommand(id string) *KillOperationCommand {
 
 		_id: id,
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 
 	return cmd
 }

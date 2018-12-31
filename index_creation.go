@@ -31,7 +31,7 @@ func IndexCreation_createIndexesToAdd(indexCreationTasks []*AbstractIndexCreatio
 		definition.Name = x.GetIndexName()
 		pri := x.Priority
 		if pri == "" {
-			pri = IndexPriority_NORMAL
+			pri = IndexPriorityNormal
 		}
 		definition.Priority = pri
 		res = append(res, definition)

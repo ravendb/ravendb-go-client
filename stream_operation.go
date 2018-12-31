@@ -204,7 +204,7 @@ func handleStreamQueryStats(dec *json.Decoder, stats *StreamQueryStatistics) err
 		var s string
 		s, err = getNextObjectStringValue(dec, "IndexTimestamp")
 		if err == nil {
-			stats.IndexTimestamp, err = NetISO8601Utils_parse(s)
+			stats.IndexTimestamp, err = NetISO8601UtilsParse(s)
 		}
 	}
 	return err

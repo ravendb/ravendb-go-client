@@ -168,7 +168,7 @@ func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 		assert.False(t, contains)
 		ids = append(ids, nextID)
 	}
-	assert.False(t, ravendb.IntArrayHasDuplicates(ids))
+	assert.False(t, intArrayHasDuplicates(ids))
 	session.Close()
 }
 

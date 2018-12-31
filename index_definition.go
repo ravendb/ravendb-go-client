@@ -77,14 +77,14 @@ func (d *IndexDefinition) SetConfiguration(configuration IndexConfiguration) {
 // Note: this must be called after finishing building index definition to set IndexType
 // In Java it's calculated on demand via getType
 func (d *IndexDefinition) updateIndexTypeAndMaps() {
-	if d.IndexType == "" || d.IndexType == IndexType_NONE {
+	if d.IndexType == "" || d.IndexType == IndexTypeNone {
 		d.IndexType = d.detectStaticIndexType()
 	}
 	d.Maps = stringArrayRemoveDuplicates(d.Maps)
 }
 
 func (d *IndexDefinition) GetType() IndexType {
-	if d.IndexType == "" || d.IndexType == IndexType_NONE {
+	if d.IndexType == "" || d.IndexType == IndexTypeNone {
 		d.IndexType = d.detectStaticIndexType()
 	}
 
@@ -93,16 +93,16 @@ func (d *IndexDefinition) GetType() IndexType {
 
 func (d *IndexDefinition) SetType(indexType IndexType) {
 	if indexType == "" {
-		indexType = IndexType_NONE
+		indexType = IndexTypeNone
 	}
 	d.IndexType = indexType
 }
 
 func (d *IndexDefinition) detectStaticIndexType() IndexType {
 	if d.Reduce == nil || stringIsBlank(*d.Reduce) {
-		return IndexType_MAP
+		return IndexTypeMap
 	}
-	return IndexType_MAP_REDUCE
+	return IndexTypeMapReduce
 }
 
 //TBD 4.1  bool isTestIndex()

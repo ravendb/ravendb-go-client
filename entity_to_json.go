@@ -4,20 +4,20 @@ import (
 	"reflect"
 )
 
-type EntityToJSON struct {
+type entityToJSON struct {
 	_session           *InMemoryDocumentSessionOperations
 	_missingDictionary map[interface{}]map[string]interface{}
 	//private final Map<Object, Map<string, Object>> _missingDictionary = new TreeMap<>((o1, o2) -> o1 == o2 ? 0 : 1);
 }
 
 // All the listeners for this session
-func NewEntityToJSON(session *InMemoryDocumentSessionOperations) *EntityToJSON {
-	return &EntityToJSON{
+func newEntityToJSON(session *InMemoryDocumentSessionOperations) *entityToJSON {
+	return &entityToJSON{
 		_session: session,
 	}
 }
 
-func (e *EntityToJSON) getMissingDictionary() map[interface{}]map[string]interface{} {
+func (e *entityToJSON) getMissingDictionary() map[interface{}]map[string]interface{} {
 	return e._missingDictionary
 }
 
@@ -28,7 +28,7 @@ func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) ObjectN
 	}
 	jsonNode := StructToJSONMap(entity)
 
-	EntityToJSON_writeMetadata(jsonNode, documentInfo)
+	entityToJSONWriteMetadata(jsonNode, documentInfo)
 
 	tryRemoveIdentityProperty(jsonNode)
 
@@ -63,7 +63,7 @@ func setInterfaceToValue(result interface{}, v interface{}) {
 }
 
 // ConvertToEntity2 converts document to a value result, matching type of result
-func (e *EntityToJSON) ConvertToEntity2(result interface{}, id string, document ObjectNode) {
+func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document ObjectNode) {
 	if _, ok := result.(*map[string]interface{}); ok {
 		setInterfaceToValue(result, document)
 		return
@@ -82,7 +82,7 @@ func (e *EntityToJSON) ConvertToEntity2(result interface{}, id string, document 
 }
 
 // Converts a json object to an entity.
-func (e *EntityToJSON) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) (interface{}, error) {
+func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) (interface{}, error) {
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}
@@ -95,7 +95,7 @@ func (e *EntityToJSON) ConvertToEntity(entityType reflect.Type, id string, docum
 	return entity, nil
 }
 
-func EntityToJSON_writeMetadata(jsonNode ObjectNode, documentInfo *documentInfo) {
+func entityToJSONWriteMetadata(jsonNode ObjectNode, documentInfo *documentInfo) {
 	if documentInfo == nil {
 		return
 	}

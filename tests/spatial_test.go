@@ -44,11 +44,11 @@ func NewMyIndex() *ravendb.AbstractIndexCreationTask {
 		"    longitude = this2.lng,\n" +
 		"    coordinates = this.CreateSpatialField(((double ? ) this2.this1.lat), ((double ? ) this2.lng))\n" +
 		"})"
-	res.Store("id", ravendb.FieldStorage_YES)
-	res.Store("date", ravendb.FieldStorage_YES)
+	res.Store("id", ravendb.FieldStorageYes)
+	res.Store("date", ravendb.FieldStorageYes)
 
-	res.Store("latitude", ravendb.FieldStorage_YES)
-	res.Store("longitude", ravendb.FieldStorage_YES)
+	res.Store("latitude", ravendb.FieldStorageYes)
+	res.Store("longitude", ravendb.FieldStorageYes)
 	return res
 }
 

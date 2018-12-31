@@ -30,7 +30,7 @@ func NewHiLoReturnCommand(tag string, last int, end int) *HiLoReturnCommand {
 		_end:  end,
 	}
 	cmd.IsReadRequest = true
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

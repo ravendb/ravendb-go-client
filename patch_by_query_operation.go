@@ -69,7 +69,7 @@ func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, er
 		url += "&staleTimeout=" + durationToTimeSpan(_options.staleTimeout)
 	}
 
-	q := JsonExtensions_writeIndexQuery(c._conventions, c._queryToUpdate)
+	q := jsonExtensionsWriteIndexQuery(c._conventions, c._queryToUpdate)
 	m := map[string]interface{}{
 		"Query": q,
 	}

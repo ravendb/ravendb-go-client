@@ -47,7 +47,7 @@ func NewPutClientConfigurationCommand(conventions *DocumentConventions, configur
 
 		configuration: d,
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

@@ -27,7 +27,7 @@ func NewMultiGetCommand(cache *HttpCache, commands []*GetRequest) *MultiGetComma
 		_cache:    cache,
 		_commands: commands,
 	}
-	cmd.ResponseType = RavenCommandResponseType_RAW
+	cmd.ResponseType = RavenCommandResponseTypeRaw
 	return cmd
 }
 
@@ -147,7 +147,7 @@ func (c *MultiGetCommand) maybeSetCache(getResponse *GetResponse, command *GetRe
 		return
 	}
 
-	changeVector := HttpExtensions_getEtagHeaderFromMap(getResponse.headers)
+	changeVector := gttpExtensionsGetEtagHeaderFromMap(getResponse.headers)
 	if changeVector == nil {
 		return
 	}

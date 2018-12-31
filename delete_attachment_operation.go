@@ -47,7 +47,7 @@ func NewDeleteAttachmentCommand(documentID string, name string, changeVector *st
 		_name:            name,
 		_changeVector:    changeVector,
 	}
-	cmd.RavenCommandBase.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.RavenCommandBase.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

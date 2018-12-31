@@ -5,9 +5,9 @@ import "strings"
 var _ queryToken = &orderByToken{}
 
 var (
-	OrderByToken_random          = newOrderByToken("random()", false, OrderingType_STRING)
-	OrderByToken_scoreAscending  = newOrderByToken("score()", false, OrderingType_STRING)
-	OrderByToken_scoreDescending = newOrderByToken("score()", true, OrderingType_STRING)
+	orderByTokenRandom          = newOrderByToken("random()", false, OrderingTypeString)
+	orderByTokenScoreAscending  = newOrderByToken("score()", false, OrderingTypeString)
+	orderByTokenScoreDescending = newOrderByToken("score()", true, OrderingTypeString)
 )
 
 type orderByToken struct {
@@ -24,36 +24,36 @@ func newOrderByToken(fieldName string, descending bool, ordering OrderingType) *
 	}
 }
 
-func OrderByToken_createDistanceAscending(fieldName string, latitudeParameterName string, longitudeParameterName string) *orderByToken {
-	return newOrderByToken("spatial.distance("+fieldName+", spatial.point($"+latitudeParameterName+", $"+longitudeParameterName+"))", false, OrderingType_STRING)
+func orderByTokenCreateDistanceAscending(fieldName string, latitudeParameterName string, longitudeParameterName string) *orderByToken {
+	return newOrderByToken("spatial.distance("+fieldName+", spatial.point($"+latitudeParameterName+", $"+longitudeParameterName+"))", false, OrderingTypeString)
 }
 
-func OrderByToken_createDistanceAscending2(fieldName string, shapeWktParameterName string) *orderByToken {
-	return newOrderByToken("spatial.distance("+fieldName+", spatial.wkt($"+shapeWktParameterName+"))", false, OrderingType_STRING)
+func orderByTokenCreateDistanceAscending2(fieldName string, shapeWktParameterName string) *orderByToken {
+	return newOrderByToken("spatial.distance("+fieldName+", spatial.wkt($"+shapeWktParameterName+"))", false, OrderingTypeString)
 }
 
-func OrderByToken_createDistanceDescending(fieldName string, latitudeParameterName string, longitudeParameterName string) *orderByToken {
-	return newOrderByToken("spatial.distance("+fieldName+", spatial.point($"+latitudeParameterName+", $"+longitudeParameterName+"))", true, OrderingType_STRING)
+func orderByTokenCreateDistanceDescending(fieldName string, latitudeParameterName string, longitudeParameterName string) *orderByToken {
+	return newOrderByToken("spatial.distance("+fieldName+", spatial.point($"+latitudeParameterName+", $"+longitudeParameterName+"))", true, OrderingTypeString)
 }
 
-func OrderByToken_createDistanceDescending2(fieldName string, shapeWktParameterName string) *orderByToken {
-	return newOrderByToken("spatial.distance("+fieldName+", spatial.wkt($"+shapeWktParameterName+"))", true, OrderingType_STRING)
+func orderByTokenCreateDistanceDescending2(fieldName string, shapeWktParameterName string) *orderByToken {
+	return newOrderByToken("spatial.distance("+fieldName+", spatial.wkt($"+shapeWktParameterName+"))", true, OrderingTypeString)
 }
 
-func OrderByToken_createRandom(seed string) *orderByToken {
+func orderByTokenCreateRandom(seed string) *orderByToken {
 	if seed == "" {
 		panicIf(true, "seed cannot be null")
 		// newIllegalArgumentError("seed cannot be null");
 	}
 	seed = strings.Replace(seed, "'", "''", -1)
-	return newOrderByToken("random('"+seed+"')", false, OrderingType_STRING)
+	return newOrderByToken("random('"+seed+"')", false, OrderingTypeString)
 }
 
-func OrderByToken_createAscending(fieldName string, ordering OrderingType) *orderByToken {
+func orderByTokenCreateAscending(fieldName string, ordering OrderingType) *orderByToken {
 	return newOrderByToken(fieldName, false, ordering)
 }
 
-func OrderByToken_createDescending(fieldName string, ordering OrderingType) *orderByToken {
+func orderByTokenCreateDescending(fieldName string, ordering OrderingType) *orderByToken {
 	return newOrderByToken(fieldName, true, ordering)
 }
 
@@ -61,11 +61,11 @@ func (t *orderByToken) writeTo(writer *strings.Builder) {
 	writeQueryTokenField(writer, t.fieldName)
 
 	switch t.ordering {
-	case OrderingType_LONG:
+	case OrderingTypeLong:
 		writer.WriteString(" as long")
-	case OrderingType_DOUBLE:
+	case OrderingTypeDouble:
 		writer.WriteString(" as double")
-	case OrderingType_ALPHA_NUMERIC:
+	case OrderingTypeAlphaNumeric:
 		writer.WriteString(" as alphaNumeric")
 	}
 

@@ -150,7 +150,7 @@ func suggestionsUsingLinqMultipleWords(t *testing.T, driver *RavenTestDriver) {
 
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.4
-		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
+		options.Distance = ravendb.StringDistanceLevenshtein
 
 		queryIndex := &ravendb.Query{
 			IndexName: "test",
@@ -182,7 +182,7 @@ func suggestionsWithTypo(t *testing.T, driver *RavenTestDriver) {
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.2
 		options.PageSize = 10
-		options.Distance = ravendb.StringDistanceTypes_LEVENSHTEIN
+		options.Distance = ravendb.StringDistanceLevenshtein
 
 		queryIndex := &ravendb.Query{
 			IndexName: "test",
@@ -207,11 +207,11 @@ func NewUsers4ByName() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
 	res.Map = "from u in docs.User4s select new { u.name }"
 
-	res.Index("name", ravendb.FieldIndexing_SEARCH)
+	res.Index("name", ravendb.FieldIndexingSearch)
 
 	res.IndexSuggestions = append(res.IndexSuggestions, "name")
 
-	res.Store("name", ravendb.FieldStorage_YES)
+	res.Store("name", ravendb.FieldStorageYes)
 
 	return res
 }
@@ -266,8 +266,8 @@ func suggestionsCanGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.4
 		options.PageSize = 5
-		options.Distance = ravendb.StringDistanceTypes_JARO_WINKLER
-		options.SortMode = ravendb.SuggestionSortMode_POPULARITY
+		options.Distance = ravendb.StringDistanceJaroWinkler
+		options.SortMode = ravendb.SuggestionSortModePopularity
 
 		q := session.QueryInIndex(index)
 		fn := func(x ravendb.ISuggestionBuilder) {

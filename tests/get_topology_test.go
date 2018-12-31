@@ -24,7 +24,7 @@ func getTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver) {
 	assert.Equal(t, serverNode.GetUrl(), store.GetUrls()[0])
 	assert.Equal(t, serverNode.GetDatabase(), store.GetDatabase())
 	assert.Equal(t, serverNode.GetClusterTag(), "A")
-	assert.Equal(t, serverNode.GetServerRole(), ravendb.ServerNode_Role_MEMBER)
+	assert.Equal(t, serverNode.GetServerRole(), ravendb.ServerNodeRoleMember)
 }
 
 func TestGetTopology(t *testing.T) {

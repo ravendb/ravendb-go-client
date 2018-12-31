@@ -18,7 +18,7 @@ func newFieldsToFetchToken(fieldsToFetch []string, projections []string, customF
 	}
 }
 
-func FieldsToFetchToken_create(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
+func createFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
 	if len(fieldsToFetch) == 0 {
 		panicIf(true, "fieldToFetch cannot be null")
 		//return newIllegalArgumentError("fieldToFetch cannot be null");
@@ -46,7 +46,7 @@ func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) {
 		}
 
 		// Note: Java code has seemingly unnecessary checks (conditions that would
-		// be rejected in FieldsToFetchToken_create)
+		// be rejected in createFieldsToFetchToken)
 		projection := t.projections[i]
 
 		if projection == "" || projection == fieldToFetch {

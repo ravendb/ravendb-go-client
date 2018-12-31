@@ -674,13 +674,13 @@ func NewDataIndex2(termVector bool, store bool) *ravendb.AbstractIndexCreationTa
 	res.Analyze("whitespaceAnalyzerField", "Lucene.Net.Analysis.WhitespaceAnalyzer")
 
 	if store {
-		res.Store("body", ravendb.FieldStorage_YES)
-		res.Store("whitespaceAnalyzerField", ravendb.FieldStorage_YES)
+		res.Store("body", ravendb.FieldStorageYes)
+		res.Store("whitespaceAnalyzerField", ravendb.FieldStorageYes)
 	}
 
 	if termVector {
-		res.TermVector("body", ravendb.FieldTermVector_YES)
-		res.TermVector("whitespaceAnalyzerField", ravendb.FieldTermVector_YES)
+		res.TermVector("body", ravendb.FieldTermVectorYes)
+		res.TermVector("whitespaceAnalyzerField", ravendb.FieldTermVectorYes)
 	}
 	return res
 }
@@ -689,7 +689,7 @@ func NewComplexDataIndex() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("ComplexDataIndex")
 	// Note: In Java it's docs.ComplexDatas due to not pluralizing Data properly
 	res.Map = "from doc in docs.ComplexData select new  { doc.property, doc.property.body }"
-	res.Index("body", ravendb.FieldIndexing_SEARCH)
+	res.Index("body", ravendb.FieldIndexingSearch)
 	return res
 }
 

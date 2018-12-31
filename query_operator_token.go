@@ -9,8 +9,8 @@ type queryOperatorToken struct {
 }
 
 var (
-	QueryOperatorToken_AND = NewQueryOperatorToken(QueryOperator_AND)
-	QueryOperatorToken_OR  = NewQueryOperatorToken(QueryOperator_OR)
+	queryOperatorTokenAnd = NewQueryOperatorToken(QueryOperatorAnd)
+	queryOperatorTokenOr  = NewQueryOperatorToken(QueryOperatorOr)
 )
 
 func NewQueryOperatorToken(queryOperator QueryOperator) *queryOperatorToken {
@@ -20,7 +20,7 @@ func NewQueryOperatorToken(queryOperator QueryOperator) *queryOperatorToken {
 }
 
 func (t *queryOperatorToken) writeTo(writer *strings.Builder) {
-	if t.queryOperator == QueryOperator_AND {
+	if t.queryOperator == QueryOperatorAnd {
 		writer.WriteString("and")
 		return
 	}

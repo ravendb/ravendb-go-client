@@ -272,9 +272,9 @@ func queryStreamingCanStreamQueryIntoStream(t *testing.T, driver *RavenTestDrive
 func NewUsersByName2() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName2")
 	res.Map = "from u in docs.Users select new { u.name, lastName = u.lastName.Boost(10) }"
-	res.Index("name", ravendb.FieldIndexing_SEARCH)
+	res.Index("name", ravendb.FieldIndexingSearch)
 	res.IndexSuggestions = append(res.IndexSuggestions, "name")
-	res.Store("name", ravendb.FieldStorage_YES)
+	res.Store("name", ravendb.FieldStorageYes)
 	return res
 }
 

@@ -93,7 +93,7 @@ func (q *DocumentQuery) AddParameter(name string, value interface{}) *IDocumentQ
 }
 
 func (q *DocumentQuery) AddOrder(fieldName string, descending bool) *IDocumentQuery {
-	return q.AddOrderWithOrdering(fieldName, descending, OrderingType_STRING)
+	return q.AddOrderWithOrdering(fieldName, descending, OrderingTypeString)
 }
 
 func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, ordering OrderingType) *IDocumentQuery {
@@ -382,7 +382,7 @@ func (q *DocumentQuery) GroupBy2(field *GroupBy, fields ...*GroupBy) *IGroupByDo
 
 // OrderBy makes a query ordered by a given field
 func (q *DocumentQuery) OrderBy(field string) *IDocumentQuery {
-	return q.OrderByWithOrdering(field, OrderingType_STRING)
+	return q.OrderByWithOrdering(field, OrderingTypeString)
 }
 
 func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
@@ -393,7 +393,7 @@ func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType)
 //TBD expr  IDocumentQuery<T> OrderBy<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
 func (q *DocumentQuery) OrderByDescending(field string) *IDocumentQuery {
-	return q.OrderByDescendingWithOrdering(field, OrderingType_STRING)
+	return q.OrderByDescendingWithOrdering(field, OrderingTypeString)
 }
 
 func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
@@ -441,7 +441,7 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternalWithQueryData(resultC
 			}
 		}
 
-		newFieldsToFetch = FieldsToFetchToken_create(fields, queryData.Projections, queryData.IsCustomFunction)
+		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.Projections, queryData.IsCustomFunction)
 	}
 
 	if newFieldsToFetch != nil {
@@ -534,13 +534,13 @@ func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *IAggregatio
 //TBD expr  IDocumentQuery<T> Spatial(Expression<Func<T, object>> path, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
 
 func (q *DocumentQuery) Spatial3(fieldName string, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
-	criteria := clause(SpatialCriteriaFactory_INSTANCE)
+	criteria := clause(spatialCriteriaFactoryInstance)
 	q._spatial3(fieldName, criteria)
 	return q
 }
 
 func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
-	criteria := clause(SpatialCriteriaFactory_INSTANCE)
+	criteria := clause(spatialCriteriaFactoryInstance)
 	q._spatial2(field, criteria)
 	return q
 }

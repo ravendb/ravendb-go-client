@@ -113,9 +113,9 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 		assert.NoError(t, err)
 		status := op.Command.Result
 
-		assert.Equal(t, status.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, status.Status, ravendb.IndexRunningStatusRunning)
 		assert.Equal(t, len(status.Indexes), 1)
-		assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatusRunning)
 	}
 
 	{
@@ -128,8 +128,8 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 			err = store.Maintenance().Send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
-			assert.Equal(t, status.Status, ravendb.IndexRunningStatus_PAUSED)
-			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_PAUSED)
+			assert.Equal(t, status.Status, ravendb.IndexRunningStatusPaused)
+			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatusPaused)
 		}
 	}
 
@@ -145,9 +145,9 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 			status := op.Command.Result
 			indexName = status.Indexes[0].Name
 
-			assert.Equal(t, status.Status, ravendb.IndexRunningStatus_RUNNING)
+			assert.Equal(t, status.Status, ravendb.IndexRunningStatusRunning)
 			assert.Equal(t, len(status.Indexes), 1)
-			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_RUNNING)
+			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatusRunning)
 		}
 
 	}
@@ -161,9 +161,9 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 			err = store.Maintenance().Send(op)
 			assert.NoError(t, err)
 			status := op.Command.Result
-			assert.Equal(t, status.Status, ravendb.IndexRunningStatus_RUNNING)
+			assert.Equal(t, status.Status, ravendb.IndexRunningStatusRunning)
 			assert.Equal(t, len(status.Indexes), 1)
-			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatus_PAUSED)
+			assert.Equal(t, status.Indexes[0].Status, ravendb.IndexRunningStatusPaused)
 		}
 	}
 }
@@ -172,11 +172,11 @@ func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
 	res.Map = "from u in docs.Users select new { u.name }"
 
-	res.Index("name", ravendb.FieldIndexing_SEARCH)
+	res.Index("name", ravendb.FieldIndexingSearch)
 
 	res.IndexSuggestions = append(res.IndexSuggestions, "name")
 
-	res.Store("name", ravendb.FieldStorage_YES)
+	res.Store("name", ravendb.FieldStorageYes)
 
 	return res
 }
@@ -237,18 +237,18 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
-		assert.Equal(t, stats.LockMode, ravendb.IndexLockMode_UNLOCK)
-		assert.Equal(t, stats.Priority, ravendb.IndexPriority_NORMAL)
+		assert.Equal(t, stats.LockMode, ravendb.IndexLockModeUnlock)
+		assert.Equal(t, stats.Priority, ravendb.IndexPriorityNormal)
 	}
 
 	{
-		op := ravendb.NewSetIndexesLockOperation(index.Name, ravendb.IndexLockMode_LOCKED_IGNORE)
+		op := ravendb.NewSetIndexesLockOperation(index.Name, ravendb.IndexLockModeLockedIgnore)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := ravendb.NewSetIndexesPriorityOperation(index.Name, ravendb.IndexPriority_LOW)
+		op := ravendb.NewSetIndexesPriorityOperation(index.Name, ravendb.IndexPriorityLow)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -257,8 +257,8 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		stats := op.Command.Result
-		assert.Equal(t, stats.LockMode, ravendb.IndexLockMode_LOCKED_IGNORE)
-		assert.Equal(t, stats.Priority, ravendb.IndexPriority_LOW)
+		assert.Equal(t, stats.LockMode, ravendb.IndexLockModeLockedIgnore)
+		assert.Equal(t, stats.Priority, ravendb.IndexPriorityLow)
 	}
 }
 
@@ -534,12 +534,12 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 func PostsByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
 	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
-	res.Index("title", ravendb.FieldIndexing_SEARCH)
-	res.Store("title", ravendb.FieldStorage_YES)
+	res.Index("title", ravendb.FieldIndexingSearch)
+	res.Store("title", ravendb.FieldStorageYes)
 	res.Analyze("title", "Lucene.Net.Analysis.SimpleAnalyzer")
 
-	res.Index("desc", ravendb.FieldIndexing_SEARCH)
-	res.Store("desc", ravendb.FieldStorage_YES)
+	res.Index("desc", ravendb.FieldIndexingSearch)
+	res.Store("desc", ravendb.FieldStorageYes)
 	res.Analyze("desc", "Lucene.Net.Analysis.SimpleAnalyzer")
 
 	return res

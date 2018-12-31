@@ -52,7 +52,7 @@ func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 		path += "&debug=entries"
 	}
 
-	m := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
+	m := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)
 	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err

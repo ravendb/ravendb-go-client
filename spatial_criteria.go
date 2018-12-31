@@ -24,13 +24,13 @@ func (c *SpatialCriteriaCommon) toQueryTokenCommon(sc SpatialCriteria, fieldName
 	var whereOperator WhereOperator
 
 	switch c._relation {
-	case SpatialRelation_WITHIN:
+	case SpatialRelationWithin:
 		whereOperator = WhereOperator_SPATIAL_WITHIN
-	case SpatialRelation_CONTAINS:
+	case SpatialRelationContains:
 		whereOperator = WhereOperator_SPATIAL_CONTAINS
-	case SpatialRelation_DISJOINT:
+	case SpatialRelationDisjoin:
 		whereOperator = WhereOperator_SPATIAL_DISJOINT
-	case SpatialRelation_INTERSECTS:
+	case SpatialRelationIntersects:
 		whereOperator = WhereOperator_SPATIAL_INTERSECTS
 	default:
 		//throw new IllegalArgumentError();

@@ -82,13 +82,13 @@ func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handl
 	defer s.mu.Unlock()
 	var idx int
 	switch typ {
-	case ChangesType_DOCUMENT:
+	case ChangeDocument:
 		idx = len(s.onDocumentChangeNotification)
 		s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, handler)
-	case ChangesType_INDEX:
+	case ChangeIndex:
 		idx = len(s.onIndexChangeNotification)
 		s.onIndexChangeNotification = append(s.onIndexChangeNotification, handler)
-	case ChangesType_OPERATION:
+	case ChangeOperation:
 		idx = len(s.onOperationStatusChangeNotification)
 		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, handler)
 	default:
@@ -103,11 +103,11 @@ func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, id
 	defer s.mu.Unlock()
 
 	switch typ {
-	case ChangesType_DOCUMENT:
+	case ChangeDocument:
 		s.onDocumentChangeNotification[idx] = nil
-	case ChangesType_INDEX:
+	case ChangeIndex:
 		s.onIndexChangeNotification[idx] = nil
-	case ChangesType_OPERATION:
+	case ChangeOperation:
 		s.onOperationStatusChangeNotification[idx] = nil
 	default:
 		//throw new IllegalStateError("ChangeType: " + type + " is not supported");

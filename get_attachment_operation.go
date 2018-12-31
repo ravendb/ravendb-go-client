@@ -63,7 +63,7 @@ func NewGetAttachmentCommand(documentID string, name string, typ AttachmentType,
 func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/attachments?id=" + UrlUtils_escapeDataString(c._documentID) + "&name=" + UrlUtils_escapeDataString(c._name)
 
-	if c._type == AttachmentType_REVISION {
+	if c._type == AttachmentRevision {
 		m := map[string]interface{}{
 			"Type":         "Revision",
 			"ChangeVector": c._changeVector,
@@ -80,7 +80,7 @@ func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, e
 
 func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	contentType := response.Header.Get("Content-Type")
-	changeVector := HttpExtensions_getEtagHeader(response)
+	changeVector := gttpExtensionsGetEtagHeader(response)
 	hash := response.Header.Get("Attachment-Hash")
 	size := int64(0)
 	sizeHeader := response.Header.Get("Attachment-Size")
@@ -100,5 +100,5 @@ func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.
 	}
 
 	c.Result = newAttachmentResult(response, attachmentDetails)
-	return ResponseDisposeHandling_MANUALLY, nil
+	return responseDisposeHandlingManually, nil
 }

@@ -780,13 +780,13 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 
 	command.GetBase().StatusCode = response.StatusCode
 
-	refreshTopology := HttpExtensions_getBooleanHeader(response, headersRefreshTopology)
-	refreshClientConfiguration := HttpExtensions_getBooleanHeader(response, headersRefreshClientConfiguration)
+	refreshTopology := httpExtensionsGetBooleanHeader(response, headersRefreshTopology)
+	refreshClientConfiguration := httpExtensionsGetBooleanHeader(response, headersRefreshClientConfiguration)
 
 	if response.StatusCode == http.StatusNotModified {
 		cachedItem.notModified()
 
-		if command.GetBase().ResponseType == RavenCommandResponseType_OBJECT {
+		if command.GetBase().ResponseType == RavenCommandResponseTypeObject {
 			err = command.SetResponse(cachedValue, true)
 		}
 		return err
@@ -830,7 +830,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		return err
 	}
 
-	if responseDispose == ResponseDisposeHandling_AUTOMATIC {
+	if responseDispose == responseDisposeHandlingAutomatic {
 		// TODO: not sure if it translates
 		response.Body.Close()
 		//IOUtils.closeQuietly(response)
@@ -913,7 +913,7 @@ func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command Ra
 		nodeSelector.inSpeedTestPhase() &&
 		multipleNodes &&
 		cmd.IsReadRequest &&
-		cmd.ResponseType == RavenCommandResponseType_OBJECT &&
+		cmd.ResponseType == RavenCommandResponseTypeObject &&
 		chosenNode != nil
 }
 
@@ -924,7 +924,7 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 
 func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*ReleaseCacheItem, *string, []byte) {
 	cmd := command.GetBase()
-	if cmd.CanCache && cmd.IsReadRequest && cmd.ResponseType == RavenCommandResponseType_OBJECT {
+	if cmd.CanCache && cmd.IsReadRequest && cmd.ResponseType == RavenCommandResponseTypeObject {
 		return re.Cache.get(url)
 	}
 
@@ -946,9 +946,9 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 	case http.StatusNotFound:
 		re.Cache.setNotFound(url)
 		switch command.GetBase().ResponseType {
-		case RavenCommandResponseType_EMPTY:
+		case RavenCommandResponseTypeEmpty:
 			return true, nil
-		case RavenCommandResponseType_OBJECT:
+		case RavenCommandResponseTypeObject:
 			command.SetResponse(nil, false)
 		default:
 			command.SetResponseRaw(response, nil)

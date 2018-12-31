@@ -42,7 +42,7 @@ func NewResetIndexCommand(indexName string) *ResetIndexCommand {
 
 		_indexName: indexName,
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

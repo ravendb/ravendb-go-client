@@ -127,7 +127,7 @@ func NewAnimalIndex() *ravendb.AbstractIndexCreationTask {
 	res.Map = "from animal in docs.Animals select new { name = animal.name, type = animal.type }"
 
 	res.Analyze("name", "StandardAnalyzer")
-	res.Index("name", ravendb.FieldIndexing_SEARCH)
+	res.Index("name", ravendb.FieldIndexingSearch)
 	return res
 }
 

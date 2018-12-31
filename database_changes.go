@@ -135,7 +135,7 @@ func (c *DatabaseChanges) ForIndex(indexName string) (IChangesObservable, error)
 		return strings.EqualFold(v.Name, indexName)
 	}
 
-	taskedObservable := NewChangesObservable(ChangesType_INDEX, counter, filter)
+	taskedObservable := NewChangesObservable(ChangeIndex, counter, filter)
 	return taskedObservable, nil
 }
 
@@ -159,7 +159,7 @@ func (c *DatabaseChanges) ForDocument(docID string) (IChangesObservable, error) 
 		v := notification.(*DocumentChange)
 		return strings.EqualFold(v.ID, docID)
 	}
-	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filter)
+	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
 	return taskedObservable, nil
 }
 
@@ -172,7 +172,7 @@ func (c *DatabaseChanges) ForAllDocuments() (IChangesObservable, error) {
 	if err != nil {
 		return nil, err
 	}
-	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filterAlwaysTrue)
+	taskedObservable := NewChangesObservable(ChangeDocument, counter, filterAlwaysTrue)
 	return taskedObservable, nil
 }
 
@@ -187,7 +187,7 @@ func (c *DatabaseChanges) ForOperationID(operationID int) (IChangesObservable, e
 		v := notification.(*OperationStatusChange)
 		return v.OperationID == operationID
 	}
-	taskedObservable := NewChangesObservable(ChangesType_OPERATION, counter, filter)
+	taskedObservable := NewChangesObservable(ChangeOperation, counter, filter)
 	return taskedObservable, nil
 }
 
@@ -197,7 +197,7 @@ func (c *DatabaseChanges) ForAllOperations() (IChangesObservable, error) {
 		return nil, err
 	}
 
-	taskedObservable := NewChangesObservable(ChangesType_OPERATION, counter, filterAlwaysTrue)
+	taskedObservable := NewChangesObservable(ChangeOperation, counter, filterAlwaysTrue)
 
 	return taskedObservable, nil
 }
@@ -208,7 +208,7 @@ func (c *DatabaseChanges) ForAllIndexes() (IChangesObservable, error) {
 		return nil, err
 	}
 
-	taskedObservable := NewChangesObservable(ChangesType_INDEX, counter, filterAlwaysTrue)
+	taskedObservable := NewChangesObservable(ChangeIndex, counter, filterAlwaysTrue)
 
 	return taskedObservable, nil
 }
@@ -228,7 +228,7 @@ func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChanges
 		return strings.EqualFold(prefix, docIDPrefix)
 	}
 
-	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filter)
+	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
 
 	return taskedObservable, nil
 }
@@ -248,7 +248,7 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (IChan
 		return strings.EqualFold(collectionName, v.CollectionName)
 	}
 
-	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filter)
+	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
 
 	return taskedObservable, nil
 }
@@ -278,7 +278,7 @@ func (c *DatabaseChanges) ForDocumentsOfType(typeName string) (IChangesObservabl
 			v.TypeName)
 	}
 
-	taskedObservable := NewChangesObservable(ChangesType_DOCUMENT, counter, filter)
+	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
 
 	return taskedObservable, nil
 }

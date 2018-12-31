@@ -40,7 +40,7 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 		case documentChange := <-changesList:
 			assert.NotNil(t, documentChange)
 			assert.Equal(t, documentChange.ID, "users/1")
-			assert.Equal(t, documentChange.Type, ravendb.DocumentChangeTypes_PUT)
+			assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
 
 		case <-time.After(time.Second * 2):
 			assert.True(t, false, "timed out waiting for changes")
@@ -129,7 +129,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 			case documentChange := <-changesList:
 				assert.NotNil(t, documentChange)
 				assert.Equal(t, documentChange.ID, "users/1")
-				assert.Equal(t, documentChange.Type, ravendb.DocumentChangeTypes_PUT)
+				assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
 
 			case <-time.After(time.Second * 2):
 				assert.True(t, false, "timed out waiting for changes")
@@ -197,7 +197,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			subscription := observable.Subscribe(observer)
 			time.Sleep(500 * time.Millisecond)
 			//SetIndexesPriorityOperation
-			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriority_LOW)
+			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
 			err = store.Maintenance().Send(operation)
 			assert.NoError(t, err)
 
@@ -239,7 +239,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			observer := ravendb.NewActionBasedObserver(action)
 			subscription := observable.Subscribe(observer)
 			time.Sleep(500 * time.Millisecond)
-			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriority_LOW)
+			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
 			err = store.Maintenance().Send(operation)
 			assert.NoError(t, err)
 
@@ -323,7 +323,7 @@ func changesTestResourcesCleanup(t *testing.T, driver *RavenTestDriver) {
 				case documentChange := <-changesList:
 					assert.NotNil(t, documentChange)
 					assert.Equal(t, documentChange.ID, "users/"+strconv.Itoa(i))
-					assert.Equal(t, documentChange.Type, ravendb.DocumentChangeTypes_PUT)
+					assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
 
 				case <-time.After(time.Second * 10):
 					assert.True(t, false, "timed out waiting for changes")

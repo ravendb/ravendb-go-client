@@ -41,5 +41,5 @@ func (c *StreamCommand) processResponse(cache *HttpCache, response *http.Respons
 	}
 	c.Result = streamResponse
 
-	return ResponseDisposeHandling_MANUALLY, nil
+	return responseDisposeHandlingManually, nil
 }

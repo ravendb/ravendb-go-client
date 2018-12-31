@@ -3,19 +3,19 @@ package ravendb
 import "math"
 
 const (
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_NUMBER_OF_TOKENS_PARSED = 5000
-	MoreLikeThisOptions_DEFAULT_MINIMUM_TERM_FREQUENCY          = 2
-	MoreLikeThisOptions_DEFAULT_MINIMUM_DOCUMENT_FREQUENCY      = 5
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_DOCUMENT_FREQUENCY      = math.MaxInt32
-	MoreLikeThisOptions_DEFAULT_BOOST                           = false
-	MoreLikeThisOptions_DEFAULT_BOOST_FACTOR                    = 1
-	MoreLikeThisOptions_DEFAULT_MINIMUM_WORD_LENGTH             = 0
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_WORD_LENGTH             = 0
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_QUERY_TERMS             = 25
+	MoreLikeThisOptionsDefaultMaximumNumberOfTokensParsed  = 5000
+	MoreLikeThisOptionsDefaultMinimumTermFrequency         = 2
+	MoreLikeThisOptionsDefaultMinimumDocumentFrequency     = 5
+	MoreLikeThisOptions_DEFAULT_MAXIMUM_DOCUMENT_FREQUENCY = math.MaxInt32
+	MoreLikeThisOptions_DEFAULT_BOOST                      = false
+	MoreLikeThisOptions_DEFAULT_BOOST_FACTOR               = 1
+	MoreLikeThisOptions_DEFAULT_MINIMUM_WORD_LENGTH        = 0
+	MoreLikeThisOptions_DEFAULT_MAXIMUM_WORD_LENGTH        = 0
+	MoreLikeThisOptions_DEFAULT_MAXIMUM_QUERY_TERMS        = 25
 )
 
 var (
-	MoreLikeThisOptions_defaultOptions = &MoreLikeThisOptions{}
+	defaultMoreLikeThisOptions = &MoreLikeThisOptions{}
 )
 
 type MoreLikeThisOptions struct {

@@ -30,13 +30,13 @@ func NewEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName str
 func (e *EvictItemsFromCacheBasedOnChanges) OnNext(value interface{}) {
 	if documentChange, ok := value.(*DocumentChange); ok {
 		tp := documentChange.Type
-		if tp == DocumentChangeTypes_PUT || tp == DocumentChangeTypes_DELETE {
+		if tp == DocumentChangePut || tp == DocumentChangeDelete {
 			cache := e._requestExecutor.Cache
 			cache.generation.incrementAndGet()
 		}
 	} else if indexChange, ok := value.(*IndexChange); ok {
 		tp := indexChange.Type
-		if tp == IndexChangeTypes_BATCH_COMPLETED || tp == IndexChangeTypes_INDEX_REMOVED {
+		if tp == IndexChangeBatchCompleted || tp == IndexChangeIndexRemoved {
 			cache := e._requestExecutor.Cache
 			cache.generation.incrementAndGet()
 		}

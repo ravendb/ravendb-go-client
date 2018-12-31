@@ -93,7 +93,7 @@ func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(
 func NewTestIndex() *ravendb.AbstractIndexCreationTask {
 	res := ravendb.NewAbstractIndexCreationTask("TestIndex")
 	res.Map = "from product in docs.Product2s select new { product.name, product.description }"
-	res.Index("description", ravendb.FieldIndexing_SEARCH)
+	res.Index("description", ravendb.FieldIndexingSearch)
 	return res
 }
 

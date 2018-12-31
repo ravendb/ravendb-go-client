@@ -54,7 +54,7 @@ func NewExplainQueryCommand(conventions *DocumentConventions, indexQuery *IndexQ
 func (c *ExplainQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/queries?debug=explain"
 
-	v := JsonExtensions_writeIndexQuery(c._conventions, c._indexQuery)
+	v := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)
 	d, err := jsonMarshal(v)
 	panicIf(err != nil, "jsonMarshal() failed with %s", err)
 	return NewHttpPost(url, d)

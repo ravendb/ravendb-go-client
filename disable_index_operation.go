@@ -42,7 +42,7 @@ func NewDisableIndexCommand(indexName string) *DisableIndexCommand {
 
 		_indexName: indexName,
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

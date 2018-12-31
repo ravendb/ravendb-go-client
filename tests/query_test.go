@@ -286,7 +286,7 @@ func queryQuerySingleProperty(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		q := session.QueryType(reflect.TypeOf(&User{}))
-		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingType_LONG)
+		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingTypeLong)
 		q = q.SelectFields("age")
 		var ages []int
 		err := q.GetResults(&ages)
@@ -1140,7 +1140,7 @@ func queryQueryWithCustomize(t *testing.T, driver *RavenTestDriver) {
 
 		q := newSession.Advanced().DocumentQueryAll("DogsIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
-		q = q.OrderByWithOrdering("name", ravendb.OrderingType_ALPHA_NUMERIC)
+		q = q.OrderByWithOrdering("name", ravendb.OrderingTypeAlphaNumeric)
 		q = q.WhereGreaterThan("age", 2)
 		var queryResult []*DogsIndex_Result
 		err := q.GetResults(&queryResult)

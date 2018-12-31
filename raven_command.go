@@ -40,7 +40,7 @@ type RavenCommandBase struct {
 
 func NewRavenCommandBase() RavenCommandBase {
 	res := RavenCommandBase{
-		ResponseType:         RavenCommandResponseType_OBJECT,
+		ResponseType:         RavenCommandResponseTypeObject,
 		CanCache:             true,
 		CanCacheAggressively: true,
 	}
@@ -52,7 +52,7 @@ func (c *RavenCommandBase) GetBase() *RavenCommandBase {
 }
 
 func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
-	if c.ResponseType == RavenCommandResponseType_EMPTY || c.ResponseType == RavenCommandResponseType_RAW {
+	if c.ResponseType == RavenCommandResponseTypeEmpty || c.ResponseType == RavenCommandResponseTypeRaw {
 		return throwInvalidResponse()
 	}
 
@@ -137,25 +137,25 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 	c := cmd.GetBase()
 
 	if response.Body == nil {
-		return ResponseDisposeHandling_AUTOMATIC, nil
+		return responseDisposeHandlingAutomatic, nil
 	}
 
 	statusCode := response.StatusCode
-	if c.ResponseType == RavenCommandResponseType_EMPTY || statusCode == http.StatusNoContent {
-		return ResponseDisposeHandling_AUTOMATIC, nil
+	if c.ResponseType == RavenCommandResponseTypeEmpty || statusCode == http.StatusNoContent {
+		return responseDisposeHandlingAutomatic, nil
 	}
 
-	if c.ResponseType == RavenCommandResponseType_OBJECT {
+	if c.ResponseType == RavenCommandResponseTypeObject {
 		contentLength := response.ContentLength
 		if contentLength == 0 {
-			return ResponseDisposeHandling_AUTOMATIC, nil
+			return responseDisposeHandlingAutomatic, nil
 		}
 
 		// we intentionally don't dispose the reader here, we'll be using it
 		// in the command, any associated memory will be released on context reset
 		js, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			return ResponseDisposeHandling_AUTOMATIC, err
+			return responseDisposeHandlingAutomatic, err
 		}
 
 		if cache != nil {
@@ -163,11 +163,11 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 			c.CacheResponse(cache, url, response, js)
 		}
 		err = cmd.SetResponse(js, false)
-		return ResponseDisposeHandling_AUTOMATIC, err
+		return responseDisposeHandlingAutomatic, err
 	}
 
 	err := cmd.SetResponseRaw(response, response.Body)
-	return ResponseDisposeHandling_AUTOMATIC, err
+	return responseDisposeHandlingAutomatic, err
 }
 
 func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response *http.Response, responseJson []byte) {
@@ -176,7 +176,7 @@ func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response 
 		return
 	}
 
-	changeVector := HttpExtensions_getEtagHeader(response)
+	changeVector := gttpExtensionsGetEtagHeader(response)
 	if changeVector == nil {
 		//fmt.Printf("CacheResponse: url: %s, not caching because changeVector==nil\n", url)
 		return

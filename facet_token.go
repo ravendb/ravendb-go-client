@@ -138,13 +138,13 @@ func applyAggregations(facet FacetBase, token *facetToken) {
 	for key, value := range m {
 		var aggregationToken *facetAggregationToken
 		switch key {
-		case FacetAggregation_MAX:
+		case FacetAggregationMax:
 			aggregationToken = facetAggregationTokenMax(value)
-		case FacetAggregation_MIN:
+		case FacetAggregationMin:
 			aggregationToken = facetAggregationTokenMin(value)
-		case FacetAggregation_AVERAGE:
+		case FacetAggregationAverage:
 			aggregationToken = facetAggregationTokenAverage(value)
-		case FacetAggregation_SUM:
+		case FacetAggregationSum:
 			aggregationToken = facetAggregationTokenSum(value)
 		default:
 			panic("Unsupported aggregation method: " + key)
@@ -178,19 +178,19 @@ func newFacetAggregationToken(fieldName string, aggregation FacetAggregation) *f
 
 func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
 	switch t._aggregation {
-	case FacetAggregation_MAX:
+	case FacetAggregationMax:
 		writer.WriteString("max(")
 		writer.WriteString(t._fieldName)
 		writer.WriteString(")")
-	case FacetAggregation_MIN:
+	case FacetAggregationMin:
 		writer.WriteString("min(")
 		writer.WriteString(t._fieldName)
 		writer.WriteString(")")
-	case FacetAggregation_AVERAGE:
+	case FacetAggregationAverage:
 		writer.WriteString("avg(")
 		writer.WriteString(t._fieldName)
 		writer.WriteString(")")
-	case FacetAggregation_SUM:
+	case FacetAggregationSum:
 		writer.WriteString("sum(")
 		writer.WriteString(t._fieldName)
 		writer.WriteString(")")
@@ -202,20 +202,20 @@ func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
 
 func facetAggregationTokenMax(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return newFacetAggregationToken(fieldName, FacetAggregation_MAX)
+	return newFacetAggregationToken(fieldName, FacetAggregationMax)
 }
 
 func facetAggregationTokenMin(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return newFacetAggregationToken(fieldName, FacetAggregation_MIN)
+	return newFacetAggregationToken(fieldName, FacetAggregationMin)
 }
 
 func facetAggregationTokenAverage(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return newFacetAggregationToken(fieldName, FacetAggregation_AVERAGE)
+	return newFacetAggregationToken(fieldName, FacetAggregationAverage)
 }
 
 func facetAggregationTokenSum(fieldName string) *facetAggregationToken {
 	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
-	return newFacetAggregationToken(fieldName, FacetAggregation_SUM)
+	return newFacetAggregationToken(fieldName, FacetAggregationSum)
 }

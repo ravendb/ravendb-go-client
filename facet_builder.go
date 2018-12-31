@@ -78,22 +78,22 @@ func (b *FacetBuilder) WithDisplayName(displayName string) IFacetOperations {
 }
 
 func (b *FacetBuilder) SumOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregation_SUM] = path
+	b.getFacet().GetAggregations()[FacetAggregationSum] = path
 	return b
 }
 
 func (b *FacetBuilder) MinOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregation_MIN] = path
+	b.getFacet().GetAggregations()[FacetAggregationMin] = path
 	return b
 }
 
 func (b *FacetBuilder) MaxOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregation_MAX] = path
+	b.getFacet().GetAggregations()[FacetAggregationMax] = path
 	return b
 }
 
 func (b *FacetBuilder) AverageOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregation_AVERAGE] = path
+	b.getFacet().GetAggregations()[FacetAggregationAverage] = path
 	return b
 }
 

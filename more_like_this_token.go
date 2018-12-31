@@ -20,7 +20,7 @@ func (t *moreLikeThisToken) writeTo(writer *strings.Builder) {
 	if t.documentParameterName == "" {
 		var prevToken queryToken
 		for _, whereToken := range t.whereTokens {
-			DocumentQueryHelper_addSpaceIfNeeded(prevToken, whereToken, writer)
+			documentQueryHelperAddSpaceIfNeeded(prevToken, whereToken, writer)
 			whereToken.writeTo(writer)
 			prevToken = whereToken
 		}

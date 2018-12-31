@@ -2,7 +2,7 @@ package ravendb
 
 // helpers to make Java porting easier
 
-func Character_isLetterOrDigit(r rune) bool {
+func isLetterOrDigit(r rune) bool {
 	if r >= 'a' && r <= 'z' {
 		return true
 	}
@@ -15,7 +15,7 @@ func Character_isLetterOrDigit(r rune) bool {
 	return false
 }
 
-func Character_isLetter(r rune) bool {
+func isLetter(r rune) bool {
 	if r >= 'a' && r <= 'z' {
 		return true
 	}

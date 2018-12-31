@@ -115,7 +115,7 @@ func bulkInsertsTestCanModifyMetadataWithBulkInsert(t *testing.T, driver *RavenT
 	defer store.Close()
 
 	et := time.Now().Add(time.Hour * 24 * 365)
-	expirationDate := ravendb.NetISO8601Utils_format(et)
+	expirationDate := ravendb.NetISO8601UtilsFormat(et)
 
 	{
 		bulkInsert := store.BulkInsert()

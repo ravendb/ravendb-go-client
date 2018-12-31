@@ -50,22 +50,22 @@ func (c *HeadAttachmentCommand) processResponse(cache *HttpCache, response *http
 		if c._changeVector != nil {
 			c.Result = *c._changeVector
 		}
-		return ResponseDisposeHandling_AUTOMATIC, nil
+		return responseDisposeHandlingAutomatic, nil
 	}
 
 	if response.StatusCode == http.StatusNotFound {
 		c.Result = ""
-		return ResponseDisposeHandling_AUTOMATIC, nil
+		return responseDisposeHandlingAutomatic, nil
 	}
 
-	res, err := HttpExtensions_getRequiredEtagHeader(response)
+	res, err := gttpExtensionsGetRequiredEtagHeader(response)
 	if err != nil {
-		return ResponseDisposeHandling_AUTOMATIC, err
+		return responseDisposeHandlingAutomatic, err
 	}
 	if res != nil {
 		c.Result = *res
 	}
-	return ResponseDisposeHandling_AUTOMATIC, nil
+	return responseDisposeHandlingAutomatic, nil
 }
 
 func (c *HeadAttachmentCommand) SetResponse(response []byte, fromCache bool) error {

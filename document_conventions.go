@@ -13,7 +13,7 @@ import (
 var (
 	// Note: helps find places that in Java code used DocumentConventsion.GetIdentityProperty()
 	// if we add support for that
-	DocumentConventions_identityPropertyName = "ID"
+	documentConventionsIdentityPropertyName = "ID"
 )
 
 type DocumentIDGeneratorFunc func(dbName string, entity interface{}) string

@@ -102,7 +102,7 @@ func getQueryDefaultTimeout() time.Duration {
 func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
 		clazz:                    clazz,
-		defaultOperator:          QueryOperator_AND,
+		defaultOperator:          QueryOperatorAnd,
 		isGroupBy:                isGroupBy,
 		indexName:                indexName,
 		collectionName:           collectionName,
@@ -129,7 +129,7 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 // NewAbstractDocumentQuery returns new AbstractDocumentQuery
 func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
-		defaultOperator:          QueryOperator_AND,
+		defaultOperator:          QueryOperatorAnd,
 		isGroupBy:                isGroupBy,
 		indexName:                indexName,
 		collectionName:           collectionName,
@@ -197,7 +197,7 @@ func (q *AbstractDocumentQuery) getProjectionFields() []string {
 
 func (q *AbstractDocumentQuery) _randomOrdering() {
 	q.assertNoRawQuery()
-	q.orderByTokens = append(q.orderByTokens, OrderByToken_random)
+	q.orderByTokens = append(q.orderByTokens, orderByTokenRandom)
 }
 
 func (q *AbstractDocumentQuery) _randomOrderingWithSeed(seed string) {
@@ -208,7 +208,7 @@ func (q *AbstractDocumentQuery) _randomOrderingWithSeed(seed string) {
 		return
 	}
 
-	q.orderByTokens = append(q.orderByTokens, OrderByToken_createRandom(seed))
+	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateRandom(seed))
 }
 
 func (q *AbstractDocumentQuery) AddGroupByAlias(fieldName string, projectedName string) {
@@ -421,7 +421,7 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *w
 			args[i] = q.addQueryParameter(mc.args[i])
 		}
 
-		opts := NewWhereOptionsWithMethod(MethodsType_CMP_X_CHG, args, mc.accessPath, whereParams.isExact)
+		opts := NewWhereOptionsWithMethod(MethodsTypeCmpXChg, args, mc.accessPath, whereParams.isExact)
 		token := createWhereTokenWithOptions(op, whereParams.fieldName, "", opts)
 
 		tokens := *tokensRef
@@ -726,7 +726,7 @@ func (q *AbstractDocumentQuery) _andAlso() {
 		panicIf(true, "Cannot add AND, previous token was already an operator token.")
 	}
 
-	tokens = append(tokens, QueryOperatorToken_AND)
+	tokens = append(tokens, queryOperatorTokenAnd)
 	*tokensRef = tokens
 }
 
@@ -744,7 +744,7 @@ func (q *AbstractDocumentQuery) _orElse() {
 		panicIf(true, "Cannot add OR, previous token was already an operator token.")
 	}
 
-	tokens = append(tokens, QueryOperatorToken_OR)
+	tokens = append(tokens, queryOperatorTokenOr)
 	*tokensRef = tokens
 }
 
@@ -823,34 +823,34 @@ func (q *AbstractDocumentQuery) _proximity(proximity int) {
 }
 
 func (q *AbstractDocumentQuery) _orderBy(field string) {
-	q._orderByWithOrdering(field, OrderingType_STRING)
+	q._orderByWithOrdering(field, OrderingTypeString)
 }
 
 func (q *AbstractDocumentQuery) _orderByWithOrdering(field string, ordering OrderingType) {
 	q.assertNoRawQuery()
 	f := q.ensureValidFieldName(field, false)
-	q.orderByTokens = append(q.orderByTokens, OrderByToken_createAscending(f, ordering))
+	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateAscending(f, ordering))
 }
 
 func (q *AbstractDocumentQuery) _orderByDescending(field string) {
-	q._orderByDescendingWithOrdering(field, OrderingType_STRING)
+	q._orderByDescendingWithOrdering(field, OrderingTypeString)
 }
 
 func (q *AbstractDocumentQuery) _orderByDescendingWithOrdering(field string, ordering OrderingType) {
 	q.assertNoRawQuery()
 	f := q.ensureValidFieldName(field, false)
-	q.orderByTokens = append(q.orderByTokens, OrderByToken_createDescending(f, ordering))
+	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateDescending(f, ordering))
 }
 
 func (q *AbstractDocumentQuery) _orderByScore() {
 	q.assertNoRawQuery()
 
-	q.orderByTokens = append(q.orderByTokens, OrderByToken_scoreAscending)
+	q.orderByTokens = append(q.orderByTokens, orderByTokenScoreAscending)
 }
 
 func (q *AbstractDocumentQuery) _orderByScoreDescending() {
 	q.assertNoRawQuery()
-	q.orderByTokens = append(q.orderByTokens, OrderByToken_scoreDescending)
+	q.orderByTokens = append(q.orderByTokens, orderByTokenScoreDescending)
 }
 
 func (q *AbstractDocumentQuery) _statistics(stats **QueryStatistics) {
@@ -953,7 +953,7 @@ func (q *AbstractDocumentQuery) buildInclude(queryText *strings.Builder) {
 		requiredQuotes := false
 
 		for _, ch := range include {
-			if !Character_isLetterOrDigit(ch) && ch != '_' && ch != '.' {
+			if !isLetterOrDigit(ch) && ch != '_' && ch != '.' {
 				requiredQuotes = true
 				break
 			}
@@ -1081,7 +1081,7 @@ func (q *AbstractDocumentQuery) buildSelect(writer *strings.Builder) {
 		if i > 0 {
 			prevToken = q.selectTokens[i-1]
 		}
-		DocumentQueryHelper_addSpaceIfNeeded(prevToken, token, writer)
+		documentQueryHelperAddSpaceIfNeeded(prevToken, token, writer)
 
 		token.writeTo(writer)
 	}
@@ -1129,7 +1129,7 @@ func (q *AbstractDocumentQuery) buildWhere(writer *strings.Builder) {
 		if i > 0 {
 			prevToken = q.whereTokens[i-1]
 		}
-		DocumentQueryHelper_addSpaceIfNeeded(prevToken, tok, writer)
+		documentQueryHelperAddSpaceIfNeeded(prevToken, tok, writer)
 		tok.writeTo(writer)
 	}
 
@@ -1196,14 +1196,14 @@ func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) 
 	}
 
 	var token *queryOperatorToken
-	if q.defaultOperator == QueryOperator_AND {
-		token = QueryOperatorToken_AND
+	if q.defaultOperator == QueryOperatorAnd {
+		token = queryOperatorTokenAnd
 	} else {
-		token = QueryOperatorToken_OR
+		token = queryOperatorTokenOr
 	}
 
 	if lastWhere != nil && lastWhere.options.searchOperator != SearchOperator_UNSET {
-		token = QueryOperatorToken_OR // default to OR operator after search if AND was not specified explicitly
+		token = queryOperatorTokenOr // default to OR operator after search if AND was not specified explicitly
 	}
 
 	tokens = append(tokens, token)
@@ -1297,7 +1297,7 @@ func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedP
 		return QueryFieldUtil_escapeIfNecessary(fieldName)
 	}
 
-	if fieldName == DocumentConventions_identityPropertyName {
+	if fieldName == documentConventionsIdentityPropertyName {
 		return IndexingFieldNameDocumentID
 	}
 
@@ -1467,13 +1467,13 @@ func (q *AbstractDocumentQuery) _spatial(fieldName string, shapeWkt string, rela
 
 	var whereOperator WhereOperator
 	switch relation {
-	case SpatialRelation_WITHIN:
+	case SpatialRelationWithin:
 		whereOperator = WhereOperator_SPATIAL_WITHIN
-	case SpatialRelation_CONTAINS:
+	case SpatialRelationContains:
 		whereOperator = WhereOperator_SPATIAL_CONTAINS
-	case SpatialRelation_DISJOINT:
+	case SpatialRelationDisjoin:
 		whereOperator = WhereOperator_SPATIAL_DISJOINT
-	case SpatialRelation_INTERSECTS:
+	case SpatialRelationIntersects:
 		whereOperator = WhereOperator_SPATIAL_INTERSECTS
 	default:
 		//throw new IllegalArgumentError();
@@ -1533,7 +1533,7 @@ func (q *AbstractDocumentQuery) _orderByDistance(field DynamicSpatialField, lati
 }
 
 func (q *AbstractDocumentQuery) _orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) {
-	tok := OrderByToken_createDistanceAscending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
+	tok := orderByTokenCreateDistanceAscending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
 	q.orderByTokens = append(q.orderByTokens, tok)
 }
 
@@ -1549,7 +1549,7 @@ func (q *AbstractDocumentQuery) _orderByDistance2(field DynamicSpatialField, sha
 }
 
 func (q *AbstractDocumentQuery) _orderByDistance3(fieldName string, shapeWkt string) {
-	tok := OrderByToken_createDistanceAscending2(fieldName, q.addQueryParameter(shapeWkt))
+	tok := orderByTokenCreateDistanceAscending2(fieldName, q.addQueryParameter(shapeWkt))
 	q.orderByTokens = append(q.orderByTokens, tok)
 }
 
@@ -1565,7 +1565,7 @@ func (q *AbstractDocumentQuery) _orderByDistanceDescending(field DynamicSpatialF
 }
 
 func (q *AbstractDocumentQuery) _orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) {
-	tok := OrderByToken_createDistanceDescending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
+	tok := orderByTokenCreateDistanceDescending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
 	q.orderByTokens = append(q.orderByTokens, tok)
 }
 
@@ -1581,7 +1581,7 @@ func (q *AbstractDocumentQuery) _orderByDistanceDescending2(field DynamicSpatial
 }
 
 func (q *AbstractDocumentQuery) _orderByDistanceDescending3(fieldName string, shapeWkt string) {
-	tok := OrderByToken_createDistanceDescending2(fieldName, q.addQueryParameter(shapeWkt))
+	tok := orderByTokenCreateDistanceDescending2(fieldName, q.addQueryParameter(shapeWkt))
 	q.orderByTokens = append(q.orderByTokens, tok)
 }
 
@@ -1899,7 +1899,7 @@ func (q *AbstractDocumentQuery) _suggestUsing(suggestion SuggestionBase) {
 
 func (q *AbstractDocumentQuery) getOptionsParameterName(options *SuggestionOptions) string {
 	optionsParameterName := ""
-	if options != nil && options != SuggestionOptions_defaultOptions {
+	if options != nil && options != SuggestionOptionsDefaultOptions {
 		optionsParameterName = q.addQueryParameter(options)
 	}
 

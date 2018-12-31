@@ -66,7 +66,7 @@ func testIndexCanDisableAndEnableIndex(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.Indexes[0]
-		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_DISABLED)
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatusDisabled)
 	}
 
 	{
@@ -81,7 +81,7 @@ func testIndexCanDisableAndEnableIndex(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.Indexes[0]
-		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatusRunning)
 	}
 }
 
@@ -205,7 +205,7 @@ func testIndexCanStopStartIndexing(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.Indexes[0]
-		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_PAUSED)
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatusPaused)
 	}
 
 	{
@@ -220,7 +220,7 @@ func testIndexCanStopStartIndexing(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
 		indexStatus := indexingStatus.Indexes[0]
-		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatusRunning)
 	}
 }
 
@@ -248,9 +248,9 @@ func testIndexCanStopStartIndex(t *testing.T, driver *RavenTestDriver) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		assert.Equal(t, indexingStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexingStatus.Status, ravendb.IndexRunningStatusRunning)
 		indexStatus := indexingStatus.Indexes[0]
-		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_PAUSED)
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatusPaused)
 	}
 
 	{
@@ -264,9 +264,9 @@ func testIndexCanStopStartIndex(t *testing.T, driver *RavenTestDriver) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		indexingStatus := op.Command.Result
-		assert.Equal(t, indexingStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexingStatus.Status, ravendb.IndexRunningStatusRunning)
 		indexStatus := indexingStatus.Indexes[0]
-		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatus_RUNNING)
+		assert.Equal(t, indexStatus.Status, ravendb.IndexRunningStatusRunning)
 	}
 }
 
@@ -284,7 +284,7 @@ func testIndexCanSetIndexLockMode(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-		op := ravendb.NewSetIndexesLockOperation(indexDef.Name, ravendb.IndexLockMode_LOCKED_ERROR)
+		op := ravendb.NewSetIndexesLockOperation(indexDef.Name, ravendb.IndexLockModeLockedError)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -294,7 +294,7 @@ func testIndexCanSetIndexLockMode(t *testing.T, driver *RavenTestDriver) {
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		newIndexDef := op.Command.Result
-		assert.Equal(t, newIndexDef.LockMode, ravendb.IndexLockMode_LOCKED_ERROR)
+		assert.Equal(t, newIndexDef.LockMode, ravendb.IndexLockModeLockedError)
 	}
 }
 
@@ -309,7 +309,7 @@ func testIndexCanSetIndexPriority(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	op2 := ravendb.NewSetIndexesPriorityOperation(indexDef.Name, ravendb.IndexPriority_HIGH)
+	op2 := ravendb.NewSetIndexesPriorityOperation(indexDef.Name, ravendb.IndexPriorityHigh)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 
@@ -317,7 +317,7 @@ func testIndexCanSetIndexPriority(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Send(op3)
 	assert.NoError(t, err)
 	newIndexDef := op3.Command.Result
-	assert.Equal(t, newIndexDef.Priority, ravendb.IndexPriority_HIGH)
+	assert.Equal(t, newIndexDef.Priority, ravendb.IndexPriorityHigh)
 }
 
 func testIndexCanListErrors(t *testing.T, driver *RavenTestDriver) {

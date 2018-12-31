@@ -20,7 +20,7 @@ func NewDeleteDocumentCommand(id string, changeVector *string) *DeleteDocumentCo
 		_id:           id,
 		_changeVector: changeVector,
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

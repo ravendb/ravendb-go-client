@@ -1,7 +1,7 @@
 package ravendb
 
 var (
-	SpatialCriteriaFactory_INSTANCE = NewSpatialCriteriaFactory()
+	spatialCriteriaFactoryInstance = NewSpatialCriteriaFactory()
 )
 
 type SpatialCriteriaFactory struct {
@@ -24,7 +24,7 @@ func (f *SpatialCriteriaFactory) Intersects(shapeWkt string) *WktCriteria {
 }
 
 func (f *SpatialCriteriaFactory) IntersectsWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
-	return f.RelatesToShapeWithError(shapeWkt, SpatialRelation_INTERSECTS, distErrorPercent)
+	return f.RelatesToShapeWithError(shapeWkt, SpatialRelationIntersects, distErrorPercent)
 }
 
 func (f *SpatialCriteriaFactory) Contains(shapeWkt string) *WktCriteria {
@@ -32,7 +32,7 @@ func (f *SpatialCriteriaFactory) Contains(shapeWkt string) *WktCriteria {
 }
 
 func (f *SpatialCriteriaFactory) ContainsWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
-	return f.RelatesToShapeWithError(shapeWkt, SpatialRelation_CONTAINS, distErrorPercent)
+	return f.RelatesToShapeWithError(shapeWkt, SpatialRelationContains, distErrorPercent)
 }
 
 func (f *SpatialCriteriaFactory) Disjoint(shapeWkt string) *WktCriteria {
@@ -40,7 +40,7 @@ func (f *SpatialCriteriaFactory) Disjoint(shapeWkt string) *WktCriteria {
 }
 
 func (f *SpatialCriteriaFactory) DisjointWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
-	return f.RelatesToShapeWithError(shapeWkt, SpatialRelation_DISJOINT, distErrorPercent)
+	return f.RelatesToShapeWithError(shapeWkt, SpatialRelationDisjoin, distErrorPercent)
 }
 
 func (f *SpatialCriteriaFactory) Within(shapeWkt string) *WktCriteria {
@@ -48,7 +48,7 @@ func (f *SpatialCriteriaFactory) Within(shapeWkt string) *WktCriteria {
 }
 
 func (f *SpatialCriteriaFactory) WithinWithError(shapeWkt string, distErrorPercent float64) *WktCriteria {
-	return f.RelatesToShapeWithError(shapeWkt, SpatialRelation_WITHIN, distErrorPercent)
+	return f.RelatesToShapeWithError(shapeWkt, SpatialRelationWithin, distErrorPercent)
 }
 
 func (f *SpatialCriteriaFactory) WithinRadius(radius float64, latitude float64, longitude float64) *CircleCriteria {
@@ -60,5 +60,5 @@ func (f *SpatialCriteriaFactory) WithinRadiusWithUnits(radius float64, latitude 
 }
 
 func (f *SpatialCriteriaFactory) WithinRadiusWithUnitsAndError(radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distErrorPercent float64) *CircleCriteria {
-	return NewCircleCriteria(radius, latitude, longitude, radiusUnits, SpatialRelation_WITHIN, distErrorPercent)
+	return NewCircleCriteria(radius, latitude, longitude, radiusUnits, SpatialRelationWithin, distErrorPercent)
 }

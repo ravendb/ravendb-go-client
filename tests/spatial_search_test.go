@@ -16,7 +16,7 @@ func NewSpatialIdx() *ravendb.AbstractIndexCreationTask {
 		"    coordinates = this.CreateSpatialField(((double ? ) e.latitude), ((double ? ) e.longitude))\n" +
 		"})"
 
-	res.Index("venue", ravendb.FieldIndexing_SEARCH)
+	res.Index("venue", ravendb.FieldIndexingSearch)
 	return res
 }
 

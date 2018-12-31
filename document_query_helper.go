@@ -2,7 +2,7 @@ package ravendb
 
 import "strings"
 
-func DocumentQueryHelper_addSpaceIfNeeded(previousToken queryToken, currentToken queryToken, writer *strings.Builder) {
+func documentQueryHelperAddSpaceIfNeeded(previousToken queryToken, currentToken queryToken, writer *strings.Builder) {
 	if previousToken == nil {
 		return
 	}

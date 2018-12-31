@@ -1,11 +1,10 @@
 package ravendb
 
 const (
-	// ServerNode.Role
-	ServerNode_Role_NONE       = "None"
-	ServerNode_Role_PROMOTABLE = "Promotable"
-	ServerNode_Role_MEMBER     = "Member"
-	ServerNode_Role_REHAB      = "Rehab"
+	ServerNodeRoleNone       = "None"
+	ServerNodeRolePromotable = "Promotable"
+	ServerNodeRoleMember     = "Member"
+	ServerNodeRoleRehab      = "Rehab"
 )
 
 // ServerNode describes a single server node
@@ -19,7 +18,7 @@ type ServerNode struct {
 // NewServerNode creates a new ServerNode
 func NewServerNode() *ServerNode {
 	return &ServerNode{
-		ServerRole: ServerNode_Role_NONE,
+		ServerRole: ServerNodeRoleNone,
 	}
 }
 

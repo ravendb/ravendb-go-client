@@ -58,7 +58,7 @@ func NewSetIndexesLockCommand(conventions *DocumentConventions, parameters *SetI
 
 		_parameters: d,
 	}
-	cmd.ResponseType = RavenCommandResponseType_EMPTY
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
 	return cmd
 }
 

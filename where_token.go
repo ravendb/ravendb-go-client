@@ -10,7 +10,7 @@ var _ queryToken = &whereToken{}
 type MethodsType = string
 
 const (
-	MethodsType_CMP_X_CHG = "CmpXChg"
+	MethodsTypeCmpXChg = "CmpXChg"
 )
 
 type whereMethodCall struct {
@@ -124,7 +124,7 @@ func (t *whereToken) addAlias(alias string) {
 func (t *whereToken) writeMethod(writer *strings.Builder) bool {
 	if t.options.method != nil {
 		switch t.options.method.methodType {
-		case MethodsType_CMP_X_CHG:
+		case MethodsTypeCmpXChg:
 			writer.WriteString("cmpxchg(")
 		default:
 			panicIf(true, "Unsupported method: %s", t.options.method.methodType)

@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"net/http"
 	"github.com/ravendb/ravendb-go-client"
+	"net/http"
 )
 
 var (
@@ -32,7 +32,7 @@ func NewCreateSampleDataCommand(conventions *ravendb.DocumentConventions) *Creat
 	cmd := &CreateSampleDataCommand{
 		RavenCommandBase: ravendb.NewRavenCommandBase(),
 	}
-	cmd.RavenCommandBase.ResponseType = ravendb.RavenCommandResponseType_EMPTY
+	cmd.RavenCommandBase.ResponseType = ravendb.RavenCommandResponseTypeEmpty
 	return cmd
 }
 

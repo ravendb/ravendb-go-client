@@ -76,7 +76,7 @@ func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, e
 		url += "&staleTimeout=" + durationToTimeSpan(_options.staleTimeout)
 	}
 
-	m := JsonExtensions_writeIndexQuery(c._conventions, c._queryToDelete)
+	m := jsonExtensionsWriteIndexQuery(c._conventions, c._queryToDelete)
 	d, err := jsonMarshal(m)
 	// TODO: return error instead?
 	panicIf(err != nil, "jsonMarshal failed with %s", err)

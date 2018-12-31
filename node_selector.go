@@ -76,13 +76,13 @@ func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, 
 	index := sessionId % len(state.topology.GetNodes())
 
 	for i := index; i < len(state.failures); i++ {
-		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
+		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNodeRoleMember {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
 
 	for i := 0; i < index; i++ {
-		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNode_Role_MEMBER {
+		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNodeRoleMember {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
@@ -92,7 +92,7 @@ func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, 
 
 func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 	state := s._state
-	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].GetServerRole() == ServerNode_Role_MEMBER {
+	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].GetServerRole() == ServerNodeRoleMember {
 		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest]), nil
 	}
 
