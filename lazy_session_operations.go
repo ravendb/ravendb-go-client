@@ -20,7 +20,7 @@ func NewLazySessionOperations(delegate *DocumentSession) *LazySessionOperations 
 }
 
 // Include adds a given object path to be included in results
-func (o *LazySessionOperations) Include(path string) *ILazyLoaderWithInclude {
+func (o *LazySessionOperations) Include(path string) *LazyMultiLoaderWithInclude {
 	return NewLazyMultiLoaderWithInclude(o.delegate).Include(path)
 }
 

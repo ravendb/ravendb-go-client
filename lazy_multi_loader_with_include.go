@@ -6,6 +6,8 @@ import (
 	"reflect"
 )
 
+// Note: ILazyLoaderWithInclude is LazyMultiLoaderWithInclude
+
 // LazyMultiLoaderWithInclude is for lazily loading one or more objects with includes
 type LazyMultiLoaderWithInclude struct {
 	_session  *DocumentSession
@@ -20,7 +22,7 @@ func NewLazyMultiLoaderWithInclude(session *DocumentSession) *LazyMultiLoaderWit
 }
 
 // Include adds ids of objects to add in a request
-func (l *LazyMultiLoaderWithInclude) Include(path string) *ILazyLoaderWithInclude {
+func (l *LazyMultiLoaderWithInclude) Include(path string) *LazyMultiLoaderWithInclude {
 	l._includes = append(l._includes, path)
 	return l
 }
