@@ -209,6 +209,31 @@ func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
+// TODO: probably doesn't need result for loazy operations it's already embedded in the operation
+func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOperation, onEval func(interface{})) *Lazy {
+	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
+
+	fn := func(result interface{}) error {
+		_, err := s.ExecuteAllPendingLazyOperations()
+		// operation carry the result to be set
+		return err
+	}
+	lazyValue := NewLazy2(result, fn)
+	if onEval != nil {
+		if s.onEvaluateLazy == nil {
+			s.onEvaluateLazy = map[ILazyOperation]func(interface{}){}
+		}
+		fn := func(theResult interface{}) {
+			// TODO: losing error message
+			s.getOperationResult(result, theResult)
+			onEval(result)
+		}
+		s.onEvaluateLazy[operation] = fn
+	}
+
+	return lazyValue
+}
+
 func (s *DocumentSession) addLazyOperationOld(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
@@ -265,7 +290,7 @@ func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type, ids []string, inc
 	loadOperation = loadOperation.byIds(ids)
 	loadOperation = loadOperation.withIncludes(includes)
 
-	lazyOp := NewLazyLoadOperation(clazz, s.InMemoryDocumentSessionOperations, loadOperation)
+	lazyOp := NewLazyLoadOperationOld(clazz, s.InMemoryDocumentSessionOperations, loadOperation)
 	lazyOp = lazyOp.byIds(ids)
 	lazyOp = lazyOp.withIncludes(includes)
 

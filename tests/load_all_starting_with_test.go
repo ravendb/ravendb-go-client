@@ -43,7 +43,7 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		args := &ravendb.StartsWithArgs{
 			StartsWith: "abc/",
 		}
-		testClasses := session.Advanced().Lazily().LoadStartingWith(reflect.TypeOf(&Abc{}), args)
+		testClasses := session.Advanced().Lazily().LoadStartingWithOld(reflect.TypeOf(&Abc{}), args)
 
 		iv, err := testClasses.GetValue()
 		assert.NoError(t, err)

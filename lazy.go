@@ -20,8 +20,9 @@ func NewLazy(valueFactory func() (interface{}, error)) *Lazy {
 }
 
 // NewLazy2 returns new Lazy value
-func NewLazy2(valueFactory func(interface{}) error) *Lazy {
+func NewLazy2(result interface{}, valueFactory func(interface{}) error) *Lazy {
 	return &Lazy{
+		value:         result,
 		valueFactory2: valueFactory,
 	}
 }
@@ -51,27 +52,19 @@ func (l *Lazy) GetValue() (interface{}, error) {
 	return l.value, l.err
 }
 
-// GetValue2 returns a value of lazy operation
-func (l *Lazy) GetValue2(v interface{}) error {
+// GetValue2 executes lazy operation and ensures the value is set in result variable
+// provided in NewLazy2()
+func (l *Lazy) GetValue2() error {
+	panicIf(l.valueFactory != nil, "for GetValue2 must create with NewLazy2")
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if l.err != nil {
-		panicIf(!l.valueCreated, "l.valuerCreated must have been set")
+	if l.valueCreated {
 		return l.err
 	}
 
-	if l.valueCreated {
-		panic("not yet supporting calling multiple times")
-
-	}
-	if !l.valueCreated {
-		l.err = l.valueFactory2(v)
-		l.value = v // TODO: this should convert **struct => *struct
-		l.valueCreated = true
-	} else {
-		setInterfaceToValue(v, l.value)
-	}
+	l.err = l.valueFactory2(l.value)
+	l.valueCreated = true
 
 	return l.err
 }
