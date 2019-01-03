@@ -1,9 +1,5 @@
 package ravendb
 
-import (
-	"reflect"
-)
-
 // Note: ILazySessionOperations is LazySessionOperations
 
 // LazySessionOperations describes API for lazy operations
@@ -40,12 +36,12 @@ func (o *LazySessionOperations) Load(result interface{}, id string, onEval func(
 
 // LoadStartingWith returns Lazy object for lazily loading multiple value
 // of a given type and matching args
-func (o *LazySessionOperations) LoadStartingWithOld(clazz reflect.Type, args *StartsWithArgs) *Lazy {
+// results should be map[string]*Struct
+func (o *LazySessionOperations) LoadStartingWith(results interface{}, args *StartsWithArgs) *Lazy {
 	session := o.delegate.InMemoryDocumentSessionOperations
-	operation := NewLazyStartsWithOperation(clazz, args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
+	operation := NewLazyStartsWithOperation(results, args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
 
-	t := reflect.MapOf(stringType, clazz)
-	return o.delegate.addLazyOperationOld(t, operation, nil)
+	return o.delegate.addLazyOperation(results, operation, nil)
 }
 
 // LoadMulti returns Lazy object for lazily loading multiple values

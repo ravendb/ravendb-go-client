@@ -1129,26 +1129,6 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	return nil
 }
 
-func isPtrStruct(t reflect.Type) (reflect.Type, bool) {
-	if t.Kind() == reflect.Ptr && t.Elem() != nil && t.Elem().Kind() == reflect.Struct {
-		return t, true
-	}
-	return nil, false
-}
-
-func isMapStringToPtrStruct(t reflect.Type) bool {
-	if t.Kind() != reflect.Map {
-		return false
-	}
-
-	if t.Key().Kind() != reflect.String {
-		return false
-	}
-
-	_, ok := isPtrStruct(t.Elem())
-	return ok
-}
-
 func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
 	fmt.Printf("InMemoryDocumentSessionOperations.getOperationResult: trying to set results (%T) to result (%T)\n", results, result)
 	return errors.New("NYI")
@@ -1193,7 +1173,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResultOld(clazz reflect.
 		return nil, newIllegalStateError("result must be of type map[string]interface{}, is: %T", result)
 	}
 
-	if isMapStringToPtrStruct(clazz) {
+	if _, ok := isMapStringToPtrStruct(clazz); ok {
 		mapValueType := clazz.Elem()
 		mapType := reflect.MapOf(stringType, mapValueType)
 		m := reflect.MakeMap(mapType)

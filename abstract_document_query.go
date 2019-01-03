@@ -1643,24 +1643,6 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 	return rt, nil
 }
 
-func isPtrPtrStruct(tp reflect.Type) (reflect.Type, bool) {
-	if tp.Kind() != reflect.Ptr {
-		return nil, false
-	}
-	return isPtrStruct(tp.Elem())
-}
-
-func isPtrSlicePtrStruct(tp reflect.Type) (reflect.Type, bool) {
-	if tp.Kind() != reflect.Ptr {
-		return nil, false
-	}
-	tp = tp.Elem()
-	if tp.Kind() != reflect.Slice {
-		return nil, false
-	}
-	return isPtrStruct(tp.Elem())
-}
-
 func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 	if q.clazz == nil {
 		// query was created without providing the type to query

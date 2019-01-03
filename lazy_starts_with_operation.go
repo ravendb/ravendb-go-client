@@ -10,47 +10,49 @@ var _ ILazyOperation = &LazyStartsWithOperation{}
 
 // LazyStartsWithOperation represents lazy starts with operation
 type LazyStartsWithOperation struct {
-	_clazz             reflect.Type
-	_idPrefix          string
-	_matches           string
-	_exclude           string
-	_start             int
-	_pageSize          int
-	_sessionOperations *InMemoryDocumentSessionOperations
-	_startAfter        string
+	idPrefix          string
+	matches           string
+	exclude           string
+	start             int
+	pageSize          int
+	sessionOperations *InMemoryDocumentSessionOperations
+	startAfter        string
 
-	result        interface{}
+	// results is map[string]*Struct
+	results       interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
 
 // NewLazyStartsWithOperation returns new LazyStartsWithOperation
 // TODO: convert to use StartsWithArgs
-func NewLazyStartsWithOperation(clazz reflect.Type, idPrefix string, matches string, exclude string, start int, pageSize int, sessionOperations *InMemoryDocumentSessionOperations, startAfter string) *LazyStartsWithOperation {
+// TODO: validate that results is map[string]*Struct
+// results is map[string]*Struct
+func NewLazyStartsWithOperation(results interface{}, idPrefix string, matches string, exclude string, start int, pageSize int, sessionOperations *InMemoryDocumentSessionOperations, startAfter string) *LazyStartsWithOperation {
 	return &LazyStartsWithOperation{
-		_clazz:             clazz,
-		_idPrefix:          idPrefix,
-		_matches:           matches,
-		_exclude:           exclude,
-		_start:             start,
-		_pageSize:          pageSize,
-		_sessionOperations: sessionOperations,
-		_startAfter:        startAfter,
+		idPrefix:          idPrefix,
+		matches:           matches,
+		exclude:           exclude,
+		start:             start,
+		pageSize:          pageSize,
+		sessionOperations: sessionOperations,
+		startAfter:        startAfter,
+		results:           results,
 	}
 }
 
 func (o *LazyStartsWithOperation) createRequest() *GetRequest {
-	pageSize := o._pageSize
+	pageSize := o.pageSize
 	if pageSize == 0 {
 		pageSize = 25
 	}
 	q := fmt.Sprintf("?startsWith=%s&matches=%s&exclude=%s&start=%d&pageSize=%d&startAfter=%s",
-		UrlUtils_escapeDataString(o._idPrefix),
-		UrlUtils_escapeDataString(o._matches),
-		UrlUtils_escapeDataString(o._exclude),
-		o._start,
+		UrlUtils_escapeDataString(o.idPrefix),
+		UrlUtils_escapeDataString(o.matches),
+		UrlUtils_escapeDataString(o.exclude),
+		o.start,
 		pageSize,
-		o._startAfter)
+		o.startAfter)
 
 	request := &GetRequest{
 		url:   "/docs",
@@ -62,7 +64,7 @@ func (o *LazyStartsWithOperation) createRequest() *GetRequest {
 
 // needed for ILazyOperation
 func (o *LazyStartsWithOperation) getResult() interface{} {
-	return o.result
+	return o.results
 }
 
 // needed for ILazyOperation
@@ -82,32 +84,39 @@ func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 		return err
 	}
 
-	finalResults := map[string]interface{}{}
-	//TreeMap<string, Object> finalResults = new TreeMap<>(string::compareToIgnoreCase);
-
 	for _, document := range getDocumentResult.Results {
 		newDocumentInfo := getNewDocumentInfo(document)
-		o._sessionOperations.documentsByID.add(newDocumentInfo)
+		o.sessionOperations.documentsByID.add(newDocumentInfo)
 
 		if newDocumentInfo.id == "" {
 			continue // is this possible?
 		}
 
 		id := strings.ToLower(newDocumentInfo.id)
-		if o._sessionOperations.IsDeleted(newDocumentInfo.id) {
-			finalResults[id] = nil
+
+		var tp reflect.Type
+		var ok bool
+		if tp, ok = isMapStringToPtrStruct(reflect.TypeOf(o.results)); !ok {
+			return fmt.Errorf("expected o.results to be of type map[string]*struct, got %T", o.results)
+		}
+		finalResult := reflect.ValueOf(o.results)
+		key := reflect.ValueOf(id)
+		if o.sessionOperations.IsDeleted(newDocumentInfo.id) {
+			nilPtr := reflect.New(tp)
+			finalResult.SetMapIndex(key, reflect.ValueOf(nilPtr))
 			continue
 		}
-		doc := o._sessionOperations.documentsByID.getValue(newDocumentInfo.id)
+		doc := o.sessionOperations.documentsByID.getValue(newDocumentInfo.id)
 		if doc != nil {
-			finalResults[id], err = o._sessionOperations.TrackEntityInDocumentInfoOld(o._clazz, doc)
+			v, err := o.sessionOperations.TrackEntityInDocumentInfoOld(tp, doc)
 			if err != nil {
 				return err
 			}
+			finalResult.SetMapIndex(key, reflect.ValueOf(v))
 			continue
 		}
-		finalResults[id] = nil
+		nilPtr := reflect.New(tp)
+		finalResult.SetMapIndex(key, reflect.ValueOf(nilPtr))
 	}
-	o.result = finalResults
 	return nil
 }

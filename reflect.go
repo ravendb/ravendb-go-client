@@ -10,6 +10,41 @@ import (
 
 // functionality related to reflection
 
+func isPtrStruct(t reflect.Type) (reflect.Type, bool) {
+	if t.Kind() == reflect.Ptr && t.Elem() != nil && t.Elem().Kind() == reflect.Struct {
+		return t, true
+	}
+	return nil, false
+}
+
+func isPtrPtrStruct(tp reflect.Type) (reflect.Type, bool) {
+	if tp.Kind() != reflect.Ptr {
+		return nil, false
+	}
+	return isPtrStruct(tp.Elem())
+}
+
+func isPtrSlicePtrStruct(tp reflect.Type) (reflect.Type, bool) {
+	if tp.Kind() != reflect.Ptr {
+		return nil, false
+	}
+	tp = tp.Elem()
+	if tp.Kind() != reflect.Slice {
+		return nil, false
+	}
+	return isPtrStruct(tp.Elem())
+}
+
+func isMapStringToPtrStruct(tp reflect.Type) (reflect.Type, bool) {
+	if tp.Kind() != reflect.Map {
+		return nil, false
+	}
+	if tp.Key().Kind() != reflect.String {
+		return nil, false
+	}
+	return isPtrStruct(tp.Elem())
+}
+
 // Go port of com.google.common.base.Defaults to make porting Java easier
 func getDefaultValueForType(clazz reflect.Type) interface{} {
 	rv := reflect.Zero(clazz)
