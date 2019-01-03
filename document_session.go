@@ -215,7 +215,7 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 
 	fn := func(result interface{}) error {
 		_, err := s.ExecuteAllPendingLazyOperations()
-		// operation carry the result to be set
+		// operation carries the result to be set
 		return err
 	}
 	lazyValue := NewLazy2(result, fn)

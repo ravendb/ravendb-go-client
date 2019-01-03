@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -64,33 +63,41 @@ func getOneMapValue(results interface{}) (interface{}, error) {
 	return v.Interface(), nil
 }
 
-// Load lazily loads a value of a given type with a given id
-func (l *LazyMultiLoaderWithInclude) LoadOld(clazz reflect.Type, id string) *Lazy {
+// Load lazy loads a value with a given id into result
+func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) *Lazy {
 	ids := []string{id}
-	results := l._session.lazyLoadInternalOld(clazz, ids, l._includes, nil)
-	valueFactory := func() (interface{}, error) {
-		// resultMap is map[string]clazz
-		resultMap, err := results.GetValue()
+	// result should be **Foo, make map[string]*Foo
+
+	tp := reflect.TypeOf(result)
+	if tp.Kind() != reflect.Ptr && tp.Elem().Kind() != reflect.Ptr {
+		// TODO: return as an error
+		panicIf(true, "expected result to be **Foo, is %T", result)
+	}
+
+	resultType := reflect.MapOf(stringType, tp.Elem())
+	results := reflect.MakeMap(resultType).Interface()
+
+	lazy := l._session.lazyLoadInternal(results, ids, l._includes, nil)
+	valueFactory := func(result2 interface{}) error {
+		panicIf(reflect.TypeOf(result) != reflect.TypeOf(result2), "LazyMultiLoaderWithInclude.Load(): expected values of same, type, got: result=%T, result2=%T\n", result, result2)
+		err := lazy.GetValue2()
 		if err != nil {
-			return nil, err
-		}
-		if m, ok := resultMap.(map[string]interface{}); ok {
-			if len(m) == 0 {
-				return nil, nil
-			}
-			panicIf(len(m) != 1, "expected resultMap to only have one element, has %d", len(m))
-			for _, v := range m {
-				return v, nil
-			}
-			return nil, errors.New("Impossible!")
+			return err
 		}
 
-		//fmt.Printf("resultMap: %v, type=%T\n", resultMap, resultMap)
-		// TODO: not sure if this is needed
-		v, err := getOneMapValue(resultMap)
-		fmt.Printf("LazyMultiLoaderWithInclude.Load(): v=%v, type=%T\n", v, v)
-		must(err)
-		return v, nil
+		m := reflect.ValueOf(results)
+		if m.Len() == 0 {
+			return nil
+		}
+		panicIf(m.Len() != 1, "expected m to have size of 1, got %d", m.Len())
+
+		key := reflect.ValueOf(id)
+		res := m.MapIndex(key)
+		if res.IsNil() {
+			return ErrNotFound
+		}
+		setInterfaceToValue(result, res.Interface())
+		return nil
 	}
-	return NewLazy(valueFactory)
+	return NewLazy2(result, valueFactory)
 }

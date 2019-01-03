@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -163,12 +162,12 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 
 		old := advanced.GetNumberOfRequests()
 
-		utp := reflect.TypeOf(&User5{})
-		result1 := advanced.Lazily().Include("PartnerId").LoadOld(utp, "user5s/2-A")
-		v, err := result1.GetValue()
+		var user3 *User5
+		resultLazy := advanced.Lazily().Include("PartnerId").Load(&user3, "user5s/2-A")
+		err = resultLazy.GetValue2()
 		assert.NoError(t, err)
-		u := v.(*User5)
-		assert.NotNil(t, u)
+		assert.NotNil(t, user3)
+		assert.Equal(t, user3.ID, "user5s/2-A")
 
 		new := advanced.GetNumberOfRequests()
 		assert.Equal(t, new, old)
