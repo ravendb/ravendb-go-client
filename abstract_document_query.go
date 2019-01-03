@@ -1628,42 +1628,47 @@ func (q *AbstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
 	return q.queryOperation.currentQueryResults.createSnapshot(), nil
 }
 
-// given *[]<type> return type of <type>
+// given *[]<type> returns <type>
 func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
-	badTypeErr := fmt.Errorf("expected value of type *[]<type>, got %T", results)
 	rt := reflect.TypeOf(results)
-	if rt.Kind() != reflect.Ptr {
-		return nil, badTypeErr
+	if (rt.Kind() == reflect.Ptr) && (rt.Elem() != nil) && (rt.Elem().Kind() == reflect.Slice) {
+		return rt.Elem().Elem(), nil
 	}
-	rt = rt.Elem()
-	if rt.Kind() != reflect.Slice {
-		return nil, badTypeErr
-	}
-	rt = rt.Elem()
-	return rt, nil
+	return nil, fmt.Errorf("expected value of type *[]<type>, got %T", results)
 }
 
 func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
-	if q.clazz == nil {
-		// query was created without providing the type to query
-		panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
-		panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
-		panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
-		tp := reflect.TypeOf(result)
-		if tp2, ok := isPtrPtrStruct(tp); ok {
-			q.clazz = tp2
-		} else if tp2, ok := isPtrSlicePtrStruct(tp); ok {
-			q.clazz = tp2
-		} else {
-			panicIf(true, "expected result to be **struct or *[]*struct, got: %T", result)
-		}
-		s := q.theSession
-		indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
-		q.fromToken = createFromToken(indexName, collectionName, "")
+	if q.clazz != nil {
+		return
 	}
-}
 
-// return q.createDocumentQueryInternalWithQueryData(projectionClass, queryData)
+	var err error
+	// it's possible to search in index without needing to know the type
+	// see moreLikeThisCanGetResultsUsingTermVectorsLazy test
+	if q.fromToken != nil {
+		q.clazz, err = getTypeFromQueryResults(result)
+		if err != nil {
+			panic(err.Error())
+		}
+		return
+	}
+
+	// query was created without providing the type to query
+	panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
+	panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
+	panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
+	tp := reflect.TypeOf(result)
+	if tp2, ok := isPtrPtrStruct(tp); ok {
+		q.clazz = tp2
+	} else if tp2, ok := isPtrSlicePtrStruct(tp); ok {
+		q.clazz = tp2
+	} else {
+		panicIf(true, "expected result to be **struct or *[]*struct, got: %T", result)
+	}
+	s := q.theSession
+	indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
+	q.fromToken = createFromToken(indexName, collectionName, "")
+}
 
 // GetResults executes the query and sets results to returned values.
 // results should be of type *[]<type>
@@ -1682,7 +1687,7 @@ func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
 		if err != nil {
 			return err
 		}
-		dq := q.createDocumentQueryInternalWithQueryData(projectionClass, q.selectFieldsArgs)
+		dq := q.createDocumentQueryInternal(projectionClass, q.selectFieldsArgs)
 		q = dq.AbstractDocumentQuery
 		panicIf(q.clazz != projectionClass, "q.clazz != projectionClass")
 		if !hadClazz {

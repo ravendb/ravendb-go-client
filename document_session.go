@@ -545,6 +545,12 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
+func (s *DocumentSession) DocumentQueryType(clazz reflect.Type) *DocumentQuery {
+	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
+	indexName, collectionName := s.processQueryParameters(clazz, "", "", s.GetConventions())
+	return NewDocumentQueryType(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, false)
+}
+
 func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	return NewDocumentQuery(s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
@@ -582,11 +588,6 @@ func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *Document
 
 func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryInIndex(index)
-}
-
-// TODO: convert to use result interface{} instead of clazz reflect.Type
-func (s *DocumentSession) QueryInIndexOld(clazz reflect.Type, index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAllOld(clazz, index.GetIndexName(), "", index.IsMapReduce())
 }
 
 func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {

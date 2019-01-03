@@ -12,6 +12,9 @@ type fromToken struct {
 }
 
 func newFromToken(indexName string, collectionName string, alias string) *fromToken {
+	//TODO: figure out why this triggers in queryQueryWithSelect
+	//it's the same check as in writeTo()
+	//panicIf(indexName == "" && collectionName == "", "Either indexName or collectionName must be specified")
 	return &fromToken{
 		collectionName: collectionName,
 		indexName:      indexName,
@@ -25,10 +28,8 @@ func createFromToken(indexName string, collectionName string, alias string) *fro
 }
 
 func (t *fromToken) writeTo(writer *strings.Builder) {
-	if t.indexName == "" && t.collectionName == "" {
-		panicIf(true, "Either indexName or collectionName must be specified")
-		// newIllegalStateError("Either indexName or collectionName must be specified");
-	}
+	panicIf(t.indexName == "" && t.collectionName == "", "Either indexName or collectionName must be specified")
+	// newIllegalStateError("Either indexName or collectionName must be specified");
 
 	if t.isDynamic {
 		writer.WriteString("from ")

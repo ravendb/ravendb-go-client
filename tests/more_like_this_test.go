@@ -3,11 +3,10 @@ package tests
 import (
 	"fmt"
 	"math/rand"
-	"reflect"
 	"strings"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -91,7 +90,7 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 		options := ravendb.NewMoreLikeThisOptions()
 		options.Fields = []string{"body"}
 
-		query := session.QueryInIndexOld(reflect.TypeOf(&Data{}), dataIndex)
+		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
 			builder := func(b *ravendb.IFilterDocumentQueryBase) {
 				b.WhereEquals("id()", id)

@@ -29,6 +29,12 @@ func NewDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOpe
 	}
 }
 
+func NewDocumentQueryType(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
+	return &DocumentQuery{
+		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, nil, nil, ""),
+	}
+}
+
 func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *DocumentQuery {
 	return &DocumentQuery{
 		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, declareToken, loadTokens, fromAlias),
@@ -416,12 +422,8 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 }
 */
 
-func (q *DocumentQuery) createDocumentQueryInternal(resultClass reflect.Type) *DocumentQuery {
-	return q.createDocumentQueryInternalWithQueryData(resultClass, nil)
-}
-
 // Note: had to move it down to AbstractDocumentQuery
-func (q *AbstractDocumentQuery) createDocumentQueryInternalWithQueryData(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
+func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
 
 	var newFieldsToFetch *fieldsToFetchToken
 
