@@ -30,7 +30,7 @@ func aggressiveCachingCanAggressivelyCacheLoads404(t *testing.T, driver *RavenTe
 	defer disableLogFailedRequests()()
 
 	store := initAggressiveCaching(t, driver)
-	requestExecutor := store.GetRequestExecutor()
+	requestExecutor := store.GetRequestExecutor("")
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
 	for i := 0; i < 5; i++ {
@@ -52,7 +52,7 @@ func aggressiveCachingCanAggressivelyCacheLoads404(t *testing.T, driver *RavenTe
 
 func aggressiveCachingCanAggressivelyCacheLoads(t *testing.T, driver *RavenTestDriver) {
 	store := initAggressiveCaching(t, driver)
-	requestExecutor := store.GetRequestExecutor()
+	requestExecutor := store.GetRequestExecutor("")
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
 	for i := 0; i < 5; i++ {
@@ -72,7 +72,7 @@ func aggressiveCachingCanAggressivelyCacheLoads(t *testing.T, driver *RavenTestD
 
 func aggressiveCachingCanAggressivelyCacheQueries(t *testing.T, driver *RavenTestDriver) {
 	store := initAggressiveCaching(t, driver)
-	requestExecutor := store.GetRequestExecutor()
+	requestExecutor := store.GetRequestExecutor("")
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
 	for i := 0; i < 5; i++ {
@@ -94,7 +94,7 @@ func aggressiveCachingCanAggressivelyCacheQueries(t *testing.T, driver *RavenTes
 
 func aggressiveCachingWaitForNonStaleResultsIgnoresAggressiveCaching(t *testing.T, driver *RavenTestDriver) {
 	store := initAggressiveCaching(t, driver)
-	requestExecutor := store.GetRequestExecutor()
+	requestExecutor := store.GetRequestExecutor("")
 
 	oldNumOfRequests := requestExecutor.NumberOfServerRequests.Get()
 	for i := 0; i < 5; i++ {

@@ -13,7 +13,7 @@ func getNextOperationIdCommandTestCanGetNextOperationId(t *testing.T, driver *Ra
 	defer store.Close()
 
 	command := ravendb.NewGetNextOperationIDCommand()
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	assert.NotNil(t, command.Result)
 }

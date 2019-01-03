@@ -12,7 +12,7 @@ func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) 
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	executor := store.GetRequestExecutor()
+	executor := store.GetRequestExecutor("")
 
 	sampleData := NewCreateSampleDataOperation()
 	err = store.Maintenance().Send(sampleData)

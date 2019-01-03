@@ -16,7 +16,7 @@ func NewEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName str
 	res := &EvictItemsFromCacheBasedOnChanges{
 		_databaseName:    databaseName,
 		_changes:         store.ChangesWithDatabaseName(databaseName),
-		_requestExecutor: store.GetRequestExecutorWithDatabase(databaseName),
+		_requestExecutor: store.GetRequestExecutor(databaseName),
 	}
 	docSub, err := res._changes.ForAllDocuments()
 	must(err) // TODO: return an error?

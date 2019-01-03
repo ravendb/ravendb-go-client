@@ -13,7 +13,7 @@ func getClusterTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver)
 	defer store.Close()
 
 	command := ravendb.NewGetClusterTopologyCommand()
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)

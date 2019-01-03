@@ -50,7 +50,7 @@ func customSerializationTestSerialization(t *testing.T, driver *RavenTestDriver)
 	// verify if value was properly serialized
 	{
 		command := ravendb.NewGetDocumentsCommand([]string{"product3s/1-A"}, nil, false)
-		err = store.GetRequestExecutor().ExecuteCommand(command)
+		err = store.GetRequestExecutor("").ExecuteCommand(command)
 		assert.NoError(t, err)
 		productJSON := command.Result.Results[0]
 		priceNode := productJSON["price"]

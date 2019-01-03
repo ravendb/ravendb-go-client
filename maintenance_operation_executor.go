@@ -20,7 +20,7 @@ func NewMaintenanceOperationExecutorWithDatabase(store *DocumentStore, databaseN
 		databaseName: firstNonEmptyString(databaseName, store.GetDatabase()),
 	}
 	if res.databaseName != "" {
-		res.requestExecutor = store.GetRequestExecutorWithDatabase(res.databaseName)
+		res.requestExecutor = store.GetRequestExecutor(res.databaseName)
 	}
 	return res
 }

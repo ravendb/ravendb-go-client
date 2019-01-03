@@ -89,7 +89,7 @@ type BulkInsertOperation struct {
 
 // NewBulkInsertOperation returns new BulkInsertOperation
 func NewBulkInsertOperation(database string, store *IDocumentStore) *BulkInsertOperation {
-	re := store.GetRequestExecutorWithDatabase(database)
+	re := store.GetRequestExecutor(database)
 	f := func(entity interface{}) string {
 		return re.GetConventions().GenerateDocumentID(database, entity)
 	}

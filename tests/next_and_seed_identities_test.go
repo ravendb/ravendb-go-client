@@ -25,7 +25,7 @@ func nextAndSeedIdentitiesTestNextIdentityFor(t *testing.T, driver *RavenTestDri
 	}
 
 	command := ravendb.NewNextIdentityForCommand("users")
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 
 	{
@@ -81,7 +81,7 @@ func nextAndSeedIdentitiesTestSeedIdentityFor(t *testing.T, driver *RavenTestDri
 	}
 
 	command := ravendb.NewSeedIdentityForCommand("users", 1990)
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.Equal(t, result, 1990)
@@ -129,7 +129,7 @@ func nextAndSeedIdentitiesTestSeedIdentityFor(t *testing.T, driver *RavenTestDri
 	}
 
 	command = ravendb.NewSeedIdentityForCommand("users", 1975)
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	assert.Equal(t, command.Result, 1991)
 

@@ -31,10 +31,11 @@ type DocumentStore struct {
 	_databaseChanges map[string]*DatabaseChanges
 
 	// Note: access must be protected with mu
-	// ConcurrentMap<String, Lazy<EvictItemsFromCacheBasedOnChanges>>
+	// Lazy.Value is **EvictItemsFromCacheBasedOnChanges
 	_aggressiveCacheChanges map[string]*Lazy
 
 	// maps database name to its RequestsExecutor
+	// access must be protected with mu
 	// TODO: in Java is ConcurrentMap<String, RequestExecutor> requestExecutors
 	// so must protect access with mutex and use case-insensitive lookup
 	requestsExecutors map[string]*RequestExecutor
@@ -244,11 +245,12 @@ func (s *DocumentStore) Close() {
 			continue
 		}
 
-		err := value.GetValue2()
-		must(err) // TODO: ignore?
-		v := value.value.(**EvictItemsFromCacheBasedOnChanges)
-		if v != nil {
-			(*v).Close()
+		err := value.GetValue()
+		if err != nil {
+			v := value.Value.(**EvictItemsFromCacheBasedOnChanges)
+			if v != nil {
+				(*v).Close()
+			}
 		}
 	}
 
@@ -292,7 +294,7 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	databaseName := firstNonEmptyString(options.Database, s.GetDatabase())
 	requestExecutor := options.RequestExecutor
 	if requestExecutor == nil {
-		requestExecutor = s.GetRequestExecutorWithDatabase(databaseName)
+		requestExecutor = s.GetRequestExecutor(databaseName)
 	}
 	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
 	s.RegisterEvents(session.InMemoryDocumentSessionOperations)
@@ -324,16 +326,14 @@ func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreatio
 	return s.Maintenance().ForDatabase(database).Send(op)
 }
 
-func (s *DocumentStore) GetRequestExecutor() *RequestExecutor {
-	return s.GetRequestExecutorWithDatabase("")
-}
-
 // GetRequestExecutorWithDatabase gets a request executor for a given database
-func (s *DocumentStore) GetRequestExecutorWithDatabase(database string) *RequestExecutor {
+// database is optional
+func (s *DocumentStore) GetRequestExecutor(database string) *RequestExecutor {
 	s.assertInitialized()
 	if database == "" {
 		database = s.GetDatabase()
 	}
+	database = strings.ToLower(database)
 
 	s.mu.Lock()
 	executor, ok := s.requestsExecutors[database]
@@ -406,7 +406,7 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 		databaseName = s.GetDatabase()
 	}
 
-	re := s.GetRequestExecutorWithDatabase(databaseName)
+	re := s.GetRequestExecutor(databaseName)
 	old := re.aggressiveCaching
 	re.aggressiveCaching = nil
 	res := &RestoreCaching{
@@ -448,7 +448,7 @@ func (s *DocumentStore) createDatabaseChanges(database string) *DatabaseChanges 
 		delete(s._databaseChanges, database)
 		s.mu.Unlock()
 	}
-	re := s.GetRequestExecutorWithDatabase(database)
+	re := s.GetRequestExecutor(database)
 	return NewDatabaseChanges(re, database, onDispose)
 }
 
@@ -495,7 +495,7 @@ func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration
 		s.listenToChangesAndUpdateTheCache(database)
 	}
 
-	re := s.GetRequestExecutorWithDatabase(database)
+	re := s.GetRequestExecutor(database)
 	old := re.aggressiveCaching
 
 	opts := &AggressiveCacheOptions{
@@ -526,14 +526,14 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 			return nil
 		}
 		var results *EvictItemsFromCacheBasedOnChanges
-		lazy = NewLazy2(&results, valueFactory)
+		lazy = NewLazy(&results, valueFactory)
 
 		s.mu.Lock()
 		s._aggressiveCacheChanges[database] = lazy
 		s.mu.Unlock()
 	}
 
-	lazy.GetValue2() // force evaluation
+	lazy.GetValue() // force evaluation
 }
 
 func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) int {
