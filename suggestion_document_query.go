@@ -55,18 +55,26 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 }
 
 // onEval: v is map[string]*SuggestionResult
-func (q *SuggestionDocumentQuery) ExecuteLazy(onEval func(v interface{})) *Lazy {
+func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResult, onEval func(v interface{})) *Lazy {
 	q._query = q.getIndexQuery()
-	clazz := reflect.TypeOf(map[string]*SuggestionResult{})
 	afterFn := func(result *QueryResult) {
 		q.InvokeAfterQueryExecuted(result)
 	}
 	processFn := func(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*SuggestionResult, error) {
-		return q.processResults(queryResult, conventions)
+		res, err := q.processResults(queryResult, conventions)
+		if err != nil {
+			return nil, err
+		}
+		// processResult returns its own map, have to copy it to map provided by
+		// caller as a result
+		for k, v := range res {
+			results[k] = v
+		}
+		return res, err
 	}
 
 	op := NewLazySuggestionQueryOperation(q._session.Conventions, q._query, afterFn, processFn)
-	return q._session.session.addLazyOperationOld(clazz, op, onEval)
+	return q._session.session.addLazyOperation(results, op, onEval)
 }
 
 func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
