@@ -1,10 +1,9 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,11 +42,11 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		args := &ravendb.StartsWithArgs{
 			StartsWith: "abc/",
 		}
-		testClasses := session.Advanced().Lazily().LoadStartingWithOld(reflect.TypeOf(&Abc{}), args)
+		v := map[string]*Abc{}
+		testClasses := session.Advanced().Lazily().LoadStartingWith(v, args)
 
-		iv, err := testClasses.GetValue()
+		err = testClasses.GetValue2()
 		assert.NoError(t, err)
-		v := iv.(map[string]*Abc)
 		assert.Equal(t, len(v), 1)
 		assert.Equal(t, v["abc/1"].ID, "abc/1")
 

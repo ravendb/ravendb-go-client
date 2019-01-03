@@ -30,3 +30,4 @@ go clean -testcache
 
 go test -v -race -timeout 50s ./tests -run ^TestLazyAggregationEmbeddedLazy$
 go test -v -race -timeout 50s ./tests -run ^TestSuggestionsLazy$
+go test -v -race -timeout 50s ./tests -run ^TestLoadAllStartingWith$
