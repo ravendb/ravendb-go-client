@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"errors"
 	"reflect"
 )
 
@@ -24,27 +23,10 @@ func (o *LazySessionOperations) Include(path string) *LazyMultiLoaderWithInclude
 	return NewLazyMultiLoaderWithInclude(o.delegate).Include(path)
 }
 
-// Load returns Lazy object for lazily loading a value of a given type and id
-// from the database
-func (o *LazySessionOperations) LoadOld(clazz reflect.Type, id string, onEval func(interface{})) *Lazy {
-	if o.delegate.IsLoaded(id) {
-		fn := func() (interface{}, error) {
-			//return o.delegate.LoadOld(clazz, id)
-			panic("NYI")
-			return nil, errors.New("NYI")
-		}
-		return NewLazy(fn)
-	}
-
-	session := o.delegate.InMemoryDocumentSessionOperations
-	op := NewLoadOperation(session).byID(id)
-	lazyLoadOperation := NewLazyLoadOperationOld(clazz, session, op).byID(id)
-	return o.delegate.addLazyOperationOld(clazz, lazyLoadOperation, onEval)
-}
-
 func (o *LazySessionOperations) Load(result interface{}, id string, onEval func(interface{})) *Lazy {
 	if o.delegate.IsLoaded(id) {
 		fn := func(result interface{}) error {
+			// TODO: test for this code path
 			return o.delegate.Load(result, id)
 		}
 		return NewLazy2(result, fn)
@@ -69,5 +51,5 @@ func (o *LazySessionOperations) LoadStartingWithOld(clazz reflect.Type, args *St
 // LoadMulti returns Lazy object for lazily loading multiple values
 // of a given type and with given ids
 func (o *LazySessionOperations) LoadMultiOld(clazz reflect.Type, ids []string, onEval func(interface{})) *Lazy {
-	return o.delegate.lazyLoadInternal(clazz, ids, nil, onEval)
+	return o.delegate.lazyLoadInternalOld(clazz, ids, nil, onEval)
 }

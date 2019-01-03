@@ -275,7 +275,7 @@ func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy 
 
 // public <T> Lazy<Map<String, T>>
 // TODO: change onEval to func(map[string]interface{})
-func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type, ids []string, includes []string, onEval func(interface{})) *Lazy {
+func (s *DocumentSession) lazyLoadInternalOld(clazz reflect.Type, ids []string, includes []string, onEval func(interface{})) *Lazy {
 	if s.checkIfIdAlreadyIncluded(ids, includes) {
 		fn := func() (interface{}, error) {
 			resultType := reflect.MapOf(stringType, clazz)
@@ -297,6 +297,27 @@ func (s *DocumentSession) lazyLoadInternal(clazz reflect.Type, ids []string, inc
 	at := reflect.MapOf(stringType, clazz)
 
 	return s.addLazyOperationOld(at, lazyOp, onEval)
+}
+
+func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, includes []string, onEval func(interface{})) *Lazy {
+	if s.checkIfIdAlreadyIncluded(ids, includes) {
+		fn := func(res interface{}) error {
+			// res should be the same as results
+			err := s.LoadMulti(results, ids)
+			return err
+		}
+		return NewLazy2(results, fn)
+	}
+
+	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
+	loadOperation = loadOperation.byIds(ids)
+	loadOperation = loadOperation.withIncludes(includes)
+
+	lazyOp := NewLazyLoadOperation(results, s.InMemoryDocumentSessionOperations, loadOperation)
+	lazyOp = lazyOp.byIds(ids)
+	lazyOp = lazyOp.withIncludes(includes)
+
+	return s.addLazyOperation(results, lazyOp, onEval)
 }
 
 func (s *DocumentSession) Load(result interface{}, id string) error {

@@ -153,17 +153,18 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 	{
 		session := openSessionMust(t, store)
 
-		utp := reflect.TypeOf(&User5{})
+		var user1, user2 *User5
 		advanced := session.Advanced()
-		advanced.Lazily().LoadOld(utp, "user5s/2-A", nil)
-		advanced.Lazily().LoadOld(utp, "user5s/1-A", nil)
+		advanced.Lazily().Load(&user2, "user5s/2-A", nil)
+		advanced.Lazily().Load(&user1, "user5s/1-A", nil)
 
 		_, err = advanced.Eagerly().ExecuteAllPendingLazyOperations()
 		assert.NoError(t, err)
 
 		old := advanced.GetNumberOfRequests()
 
-		result1 := advanced.Lazily().Include("PartnerId").Load(utp, "user5s/2-A")
+		utp := reflect.TypeOf(&User5{})
+		result1 := advanced.Lazily().Include("PartnerId").LoadOld(utp, "user5s/2-A")
 		v, err := result1.GetValue()
 		assert.NoError(t, err)
 		u := v.(*User5)

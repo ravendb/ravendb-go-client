@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,32 +38,33 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, order.ID, "companies/1")
 
 		/*
-			lazyOrders := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"companies/1", "companies/2"}, nil)
-			assert.False(t, lazyOrders.IsValueCreated())
+						lazyOrders := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"companies/1", "companies/2"}, nil)
+						assert.False(t, lazyOrders.IsValueCreated())
 
-			ordersI, err := lazyOrders.GetValue()
-			assert.NoError(t, err)
-			orders := ordersI.(map[string](*Company))
-			assert.Equal(t, len(orders), 2)
+						ordersI, err := lazyOrders.GetValue()
+						assert.NoError(t, err)
+						orders := ordersI.(map[string](*Company))
+						assert.Equal(t, len(orders), 2)
 
-			company1 := orders["companies/1"]
-			company2 := orders["companies/2"]
+						company1 := orders["companies/1"]
+						company2 := orders["companies/2"]
 
-			assert.NotNil(t, company1)
-			assert.NotNil(t, company2)
+						assert.NotNil(t, company1)
+			ru			assert.NotNil(t, company2)
 
-			assert.Equal(t, company1.ID, "companies/1")
+						assert.Equal(t, company1.ID, "companies/1")
 
-			assert.Equal(t, company2.ID, "companies/2")
+						assert.Equal(t, company2.ID, "companies/2")
+		*/
 
-			lazyOrder = session.Advanced().Lazily().LoadOld(reflect.TypeOf(&Company{}), "companies/3", nil)
-			assert.False(t, lazyOrder.IsValueCreated())
+		lazyOrder = session.Advanced().Lazily().Load(&order, "companies/3", nil)
+		assert.False(t, lazyOrder.IsValueCreated())
 
-			orderI, err := lazyOrder.GetValue()
-			assert.NoError(t, err)
-			order = orderI.(*Company)
-			assert.Equal(t, order.ID, "companies/3")
+		err = lazyOrder.GetValue2()
+		assert.NoError(t, err)
+		assert.Equal(t, order.ID, "companies/3")
 
+		/*
 			load := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"no_such_1", "no_such_2"}, nil)
 			missingItemsI, err := load.GetValue()
 			assert.NoError(t, err)
@@ -100,14 +100,17 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 		var company1Ref *Company
 		var company2Ref *Company
 		query := session.Advanced().Lazily()
-		query.LoadOld(reflect.TypeOf(&Company{}), "companies/1", func(v interface{}) {
-			c := v.(*Company)
-			company1Ref = c
+		var c1, c2 *Company
+		query.Load(&c1, "companies/1", func(v interface{}) {
+			// TODO: v should be *Company
+			c := v.(**Company)
+			company1Ref = *c
 		})
 
-		query.LoadOld(reflect.TypeOf(&Company{}), "companies/2", func(v interface{}) {
-			c := v.(*Company)
-			company2Ref = c
+		query.Load(&c2, "companies/2", func(v interface{}) {
+			// TODO: v should be *Company
+			c := v.(**Company)
+			company2Ref = *c
 		})
 
 		assert.Nil(t, company1Ref)
@@ -118,6 +121,8 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 		assert.Equal(t, company1Ref.ID, "companies/1")
 		assert.Equal(t, company2Ref.ID, "companies/2")
 
+		assert.Equal(t, c1, company1Ref)
+		assert.Equal(t, c2, company2Ref)
 	}
 }
 
@@ -141,10 +146,12 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var userRef *User
+		var user *User
 
 		query := session.Advanced().Lazily()
-		query.LoadOld(reflect.TypeOf(&User{}), "users/1", func(v interface{}) {
-			userRef = v.(*User)
+		query.Load(&user, "users/1", func(v interface{}) {
+			// TODO: v should be *User
+			userRef = *v.(**User)
 		})
 
 		assert.Nil(t, userRef)
@@ -152,6 +159,7 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
 		assert.NoError(t, err)
 		assert.Equal(t, *userRef.LastName, "Oren")
+		assert.Equal(t, user, userRef)
 	}
 }
 
@@ -173,23 +181,24 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		session := openSessionMust(t, store)
-		lazyUser := session.Advanced().Lazily().LoadOld(reflect.TypeOf(&User{}), "users/1", nil)
+		var user *User
+		lazyUser := session.Advanced().Lazily().Load(&user, "users/1", nil)
 		assert.False(t, lazyUser.IsValueCreated())
 
-		userI, err := lazyUser.GetValue()
+		err = lazyUser.GetValue2()
 		assert.NoError(t, err)
-		assert.NotNil(t, userI)
+		assert.NotNil(t, user)
+		assert.Equal(t, user.ID, "users/1")
 	}
 
 	{
 		session := openSessionMust(t, store)
-		lazyUser := session.Advanced().Lazily().LoadOld(reflect.TypeOf(&User{}), "users/1", nil)
+		var user *User
+		lazyUser := session.Advanced().Lazily().Load(&user, "users/1", nil)
 		assert.False(t, lazyUser.IsValueCreated())
 
-		userI, err := lazyUser.GetValue()
+		err = lazyUser.GetValue2()
 		assert.NoError(t, err)
-		assert.NotNil(t, userI)
-		user := userI.(*User)
 		assert.Equal(t, *user.LastName, "Oren")
 	}
 }
@@ -202,8 +211,8 @@ func TestLazy(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	//lazyCanExecuteAllPendingLazyOperations(t, driver)
+	lazyCanExecuteAllPendingLazyOperations(t, driver)
 	lazyCanLazilyLoadEntity(t, driver)
-	//lazyCanUseCacheWhenLazyLoading(t, driver)
-	//lazyWithQueuedActionsLoad(t, driver)
+	lazyCanUseCacheWhenLazyLoading(t, driver)
+	lazyWithQueuedActionsLoad(t, driver)
 }

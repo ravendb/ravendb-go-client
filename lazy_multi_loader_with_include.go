@@ -28,8 +28,9 @@ func (l *LazyMultiLoaderWithInclude) Include(path string) *LazyMultiLoaderWithIn
 }
 
 // LoadMulti lazily loads multiple values of a given type with given ids
-func (l *LazyMultiLoaderWithInclude) LoadMulti(clazz reflect.Type, ids []string) *Lazy {
-	return l._session.lazyLoadInternal(clazz, ids, l._includes, nil)
+// TODO: not covered by tests at all
+func (l *LazyMultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) *Lazy {
+	return l._session.lazyLoadInternal(results, ids, l._includes, nil)
 }
 
 // m is a single-element map[string]*struct
@@ -64,9 +65,9 @@ func getOneMapValue(results interface{}) (interface{}, error) {
 }
 
 // Load lazily loads a value of a given type with a given id
-func (l *LazyMultiLoaderWithInclude) Load(clazz reflect.Type, id string) *Lazy {
+func (l *LazyMultiLoaderWithInclude) LoadOld(clazz reflect.Type, id string) *Lazy {
 	ids := []string{id}
-	results := l._session.lazyLoadInternal(clazz, ids, l._includes, nil)
+	results := l._session.lazyLoadInternalOld(clazz, ids, l._includes, nil)
 	valueFactory := func() (interface{}, error) {
 		// resultMap is map[string]clazz
 		resultMap, err := results.GetValue()
