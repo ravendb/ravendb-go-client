@@ -275,32 +275,6 @@ func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOpera
 	return NewLazy2(count, fn)
 }
 
-// public <T> Lazy<Map<String, T>>
-// TODO: change onEval to func(map[string]interface{})
-func (s *DocumentSession) lazyLoadInternalOld(clazz reflect.Type, ids []string, includes []string, onEval func(interface{})) *Lazy {
-	if s.checkIfIdAlreadyIncluded(ids, includes) {
-		fn := func() (interface{}, error) {
-			resultType := reflect.MapOf(stringType, clazz)
-			result := reflect.MakeMap(resultType).Interface()
-			err := s.LoadMulti(result, ids)
-			return result, err
-		}
-		return NewLazy(fn)
-	}
-
-	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
-	loadOperation = loadOperation.byIds(ids)
-	loadOperation = loadOperation.withIncludes(includes)
-
-	lazyOp := NewLazyLoadOperationOld(clazz, s.InMemoryDocumentSessionOperations, loadOperation)
-	lazyOp = lazyOp.byIds(ids)
-	lazyOp = lazyOp.withIncludes(includes)
-
-	at := reflect.MapOf(stringType, clazz)
-
-	return s.addLazyOperationOld(at, lazyOp, onEval)
-}
-
 func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, includes []string, onEval func(interface{})) *Lazy {
 	if s.checkIfIdAlreadyIncluded(ids, includes) {
 		fn := func(res interface{}) error {
