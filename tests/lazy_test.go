@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,12 +37,12 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/1")
 
-		lazyOrders := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"companies/1", "companies/2"}, nil)
+		orders := map[string]*Company{}
+		lazyOrders := session.Advanced().Lazily().LoadMulti(orders, []string{"companies/1", "companies/2"}, nil)
 		assert.False(t, lazyOrders.IsValueCreated())
 
-		ordersI, err := lazyOrders.GetValue()
+		err = lazyOrders.GetValue2()
 		assert.NoError(t, err)
-		orders := ordersI.(map[string](*Company))
 		assert.Equal(t, len(orders), 2)
 
 		company1 := orders["companies/1"]
@@ -63,10 +62,11 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/3")
 
-		load := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"no_such_1", "no_such_2"}, nil)
-		missingItemsI, err := load.GetValue()
+		missingItems := map[string]*Company{}
+		load := session.Advanced().Lazily().LoadMulti(missingItems, []string{"no_such_1", "no_such_2"}, nil)
+		err = load.GetValue2()
 		assert.NoError(t, err)
-		missingItems := missingItemsI.(map[string]*Company)
+		assert.Equal(t, 2, len(missingItems))
 
 		assert.Nil(t, missingItems["no_such_1"])
 		assert.Nil(t, missingItems["no_such_2"])

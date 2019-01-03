@@ -50,6 +50,6 @@ func (o *LazySessionOperations) LoadStartingWithOld(clazz reflect.Type, args *St
 
 // LoadMulti returns Lazy object for lazily loading multiple values
 // of a given type and with given ids
-func (o *LazySessionOperations) LoadMultiOld(clazz reflect.Type, ids []string, onEval func(interface{})) *Lazy {
-	return o.delegate.lazyLoadInternalOld(clazz, ids, nil, onEval)
+func (o *LazySessionOperations) LoadMulti(results interface{}, ids []string, onEval func(interface{})) *Lazy {
+	return o.delegate.lazyLoadInternal(results, ids, nil, onEval)
 }
