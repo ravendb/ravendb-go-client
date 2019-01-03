@@ -63,6 +63,7 @@ func (o *LoadStartingWithOperation) setResult(result *GetDocumentsResult) {
 
 // results must be *[]*struct. If *results is nil, we create it
 func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
+	//fmt.Printf("type of results: %T\n", results)
 	rt := reflect.TypeOf(results)
 
 	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Slice {
@@ -73,6 +74,8 @@ func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
 
 	// slice element should be a pointer to a struct
 	sliceElemPtrType := sliceV.Type().Elem()
+	//fmt.Printf("type of sliceElemPtrType: %s\n", sliceElemPtrType.String())
+
 	if sliceElemPtrType.Kind() != reflect.Ptr {
 		return fmt.Errorf("results should be a pointer to a slice of pointers to struct, is %T. sliceElemPtrType: %s", results, sliceElemPtrType)
 	}
@@ -88,13 +91,19 @@ func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
 	}
 
 	sliceV2 := sliceV
+
+	//resultType := reflect.PtrTo(sliceElemPtrType)
+	//fmt.Printf("resultType: %s\n", resultType.String())
 	for _, id := range o._returnedIds {
-		v, err := o.getDocumentOld(sliceElemPtrType, id)
+		rv := reflect.New(sliceElemPtrType)
+		//fmt.Printf("type of rv: %T, %s\n", rv.Interface(), rv.Type().String())
+		// rv is **struct and is set to value of *struct inside getDocument()
+		err := o.getDocument(rv.Interface(), id)
 		if err != nil {
 			return err
 		}
-		v2 := reflect.ValueOf(v)
-		sliceV2 = reflect.Append(sliceV2, v2)
+		// rv.Elem() is *struct
+		sliceV2 = reflect.Append(sliceV2, rv.Elem())
 	}
 
 	if sliceV2 != sliceV {
@@ -103,19 +112,16 @@ func (o *LoadStartingWithOperation) getDocuments(results interface{}) error {
 	return nil
 }
 
-func (o *LoadStartingWithOperation) getDocumentOld(clazz reflect.Type, id string) (interface{}, error) {
-	if id == "" {
-		return getDefaultValueForType(clazz), nil
-	}
-
+func (o *LoadStartingWithOperation) getDocument(result interface{}, id string) error {
+	// TODO: set to default value if not returning anything? Return ErrNotFound?
 	if o._session.IsDeleted(id) {
-		return getDefaultValueForType(clazz), nil
+		return nil
 	}
 
 	doc := o._session.documentsByID.getValue(id)
 	if doc != nil {
-		return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
+		return o._session.TrackEntityInDocumentInfo(result, doc)
 	}
 
-	return getDefaultValueForType(clazz), nil
+	return nil
 }

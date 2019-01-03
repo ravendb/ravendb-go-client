@@ -41,7 +41,7 @@ func ravendb10641canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver)
 		assert.NoError(t, err)
 
 		var m *ravendb.MetadataAsDictionary
-		m, err = session.Advanced().GetMetadataFor(&v)
+		m, err = session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
 		metadataI, ok := m.Get("Items")
 		assert.True(t, ok)
@@ -64,7 +64,7 @@ func ravendb10641canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver)
 		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
 		var metadata *ravendb.MetadataAsDictionary
-		metadata, err = session.Advanced().GetMetadataFor(&v)
+		metadata, err = session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
 		metadata.Put("test", "123")
 
@@ -80,7 +80,7 @@ func ravendb10641canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver)
 		var v *Document
 		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
-		_, err = session.Advanced().GetMetadataFor(&v)
+		_, err = session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -95,7 +95,7 @@ func ravendb10641canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver)
 		var v *Document
 		err = session.Load(&v, "items/first")
 		assert.NoError(t, err)
-		metadata, err := session.Advanced().GetMetadataFor(&v)
+		metadata, err := session.Advanced().GetMetadataFor(v)
 		assert.NoError(t, err)
 		mI, ok := metadata.Get("Items")
 		assert.True(t, ok)

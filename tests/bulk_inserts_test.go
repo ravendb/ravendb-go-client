@@ -138,8 +138,7 @@ func bulkInsertsTestCanModifyMetadataWithBulkInsert(t *testing.T, driver *RavenT
 		err = session.Load(&entity, "FooBars/1-A")
 		assert.NoError(t, err)
 
-		// TODO: should this be GetMetadataFor(entity)? Should we support both?
-		meta, err := session.Advanced().GetMetadataFor(&entity)
+		meta, err := session.Advanced().GetMetadataFor(entity)
 		assert.NoError(t, err)
 
 		metadataExpirationDate, ok := meta.Get(ravendb.MetadataExpires)

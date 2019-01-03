@@ -395,6 +395,7 @@ func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 	return s.loadInternalWithOperation(ids, op, output)
 }
 
+// TODO: support **struct or return error message
 func (s *DocumentSession) IncrementEntity(entity interface{}, path string, valueToAdd interface{}) error {
 	metadata, err := s.GetMetadataFor(entity)
 	if err != nil {
@@ -425,6 +426,7 @@ func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd inter
 	return nil
 }
 
+// TODO: support **struct in addition to *struct or return good error message
 func (s *DocumentSession) PatchEntity(entity interface{}, path string, value interface{}) error {
 	metadata, err := s.GetMetadataFor(entity)
 	if err != nil {
@@ -453,6 +455,9 @@ func (s *DocumentSession) PatchByID(id string, path string, value interface{}) e
 	return nil
 }
 
+// TODO: should this support **struct in addition to *struct to make API more robust?
+// It's an easy mistake to call with &x (like e.g. Load() APIs). Alternatively:
+// check type early and return good error message
 func (s *DocumentSession) PatchArrayInEntity(entity interface{}, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
 	metadata, err := s.GetMetadataFor(entity)
 	if err != nil {

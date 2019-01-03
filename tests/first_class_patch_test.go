@@ -91,7 +91,7 @@ func firstClassPatchCanPatch(t *testing.T, driver *RavenTestDriver) {
 		nowRounded := ravendb.RoundToServerTime(time.Time(now))
 		assert.Equal(t, loaded.LastLogin, ravendb.Time(nowRounded))
 
-		err = session.Advanced().PatchEntity(&loaded, "stuff[0].phone", "123456")
+		err = session.Advanced().PatchEntity(loaded, "stuff[0].phone", "123456")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -137,7 +137,7 @@ func firstClassPatchCanPatchAndModify(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		loaded.Numbers[0] = 1
 
-		err = session.Advanced().PatchEntity(&loaded, "numbers[0]", 2)
+		err = session.Advanced().PatchEntity(loaded, "numbers[0]", 2)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		_ = err.(*ravendb.IllegalStateError)
@@ -232,7 +232,7 @@ func firstClassPatchCanPatchComplex(t *testing.T, driver *RavenTestDriver) {
 
 		secondStuff.Dic = m
 
-		err = session.Advanced().PatchEntity(&loaded, "stuff[2]", secondStuff)
+		err = session.Advanced().PatchEntity(loaded, "stuff[2]", secondStuff)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -320,7 +320,7 @@ func firstClassPatchCanAddToArray(t *testing.T, driver *RavenTestDriver) {
 		adder := func(roles *ravendb.JavaScriptArray) {
 			roles.Add(101, 102, 103)
 		}
-		err = session.Advanced().PatchArrayInEntity(&loaded, "numbers", adder)
+		err = session.Advanced().PatchArrayInEntity(loaded, "numbers", adder)
 		assert.NoError(t, err)
 		adder = func(roles *ravendb.JavaScriptArray) {
 			s1 := &Stuff{
@@ -334,7 +334,7 @@ func firstClassPatchCanAddToArray(t *testing.T, driver *RavenTestDriver) {
 
 			roles.Add(s1).Add(s2)
 		}
-		err = session.Advanced().PatchArrayInEntity(&loaded, "stuff", adder)
+		err = session.Advanced().PatchArrayInEntity(loaded, "stuff", adder)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -360,7 +360,7 @@ func firstClassPatchCanAddToArray(t *testing.T, driver *RavenTestDriver) {
 			roles.Add(201, 202, 203)
 		}
 
-		err = session.Advanced().PatchArrayInEntity(&loaded, "numbers", adder)
+		err = session.Advanced().PatchArrayInEntity(loaded, "numbers", adder)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -493,7 +493,7 @@ func firstClassPatchCanIncrement(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, loaded.Numbers[0], 67)
 
-		err = session.Advanced().IncrementEntity(&loaded, "stuff[0].key", -3)
+		err = session.Advanced().IncrementEntity(loaded, "stuff[0].key", -3)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

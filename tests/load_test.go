@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"sort"
 	"strconv"
 	"testing"
 
@@ -298,9 +299,12 @@ func loadTestLoadStartsWith(t *testing.T, driver *RavenTestDriver) {
 		err = newSession.Advanced().LoadStartingWith(&users, args)
 		assert.NoError(t, err)
 
+		sort.Slice(users, func(i, j int) bool {
+			return users[i].ID < users[j].ID
+		})
 		userIDs := []string{"Aaa", "Abc", "Afa", "Ala"}
-		for _, user := range users {
-			assert.True(t, stringArrayContains(userIDs, user.ID))
+		for i := range users {
+			assert.Equal(t, userIDs[i], users[i].ID)
 		}
 
 		users = nil

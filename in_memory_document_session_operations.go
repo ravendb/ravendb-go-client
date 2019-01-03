@@ -198,6 +198,11 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 }
 
 // GetMetadataFor gets the metadata for the specified entity.
+// TODO: should we make the API more robust by accepting **struct as well as
+// *struct and doing the necessary tweaking automatically? It looks like
+// GetMetadataFor(&foo) might be used reflexively and it might not be easy
+// to figure out why it fails. Alternatively, error out early with informative
+// error message
 func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*MetadataAsDictionary, error) {
 	if instance == nil {
 		return nil, newIllegalArgumentError("Instance cannot be null")
@@ -368,7 +373,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 		if docInfo.entity == nil {
 			s.entityToJSON.ConvertToEntity2(result, id, document)
-			docInfo.entity = result
+			docInfo.setEntity(result)
 		} else {
 			setInterfaceToValue(result, docInfo.entity)
 		}
@@ -385,7 +390,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		noSet := true
 		if docInfo.entity == nil {
 			s.entityToJSON.ConvertToEntity2(result, id, document)
-			docInfo.entity = result
+			docInfo.setEntity(result)
 			noSet = false
 		}
 
@@ -412,7 +417,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		newDocumentInfo.id = id
 		newDocumentInfo.document = document
 		newDocumentInfo.metadata = metadata
-		newDocumentInfo.entity = result
+		newDocumentInfo.setEntity(result)
 		newDocumentInfo.changeVector = changeVector
 
 		s.documentsByID.add(newDocumentInfo)
@@ -453,10 +458,11 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		needsToMatchType := true
 		if docInfo.entity == nil {
 			needsToMatchType = false
-			docInfo.entity, err = s.entityToJSON.ConvertToEntity(entityType, id, document)
+			e, err := s.entityToJSON.ConvertToEntity(entityType, id, document)
 			if err != nil {
 				return nil, err
 			}
+			docInfo.setEntity(e)
 		}
 
 		if !noTracking {
@@ -474,10 +480,11 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	docInfo = s.includedDocumentsByID[id]
 	if docInfo != nil {
 		if docInfo.entity == nil {
-			docInfo.entity, err = s.entityToJSON.ConvertToEntity(entityType, id, document)
+			e, err := s.entityToJSON.ConvertToEntity(entityType, id, document)
 			if err != nil {
 				return nil, err
 			}
+			docInfo.setEntity(e)
 		}
 
 		if !noTracking {
@@ -504,7 +511,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 		newDocumentInfo.id = id
 		newDocumentInfo.document = document
 		newDocumentInfo.metadata = metadata
-		newDocumentInfo.entity = entity
+		newDocumentInfo.setEntity(entity)
 		newDocumentInfo.changeVector = changeVector
 
 		s.documentsByID.add(newDocumentInfo)
@@ -665,7 +672,7 @@ func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, e
 	documentInfo.metadata = metadata
 	documentInfo.changeVector = changeVector
 	documentInfo.concurrencyCheckMode = forceConcurrencyCheck
-	documentInfo.entity = entity
+	documentInfo.setEntity(entity)
 	documentInfo.newDocument = true
 	documentInfo.document = nil
 
@@ -1116,11 +1123,11 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 		documentInfo.changeVector = changeVector
 	}
 	documentInfo.document = document
-	var err error
-	documentInfo.entity, err = s.entityToJSON.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
+	e, err := s.entityToJSON.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
 	if err != nil {
 		return err
 	}
+	documentInfo.setEntity(e)
 
 	err = copyValueProperties(entity, documentInfo.entity)
 	if err != nil {
@@ -1130,7 +1137,8 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
-	fmt.Printf("InMemoryDocumentSessionOperations.getOperationResult: trying to set results (%T) to result (%T)\n", results, result)
+	// TODO: is this a no-op?
+	//fmt.Printf("InMemoryDocumentSessionOperations.getOperationResult: trying to set results (%T) to result (%T)\n", results, result)
 	return errors.New("NYI")
 }
 

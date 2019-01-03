@@ -49,7 +49,7 @@ func attachmentsSessionPutAttachments(t *testing.T, driver *RavenTestDriver) {
 		var user *User
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
-		metadata, err := session.Advanced().GetMetadataFor(&user)
+		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
 		v, ok := metadata.Get(ravendb.MetadataFlags)
 		assert.True(t, ok)
@@ -219,7 +219,7 @@ func attachmentsSessionDeleteAttachments(t *testing.T, driver *RavenTestDriver) 
 
 		err = session.Advanced().Attachments().Delete("users/1", "file2")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(&user, "file4")
+		err = session.Advanced().Attachments().DeleteEntity(user, "file4")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -234,7 +234,7 @@ func attachmentsSessionDeleteAttachments(t *testing.T, driver *RavenTestDriver) 
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().GetMetadataFor(&user)
+		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
 
 		v, ok := metadata.Get(ravendb.MetadataFlags)
@@ -300,7 +300,7 @@ func attachmentsSessionDeleteAttachmentsUsingCommand(t *testing.T, driver *Raven
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		metadata, err := session.Advanced().GetMetadataFor(&user)
+		metadata, err := session.Advanced().GetMetadataFor(user)
 		assert.NoError(t, err)
 
 		v, ok := metadata.Get(ravendb.MetadataFlags)
@@ -398,11 +398,11 @@ func attachmentsSessionDeleteDocumentAndThanItsAttachmentsThisIsNoOpButShouldBeS
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.DeleteEntity(&user)
+		err = session.DeleteEntity(user)
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(&user, "file")
+		err = session.Advanced().Attachments().DeleteEntity(user, "file")
 		assert.NoError(t, err)
-		err = session.Advanced().Attachments().DeleteEntity(&user, "file") // this should be no-op
+		err = session.Advanced().Attachments().DeleteEntity(user, "file") // this should be no-op
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()
@@ -484,7 +484,7 @@ func attachmentsSessionGetAttachmentNames(t *testing.T, driver *RavenTestDriver)
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		attachments, err := session.Advanced().Attachments().GetNames(&user)
+		attachments, err := session.Advanced().Attachments().GetNames(user)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(attachments), 1)

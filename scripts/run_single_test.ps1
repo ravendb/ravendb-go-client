@@ -28,5 +28,18 @@ go clean -testcache
 
 #go test -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-go test -v -race -timeout 50s ./tests -run ^TestMoreLikeThis$
-go test -v -race -timeout 50s ./tests -run ^TestQuery$
+go test -v -race -timeout 50s ./tests -run ^TestLoad$
+
+if (0) {
+    # those are tests for exercising documentInfo.setEntity()
+    go test -v -race -timeout 50s ./tests -run ^TestAttachmentsSession$
+    go test -v -race -timeout 50s ./tests -run ^TestAdvancedPatching$
+    go test -v -race -timeout 50s ./tests -run ^TestSuggestionsLazy$
+    go test -v -race -timeout 50s ./tests -run ^TestSuggestions$
+    go test -v -race -timeout 50s ./tests -run ^TestRavenDB10641$
+    go test -v -race -timeout 50s ./tests -run ^TestLazy$
+    go test -v -race -timeout 50s ./tests -run ^TestFirstClassPatch$
+    go test -v -race -timeout 50s ./tests -run ^TestAttachmentsRevisions$
+    go test -v -race -timeout 50s ./tests -run ^TestBulkInserts$
+}
+

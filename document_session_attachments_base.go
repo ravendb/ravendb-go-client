@@ -16,6 +16,7 @@ func NewDocumentSessionAttachmentsBase(session *InMemoryDocumentSessionOperation
 	return res
 }
 
+// TODO: support **struct in addition to *struct or return good error message
 func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*AttachmentName, error) {
 	if entity == nil {
 		return nil, nil
@@ -92,6 +93,7 @@ func (s *DocumentSessionAttachmentsBase) StoreEntity(entity interface{}, name st
 }
 
 // DeleteEntity deletes a given entity
+// TODO: support **struct or return good error message
 func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name string) error {
 	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
