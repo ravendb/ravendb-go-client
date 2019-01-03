@@ -23,7 +23,7 @@ func deleteDocumentCommandTestCanDeleteDocument(t *testing.T, driver *RavenTestD
 		session.Close()
 	}
 	command := ravendb.NewDeleteDocumentCommand("users/1", nil)
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	{
 		session := openSessionMust(t, store)
@@ -67,7 +67,7 @@ func deleteDocumentCommandTestCanDeleteDocumentByEtag(t *testing.T, driver *Rave
 	}
 
 	command := ravendb.NewDeleteDocumentCommand("users/1", changeVector)
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.Error(t, err)
 	_ = err.(*ravendb.ConcurrencyError)
 }

@@ -164,7 +164,7 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 
 		var user3 *User5
 		resultLazy := advanced.Lazily().Include("PartnerId").Load(&user3, "user5s/2-A")
-		err = resultLazy.GetValue2()
+		err = resultLazy.GetValue()
 		assert.NoError(t, err)
 		assert.NotNil(t, user3)
 		assert.Equal(t, user3.ID, "user5s/2-A")

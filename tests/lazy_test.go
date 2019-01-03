@@ -33,7 +33,7 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		lazyOrder := query.Load(&order, "companies/1", nil)
 
 		assert.False(t, lazyOrder.IsValueCreated())
-		err = lazyOrder.GetValue2()
+		err = lazyOrder.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/1")
 
@@ -41,7 +41,7 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		lazyOrders := session.Advanced().Lazily().LoadMulti(orders, []string{"companies/1", "companies/2"}, nil)
 		assert.False(t, lazyOrders.IsValueCreated())
 
-		err = lazyOrders.GetValue2()
+		err = lazyOrders.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, len(orders), 2)
 
@@ -58,13 +58,13 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		lazyOrder = session.Advanced().Lazily().Load(&order, "companies/3", nil)
 		assert.False(t, lazyOrder.IsValueCreated())
 
-		err = lazyOrder.GetValue2()
+		err = lazyOrder.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/3")
 
 		missingItems := map[string]*Company{}
 		load := session.Advanced().Lazily().LoadMulti(missingItems, []string{"no_such_1", "no_such_2"}, nil)
-		err = load.GetValue2()
+		err = load.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(missingItems))
 
@@ -182,7 +182,7 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 		lazyUser := session.Advanced().Lazily().Load(&user, "users/1", nil)
 		assert.False(t, lazyUser.IsValueCreated())
 
-		err = lazyUser.GetValue2()
+		err = lazyUser.GetValue()
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, user.ID, "users/1")
@@ -194,7 +194,7 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 		lazyUser := session.Advanced().Lazily().Load(&user, "users/1", nil)
 		assert.False(t, lazyUser.IsValueCreated())
 
-		err = lazyUser.GetValue2()
+		err = lazyUser.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, *user.LastName, "Oren")
 	}

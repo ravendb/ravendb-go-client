@@ -219,7 +219,7 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 		// operation carries the result to be set
 		return err
 	}
-	lazyValue := NewLazy2(result, fn)
+	lazyValue := NewLazy(result, fn)
 	if onEval != nil {
 		if s.onEvaluateLazy == nil {
 			s.onEvaluateLazy = map[ILazyOperation]func(interface{}){}
@@ -247,7 +247,7 @@ func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOpera
 		*count = operation.getQueryResult().TotalResults
 		return nil
 	}
-	return NewLazy2(count, fn)
+	return NewLazy(count, fn)
 }
 
 func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, includes []string, onEval func(interface{})) *Lazy {
@@ -257,7 +257,7 @@ func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, in
 			err := s.LoadMulti(results, ids)
 			return err
 		}
-		return NewLazy2(results, fn)
+		return NewLazy(results, fn)
 	}
 
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)

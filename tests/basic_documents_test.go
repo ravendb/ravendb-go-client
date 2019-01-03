@@ -81,7 +81,7 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		session.Close()
 	}
-	requestExecutor := store.GetRequestExecutor()
+	requestExecutor := store.GetRequestExecutor("")
 	getDocumentsCommand := ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	assert.NoError(t, err)

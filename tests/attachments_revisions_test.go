@@ -42,7 +42,7 @@ func attachmentsRevisionsPutAttachments(t *testing.T, driver *RavenTestDriver) {
 			}
 
 			cmd := ravendb.NewDeleteDocumentCommand("users/1", nil)
-			err = store.GetRequestExecutor().ExecuteCommand(cmd)
+			err = store.GetRequestExecutor("").ExecuteCommand(cmd)
 			assert.NoError(t, err)
 			assertRevisions2(t, store, names, f, 6, 0, 3)
 		}

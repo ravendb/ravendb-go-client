@@ -12,7 +12,7 @@ func getTcpInfoTestCanGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	command := ravendb.NewGetTcpInfoCommand("test")
-	err := store.GetRequestExecutor().ExecuteCommand(command)
+	err := store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)

@@ -21,7 +21,7 @@ func NewOperationExecutorWithDatabaseName(store *DocumentStore, databaseName str
 		res.databaseName = store.GetDatabase()
 	}
 	panicIf(res.databaseName == "", "databaseName is empty")
-	res.requestExecutor = store.GetRequestExecutorWithDatabase(res.databaseName)
+	res.requestExecutor = store.GetRequestExecutor(res.databaseName)
 	return res
 }
 

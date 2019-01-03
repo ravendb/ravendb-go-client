@@ -45,14 +45,14 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		v := map[string]*Abc{}
 		testClasses := session.Advanced().Lazily().LoadStartingWith(v, args)
 
-		err = testClasses.GetValue2()
+		err = testClasses.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, len(v), 1)
 		assert.Equal(t, v["abc/1"].ID, "abc/1")
 
 		var v2 []*Xyz
 		test2Classes := session.Query().WaitForNonStaleResults(0).Lazily(&v2, nil)
-		err = test2Classes.GetValue2()
+		err = test2Classes.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, len(v2), 1)
 

@@ -51,7 +51,7 @@ func lazyAggregationEmbeddedLazyTest(t *testing.T, driver *RavenTestDriver) {
 		query := q.AggregateBy(builder)
 		facetValue := map[string]*ravendb.FacetResult{}
 		lazyOperation := query.ExecuteLazy(facetValue, nil)
-		err = lazyOperation.GetValue2()
+		err = lazyOperation.GetValue()
 		assert.NoError(t, err)
 		values := facetValue["AssigneeID"].Values
 		userStats := map[string]int{}

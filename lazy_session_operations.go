@@ -25,7 +25,7 @@ func (o *LazySessionOperations) Load(result interface{}, id string, onEval func(
 			// TODO: test for this code path
 			return o.delegate.Load(result, id)
 		}
-		return NewLazy2(result, fn)
+		return NewLazy(result, fn)
 	}
 
 	session := o.delegate.InMemoryDocumentSessionOperations

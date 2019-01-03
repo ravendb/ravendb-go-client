@@ -32,7 +32,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	command := ravendb.NewGetStatisticsCommand()
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
 	firstIndexingTime := statistics.Indexes[0].GetLastIndexingTime()
@@ -50,7 +50,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	command = ravendb.NewGetStatisticsCommand()
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics = command.Result
 	secondIndexingTime := statistics.GetLastIndexingTime()
@@ -93,7 +93,7 @@ func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	command := ravendb.NewGetStatisticsCommand()
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
 	assert.Equal(t, len(statistics.Indexes), 0)
@@ -417,7 +417,7 @@ func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 
 	indexQuery := ravendb.NewIndexQuery("from users")
 	command := ravendb.NewExplainQueryCommand(store.GetConventions(), indexQuery)
-	err = store.GetRequestExecutor().ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 
 	explanations := command.Result

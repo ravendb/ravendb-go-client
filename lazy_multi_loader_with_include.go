@@ -80,7 +80,7 @@ func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) *Lazy {
 	lazy := l._session.lazyLoadInternal(results, ids, l._includes, nil)
 	valueFactory := func(result2 interface{}) error {
 		panicIf(reflect.TypeOf(result) != reflect.TypeOf(result2), "LazyMultiLoaderWithInclude.Load(): expected values of same, type, got: result=%T, result2=%T\n", result, result2)
-		err := lazy.GetValue2()
+		err := lazy.GetValue()
 		if err != nil {
 			return err
 		}
@@ -99,5 +99,5 @@ func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) *Lazy {
 		setInterfaceToValue(result, res.Interface())
 		return nil
 	}
-	return NewLazy2(result, valueFactory)
+	return NewLazy(result, valueFactory)
 }
