@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,25 +38,23 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/1")
 
-		/*
-						lazyOrders := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"companies/1", "companies/2"}, nil)
-						assert.False(t, lazyOrders.IsValueCreated())
+		lazyOrders := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"companies/1", "companies/2"}, nil)
+		assert.False(t, lazyOrders.IsValueCreated())
 
-						ordersI, err := lazyOrders.GetValue()
-						assert.NoError(t, err)
-						orders := ordersI.(map[string](*Company))
-						assert.Equal(t, len(orders), 2)
+		ordersI, err := lazyOrders.GetValue()
+		assert.NoError(t, err)
+		orders := ordersI.(map[string](*Company))
+		assert.Equal(t, len(orders), 2)
 
-						company1 := orders["companies/1"]
-						company2 := orders["companies/2"]
+		company1 := orders["companies/1"]
+		company2 := orders["companies/2"]
 
-						assert.NotNil(t, company1)
-			ru			assert.NotNil(t, company2)
+		assert.NotNil(t, company1)
+		assert.NotNil(t, company2)
 
-						assert.Equal(t, company1.ID, "companies/1")
+		assert.Equal(t, company1.ID, "companies/1")
 
-						assert.Equal(t, company2.ID, "companies/2")
-		*/
+		assert.Equal(t, company2.ID, "companies/2")
 
 		lazyOrder = session.Advanced().Lazily().Load(&order, "companies/3", nil)
 		assert.False(t, lazyOrder.IsValueCreated())
@@ -64,15 +63,13 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/3")
 
-		/*
-			load := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"no_such_1", "no_such_2"}, nil)
-			missingItemsI, err := load.GetValue()
-			assert.NoError(t, err)
-			missingItems := missingItemsI.(map[string]*Company)
+		load := session.Advanced().Lazily().LoadMultiOld(reflect.TypeOf(&Company{}), []string{"no_such_1", "no_such_2"}, nil)
+		missingItemsI, err := load.GetValue()
+		assert.NoError(t, err)
+		missingItems := missingItemsI.(map[string]*Company)
 
-			assert.Nil(t, missingItems["no_such_1"])
-			assert.Nil(t, missingItems["no_such_2"])
-		*/
+		assert.Nil(t, missingItems["no_such_1"])
+		assert.Nil(t, missingItems["no_such_2"])
 	}
 }
 
