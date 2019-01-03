@@ -1129,11 +1129,11 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	return nil
 }
 
-func isPtrStruct(t reflect.Type) bool {
-	if t.Kind() != reflect.Ptr {
-		return false
+func isPtrStruct(t reflect.Type) (reflect.Type, bool) {
+	if t.Kind() == reflect.Ptr && t.Elem() != nil && t.Elem().Kind() == reflect.Struct {
+		return t, true
 	}
-	return t.Elem() != nil && t.Elem().Kind() == reflect.Struct
+	return nil, false
 }
 
 func isMapStringToPtrStruct(t reflect.Type) bool {
@@ -1145,7 +1145,8 @@ func isMapStringToPtrStruct(t reflect.Type) bool {
 		return false
 	}
 
-	return isPtrStruct(t.Elem())
+	_, ok := isPtrStruct(t.Elem())
+	return ok
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
@@ -1215,7 +1216,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResultOld(clazz reflect.
 		return m.Interface(), nil
 	}
 
-	if !isPtrStruct(clazz) {
+	if _, ok := isPtrStruct(clazz); ok {
 		return nil, newIllegalStateError("expected clazz to be of type ptr-to-struct, is: %T", clazz)
 	}
 

@@ -83,7 +83,7 @@ func (h *QueryHashCalculator) write(v interface{}) {
 				return
 			}
 			tp := reflect.TypeOf(v)
-			if isPtrStruct(tp) || tp.Kind() == reflect.Struct {
+			if _, ok := isPtrStruct(tp); ok || tp.Kind() == reflect.Struct {
 				// when value of parameter is a struct or pointer to struct
 				// it could be our param like SuggestionOptions or
 				// param that is custom type used by the user

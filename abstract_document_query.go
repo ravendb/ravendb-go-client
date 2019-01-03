@@ -1643,6 +1643,24 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 	return rt, nil
 }
 
+func isPtrPtrStruct(tp reflect.Type) (reflect.Type, bool) {
+	if tp.Kind() != reflect.Ptr {
+		return nil, false
+	}
+	return isPtrStruct(tp.Elem())
+}
+
+func isPtrSlicePtrStruct(tp reflect.Type) (reflect.Type, bool) {
+	if tp.Kind() != reflect.Ptr {
+		return nil, false
+	}
+	tp = tp.Elem()
+	if tp.Kind() != reflect.Slice {
+		return nil, false
+	}
+	return isPtrStruct(tp.Elem())
+}
+
 func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 	if q.clazz == nil {
 		// query was created without providing the type to query
@@ -1650,12 +1668,13 @@ func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 		panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
 		panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
 		tp := reflect.TypeOf(result)
-		// convert **struct => *struct
-		// TODO: what to do if tp is not **struct ?
-		if tp.Kind() == reflect.Ptr && tp.Elem().Kind() == reflect.Ptr {
-			tp = tp.Elem()
+		if tp2, ok := isPtrPtrStruct(tp); ok {
+			q.clazz = tp2
+		} else if tp2, ok := isPtrSlicePtrStruct(tp); ok {
+			q.clazz = tp2
+		} else {
+			panicIf(true, "expected result to be **struct or *[]*struct, got: %T", result)
 		}
-		q.clazz = tp
 		s := q.theSession
 		indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
 		q.fromToken = createFromToken(indexName, collectionName, "")
@@ -1841,30 +1860,25 @@ func (q *AbstractDocumentQuery) _aggregateUsing(facetSetupDocumentID string) {
 	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentID))
 }
 
-func (q *AbstractDocumentQuery) Lazily() *Lazy {
-	return q.LazilyWithOnEval(nil)
-}
-
-func (q *AbstractDocumentQuery) LazilyWithOnEval(onEval func(interface{})) *Lazy {
+func (q *AbstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) *Lazy {
+	q.setClazzFromResult(results)
 	if q.queryOperation == nil {
 		q.queryOperation = q.initializeQueryOperation()
 	}
 
-	lazyQueryOperation := NewLazyQueryOperation(q.clazz, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
-
-	at := reflect.SliceOf(q.clazz)
-	return q.theSession.session.addLazyOperationOld(at, lazyQueryOperation, onEval)
+	lazyQueryOperation := NewLazyQueryOperation(results, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
+	return q.theSession.session.addLazyOperation(results, lazyQueryOperation, onEval)
 }
 
-func (q *AbstractDocumentQuery) CountLazily() *Lazy {
+func (q *AbstractDocumentQuery) CountLazily(results interface{}, count *int) *Lazy {
 	if q.queryOperation == nil {
 		v := 0
 		q._take(&v)
 		q.queryOperation = q.initializeQueryOperation()
 	}
 
-	lazyQueryOperation := NewLazyQueryOperation(q.clazz, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
-	return q.theSession.session.addLazyCountOperation(lazyQueryOperation)
+	lazyQueryOperation := NewLazyQueryOperation(results, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
+	return q.theSession.session.addLazyCountOperation(count, lazyQueryOperation)
 }
 
 // SuggestUsing adds a query part for suggestions

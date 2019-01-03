@@ -136,36 +136,6 @@ func (o *QueryOperation) complete(results interface{}) error {
 	return nil
 }
 
-func (o *QueryOperation) completeOld(clazz reflect.Type) ([]interface{}, error) {
-	queryResult := o.currentQueryResults.createSnapshot()
-
-	if !o.disableEntitiesTracking {
-		o._session.RegisterIncludes(queryResult.Includes)
-	}
-
-	var list []interface{}
-	{
-		results := queryResult.Results
-		for _, document := range results {
-			metadataI, ok := document[MetadataKey]
-			panicIf(!ok, "missing metadata")
-			metadata := metadataI.(ObjectNode)
-			id, _ := JsonGetAsText(metadata, MetadataID)
-			el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
-			if err != nil {
-				return nil, newRuntimeError("Unable to read json: %s", err)
-			}
-			list = append(list, el)
-		}
-	}
-
-	if !o.disableEntitiesTracking {
-		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
-	}
-
-	return list, nil
-}
-
 func jsonIsValueNode(v interface{}) bool {
 	switch v.(type) {
 	case string, float64, bool:

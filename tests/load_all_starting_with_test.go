@@ -51,10 +51,10 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		assert.Equal(t, len(v), 1)
 		assert.Equal(t, v["abc/1"].ID, "abc/1")
 
-		test2Classes := session.QueryOld(reflect.TypeOf(&Xyz{})).WaitForNonStaleResults(0).Lazily()
-		iv, err = test2Classes.GetValue()
+		var v2 []*Xyz
+		test2Classes := session.Query().WaitForNonStaleResults(0).Lazily(&v2, nil)
+		err = test2Classes.GetValue2()
 		assert.NoError(t, err)
-		v2 := iv.([]*Xyz)
 		assert.Equal(t, len(v2), 1)
 
 		assert.Equal(t, v2[0].ID, "xyz/1")
