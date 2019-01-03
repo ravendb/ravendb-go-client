@@ -244,10 +244,12 @@ func (s *DocumentStore) Close() {
 			continue
 		}
 
-		vi, err := value.GetValue()
+		err := value.GetValue2()
 		must(err) // TODO: ignore?
-		v := vi.(*EvictItemsFromCacheBasedOnChanges)
-		v.Close()
+		v := value.value.(**EvictItemsFromCacheBasedOnChanges)
+		if v != nil {
+			(*v).Close()
+		}
 	}
 
 	for _, changes := range s._databaseChanges {
@@ -517,18 +519,21 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 	s.mu.Unlock()
 
 	if lazy == nil {
-		valueFactory := func() (interface{}, error) {
+		valueFactory := func(result interface{}) error {
 			res := NewEvictItemsFromCacheBasedOnChanges(s, database)
-			return res, nil
+			resultPtr := result.(**EvictItemsFromCacheBasedOnChanges)
+			*resultPtr = res
+			return nil
 		}
-		lazy = NewLazy(valueFactory)
+		var results *EvictItemsFromCacheBasedOnChanges
+		lazy = NewLazy2(&results, valueFactory)
 
 		s.mu.Lock()
 		s._aggressiveCacheChanges[database] = lazy
 		s.mu.Unlock()
 	}
 
-	lazy.GetValue() // force evaluation
+	lazy.GetValue2() // force evaluation
 }
 
 func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) int {

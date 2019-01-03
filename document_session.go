@@ -235,32 +235,6 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 	return lazyValue
 }
 
-func (s *DocumentSession) addLazyOperationOld(clazz reflect.Type, operation ILazyOperation, onEval func(interface{})) *Lazy {
-	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
-
-	fn := func() (interface{}, error) {
-		_, err := s.ExecuteAllPendingLazyOperations()
-		if err != nil {
-			return nil, err
-		}
-		res := operation.getResult()
-		return s.getOperationResultOld(clazz, res)
-	}
-	lazyValue := NewLazy(fn)
-	if onEval != nil {
-		if s.onEvaluateLazy == nil {
-			s.onEvaluateLazy = map[ILazyOperation]func(interface{}){}
-		}
-		fn := func(theResult interface{}) {
-			res, _ := s.getOperationResultOld(clazz, theResult)
-			onEval(res)
-		}
-		s.onEvaluateLazy[operation] = fn
-	}
-
-	return lazyValue
-}
-
 func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOperation) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
