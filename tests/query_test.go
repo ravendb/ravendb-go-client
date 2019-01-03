@@ -72,10 +72,10 @@ func queryQueryLazily(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		lazyQuery := session.QueryOld(reflect.TypeOf(&User{})).Lazily()
-		queryResultI, err := lazyQuery.GetValue()
+		var queryResult []*User
+		lazyQuery := session.Query().Lazily(&queryResult, nil)
+		err = lazyQuery.GetValue2()
 		assert.NoError(t, err)
-		queryResult := queryResultI.([]*User)
 		assert.Equal(t, 3, len(queryResult))
 
 		assert.Equal(t, *queryResult[0].Name, "John")

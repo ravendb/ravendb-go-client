@@ -1,14 +1,9 @@
 package ravendb
 
-import (
-	"reflect"
-)
-
 var _ ILazyOperation = &LazyQueryOperation{}
 
 // LazyQueryOperation describes server operation for lazy queries
 type LazyQueryOperation struct {
-	_clazz              reflect.Type
 	_conventions        *DocumentConventions
 	_queryOperation     *QueryOperation
 	_afterQueryExecuted []func(*QueryResult)
@@ -19,9 +14,9 @@ type LazyQueryOperation struct {
 }
 
 // NewLazyQueryOperation returns new LazyQueryOperation
-func NewLazyQueryOperation(clazz reflect.Type, conventions *DocumentConventions, queryOperation *QueryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
+func NewLazyQueryOperation(result interface{}, conventions *DocumentConventions, queryOperation *QueryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
 	return &LazyQueryOperation{
-		_clazz:              clazz,
+		result:              result,
 		_conventions:        conventions,
 		_queryOperation:     queryOperation,
 		_afterQueryExecuted: afterQueryExecuted,
@@ -73,8 +68,7 @@ func (o *LazyQueryOperation) handleResponse2(queryResult *QueryResult) error {
 	for _, e := range o._afterQueryExecuted {
 		e(queryResult)
 	}
-	var err error
-	o.result, err = o._queryOperation.completeOld(o._clazz)
 	o.queryResult = queryResult
+	err := o._queryOperation.complete(o.result)
 	return err
 }

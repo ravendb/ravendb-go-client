@@ -28,5 +28,7 @@ go clean -testcache
 
 #go test -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-go test -v -race -timeout 50s ./tests -run ^TestLazy$
-go test -v -race -timeout 50s ./tests -run ^TestCachingOfDocumentInclude$
+#go test -v -race -timeout 50s ./tests -run ^TestLazy$
+#go test -v -race -timeout 50s ./tests -run ^TestCachingOfDocumentInclude$
+go test -v -race -timeout 50s ./tests -run ^TestLoadAllStartingWith$
+#go test -v -race -timeout 50s ./tests -run ^TestMoreLikeThis$

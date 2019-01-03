@@ -260,17 +260,19 @@ func (s *DocumentSession) addLazyOperationOld(clazz reflect.Type, operation ILaz
 	return lazyValue
 }
 
-func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy {
+func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOperation) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	fn := func() (interface{}, error) {
+	fn := func(res interface{}) error {
 		_, err := s.ExecuteAllPendingLazyOperations()
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return operation.getQueryResult().TotalResults, nil
+		panicIf(count != res.(*int), "expected res to be the same as count, res type is %T", res)
+		*count = operation.getQueryResult().TotalResults
+		return nil
 	}
-	return NewLazy(fn)
+	return NewLazy2(count, fn)
 }
 
 // public <T> Lazy<Map<String, T>>
@@ -615,12 +617,6 @@ func (s *DocumentSession) Query() *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	// we delay setting clazz, indexName and collectionName until TolList()
 	return NewDocumentQuery(s.InMemoryDocumentSessionOperations, "", "", false)
-}
-
-// TODO: convert to use result interface{} instead of clazz reflect.Type
-func (s *DocumentSession) QueryOld(clazz reflect.Type) *DocumentQuery {
-	panicIf(s == nil, "s shouldn't be nil here")
-	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
 // QueryType creates a new query over documents of a given type
