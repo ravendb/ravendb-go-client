@@ -209,12 +209,13 @@ func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
-// TODO: probably doesn't need result for loazy operations it's already embedded in the operation
+// TODO: probably doesn't need result for lazy operations it's already embedded in the operation
 func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOperation, onEval func(interface{})) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	fn := func(result interface{}) error {
+	fn := func(res interface{}) error {
 		_, err := s.ExecuteAllPendingLazyOperations()
+		fmt.Printf("addLazyOperation: result: %T, res: %T, result: %v, res: %v\n", result, res, result, res)
 		// operation carries the result to be set
 		return err
 	}
