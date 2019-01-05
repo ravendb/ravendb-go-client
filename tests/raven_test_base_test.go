@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 func NewTestServiceLocator() (*RavenServerLocator, error) {
@@ -48,9 +48,9 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int) (*ravendb.ConfigureRevisionsOperationResult, error) {
 
 	revisionsConfiguration := ravendb.NewRevisionsConfiguration()
-	defaultCollection := ravendb.NewRevisionsCollectionConfiguration()
-	defaultCollection.SetPurgeOnDelete(purgeOnDelete)
-	defaultCollection.SetMinimumRevisionsToKeep(minimumRevisionsToKeep)
+	defaultCollection := &ravendb.RevisionsCollectionConfiguration{}
+	defaultCollection.PurgeOnDelete = purgeOnDelete
+	defaultCollection.MinimumRevisionsToKeep = minimumRevisionsToKeep
 
 	revisionsConfiguration.SetDefaultConfig(defaultCollection)
 	operation := ravendb.NewConfigureRevisionsOperation(revisionsConfiguration)
