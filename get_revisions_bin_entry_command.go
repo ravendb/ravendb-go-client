@@ -15,7 +15,7 @@ type GetRevisionsBinEntryCommand struct {
 	_etag     int
 	_pageSize int
 
-	Result *ArrayNode
+	Result []map[string]interface{}
 }
 
 func NewGetRevisionsBinEntryCommand(etag int, pageSize int) *GetRevisionsBinEntryCommand {

@@ -2,9 +2,9 @@ package ravendb
 
 // JSONArrayResult describes server's JSON response to batch command
 type JSONArrayResult struct {
-	Results ArrayNode `json:"Results"`
+	Results []map[string]interface{} `json:"Results"`
 }
 
-func (r *JSONArrayResult) getResults() ArrayNode {
+func (r *JSONArrayResult) getResults() []map[string]interface{} {
 	return r.Results
 }

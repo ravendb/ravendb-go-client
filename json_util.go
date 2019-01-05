@@ -8,31 +8,23 @@ import (
 	"strings"
 )
 
-// JsonNode represents JSON value
-// equivalent of com.fasterxml.jackson.databind.JsonNode
-type JsonNode = interface{}
+// Note: com.fasterxml.jackson.databind.JsonNode represents decoded JSON value i.e. interface{}
 
-// JsonNodeType represents a type of JSON value e.g. object, array.
-// Equivalent of com.fasterxml.jackson.databind.node.JsonNodeType
-// TODO: change to reflect.Type?
-type JsonNodeType = interface{}
+// Note: Java's com.fasterxml.jackson.databind.node.JsonNodeType represents type of JSON value, which in Go
+// is the same as value itself, and therefore is interface{}
 
 // Note: Java's com.fasterxml.jackson.databind.node.ObjectNode is map[string]interface{}
 // It represents parsed json document
 
-// TreeNode is equivalent of com.fasterxml.jackson.databind.TreeNode
-// in terms of Go's json package, it's the same as interface{} because
-// interface{} combines both the value and its type
-type TreeNode = interface{}
+// Note: Java's com.fasterxml.jackson.databind.TreeNode represents a decoded JSON value that combines
+// value and type. In Go it's interface{}
 
-// ArrayNode represents result of BatchCommand, which is array of JSON objects
-// it's a type alias so that it doesn't need casting when json marshalling
-// equivalent of com.fasterxml.jackson.databind.node.ArrayNode
-type ArrayNode = []map[string]interface{}
+// Note: Java's com.fasterxml.jackson.databind.node.ArrayNode  represents array of JSON objects
+// It's []map[string]interface{} in Go
 
 // we should use jsonMarshal instead of jsonMarshal so that it's easy
 // to change json marshalling in all code base (e.g. to use a faster
-// json library or ensure that values are marshalled correctly)
+// json library or ensure that values are marshaled correctly)
 func jsonMarshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }

@@ -187,7 +187,7 @@ func convertFloat64ToType(v float64, typ reflect.Type) interface{} {
 	return int(0)
 }
 
-func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
+func treeToValue(typ reflect.Type, js interface{}) (interface{}, error) {
 	// TODO: should also handle primitive types
 	switch v := js.(type) {
 	case string:

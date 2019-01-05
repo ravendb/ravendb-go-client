@@ -34,7 +34,7 @@ func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
 	return NewBatchCommand(b._session.GetConventions(), result.GetSessionCommands(), result.GetOptions())
 }
 
-func (b *BatchOperation) setResult(result ArrayNode) {
+func (b *BatchOperation) setResult(result []map[string]interface{}) {
 	if len(result) == 0 {
 		// TODO: throwOnNullResults()
 		return

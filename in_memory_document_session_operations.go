@@ -1089,7 +1089,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes map[string
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results ArrayNode, includes map[string]interface{}, includePaths []string) {
+func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results []map[string]interface{}, includes map[string]interface{}, includePaths []string) {
 	if len(includePaths) == 0 {
 		return
 	}

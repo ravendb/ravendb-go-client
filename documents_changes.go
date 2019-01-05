@@ -21,8 +21,8 @@ const (
 type DocumentsChanges struct {
 	FieldOldValue interface{}
 	FieldNewValue interface{}
-	FieldOldType  JsonNodeType
-	FieldNewType  JsonNodeType
+	FieldOldType  interface{}
+	FieldNewType  interface{}
 	Change        ChangeType
 	FieldName     string
 }
