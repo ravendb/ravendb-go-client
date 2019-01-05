@@ -7,7 +7,7 @@ type GetConflictsResult struct {
 }
 
 type Conflict struct {
-	LastModified Time       `json:"LastModified"`
-	ChangeVector string     `json:"ChangeVector"`
-	Doc          ObjectNode `json:"Doc"`
+	LastModified Time                   `json:"LastModified"`
+	ChangeVector string                 `json:"ChangeVector"`
+	Doc          map[string]interface{} `json:"Doc"`
 }

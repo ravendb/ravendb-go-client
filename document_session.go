@@ -657,7 +657,7 @@ func (s *DocumentSession) StreamQueryInto(query *IDocumentQuery, output io.Write
 	return err
 }
 
-func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode, fieldsToFetch *fieldsToFetchToken) (*StreamResult, error) {
+func (s *DocumentSession) createStreamResult(v interface{}, document map[string]interface{}, fieldsToFetch *fieldsToFetchToken) (*StreamResult, error) {
 	//fmt.Printf("createStreamResult: document: %#v\n", document)
 
 	// we expect v to be **Foo. We deserialize into *Foo and assign it to v
@@ -676,7 +676,7 @@ func (s *DocumentSession) createStreamResult(v interface{}, document ObjectNode,
 		// TODO: maybe convert to errors
 		panicIf(!ok, "Document must have a metadata")
 	}
-	metadata, ok := metadataV.(ObjectNode)
+	metadata, ok := metadataV.(map[string]interface{})
 	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
 
 	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
@@ -723,10 +723,10 @@ type StreamIterator struct {
 	_session            *DocumentSession
 	_innerIterator      *YieldStreamResults
 	_fieldsToFetchToken *fieldsToFetchToken
-	_onNextItem         func(ObjectNode)
+	_onNextItem         func(map[string]interface{})
 }
 
-func NewStreamIterator(session *DocumentSession, innerIterator *YieldStreamResults, fieldsToFetchToken *fieldsToFetchToken, onNextItem func(ObjectNode)) *StreamIterator {
+func NewStreamIterator(session *DocumentSession, innerIterator *YieldStreamResults, fieldsToFetchToken *fieldsToFetchToken, onNextItem func(map[string]interface{})) *StreamIterator {
 	return &StreamIterator{
 		_session:            session,
 		_innerIterator:      innerIterator,

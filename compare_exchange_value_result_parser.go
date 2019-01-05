@@ -26,7 +26,7 @@ func compareExchangeValueResultParserGetValues(clazz reflect.Type, response []by
 		if itemI == nil {
 			return nil, newIllegalStateError("Response is invalid. Item is null")
 		}
-		item, ok := itemI.(ObjectNode)
+		item, ok := itemI.(map[string]interface{})
 		if !ok {
 			return nil, newIllegalStateError("Response is invalid. Item is null")
 		}
@@ -45,7 +45,7 @@ func compareExchangeValueResultParserGetValues(clazz reflect.Type, response []by
 		if !ok || raw == nil {
 			return nil, newIllegalStateError("Response is invalid. Value is missing.")
 		}
-		rawMap, ok := raw.(ObjectNode)
+		rawMap, ok := raw.(map[string]interface{})
 		if !ok {
 			return nil, newIllegalStateError("Response is invalid. Value is missing.")
 		}

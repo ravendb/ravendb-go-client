@@ -27,7 +27,7 @@ func NewOperation(requestExecutor *RequestExecutor, changes func() *DatabaseChan
 	}
 }
 
-func (o *Operation) fetchOperationsStatus() (ObjectNode, error) {
+func (o *Operation) fetchOperationsStatus() (map[string]interface{}, error) {
 	command := o.getOperationStateCommand(o._conventions, o._id)
 	err := o._requestExecutor.ExecuteCommand(command)
 	if err != nil {
@@ -68,7 +68,7 @@ func (o *Operation) WaitForCompletion() error {
 		case "Cancelled":
 			return newOperationCancelledError("")
 		case "Faulted":
-			result, ok := status["Result"].(ObjectNode)
+			result, ok := status["Result"].(map[string]interface{})
 			if !ok {
 				return newRavenError("status has no 'Result' object. Status: #%v", status)
 			}

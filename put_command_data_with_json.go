@@ -3,13 +3,13 @@ package ravendb
 // PutCommandDataWithJSON represents data for put command with json
 type PutCommandDataWithJSON struct {
 	*CommandData
-	document ObjectNode
+	document map[string]interface{}
 }
 
 var _ ICommandData = &PutCommandDataWithJSON{} // verify interface match
 
 //NewPutCommandDataWithJSON returns new PutCommandDataWithJSON
-func NewPutCommandDataWithJSON(id string, changeVector *string, document ObjectNode) *PutCommandDataWithJSON {
+func NewPutCommandDataWithJSON(id string, changeVector *string, document map[string]interface{}) *PutCommandDataWithJSON {
 	panicIf(document == nil, "Document cannot be nil")
 
 	res := &PutCommandDataWithJSON{

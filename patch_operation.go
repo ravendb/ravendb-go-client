@@ -112,12 +112,12 @@ func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 		url += "&test=true"
 	}
 
-	patch := ObjectNode{}
+	patch := map[string]interface{}{}
 	if c._patch.patch != nil {
 		patch = c._patch.patch.Serialize()
 	}
 
-	var patchIfMissing ObjectNode
+	var patchIfMissing map[string]interface{}
 	if c._patch.patchIfMissing != nil {
 		patchIfMissing = c._patch.patchIfMissing.Serialize()
 	}

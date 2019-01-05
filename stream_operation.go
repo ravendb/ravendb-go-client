@@ -257,8 +257,8 @@ func (r *YieldStreamResults) Next(v interface{}) error {
 
 // decodes next javascript object from stream
 // returns io.EOF when reaching end of stream. Other errors indicate a parsing error
-func (r *YieldStreamResults) NextJSONObject() (ObjectNode, error) {
-	var v ObjectNode
+func (r *YieldStreamResults) NextJSONObject() (map[string]interface{}, error) {
+	var v map[string]interface{}
 	err := r.Next(&v)
 	if err != nil {
 		return nil, err

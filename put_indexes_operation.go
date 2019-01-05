@@ -34,7 +34,7 @@ var _ RavenCommand = &PutIndexesCommand{}
 type PutIndexesCommand struct {
 	RavenCommandBase
 
-	_indexToAdd []ObjectNode
+	_indexToAdd []map[string]interface{}
 
 	Result []*PutIndexResult
 }

@@ -21,9 +21,9 @@ func (e *entityToJSON) getMissingDictionary() map[interface{}]map[string]interfa
 	return e._missingDictionary
 }
 
-func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) ObjectNode {
+func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) map[string]interface{} {
 	// maybe we don't need to do anything?
-	if v, ok := entity.(ObjectNode); ok {
+	if v, ok := entity.(map[string]interface{}); ok {
 		return v
 	}
 	jsonNode := StructToJSONMap(entity)
@@ -37,7 +37,7 @@ func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) ObjectN
 
 // TODO: verify is correct, write a test
 func isTypeObjectNode(entityType reflect.Type) bool {
-	var v ObjectNode
+	var v map[string]interface{}
 	typ := reflect.ValueOf(v).Type()
 	return typ.String() == entityType.String()
 }
@@ -63,7 +63,7 @@ func setInterfaceToValue(result interface{}, v interface{}) {
 }
 
 // ConvertToEntity2 converts document to a value result, matching type of result
-func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document ObjectNode) {
+func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document map[string]interface{}) {
 	if _, ok := result.(*map[string]interface{}); ok {
 		setInterfaceToValue(result, document)
 		return
@@ -82,7 +82,7 @@ func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document 
 }
 
 // Converts a json object to an entity.
-func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, document ObjectNode) (interface{}, error) {
+func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}
@@ -95,13 +95,13 @@ func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, docum
 	return entity, nil
 }
 
-func entityToJSONWriteMetadata(jsonNode ObjectNode, documentInfo *documentInfo) {
+func entityToJSONWriteMetadata(jsonNode map[string]interface{}, documentInfo *documentInfo) {
 	if documentInfo == nil {
 		return
 	}
 
 	setMetadata := false
-	metadataNode := ObjectNode{}
+	metadataNode := map[string]interface{}{}
 
 	metadata := documentInfo.metadata
 	metadataInstance := documentInfo.metadataInstance
@@ -136,7 +136,7 @@ func entityToJSONWriteMetadata(jsonNode ObjectNode, documentInfo *documentInfo) 
 }
 */
 
-func tryRemoveIdentityProperty(document ObjectNode) bool {
+func tryRemoveIdentityProperty(document map[string]interface{}) bool {
 	delete(document, IdentityProperty)
 	return true
 }

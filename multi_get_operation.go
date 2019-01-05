@@ -10,6 +10,6 @@ func (o *MultiGetOperation) createRequest(requests []*GetRequest) *MultiGetComma
 }
 
 /* TODO: not used anywhere
-func (o *MultiGetOperation) setResult(result ObjectNode) {
+func (o *MultiGetOperation) setResult(result map[string]interface{}) {
 }
 */

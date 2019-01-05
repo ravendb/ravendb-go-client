@@ -19,7 +19,7 @@ type GetServerWideOperationStateCommand struct {
 	_conventions *DocumentConventions
 	_id          int
 
-	Result ObjectNode
+	Result map[string]interface{}
 }
 
 func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id int) *GetServerWideOperationStateCommand {

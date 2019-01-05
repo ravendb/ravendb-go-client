@@ -360,7 +360,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result int
 }
 
 // TrackEntity tracks a given object
-func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document ObjectNode, metadata ObjectNode, noTracking bool) error {
+func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) error {
 	if id == "" {
 		s.DeserializeFromTransformer2(result, "", document)
 		return nil
@@ -444,7 +444,7 @@ func matchValueToType(o interface{}, tp reflect.Type) interface{} {
 }
 
 // TrackEntityOld tracks entity
-func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document ObjectNode, metadata ObjectNode, noTracking bool) (interface{}, error) {
+func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) (interface{}, error) {
 	var err error
 	if id == "" {
 		return s.DeserializeFromTransformer(entityType, "", document)
@@ -693,7 +693,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 	}
 
 	collectionName := s._requestExecutor.GetConventions().GetCollectionName(entity)
-	metadata := ObjectNode{}
+	metadata := map[string]interface{}{}
 	if collectionName != "" {
 		metadata[MetadataCollection] = collectionName
 	}
@@ -709,7 +709,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata ObjectNode, forceConcurrencyCheck ConcurrencyCheckMode) {
+func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata map[string]interface{}, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
 		s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
@@ -936,7 +936,7 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 	return err
 }
 
-func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
+func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj map[string]interface{}, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
 	return jsonOperationEntityChanged(newObj, documentInfo, changes)
 }
 
@@ -1068,7 +1068,7 @@ func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
 }
 
 // RegisterIncludes registers includes object
-func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode) {
+func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes map[string]interface{}) {
 	if includes == nil {
 		return
 	}
@@ -1078,7 +1078,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 		if fieldValue == nil {
 			continue
 		}
-		json, ok := fieldValue.(ObjectNode)
+		json, ok := fieldValue.(map[string]interface{})
 		panicIf(!ok, "fieldValue of unsupported type %T", fieldValue)
 		newDocumentInfo := getNewDocumentInfo(json)
 		if jsonExtensionsTryGetConflict(newDocumentInfo.metadata) {
@@ -1089,7 +1089,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes ObjectNode
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results ArrayNode, includes ObjectNode, includePaths []string) {
+func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results ArrayNode, includes map[string]interface{}, includePaths []string) {
 	if len(includePaths) == 0 {
 		return
 	}
@@ -1106,11 +1106,11 @@ func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results Arra
 	*/
 }
 
-func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer2(result interface{}, id string, document ObjectNode) {
+func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer2(result interface{}, id string, document map[string]interface{}) {
 	s.entityToJSON.ConvertToEntity2(result, id, document)
 }
 
-func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document ObjectNode) (interface{}, error) {
+func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
 	return s.entityToJSON.ConvertToEntity(clazz, id, document)
 }
 
@@ -1162,7 +1162,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	}
 
 	value := document[MetadataKey]
-	meta := value.(ObjectNode)
+	meta := value.(map[string]interface{})
 	documentInfo.metadata = meta
 
 	if documentInfo.metadata != nil {

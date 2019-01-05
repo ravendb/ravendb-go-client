@@ -33,8 +33,8 @@ func (d *CommandData) getChangeVector() *string {
 	return d.ChangeVector
 }
 
-func (d *CommandData) baseJSON() ObjectNode {
-	res := ObjectNode{
+func (d *CommandData) baseJSON() map[string]interface{} {
+	res := map[string]interface{}{
 		"Id":           d.ID,
 		"Type":         d.Type,
 		"ChangeVector": d.ChangeVector,

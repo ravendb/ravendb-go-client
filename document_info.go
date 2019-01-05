@@ -23,8 +23,8 @@ type documentInfo struct {
 	changeVector         *string
 	concurrencyCheckMode ConcurrencyCheckMode
 	ignoreChanges        bool
-	metadata             ObjectNode
-	document             ObjectNode
+	metadata             map[string]interface{}
+	document             map[string]interface{}
 	metadataInstance     *MetadataAsDictionary
 	entity               interface{}
 	newDocument          bool
@@ -66,11 +66,11 @@ func (d *documentInfo) setEntity(value interface{}) {
 	d.entity = rv.Interface()
 }
 
-func getNewDocumentInfo(document ObjectNode) *documentInfo {
+func getNewDocumentInfo(document map[string]interface{}) *documentInfo {
 	metadataV, ok := document[MetadataKey]
 	// TODO: maybe convert to errors
 	panicIf(!ok, "Document must have a metadata")
-	metadata, ok := metadataV.(ObjectNode)
+	metadata, ok := metadataV.(map[string]interface{})
 	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
 
 	// TODO: return an error?

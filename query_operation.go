@@ -116,7 +116,7 @@ func (o *QueryOperation) complete(results interface{}) error {
 	for _, document := range queryResult.Results {
 		metadataI, ok := document[MetadataKey]
 		panicIf(!ok, "missing metadata")
-		metadata := metadataI.(ObjectNode)
+		metadata := metadataI.(map[string]interface{})
 		id, _ := JsonGetAsText(metadata, MetadataID)
 
 		el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
@@ -140,14 +140,14 @@ func jsonIsValueNode(v interface{}) bool {
 	switch v.(type) {
 	case string, float64, bool:
 		return true
-	case []interface{}, ObjectNode:
+	case []interface{}, map[string]interface{}:
 		return false
 	}
 	panicIf(true, "unhandled type %T", v)
 	return false
 }
 
-func queryOperationDeserialize(clazz reflect.Type, id string, document ObjectNode, metadata ObjectNode, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
+func queryOperationDeserialize(clazz reflect.Type, id string, document map[string]interface{}, metadata map[string]interface{}, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
 	_, ok := jsonGetAsBool(metadata, MetadataProjection)
 	if !ok {
 		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)
@@ -176,7 +176,7 @@ func queryOperationDeserialize(clazz reflect.Type, id string, document ObjectNod
 		}
 
 		if fieldsToFetch.fieldsToFetch != nil && fieldsToFetch.fieldsToFetch[0] == fieldsToFetch.projections[0] {
-			doc, ok := inner.(ObjectNode)
+			doc, ok := inner.(map[string]interface{})
 			if ok {
 				//extraction from original type
 				document = doc

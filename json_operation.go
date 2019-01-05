@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-func jsonOperationEntityChanged(newObj ObjectNode, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
+func jsonOperationEntityChanged(newObj map[string]interface{}, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
 	var docChanges []*DocumentsChanges
 
 	doc := documentInfo.document
@@ -59,7 +59,7 @@ func isJSONStringEqual(oldPropVal string, newProp interface{}) bool {
 	return false
 }
 
-func jsonOperationCompareJson(id string, originalJson ObjectNode, newJson ObjectNode, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges) bool {
+func jsonOperationCompareJson(id string, originalJson map[string]interface{}, newJson map[string]interface{}, changes map[string][]*DocumentsChanges, docChanges *[]*DocumentsChanges) bool {
 	newJsonProps := getObjectNodeFieldNames(newJson)
 	oldJsonProps := getObjectNodeFieldNames(originalJson)
 	newFields := stringArraySubtract(newJsonProps, oldJsonProps)
@@ -184,9 +184,9 @@ func jsonOperationCompareJsonArray(id string, oldArray []interface{}, newArray [
 		oldVal := oldArray[position]
 		newVal := newArray[position]
 		switch oldVal.(type) {
-		case ObjectNode:
-			if _, ok := newVal.(ObjectNode); ok {
-				newChanged := jsonOperationCompareJson(id, oldVal.(ObjectNode), newVal.(ObjectNode), changes, docChanges)
+		case map[string]interface{}:
+			if _, ok := newVal.(map[string]interface{}); ok {
+				newChanged := jsonOperationCompareJson(id, oldVal.(map[string]interface{}), newVal.(map[string]interface{}), changes, docChanges)
 				if newChanged {
 					changed = newChanged
 				}
@@ -258,7 +258,7 @@ func jsonOperationNewChange(name string, newValue interface{}, oldValue interfac
 	*docChanges = append(*docChanges, documentsChanges)
 }
 
-func getObjectNodeFieldNames(o ObjectNode) []string {
+func getObjectNodeFieldNames(o map[string]interface{}) []string {
 	n := len(o)
 	if n == 0 {
 		return nil

@@ -79,7 +79,7 @@ func (q *RawDocumentQuery) RemoveBeforeQueryExecutedListener(idx int) *IRawDocum
 	return q
 }
 
-func (q *RawDocumentQuery) AddAfterStreamExecutedListener(action func(ObjectNode)) *IRawDocumentQuery {
+func (q *RawDocumentQuery) AddAfterStreamExecutedListener(action func(map[string]interface{})) *IRawDocumentQuery {
 	q._addAfterStreamExecutedListener(action)
 	return q
 }

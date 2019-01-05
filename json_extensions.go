@@ -36,7 +36,7 @@ func jsonExtensionsWriteIndexQuery(conventions *DocumentConventions, query *Inde
 	return res
 }
 
-func jsonExtensionsTryGetConflict(metadata ObjectNode) bool {
+func jsonExtensionsTryGetConflict(metadata map[string]interface{}) bool {
 	v, ok := metadata[MetadataConflict]
 	if !ok {
 		return false

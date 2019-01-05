@@ -17,9 +17,8 @@ type JsonNode = interface{}
 // TODO: change to reflect.Type?
 type JsonNodeType = interface{}
 
-// ObjectNode represents parsed JSON document in memory
-// equivalent of com.fasterxml.jackson.databind.node.ObjectNode
-type ObjectNode = map[string]interface{}
+// Note: Java's com.fasterxml.jackson.databind.node.ObjectNode is map[string]interface{}
+// It represents parsed json document
 
 // TreeNode is equivalent of com.fasterxml.jackson.databind.TreeNode
 // in terms of Go's json package, it's the same as interface{} because
@@ -29,7 +28,7 @@ type TreeNode = interface{}
 // ArrayNode represents result of BatchCommand, which is array of JSON objects
 // it's a type alias so that it doesn't need casting when json marshalling
 // equivalent of com.fasterxml.jackson.databind.node.ArrayNode
-type ArrayNode = []ObjectNode
+type ArrayNode = []map[string]interface{}
 
 // we should use jsonMarshal instead of jsonMarshal so that it's easy
 // to change json marshalling in all code base (e.g. to use a faster
@@ -42,7 +41,7 @@ func jsonUnmarshal(d []byte, v interface{}) error {
 	return json.Unmarshal(d, v)
 }
 
-func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
+func jsonGetAsTextPointer(doc map[string]interface{}, key string) *string {
 	v, ok := doc[key]
 	if !ok {
 		return nil
@@ -55,11 +54,11 @@ func jsonGetAsTextPointer(doc ObjectNode, key string) *string {
 	return &s
 }
 
-func jsonGetAsString(doc ObjectNode, key string) (string, bool) {
+func jsonGetAsString(doc map[string]interface{}, key string) (string, bool) {
 	return JsonGetAsText(doc, key)
 }
 
-func JsonGetAsText(doc ObjectNode, key string) (string, bool) {
+func JsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
 	v, ok := doc[key]
 	if !ok {
 		return "", false
@@ -71,7 +70,7 @@ func JsonGetAsText(doc ObjectNode, key string) (string, bool) {
 	return s, true
 }
 
-func jsonGetAsInt(doc ObjectNode, key string) (int, bool) {
+func jsonGetAsInt(doc map[string]interface{}, key string) (int, bool) {
 	v, ok := doc[key]
 	if !ok {
 		return 0, false
@@ -91,7 +90,7 @@ func jsonGetAsInt(doc ObjectNode, key string) (int, bool) {
 	return n, true
 }
 
-func jsonGetAsBool(doc ObjectNode, key string) (bool, bool) {
+func jsonGetAsBool(doc map[string]interface{}, key string) (bool, bool) {
 	v, ok := doc[key]
 	if !ok {
 		return false, false
@@ -126,7 +125,7 @@ func StructToJSONMap(v interface{}) map[string]interface{} {
 
 // given a json in the form of map[string]interface{}, de-serialize it to a struct
 // TODO: could be faster
-func structFromJSONMap(js ObjectNode, v interface{}) error {
+func structFromJSONMap(js map[string]interface{}, v interface{}) error {
 	d, err := jsonMarshal(js)
 	if err != nil {
 		return err
@@ -135,7 +134,7 @@ func structFromJSONMap(js ObjectNode, v interface{}) error {
 }
 
 // matches a Java naming from EnityMapper
-func ValueToTree(v interface{}) ObjectNode {
+func ValueToTree(v interface{}) map[string]interface{} {
 	return StructToJSONMap(v)
 }
 

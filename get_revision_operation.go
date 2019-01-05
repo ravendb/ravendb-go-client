@@ -34,15 +34,15 @@ func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {
 }
 
 // Note: in Java it's getRevision
-func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document ObjectNode) (interface{}, error) {
+func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document map[string]interface{}) (interface{}, error) {
 	if document == nil {
 		return getDefaultValueForType(clazz), nil
 	}
 
-	var metadata ObjectNode
+	var metadata map[string]interface{}
 	id := ""
 	if v, ok := document[MetadataKey]; ok {
-		metadata = v.(ObjectNode)
+		metadata = v.(map[string]interface{})
 		id, _ = JsonGetAsText(metadata, MetadataID)
 	}
 	var changeVector *string
@@ -85,9 +85,9 @@ func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary
 	for i := 0; i < resultsCount; i++ {
 		document := o._result.getResults()[i]
 
-		var metadata ObjectNode
+		var metadata map[string]interface{}
 		if v, ok := document[MetadataKey]; ok {
-			metadata = v.(ObjectNode)
+			metadata = v.(map[string]interface{})
 		}
 		results[i] = NewMetadataAsDictionaryWithSource(metadata)
 	}

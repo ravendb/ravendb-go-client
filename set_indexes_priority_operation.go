@@ -49,7 +49,7 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 
 	// Note: compared to Java, we shortcut things by serializing to JSON
 	// here as it's simpler and faster than two-step serialization,
-	// first to ObjectNode and then to JSON
+	// first to map[string]interface{} and then to JSON
 	d, err := jsonMarshal(parameters)
 	panicIf(err != nil, "jsonMarshal failed with %s", err)
 	cmd := &SetIndexesPriorityCommand{

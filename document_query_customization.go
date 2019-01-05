@@ -35,7 +35,7 @@ func (d *DocumentQueryCustomization) RemoveAfterQueryExecutedListener(idx int) {
 }
 
 // AddAfterStreamExecutedCallback adds a callback to get stream result
-func (d *DocumentQueryCustomization) AddAfterStreamExecutedCallback(action func(ObjectNode)) int {
+func (d *DocumentQueryCustomization) AddAfterStreamExecutedCallback(action func(map[string]interface{})) int {
 	return d.query._addAfterStreamExecutedListener(action)
 }
 

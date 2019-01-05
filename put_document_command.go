@@ -13,12 +13,12 @@ type PutDocumentCommand struct {
 
 	_id           string
 	_changeVector *string
-	_document     ObjectNode
+	_document     map[string]interface{}
 
 	Result *PutResult
 }
 
-func NewPutDocumentCommand(id string, changeVector *string, document ObjectNode) *PutDocumentCommand {
+func NewPutDocumentCommand(id string, changeVector *string, document map[string]interface{}) *PutDocumentCommand {
 	panicIf(id == "", "Id cannot be null")
 	panicIf(document == nil, "document cannot be nil")
 

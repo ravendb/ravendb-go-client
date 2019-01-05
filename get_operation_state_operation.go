@@ -19,7 +19,7 @@ type GetOperationStateCommand struct {
 	_conventions *DocumentConventions
 	_id          int
 
-	Result ObjectNode
+	Result map[string]interface{}
 }
 
 func NewGetOperationStateCommand(conventions *DocumentConventions, id int) *GetOperationStateCommand {

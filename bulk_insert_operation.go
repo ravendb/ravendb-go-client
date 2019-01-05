@@ -127,7 +127,7 @@ func (o *BulkInsertOperation) getErrorFromOperation() *BulkInsertAbortedError {
 	}
 
 	if result, ok := stateRequest.Result["Result"]; ok {
-		if result, ok := result.(ObjectNode); ok {
+		if result, ok := result.(map[string]interface{}); ok {
 			typ, _ := jsonGetAsString(result, "$type")
 			if strings.HasPrefix(typ, "Raven.Client.Documents.Operations.OperationExceptionResult") {
 				errStr, _ := jsonGetAsString(result, "Error")

@@ -66,7 +66,7 @@ type AbstractDocumentQuery struct {
 	// callbacks
 	beforeQueryExecutedCallback []func(*IndexQuery)
 	afterQueryExecutedCallback  []func(*QueryResult)
-	afterStreamExecutedCallback []func(ObjectNode)
+	afterStreamExecutedCallback []func(map[string]interface{})
 
 	queryOperation *QueryOperation
 
@@ -873,7 +873,7 @@ func (q *AbstractDocumentQuery) InvokeBeforeQueryExecuted(query *IndexQuery) {
 	}
 }
 
-func (q *AbstractDocumentQuery) InvokeAfterStreamExecuted(result ObjectNode) {
+func (q *AbstractDocumentQuery) InvokeAfterStreamExecuted(result map[string]interface{}) {
 	for _, cb := range q.afterStreamExecutedCallback {
 		if cb != nil {
 			cb(result)
@@ -1423,7 +1423,7 @@ func (q *AbstractDocumentQuery) _removeAfterQueryExecutedListener(idx int) {
 	q.afterQueryExecutedCallback[idx] = nil
 }
 
-func (q *AbstractDocumentQuery) _addAfterStreamExecutedListener(action func(ObjectNode)) int {
+func (q *AbstractDocumentQuery) _addAfterStreamExecutedListener(action func(map[string]interface{})) int {
 	q.afterStreamExecutedCallback = append(q.afterStreamExecutedCallback, action)
 	return len(q.afterStreamExecutedCallback) - 1
 }

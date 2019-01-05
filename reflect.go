@@ -201,7 +201,7 @@ func treeToValue(typ reflect.Type, js TreeNode) (interface{}, error) {
 		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
 	case []interface{}:
 		panicIf(true, "don't know how to convert value of type %T to reflect type %s", js, typ.Name())
-	case ObjectNode:
+	case map[string]interface{}:
 		return makeStructFromJSONMap(typ, v)
 	}
 	panicIf(true, "don't know how to convert value of type %v to reflect type %s", js, typ.Name())
@@ -273,8 +273,8 @@ func decodeJSONAsStruct(js interface{}, res interface{}) error {
 }
 
 // given a json represented as map and type of a struct
-func makeStructFromJSONMap(typ reflect.Type, js ObjectNode) (interface{}, error) {
-	if typ == reflect.TypeOf(ObjectNode{}) {
+func makeStructFromJSONMap(typ reflect.Type, js map[string]interface{}) (interface{}, error) {
+	if typ == reflect.TypeOf(map[string]interface{}{}) {
 		return js, nil
 	}
 	typ2 := fixUpStructType(typ)
@@ -310,7 +310,7 @@ func dbglog(format string, args ...interface{}) string {
 // or map[string]interface{}
 // TODO: not sure about nil
 // for simple types (int, bool, string) it should be just pass-through
-// for structs decode ObjectNode => struct using MakeStructFromJSONMap
+// for structs decode map[string]interface{} => struct using MakeStructFromJSONMap
 func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 	// TODO: implement every possible type. Need more comprehensive tests
 	// to exercise those code paths
@@ -336,7 +336,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 		clazz2 := clazz.Elem()
 		switch clazz2.Kind() {
 		case reflect.Struct:
-			valIn, ok := val.(ObjectNode)
+			valIn, ok := val.(map[string]interface{})
 			if !ok {
 				return nil, newRavenError("can't convert value of type '%s' to a struct", val)
 			}

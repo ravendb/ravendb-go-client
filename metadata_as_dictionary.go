@@ -10,13 +10,13 @@ type MetadataAsDictionary struct {
 
 	// the actual metadata
 	_metadata map[string]interface{}
-	_source   ObjectNode
+	_source   map[string]interface{}
 
 	dirty bool
 }
 
 // NewMetadataAsDictionaryWithSource returns MetadataAsDictionary based on a given source
-func NewMetadataAsDictionaryWithSource(metadata ObjectNode) *MetadataAsDictionary {
+func NewMetadataAsDictionaryWithSource(metadata map[string]interface{}) *MetadataAsDictionary {
 	return &MetadataAsDictionary{
 		_source: metadata,
 	}
@@ -30,7 +30,7 @@ func NewMetadataAsDictionaryWithMetadata(metadata map[string]interface{}) *Metad
 }
 
 // NewMetadataAsDictionary returns MetadataAsDictionary based on a given metadata and parent
-func NewMetadataAsDictionary(metadata ObjectNode, parent *MetadataAsDictionary, parentKey string) *MetadataAsDictionary {
+func NewMetadataAsDictionary(metadata map[string]interface{}, parent *MetadataAsDictionary, parentKey string) *MetadataAsDictionary {
 	panicIf(parent == nil, "Parent cannot be null")
 	panicIf(parentKey == "", "ParentKey cannot be empty")
 	return &MetadataAsDictionary{
@@ -98,7 +98,7 @@ func (d *MetadataAsDictionary) ConvertValue(key string, value interface{}) inter
 	switch v := value.(type) {
 	case int, bool, string, float32, float64: // TODO: more int types?
 		return value
-	case ObjectNode:
+	case map[string]interface{}:
 		// TODO: not sure what to do here. Relevant test case: TestRavenDB10641
 		//return NewMetadataAsDictionary(v, d, key)
 		return v

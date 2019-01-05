@@ -99,7 +99,7 @@ func firstNonZero(i1, i2 int) int {
 }
 
 // TODO: maybe sort or provide fieldNamesSorted when stable order matters
-func FieldNames(js ObjectNode) []string {
+func FieldNames(js map[string]interface{}) []string {
 	var res []string
 	for k := range js {
 		res = append(res, k)

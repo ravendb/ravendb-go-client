@@ -7,10 +7,10 @@ type PatchRequest struct {
 }
 
 // Serialize serializes PatchRequest to json
-func (r *PatchRequest) Serialize() ObjectNode {
+func (r *PatchRequest) Serialize() map[string]interface{} {
 	values := r.Values
 	if values == nil {
-		values = ObjectNode{}
+		values = map[string]interface{}{}
 	}
 	m := map[string]interface{}{
 		"Script": r.Script,
