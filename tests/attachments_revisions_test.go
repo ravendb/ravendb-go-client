@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,7 +51,7 @@ func attachmentsRevisionsPutAttachments(t *testing.T, driver *RavenTestDriver) {
 			// Create another revision which should delete old revision
 			session := openSessionMust(t, store)
 			// This will delete the revision #1 which is without attachment
-			user := User{}
+			user := &User{}
 			user.setName("Fitzchak 2")
 			err = session.StoreWithID(user, "users/1")
 			assert.NoError(t, err)
