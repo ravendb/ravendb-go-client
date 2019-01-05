@@ -20,19 +20,19 @@ type DocumentStore struct {
 	onBeforeQuery    []func(interface{}, *BeforeQueryEventArgs)
 	onSessionCreated []func(interface{}, *SessionCreatedEventArgs)
 
-	disposed     bool
-	conventions  *DocumentConventions
-	urls         []string // urls for HTTP endopoints of server nodes
-	initialized  bool
-	_certificate *KeyStore
-	database     string // name of the database
+	disposed    bool
+	conventions *DocumentConventions
+	urls        []string // urls for HTTP endopoints of server nodes
+	initialized bool
+	certificate *KeyStore
+	database    string // name of the database
 
 	// maps database name to databaseChanges. Must be protected with mutex
-	_databaseChanges map[string]*databaseChanges
+	databaseChanges map[string]*databaseChanges
 
 	// Note: access must be protected with mu
 	// Lazy.Value is **EvictItemsFromCacheBasedOnChanges
-	_aggressiveCacheChanges map[string]*Lazy
+	aggressiveCacheChanges map[string]*Lazy
 
 	// maps database name to its RequestsExecutor
 	// access must be protected with mu
@@ -40,11 +40,11 @@ type DocumentStore struct {
 	// so must protect access with mutex and use case-insensitive lookup
 	requestsExecutors map[string]*RequestExecutor
 
-	_multiDbHiLo                 *MultiDatabaseHiLoIDGenerator
+	multiDbHiLo                  *MultiDatabaseHiLoIDGenerator
 	maintenanceOperationExecutor *MaintenanceOperationExecutor
 	operationExecutor            *OperationExecutor
 	identifier                   string
-	_aggressiveCachingUsed       bool
+	aggressiveCachingUsed        bool
 
 	afterClose  []func(*DocumentStore)
 	beforeClose []func(*DocumentStore)
@@ -168,12 +168,12 @@ func (s *DocumentStore) SetDatabase(database string) {
 }
 
 func (s *DocumentStore) GetCertificate() *KeyStore {
-	return s._certificate
+	return s.certificate
 }
 
 func (s *DocumentStore) SetCertificate(certificate *KeyStore) {
 	panicIf(s.initialized, "is already initialized")
-	s._certificate = certificate
+	s.certificate = certificate
 }
 
 func (s *DocumentStore) AggressivelyCache() {
@@ -187,22 +187,22 @@ func (s *DocumentStore) AggressivelyCacheWithDatabase(database string) {
 // NewDocumentStore creates a DocumentStore
 func NewDocumentStore() *DocumentStore {
 	s := &DocumentStore{
-		requestsExecutors:       map[string]*RequestExecutor{},
-		conventions:             NewDocumentConventions(),
-		_databaseChanges:        map[string]*databaseChanges{},
-		_aggressiveCacheChanges: map[string]*Lazy{},
+		requestsExecutors:      map[string]*RequestExecutor{},
+		conventions:            NewDocumentConventions(),
+		databaseChanges:        map[string]*databaseChanges{},
+		aggressiveCacheChanges: map[string]*Lazy{},
 	}
 	return s
 }
 
-func NewDocumentStoreWithUrlAndDatabase(url string, database string) *DocumentStore {
+func NewDocumentStoreWithURLAndDatabase(url string, database string) *DocumentStore {
 	res := NewDocumentStore()
 	res.SetUrls([]string{url})
 	res.SetDatabase(database)
 	return res
 }
 
-func NewDocumentStoreWithUrlsAndDatabase(urls []string, database string) *DocumentStore {
+func NewDocumentStoreWithURLsAndDatabase(urls []string, database string) *DocumentStore {
 	res := NewDocumentStore()
 	res.SetUrls(urls)
 	res.SetDatabase(database)
@@ -240,7 +240,7 @@ func (s *DocumentStore) Close() {
 	}
 	s.beforeClose = nil
 
-	for _, value := range s._aggressiveCacheChanges {
+	for _, value := range s.aggressiveCacheChanges {
 		if !value.IsValueCreated() {
 			continue
 		}
@@ -254,12 +254,12 @@ func (s *DocumentStore) Close() {
 		}
 	}
 
-	for _, changes := range s._databaseChanges {
+	for _, changes := range s.databaseChanges {
 		changes.Close()
 	}
 
-	if s._multiDbHiLo != nil {
-		s._multiDbHiLo.ReturnUnusedRange()
+	if s.multiDbHiLo != nil {
+		s.multiDbHiLo.ReturnUnusedRange()
 	}
 
 	s.disposed = true
@@ -370,7 +370,7 @@ func (s *DocumentStore) Initialize() error {
 	conventions := s.conventions
 	if conventions.GetDocumentIDGenerator() == nil {
 		generator := NewMultiDatabaseHiLoIDGenerator(s, s.GetConventions())
-		s._multiDbHiLo = generator
+		s.multiDbHiLo = generator
 		genID := func(dbName string, entity interface{}) string {
 			return generator.GenerateDocumentID(dbName, entity)
 		}
@@ -428,14 +428,14 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) *databaseChange
 	}
 
 	s.mu.Lock()
-	changes, ok := s._databaseChanges[database]
+	changes, ok := s.databaseChanges[database]
 	s.mu.Unlock()
 
 	if !ok {
 		changes = s.createDatabaseChanges(database)
 
 		s.mu.Lock()
-		s._databaseChanges[database] = changes
+		s.databaseChanges[database] = changes
 		s.mu.Unlock()
 
 	}
@@ -445,7 +445,7 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) *databaseChange
 func (s *DocumentStore) createDatabaseChanges(database string) *databaseChanges {
 	onDispose := func() {
 		s.mu.Lock()
-		delete(s._databaseChanges, database)
+		delete(s.databaseChanges, database)
 		s.mu.Unlock()
 	}
 	re := s.GetRequestExecutor(database)
@@ -462,7 +462,7 @@ func (s *DocumentStore) GetLastDatabaseChangesStateErrorWithDatabaseName(databas
 	}
 
 	s.mu.Lock()
-	databaseChanges, ok := s._databaseChanges[database]
+	databaseChanges, ok := s.databaseChanges[database]
 	s.mu.Unlock()
 
 	if !ok {
@@ -491,7 +491,7 @@ func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration
 		database = s.GetDatabase()
 	}
 	panicIf(database == "", "must have database") // TODO: maybe return error
-	if !s._aggressiveCachingUsed {
+	if !s.aggressiveCachingUsed {
 		s.listenToChangesAndUpdateTheCache(database)
 	}
 
@@ -512,10 +512,10 @@ func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration
 func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 	// this is intentionally racy, most cases, we'll already
 	// have this set once, so we won't need to do it again
-	s._aggressiveCachingUsed = true
+	s.aggressiveCachingUsed = true
 
 	s.mu.Lock()
-	lazy := s._aggressiveCacheChanges[database]
+	lazy := s.aggressiveCacheChanges[database]
 	s.mu.Unlock()
 
 	if lazy == nil {
@@ -529,7 +529,7 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 		lazy = NewLazy(&results, valueFactory)
 
 		s.mu.Lock()
-		s._aggressiveCacheChanges[database] = lazy
+		s.aggressiveCacheChanges[database] = lazy
 		s.mu.Unlock()
 	}
 

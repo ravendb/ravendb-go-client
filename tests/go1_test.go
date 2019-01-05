@@ -8,6 +8,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func assertIllegalArgumentError2(t *testing.T, err error, exp string) {
+	assert.Error(t, err)
+	if err != nil {
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+		assert.Equal(t, exp, err.Error())
+	}
+}
+
 func assertIllegalArgumentError(t *testing.T, err error) {
 	assert.Error(t, err)
 	if err != nil {
@@ -30,7 +39,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. nil
 		var v interface{}
 		err = session.Store(v)
-		assertIllegalArgumentError(t, err)
+		assertIllegalArgumentError2(t, err, "entity can't be nil")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -45,7 +54,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. nil pointer
 		var v *User
 		err = session.Store(v)
-		assertIllegalArgumentError(t, err)
+		assertIllegalArgumentError2(t, err, "entity of type *tests.User can't be nil")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -60,7 +69,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. struct
 		v := user
 		err = session.Store(v)
-		assertIllegalArgumentError(t, err)
+		assertIllegalArgumentError2(t, err, "entity can't be of type User, try passing *User")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -76,7 +85,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		ptrUser := &user
 		v := &ptrUser
 		err = session.Store(v)
-		assertIllegalArgumentError(t, err)
+		assertIllegalArgumentError2(t, err, "entity can't be of type **tests.User, try passing *tests.User")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -86,6 +95,38 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
 	}
+
+	{
+		// can't store/delete etc. a nil map
+		var v map[string]interface{}
+		err = session.Store(v)
+		assertIllegalArgumentError2(t, err, "entity can't be a nil map")
+		err = session.StoreWithID(v, "users/1")
+		assertIllegalArgumentError(t, err)
+		err = session.DeleteEntity(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetMetadataFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+	}
+
+	{
+		// can't store/delete etc. *map[string]interface{}
+		m := map[string]interface{}{}
+		v := &m
+		err = session.Store(v)
+		assertIllegalArgumentError2(t, err, "entity can't be of type *map[string]interface {}, try passing map[string]interface {}")
+		err = session.StoreWithID(v, "users/1")
+		assertIllegalArgumentError(t, err)
+		err = session.DeleteEntity(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetMetadataFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+	}
+
 }
 
 func TestGo1(t *testing.T) {

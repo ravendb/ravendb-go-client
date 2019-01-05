@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 var (
@@ -72,7 +72,7 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	store := ravendb.NewDocumentStoreWithUrlAndDatabase(serverURI, dbName)
+	store := ravendb.NewDocumentStoreWithURLAndDatabase(serverURI, dbName)
 	err := store.Initialize()
 	panicIfErr(err)
 

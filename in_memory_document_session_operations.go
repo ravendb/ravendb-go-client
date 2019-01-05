@@ -197,24 +197,6 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 	return s.numberOfRequests
 }
 
-func checkGetMetadataForArg(instance interface{}) error {
-	if instance == nil {
-		return newIllegalArgumentError("instance can't be nil")
-	}
-	tp := reflect.TypeOf(instance)
-	// TODO: probably needs to support map[string]interface{} as well
-	if tp.Kind() != reflect.Ptr {
-		return newIllegalArgumentError("instance must be a pointer")
-	}
-	if v := reflect.ValueOf(instance); v.IsNil() {
-		return newIllegalArgumentError("instance can't be nil")
-	}
-	if tp.Elem() == nil || tp.Elem().Kind() == reflect.Ptr {
-		return newIllegalArgumentError("instance can't be of type %T (double pointer)", instance)
-	}
-	return nil
-}
-
 // GetMetadataFor gets the metadata for the specified entity.
 // TODO: should we make the API more robust by accepting **struct as well as
 // *struct and doing the necessary tweaking automatically? It looks like
@@ -222,7 +204,7 @@ func checkGetMetadataForArg(instance interface{}) error {
 // to figure out why it fails. Alternatively, error out early with informative
 // error message
 func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*MetadataAsDictionary, error) {
-	err := checkGetMetadataForArg(instance)
+	err := checkValidEntityIn(instance, "instance")
 	if err != nil {
 		return nil, err
 	}
@@ -241,14 +223,10 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 	return metadata, nil
 }
 
-func checkGetChangeVectorForArg(instance interface{}) error {
-	return checkGetMetadataForArg(instance)
-}
-
 // GetChangeVectorFor returns metadata for a given instance
 // empty string means there is not change vector
 func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (*string, error) {
-	err := checkGetChangeVectorForArg(instance)
+	err := checkValidEntityIn(instance, "instance")
 	if err != nil {
 		return nil, err
 	}
@@ -545,29 +523,9 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	return entity, nil
 }
 
-// return an error if entity cannot be deleted e.g. because it's a struct
-func checkIsDeletable(entity interface{}) error {
-	if entity == nil {
-		return newIllegalArgumentError("can't delete nil values")
-	}
-	tp := reflect.TypeOf(entity)
-	if tp.Kind() == reflect.Struct {
-		return newIllegalArgumentError("can't delete struct values, must pass a pointer to struct")
-	}
-	if tp.Kind() == reflect.Ptr {
-		if reflect.ValueOf(entity).IsNil() {
-			return newIllegalArgumentError("can't delete nil values")
-		}
-		if tp.Elem() != nil && tp.Elem().Kind() == reflect.Ptr {
-			return newIllegalArgumentError("can't delete values of type %T (double pointer)", entity)
-		}
-	}
-	return nil
-}
-
 // DeleteEntity marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) error {
-	err := checkIsDeletable(entity)
+	err := checkValidEntityIn(entity, "entity")
 	if err != nil {
 		return err
 	}
@@ -591,7 +549,7 @@ func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
 
 func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector *string) error {
 	if id == "" {
-		return newIllegalArgumentError("Id cannot be empty")
+		return newIllegalArgumentError("id cannot be empty")
 	}
 
 	var changeVector *string
@@ -619,29 +577,69 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	return nil
 }
 
-// return an error if entity cannot be stored e.g. because it's a struct
-func checkIsStorable(entity interface{}) error {
-	if entity == nil {
-		return newIllegalArgumentError("can't store nil values")
+// checks if entity is of valid type for operations like Store(), Delete(), GetMetadataFor() etc.
+// We support non-nil values of *struct and map[string]interface{}
+// TODO: we might relax rules and allow **struct by auto-magically converting it to *struct
+func checkValidEntityIn(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
 	}
-	tp := reflect.TypeOf(entity)
+	tp := reflect.TypeOf(v)
+
 	if tp.Kind() == reflect.Struct {
-		return newIllegalArgumentError("can't store struct values, must pass a pointer to struct")
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := tp.Name()
+		typeExpect := "*" + typeGot
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
 	}
-	if tp.Kind() == reflect.Ptr {
-		if reflect.ValueOf(entity).IsNil() {
-			return newIllegalArgumentError("can't store nil values")
-		}
-		if tp.Elem() != nil && tp.Elem().Kind() == reflect.Ptr {
-			return newIllegalArgumentError("can't store values of type %T (double pointer)", entity)
-		}
+
+	if _, ok := v.(*map[string]interface{}); ok {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := typeGot[1:] // remove '*' from the beginning
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
 	}
-	return nil
+
+	if _, ok := v.(map[string]interface{}); ok {
+		if reflect.ValueOf(v).IsNil() {
+			return newIllegalArgumentError("%s can't be a nil map", argName)
+		}
+		return nil
+	}
+
+	if tp.Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+
+	// at this point it's a pointer to some type
+	if reflect.ValueOf(v).IsNil() {
+		return newIllegalArgumentError("%s of type %T can't be nil", argName, v)
+	}
+
+	// we only allow pointer to struct
+	elem := tp.Elem()
+	if elem.Kind() == reflect.Struct {
+		return nil
+	}
+
+	if elem.Kind() == reflect.Ptr {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := typeGot[1:]
+		for len(typeExpect) > 0 && typeExpect[0] == '*' {
+			typeExpect = typeExpect[1:]
+		}
+		typeExpect = "*" + typeExpect
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+
+	}
+
+	return newIllegalArgumentError("%s can't be of type %T", argName, v)
 }
 
 // Store stores entity in the session. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
-	err := checkIsStorable(entity)
+	err := checkValidEntityIn(entity, "entity")
 	if err != nil {
 		return err
 	}
@@ -656,11 +654,21 @@ func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
 
 // StoreWithID stores  entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreWithID(entity interface{}, id string) error {
+	err := checkValidEntityIn(entity, "entity")
+	if err != nil {
+		return err
+	}
+
 	return s.storeInternal(entity, nil, id, ConcurrencyCheckAuto)
 }
 
 // StoreWithChangeVectorAndID stores entity in the session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity interface{}, changeVector *string, id string) error {
+	err := checkValidEntityIn(entity, "entity")
+	if err != nil {
+		return err
+	}
+
 	concurr := ConcurrencyCheckDisabled
 	if changeVector != nil {
 		concurr = ConcurrencyCheckForced
@@ -676,11 +684,6 @@ func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneratio
 }
 
 func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
-	err := checkIsStorable(entity)
-	if err != nil {
-		return err
-	}
-
 	value := getDocumentInfoByEntity(s.documents, entity)
 	if value != nil {
 		value.changeVector = firstNonNilString(changeVector, value.changeVector)

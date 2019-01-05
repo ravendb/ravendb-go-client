@@ -150,7 +150,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	}
 
 	urls := documentStore.GetUrls()
-	store := ravendb.NewDocumentStoreWithUrlsAndDatabase(urls, name)
+	store := ravendb.NewDocumentStoreWithURLsAndDatabase(urls, name)
 
 	if secured {
 		store.SetCertificate(getTestClientCertificate())
