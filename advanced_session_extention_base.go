@@ -8,7 +8,7 @@ type AdvancedSessionExtentionBase struct {
 	documentStore       *IDocumentStore
 	deferredCommandsMap map[idTypeAndName]ICommandData
 
-	deletedEntities *ObjectSet
+	deletedEntities *objectSet
 	documentsByID   *documentsByID
 }
 

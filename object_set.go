@@ -1,6 +1,6 @@
 package ravendb
 
-// TODO: ObjectSet is only used for deletedEntities and probably
+// TODO: objectSet is only used for deletedEntities and probably
 // doesn't need to be a set i.e. duplicates are ok
 
 // remove duplicate objects from a. It's somewhat expensive O(n^2) but
@@ -35,29 +35,29 @@ func removeDuplicatesFromObjectSet(a []interface{}) []interface{} {
 
 // TODO: possibly use []interface{} to be more efficient, assuming this doesn't
 // grow to large number of items
-type ObjectSet struct {
+type objectSet struct {
 	items map[interface{}]struct{}
 }
 
-func NewObjectSet() *ObjectSet {
-	return &ObjectSet{
+func newObjectSet() *objectSet {
+	return &objectSet{
 		items: map[interface{}]struct{}{},
 	}
 }
 
-func (s *ObjectSet) add(o interface{}) {
+func (s *objectSet) add(o interface{}) {
 	s.items[o] = struct{}{}
 }
 
-func (s *ObjectSet) remove(o interface{}) {
+func (s *objectSet) remove(o interface{}) {
 	delete(s.items, o)
 }
 
-func (s *ObjectSet) contains(o interface{}) bool {
+func (s *objectSet) contains(o interface{}) bool {
 	_, ok := s.items[o]
 	return ok
 }
 
-func (s *ObjectSet) clear() {
+func (s *objectSet) clear() {
 	s.items = map[interface{}]struct{}{}
 }

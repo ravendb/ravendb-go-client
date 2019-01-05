@@ -21,7 +21,7 @@ func newClientSessionID() int {
 // in memory
 type InMemoryDocumentSessionOperations struct {
 	_clientSessionID            int
-	deletedEntities             *ObjectSet
+	deletedEntities             *objectSet
 	_requestExecutor            *RequestExecutor
 	_operationExecutor          *OperationExecutor
 	pendingLazyOperations       []ILazyOperation
@@ -90,7 +90,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
 		_clientSessionID:              clientSessionID,
-		deletedEntities:               NewObjectSet(),
+		deletedEntities:               newObjectSet(),
 		_requestExecutor:              re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
