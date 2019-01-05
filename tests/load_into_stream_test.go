@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,7 +39,7 @@ func loadIntoStreamCanLoadByIdsIntoStream(t *testing.T, driver *RavenTestDriver)
 		names := []string{"Aviv", "Maxim", "Michael"}
 
 		for _, v := range a {
-			v2 := v.(ravendb.ObjectNode)
+			v2 := v.(map[string]interface{})
 			s, _ := ravendb.JsonGetAsText(v2, "firstName")
 			assert.True(t, stringArrayContains(names, s))
 		}
@@ -77,7 +77,7 @@ func loadIntoStreamCanLoadStartingWithIntoStream(t *testing.T, driver *RavenTest
 
 		names := []string{"Aviv", "Iftah", "Tal", "Maxim", "Karmel", "Grisha", "Michael"}
 		for _, v := range a {
-			v2 := v.(ravendb.ObjectNode)
+			v2 := v.(map[string]interface{})
 			s, _ := ravendb.JsonGetAsText(v2, "firstName")
 			assert.True(t, stringArrayContains(names, s))
 		}

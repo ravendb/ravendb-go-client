@@ -112,7 +112,7 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 	{
 		session := openSessionMust(t, store)
 
-		var jsonDoc ravendb.ObjectNode
+		var jsonDoc map[string]interface{}
 		err = session.Load(&jsonDoc, "NewItem/3")
 		assert.NoError(t, err)
 		assert.Equal(t, jsonDoc["copiedValue"], float64(1))
