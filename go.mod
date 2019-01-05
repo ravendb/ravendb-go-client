@@ -1,6 +1,7 @@
 module github.com/ravendb/ravendb-go-client
 
 require (
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/elazarl/goproxy v0.0.0-20181003060214-f58a169a71a5
 	github.com/golang/tools v0.0.0-20181210225255-6a3e9aa2ab77 // indirect
 	github.com/gorilla/websocket v1.4.0
@@ -11,4 +12,5 @@ require (
 	github.com/stretchr/testify v1.2.2
 	gitlab.com/opennota/check v0.0.0-20180912080620-88db195993f8 // indirect
 	golang.org/x/tools v0.0.0-20181221235234-d00ac6d27372 // indirect
+	honnef.co/go/tools v0.0.0-20190104064624-c51f1e51d5a3 // indirect
 )

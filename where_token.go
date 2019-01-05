@@ -172,25 +172,25 @@ func (t *whereToken) writeTo(writer *strings.Builder) {
 	}
 
 	switch t.whereOperator {
-	case WhereOperator_SEARCH:
+	case WhereOperatorSearch:
 		writer.WriteString("search(")
-	case WhereOperator_LUCENE:
+	case WhereOperatorLucene:
 		writer.WriteString("lucene(")
-	case WhereOperator_STARTS_WITH:
+	case WhereOperatorStartsWith:
 		writer.WriteString("startsWith(")
-	case WhereOperator_ENDS_WITH:
+	case WhereOperatorEndsWith:
 		writer.WriteString("endsWith(")
-	case WhereOperator_EXISTS:
+	case WhereOperatorExists:
 		writer.WriteString("exists(")
-	case WhereOperator_SPATIAL_WITHIN:
+	case WhereOperatorSpatialWithin:
 		writer.WriteString("spatial.within(")
-	case WhereOperator_SPATIAL_CONTAINS:
+	case WhereOperatorSpatialContains:
 		writer.WriteString("spatial.contains(")
-	case WhereOperator_SPATIAL_DISJOINT:
+	case WhereOperatorSpatialDisjoint:
 		writer.WriteString("spatial.disjoint(")
-	case WhereOperator_SPATIAL_INTERSECTS:
+	case WhereOperatorSpatialIntersects:
 		writer.WriteString("spatial.intersects(")
-	case WhereOperator_REGEX:
+	case WhereOperatorRegex:
 		writer.WriteString("regex(")
 	}
 
@@ -224,17 +224,17 @@ func (t *whereToken) writeInnerWhere(writer *strings.Builder) {
 	writeQueryTokenField(writer, t.fieldName)
 
 	switch t.whereOperator {
-	case WhereOperator_EQUALS:
+	case WhereOperatorEquals:
 		writer.WriteString(" = ")
-	case WhereOperator_NOT_EQUALS:
+	case WhereOperatorNotEquals:
 		writer.WriteString(" != ")
-	case WhereOperator_GREATER_THAN:
+	case WhereOperatorGreaterThan:
 		writer.WriteString(" > ")
-	case WhereOperator_GREATER_THAN_OR_EQUAL:
+	case WhereOperatorGreaterThanOrEqual:
 		writer.WriteString(" >= ")
-	case WhereOperator_LESS_THAN:
+	case WhereOperatorLessThan:
 		writer.WriteString(" < ")
-	case WhereOperator_LESS_THAN_OR_EQUAL:
+	case WhereOperatorLessThanOrEqual:
 		writer.WriteString(" <= ")
 	default:
 		t.specialOperator(writer)
@@ -251,33 +251,33 @@ func (t *whereToken) specialOperator(writer *strings.Builder) {
 	options := t.options
 	parameterName := t.parameterName
 	switch t.whereOperator {
-	case WhereOperator_IN:
+	case WhereOperatorIn:
 		writer.WriteString(" in ($")
 		writer.WriteString(parameterName)
 		writer.WriteString(")")
-	case WhereOperator_ALL_IN:
+	case WhereOperatorAllIn:
 		writer.WriteString(" all in ($")
 		writer.WriteString(parameterName)
 		writer.WriteString(")")
-	case WhereOperator_BETWEEN:
+	case WhereOperatorBetween:
 		writer.WriteString(" between $")
 		writer.WriteString(options.fromParameterName)
 		writer.WriteString(" and $")
 		writer.WriteString(options.toParameterName)
-	case WhereOperator_SEARCH:
+	case WhereOperatorSearch:
 		writer.WriteString(", $")
 		writer.WriteString(parameterName)
 		if options.searchOperator == SearchOperator_AND {
 			writer.WriteString(", and")
 		}
 		writer.WriteString(")")
-	case WhereOperator_LUCENE, WhereOperator_STARTS_WITH, WhereOperator_ENDS_WITH, WhereOperator_REGEX:
+	case WhereOperatorLucene, WhereOperatorStartsWith, WhereOperatorEndsWith, WhereOperatorRegex:
 		writer.WriteString(", $")
 		writer.WriteString(parameterName)
 		writer.WriteString(")")
-	case WhereOperator_EXISTS:
+	case WhereOperatorExists:
 		writer.WriteString(")")
-	case WhereOperator_SPATIAL_WITHIN, WhereOperator_SPATIAL_CONTAINS, WhereOperator_SPATIAL_DISJOINT, WhereOperator_SPATIAL_INTERSECTS:
+	case WhereOperatorSpatialWithin, WhereOperatorSpatialContains, WhereOperatorSpatialDisjoint, WhereOperatorSpatialIntersects:
 		writer.WriteString(", ")
 		options.whereShape.writeTo(writer)
 
