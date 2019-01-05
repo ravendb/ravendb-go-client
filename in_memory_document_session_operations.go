@@ -742,8 +742,8 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity int
 	return newNonUniqueObjectError("Attempted to associate a different object with id '" + id + "'.")
 }
 
-func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*SaveChangesData, error) {
-	result := NewSaveChangesData(s)
+func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*saveChangesData, error) {
+	result := newSaveChangesData(s)
 
 	s.deferredCommands = nil
 	s.deferredCommandsMap = make(map[idTypeAndName]ICommandData)
@@ -796,7 +796,7 @@ func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(document
 	return dirty
 }
 
-func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *SaveChangesData, changes map[string][]*DocumentsChanges) error {
+func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *saveChangesData, changes map[string][]*DocumentsChanges) error {
 	for deletedEntity := range s.deletedEntities.items {
 		documentInfo := getDocumentInfoByEntity(s.documents, deletedEntity)
 		if documentInfo == nil {
@@ -814,7 +814,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			changes[documentInfo.id] = docChanges
 		} else {
 			idType := newIDTypeAndName(documentInfo.id, CommandClientAnyCommand, "")
-			command := result.GetDeferredCommandsMap()[idType]
+			command := result.deferredCommandsMap[idType]
 			if command != nil {
 				err := s.throwInvalidDeletedDocumentWithDeferredCommand(command)
 				if err != nil {
@@ -830,7 +830,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 
 				if documentInfo.entity != nil {
 					deleteDocumentInfoByEntity(&s.documents, documentInfo.entity)
-					result.AddEntity(documentInfo.entity)
+					result.addEntity(documentInfo.entity)
 				}
 
 				s.documentsByID.remove(documentInfo.id)
@@ -848,7 +848,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 			}
 
 			cmdData := NewDeleteCommandData(documentInfo.id, changeVector)
-			result.AddSessionCommandData(cmdData)
+			result.addSessionCommandData(cmdData)
 		}
 
 		if len(changes) == 0 {
@@ -858,7 +858,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *S
 	return nil
 }
 
-func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveChangesData) error {
+func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveChangesData) error {
 	for _, entityValue := range s.documents {
 		if entityValue.ignoreChanges {
 			continue
@@ -898,7 +898,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 		}
 
 		entityValue.newDocument = false
-		result.AddEntity(entityKey)
+		result.addEntity(entityKey)
 
 		if entityValue.id != "" {
 			s.documentsByID.remove(entityValue.id)
@@ -921,7 +921,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *SaveC
 			changeVector = nil // TODO: redundant
 		}
 		cmdData := NewPutCommandDataWithJSON(entityValue.id, changeVector, document)
-		result.AddSessionCommandData(cmdData)
+		result.addSessionCommandData(cmdData)
 	}
 	return nil
 }
@@ -1221,7 +1221,7 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 	return indexName, collectionName
 }
 
-type SaveChangesData struct {
+type saveChangesData struct {
 	deferredCommands    []ICommandData
 	deferredCommandsMap map[idTypeAndName]ICommandData
 	sessionCommands     []ICommandData
@@ -1229,39 +1229,19 @@ type SaveChangesData struct {
 	options             *BatchOptions
 }
 
-func NewSaveChangesData(session *InMemoryDocumentSessionOperations) *SaveChangesData {
-	return &SaveChangesData{
+func newSaveChangesData(session *InMemoryDocumentSessionOperations) *saveChangesData {
+	return &saveChangesData{
 		deferredCommands:    copyDeferredCommands(session.deferredCommands),
 		deferredCommandsMap: copyDeferredCommandsMap(session.deferredCommandsMap),
 		options:             session._saveChangesOptions,
 	}
 }
 
-func (d *SaveChangesData) GetDeferredCommands() []ICommandData {
-	return d.deferredCommands
-}
-
-func (d *SaveChangesData) GetSessionCommands() []ICommandData {
-	return d.sessionCommands
-}
-
-func (d *SaveChangesData) GetEntities() []interface{} {
-	return d.entities
-}
-
-func (d *SaveChangesData) GetOptions() *BatchOptions {
-	return d.options
-}
-
-func (d *SaveChangesData) GetDeferredCommandsMap() map[idTypeAndName]ICommandData {
-	return d.deferredCommandsMap
-}
-
-func (d *SaveChangesData) AddSessionCommandData(cmd ICommandData) {
+func (d *saveChangesData) addSessionCommandData(cmd ICommandData) {
 	d.sessionCommands = append(d.sessionCommands, cmd)
 }
 
-func (d *SaveChangesData) AddEntity(entity interface{}) {
+func (d *saveChangesData) addEntity(entity interface{}) {
 	d.entities = append(d.entities, entity)
 }
 

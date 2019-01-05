@@ -18,9 +18,9 @@ func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
 		return nil, err
 	}
 
-	b._sessionCommandsCount = len(result.GetSessionCommands())
-	result.sessionCommands = append(result.sessionCommands, result.GetDeferredCommands()...)
-	if len(result.GetSessionCommands()) == 0 {
+	b._sessionCommandsCount = len(result.sessionCommands)
+	result.sessionCommands = append(result.sessionCommands, result.deferredCommands...)
+	if len(result.sessionCommands) == 0 {
 		return nil, nil
 	}
 
@@ -29,9 +29,9 @@ func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
 		return nil, err
 	}
 
-	b._entities = result.GetEntities()
+	b._entities = result.entities
 
-	return NewBatchCommand(b._session.GetConventions(), result.GetSessionCommands(), result.GetOptions())
+	return NewBatchCommand(b._session.GetConventions(), result.sessionCommands, result.options)
 }
 
 func (b *BatchOperation) setResult(result []map[string]interface{}) {
