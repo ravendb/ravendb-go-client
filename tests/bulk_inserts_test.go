@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -115,7 +115,7 @@ func bulkInsertsTestCanModifyMetadataWithBulkInsert(t *testing.T, driver *RavenT
 	defer store.Close()
 
 	et := time.Now().Add(time.Hour * 24 * 365)
-	expirationDate := ravendb.NetISO8601UtilsFormat(et)
+	expirationDate := ravendb.Time(et).Format()
 
 	{
 		bulkInsert := store.BulkInsert()

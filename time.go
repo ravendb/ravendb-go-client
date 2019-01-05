@@ -20,7 +20,10 @@ const (
 // compatible with Ravendb server
 type Time time.Time
 
-func (t Time) MarshalJSON() ([]byte, error) {
+// Format formats time in a way that RavenDB server understands.
+// RavenDB is strict enough that a single format can't
+// produce valid string values.
+func (t Time) Format() string {
 	s := time.Time(t).Format(timeFormat)
 	// ravendb server only accepts 7 digits for fraction part but Go's
 	// formatting might remove trailing zeros, producing 6 digits
@@ -39,7 +42,24 @@ func (t Time) MarshalJSON() ([]byte, error) {
 			s = s + "Z"
 		}
 	}
+	return s
+}
 
+// ParseTime parses string time value returned by RavenDB server
+// The value can't be parsed with a single string format
+func ParseTime(s string) (time.Time, error) {
+	tt, err := time.Parse(timeFormat, s)
+	if err != nil {
+		tt, err = time.Parse(timeFormat2, s)
+		if err != nil {
+			tt, err = time.Parse(timeFormat3, s)
+		}
+	}
+	return tt, err
+}
+
+func (t Time) MarshalJSON() ([]byte, error) {
+	s := t.Format()
 	return []byte(`"` + s + `"`), nil
 }
 
@@ -51,21 +71,13 @@ func (t *Time) UnmarshalJSON(d []byte) error {
 	if s == "null" {
 		return nil
 	}
-
-	tt, err := time.Parse(timeFormat, s)
-	if err != nil {
-		tt, err = time.Parse(timeFormat2, s)
-		if err != nil {
-			tt, err = time.Parse(timeFormat3, s)
-		}
-	}
+	tt, err := ParseTime(s)
+	*t = Time(tt)
 	if err != nil {
 		// TODO: for now make it a fatal error to catch bugs early
 		must(err)
 		return err
 	}
-
-	*t = Time(tt)
 	return nil
 }
 

@@ -2,6 +2,7 @@ package tests
 
 import (
 	"testing"
+	"time"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
 
@@ -48,6 +49,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -63,6 +66,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -77,6 +82,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetMetadataFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -94,6 +101,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -108,6 +117,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetMetadataFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -125,8 +136,72 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
 	}
 
+}
+
+func goStore(t *testing.T, session *ravendb.DocumentSession) []*User {
+	var err error
+	var res []*User
+	{
+		names := []string{"John", "Mary", "Paul"}
+		for _, name := range names {
+			u := &User{}
+			u.setName(name)
+			err := session.Store(u)
+			assert.NoError(t, err)
+			res = append(res, u)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+	}
+	return res
+}
+
+func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	var users []*User
+	var lastModifiedFirst *time.Time
+	{
+		session := openSessionMust(t, store)
+		users = goStore(t, session)
+		lastModifiedFirst, err = session.GetLastModifiedFor(users[0])
+		assert.NoError(t, err)
+		assert.NotNil(t, lastModifiedFirst)
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		var u *User
+		id := users[0].ID
+		err = session.Load(&u, id)
+		assert.NoError(t, err)
+		assert.Equal(t, id, u.ID)
+		lastModified, err := session.GetLastModifiedFor(u)
+		assert.NoError(t, err)
+		assert.Equal(t, *lastModifiedFirst, *lastModified)
+
+		// check last modified changes after modification
+		u.Age = 5
+		err = session.Store(u)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		lastModified, err = session.GetLastModifiedFor(u)
+		assert.NoError(t, err)
+		diff := (*lastModified).Sub(*lastModifiedFirst)
+		assert.True(t, diff > 0)
+
+		session.Close()
+	}
 }
 
 func TestGo1(t *testing.T) {
@@ -137,4 +212,5 @@ func TestGo1(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	go1Test(t, driver)
+	goTestGetLastModifiedFor(t, driver)
 }

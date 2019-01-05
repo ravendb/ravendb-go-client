@@ -239,12 +239,26 @@ func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interfac
 	return changeVector, nil
 }
 
-// GetLastModifiedFor retursn last modified time for a given instance
-func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interface{}) (time.Time, bool) {
-	panic("NYI")
+// GetLastModifiedFor returns last modified time for a given instance
+func (s *InMemoryDocumentSessionOperations) GetLastModifiedFor(instance interface{}) (*time.Time, error) {
+	err := checkValidEntityIn(instance, "instance")
+	if err != nil {
+		return nil, err
+	}
 
-	var res time.Time
-	return res, false
+	documentInfo, err := s.getDocumentInfo(instance)
+	if err != nil {
+		return nil, err
+	}
+	lastModified, ok := jsonGetAsString(documentInfo.metadata, MetadataLastModified)
+	if !ok {
+		return nil, nil
+	}
+	t, err := ParseTime(lastModified)
+	if err != nil {
+		return nil, err
+	}
+	return &t, err
 }
 
 func getDocumentInfoByEntity(docs []*documentInfo, entity interface{}) *documentInfo {
