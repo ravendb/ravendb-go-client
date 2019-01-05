@@ -54,7 +54,7 @@ func NewGetCompareExchangeValueCommand(clazz reflect.Type, key string, conventio
 }
 
 func (c *GetCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/cmpxchg?key=" + urlEncode(c._key)
+	url := node.URL + "/databases/" + node.Database + "/cmpxchg?key=" + urlEncode(c._key)
 	return NewHttpGet(url)
 
 }

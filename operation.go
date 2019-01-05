@@ -6,7 +6,7 @@ import (
 
 type Operation struct {
 	_requestExecutor *RequestExecutor
-	//TBD private readonly Func<DatabaseChanges> _changes;
+	//TBD private readonly Func<databaseChanges> _changes;
 	_conventions *DocumentConventions
 	_id          int
 
@@ -18,7 +18,7 @@ func (o *Operation) GetID() int {
 	return o._id
 }
 
-func NewOperation(requestExecutor *RequestExecutor, changes func() *DatabaseChanges, conventions *DocumentConventions, id int) *Operation {
+func NewOperation(requestExecutor *RequestExecutor, changes func() *databaseChanges, conventions *DocumentConventions, id int) *Operation {
 	return &Operation{
 		_requestExecutor: requestExecutor,
 		//TBD _changes = changes;

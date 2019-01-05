@@ -35,7 +35,7 @@ func NewGetOperationStateCommand(conventions *DocumentConventions, id int) *GetO
 }
 
 func (c *GetOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/operations/state?id=" + strconv.Itoa(c._id)
+	url := node.URL + "/databases/" + node.Database + "/operations/state?id=" + strconv.Itoa(c._id)
 	return NewHttpGet(url)
 }
 

@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,12 +16,12 @@ func getTcpInfoTestCanGetTcpInfo(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)
-	assert.Nil(t, result.GetCertificate())
+	assert.Nil(t, result.Certificate)
 	// Note: in Java this tests for non-nil but Port is not sent
 	// in Json, so don't quite understand that. Unless Java check
 	// is bogus
-	assert.Equal(t, 0, result.GetPort())
-	assert.NotEmpty(t, result.GetUrl())
+	assert.Equal(t, 0, result.Port)
+	assert.NotEmpty(t, result.URL)
 }
 
 func TestGetTcpInfo(t *testing.T) {

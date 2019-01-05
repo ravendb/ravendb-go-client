@@ -33,7 +33,7 @@ func NewPutDocumentCommand(id string, changeVector *string, document map[string]
 }
 
 func (c *PutDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/docs?id=" + urlEncode(c._id)
+	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlEncode(c._id)
 
 	d, err := jsonMarshal(c._document)
 	if err != nil {

@@ -28,7 +28,7 @@ func NewStreamCommand(url string) *StreamCommand {
 }
 
 func (c *StreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/" + c._url
+	url := node.URL + "/databases/" + node.Database + "/" + c._url
 	return NewHttpGet(url)
 }
 

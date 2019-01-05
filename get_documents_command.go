@@ -64,7 +64,7 @@ func NewGetDocumentsCommandFull(startWith string, startAfter string, matches str
 }
 
 func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/docs?"
+	url := node.URL + "/databases/" + node.Database + "/docs?"
 	if c._start > 0 {
 		url += "&start=" + strconv.Itoa(c._start)
 	}
@@ -79,7 +79,7 @@ func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, er
 
 	if c._startWith != "" {
 		url += "&startsWith="
-		url += UrlUtils_escapeDataString(c._startWith)
+		url += urlUtilsEscapeDataString(c._startWith)
 
 		if c._matches != "" {
 			url += "&matches="
@@ -104,7 +104,7 @@ func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, er
 
 	if c._id != "" {
 		url += "&id="
-		url += UrlUtils_escapeDataString(c._id)
+		url += urlUtilsEscapeDataString(c._id)
 	} else if len(c._ids) > 0 {
 		return c.prepareRequestWithMultipleIds(url)
 	}
@@ -126,7 +126,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 
 	if isGet {
 		for _, s := range uniqueIds {
-			url += "&id=" + UrlUtils_escapeDataString(s)
+			url += "&id=" + urlUtilsEscapeDataString(s)
 		}
 		return NewHttpGet(url)
 	}

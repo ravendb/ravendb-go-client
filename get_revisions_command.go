@@ -51,15 +51,15 @@ func (c *GetRevisionsCommand) GetChangeVectors() []string {
 }
 
 func (c *GetRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/revisions?"
+	url := node.URL + "/databases/" + node.Database + "/revisions?"
 
 	if c._id != "" {
-		url += "&id=" + UrlUtils_escapeDataString(c._id)
+		url += "&id=" + urlUtilsEscapeDataString(c._id)
 	} else if c._changeVector != "" {
-		url += "&changeVector=" + UrlUtils_escapeDataString(c._changeVector)
+		url += "&changeVector=" + urlUtilsEscapeDataString(c._changeVector)
 	} else if c._changeVectors != nil {
 		for _, changeVector := range c._changeVectors {
-			url += "&changeVector=" + UrlUtils_escapeDataString(changeVector)
+			url += "&changeVector=" + urlUtilsEscapeDataString(changeVector)
 		}
 	}
 

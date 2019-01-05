@@ -37,7 +37,7 @@ func NewGetClientConfigurationCommand() *GetClientConfigurationCommand {
 
 func (c *GetClientConfigurationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/configuration/client"
+	url := node.URL + "/databases/" + node.Database + "/configuration/client"
 
 	return NewHttpGet(url)
 }

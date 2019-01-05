@@ -53,7 +53,7 @@ func (b *FacetBuilder) ByField(fieldName string) IFacetOperations {
 		fieldName = "'" + fieldName + "'"
 	}
 
-	b._default.SetFieldName(fieldName)
+	b._default.FieldName = fieldName
 
 	return b
 }
@@ -63,7 +63,7 @@ func (b *FacetBuilder) AllResults() IFacetOperations {
 		b._default = NewFacet()
 	}
 
-	b._default.SetFieldName("")
+	b._default.FieldName = ""
 	return b
 }
 

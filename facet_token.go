@@ -97,7 +97,7 @@ func createFacetToken(facetSetupDocumentID string) *facetToken {
 
 func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
-	token := NewFacetTokenAll(facet.GetFieldName(), facet.GetDisplayFieldName(), nil, optionsParameterName)
+	token := NewFacetTokenAll(facet.FieldName, facet.GetDisplayFieldName(), nil, optionsParameterName)
 
 	applyAggregations(facet, token)
 	return token

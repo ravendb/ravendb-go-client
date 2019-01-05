@@ -38,7 +38,7 @@ func NewGetCollectionStatisticsCommand() *GetCollectionStatisticsCommand {
 }
 
 func (c *GetCollectionStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/collections/stats"
+	url := node.URL + "/databases/" + node.Database + "/collections/stats"
 	return NewHttpGet(url)
 }
 

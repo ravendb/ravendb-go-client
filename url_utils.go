@@ -3,7 +3,7 @@ package ravendb
 import "net/url"
 
 // TODO: this is more complicated in Java code. Not sure if warranted
-func UrlUtils_escapeDataString(stringToEscape string) string {
+func urlUtilsEscapeDataString(stringToEscape string) string {
 	if len(stringToEscape) == 0 {
 		return stringToEscape
 	}

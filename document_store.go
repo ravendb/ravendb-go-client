@@ -27,8 +27,8 @@ type DocumentStore struct {
 	_certificate *KeyStore
 	database     string // name of the database
 
-	// maps database name to DatabaseChanges. Must be protected with mutex
-	_databaseChanges map[string]*DatabaseChanges
+	// maps database name to databaseChanges. Must be protected with mutex
+	_databaseChanges map[string]*databaseChanges
 
 	// Note: access must be protected with mu
 	// Lazy.Value is **EvictItemsFromCacheBasedOnChanges
@@ -189,7 +189,7 @@ func NewDocumentStore() *DocumentStore {
 	s := &DocumentStore{
 		requestsExecutors:       map[string]*RequestExecutor{},
 		conventions:             NewDocumentConventions(),
-		_databaseChanges:        map[string]*DatabaseChanges{},
+		_databaseChanges:        map[string]*databaseChanges{},
 		_aggressiveCacheChanges: map[string]*Lazy{},
 	}
 	return s
@@ -344,9 +344,9 @@ func (s *DocumentStore) GetRequestExecutor(database string) *RequestExecutor {
 	}
 
 	if !s.GetConventions().IsDisableTopologyUpdates() {
-		executor = RequestExecutor_create(s.GetUrls(), s.GetDatabase(), s.GetCertificate(), s.GetConventions())
+		executor = RequestExecutorCreate(s.GetUrls(), s.GetDatabase(), s.GetCertificate(), s.GetConventions())
 	} else {
-		executor = RequestExecutor_createForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], s.GetDatabase(), s.GetCertificate(), s.GetConventions())
+		executor = RequestExecutorCreateForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], s.GetDatabase(), s.GetCertificate(), s.GetConventions())
 	}
 
 	s.mu.Lock()
@@ -416,11 +416,11 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 	return res
 }
 
-func (s *DocumentStore) Changes() *DatabaseChanges {
+func (s *DocumentStore) Changes() *databaseChanges {
 	return s.ChangesWithDatabaseName("")
 }
 
-func (s *DocumentStore) ChangesWithDatabaseName(database string) *DatabaseChanges {
+func (s *DocumentStore) ChangesWithDatabaseName(database string) *databaseChanges {
 	s.assertInitialized()
 
 	if database == "" {
@@ -442,14 +442,14 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) *DatabaseChange
 	return changes
 }
 
-func (s *DocumentStore) createDatabaseChanges(database string) *DatabaseChanges {
+func (s *DocumentStore) createDatabaseChanges(database string) *databaseChanges {
 	onDispose := func() {
 		s.mu.Lock()
 		delete(s._databaseChanges, database)
 		s.mu.Unlock()
 	}
 	re := s.GetRequestExecutor(database)
-	return NewDatabaseChanges(re, database, onDispose)
+	return newDatabaseChanges(re, database, onDispose)
 }
 
 func (s *DocumentStore) GetLastDatabaseChangesStateError() error {

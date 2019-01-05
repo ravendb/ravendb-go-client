@@ -1,8 +1,9 @@
 package tests
 
 import (
-	"github.com/ravendb/ravendb-go-client"
 	"net/http"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 var (
@@ -37,7 +38,7 @@ func NewCreateSampleDataCommand(conventions *ravendb.DocumentConventions) *Creat
 }
 
 func (c *CreateSampleDataCommand) CreateRequest(node *ravendb.ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/studio/sample-data"
+	url := node.URL + "/databases/" + node.Database + "/studio/sample-data"
 
 	return ravendb.NewHttpPost(url, nil)
 }

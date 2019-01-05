@@ -30,7 +30,7 @@ func NewGetNextOperationIDCommand() *GetNextOperationIDCommand {
 
 // CreateRequest creates a new request
 func (c *GetNextOperationIDCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/operations/next-operation-id"
+	url := node.URL + "/databases/" + node.Database + "/operations/next-operation-id"
 	return NewHttpGet(url)
 }
 

@@ -52,6 +52,6 @@ func NewPutClientConfigurationCommand(conventions *DocumentConventions, configur
 }
 
 func (c *PutClientConfigurationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/admin/configuration/client"
+	url := node.URL + "/databases/" + node.Database + "/admin/configuration/client"
 	return NewHttpPut(url, c.configuration)
 }

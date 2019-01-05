@@ -13,22 +13,6 @@ type ExplainQueryResult struct {
 	Reason string `json:"Reason"`
 }
 
-func (r *ExplainQueryResult) GetIndex() string {
-	return r.Index
-}
-
-func (r *ExplainQueryResult) SetIndex(index string) {
-	r.Index = index
-}
-
-func (r *ExplainQueryResult) GetReason() string {
-	return r.Reason
-}
-
-func (r *ExplainQueryResult) SetReason(reason string) {
-	r.Reason = reason
-}
-
 type ExplainQueryCommand struct {
 	RavenCommandBase
 
@@ -52,7 +36,7 @@ func NewExplainQueryCommand(conventions *DocumentConventions, indexQuery *IndexQ
 }
 
 func (c *ExplainQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/queries?debug=explain"
+	url := node.URL + "/databases/" + node.Database + "/queries?debug=explain"
 
 	v := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)
 	d, err := jsonMarshal(v)

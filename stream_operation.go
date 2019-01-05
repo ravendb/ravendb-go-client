@@ -38,19 +38,19 @@ func (o *StreamOperation) createRequest(startsWith string, matches string, start
 	uri := "streams/docs?"
 
 	if startsWith != "" {
-		uri += "startsWith=" + UrlUtils_escapeDataString(startsWith) + "&"
+		uri += "startsWith=" + urlUtilsEscapeDataString(startsWith) + "&"
 	}
 
 	if matches != "" {
-		uri += "matches=" + UrlUtils_escapeDataString(matches) + "&"
+		uri += "matches=" + urlUtilsEscapeDataString(matches) + "&"
 	}
 
 	if exclude != "" {
-		uri += "exclude=" + UrlUtils_escapeDataString(exclude) + "&"
+		uri += "exclude=" + urlUtilsEscapeDataString(exclude) + "&"
 	}
 
 	if startAfter != "" {
-		uri += "startAfter=" + UrlUtils_escapeDataString(startAfter) + "&"
+		uri += "startAfter=" + urlUtilsEscapeDataString(startAfter) + "&"
 	}
 
 	if start != 0 {

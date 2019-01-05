@@ -25,7 +25,7 @@ func NewKillOperationCommand(id string) *KillOperationCommand {
 }
 
 func (c *KillOperationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/operations/kill?id=" + c._id
+	url := node.URL + "/databases/" + node.Database + "/operations/kill?id=" + c._id
 
 	return NewHttpPost(url, nil)
 }

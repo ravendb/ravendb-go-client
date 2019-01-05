@@ -74,7 +74,7 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 }
 
 func (c *DeleteDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/admin/databases"
+	url := node.URL + "/admin/databases"
 	return NewHttpDelete(url, c.parameters)
 }
 

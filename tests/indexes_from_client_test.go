@@ -424,8 +424,8 @@ func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 
 	assert.Equal(t, len(explanations), 1)
 	explanation := explanations[0]
-	assert.NotEmpty(t, explanation.GetIndex())
-	assert.NotEmpty(t, explanation.GetReason())
+	assert.NotEmpty(t, explanation.Index)
+	assert.NotEmpty(t, explanation.Reason)
 }
 
 func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {

@@ -59,7 +59,7 @@ type PatchCommand struct {
 	RavenCommandBase
 
 	// TODO: unused
-	//_conventions                     *DocumentConventions
+	//conventions                     *DocumentConventions
 
 	_id                              string
 	_changeVector                    *string
@@ -98,7 +98,7 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 
 // CreateRequest creates http request
 func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/docs?id=" + UrlUtils_escapeDataString(c._id)
+	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlUtilsEscapeDataString(c._id)
 
 	if c._skipPatchIfChangeVectorMismatch {
 		url += "&skipPatchIfChangeVectorMismatch=true"

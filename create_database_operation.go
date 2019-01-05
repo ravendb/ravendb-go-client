@@ -61,7 +61,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 
 // CreateRequest creates http request for the command
 func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/admin/databases?name=" + c.databaseName
+	url := node.URL + "/admin/databases?name=" + c.databaseName
 	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
 
 	js, err := jsonMarshal(c.databaseRecord)

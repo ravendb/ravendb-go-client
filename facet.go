@@ -5,21 +5,13 @@ var _ FacetBase = &Facet{}
 type Facet struct {
 	FacetBaseCommon
 
-	fieldName string
+	FieldName string
 }
 
 func NewFacet() *Facet {
 	return &Facet{
 		FacetBaseCommon: NewFacetBaseCommon(),
 	}
-}
-
-func (f *Facet) GetFieldName() string {
-	return f.fieldName
-}
-
-func (f *Facet) SetFieldName(fieldName string) {
-	f.fieldName = fieldName
 }
 
 func (f *Facet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {

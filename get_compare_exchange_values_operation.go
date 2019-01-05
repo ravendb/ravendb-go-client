@@ -71,15 +71,15 @@ func NewGetCompareExchangeValuesCommand(operation *GetCompareExchangeValuesOpera
 }
 
 func (c *GetCompareExchangeValuesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/cmpxchg?"
+	url := node.URL + "/databases/" + node.Database + "/cmpxchg?"
 
 	if c._operation._keys != nil {
 		for _, key := range c._operation._keys {
-			url += "&key=" + UrlUtils_escapeDataString(key)
+			url += "&key=" + urlUtilsEscapeDataString(key)
 		}
 	} else {
 		if !stringIsEmpty(c._operation._startWith) {
-			url += "&startsWith=" + UrlUtils_escapeDataString(c._operation._startWith)
+			url += "&startsWith=" + urlUtilsEscapeDataString(c._operation._startWith)
 		}
 
 		if c._operation._start >= 0 {

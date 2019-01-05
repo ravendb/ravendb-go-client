@@ -36,8 +36,8 @@ func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bo
 		return false
 	}
 
-	stateEtag := s._state.topology.GetEtag()
-	topologyEtag := topology.GetEtag()
+	stateEtag := s._state.topology.Etag
+	topologyEtag := topology.Etag
 
 	if stateEtag >= topologyEtag && !forceUpdate {
 		return false
@@ -54,7 +54,7 @@ func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
 	serverNodes := state.nodes
 	n := min(len(serverNodes), len(stateFailures))
 	for i := 0; i < n; i++ {
-		if stateFailures[i].get() == 0 && serverNodes[i].GetUrl() != "" {
+		if stateFailures[i].get() == 0 && serverNodes[i].URL != "" {
 			return NewCurrentIndexAndNode(i, serverNodes[i]), nil
 		}
 	}
@@ -73,16 +73,16 @@ func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*Curr
 
 func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, error) {
 	state := s._state
-	index := sessionId % len(state.topology.GetNodes())
+	index := sessionId % len(state.topology.Nodes)
 
 	for i := index; i < len(state.failures); i++ {
-		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNodeRoleMember {
+		if state.failures[i].get() == 0 && state.nodes[i].ServerRole == ServerNodeRoleMember {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
 
 	for i := 0; i < index; i++ {
-		if state.failures[i].get() == 0 && state.nodes[i].GetServerRole() == ServerNodeRoleMember {
+		if state.failures[i].get() == 0 && state.nodes[i].ServerRole == ServerNodeRoleMember {
 			return NewCurrentIndexAndNode(i, state.nodes[i]), nil
 		}
 	}
@@ -92,7 +92,7 @@ func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, 
 
 func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 	state := s._state
-	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].GetServerRole() == ServerNodeRoleMember {
+	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].ServerRole == ServerNodeRoleMember {
 		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest]), nil
 	}
 
@@ -221,7 +221,7 @@ type NodeSelectorState struct {
 }
 
 func NewNodeSelectorState(currentNodeIndex int, topology *Topology) *NodeSelectorState {
-	nodes := topology.GetNodes()
+	nodes := topology.Nodes
 	res := &NodeSelectorState{
 		topology:         topology,
 		currentNodeIndex: currentNodeIndex,

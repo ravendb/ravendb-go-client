@@ -32,7 +32,7 @@ func NewMultiGetCommand(cache *HttpCache, commands []*GetRequest) *MultiGetComma
 }
 
 func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	c._baseUrl = node.GetUrl() + "/databases/" + node.GetDatabase()
+	c._baseUrl = node.URL + "/databases/" + node.Database
 
 	m := map[string]interface{}{}
 	var requests []map[string]interface{}
@@ -49,7 +49,7 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 			for k, v := range command.headers {
 				headers[k] = v
 			}
-			v["Url"] = "/databases/" + node.GetDatabase() + command.url
+			v["Url"] = "/databases/" + node.Database + command.url
 			v["Query"] = command.query
 			if command.method == "" {
 				v["Method"] = nil

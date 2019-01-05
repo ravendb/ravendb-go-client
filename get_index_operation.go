@@ -49,7 +49,7 @@ func NewGetIndexCommand(indexName string) *GetIndexCommand {
 }
 
 func (c *GetIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes?name=" + UrlUtils_escapeDataString(c._indexName)
+	url := node.URL + "/databases/" + node.Database + "/indexes?name=" + urlUtilsEscapeDataString(c._indexName)
 
 	return NewHttpGet(url)
 }

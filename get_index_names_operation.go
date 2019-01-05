@@ -54,7 +54,7 @@ func NewGetIndexNamesCommand(start int, pageSize int) *GetIndexNamesCommand {
 func (c *GetIndexNamesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	start := strconv.Itoa(c._start)
 	pageSize := strconv.Itoa(c._pageSize)
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes?start=" + start + "&pageSize=" + pageSize + "&namesOnly=true"
+	url := node.URL + "/databases/" + node.Database + "/indexes?start=" + start + "&pageSize=" + pageSize + "&namesOnly=true"
 
 	return NewHttpGet(url)
 }

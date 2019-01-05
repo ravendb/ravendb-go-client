@@ -63,7 +63,7 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 
 // CreateRequest creates http request for the command
 func (c *SetIndexesPriorityCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + "/indexes/set-priority"
+	url := node.URL + "/databases/" + node.Database + "/indexes/set-priority"
 
 	return NewHttpPost(url, c._parameters)
 }

@@ -43,7 +43,7 @@ func (o *LazyLoadOperation) createRequest() *GetRequest {
 
 	for _, id := range idsToCheckOnServer {
 		queryBuilder += "&id="
-		queryBuilder += UrlUtils_escapeDataString(id)
+		queryBuilder += urlUtilsEscapeDataString(id)
 	}
 
 	hasItems := len(idsToCheckOnServer) > 0

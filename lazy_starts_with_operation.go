@@ -47,9 +47,9 @@ func (o *LazyStartsWithOperation) createRequest() *GetRequest {
 		pageSize = 25
 	}
 	q := fmt.Sprintf("?startsWith=%s&matches=%s&exclude=%s&start=%d&pageSize=%d&startAfter=%s",
-		UrlUtils_escapeDataString(o.idPrefix),
-		UrlUtils_escapeDataString(o.matches),
-		UrlUtils_escapeDataString(o.exclude),
+		urlUtilsEscapeDataString(o.idPrefix),
+		urlUtilsEscapeDataString(o.matches),
+		urlUtilsEscapeDataString(o.exclude),
 		o.start,
 		pageSize,
 		o.startAfter)

@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,13 +18,13 @@ func getTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver) {
 	result := command.Result
 	assert.NotNil(t, result)
 
-	assert.NotEqual(t, result.GetEtag(), "")
-	assert.Equal(t, len(result.GetNodes()), 1)
-	serverNode := result.GetNodes()[0]
-	assert.Equal(t, serverNode.GetUrl(), store.GetUrls()[0])
-	assert.Equal(t, serverNode.GetDatabase(), store.GetDatabase())
-	assert.Equal(t, serverNode.GetClusterTag(), "A")
-	assert.Equal(t, serverNode.GetServerRole(), ravendb.ServerNodeRoleMember)
+	assert.NotEqual(t, result.Etag, "")
+	assert.Equal(t, len(result.Nodes), 1)
+	serverNode := result.Nodes[0]
+	assert.Equal(t, serverNode.URL, store.GetUrls()[0])
+	assert.Equal(t, serverNode.Database, store.GetDatabase())
+	assert.Equal(t, serverNode.ClusterTag, "A")
+	assert.Equal(t, serverNode.ServerRole, ravendb.ServerNodeRoleMember)
 }
 
 func TestGetTopology(t *testing.T) {

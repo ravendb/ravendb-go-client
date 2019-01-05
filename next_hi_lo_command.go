@@ -47,7 +47,7 @@ func (c *NextHiLoCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 		date = (*c._lastRangeAt).Format(timeFormat)
 	}
 	path := "/hilo/next?tag=" + c._tag + "&lastBatchSize=" + strconv.Itoa(c._lastBatchSize) + "&lastRangeAt=" + date + "&identityPartsSeparator=" + c._identityPartsSeparator + "&lastMax=" + strconv.Itoa(c._lastRangeMax)
-	url := node.GetUrl() + "/databases/" + node.GetDatabase() + path
+	url := node.URL + "/databases/" + node.Database + path
 	return NewHttpGet(url)
 }
 
