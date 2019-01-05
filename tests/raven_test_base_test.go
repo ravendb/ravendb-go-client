@@ -47,12 +47,12 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 
 func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int) (*ravendb.ConfigureRevisionsOperationResult, error) {
 
-	revisionsConfiguration := ravendb.NewRevisionsConfiguration()
+	revisionsConfiguration := &ravendb.RevisionsConfiguration{}
 	defaultCollection := &ravendb.RevisionsCollectionConfiguration{}
 	defaultCollection.PurgeOnDelete = purgeOnDelete
 	defaultCollection.MinimumRevisionsToKeep = minimumRevisionsToKeep
 
-	revisionsConfiguration.SetDefaultConfig(defaultCollection)
+	revisionsConfiguration.DefaultConfig = defaultCollection
 	operation := ravendb.NewConfigureRevisionsOperation(revisionsConfiguration)
 
 	err := store.Maintenance().Send(operation)
