@@ -521,10 +521,31 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 	return entity, nil
 }
 
+// return an error if entity cannot be deleted e.g. because it's a struct
+func checkIsDeletable(entity interface{}) error {
+	if entity == nil {
+		return errors.New("can't delete nil values")
+	}
+	tp := reflect.TypeOf(entity)
+	if tp.Kind() == reflect.Struct {
+		return errors.New("can't delete struct values, must pass a pointer to struct")
+	}
+	if tp.Kind() == reflect.Ptr {
+		if reflect.ValueOf(entity).IsNil() {
+			return errors.New("can't delete nil values")
+		}
+		if tp.Elem() != nil && tp.Elem().Kind() == reflect.Ptr {
+			return fmt.Errorf("can't delete values of type %T (double pointer)", entity)
+		}
+	}
+	return nil
+}
+
 // DeleteEntity marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) error {
-	if entity == nil {
-		return newIllegalArgumentError("Entity cannot be null")
+	err := checkIsDeletable(entity)
+	if err != nil {
+		return err
 	}
 
 	value := getDocumentInfoByEntity(s.documents, entity)
@@ -574,8 +595,33 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	return nil
 }
 
+// return an error if entity cannot be stored e.g. because it's a struct
+func checkIsStorable(entity interface{}) error {
+	if entity == nil {
+		return errors.New("can't store nil values")
+	}
+	tp := reflect.TypeOf(entity)
+	if tp.Kind() == reflect.Struct {
+		return errors.New("can't store struct values, must pass a pointer to struct")
+	}
+	if tp.Kind() == reflect.Ptr {
+		if reflect.ValueOf(entity).IsNil() {
+			return errors.New("can't store nil values")
+		}
+		if tp.Elem() != nil && tp.Elem().Kind() == reflect.Ptr {
+			return fmt.Errorf("can't store values of type %T (double pointer)", entity)
+		}
+	}
+	return nil
+}
+
 // Store stores entity in the session. The entity will be saved when SaveChanges is called.
 func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
+	err := checkIsStorable(entity)
+	if err != nil {
+		return err
+	}
+
 	_, hasID := s.generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
 	concu := ConcurrencyCheckAuto
 	if !hasID {
@@ -606,8 +652,9 @@ func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneratio
 }
 
 func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
-	if nil == entity {
-		return newIllegalArgumentError("Entity cannot be null")
+	err := checkIsStorable(entity)
+	if err != nil {
+		return err
 	}
 
 	value := getDocumentInfoByEntity(s.documents, entity)
