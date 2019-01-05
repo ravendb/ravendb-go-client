@@ -16,10 +16,10 @@ func NewDocumentSessionAttachmentsBase(session *InMemoryDocumentSessionOperation
 	return res
 }
 
-// TODO: support **struct in addition to *struct or return good error message
 func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*AttachmentName, error) {
-	if entity == nil {
-		return nil, nil
+	err := checkValidEntityIn(entity, "entity")
+	if err != nil {
+		return nil, err
 	}
 	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
@@ -53,7 +53,15 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 // contentType is optional
 // TODO: maybe split into Store() and storeWithContentType()
 func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, stream io.Reader, contentType string) error {
-	// TODO: validate args
+	if documentID == "" {
+		return newIllegalArgumentError("documentID can't be an empty string")
+	}
+	if name == "" {
+		return newIllegalArgumentError("name can't be an empty string")
+	}
+	if stream == nil {
+		return newIllegalArgumentError("stream can't be nil")
+	}
 
 	deferredCommandsMap := s.deferredCommandsMap
 
