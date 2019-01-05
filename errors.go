@@ -11,6 +11,14 @@ func (e *errorBase) Error() string {
 	return e.ErrorStr
 }
 
+func (e *errorBase) setErrorf(format string, args ...interface{}) {
+	if len(args) == 0 {
+		e.ErrorStr = format
+		return
+	}
+	e.ErrorStr = fmt.Sprintf(format, args...)
+}
+
 // RuntimeError represents generic runtime error
 type RuntimeError struct {
 	errorBase
@@ -18,7 +26,7 @@ type RuntimeError struct {
 
 func newRuntimeError(format string, args ...interface{}) *RuntimeError {
 	res := &RuntimeError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -29,7 +37,7 @@ type RavenError struct {
 
 func newRavenError(format string, args ...interface{}) *RavenError {
 	res := &RavenError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -66,7 +74,7 @@ type UnsupportedOperationError struct {
 
 func newUnsupportedOperationError(format string, args ...interface{}) *UnsupportedOperationError {
 	res := &UnsupportedOperationError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -77,7 +85,7 @@ type IllegalStateError struct {
 
 func newIllegalStateError(format string, args ...interface{}) *IllegalStateError {
 	res := &IllegalStateError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -88,7 +96,7 @@ type IllegalArgumentError struct {
 
 func newIllegalArgumentError(format string, args ...interface{}) *IllegalArgumentError {
 	res := &IllegalArgumentError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -99,7 +107,7 @@ type NotImplementedError struct {
 
 func newNotImplementedError(format string, args ...interface{}) *NotImplementedError {
 	res := &NotImplementedError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -111,7 +119,7 @@ type NonUniqueObjectError struct {
 // newNonUniqueObjectError creates new NonUniqueObjectError
 func newNonUniqueObjectError(format string, args ...interface{}) *NonUniqueObjectError {
 	res := &NonUniqueObjectError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -123,7 +131,7 @@ type DatabaseDoesNotExistError struct {
 // newDatabaseDoesNotExistError creates new NonUniqueObjectError
 func newDatabaseDoesNotExistError(format string, args ...interface{}) *DatabaseDoesNotExistError {
 	res := &DatabaseDoesNotExistError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -134,7 +142,7 @@ type AllTopologyNodesDownError struct {
 
 func newAllTopologyNodesDownError(format string, args ...interface{}) *AllTopologyNodesDownError {
 	res := &AllTopologyNodesDownError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -145,7 +153,7 @@ type OperationCancelledError struct {
 
 func newOperationCancelledError(format string, args ...interface{}) *OperationCancelledError {
 	res := &OperationCancelledError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -156,7 +164,7 @@ type AuthorizationError struct {
 
 func newAuthorizationError(format string, args ...interface{}) *AuthorizationError {
 	res := &AuthorizationError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -168,7 +176,7 @@ type TimeoutError struct {
 // NewTimeoutError returns new TimeoutError
 func NewTimeoutError(format string, args ...interface{}) *TimeoutError {
 	res := &TimeoutError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -179,7 +187,7 @@ type IndexDoesNotExistError struct {
 
 func newIndexDoesNotExistError(format string, args ...interface{}) *IndexDoesNotExistError {
 	res := &IndexDoesNotExistError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -190,7 +198,7 @@ type BadResponseError struct {
 
 func newBadResponseError(format string, args ...interface{}) *BadResponseError {
 	res := &BadResponseError{}
-	res.errorBase.ErrorStr = fmt.Sprintf(format, args...)
+	res.errorBase.setErrorf(format, args...)
 	return res
 }
 
@@ -272,8 +280,4 @@ type CancellationError struct {
 
 func (e *CancellationError) Error() string {
 	return "CancellationError"
-}
-
-func NewCancellationError() *CancellationError {
-	return &CancellationError{}
 }

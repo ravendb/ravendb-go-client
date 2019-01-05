@@ -89,7 +89,7 @@ func (f *completableFuture) completeWithError(err error) {
 func (f *completableFuture) cancel(mayInterruptIfRunning bool) {
 	// mayInterruptIfRunning is ignored, apparently same happens in Java
 	// https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html
-	f.completeWithError(NewCancellationError())
+	f.completeWithError(&CancellationError{})
 }
 
 // isDone returns true if future has been completed, either with a result or error

@@ -197,6 +197,24 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 	return s.numberOfRequests
 }
 
+func checkGetMetadataForArg(instance interface{}) error {
+	if instance == nil {
+		return newIllegalArgumentError("instance can't be nil")
+	}
+	tp := reflect.TypeOf(instance)
+	// TODO: probably needs to support map[string]interface{} as well
+	if tp.Kind() != reflect.Ptr {
+		return newIllegalArgumentError("instance must be a pointer")
+	}
+	if v := reflect.ValueOf(instance); v.IsNil() {
+		return newIllegalArgumentError("instance can't be nil")
+	}
+	if tp.Elem() == nil || tp.Elem().Kind() == reflect.Ptr {
+		return newIllegalArgumentError("instance can't be of type %T (double pointer)", instance)
+	}
+	return nil
+}
+
 // GetMetadataFor gets the metadata for the specified entity.
 // TODO: should we make the API more robust by accepting **struct as well as
 // *struct and doing the necessary tweaking automatically? It looks like
@@ -204,8 +222,9 @@ func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 // to figure out why it fails. Alternatively, error out early with informative
 // error message
 func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{}) (*MetadataAsDictionary, error) {
-	if instance == nil {
-		return nil, newIllegalArgumentError("Instance cannot be null")
+	err := checkGetMetadataForArg(instance)
+	if err != nil {
+		return nil, err
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -222,11 +241,16 @@ func (s *InMemoryDocumentSessionOperations) GetMetadataFor(instance interface{})
 	return metadata, nil
 }
 
+func checkGetChangeVectorForArg(instance interface{}) error {
+	return checkGetMetadataForArg(instance)
+}
+
 // GetChangeVectorFor returns metadata for a given instance
 // empty string means there is not change vector
 func (s *InMemoryDocumentSessionOperations) GetChangeVectorFor(instance interface{}) (*string, error) {
-	if instance == nil {
-		return nil, newIllegalArgumentError("Instance cannot be null")
+	err := checkGetChangeVectorForArg(instance)
+	if err != nil {
+		return nil, err
 	}
 
 	documentInfo, err := s.getDocumentInfo(instance)
@@ -524,18 +548,18 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Ty
 // return an error if entity cannot be deleted e.g. because it's a struct
 func checkIsDeletable(entity interface{}) error {
 	if entity == nil {
-		return errors.New("can't delete nil values")
+		return newIllegalArgumentError("can't delete nil values")
 	}
 	tp := reflect.TypeOf(entity)
 	if tp.Kind() == reflect.Struct {
-		return errors.New("can't delete struct values, must pass a pointer to struct")
+		return newIllegalArgumentError("can't delete struct values, must pass a pointer to struct")
 	}
 	if tp.Kind() == reflect.Ptr {
 		if reflect.ValueOf(entity).IsNil() {
-			return errors.New("can't delete nil values")
+			return newIllegalArgumentError("can't delete nil values")
 		}
 		if tp.Elem() != nil && tp.Elem().Kind() == reflect.Ptr {
-			return fmt.Errorf("can't delete values of type %T (double pointer)", entity)
+			return newIllegalArgumentError("can't delete values of type %T (double pointer)", entity)
 		}
 	}
 	return nil
@@ -598,18 +622,18 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 // return an error if entity cannot be stored e.g. because it's a struct
 func checkIsStorable(entity interface{}) error {
 	if entity == nil {
-		return errors.New("can't store nil values")
+		return newIllegalArgumentError("can't store nil values")
 	}
 	tp := reflect.TypeOf(entity)
 	if tp.Kind() == reflect.Struct {
-		return errors.New("can't store struct values, must pass a pointer to struct")
+		return newIllegalArgumentError("can't store struct values, must pass a pointer to struct")
 	}
 	if tp.Kind() == reflect.Ptr {
 		if reflect.ValueOf(entity).IsNil() {
-			return errors.New("can't store nil values")
+			return newIllegalArgumentError("can't store nil values")
 		}
 		if tp.Elem() != nil && tp.Elem().Kind() == reflect.Ptr {
-			return fmt.Errorf("can't store values of type %T (double pointer)", entity)
+			return newIllegalArgumentError("can't store values of type %T (double pointer)", entity)
 		}
 	}
 	return nil

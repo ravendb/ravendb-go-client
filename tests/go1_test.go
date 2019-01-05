@@ -3,8 +3,18 @@ package tests
 import (
 	"testing"
 
+	ravendb "github.com/ravendb/ravendb-go-client"
+
 	"github.com/stretchr/testify/assert"
 )
+
+func assertIllegalArgumentError(t *testing.T, err error) {
+	assert.Error(t, err)
+	if err != nil {
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
+}
 
 func go1Test(t *testing.T, driver *RavenTestDriver) {
 	var err error
@@ -16,39 +26,66 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 
 	// check validation of arguments to Store and Delete
 
-	// can't store/delete nil
-	err = session.Store(nil)
-	assert.Error(t, err)
-	err = session.StoreWithID(nil, "users/1")
-	assert.Error(t, err)
-	err = session.DeleteEntity(nil)
-	assert.Error(t, err)
+	{
+		// can't store/delete etc. nil
+		var v interface{}
+		err = session.Store(v)
+		assertIllegalArgumentError(t, err)
+		err = session.StoreWithID(v, "users/1")
+		assertIllegalArgumentError(t, err)
+		err = session.DeleteEntity(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetMetadataFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+	}
 
-	// can't store/delete struct
-	err = session.Store(user)
-	assert.Error(t, err)
-	err = session.StoreWithID(user, "users/1")
-	assert.Error(t, err)
-	err = session.DeleteEntity(user)
-	assert.Error(t, err)
+	{
+		// can't store/delete etc. nil pointer
+		var v *User
+		err = session.Store(v)
+		assertIllegalArgumentError(t, err)
+		err = session.StoreWithID(v, "users/1")
+		assertIllegalArgumentError(t, err)
+		err = session.DeleteEntity(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetMetadataFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+	}
 
-	// can't store/delete **struct (double pointer values)
-	ptrUser := &user
-	err = session.Store(&ptrUser)
-	assert.Error(t, err)
-	err = session.StoreWithID(&ptrUser, "users/1")
-	assert.Error(t, err)
-	err = session.DeleteEntity(&ptrUser)
-	assert.Error(t, err)
+	{
+		// can't store/delete etc. struct
+		v := user
+		err = session.Store(v)
+		assertIllegalArgumentError(t, err)
+		err = session.StoreWithID(v, "users/1")
+		assertIllegalArgumentError(t, err)
+		err = session.DeleteEntity(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetMetadataFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+	}
 
-	// can't store/delete nil pointer
-	var user2 *User
-	err = session.Store(user2)
-	assert.Error(t, err)
-	err = session.StoreWithID(user2, "users/1")
-	assert.Error(t, err)
-	err = session.DeleteEntity(user2)
-	assert.Error(t, err)
+	{
+		// can't store/delete etc. **struct (double pointer values)
+		ptrUser := &user
+		v := &ptrUser
+		err = session.Store(v)
+		assertIllegalArgumentError(t, err)
+		err = session.StoreWithID(v, "users/1")
+		assertIllegalArgumentError(t, err)
+		err = session.DeleteEntity(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetMetadataFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.GetChangeVectorFor(v)
+		assertIllegalArgumentError(t, err)
+	}
 }
 
 func TestGo1(t *testing.T) {
