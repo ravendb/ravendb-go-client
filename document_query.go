@@ -498,20 +498,20 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 }
 
 // TODO: rename to aggregateByBuilder and aggregateByFacet => aggregateBy
-func (q *DocumentQuery) AggregateBy(builder func(IFacetBuilder)) *IAggregationDocumentQuery {
+func (q *DocumentQuery) AggregateBy(builder func(IFacetBuilder)) *AggregationDocumentQuery {
 	ff := NewFacetBuilder()
 	builder(ff)
 
 	return q.AggregateByFacet(ff.getFacet())
 }
 
-func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *IAggregationDocumentQuery {
+func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
 	q._aggregateBy(facet)
 
 	return NewAggregationDocumentQuery(q)
 }
 
-func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *IAggregationDocumentQuery {
+func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *AggregationDocumentQuery {
 	for _, facet := range facets {
 		q._aggregateBy(facet)
 	}
@@ -519,7 +519,7 @@ func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *IAggregationDocumen
 	return NewAggregationDocumentQuery(q)
 }
 
-func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *IAggregationDocumentQuery {
+func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *AggregationDocumentQuery {
 	q._aggregateUsing(facetSetupDocumentID)
 
 	return NewAggregationDocumentQuery(q)

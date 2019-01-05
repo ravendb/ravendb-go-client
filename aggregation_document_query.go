@@ -1,6 +1,7 @@
 package ravendb
 
-type IAggregationDocumentQuery = AggregationDocumentQuery
+// Note: In Java it's IAggregationDocumentQuery but in Go we use
+// concrete type AggregationDocumentQuery
 
 // Note: AggregationDocumentQuery is fused into AggregationQueryBase because
 // in Java AggregationQueryBase calls functions implemented in AggregationDocumentQuery

@@ -103,14 +103,14 @@ func (q *AggregationQueryBase) String() string {
 }
 
 // from AggregationDocumentQuery
-func (q *AggregationDocumentQuery) AndAggregateBy(builder func(IFacetBuilder)) *IAggregationDocumentQuery {
+func (q *AggregationDocumentQuery) AndAggregateBy(builder func(IFacetBuilder)) *AggregationDocumentQuery {
 	f := NewFacetBuilder()
 	builder(f)
 
 	return q.AndAggregateByFacet(f.getFacet())
 }
 
-func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) *IAggregationDocumentQuery {
+func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
 	q._source._aggregateBy(facet)
 	return q
 }
