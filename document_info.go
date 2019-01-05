@@ -43,8 +43,7 @@ func (d *documentInfo) setEntity(value interface{}) {
 	}
 
 	if tp.Kind() != reflect.Ptr || tp.Elem() == nil {
-		//panicIf(tp.Kind() != reflect.Ptr || tp.Elem() == nil, "expected value to be *struct or **struct, is %T", value)
-		//TODO: re-enable this panic and fix places that trigger it
+		panicIf(tp.Kind() != reflect.Ptr || tp.Elem() == nil, "expected value to be *struct or **struct, is %T", value)
 		d.entity = value
 		return
 	}
