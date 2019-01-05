@@ -114,7 +114,7 @@ func (s *NodeSelector) restoreNodeIndex(nodeIndex int) {
 }
 
 // TODO: return an error
-func NodeSelector_throwEmptyTopology() {
+func nodeSelectorThrowEmptyTopology() {
 	//throw new IllegalStateError("Empty database topology, this shouldn't happen.");
 	panicIf(true, "Empty database topology, this shouldn't happen.")
 }

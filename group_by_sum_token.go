@@ -9,15 +9,15 @@ type groupBySumToken struct {
 	fieldName     string
 }
 
-func NewGroupBySumToken(fieldName string, projectedName string) *groupBySumToken {
+func newGroupBySumToken(fieldName string, projectedName string) *groupBySumToken {
 	return &groupBySumToken{
 		fieldName:     fieldName,
 		projectedName: projectedName,
 	}
 }
 
-func GroupBySumToken_create(fieldName string, projectedName string) *groupBySumToken {
-	return NewGroupBySumToken(fieldName, projectedName)
+func createGroupBySumToken(fieldName string, projectedName string) *groupBySumToken {
+	return newGroupBySumToken(fieldName, projectedName)
 }
 
 func (t *groupBySumToken) writeTo(writer *strings.Builder) {

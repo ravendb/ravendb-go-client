@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -158,7 +158,7 @@ func spatialSearchCanDoSpatialSearchWithClientApiWithinGivenCapacity(t *testing.
 		err = q.GetResults(&events)
 		assert.NoError(t, err)
 
-		assert.Equal(t, queryStats.GetTotalResults(), 2)
+		assert.Equal(t, queryStats.TotalResults, 2)
 
 		var a []string
 		for _, event := range events {

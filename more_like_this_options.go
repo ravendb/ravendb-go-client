@@ -3,15 +3,15 @@ package ravendb
 import "math"
 
 const (
-	MoreLikeThisOptionsDefaultMaximumNumberOfTokensParsed  = 5000
-	MoreLikeThisOptionsDefaultMinimumTermFrequency         = 2
-	MoreLikeThisOptionsDefaultMinimumDocumentFrequency     = 5
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_DOCUMENT_FREQUENCY = math.MaxInt32
-	MoreLikeThisOptions_DEFAULT_BOOST                      = false
-	MoreLikeThisOptions_DEFAULT_BOOST_FACTOR               = 1
-	MoreLikeThisOptions_DEFAULT_MINIMUM_WORD_LENGTH        = 0
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_WORD_LENGTH        = 0
-	MoreLikeThisOptions_DEFAULT_MAXIMUM_QUERY_TERMS        = 25
+	MoreLikeThisOptionsDefaultMaximumNumberOfTokensParsed = 5000
+	MoreLikeThisOptionsDefaultMinimumTermFrequency        = 2
+	MoreLikeThisOptionsDefaultMinimumDocumentFrequency    = 5
+	MoreLikeThisOptionsDefaultMaximumDocumentFrequence    = math.MaxInt32
+	MoreLikeThisOptionsDefaultBoost                       = false
+	MoreLikeThisOptionsDefaultBoostFactor                 = 1
+	MoreLikeThisOptionsDefaultMinimumWordLength           = 0
+	MoreLikeThisOptionsDefaultMaximumWordLength           = 0
+	MoreLikeThisOptionsDefaultMaximumQueryTerms           = 25
 )
 
 var (

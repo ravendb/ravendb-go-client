@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -164,12 +164,21 @@ func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	for i := 0; i < 128; i++ {
 		nextID, err = hiLoKeyGenerator.NextID()
 		assert.NoError(t, err)
-		contains := ravendb.IntArrayContains(ids, nextID)
+		contains := intArrayContains(ids, nextID)
 		assert.False(t, contains)
 		ids = append(ids, nextID)
 	}
 	assert.False(t, intArrayHasDuplicates(ids))
 	session.Close()
+}
+
+func intArrayContains(a []int, n int) bool {
+	for _, el := range a {
+		if el == n {
+			return true
+		}
+	}
+	return false
 }
 
 func hiloTestMultiDb(t *testing.T, driver *RavenTestDriver) {

@@ -1141,7 +1141,7 @@ func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []strin
 		for _, include := range includes {
 			hasAll := true
 
-			IncludesUtil_include(documentInfo.getDocument(), include, s -> {
+			includesUtilInclude(documentInfo.getDocument(), include, s -> {
 				hasAll[0] &= isLoaded(s);
 			})
 

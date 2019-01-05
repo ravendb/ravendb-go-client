@@ -16,7 +16,7 @@ func newGroupByKeyToken(fieldName string, projectedName string) *groupByKeyToken
 	}
 }
 
-func GroupByKeyToken_create(fieldName string, projectedName string) *groupByKeyToken {
+func createGroupByKeyToken(fieldName string, projectedName string) *groupByKeyToken {
 	return newGroupByKeyToken(fieldName, projectedName)
 }
 

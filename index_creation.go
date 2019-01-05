@@ -1,12 +1,12 @@
 package ravendb
 
-func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *IDocumentStore, conventions *DocumentConventions) error {
+func indexCreationCreateIndexes(indexes []*AbstractIndexCreationTask, store *IDocumentStore, conventions *DocumentConventions) error {
 
 	if conventions == nil {
 		conventions = store.GetConventions()
 	}
 
-	indexesToAdd := IndexCreation_createIndexesToAdd(indexes, conventions)
+	indexesToAdd := indexCreationCreateIndexesToAdd(indexes, conventions)
 	op := NewPutIndexesOperation(indexesToAdd...)
 	err := store.Maintenance().Send(op)
 	if err == nil {
@@ -23,7 +23,7 @@ func IndexCreation_createIndexes(indexes []*AbstractIndexCreationTask, store *ID
 	return nil
 }
 
-func IndexCreation_createIndexesToAdd(indexCreationTasks []*AbstractIndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
+func indexCreationCreateIndexesToAdd(indexCreationTasks []*AbstractIndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
 	var res []*IndexDefinition
 	for _, x := range indexCreationTasks {
 		x.Conventions = conventions

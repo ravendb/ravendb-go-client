@@ -317,7 +317,7 @@ func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask) error
 
 func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreationTask, database string) error {
 	s.assertInitialized()
-	indexesToAdd := IndexCreation_createIndexesToAdd(tasks, s.conventions)
+	indexesToAdd := indexCreationCreateIndexesToAdd(tasks, s.conventions)
 
 	op := NewPutIndexesOperation(indexesToAdd...)
 	if database == "" {

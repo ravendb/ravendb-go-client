@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -300,7 +300,7 @@ func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 		err := q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
-		indexName = stats.GetIndexName()
+		indexName = stats.IndexName
 
 		session.Close()
 	}
@@ -352,7 +352,7 @@ func indexesFromClientTestGetIndexNames(t *testing.T, driver *RavenTestDriver) {
 		err := q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
-		indexName = stats.GetIndexName()
+		indexName = stats.IndexName
 
 		session.Close()
 	}

@@ -251,7 +251,7 @@ func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
 
 	fieldName := q.ensureValidFieldName(field.Field, false)
 
-	q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, field.Method))
+	q.groupByTokens = append(q.groupByTokens, createGroupByTokenWithMethod(fieldName, field.Method))
 
 	if len(fields) == 0 {
 		return
@@ -259,7 +259,7 @@ func (q *AbstractDocumentQuery) _groupBy2(field *GroupBy, fields ...*GroupBy) {
 
 	for _, item := range fields {
 		fieldName = q.ensureValidFieldName(item.Field, false)
-		q.groupByTokens = append(q.groupByTokens, GroupByToken_createWithMethod(fieldName, item.Method))
+		q.groupByTokens = append(q.groupByTokens, createGroupByTokenWithMethod(fieldName, item.Method))
 	}
 }
 
@@ -280,7 +280,7 @@ func (q *AbstractDocumentQuery) _groupByKey(fieldName string, projectedName stri
 		fieldName = aliasedFieldName
 	}
 
-	q.selectTokens = append(q.selectTokens, GroupByKeyToken_create(fieldName, projectedName))
+	q.selectTokens = append(q.selectTokens, createGroupByKeyToken(fieldName, projectedName))
 }
 
 // projectedName is optional
@@ -289,7 +289,7 @@ func (q *AbstractDocumentQuery) _groupBySum(fieldName string, projectedName stri
 	q.isGroupBy = true
 
 	fieldName = q.ensureValidFieldName(fieldName, false)
-	q.selectTokens = append(q.selectTokens, GroupBySumToken_create(fieldName, projectedName))
+	q.selectTokens = append(q.selectTokens, createGroupBySumToken(fieldName, projectedName))
 }
 
 // projectedName is optional
@@ -1294,14 +1294,14 @@ func assertValidFieldName(fieldName string) {
 func (q *AbstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
 	assertValidFieldName(fieldName)
 	if q.theSession == nil || q.theSession.GetConventions() == nil || isNestedPath || q.isGroupBy {
-		return QueryFieldUtil_escapeIfNecessary(fieldName)
+		return queryFieldUtilEscapeIfNecessary(fieldName)
 	}
 
 	if fieldName == documentConventionsIdentityPropertyName {
 		return IndexingFieldNameDocumentID
 	}
 
-	return QueryFieldUtil_escapeIfNecessary(fieldName)
+	return queryFieldUtilEscapeIfNecessary(fieldName)
 }
 
 func (q *AbstractDocumentQuery) transformValue(whereParams *whereParams) interface{} {

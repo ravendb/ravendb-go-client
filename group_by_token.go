@@ -16,11 +16,11 @@ func NewGroupByToken(fieldName string, method GroupByMethod) *GroupByToken {
 	}
 }
 
-func GroupByToken_create(fieldName string) *GroupByToken {
-	return GroupByToken_createWithMethod(fieldName, GroupByMethodNone)
+func createGroupByToken(fieldName string) *GroupByToken {
+	return createGroupByTokenWithMethod(fieldName, GroupByMethodNone)
 }
 
-func GroupByToken_createWithMethod(fieldName string, method GroupByMethod) *GroupByToken {
+func createGroupByTokenWithMethod(fieldName string, method GroupByMethod) *GroupByToken {
 	return NewGroupByToken(fieldName, method)
 }
 

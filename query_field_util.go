@@ -1,6 +1,6 @@
 package ravendb
 
-func QueryFieldUtil_escapeIfNecessary(name string) string {
+func queryFieldUtilEscapeIfNecessary(name string) string {
 	if stringIsEmpty(name) ||
 		IndexingFieldNameDocumentID == name ||
 		IndexingFieldNameReduceKeyHash == name ||

@@ -5,133 +5,37 @@ import "time"
 // TODO: is time.Time here our *Time?
 // TODO: needs json annotations?
 type QueryStatistics struct {
-	_isStale          bool
-	durationInMs      int64
-	totalResults      int
-	skippedResults    int
-	timestamp         time.Time
-	indexName         string
-	indexTimestamp    time.Time
-	lastQueryTime     time.Time
-	timingsInMs       map[string]float64
-	resultEtag        int64 // TODO: *int64 ?
-	resultSize        int64
-	scoreExplanations map[string]string
+	IsStale           bool
+	DurationInMs      int64
+	TotalResults      int
+	SkippedResults    int
+	Timestamp         time.Time
+	IndexName         string
+	IndexTimestamp    time.Time
+	LastQueryTime     time.Time
+	TimingsInMs       map[string]float64
+	ResultEtag        int64 // TODO: *int64 ?
+	ResultSize        int64
+	ScoreExplanations map[string]string
 }
 
 func NewQueryStatistics() *QueryStatistics {
 	return &QueryStatistics{
-		timingsInMs: make(map[string]float64),
+		TimingsInMs: make(map[string]float64),
 	}
 }
 
-func (s *QueryStatistics) IsStale() bool {
-	return s._isStale
-}
-
-func (s *QueryStatistics) SetStale(stale bool) {
-	s._isStale = stale
-}
-
-func (s *QueryStatistics) GetDurationInMs() int64 {
-	return s.durationInMs
-}
-
-func (s *QueryStatistics) SetDurationInMs(durationInMs int64) {
-	s.durationInMs = durationInMs
-}
-
-func (s *QueryStatistics) GetTotalResults() int {
-	return s.totalResults
-}
-
-func (s *QueryStatistics) SetTotalResults(totalResults int) {
-	s.totalResults = totalResults
-}
-
-func (s *QueryStatistics) GetSkippedResults() int {
-	return s.skippedResults
-}
-
-func (s *QueryStatistics) SetSkippedResults(skippedResults int) {
-	s.skippedResults = skippedResults
-}
-
-func (s *QueryStatistics) GetTimestamp() time.Time {
-	return s.timestamp
-}
-
-func (s *QueryStatistics) SetTimestamp(timestamp time.Time) {
-	s.timestamp = timestamp
-}
-
-func (s *QueryStatistics) GetIndexName() string {
-	return s.indexName
-}
-
-func (s *QueryStatistics) SetIndexName(indexName string) {
-	s.indexName = indexName
-}
-
-func (s *QueryStatistics) GetIndexTimestamp() time.Time {
-	return s.indexTimestamp
-}
-
-func (s *QueryStatistics) SetIndexTimestamp(indexTimestamp time.Time) {
-	s.indexTimestamp = indexTimestamp
-}
-
-func (s *QueryStatistics) GetLastQueryTime() time.Time {
-	return s.lastQueryTime
-}
-
-func (s *QueryStatistics) SetLastQueryTime(lastQueryTime time.Time) {
-	s.lastQueryTime = lastQueryTime
-}
-
-func (s *QueryStatistics) GetTimingsInMs() map[string]float64 {
-	return s.timingsInMs
-}
-
-func (s *QueryStatistics) SetTimingsInMs(timingsInMs map[string]float64) {
-	s.timingsInMs = timingsInMs
-}
-
-func (s *QueryStatistics) GetResultEtag() int64 {
-	return s.resultEtag
-}
-
-func (s *QueryStatistics) SetResultEtag(resultEtag int64) {
-	s.resultEtag = resultEtag
-}
-
-func (s *QueryStatistics) GetResultSize() int64 {
-	return s.resultSize
-}
-
-func (s *QueryStatistics) SetResultSize(resultSize int64) {
-	s.resultSize = resultSize
-}
-
 func (s *QueryStatistics) UpdateQueryStats(qr *QueryResult) {
-	s._isStale = qr.IsStale
-	s.durationInMs = qr.DurationInMs
-	s.totalResults = qr.TotalResults
-	s.skippedResults = qr.SkippedResults
-	s.timestamp = qr.IndexTimestamp.toTime()
-	s.indexName = qr.IndexName
-	s.indexTimestamp = qr.IndexTimestamp.toTime()
-	s.timingsInMs = qr.TimingsInMs
-	s.lastQueryTime = qr.LastQueryTime.toTime()
-	s.resultSize = qr.ResultSize
-	s.resultEtag = qr.ResultEtag
-	s.scoreExplanations = qr.ScoreExplanations
-}
-
-func (s *QueryStatistics) GetScoreExplanations() map[string]string {
-	return s.scoreExplanations
-}
-
-func (s *QueryStatistics) SetScoreExplanations(scoreExplanations map[string]string) {
-	s.scoreExplanations = scoreExplanations
+	s.IsStale = qr.IsStale
+	s.DurationInMs = qr.DurationInMs
+	s.TotalResults = qr.TotalResults
+	s.SkippedResults = qr.SkippedResults
+	s.Timestamp = qr.IndexTimestamp.toTime()
+	s.IndexName = qr.IndexName
+	s.IndexTimestamp = qr.IndexTimestamp.toTime()
+	s.TimingsInMs = qr.TimingsInMs
+	s.LastQueryTime = qr.LastQueryTime.toTime()
+	s.ResultSize = qr.ResultSize
+	s.ResultEtag = qr.ResultEtag
+	s.ScoreExplanations = qr.ScoreExplanations
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -99,7 +99,7 @@ func spatialWeirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 		err = q.GetResults(&result)
 		assert.NoError(t, err)
 
-		assert.Equal(t, statsRef.GetTotalResults(), 0)
+		assert.Equal(t, statsRef.TotalResults, 0)
 
 		assert.Equal(t, len(result), 0)
 
@@ -154,7 +154,7 @@ func spatialMatchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 		err = q.GetResults(&result)
 		assert.NoError(t, err)
 
-		assert.Equal(t, statsRef.GetTotalResults(), 1)
+		assert.Equal(t, statsRef.TotalResults, 1)
 
 		assert.Equal(t, len(result), 1)
 
