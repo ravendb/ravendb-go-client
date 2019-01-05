@@ -38,8 +38,7 @@ type documentInfo struct {
 func (d *documentInfo) setEntity(value interface{}) {
 	tp := reflect.TypeOf(value)
 	if tp.Kind() == reflect.Struct {
-		//panicIf(true, "trying to set struct %T", value)
-		//TODO: re-enable this panic and fix places that trigger it
+		panicIf(true, "trying to set struct %T", value)
 		d.entity = value
 	}
 

@@ -26,13 +26,13 @@ func suggestionsLazyUsingLinq(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		user1 := User4{
+		user1 := &User4{
 			Name: "Ayende",
 		}
 		err = session.Store(user1)
 		assert.NoError(t, err)
 
-		user2 := User4{
+		user2 := &User4{
 			Name: "Oren",
 		}
 		err = session.Store(user2)

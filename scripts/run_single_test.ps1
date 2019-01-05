@@ -13,7 +13,8 @@ $Env:ENABLE_FLAKY_TESTS = "false"
 # $IsMacOS is only defined in powershell 6, but it happens to work
 # in windows with powershell 5 because it's not defined at all, so false
 if ($IsMacOS) {
-    $ravdir = "RavenDB/Server"
+    $wd = Join-Path -Path "$PSScriptRoot" -ChildPath ".." -Resolve
+    $ravdir = "${wd}/RavenDB/Server"
     $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$ravdir/Raven.Server"
     $Env:RAVENDB_JAVA_TEST_CERTIFICATE_PATH="${wd}/certs/server.pfx"
     $Env:RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"

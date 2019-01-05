@@ -215,7 +215,7 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 
 	fn := func(res interface{}) error {
 		_, err := s.ExecuteAllPendingLazyOperations()
-		fmt.Printf("addLazyOperation: result: %T, res: %T, result: %v, res: %v\n", result, res, result, res)
+		//fmt.Printf("addLazyOperation: result: %T, res: %T, result: %v, res: %v\n", result, res, result, res)
 		// operation carries the result to be set
 		return err
 	}

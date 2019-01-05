@@ -130,7 +130,7 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		session := openSessionMust(t, store)
-		user := User{}
+		user := &User{}
 		user.setLastName("Oren")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)
@@ -167,7 +167,7 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		session := openSessionMust(t, store)
-		user := User{}
+		user := &User{}
 		user.setLastName("Oren")
 		err = session.StoreWithID(user, "users/1")
 		assert.NoError(t, err)

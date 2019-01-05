@@ -29,15 +29,15 @@ func suggestionsSetup(t *testing.T, driver *RavenTestDriver, store *ravendb.IDoc
 	{
 		session := openSessionMust(t, store)
 
-		user1 := User4{
+		user1 := &User4{
 			Name: "Ayende",
 		}
 
-		user2 := User4{
+		user2 := &User4{
 			Name: "Oren",
 		}
 
-		user3 := User4{
+		user3 := &User4{
 			Name: "John Steinbeck",
 		}
 
