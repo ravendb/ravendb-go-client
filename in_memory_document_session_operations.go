@@ -570,7 +570,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 	documentInfo := s.documentsByID.getValue(id)
 	if documentInfo != nil {
 		newObj := convertEntityToJSON(documentInfo.entity, documentInfo)
-		if documentInfo.entity != nil && s.EntityChanged(newObj, documentInfo, nil) {
+		if documentInfo.entity != nil && s.entityChanged(newObj, documentInfo, nil) {
 			return newIllegalStateError("Can't delete changed entity using identifier. Use delete(Class clazz, T entity) instead.")
 		}
 
@@ -910,7 +910,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveC
 
 		document := convertEntityToJSON(entityKey, entityValue)
 
-		if !s.EntityChanged(document, entityValue, nil) && !dirtyMetadata {
+		if !s.entityChanged(document, entityValue, nil) && !dirtyMetadata {
 			continue
 		}
 
@@ -933,7 +933,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveC
 			if beforeStoreEventArgs.isMetadataAccessed() {
 				s.UpdateMetadataModifications(entityValue)
 			}
-			if beforeStoreEventArgs.isMetadataAccessed() || s.EntityChanged(document, entityValue, nil) {
+			if beforeStoreEventArgs.isMetadataAccessed() || s.entityChanged(document, entityValue, nil) {
 				document = convertEntityToJSON(entityKey, entityValue)
 			}
 		}
@@ -977,7 +977,7 @@ func (s *InMemoryDocumentSessionOperations) throwInvalidDeletedDocumentWithDefer
 	return err
 }
 
-func (s *InMemoryDocumentSessionOperations) EntityChanged(newObj map[string]interface{}, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
+func (s *InMemoryDocumentSessionOperations) entityChanged(newObj map[string]interface{}, documentInfo *documentInfo, changes map[string][]*DocumentsChanges) bool {
 	return jsonOperationEntityChanged(newObj, documentInfo, changes)
 }
 
@@ -1020,7 +1020,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) (bool
 	}
 
 	document := convertEntityToJSON(entity, documentInfo)
-	return s.EntityChanged(document, documentInfo, nil), nil
+	return s.entityChanged(document, documentInfo, nil), nil
 }
 
 func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
@@ -1028,7 +1028,7 @@ func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[st
 		s.UpdateMetadataModifications(docInfo)
 		entity := docInfo.entity
 		newObj := convertEntityToJSON(entity, docInfo)
-		s.EntityChanged(newObj, docInfo, changes)
+		s.entityChanged(newObj, docInfo, changes)
 	}
 }
 
@@ -1041,13 +1041,19 @@ func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity interface{})
 
 // Evict evicts the specified entity from the session.
 // Remove the entity from the delete queue and stops tracking changes for this entity.
-func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) {
+func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) error {
+	err := checkValidEntityIn(entity, "entity")
+	if err != nil {
+		return err
+	}
+
 	deleted := deleteDocumentInfoByEntity(&s.documents, entity)
 	if deleted != nil {
 		s.documentsByID.remove(deleted.id)
 	}
 
 	s.deletedEntities.remove(entity)
+	return nil
 }
 
 // Clear clears the session

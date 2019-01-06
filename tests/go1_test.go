@@ -53,6 +53,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
+		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -72,6 +74,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
+		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -90,6 +94,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.HasChanged(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Evict(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -111,6 +117,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
+		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -129,6 +137,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.HasChanged(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Evict(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -149,6 +159,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.HasChanged(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Evict(v)
 		assertIllegalArgumentError(t, err)
 	}
 
