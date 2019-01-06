@@ -61,3 +61,7 @@ func (s *objectSet) contains(o interface{}) bool {
 func (s *objectSet) clear() {
 	s.items = map[interface{}]struct{}{}
 }
+
+func (s *objectSet) isEmpty() bool {
+	return len(s.items) == 0
+}

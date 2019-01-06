@@ -993,17 +993,18 @@ func (s *InMemoryDocumentSessionOperations) WhatChanged() (map[string][]*Documen
 
 // Gets a value indicating whether any of the entities tracked by the session has changes.
 func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
-	panic("NYI")
-	/*
-		for (Map.Entry<Object, documentInfo> entity : documentsByEntity.entrySet()) {
-			ObjectNode document = entityToJSON.convertEntityToJSON(entity.getKey(), entity.getValue());
-			if (entityChanged(document, entity.getValue(), null)) {
-				return true;
-			}
-		}
+	if !s.deletedEntities.isEmpty() {
+		return true
+	}
 
-		return !deletedEntities.isEmpty();
-	*/
+	for _, documentInfo := range s.documents {
+		entity := documentInfo.entity
+		document := convertEntityToJSON(entity, documentInfo)
+		changed := s.entityChanged(document, documentInfo, nil)
+		if changed {
+			return true
+		}
+	}
 	return false
 }
 

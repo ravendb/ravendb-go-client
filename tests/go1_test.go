@@ -185,8 +185,10 @@ func goStore(t *testing.T, session *ravendb.DocumentSession) []*User {
 	return res
 }
 
-func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
+func goTestGetLastModifiedForAndChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
+	var changed, hasChanges bool
+
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -203,6 +205,11 @@ func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		session := openSessionMust(t, store)
+
+		// test HasChanges()
+		hasChanges = session.HasChanges()
+		assert.False(t, hasChanges)
+
 		var u *User
 		id := users[0].ID
 		err = session.Load(&u, id)
@@ -212,7 +219,7 @@ func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, *lastModifiedFirst, *lastModified)
 
-		changed, err := session.HasChanged(u)
+		changed, err = session.HasChanged(u)
 		assert.NoError(t, err)
 		assert.False(t, changed)
 
@@ -220,9 +227,14 @@ func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
 		u.Age = 5
 		err = session.Store(u)
 		assert.NoError(t, err)
+
 		changed, err = session.HasChanged(u)
 		assert.NoError(t, err)
 		assert.True(t, changed)
+
+		hasChanges = session.HasChanges()
+		assert.True(t, hasChanges)
+
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
@@ -232,6 +244,40 @@ func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
 		assert.True(t, diff > 0)
 
 		session.Close()
+	}
+
+	{
+
+		// test HasChanged() detects deletion
+		session := openSessionMust(t, store)
+		var u *User
+		id := users[0].ID
+		err = session.Load(&u, id)
+		assert.NoError(t, err)
+
+		err = session.DeleteEntity(u)
+		assert.NoError(t, err)
+
+		/*
+			// TODO: should deleted items be reported as changed?
+			changed, err = session.HasChanged(u)
+			assert.NoError(t, err)
+			assert.True(t, changed)
+		*/
+
+		hasChanges = session.HasChanges()
+		assert.True(t, hasChanges)
+
+		// Evict undoes deletion so we shouldn't have changes
+		err = session.Evict(u)
+		assert.NoError(t, err)
+
+		changed, err = session.HasChanged(u)
+		assert.NoError(t, err)
+		assert.False(t, changed)
+
+		hasChanges = session.HasChanges()
+		assert.False(t, hasChanges)
 	}
 }
 
@@ -243,5 +289,5 @@ func TestGo1(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	go1Test(t, driver)
-	goTestGetLastModifiedFor(t, driver)
+	goTestGetLastModifiedForAndChanges(t, driver)
 }
