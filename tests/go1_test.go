@@ -51,6 +51,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.HasChanged(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -68,6 +70,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.HasChanged(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -84,6 +88,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -103,6 +109,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetLastModifiedFor(v)
 		assertIllegalArgumentError(t, err)
+		_, err = session.HasChanged(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -119,6 +127,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -137,6 +147,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.GetChangeVectorFor(v)
 		assertIllegalArgumentError(t, err)
 		_, err = session.GetLastModifiedFor(v)
+		assertIllegalArgumentError(t, err)
+		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -188,10 +200,17 @@ func goTestGetLastModifiedFor(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, *lastModifiedFirst, *lastModified)
 
+		changed, err := session.HasChanged(u)
+		assert.NoError(t, err)
+		assert.False(t, changed)
+
 		// check last modified changes after modification
 		u.Age = 5
 		err = session.Store(u)
 		assert.NoError(t, err)
+		changed, err = session.HasChanged(u)
+		assert.NoError(t, err)
+		assert.True(t, changed)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 

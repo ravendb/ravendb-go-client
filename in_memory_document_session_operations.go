@@ -1008,15 +1008,19 @@ func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 }
 
 // Determines whether the specified entity has changed.
-func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) bool {
+func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) (bool, error) {
+	err := checkValidEntityIn(entity, "entity")
+	if err != nil {
+		return false, err
+	}
 	documentInfo := getDocumentInfoByEntity(s.documents, entity)
 
 	if documentInfo == nil {
-		return false
+		return false, nil
 	}
 
 	document := convertEntityToJSON(entity, documentInfo)
-	return s.EntityChanged(document, documentInfo, nil)
+	return s.EntityChanged(document, documentInfo, nil), nil
 }
 
 func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
