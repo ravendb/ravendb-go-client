@@ -34,11 +34,11 @@ type InMemoryDocumentSessionOperations struct {
 	// Note: skipping unused isDisposed
 	id string
 
-	onBeforeStore      []func(interface{}, *BeforeStoreEventArgs)
-	onAfterSaveChanges []func(interface{}, *AfterSaveChangesEventArgs)
+	onBeforeStore      []func(*BeforeStoreEventArgs)
+	onAfterSaveChanges []func(*AfterSaveChangesEventArgs)
 
-	onBeforeDelete []func(interface{}, *BeforeDeleteEventArgs)
-	onBeforeQuery  []func(interface{}, *BeforeQueryEventArgs)
+	onBeforeDelete []func(*BeforeDeleteEventArgs)
+	onBeforeQuery  []func(*BeforeQueryEventArgs)
 
 	// ids of entities that were deleted
 	knownMissingIds []string // case insensitive
@@ -105,7 +105,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	}
 
 	genIDFunc := func(entity interface{}) string {
-		return res.GenerateId(entity)
+		return res.GenerateID(entity)
 	}
 	res.generateEntityIDOnTheClient = newgenerateEntityIDOnTheClient(re.conventions, genIDFunc)
 	res.entityToJSON = newEntityToJSON(res)
@@ -120,7 +120,7 @@ func (s *InMemoryDocumentSessionOperations) GetDeferredCommandsCount() int {
 // AddBeforeStoreStoreListener registers a function that will be called before storing an entity.
 // Returns listener id that can be passed to RemoveBeforeStoreListener to unregister
 // the listener.
-func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
+func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(*BeforeStoreEventArgs)) int {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
 	return len(s.onBeforeStore) - 1
 }
@@ -133,7 +133,7 @@ func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handlerId 
 // AddAfterSaveChangesListener registers a function that will be called before saving changes.
 // Returns listener id that can be passed to RemoveAfterSaveChangesListener to unregister
 // the listener.
-func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) int {
+func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler func(*AfterSaveChangesEventArgs)) int {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 	return len(s.onAfterSaveChanges) - 1
 }
@@ -146,7 +146,7 @@ func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handl
 // AddBeforeDeleteListener registers a function that will be called before deleting an entity.
 // Returns listener id that can be passed to RemoveBeforeDeleteListener to unregister
 // the listener.
-func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) int {
+func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func(*BeforeDeleteEventArgs)) int {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 	return len(s.onBeforeDelete) - 1
 }
@@ -160,7 +160,7 @@ func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handlerId
 // It allows customizing query via DocumentQueryCustomization.
 // Returns listener id that can be passed to RemoveBeforeQueryListener to unregister
 // the listener.
-func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) int {
+func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(*BeforeQueryEventArgs)) int {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 	return len(s.onBeforeQuery) - 1
 }
@@ -188,7 +188,7 @@ func (s *InMemoryDocumentSessionOperations) GetConventions() *DocumentConvention
 	return s.requestExecutor.conventions
 }
 
-func (s *InMemoryDocumentSessionOperations) GenerateId(entity interface{}) string {
+func (s *InMemoryDocumentSessionOperations) GenerateID(entity interface{}) string {
 	return s.GetConventions().GenerateDocumentID(s.DatabaseName, entity)
 }
 
@@ -905,7 +905,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *s
 			beforeDeleteEventArgs := newBeforeDeleteEventArgs(s, documentInfo.id, documentInfo.entity)
 			for _, handler := range s.onBeforeDelete {
 				if handler != nil {
-					handler(s, beforeDeleteEventArgs)
+					handler(beforeDeleteEventArgs)
 				}
 			}
 
@@ -948,7 +948,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveC
 			beforeStoreEventArgs := newBeforeStoreEventArgs(s, entityValue.id, entityKey)
 			for _, handler := range s.onBeforeStore {
 				if handler != nil {
-					handler(s, beforeStoreEventArgs)
+					handler(beforeStoreEventArgs)
 				}
 			}
 			if beforeStoreEventArgs.isMetadataAccessed() {
@@ -1265,7 +1265,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface
 func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
 	for _, handler := range s.onAfterSaveChanges {
 		if handler != nil {
-			handler(s, afterSaveChangesEventArgs)
+			handler(afterSaveChangesEventArgs)
 		}
 	}
 }
@@ -1273,7 +1273,7 @@ func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveCh
 func (s *InMemoryDocumentSessionOperations) OnBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
 	for _, handler := range s.onBeforeQuery {
 		if handler != nil {
-			handler(s, beforeQueryEventArgs)
+			handler(beforeQueryEventArgs)
 		}
 	}
 }

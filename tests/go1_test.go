@@ -280,6 +280,88 @@ func goTestGetLastModifiedForAndChanges(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func goTestListeners(t *testing.T, driver *RavenTestDriver) {
+	var err error
+
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	nBeforeStoreCalledCount := 0
+	beforeStore := func(event *ravendb.BeforeStoreEventArgs) {
+		_, ok := event.Entity.(*User)
+		assert.True(t, ok)
+		nBeforeStoreCalledCount++
+	}
+	beforeStoreID := store.AddBeforeStoreListener(beforeStore)
+
+	nAfterSaveChangesCalledCount := 0
+	afterSaveChanges := func(event *ravendb.AfterSaveChangesEventArgs) {
+		_, ok := event.Entity.(*User)
+		assert.True(t, ok)
+		nAfterSaveChangesCalledCount++
+	}
+	afterSaveChangesID := store.AddAfterSaveChangesListener(afterSaveChanges)
+
+	nBeforeDeleteCalledCount := 0
+	beforeDelete := func(event *ravendb.BeforeDeleteEventArgs) {
+		u, ok := event.Entity.(*User)
+		assert.True(t, ok)
+		assert.Equal(t, "users/1-A", u.ID)
+		nBeforeDeleteCalledCount++
+	}
+	beforeDeleteID := store.AddBeforeDeleteListener(beforeDelete)
+
+	{
+		assert.Equal(t, 0, nBeforeStoreCalledCount)
+		assert.Equal(t, 0, nAfterSaveChangesCalledCount)
+		session := openSessionMust(t, store)
+		users := goStore(t, session)
+		session.Close()
+		assert.Equal(t, len(users), nBeforeStoreCalledCount)
+		assert.Equal(t, len(users), nAfterSaveChangesCalledCount)
+	}
+
+	{
+		assert.Equal(t, 0, nBeforeDeleteCalledCount)
+		session := openSessionMust(t, store)
+		var u *User
+		err = session.Load(&u, "users/1-A")
+		assert.NoError(t, err)
+		err = session.DeleteEntity(u)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+		assert.Equal(t, 1, nBeforeDeleteCalledCount)
+	}
+
+	store.RemoveBeforeStoreListener(beforeStoreID)
+	store.RemoveAfterSaveChangesListener(afterSaveChangesID)
+	store.RemoveBeforeDeleteListener(beforeDeleteID)
+
+	{
+		// verify those listeners were removed
+		nBeforeStoreCalledCountPrev := nBeforeStoreCalledCount
+		nAfterSaveChangesCalledCountPrev := nAfterSaveChangesCalledCount
+		nBeforeDeleteCalledCountPrev := nBeforeDeleteCalledCount
+
+		session := openSessionMust(t, store)
+		u := &User{}
+		err = session.Store(u)
+		assert.NoError(t, err)
+		err = session.Delete("users/2-A")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+
+		assert.Equal(t, nBeforeStoreCalledCountPrev, nBeforeStoreCalledCount)
+		assert.Equal(t, nAfterSaveChangesCalledCountPrev, nAfterSaveChangesCalledCount)
+		assert.Equal(t, nBeforeDeleteCalledCountPrev, nBeforeDeleteCalledCount)
+	}
+
+}
+
 func TestGo1(t *testing.T) {
 	t.Parallel()
 
@@ -289,4 +371,5 @@ func TestGo1(t *testing.T) {
 
 	go1Test(t, driver)
 	goTestGetLastModifiedForAndChanges(t, driver)
+	goTestListeners(t, driver)
 }

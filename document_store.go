@@ -13,12 +13,12 @@ import (
 // DocumentStore represents a database
 type DocumentStore struct {
 	// from DocumentStoreBase
-	onBeforeStore      []func(interface{}, *BeforeStoreEventArgs)
-	onAfterSaveChanges []func(interface{}, *AfterSaveChangesEventArgs)
+	onBeforeStore      []func(*BeforeStoreEventArgs)
+	onAfterSaveChanges []func(*AfterSaveChangesEventArgs)
 
-	onBeforeDelete   []func(interface{}, *BeforeDeleteEventArgs)
-	onBeforeQuery    []func(interface{}, *BeforeQueryEventArgs)
-	onSessionCreated []func(interface{}, *SessionCreatedEventArgs)
+	onBeforeDelete   []func(*BeforeDeleteEventArgs)
+	onBeforeQuery    []func(*BeforeQueryEventArgs)
+	onSessionCreated []func(*SessionCreatedEventArgs)
 
 	disposed    bool
 	conventions *DocumentConventions
@@ -92,9 +92,10 @@ func (s *DocumentStore) ensureNotClosed() error {
 // It'll be registered with every new session.
 // Returns listener id that can be passed to RemoveBeforeStoreListener to unregister
 // the listener.
-func (s *DocumentStore) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
+func (s *DocumentStore) AddBeforeStoreListener(handler func(*BeforeStoreEventArgs)) int {
+	id := len(s.onBeforeStore)
 	s.onBeforeStore = append(s.onBeforeStore, handler)
-	return len(s.onBeforeStore) - 1
+	return id
 
 }
 
@@ -107,7 +108,7 @@ func (s *DocumentStore) RemoveBeforeStoreListener(handlerId int) {
 // It'll be registered with every new session.
 // Returns listener id that can be passed to RemoveAfterSaveChangesListener to unregister
 // the listener.
-func (s *DocumentStore) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) int {
+func (s *DocumentStore) AddAfterSaveChangesListener(handler func(*AfterSaveChangesEventArgs)) int {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 	return len(s.onAfterSaveChanges) - 1
 }
@@ -121,7 +122,7 @@ func (s *DocumentStore) RemoveAfterSaveChangesListener(handlerId int) {
 // It'll be registered with every new session.
 // Returns listener id that can be passed to RemoveBeforeDeleteListener to unregister
 // the listener.
-func (s *DocumentStore) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) int {
+func (s *DocumentStore) AddBeforeDeleteListener(handler func(*BeforeDeleteEventArgs)) int {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 	return len(s.onBeforeDelete) - 1
 }
@@ -136,7 +137,7 @@ func (s *DocumentStore) RemoveBeforeDeleteListener(handlerId int) {
 // It'll be registered with every new session.
 // Returns listener id that can be passed to RemoveBeforeQueryListener to unregister
 // the listener.
-func (s *DocumentStore) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) int {
+func (s *DocumentStore) AddBeforeQueryListener(handler func(*BeforeQueryEventArgs)) int {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 	return len(s.onBeforeQuery) - 1
 }
@@ -179,7 +180,7 @@ func (s *DocumentStore) afterSessionCreated(session *InMemoryDocumentSessionOper
 			args := &SessionCreatedEventArgs{
 				Session: session,
 			}
-			handler(s, args)
+			handler(args)
 		}
 	}
 }

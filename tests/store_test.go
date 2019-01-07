@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -101,14 +101,14 @@ func storeTestNotifyAfterStore(t *testing.T, driver *RavenTestDriver) {
 	storeLevelCallBack := []*ravendb.MetadataAsDictionary{nil}
 	sessionLevelCallback := []*ravendb.MetadataAsDictionary{nil}
 
-	fn := func(sender interface{}, event *ravendb.AfterSaveChangesEventArgs) {
+	fn := func(event *ravendb.AfterSaveChangesEventArgs) {
 		storeLevelCallBack[0] = event.GetDocumentMetadata()
 	}
 	store.AddAfterSaveChangesListener(fn)
 
 	{
 		session := openSessionMust(t, store)
-		fn := func(sender interface{}, event *ravendb.AfterSaveChangesEventArgs) {
+		fn := func(event *ravendb.AfterSaveChangesEventArgs) {
 			sessionLevelCallback[0] = event.GetDocumentMetadata()
 		}
 		session.Advanced().AddAfterSaveChangesListener(fn)
