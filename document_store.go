@@ -16,8 +16,9 @@ type DocumentStore struct {
 	onBeforeStore      []func(*BeforeStoreEventArgs)
 	onAfterSaveChanges []func(*AfterSaveChangesEventArgs)
 
-	onBeforeDelete   []func(*BeforeDeleteEventArgs)
-	onBeforeQuery    []func(*BeforeQueryEventArgs)
+	onBeforeDelete []func(*BeforeDeleteEventArgs)
+	onBeforeQuery  []func(*BeforeQueryEventArgs)
+	// TODO: there's no way to register for this event
 	onSessionCreated []func(*SessionCreatedEventArgs)
 
 	disposed    bool
