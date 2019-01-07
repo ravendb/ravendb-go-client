@@ -608,7 +608,7 @@ func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *S
 		return nil, err
 	}
 	onNextItem := func(res map[string]interface{}) {
-		query.InvokeAfterStreamExecuted(res)
+		query.invokeAfterStreamExecuted(res)
 	}
 	return NewStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
 }
@@ -626,7 +626,7 @@ func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQuerySt
 		return nil, err
 	}
 	onNextItem := func(res map[string]interface{}) {
-		query.InvokeAfterStreamExecuted(res)
+		query.invokeAfterStreamExecuted(res)
 	}
 	return NewStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
 }
@@ -672,7 +672,7 @@ func (s *DocumentSession) createStreamResult(v interface{}, document map[string]
 
 	metadataV, ok := document[MetadataKey]
 	if !ok {
-		fmt.Printf("document: %#v\n", document)
+		//fmt.Printf("document: %#v\n", document)
 		// TODO: maybe convert to errors
 		panicIf(!ok, "Document must have a metadata")
 	}

@@ -111,7 +111,7 @@ func (q *AggregationDocumentQuery) AndAggregateBy(builder func(IFacetBuilder)) *
 }
 
 func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
-	q._source._aggregateBy(facet)
+	q._source.aggregateBy(facet)
 	return q
 }
 
@@ -120,5 +120,5 @@ func (q *AggregationDocumentQuery) GetIndexQuery() *IndexQuery {
 }
 
 func (q *AggregationDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
-	q._source.InvokeAfterQueryExecuted(result)
+	q._source.invokeAfterQueryExecuted(result)
 }

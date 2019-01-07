@@ -311,6 +311,12 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 	}
 	beforeDeleteID := store.AddBeforeDeleteListener(beforeDelete)
 
+	nBeforeQueryCalledCount := 0
+	beforeQuery := func(event *ravendb.BeforeQueryEventArgs) {
+		nBeforeQueryCalledCount++
+	}
+	beforeQueryID := store.AddBeforeQueryListener(beforeQuery)
+
 	{
 		assert.Equal(t, 0, nBeforeStoreCalledCount)
 		assert.Equal(t, 0, nAfterSaveChangesCalledCount)
@@ -335,17 +341,39 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, 1, nBeforeDeleteCalledCount)
 	}
 
+	{
+		assert.Equal(t, 0, nBeforeQueryCalledCount)
+		session := openSessionMust(t, store)
+		var users []*User
+		q := session.Query()
+		err = q.GetResults(&users)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(users))
+		session.Close()
+		assert.Equal(t, 1, nBeforeQueryCalledCount)
+	}
+
 	store.RemoveBeforeStoreListener(beforeStoreID)
 	store.RemoveAfterSaveChangesListener(afterSaveChangesID)
 	store.RemoveBeforeDeleteListener(beforeDeleteID)
+	store.RemoveBeforeQueryListener(beforeQueryID)
 
 	{
 		// verify those listeners were removed
 		nBeforeStoreCalledCountPrev := nBeforeStoreCalledCount
 		nAfterSaveChangesCalledCountPrev := nAfterSaveChangesCalledCount
 		nBeforeDeleteCalledCountPrev := nBeforeDeleteCalledCount
+		nBeforeQueryCalledCountPrev := nBeforeQueryCalledCount
 
 		session := openSessionMust(t, store)
+
+		var users []*User
+		q := session.Query()
+		err = q.GetResults(&users)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(users))
+		assert.Equal(t, nBeforeQueryCalledCountPrev, nBeforeQueryCalledCount)
+
 		u := &User{}
 		err = session.Store(u)
 		assert.NoError(t, err)

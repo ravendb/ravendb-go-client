@@ -16,54 +16,54 @@ func (d *DocumentQueryCustomization) GetQueryOperation() *QueryOperation {
 
 // AddBeforeQueryExecutedListener allows you to modify index query before it's executed
 func (d *DocumentQueryCustomization) AddBeforeQueryExecutedListener(action func(*IndexQuery)) int {
-	return d.query._addBeforeQueryExecutedListener(action)
+	return d.query.addBeforeQueryExecutedListener(action)
 }
 
 // RemoveBeforeQueryExecutedListener removes listener added with AddBeforeQueryExecutedListener
 func (d *DocumentQueryCustomization) RemoveBeforeQueryExecutedListener(idx int) {
-	d.query._removeBeforeQueryExecutedListener(idx)
+	d.query.removeBeforeQueryExecutedListener(idx)
 }
 
 // AddAfterQueryExecutedListener adds a callback to get the results of the query
 func (d *DocumentQueryCustomization) AddAfterQueryExecutedListener(action func(*QueryResult)) int {
-	return d.query._addAfterQueryExecutedListener(action)
+	return d.query.addAfterQueryExecutedListener(action)
 }
 
 // RemoveAfterQueryExecutedListener removes callback added with AddAfterQueryExecutedListener
 func (d *DocumentQueryCustomization) RemoveAfterQueryExecutedListener(idx int) {
-	d.query._removeAfterQueryExecutedListener(idx)
+	d.query.removeAfterQueryExecutedListener(idx)
 }
 
 // AddAfterStreamExecutedCallback adds a callback to get stream result
 func (d *DocumentQueryCustomization) AddAfterStreamExecutedCallback(action func(map[string]interface{})) int {
-	return d.query._addAfterStreamExecutedListener(action)
+	return d.query.addAfterStreamExecutedListener(action)
 }
 
 // RemoveAfterStreamExecutedCallback remove callback added with AddAfterStreamExecutedCallback
 func (d *DocumentQueryCustomization) RemoveAfterStreamExecutedCallback(idx int) {
-	d.query._removeAfterStreamExecutedListener(idx)
+	d.query.removeAfterStreamExecutedListener(idx)
 }
 
 // NoCaching disables caching for query results
 func (d *DocumentQueryCustomization) NoCaching() {
-	d.query._noCaching()
+	d.query.noCaching()
 }
 
 // NoTracking disables tracking for quried entities by Raven's Unit of Work
 // Using this option prevents hodling query results in memory
 func (d *DocumentQueryCustomization) NoTracking() {
-	d.query._noTracking()
+	d.query.noTracking()
 }
 
 // RandomOrdering orders search results randomly.
 func (d *DocumentQueryCustomization) RandomOrdering() {
-	d.query._randomOrdering()
+	d.query.randomOrdering()
 }
 
 // RandomOrdering orders search results randomly with a given seed.
 // This is useful for repeatable random queries
 func (d *DocumentQueryCustomization) RandomOrderingWithSeed(seed string) {
-	d.query._randomOrderingWithSeed(seed)
+	d.query.randomOrderingWithSeed(seed)
 }
 
 // WaitForNonStaleResults instructs the query to wait for non results.

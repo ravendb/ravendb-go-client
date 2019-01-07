@@ -18,12 +18,12 @@ func NewRawDocumentQuery(session *InMemoryDocumentSessionOperations, rawQuery st
 }
 
 func (q *RawDocumentQuery) Skip(count int) *IRawDocumentQuery {
-	q._skip(count)
+	q.skip(count)
 	return q
 }
 
 func (q *RawDocumentQuery) Take(count int) *IRawDocumentQuery {
-	q._take(&count)
+	q.take(&count)
 	return q
 }
 
@@ -40,12 +40,12 @@ func (q *RawDocumentQuery) WaitForNonStaleResultsWithTimeout(waitTimeout time.Du
 //TBD 4.1  IRawDocumentQuery<T> showTimings() {
 
 func (q *RawDocumentQuery) NoTracking() *IRawDocumentQuery {
-	q._noTracking()
+	q.noTracking()
 	return q
 }
 
 func (q *RawDocumentQuery) NoCaching() *IRawDocumentQuery {
-	q._noCaching()
+	q.noCaching()
 	return q
 }
 
@@ -55,41 +55,41 @@ func (q *RawDocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *IR
 }
 
 func (q *RawDocumentQuery) Statistics(stats **QueryStatistics) *IRawDocumentQuery {
-	q._statistics(stats)
+	q.statistics(stats)
 	return q
 }
 
 func (q *RawDocumentQuery) RemoveAfterQueryExecutedListener(idx int) *IRawDocumentQuery {
-	q._removeAfterQueryExecutedListener(idx)
+	q.removeAfterQueryExecutedListener(idx)
 	return q
 }
 
 func (q *RawDocumentQuery) AddAfterQueryExecutedListener(action func(*QueryResult)) *IRawDocumentQuery {
-	q._addAfterQueryExecutedListener(action)
+	q.addAfterQueryExecutedListener(action)
 	return q
 }
 
 func (q *RawDocumentQuery) AddBeforeQueryExecutedListener(action func(*IndexQuery)) *IRawDocumentQuery {
-	q._addBeforeQueryExecutedListener(action)
+	q.addBeforeQueryExecutedListener(action)
 	return q
 }
 
 func (q *RawDocumentQuery) RemoveBeforeQueryExecutedListener(idx int) *IRawDocumentQuery {
-	q._removeBeforeQueryExecutedListener(idx)
+	q.removeBeforeQueryExecutedListener(idx)
 	return q
 }
 
 func (q *RawDocumentQuery) AddAfterStreamExecutedListener(action func(map[string]interface{})) *IRawDocumentQuery {
-	q._addAfterStreamExecutedListener(action)
+	q.addAfterStreamExecutedListener(action)
 	return q
 }
 
 func (q *RawDocumentQuery) RemoveAfterStreamExecutedListener(idx int) *IRawDocumentQuery {
-	q._removeAfterStreamExecutedListener(idx)
+	q.removeAfterStreamExecutedListener(idx)
 	return q
 }
 
 func (q *RawDocumentQuery) AddParameter(name string, value interface{}) *IRawDocumentQuery {
-	q._addParameter(name, value)
+	q.addParameter(name, value)
 	return q
 }

@@ -69,20 +69,20 @@ func (q *DocumentQuery) SelectFieldsWithQueryData(queryData *QueryData) *Documen
 
 // Distinct marks query as distinct
 func (q *DocumentQuery) Distinct() *DocumentQuery {
-	q._distinct()
+	q.distinct()
 	return q
 }
 
 // OrderByScore orders results of the query by score
 func (q *DocumentQuery) OrderByScore() *DocumentQuery {
-	q._orderByScore()
+	q.orderByScore()
 	return q
 }
 
 // OrderByScoreDescending orders results of the query by score
 // in descending order
 func (q *DocumentQuery) OrderByScoreDescending() *DocumentQuery {
-	q._orderByScoreDescending()
+	q.orderByScoreDescending()
 	return q
 }
 
@@ -94,7 +94,7 @@ func (q *DocumentQuery) WaitForNonStaleResults(waitTimeout time.Duration) *Docum
 }
 
 func (q *DocumentQuery) AddParameter(name string, value interface{}) *IDocumentQuery {
-	q._addParameter(name, value)
+	q.addParameter(name, value)
 	return q
 }
 
@@ -115,72 +115,72 @@ func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, 
 
 /*
  IDocumentQuery<T> AddAfterQueryExecutedListener(Consumer<QueryResult> action) {
-	_addAfterQueryExecutedListener(action);
+	addAfterQueryExecutedListener(action);
 	return this;
 }
 
 
  IDocumentQuery<T> RemoveAfterQueryExecutedListener(Consumer<QueryResult> action) {
-	_removeAfterQueryExecutedListener(action);
+	removeAfterQueryExecutedListener(action);
 	return this;
 }
 
 
  IDocumentQuery<T> addAfterStreamExecutedListener(Consumer<ObjectNode> action) {
-	_addAfterStreamExecutedListener(action);
+	addAfterStreamExecutedListener(action);
 	return this;
 }
 
 
  IDocumentQuery<T> removeAfterStreamExecutedListener(Consumer<ObjectNode> action) {
-	_removeAfterStreamExecutedListener(action);
+	removeAfterStreamExecutedListener(action);
 	return this;
 }
 */
 
 func (q *DocumentQuery) OpenSubclause() *IDocumentQuery {
-	q._openSubclause()
+	q.openSubclause()
 	return q
 }
 
 func (q *DocumentQuery) CloseSubclause() *IDocumentQuery {
-	q._closeSubclause()
+	q.closeSubclause()
 	return q
 }
 
 func (q *DocumentQuery) Search(fieldName string, searchTerms string) *IDocumentQuery {
-	q._search(fieldName, searchTerms)
+	q.search(fieldName, searchTerms)
 	return q
 }
 
 func (q *DocumentQuery) SearchWithOperator(fieldName string, searchTerms string, operator SearchOperator) *IDocumentQuery {
-	q._searchWithOperator(fieldName, searchTerms, operator)
+	q.searchWithOperator(fieldName, searchTerms, operator)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> Search<TValue>(Expression<Func<T, TValue>> propertySelector, string searchTerms, SearchOperator @operator)
 
 func (q *DocumentQuery) Intersect() *IDocumentQuery {
-	q._intersect()
+	q.intersect()
 	return q
 }
 
 func (q *DocumentQuery) ContainsAny(fieldName string, values []interface{}) *DocumentQuery {
-	q._containsAny(fieldName, values)
+	q.containsAny(fieldName, values)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> ContainsAny<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values)
 
 func (q *DocumentQuery) ContainsAll(fieldName string, values []interface{}) *DocumentQuery {
-	q._containsAll(fieldName, values)
+	q.containsAll(fieldName, values)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> ContainsAll<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values)
 
 func (q *DocumentQuery) Statistics(stats **QueryStatistics) *DocumentQuery {
-	q._statistics(stats)
+	q.statistics(stats)
 	return q
 }
 
@@ -190,19 +190,19 @@ func (q *DocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *IDocu
 }
 
 func (q *DocumentQuery) NoTracking() *IDocumentQuery {
-	q._noTracking()
+	q.noTracking()
 	return q
 }
 
 func (q *DocumentQuery) NoCaching() *IDocumentQuery {
-	q._noCaching()
+	q.noCaching()
 	return q
 }
 
 //TBD 4.1  IDocumentQuery<T> showTimings()
 
 func (q *DocumentQuery) Include(path string) *IDocumentQuery {
-	q._include(path)
+	q.include(path)
 	return q
 }
 
@@ -214,22 +214,22 @@ func (q *DocumentQuery) Not() *DocumentQuery {
 }
 
 func (q *DocumentQuery) Take(count int) *DocumentQuery {
-	q._take(&count)
+	q.take(&count)
 	return q
 }
 
 func (q *DocumentQuery) Skip(count int) *DocumentQuery {
-	q._skip(count)
+	q.skip(count)
 	return q
 }
 
 func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *IDocumentQuery {
-	q._whereLucene(fieldName, whereClause)
+	q.whereLucene(fieldName, whereClause)
 	return q
 }
 
 func (q *DocumentQuery) WhereEquals(fieldName string, value interface{}) *DocumentQuery {
-	q._whereEquals(fieldName, value)
+	q.whereEquals(fieldName, value)
 	return q
 }
 
@@ -240,7 +240,7 @@ func (q *DocumentQuery) Exact() *DocumentQuery {
 }
 
 func (q *DocumentQuery) WhereEqualsWithMethodCall(fieldName string, method MethodCall) *DocumentQuery {
-	q._whereEqualsWithMethodCall(fieldName, method)
+	q.whereEqualsWithMethodCall(fieldName, method)
 	return q
 }
 
@@ -248,17 +248,17 @@ func (q *DocumentQuery) WhereEqualsWithMethodCall(fieldName string, method Metho
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereEquals<TValue>(Expression<Func<T, TValue>> propertySelector, MethodCall value, bool exact)
 
 func (q *DocumentQuery) WhereEqualsWithParams(whereParams *whereParams) *DocumentQuery {
-	q._whereEqualsWithParams(whereParams)
+	q.whereEqualsWithParams(whereParams)
 	return q
 }
 
 func (q *DocumentQuery) WhereNotEquals(fieldName string, value interface{}) *DocumentQuery {
-	q._whereNotEquals(fieldName, value)
+	q.whereNotEquals(fieldName, value)
 	return q
 }
 
 func (q *DocumentQuery) WhereNotEqualsWithMethod(fieldName string, method MethodCall) *DocumentQuery {
-	q._whereNotEqualsWithMethod(fieldName, method)
+	q.whereNotEqualsWithMethod(fieldName, method)
 	return q
 }
 
@@ -266,43 +266,43 @@ func (q *DocumentQuery) WhereNotEqualsWithMethod(fieldName string, method Method
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereNotEquals<TValue>(Expression<Func<T, TValue>> propertySelector, MethodCall value, bool exact)
 
 func (q *DocumentQuery) WhereNotEqualsWithParams(whereParams *whereParams) *DocumentQuery {
-	q._whereNotEqualsWithParams(whereParams)
+	q.whereNotEqualsWithParams(whereParams)
 	return q
 }
 
 func (q *DocumentQuery) WhereIn(fieldName string, values []interface{}) *DocumentQuery {
-	q._whereIn(fieldName, values)
+	q.whereIn(fieldName, values)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereIn<TValue>(Expression<Func<T, TValue>> propertySelector, IEnumerable<TValue> values, bool exact = false)
 
 func (q *DocumentQuery) WhereStartsWith(fieldName string, value interface{}) *DocumentQuery {
-	q._whereStartsWith(fieldName, value)
+	q.whereStartsWith(fieldName, value)
 	return q
 }
 
 func (q *DocumentQuery) WhereEndsWith(fieldName string, value interface{}) *DocumentQuery {
-	q._whereEndsWith(fieldName, value)
+	q.whereEndsWith(fieldName, value)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereEndsWith<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value)
 
 func (q *DocumentQuery) WhereBetween(fieldName string, start interface{}, end interface{}) *DocumentQuery {
-	q._whereBetween(fieldName, start, end)
+	q.whereBetween(fieldName, start, end)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereBetween<TValue>(Expression<Func<T, TValue>> propertySelector, TValue start, TValue end, bool exact = false)
 
 func (q *DocumentQuery) WhereGreaterThan(fieldName string, value interface{}) *DocumentQuery {
-	q._whereGreaterThan(fieldName, value)
+	q.whereGreaterThan(fieldName, value)
 	return q
 }
 
 func (q *DocumentQuery) WhereGreaterThanOrEqual(fieldName string, value interface{}) *DocumentQuery {
-	q._whereGreaterThanOrEqual(fieldName, value)
+	q.whereGreaterThanOrEqual(fieldName, value)
 	return q
 }
 
@@ -310,14 +310,14 @@ func (q *DocumentQuery) WhereGreaterThanOrEqual(fieldName string, value interfac
 //TBD expr  IDocumentQuery<T> WhereGreaterThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
 func (q *DocumentQuery) WhereLessThan(fieldName string, value interface{}) *DocumentQuery {
-	q._whereLessThan(fieldName, value)
+	q.whereLessThan(fieldName, value)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> WhereLessThanOrEqual<TValue>(Expression<Func<T, TValue>> propertySelector, TValue value, bool exact = false)
 
 func (q *DocumentQuery) WhereLessThanOrEqual(fieldName string, value interface{}) *DocumentQuery {
-	q._whereLessThanOrEqual(fieldName, value)
+	q.whereLessThanOrEqual(fieldName, value)
 	return q
 }
 
@@ -325,49 +325,49 @@ func (q *DocumentQuery) WhereLessThanOrEqual(fieldName string, value interface{}
 //TBD expr  IDocumentQuery<T> WhereExists<TValue>(Expression<Func<T, TValue>> propertySelector)
 
 func (q *DocumentQuery) WhereExists(fieldName string) *DocumentQuery {
-	q._whereExists(fieldName)
+	q.whereExists(fieldName)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IFilterDocumentQueryBase<T, IDocumentQuery<T>>.WhereRegex<TValue>(Expression<Func<T, TValue>> propertySelector, string pattern)
 
 func (q *DocumentQuery) WhereRegex(fieldName string, pattern string) *DocumentQuery {
-	q._whereRegex(fieldName, pattern)
+	q.whereRegex(fieldName, pattern)
 	return q
 }
 
 func (q *DocumentQuery) AndAlso() *DocumentQuery {
-	q._andAlso()
+	q.andAlso()
 	return q
 }
 
 func (q *DocumentQuery) OrElse() *DocumentQuery {
-	q._orElse()
+	q.orElse()
 	return q
 }
 
 func (q *DocumentQuery) Boost(boost float64) *DocumentQuery {
-	q._boost(boost)
+	q.boost(boost)
 	return q
 }
 
 func (q *DocumentQuery) Fuzzy(fuzzy float64) *DocumentQuery {
-	q._fuzzy(fuzzy)
+	q.fuzzy(fuzzy)
 	return q
 }
 
 func (q *DocumentQuery) Proximity(proximity int) *DocumentQuery {
-	q._proximity(proximity)
+	q.proximity(proximity)
 	return q
 }
 
 func (q *DocumentQuery) RandomOrdering() *DocumentQuery {
-	q._randomOrdering()
+	q.randomOrdering()
 	return q
 }
 
 func (q *DocumentQuery) RandomOrderingWithSeed(seed string) *DocumentQuery {
-	q._randomOrderingWithSeed(seed)
+	q.randomOrderingWithSeed(seed)
 	return q
 }
 
@@ -375,13 +375,13 @@ func (q *DocumentQuery) RandomOrderingWithSeed(seed string) *DocumentQuery {
 
 // GroupBy makes a query grouped by fields
 func (q *DocumentQuery) GroupBy(fieldName string, fieldNames ...string) *IGroupByDocumentQuery {
-	q._groupBy(fieldName, fieldNames...)
+	q.groupBy(fieldName, fieldNames...)
 
 	return NewGroupByDocumentQuery(q)
 }
 
 func (q *DocumentQuery) GroupBy2(field *GroupBy, fields ...*GroupBy) *IGroupByDocumentQuery {
-	q._groupBy2(field, fields...)
+	q.groupBy2(field, fields...)
 
 	return NewGroupByDocumentQuery(q)
 }
@@ -392,7 +392,7 @@ func (q *DocumentQuery) OrderBy(field string) *IDocumentQuery {
 }
 
 func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
-	q._orderByWithOrdering(field, ordering)
+	q.orderByWithOrdering(field, ordering)
 	return q
 }
 
@@ -403,7 +403,7 @@ func (q *DocumentQuery) OrderByDescending(field string) *IDocumentQuery {
 }
 
 func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
-	q._orderByDescendingWithOrdering(field, ordering)
+	q.orderByDescendingWithOrdering(field, ordering)
 	return q
 }
 
@@ -411,13 +411,13 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 
 /*
  IDocumentQuery<T> AddBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
-	_addBeforeQueryExecutedListener(action);
+	addBeforeQueryExecutedListener(action);
 	return this;
 }
 
 
  IDocumentQuery<T> RemoveBeforeQueryExecutedListener(Consumer<IndexQuery> action) {
-	_removeBeforeQueryExecutedListener(action);
+	removeBeforeQueryExecutedListener(action);
 	return this;
 }
 */
@@ -506,21 +506,21 @@ func (q *DocumentQuery) AggregateBy(builder func(IFacetBuilder)) *AggregationDoc
 }
 
 func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
-	q._aggregateBy(facet)
+	q.aggregateBy(facet)
 
 	return NewAggregationDocumentQuery(q)
 }
 
 func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *AggregationDocumentQuery {
 	for _, facet := range facets {
-		q._aggregateBy(facet)
+		q.aggregateBy(facet)
 	}
 
 	return NewAggregationDocumentQuery(q)
 }
 
 func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *AggregationDocumentQuery {
-	q._aggregateUsing(facetSetupDocumentID)
+	q.aggregateUsing(facetSetupDocumentID)
 
 	return NewAggregationDocumentQuery(q)
 }
@@ -537,13 +537,13 @@ func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *Aggregation
 
 func (q *DocumentQuery) Spatial3(fieldName string, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
 	criteria := clause(spatialCriteriaFactoryInstance)
-	q._spatial3(fieldName, criteria)
+	q.spatial3(fieldName, criteria)
 	return q
 }
 
 func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
 	criteria := clause(spatialCriteriaFactoryInstance)
-	q._spatial2(field, criteria)
+	q.spatial2(field, criteria)
 	return q
 }
 
@@ -551,17 +551,17 @@ func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*Spatial
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, float64 radius, float64 latitude, float64 longitude, SpatialUnits? radiusUnits, float64 distanceErrorPct)
 
 func (q *DocumentQuery) WithinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64) *IDocumentQuery {
-	q._withinRadiusOf(fieldName, radius, latitude, longitude, "", IndexingSpatialDefaultDistnaceErrorPct)
+	q.withinRadiusOf(fieldName, radius, latitude, longitude, "", IndexingSpatialDefaultDistnaceErrorPct)
 	return q
 }
 
 func (q *DocumentQuery) WithinRadiusOfWithUnits(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits) *IDocumentQuery {
-	q._withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, IndexingSpatialDefaultDistnaceErrorPct)
+	q.withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, IndexingSpatialDefaultDistnaceErrorPct)
 	return q
 }
 
 func (q *DocumentQuery) WithinRadiusOfWithUnitsAndError(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distanceErrorPct float64) *IDocumentQuery {
-	q._withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, distanceErrorPct)
+	q.withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, distanceErrorPct)
 	return q
 }
 
@@ -572,19 +572,19 @@ func (q *DocumentQuery) RelatesToShape(fieldName string, shapeWkt string, relati
 }
 
 func (q *DocumentQuery) RelatesToShapeWithError(fieldName string, shapeWkt string, relation SpatialRelation, distanceErrorPct float64) *IDocumentQuery {
-	q._spatial(fieldName, shapeWkt, relation, distanceErrorPct)
+	q.spatial(fieldName, shapeWkt, relation, distanceErrorPct)
 	return q
 }
 
 func (q *DocumentQuery) OrderByDistance(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
-	q._orderByDistance(field, latitude, longitude)
+	q.orderByDistance(field, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
 func (q *DocumentQuery) OrderByDistance2(field DynamicSpatialField, shapeWkt string) *IDocumentQuery {
-	q._orderByDistance2(field, shapeWkt)
+	q.orderByDistance2(field, shapeWkt)
 	return q
 }
 
@@ -593,26 +593,26 @@ func (q *DocumentQuery) OrderByDistance2(field DynamicSpatialField, shapeWkt str
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
 func (q *DocumentQuery) OrderByDistanceLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
-	q._orderByDistanceLatLong(fieldName, latitude, longitude)
+	q.orderByDistanceLatLong(fieldName, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
 func (q *DocumentQuery) OrderByDistance3(fieldName string, shapeWkt string) *IDocumentQuery {
-	q._orderByDistance3(fieldName, shapeWkt)
+	q.orderByDistance3(fieldName, shapeWkt)
 	return q
 }
 
 func (q *DocumentQuery) OrderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
-	q._orderByDistanceDescending(field, latitude, longitude)
+	q.orderByDistanceDescending(field, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
 func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) *IDocumentQuery {
-	q._orderByDistanceDescending2(field, shapeWkt)
+	q.orderByDistanceDescending2(field, shapeWkt)
 	return q
 }
 
@@ -621,19 +621,19 @@ func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, sh
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
 func (q *DocumentQuery) OrderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
-	q._orderByDistanceDescendingLatLong(fieldName, latitude, longitude)
+	q.orderByDistanceDescendingLatLong(fieldName, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
 func (q *DocumentQuery) OrderByDistanceDescending3(fieldName string, shapeWkt string) *IDocumentQuery {
-	q._orderByDistanceDescending3(fieldName, shapeWkt)
+	q.orderByDistanceDescending3(fieldName, shapeWkt)
 	return q
 }
 
 func (q *DocumentQuery) MoreLikeThis(moreLikeThis MoreLikeThisBase) *DocumentQuery {
-	mlt := q._moreLikeThis()
+	mlt := q.moreLikeThis()
 	defer mlt.Close()
 
 	mlt.WithOptions(moreLikeThis.GetOptions())
@@ -650,7 +650,7 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	f := NewMoreLikeThisBuilder()
 	builder(f)
 
-	moreLikeThis := q._moreLikeThis()
+	moreLikeThis := q.moreLikeThis()
 
 	moreLikeThis.WithOptions(f.GetMoreLikeThis().GetOptions())
 
@@ -666,7 +666,7 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 }
 
 func (q *DocumentQuery) SuggestUsing(suggestion SuggestionBase) *ISuggestionDocumentQuery {
-	q._suggestUsing(suggestion)
+	q.suggestUsing(suggestion)
 	return NewSuggestionDocumentQuery(q)
 }
 

@@ -78,7 +78,7 @@ func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResu
 }
 
 func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
-	q._source.InvokeAfterQueryExecuted(result)
+	q._source.invokeAfterQueryExecuted(result)
 }
 
 func (q *SuggestionDocumentQuery) getIndexQuery() *IndexQuery {

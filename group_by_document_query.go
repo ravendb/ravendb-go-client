@@ -21,7 +21,7 @@ func (q *GroupByDocumentQuery) SelectKeyWithName(fieldName string) *IGroupByDocu
 }
 
 func (q *GroupByDocumentQuery) SelectKeyWithNameAndProjectedName(fieldName string, projectedName string) *IGroupByDocumentQuery {
-	q._query._groupByKey(fieldName, projectedName)
+	q._query.groupByKey(fieldName, projectedName)
 	return q
 }
 
@@ -31,14 +31,14 @@ func (q *GroupByDocumentQuery) SelectSum(field *GroupByField, fields ...*GroupBy
 		//throw new IllegalArgumentError("Field cannot be null");
 	}
 
-	q._query._groupBySum(field.FieldName, field.ProjectedName)
+	q._query.groupBySum(field.FieldName, field.ProjectedName)
 
 	if len(fields) == 0 {
 		return q._query
 	}
 
 	for _, f := range fields {
-		q._query._groupBySum(f.FieldName, f.ProjectedName)
+		q._query.groupBySum(f.FieldName, f.ProjectedName)
 	}
 
 	return q._query
@@ -49,6 +49,6 @@ func (q *GroupByDocumentQuery) SelectCount() *IDocumentQuery {
 }
 
 func (q *GroupByDocumentQuery) SelectCountWithName(projectedName string) *IDocumentQuery {
-	q._query._groupByCount(projectedName)
+	q._query.groupByCount(projectedName)
 	return q._query
 }
