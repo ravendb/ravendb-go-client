@@ -3,6 +3,8 @@ set -u -e -o pipefail -o xtrace
 
 # This script re-generates self-signing certs in certs directory
 # run as: ./scripts/mkcert.sh
+# The certificate is valid for 1 year (currently till Jan 2020)
+# so if https tests start failing, re-run this script to re-generate the cert
 
 # on mac must use password https://github.com/dotnet/corefx/issues/24225
 # password hard-coded here and in NewSecuredServiceLocator() see --Security.Certificate.Password
@@ -14,7 +16,7 @@ cd ./certs
 
 openssl genrsa -out ca.key 2048
 
-openssl req -new -x509 -key ca.key -out ca.crt -subj "/C=US/ST=Arizona/L=Nevada/O=RavenDB Test CA/OU=RavenDB test CA/CN=a.javatest11.development.run/emailAddress=ravendbca@example.com"
+openssl req -new -x509 -days 365 -key ca.key -out ca.crt -subj "/C=US/ST=Arizona/L=Nevada/O=RavenDB Test CA/OU=RavenDB test CA/CN=a.javatest11.development.run/emailAddress=ravendbca@example.com"
 
 openssl genrsa -out localhost.key 2048
 
