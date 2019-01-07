@@ -88,43 +88,65 @@ func (s *DocumentStore) ensureNotClosed() error {
 	return nil
 }
 
+// AddBeforeStoreStoreListener registers a function that will be called before storing ab entity.
+// It'll be registered with every new session.
+// Returns listener id that can be passed to RemoveBeforeStoreListener to unregister
+// the listener.
 func (s *DocumentStore) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
 	return len(s.onBeforeStore) - 1
 
 }
-func (s *DocumentStore) RemoveBeforeStoreListener(handlerIdx int) {
-	s.onBeforeStore[handlerIdx] = nil
+
+// RemoveBeforeStoreListener removes a listener given id returned by AddBeforeStoreListener
+func (s *DocumentStore) RemoveBeforeStoreListener(handlerId int) {
+	s.onBeforeStore[handlerId] = nil
 }
 
+// AddAfterSaveChangesListener registers a function that will be called before saving changes.
+// It'll be registered with every new session.
+// Returns listener id that can be passed to RemoveAfterSaveChangesListener to unregister
+// the listener.
 func (s *DocumentStore) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) int {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 	return len(s.onAfterSaveChanges) - 1
 }
 
-func (s *DocumentStore) RemoveAfterSaveChangesListener(handlerIdx int) {
-	s.onAfterSaveChanges[handlerIdx] = nil
+// RemoveAfterSaveChangesListener removes a listener given id returned by AddAfterSaveChangesListener
+func (s *DocumentStore) RemoveAfterSaveChangesListener(handlerId int) {
+	s.onAfterSaveChanges[handlerId] = nil
 }
 
+// AddBeforeDeleteListener registers a function that will be called before deleting an entity.
+// It'll be registered with every new session.
+// Returns listener id that can be passed to RemoveBeforeDeleteListener to unregister
+// the listener.
 func (s *DocumentStore) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) int {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 	return len(s.onBeforeDelete) - 1
 }
 
-func (s *DocumentStore) RemoveBeforeDeleteListener(handlerIdx int) {
-	s.onBeforeDelete[handlerIdx] = nil
+// RemoveBeforeDeleteListener removes a listener given id returned by AddBeforeDeleteListener
+func (s *DocumentStore) RemoveBeforeDeleteListener(handlerId int) {
+	s.onBeforeDelete[handlerId] = nil
 }
 
+// AddBeforeQueryListener registers a function that will be called before running a query.
+// It allows customizing query via DocumentQueryCustomization.
+// It'll be registered with every new session.
+// Returns listener id that can be passed to RemoveBeforeQueryListener to unregister
+// the listener.
 func (s *DocumentStore) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) int {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 	return len(s.onBeforeQuery) - 1
 }
 
-func (s *DocumentStore) RemoveBeforeQueryListener(handlerIdx int) {
-	s.onBeforeQuery[handlerIdx] = nil
+// RemoveBeforeQueryListener removes a listener given id returned by AddBeforeQueryListener
+func (s *DocumentStore) RemoveBeforeQueryListener(handlerId int) {
+	s.onBeforeQuery[handlerId] = nil
 }
 
-func (s *DocumentStore) RegisterEvents(session *InMemoryDocumentSessionOperations) {
+func (s *DocumentStore) registerEvents(session *InMemoryDocumentSessionOperations) {
 	// TODO: unregister those events?
 	for _, handler := range s.onBeforeStore {
 		if handler != nil {
@@ -312,7 +334,7 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 		requestExecutor = s.GetRequestExecutor(databaseName)
 	}
 	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
-	s.RegisterEvents(session.InMemoryDocumentSessionOperations)
+	s.registerEvents(session.InMemoryDocumentSessionOperations)
 	s.afterSessionCreated(session.InMemoryDocumentSessionOperations)
 	return session, nil
 }

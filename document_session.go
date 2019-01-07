@@ -78,7 +78,7 @@ func (s *DocumentSession) SaveChanges() error {
 		return nil
 	}
 	defer command.Close()
-	err = s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err = s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	}
 	command := NewHeadDocumentCommand(id, nil)
 
-	err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return false, err
 	}
@@ -112,7 +112,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 	}
 
 	command := NewGetDocumentsCommand([]string{documentInfo.id}, nil, false)
-	err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	command := loadOperation.CreateRequest()
 
 	if command != nil {
-		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -310,7 +310,7 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 
 	command := operation.CreateRequest()
 	if command != nil {
-		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -335,7 +335,7 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 
 	command := loadOperation.CreateRequest()
 	if command != nil {
-		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -373,7 +373,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 
 	command := operation.CreateRequest()
 	if command != nil {
-		err := s._requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
 			return nil, err
 		}

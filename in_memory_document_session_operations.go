@@ -20,16 +20,16 @@ func newClientSessionID() int {
 // InMemoryDocumentSessionOperations represents database operations queued
 // in memory
 type InMemoryDocumentSessionOperations struct {
-	_clientSessionID            int
+	clientSessionID             int
 	deletedEntities             *objectSet
-	_requestExecutor            *RequestExecutor
+	requestExecutor             *RequestExecutor
 	_operationExecutor          *OperationExecutor
 	pendingLazyOperations       []ILazyOperation
 	onEvaluateLazy              map[ILazyOperation]func(interface{})
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
-	_saveChangesOptions         *BatchOptions
-	_isDisposed                 bool
+	saveChangesOptions          *BatchOptions
+	isDisposed                  bool
 
 	// Note: skipping unused isDisposed
 	id string
@@ -41,7 +41,7 @@ type InMemoryDocumentSessionOperations struct {
 	onBeforeQuery  []func(interface{}, *BeforeQueryEventArgs)
 
 	// ids of entities that were deleted
-	_knownMissingIds []string // case insensitive
+	knownMissingIds []string // case insensitive
 
 	// Note: skipping unused externalState
 	// Note: skipping unused getCurrentSessionNode
@@ -59,9 +59,9 @@ type InMemoryDocumentSessionOperations struct {
 	// convert non-pointer structs to structs?
 	documents []*documentInfo
 
-	_documentStore *DocumentStore
+	documentStore *DocumentStore
 
-	databaseName string
+	DatabaseName string
 
 	numberOfRequests int
 
@@ -89,16 +89,16 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	clientSessionID := newClientSessionID()
 	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
-		_clientSessionID:              clientSessionID,
+		clientSessionID:               clientSessionID,
 		deletedEntities:               newObjectSet(),
-		_requestExecutor:              re,
+		requestExecutor:               re,
 		generateDocumentKeysOnStore:   true,
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsByID:                 newDocumentsByID(),
 		includedDocumentsByID:         map[string]*documentInfo{},
 		documents:                     []*documentInfo{},
-		_documentStore:                store,
-		databaseName:                  dbName,
+		documentStore:                 store,
+		DatabaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
 		deferredCommandsMap:           make(map[idTypeAndName]ICommandData),
@@ -112,47 +112,65 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	return res
 }
 
+// GetDeferredCommandsCount returns number of deferred commands
 func (s *InMemoryDocumentSessionOperations) GetDeferredCommandsCount() int {
 	return len(s.deferredCommands)
 }
 
+// AddBeforeStoreStoreListener registers a function that will be called before storing an entity.
+// Returns listener id that can be passed to RemoveBeforeStoreListener to unregister
+// the listener.
 func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
 	s.onBeforeStore = append(s.onBeforeStore, handler)
 	return len(s.onBeforeStore) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handlerIdx int) {
-	s.onBeforeStore[handlerIdx] = nil
+// RemoveBeforeStoreListener removes a listener given id returned by AddBeforeStoreListener
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handlerId int) {
+	s.onBeforeStore[handlerId] = nil
 }
 
+// AddAfterSaveChangesListener registers a function that will be called before saving changes.
+// Returns listener id that can be passed to RemoveAfterSaveChangesListener to unregister
+// the listener.
 func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler func(interface{}, *AfterSaveChangesEventArgs)) int {
 	s.onAfterSaveChanges = append(s.onAfterSaveChanges, handler)
 	return len(s.onAfterSaveChanges) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handlerIdx int) {
-	s.onAfterSaveChanges[handlerIdx] = nil
+// RemoveAfterSaveChangesListener removes a listener given id returned by AddAfterSaveChangesListener
+func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handlerId int) {
+	s.onAfterSaveChanges[handlerId] = nil
 }
 
+// AddBeforeDeleteListener registers a function that will be called before deleting an entity.
+// Returns listener id that can be passed to RemoveBeforeDeleteListener to unregister
+// the listener.
 func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func(interface{}, *BeforeDeleteEventArgs)) int {
 	s.onBeforeDelete = append(s.onBeforeDelete, handler)
 	return len(s.onBeforeDelete) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handlerIdx int) {
-	s.onBeforeDelete[handlerIdx] = nil
+// RemoveBeforeDeleteListener removes a listener given id returned by AddBeforeDeleteListener
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handlerId int) {
+	s.onBeforeDelete[handlerId] = nil
 }
 
+// AddBeforeQueryListener registers a function that will be called before running a query.
+// It allows customizing query via DocumentQueryCustomization.
+// Returns listener id that can be passed to RemoveBeforeQueryListener to unregister
+// the listener.
 func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(interface{}, *BeforeQueryEventArgs)) int {
 	s.onBeforeQuery = append(s.onBeforeQuery, handler)
 	return len(s.onBeforeQuery) - 1
 }
 
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerIdx int) {
-	s.onBeforeQuery[handlerIdx] = nil
+// RemoveBeforeQueryListener removes a listener given id returned by AddBeforeQueryListener
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerId int) {
+	s.onBeforeQuery[handlerId] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) GetgenerateEntityIDOnTheClient() *generateEntityIDOnTheClient {
+func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIDOnTheClient() *generateEntityIDOnTheClient {
 	return s.generateEntityIDOnTheClient
 }
 
@@ -160,34 +178,31 @@ func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *entityToJSON {
 	return s.entityToJSON
 }
 
-// GetNumberOfEntitiesInUnitOfWork returns number of entinties
+// GetNumberOfEntitiesInUnitOfWork returns number of entities
 func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() int {
 	return len(s.documents)
 }
 
+// GetConventions returns DocumentConventions
 func (s *InMemoryDocumentSessionOperations) GetConventions() *DocumentConventions {
-	return s._requestExecutor.conventions
-}
-
-func (s *InMemoryDocumentSessionOperations) GetDatabaseName() string {
-	return s.databaseName
+	return s.requestExecutor.conventions
 }
 
 func (s *InMemoryDocumentSessionOperations) GenerateId(entity interface{}) string {
-	return s.GetConventions().GenerateDocumentID(s.GetDatabaseName(), entity)
+	return s.GetConventions().GenerateDocumentID(s.DatabaseName, entity)
 }
 
 func (s *InMemoryDocumentSessionOperations) GetDocumentStore() *DocumentStore {
-	return s._documentStore
+	return s.documentStore
 }
 
 func (s *InMemoryDocumentSessionOperations) GetRequestExecutor() *RequestExecutor {
-	return s._requestExecutor
+	return s.requestExecutor
 }
 
 func (s *InMemoryDocumentSessionOperations) GetOperations() *OperationExecutor {
 	if s._operationExecutor == nil {
-		dbName := s.GetDatabaseName()
+		dbName := s.DatabaseName
 		s._operationExecutor = s.GetDocumentStore().Operations().ForDatabase(dbName)
 	}
 	return s._operationExecutor
@@ -342,7 +357,7 @@ func (s *InMemoryDocumentSessionOperations) IsLoadedOrDeleted(id string) bool {
 
 // IsDeleted returns true if document with this id is deleted in this session
 func (s *InMemoryDocumentSessionOperations) IsDeleted(id string) bool {
-	return stringArrayContainsNoCase(s._knownMissingIds, id)
+	return stringArrayContainsNoCase(s.knownMissingIds, id)
 }
 
 // GetDocumentID returns id of a given instance
@@ -551,7 +566,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 
 	s.deletedEntities.add(entity)
 	delete(s.includedDocumentsByID, value.id)
-	s._knownMissingIds = append(s._knownMissingIds, value.id)
+	s.knownMissingIds = append(s.knownMissingIds, value.id)
 	return nil
 }
 
@@ -582,7 +597,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 		changeVector = documentInfo.changeVector
 	}
 
-	s._knownMissingIds = append(s._knownMissingIds, id)
+	s.knownMissingIds = append(s.knownMissingIds, id)
 	if !s.useOptimisticConcurrency {
 		changeVector = nil
 	}
@@ -736,17 +751,17 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		return err
 	}
 
-	collectionName := s._requestExecutor.GetConventions().GetCollectionName(entity)
+	collectionName := s.requestExecutor.GetConventions().GetCollectionName(entity)
 	metadata := map[string]interface{}{}
 	if collectionName != "" {
 		metadata[MetadataCollection] = collectionName
 	}
-	goType := s._requestExecutor.GetConventions().getGoTypeName(entity)
+	goType := s.requestExecutor.GetConventions().getGoTypeName(entity)
 	if goType != "" {
 		metadata[MetadataRavenGoType] = goType
 	}
 	if id != "" {
-		s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
+		s.knownMissingIds = stringArrayRemoveNoCase(s.knownMissingIds, id)
 	}
 	var changeVectorPtr *string
 	if changeVector != "" {
@@ -759,7 +774,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, entity interface{}, changeVector *string, metadata map[string]interface{}, forceConcurrencyCheck ConcurrencyCheckMode) {
 	s.deletedEntities.remove(entity)
 	if id != "" {
-		s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
+		s.knownMissingIds = stringArrayRemoveNoCase(s.knownMissingIds, id)
 	}
 	documentInfo := &documentInfo{}
 	documentInfo.id = id
@@ -930,7 +945,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveC
 		}
 
 		if len(s.onBeforeStore) > 0 {
-			beforeStoreEventArgs := NewBeforeStoreEventArgs(s, entityValue.id, entityKey)
+			beforeStoreEventArgs := newBeforeStoreEventArgs(s, entityValue.id, entityKey)
 			for _, handler := range s.onBeforeStore {
 				if handler != nil {
 					handler(s, beforeStoreEventArgs)
@@ -1068,7 +1083,7 @@ func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.documents = nil
 	s.deletedEntities.clear()
 	s.documentsByID = nil
-	s._knownMissingIds = nil
+	s.knownMissingIds = nil
 	s.includedDocumentsByID = nil
 }
 
@@ -1101,11 +1116,11 @@ func (s *InMemoryDocumentSessionOperations) deferInternal(command ICommandData) 
 }
 
 func (s *InMemoryDocumentSessionOperations) _close(isDisposing bool) {
-	if s._isDisposed {
+	if s.isDisposed {
 		return
 	}
 
-	s._isDisposed = true
+	s.isDisposed = true
 
 	// nothing more to do for now
 }
@@ -1117,12 +1132,12 @@ func (s *InMemoryDocumentSessionOperations) Close() {
 
 // RegisterMissing registers missing value id
 func (s *InMemoryDocumentSessionOperations) RegisterMissing(id string) {
-	s._knownMissingIds = append(s._knownMissingIds, id)
+	s.knownMissingIds = append(s.knownMissingIds, id)
 }
 
 // UnregisterMissing unregisters missing value id
 func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
-	s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
+	s.knownMissingIds = stringArrayRemoveNoCase(s.knownMissingIds, id)
 }
 
 // RegisterIncludes registers includes object
@@ -1174,7 +1189,7 @@ func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz ref
 
 func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
 	for _, id := range ids {
-		if stringArrayContainsNoCase(s._knownMissingIds, id) {
+		if stringArrayContainsNoCase(s.knownMissingIds, id) {
 			continue
 		}
 
@@ -1291,7 +1306,7 @@ func newSaveChangesData(session *InMemoryDocumentSessionOperations) *saveChanges
 	return &saveChangesData{
 		deferredCommands:    copyDeferredCommands(session.deferredCommands),
 		deferredCommandsMap: copyDeferredCommandsMap(session.deferredCommandsMap),
-		options:             session._saveChangesOptions,
+		options:             session.saveChangesOptions,
 	}
 }
 

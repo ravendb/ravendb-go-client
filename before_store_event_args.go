@@ -1,41 +1,31 @@
 package ravendb
 
+// BeforeStoreEventArgs describe arguments for "before store" listener
 type BeforeStoreEventArgs struct {
-	_documentMetadata *MetadataAsDictionary
+	documentMetadata *MetadataAsDictionary
 
-	session    *InMemoryDocumentSessionOperations
-	documentID string
-	entity     interface{}
+	Session    *InMemoryDocumentSessionOperations
+	DocumentID string
+	Entity     interface{}
 }
 
-func NewBeforeStoreEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *BeforeStoreEventArgs {
+func newBeforeStoreEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *BeforeStoreEventArgs {
 	return &BeforeStoreEventArgs{
-		session:    session,
-		documentID: documentID,
-		entity:     entity,
+		Session:    session,
+		DocumentID: documentID,
+		Entity:     entity,
 	}
-}
-
-func (a *BeforeStoreEventArgs) getSession() *InMemoryDocumentSessionOperations {
-	return a.session
-}
-
-func (a *BeforeStoreEventArgs) GetDocumentID() string {
-	return a.documentID
-}
-
-func (a *BeforeStoreEventArgs) getEntity() interface{} {
-	return a.entity
 }
 
 func (a *BeforeStoreEventArgs) isMetadataAccessed() bool {
-	return a._documentMetadata != nil
+	return a.documentMetadata != nil
 }
 
-func (a *BeforeStoreEventArgs) getDocumentMetadata() *MetadataAsDictionary {
-	if a._documentMetadata == nil {
-		a._documentMetadata, _ = a.session.GetMetadataFor(a.entity)
+// GetDocumentMetadata returns metadata for entity represented by this event
+func (a *BeforeStoreEventArgs) GetDocumentMetadata() *MetadataAsDictionary {
+	if a.documentMetadata == nil {
+		a.documentMetadata, _ = a.Session.GetMetadataFor(a.Entity)
 	}
 
-	return a._documentMetadata
+	return a.documentMetadata
 }

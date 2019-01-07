@@ -84,7 +84,7 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 		return res
 	}
 
-	return o._session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o._session.GetDatabaseName())
+	return o._session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o._session.DatabaseName)
 }
 
 func (o *QueryOperation) complete(results interface{}) error {
@@ -196,7 +196,7 @@ func queryOperationDeserialize(clazz reflect.Type, id string, document map[strin
 		identityProperty := session.GetConventions().GetIdentityProperty(clazz)
 		if identityProperty != "" {
 			if _, ok := document[identityProperty]; !ok {
-				session.GetgenerateEntityIDOnTheClient().trySetIdentity(result, id)
+				session.GetGenerateEntityIDOnTheClient().trySetIdentity(result, id)
 			}
 		}
 	}

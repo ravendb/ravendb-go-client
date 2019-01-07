@@ -1,14 +1,15 @@
 package ravendb
 
+// AfterSaveChangesEventArgs describes arguments for "after save changes" listener
 type AfterSaveChangesEventArgs struct {
-	_documentMetadata *MetadataAsDictionary
+	documentMetadata *MetadataAsDictionary
 
 	Session    *InMemoryDocumentSessionOperations
 	DocumentID string
 	Entity     interface{}
 }
 
-func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *AfterSaveChangesEventArgs {
+func newAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, documentID string, entity interface{}) *AfterSaveChangesEventArgs {
 	return &AfterSaveChangesEventArgs{
 		Session:    session,
 		DocumentID: documentID,
@@ -16,10 +17,11 @@ func NewAfterSaveChangesEventArgs(session *InMemoryDocumentSessionOperations, do
 	}
 }
 
+// GetDocumentMetadata returns metadata for the entity represented by this event
 func (a *AfterSaveChangesEventArgs) GetDocumentMetadata() *MetadataAsDictionary {
-	if a._documentMetadata == nil {
-		a._documentMetadata, _ = a.Session.GetMetadataFor(a.Entity)
+	if a.documentMetadata == nil {
+		a.documentMetadata, _ = a.Session.GetMetadataFor(a.Entity)
 	}
 
-	return a._documentMetadata
+	return a.documentMetadata
 }
