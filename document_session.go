@@ -20,10 +20,10 @@ var ErrNotFound = error(nil)
 type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 
-	_attachments *IAttachmentsSessionOperations
-	_revisions   *IRevisionsSessionOperations
-	_valsCount   int
-	_customCount int
+	attachments *IAttachmentsSessionOperations
+	revisions   *IRevisionsSessionOperations
+	valsCount   int
+	customCount int
 }
 
 // TODO: consider exposing it as IAdvancedSessionOperations interface, like in Java
@@ -43,14 +43,14 @@ func (s *DocumentSession) Eagerly() *IEagerSessionOperations {
 }
 
 func (s *DocumentSession) Attachments() *IAttachmentsSessionOperations {
-	if s._attachments == nil {
-		s._attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
+	if s.attachments == nil {
+		s.attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
 	}
-	return s._attachments
+	return s.attachments
 }
 
 func (s *DocumentSession) Revisions() *IRevisionsSessionOperations {
-	return s._revisions
+	return s.revisions
 }
 
 // NewDocumentSession creates a new DocumentSession
@@ -62,11 +62,12 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 	res.InMemoryDocumentSessionOperations.session = res
 
 	//TODO: res._attachments: NewDocumentSessionAttachments(res)
-	res._revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
+	res.revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
 
 	return res
 }
 
+// SaveChanges saves changes queued in memory to the database
 func (s *DocumentSession) SaveChanges() error {
 	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)
 
@@ -87,6 +88,7 @@ func (s *DocumentSession) SaveChanges() error {
 	return nil
 }
 
+// Exists returns true if an entity with a given id exists in the database
 func (s *DocumentSession) Exists(id string) (bool, error) {
 	if s.documentsByID.getValue(id) != nil {
 		return true, nil
@@ -102,7 +104,9 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	return ok, nil
 }
 
+// Refresh refreshes information about a given entity from the database
 func (s *DocumentSession) Refresh(entity interface{}) error {
+
 	documentInfo := getDocumentInfoByEntity(s.documents, entity)
 	if documentInfo == nil {
 		return newIllegalStateError("Cannot refresh a transient instance")
@@ -409,7 +413,7 @@ func (s *DocumentSession) IncrementEntity(entity interface{}, path string, value
 func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd interface{}) error {
 	patchRequest := &PatchRequest{}
 
-	valsCountStr := strconv.Itoa(s._valsCount)
+	valsCountStr := strconv.Itoa(s.valsCount)
 	patchRequest.Script = "this." + path + " += args.val_" + valsCountStr + ";"
 
 	m := map[string]interface{}{
@@ -417,7 +421,7 @@ func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd inter
 	}
 	patchRequest.Values = m
 
-	s._valsCount++
+	s.valsCount++
 
 	if !s.tryMergePatches(id, patchRequest) {
 		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
@@ -439,14 +443,14 @@ func (s *DocumentSession) PatchEntity(entity interface{}, path string, value int
 
 func (s *DocumentSession) PatchByID(id string, path string, value interface{}) error {
 	patchRequest := &PatchRequest{}
-	valsCountStr := strconv.Itoa(s._valsCount)
+	valsCountStr := strconv.Itoa(s.valsCount)
 	patchRequest.Script = "this." + path + " = args.val_" + valsCountStr + ";"
 	m := map[string]interface{}{
 		"val_" + valsCountStr: value,
 	}
 	patchRequest.Values = m
 
-	s._valsCount++
+	s.valsCount++
 
 	if !s.tryMergePatches(id, patchRequest) {
 		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
@@ -469,8 +473,8 @@ func (s *DocumentSession) PatchArrayInEntity(entity interface{}, pathToArray str
 }
 
 func (s *DocumentSession) PatchArrayByID(id string, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
-	s._customCount++
-	scriptArray := NewJavaScriptArray(s._customCount, pathToArray)
+	s.customCount++
+	scriptArray := NewJavaScriptArray(s.customCount, pathToArray)
 
 	arrayAdder(scriptArray)
 
@@ -537,10 +541,12 @@ func cloneMapStringObject(m map[string]interface{}) map[string]interface{} {
 
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
+// DocumentQueryInIndex starts a new DocumentQuery in a given index
 func (s *DocumentSession) DocumentQueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
 	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
 }
 
+// DocumentQuery starts a new DocumentQuery
 func (s *DocumentSession) DocumentQuery() *DocumentQuery {
 	return s.DocumentQueryAll("", "", false)
 }
@@ -595,6 +601,8 @@ func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *Docume
 	return s.DocumentQueryInIndex(index)
 }
 
+// StreamQuery starts a streaming query and returns iterator for results.
+// If streamQueryStats is provided, it'll be filled with information about query statistics.
 func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
 	q := query.GetIndexQuery()
@@ -610,9 +618,11 @@ func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *S
 	onNextItem := func(res map[string]interface{}) {
 		query.invokeAfterStreamExecuted(res)
 	}
-	return NewStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
+	return newStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
 }
 
+// StreamRawQuery starts a raw streaming query and returns iterator for results.
+// If streamQueryStats is provided, it'll be filled with information about query statistics.
 func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
 	q := query.GetIndexQuery()
@@ -628,9 +638,11 @@ func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQuerySt
 	onNextItem := func(res map[string]interface{}) {
 		query.invokeAfterStreamExecuted(res)
 	}
-	return NewStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
+	return newStreamIterator(s, result, query.fieldsToFetchToken, onNextItem), nil
 }
 
+// StreamRawQueryInto starts a raw streaming query that will write the results
+// (in JSON format) to output
 func (s *DocumentSession) StreamRawQueryInto(query *IRawDocumentQuery, output io.Writer) error {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 	q := query.GetIndexQuery()
@@ -644,6 +656,8 @@ func (s *DocumentSession) StreamRawQueryInto(query *IRawDocumentQuery, output io
 	return err
 }
 
+// StreamQueryInto starts a streaming query that will write the results
+// (in JSON format) to output
 func (s *DocumentSession) StreamQueryInto(query *IDocumentQuery, output io.Writer) error {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 	q := query.GetIndexQuery()
@@ -702,6 +716,7 @@ func (s *DocumentSession) createStreamResult(v interface{}, document map[string]
 	return streamResult, nil
 }
 
+// Stream starts an iteration and returns StreamIterator
 func (s *DocumentSession) Stream(args *StartsWithArgs) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 
@@ -716,36 +731,39 @@ func (s *DocumentSession) Stream(args *StartsWithArgs) (*StreamIterator, error) 
 	if err != nil {
 		return nil, err
 	}
-	return NewStreamIterator(s, result, nil, nil), nil
+	return newStreamIterator(s, result, nil, nil), nil
 }
 
+// StreamIterator represents iterator of stream query
 type StreamIterator struct {
-	_session            *DocumentSession
-	_innerIterator      *YieldStreamResults
-	_fieldsToFetchToken *fieldsToFetchToken
-	_onNextItem         func(map[string]interface{})
+	session            *DocumentSession
+	innerIterator      *yieldStreamResults
+	fieldsToFetchToken *fieldsToFetchToken
+	onNextItem         func(map[string]interface{})
 }
 
-func NewStreamIterator(session *DocumentSession, innerIterator *YieldStreamResults, fieldsToFetchToken *fieldsToFetchToken, onNextItem func(map[string]interface{})) *StreamIterator {
+func newStreamIterator(session *DocumentSession, innerIterator *yieldStreamResults, fieldsToFetchToken *fieldsToFetchToken, onNextItem func(map[string]interface{})) *StreamIterator {
 	return &StreamIterator{
-		_session:            session,
-		_innerIterator:      innerIterator,
-		_fieldsToFetchToken: fieldsToFetchToken,
-		_onNextItem:         onNextItem,
+		session:            session,
+		innerIterator:      innerIterator,
+		fieldsToFetchToken: fieldsToFetchToken,
+		onNextItem:         onNextItem,
 	}
 }
 
+// Next returns next result in a streaming query.
 func (i *StreamIterator) Next(v interface{}) (*StreamResult, error) {
-	nextValue, err := i._innerIterator.NextJSONObject()
+	nextValue, err := i.innerIterator.nextJSONObject()
 	if err != nil {
 		return nil, err
 	}
-	if i._onNextItem != nil {
-		i._onNextItem(nextValue)
+	if i.onNextItem != nil {
+		i.onNextItem(nextValue)
 	}
-	return i._session.createStreamResult(v, nextValue, i._fieldsToFetchToken)
+	return i.session.createStreamResult(v, nextValue, i.fieldsToFetchToken)
 }
 
-func (i *StreamIterator) Close() {
-	i._innerIterator.Close()
+// Close closes an iterator
+func (i *StreamIterator) Close() error {
+	return i.innerIterator.close()
 }

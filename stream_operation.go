@@ -8,30 +8,32 @@ import (
 	"strings"
 )
 
+// StreamOperation represents a streaming operation
 type StreamOperation struct {
-	_session       *InMemoryDocumentSessionOperations
-	_statistics    *StreamQueryStatistics
-	_isQueryStream bool
+	session       *InMemoryDocumentSessionOperations
+	statistics    *StreamQueryStatistics
+	isQueryStream bool
 }
 
+// NewStreamOperation returns new StreamOperation
 func NewStreamOperation(session *InMemoryDocumentSessionOperations, statistics *StreamQueryStatistics) *StreamOperation {
 	return &StreamOperation{
-		_session:    session,
-		_statistics: statistics,
+		session:    session,
+		statistics: statistics,
 	}
 }
 
 func (o *StreamOperation) createRequestForIndexQuery(query *IndexQuery) *QueryStreamCommand {
-	o._isQueryStream = true
+	o.isQueryStream = true
 
 	if query.waitForNonStaleResults {
 		//throw new UnsupportedOperationError("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported");
 		panic("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported")
 	}
 
-	o._session.IncrementRequestCount()
+	o.session.IncrementRequestCount()
 
-	return NewQueryStreamCommand(o._session.Conventions, query)
+	return NewQueryStreamCommand(o.session.Conventions, query)
 }
 
 func (o *StreamOperation) createRequest(startsWith string, matches string, start int, pageSize int, exclude string, startAfter string) *StreamCommand {
@@ -80,7 +82,7 @@ func isDelimToken(tok json.Token, delim string) bool {
   ]
 }
 */
-func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStreamResults, error) {
+func (o *StreamOperation) setResult(response *StreamResultResponse) (*yieldStreamResults, error) {
 	if response == nil {
 		return nil, newIllegalStateError("The index does not exists, failed to stream results")
 	}
@@ -94,11 +96,11 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 		return nil, newIllegalStateError("Expected start object '{', got %T %s", tok, tok)
 	}
 
-	if o._isQueryStream {
-		if o._statistics == nil {
-			o._statistics = &StreamQueryStatistics{}
+	if o.isQueryStream {
+		if o.statistics == nil {
+			o.statistics = &StreamQueryStatistics{}
 		}
-		err = handleStreamQueryStats(dec, o._statistics)
+		err = handleStreamQueryStats(dec, o.statistics)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +115,7 @@ func (o *StreamOperation) setResult(response *StreamResultResponse) (*YieldStrea
 		return nil, newIllegalStateError("Expected start array '[', got %T %s", tok, tok)
 	}
 
-	return NewYieldStreamResults(response, dec), nil
+	return newYieldStreamResults(response, dec), nil
 }
 
 func getNextDelimToken(dec *json.Decoder, delimStr string) error {
@@ -210,22 +212,22 @@ func handleStreamQueryStats(dec *json.Decoder, stats *StreamQueryStatistics) err
 	return err
 }
 
-type YieldStreamResults struct {
+type yieldStreamResults struct {
 	response *StreamResultResponse
 	dec      *json.Decoder
 	err      error
 }
 
-func NewYieldStreamResults(response *StreamResultResponse, dec *json.Decoder) *YieldStreamResults {
-	return &YieldStreamResults{
+func newYieldStreamResults(response *StreamResultResponse, dec *json.Decoder) *yieldStreamResults {
+	return &yieldStreamResults{
 		response: response,
 		dec:      dec,
 	}
 }
 
-// decodes next value from streawm
+// next decodes next value from stream
 // returns io.EOF when reaching end of stream. Other errors indicate a parsing error
-func (r *YieldStreamResults) Next(v interface{}) error {
+func (r *yieldStreamResults) next(v interface{}) error {
 	if r.err != nil {
 		return r.err
 	}
@@ -255,20 +257,21 @@ func (r *YieldStreamResults) Next(v interface{}) error {
 	return r.err
 }
 
-// decodes next javascript object from stream
+// nextJSONObject decodes next javascript object from stream
 // returns io.EOF when reaching end of stream. Other errors indicate a parsing error
-func (r *YieldStreamResults) NextJSONObject() (map[string]interface{}, error) {
+func (r *yieldStreamResults) nextJSONObject() (map[string]interface{}, error) {
 	var v map[string]interface{}
-	err := r.Next(&v)
+	err := r.next(&v)
 	if err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
-func (r *YieldStreamResults) Close() {
+func (r *yieldStreamResults) close() error {
 	// a bit of a hack
 	if rc, ok := r.response.Stream.(io.ReadCloser); ok {
-		rc.Close()
+		return rc.Close()
 	}
+	return nil
 }
