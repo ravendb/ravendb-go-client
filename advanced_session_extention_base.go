@@ -5,7 +5,7 @@ type AdvancedSessionExtentionBase struct {
 	documents           []*documentInfo
 	requestExecutor     *RequestExecutor
 	sessionInfo         *SessionInfo
-	documentStore       *IDocumentStore
+	documentStore       *DocumentStore
 	deferredCommandsMap map[idTypeAndName]ICommandData
 
 	deletedEntities *objectSet

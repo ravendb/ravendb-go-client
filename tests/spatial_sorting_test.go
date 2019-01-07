@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +42,7 @@ var (
 	filteredExpectedOrder = []string{"shops/2-A", "shops/3-A", "shops/1-A"}
 )
 
-func spatialSortingCreateData(t *testing.T, driver *RavenTestDriver, store *ravendb.IDocumentStore) {
+func spatialSortingCreateData(t *testing.T, driver *RavenTestDriver, store *ravendb.DocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "eventsByLatLng"

@@ -297,7 +297,7 @@ type ProductCount struct {
 	Quantities  []int    `json:"quantities"`
 }
 
-func ravendb8761putDocs(t *testing.T, store *ravendb.IDocumentStore) {
+func ravendb8761putDocs(t *testing.T, store *ravendb.DocumentStore) {
 	var err error
 
 	session := openSessionMust(t, store)

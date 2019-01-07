@@ -77,15 +77,15 @@ func (t *AbstractIndexCreationTask) GetIndexName() string {
 }
 
 // Execute executes index in specified document store
-func (t *AbstractIndexCreationTask) Execute(store *IDocumentStore) error {
+func (t *AbstractIndexCreationTask) Execute(store *DocumentStore) error {
 	return store.ExecuteIndex(t)
 }
 
-func (t *AbstractIndexCreationTask) Execute2(store *IDocumentStore, conventions *DocumentConventions, database string) error {
+func (t *AbstractIndexCreationTask) Execute2(store *DocumentStore, conventions *DocumentConventions, database string) error {
 	return t.putIndex(store, conventions, database)
 }
 
-func (t *AbstractIndexCreationTask) putIndex(store *IDocumentStore, conventions *DocumentConventions, database string) error {
+func (t *AbstractIndexCreationTask) putIndex(store *DocumentStore, conventions *DocumentConventions, database string) error {
 	oldConventions := t.Conventions
 	defer func() { t.Conventions = oldConventions }()
 

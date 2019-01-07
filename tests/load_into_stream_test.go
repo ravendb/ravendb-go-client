@@ -86,7 +86,7 @@ func loadIntoStreamCanLoadStartingWithIntoStream(t *testing.T, driver *RavenTest
 	}
 }
 
-func insertData(t *testing.T, store *ravendb.IDocumentStore) {
+func insertData(t *testing.T, store *ravendb.DocumentStore) {
 	var err error
 	{
 		session := openSessionMust(t, store)

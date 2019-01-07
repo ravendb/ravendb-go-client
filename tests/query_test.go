@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1084,7 +1084,7 @@ func makeUsersByNameIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func queryAddUsers(t *testing.T, store *ravendb.IDocumentStore, driver *RavenTestDriver) {
+func queryAddUsers(t *testing.T, store *ravendb.DocumentStore, driver *RavenTestDriver) {
 	var err error
 
 	{

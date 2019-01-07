@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type IDocumentStore = DocumentStore
+// Note: Java's IDocumentStore is DocumentStore
 
 // DocumentStore represents a database
 type DocumentStore struct {
@@ -52,7 +52,9 @@ type DocumentStore struct {
 	mu sync.Mutex
 }
 
-// from DocumentStoreBase
+// methods from DocumentStoreBase
+
+// GetConventions returns DocumentConventions
 func (s *DocumentStore) GetConventions() *DocumentConventions {
 	if s.conventions == nil {
 		s.conventions = NewDocumentConventions()
@@ -60,14 +62,17 @@ func (s *DocumentStore) GetConventions() *DocumentConventions {
 	return s.conventions
 }
 
+// SetConventions sets DocumentConventions
 func (s *DocumentStore) SetConventions(conventions *DocumentConventions) {
 	s.conventions = conventions
 }
 
+// GetUrls returns urls of all RavenDB nodes
 func (s *DocumentStore) GetUrls() []string {
 	return s.urls
 }
 
+// SetUrls sets initial urls of RavenDB nodes
 func (s *DocumentStore) SetUrls(value []string) {
 	panicIf(len(value) == 0, "value is empty")
 	for i, s := range value {
@@ -76,8 +81,11 @@ func (s *DocumentStore) SetUrls(value []string) {
 	s.urls = value
 }
 
-func (s *DocumentStore) ensureNotClosed() {
-	// TODO: implement me
+func (s *DocumentStore) ensureNotClosed() error {
+	if s.disposed {
+		return newIllegalStateError("The document store has already been disposed and cannot be used")
+	}
+	return nil
 }
 
 func (s *DocumentStore) AddBeforeStoreListener(handler func(interface{}, *BeforeStoreEventArgs)) int {
@@ -154,8 +162,11 @@ func (s *DocumentStore) afterSessionCreated(session *InMemoryDocumentSessionOper
 	}
 }
 
-func (s *DocumentStore) assertInitialized() {
-	panicIf(!s.initialized, "DocumentStore must be initialized")
+func (s *DocumentStore) assertInitialized() error {
+	if !s.initialized {
+		return newIllegalStateError("DocumentStore must be initialized")
+	}
+	return nil
 }
 
 func (s *DocumentStore) GetDatabase() string {
@@ -287,8 +298,12 @@ func (s *DocumentStore) OpenSessionWithDatabase(database string) (*DocumentSessi
 }
 
 func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*DocumentSession, error) {
-	s.assertInitialized()
-	s.ensureNotClosed()
+	if err := s.assertInitialized(); err != nil {
+		return nil, err
+	}
+	if err := s.ensureNotClosed(); err != nil {
+		return nil, err
+	}
 
 	sessionID := NewUUID().String()
 	databaseName := firstNonEmptyString(options.Database, s.GetDatabase())
@@ -307,7 +322,9 @@ func (s *DocumentStore) ExecuteIndex(task *AbstractIndexCreationTask) error {
 }
 
 func (s *DocumentStore) ExecuteIndexWithDatabase(task *AbstractIndexCreationTask, database string) error {
-	s.assertInitialized()
+	if err := s.assertInitialized(); err != nil {
+		return err
+	}
 	return task.Execute2(s, s.conventions, database)
 }
 
@@ -316,7 +333,9 @@ func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask) error
 }
 
 func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreationTask, database string) error {
-	s.assertInitialized()
+	if err := s.assertInitialized(); err != nil {
+		return err
+	}
 	indexesToAdd := indexCreationCreateIndexesToAdd(tasks, s.conventions)
 
 	op := NewPutIndexesOperation(indexesToAdd...)
@@ -329,7 +348,7 @@ func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreatio
 // GetRequestExecutorWithDatabase gets a request executor for a given database
 // database is optional
 func (s *DocumentStore) GetRequestExecutor(database string) *RequestExecutor {
-	s.assertInitialized()
+	must(s.assertInitialized())
 	if database == "" {
 		database = s.GetDatabase()
 	}
@@ -421,7 +440,7 @@ func (s *DocumentStore) Changes() *databaseChanges {
 }
 
 func (s *DocumentStore) ChangesWithDatabaseName(database string) *databaseChanges {
-	s.assertInitialized()
+	must(s.assertInitialized())
 
 	if database == "" {
 		database = s.GetDatabase()
@@ -555,7 +574,7 @@ func (s *DocumentStore) RemoveAfterCloseListener(idx int) {
 }
 
 func (s *DocumentStore) Maintenance() *MaintenanceOperationExecutor {
-	s.assertInitialized()
+	must(s.assertInitialized())
 
 	if s.maintenanceOperationExecutor == nil {
 		s.maintenanceOperationExecutor = NewMaintenanceOperationExecutor(s)

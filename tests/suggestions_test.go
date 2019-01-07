@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ type User4 struct {
 	Email string `json:"email"`
 }
 
-func suggestionsSetup(t *testing.T, driver *RavenTestDriver, store *ravendb.IDocumentStore) {
+func suggestionsSetup(t *testing.T, driver *RavenTestDriver, store *ravendb.DocumentStore) {
 	var err error
 	indexDefinition := ravendb.NewIndexDefinition()
 	indexDefinition.Name = "test"

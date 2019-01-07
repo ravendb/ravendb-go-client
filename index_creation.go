@@ -1,6 +1,6 @@
 package ravendb
 
-func indexCreationCreateIndexes(indexes []*AbstractIndexCreationTask, store *IDocumentStore, conventions *DocumentConventions) error {
+func indexCreationCreateIndexes(indexes []*AbstractIndexCreationTask, store *DocumentStore, conventions *DocumentConventions) error {
 
 	if conventions == nil {
 		conventions = store.GetConventions()

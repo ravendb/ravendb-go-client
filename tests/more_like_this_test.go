@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -604,7 +604,7 @@ func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T
 	}
 }
 
-func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.AbstractIndexCreationTask, store *ravendb.IDocumentStore, documentKey string) {
+func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.AbstractIndexCreationTask, store *ravendb.DocumentStore, documentKey string) {
 	session := openSessionMust(t, store)
 
 	options := ravendb.NewMoreLikeThisOptions()

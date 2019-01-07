@@ -177,7 +177,7 @@ func (s *InMemoryDocumentSessionOperations) GenerateId(entity interface{}) strin
 	return s.GetConventions().GenerateDocumentID(s.GetDatabaseName(), entity)
 }
 
-func (s *InMemoryDocumentSessionOperations) GetDocumentStore() *IDocumentStore {
+func (s *InMemoryDocumentSessionOperations) GetDocumentStore() *DocumentStore {
 	return s._documentStore
 }
 

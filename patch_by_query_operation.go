@@ -23,7 +23,7 @@ func NewPatchByQueryOperation(queryToUpdate string) *PatchByQueryOperation {
 	}
 }
 
-func (o *PatchByQueryOperation) GetCommand(store *IDocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
+func (o *PatchByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
 	o.Command = NewPatchByQueryCommand(conventions, o._queryToUpdate, o._options)
 	return o.Command
 }
