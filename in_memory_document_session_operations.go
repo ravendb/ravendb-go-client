@@ -663,7 +663,7 @@ func (s *InMemoryDocumentSessionOperations) Store(entity interface{}) error {
 	if !hasID {
 		concu = ConcurrencyCheckForced
 	}
-	return s.storeInternal(entity, nil, "", concu)
+	return s.storeInternal(entity, "", "", concu)
 }
 
 // StoreWithID stores  entity in the session, explicitly specifying its Id. The entity will be saved when SaveChanges is called.
@@ -673,34 +673,34 @@ func (s *InMemoryDocumentSessionOperations) StoreWithID(entity interface{}, id s
 		return err
 	}
 
-	return s.storeInternal(entity, nil, id, ConcurrencyCheckAuto)
+	return s.storeInternal(entity, "", id, ConcurrencyCheckAuto)
 }
 
 // StoreWithChangeVectorAndID stores entity in the session, explicitly specifying its id and change vector. The entity will be saved when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity interface{}, changeVector *string, id string) error {
+func (s *InMemoryDocumentSessionOperations) StoreWithChangeVectorAndID(entity interface{}, changeVector string, id string) error {
 	err := checkValidEntityIn(entity, "entity")
 	if err != nil {
 		return err
 	}
 
 	concurr := ConcurrencyCheckDisabled
-	if changeVector != nil {
+	if changeVector != "" {
 		concurr = ConcurrencyCheckForced
 	}
 
 	return s.storeInternal(entity, changeVector, id, concurr)
 }
 
-// TODO: should this return an error?
-func (s *InMemoryDocumentSessionOperations) RememberEntityForDocumentIdGeneration(entity interface{}) {
-	err := newNotImplementedError("You cannot set GenerateDocumentIDsOnStore to false without implementing RememberEntityForDocumentIdGeneration")
-	must(err)
+func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneration(entity interface{}) error {
+	return newNotImplementedError("You cannot set GenerateDocumentIDsOnStore to false without implementing rememberEntityForDocumentIdGeneration")
 }
 
-func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector *string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
+func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
 	value := getDocumentInfoByEntity(s.documents, entity)
 	if value != nil {
-		value.changeVector = firstNonNilString(changeVector, value.changeVector)
+		if changeVector != "" {
+			value.changeVector = &changeVector
+		}
 		value.concurrencyCheckMode = forceConcurrencyCheck
 		return nil
 	}
@@ -709,7 +709,10 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		if s.generateDocumentKeysOnStore {
 			id = s.generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity)
 		} else {
-			s.RememberEntityForDocumentIdGeneration(entity)
+			err := s.rememberEntityForDocumentIdGeneration(entity)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		// Store it back into the Id field so the client has access to it
@@ -745,8 +748,11 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 	if id != "" {
 		s._knownMissingIds = stringArrayRemoveNoCase(s._knownMissingIds, id)
 	}
-
-	s.storeEntityInUnitOfWork(id, entity, changeVector, metadata, forceConcurrencyCheck)
+	var changeVectorPtr *string
+	if changeVector != "" {
+		changeVectorPtr = &changeVector
+	}
+	s.storeEntityInUnitOfWork(id, entity, changeVectorPtr, metadata, forceConcurrencyCheck)
 	return nil
 }
 
@@ -987,7 +993,7 @@ func (s *InMemoryDocumentSessionOperations) WhatChanged() (map[string][]*Documen
 	if err != nil {
 		return nil, err
 	}
-	s.GetAllEntitiesChanges(changes)
+	s.getAllEntitiesChanges(changes)
 	return changes, nil
 }
 
@@ -1024,7 +1030,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) (bool
 	return s.entityChanged(document, documentInfo, nil), nil
 }
 
-func (s *InMemoryDocumentSessionOperations) GetAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
+func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
 	for _, docInfo := range s.documentsByID.inner {
 		s.UpdateMetadataModifications(docInfo)
 		entity := docInfo.entity

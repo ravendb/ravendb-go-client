@@ -157,7 +157,7 @@ func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	ids := []int{nextID}
 
 	hiloDoc.Max = 12
-	session.StoreWithChangeVectorAndID(hiloDoc, nil, "Raven/Hilo/users")
+	session.StoreWithChangeVectorAndID(hiloDoc, "", "Raven/Hilo/users")
 	err = session.SaveChanges()
 	assert.Nil(t, err)
 

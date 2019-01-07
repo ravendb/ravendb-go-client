@@ -247,7 +247,6 @@ func goTestGetLastModifiedForAndChanges(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-
 		// test HasChanged() detects deletion
 		session := openSessionMust(t, store)
 		var u *User
