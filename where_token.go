@@ -267,7 +267,7 @@ func (t *whereToken) specialOperator(writer *strings.Builder) {
 	case WhereOperatorSearch:
 		writer.WriteString(", $")
 		writer.WriteString(parameterName)
-		if options.searchOperator == SearchOperator_AND {
+		if options.searchOperator == SearchOperatorAnd {
 			writer.WriteString(", and")
 		}
 		writer.WriteString(")")

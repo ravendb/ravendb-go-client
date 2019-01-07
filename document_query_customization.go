@@ -70,5 +70,5 @@ func (d *DocumentQueryCustomization) RandomOrderingWithSeed(seed string) {
 // waitTimeout of 0 means infinite timeout
 // This shouldn't be used outside of unit tests  unless you are well aware of the implications
 func (d *DocumentQueryCustomization) WaitForNonStaleResults(waitTimeout time.Duration) {
-	d.query._waitForNonStaleResults(waitTimeout)
+	d.query.waitForNonStaleResults(waitTimeout)
 }

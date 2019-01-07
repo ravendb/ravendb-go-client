@@ -8,64 +8,64 @@ import (
 
 // QueryOperation describes query operation
 type QueryOperation struct {
-	_session                *InMemoryDocumentSessionOperations
-	_indexName              string
+	session                 *InMemoryDocumentSessionOperations
+	indexName               string
 	indexQuery              *IndexQuery
-	_metadataOnly           bool
-	_indexEntriesOnly       bool
+	metadataOnly            bool
+	indexEntriesOnly        bool
 	currentQueryResults     *QueryResult
-	_fieldsToFetch          *fieldsToFetchToken
-	_sp                     *Stopwatch
+	fieldsToFetch           *fieldsToFetchToken
+	sp                      *Stopwatch
 	disableEntitiesTracking bool
 
 	// static  Log logger = LogFactory.getLog(QueryOperation.class);
 }
 
 // NewQueryOperation returns new QueryOperation
-func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) *QueryOperation {
+func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) (*QueryOperation, error) {
 	res := &QueryOperation{
-		_session:                session,
-		_indexName:              indexName,
+		session:                 session,
+		indexName:               indexName,
 		indexQuery:              indexQuery,
-		_fieldsToFetch:          fieldsToFetch,
+		fieldsToFetch:           fieldsToFetch,
 		disableEntitiesTracking: disableEntitiesTracking,
-		_metadataOnly:           metadataOnly,
-		_indexEntriesOnly:       indexEntriesOnly,
+		metadataOnly:            metadataOnly,
+		indexEntriesOnly:        indexEntriesOnly,
 	}
-	//res.assertPageSizeSet()
-	return res
+	if err := res.assertPageSizeSet(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 // CreateRequest creates a request
 func (o *QueryOperation) CreateRequest() *QueryCommand {
-	o._session.IncrementRequestCount()
+	o.session.IncrementRequestCount()
 
 	//o.logQuery();
 
-	return NewQueryCommand(o._session.GetConventions(), o.indexQuery, o._metadataOnly, o._indexEntriesOnly)
+	return NewQueryCommand(o.session.GetConventions(), o.indexQuery, o.metadataOnly, o.indexEntriesOnly)
 }
 
 func (o *QueryOperation) setResult(queryResult *QueryResult) {
 	o.ensureIsAcceptableAndSaveResult(queryResult)
 }
 
-func (o *QueryOperation) assertPageSizeSet() {
-	if !o._session.GetConventions().IsThrowIfQueryPageSizeIsNotSet() {
-		return
+func (o *QueryOperation) assertPageSizeSet() error {
+	if !o.session.GetConventions().IsThrowIfQueryPageSizeIsNotSet() {
+		return nil
 	}
 
 	if o.indexQuery.pageSize > 0 {
-		return
+		return nil
 	}
 
-	//throw new IllegalStateError("Attempt to query without explicitly specifying a page size. " +
-	//		"You can use .take() methods to set maximum number of results. By default the page //size is set to Integer.MAX_VALUE and can cause severe performance degradation.");
-	panicIf(true, "Attempt to query without explicitly specifying a page size. "+
-		"You can use .take() methods to set maximum number of results. By default the page size is set to Integer.MAX_VALUE and can cause severe performance degradation.")
+	return newIllegalStateError("Attempt to query without explicitly specifying a page size. " +
+		"You can use .take() methods to set maximum number of results. By default the page //size is set to Integer.MAX_VALUE and can cause severe performance degradation.")
 }
 
 func (o *QueryOperation) startTiming() {
-	o._sp = Stopwatch_createStarted()
+	o.sp = Stopwatch_createStarted()
 }
 
 func (o *QueryOperation) logQuery() {
@@ -84,14 +84,14 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 		return res
 	}
 
-	return o._session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o._session.DatabaseName)
+	return o.session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o.session.DatabaseName)
 }
 
 func (o *QueryOperation) complete(results interface{}) error {
 	queryResult := o.currentQueryResults.createSnapshot()
 
 	if !o.disableEntitiesTracking {
-		o._session.RegisterIncludes(queryResult.Includes)
+		o.session.RegisterIncludes(queryResult.Includes)
 	}
 	rt := reflect.TypeOf(results)
 
@@ -119,7 +119,7 @@ func (o *QueryOperation) complete(results interface{}) error {
 		metadata := metadataI.(map[string]interface{})
 		id, _ := JsonGetAsText(metadata, MetadataID)
 
-		el, err := queryOperationDeserialize(clazz, id, document, metadata, o._fieldsToFetch, o.disableEntitiesTracking, o._session)
+		el, err := queryOperationDeserialize(clazz, id, document, metadata, o.fieldsToFetch, o.disableEntitiesTracking, o.session)
 		if err != nil {
 			return newRuntimeError("Unable to read json: %s", err)
 		}
@@ -128,7 +128,7 @@ func (o *QueryOperation) complete(results interface{}) error {
 	}
 
 	if !o.disableEntitiesTracking {
-		o._session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
+		o.session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
 	if sliceV2 != sliceV {
 		sliceV.Set(sliceV2)
@@ -206,10 +206,10 @@ func queryOperationDeserialize(clazz reflect.Type, id string, document map[strin
 
 func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
 	if result == nil {
-		return newIndexDoesNotExistError("Could not find index " + o._indexName)
+		return newIndexDoesNotExistError("Could not find index " + o.indexName)
 	}
 
-	err := queryOperationEnsureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o._sp, o._session)
+	err := queryOperationEnsureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o.sp, o.session)
 	if err != nil {
 		return err
 	}

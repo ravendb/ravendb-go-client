@@ -14,7 +14,7 @@ func NewShapeToken(shape string) *shapeToken {
 	}
 }
 
-func ShapeToken_circle(radiusParameterName string, latitudeParameterName string, longitudeParameterName string, radiusUnits SpatialUnits) *shapeToken {
+func ShapeTokenCircle(radiusParameterName string, latitudeParameterName string, longitudeParameterName string, radiusUnits SpatialUnits) *shapeToken {
 	if radiusUnits == "" {
 		return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ")")
 	}
@@ -25,7 +25,7 @@ func ShapeToken_circle(radiusParameterName string, latitudeParameterName string,
 	return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Miles')")
 }
 
-func ShapeToken_wkt(shapeWktParameterName string) *shapeToken {
+func ShapeTokenWkt(shapeWktParameterName string) *shapeToken {
 	return NewShapeToken("spatial.wkt($" + shapeWktParameterName + ")")
 }
 

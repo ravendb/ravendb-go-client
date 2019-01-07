@@ -9,22 +9,22 @@ import (
 	"unicode"
 )
 
-// Note: IAbstractDocumentQuery is AbstractDocumentQuery
+// Note: Java's IAbstractDocumentQuery is AbstractDocumentQuery
 
 // AbstractDocumentQuery is a base class for describing a query
 type AbstractDocumentQuery struct {
-	clazz                    reflect.Type
-	_aliasToGroupByFieldName map[string]string
-	defaultOperator          QueryOperator
+	clazz                   reflect.Type
+	aliasToGroupByFieldName map[string]string
+	defaultOperator         QueryOperator
 
 	// Note: rootTypes is not used in Go because we only have one ID property
 
-	negate              bool
-	indexName           string
-	collectionName      string
-	_currentClauseDepth int
-	queryRaw            string
-	queryParameters     Parameters
+	negate             bool
+	indexName          string
+	collectionName     string
+	currentClauseDepth int
+	queryRaw           string
+	queryParameters    Parameters
 
 	isIntersect bool
 	isGroupBy   bool
@@ -43,8 +43,8 @@ type AbstractDocumentQuery struct {
 	groupByTokens []queryToken
 	orderByTokens []queryToken
 
-	start        int
-	_conventions *DocumentConventions
+	start       int
+	conventions *DocumentConventions
 
 	timeout time.Duration
 
@@ -58,7 +58,7 @@ type AbstractDocumentQuery struct {
 
 	disableCaching bool
 
-	_isInMoreLikeThis bool
+	isInMoreLikeThis bool
 
 	// Go doesn't allow comparing functions so to remove we use index returned
 	// by add() function. We maintain stable index by never shrinking
@@ -84,7 +84,7 @@ func (q *AbstractDocumentQuery) isDistinct() bool {
 }
 
 func (q *AbstractDocumentQuery) getConventions() *DocumentConventions {
-	return q._conventions
+	return q.conventions
 }
 
 func (q *AbstractDocumentQuery) getSession() *InMemoryDocumentSessionOperations {
@@ -101,17 +101,17 @@ func getQueryDefaultTimeout() time.Duration {
 
 func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
-		clazz:                    clazz,
-		defaultOperator:          QueryOperatorAnd,
-		isGroupBy:                isGroupBy,
-		indexName:                indexName,
-		collectionName:           collectionName,
-		declareToken:             declareToken,
-		loadTokens:               loadTokens,
-		theSession:               session,
-		_aliasToGroupByFieldName: make(map[string]string),
-		queryParameters:          make(map[string]interface{}),
-		queryStats:               NewQueryStatistics(),
+		clazz:                   clazz,
+		defaultOperator:         QueryOperatorAnd,
+		isGroupBy:               isGroupBy,
+		indexName:               indexName,
+		collectionName:          collectionName,
+		declareToken:            declareToken,
+		loadTokens:              loadTokens,
+		theSession:              session,
+		aliasToGroupByFieldName: make(map[string]string),
+		queryParameters:         make(map[string]interface{}),
+		queryStats:              NewQueryStatistics(),
 	}
 	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
 	f := func(queryResult *QueryResult) {
@@ -119,9 +119,9 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 	}
 	res.addAfterQueryExecutedListener(f)
 	if session == nil {
-		res._conventions = NewDocumentConventions()
+		res.conventions = NewDocumentConventions()
 	} else {
-		res._conventions = session.GetConventions()
+		res.conventions = session.GetConventions()
 	}
 	return res
 }
@@ -129,16 +129,16 @@ func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSe
 // NewAbstractDocumentQuery returns new AbstractDocumentQuery
 func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
 	res := &AbstractDocumentQuery{
-		defaultOperator:          QueryOperatorAnd,
-		isGroupBy:                isGroupBy,
-		indexName:                indexName,
-		collectionName:           collectionName,
-		declareToken:             declareToken,
-		loadTokens:               loadTokens,
-		theSession:               session,
-		_aliasToGroupByFieldName: make(map[string]string),
-		queryParameters:          make(map[string]interface{}),
-		queryStats:               NewQueryStatistics(),
+		defaultOperator:         QueryOperatorAnd,
+		isGroupBy:               isGroupBy,
+		indexName:               indexName,
+		collectionName:          collectionName,
+		declareToken:            declareToken,
+		loadTokens:              loadTokens,
+		theSession:              session,
+		aliasToGroupByFieldName: make(map[string]string),
+		queryParameters:         make(map[string]interface{}),
+		queryStats:              NewQueryStatistics(),
 	}
 	// if those are not provided, we delay creating fromToken
 	// until ToList()
@@ -150,14 +150,14 @@ func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexN
 	}
 	res.addAfterQueryExecutedListener(f)
 	if session == nil {
-		res._conventions = NewDocumentConventions()
+		res.conventions = NewDocumentConventions()
 	} else {
-		res._conventions = session.GetConventions()
+		res.conventions = session.GetConventions()
 	}
 	return res
 }
 
-func (q *AbstractDocumentQuery) _usingDefaultOperator(operator QueryOperator) {
+func (q *AbstractDocumentQuery) usingDefaultOperator(operator QueryOperator) {
 	if len(q.whereTokens) > 0 {
 		//throw new IllegalStateError("Default operator can only be set before any where clause is added.");
 		panicIf(true, "Default operator can only be set before any where clause is added.")
@@ -166,7 +166,7 @@ func (q *AbstractDocumentQuery) _usingDefaultOperator(operator QueryOperator) {
 	q.defaultOperator = operator
 }
 
-func (q *AbstractDocumentQuery) _waitForNonStaleResults(waitTimeout time.Duration) {
+func (q *AbstractDocumentQuery) waitForNonStaleResults(waitTimeout time.Duration) {
 	q.theWaitForNonStaleResults = true
 	if waitTimeout == 0 {
 		waitTimeout = getQueryDefaultTimeout()
@@ -174,7 +174,7 @@ func (q *AbstractDocumentQuery) _waitForNonStaleResults(waitTimeout time.Duratio
 	q.timeout = waitTimeout
 }
 
-func (q *AbstractDocumentQuery) initializeQueryOperation() *QueryOperation {
+func (q *AbstractDocumentQuery) initializeQueryOperation() (*QueryOperation, error) {
 	indexQuery := q.GetIndexQuery()
 
 	return NewQueryOperation(q.theSession, q.indexName, indexQuery, q.fieldsToFetchToken, q.disableEntitiesTracking, false, false)
@@ -212,7 +212,7 @@ func (q *AbstractDocumentQuery) randomOrderingWithSeed(seed string) {
 }
 
 func (q *AbstractDocumentQuery) AddGroupByAlias(fieldName string, projectedName string) {
-	q._aliasToGroupByFieldName[projectedName] = fieldName
+	q.aliasToGroupByFieldName[projectedName] = fieldName
 }
 
 func (q *AbstractDocumentQuery) assertNoRawQuery() {
@@ -267,16 +267,16 @@ func (q *AbstractDocumentQuery) groupByKey(fieldName string, projectedName strin
 	q.assertNoRawQuery()
 	q.isGroupBy = true
 
-	_, hasProjectedName := q._aliasToGroupByFieldName[projectedName]
-	_, hasFieldName := q._aliasToGroupByFieldName[fieldName]
+	_, hasProjectedName := q.aliasToGroupByFieldName[projectedName]
+	_, hasFieldName := q.aliasToGroupByFieldName[fieldName]
 
 	if projectedName != "" && hasProjectedName {
-		aliasedFieldName := q._aliasToGroupByFieldName[projectedName]
+		aliasedFieldName := q.aliasToGroupByFieldName[projectedName]
 		if fieldName == "" || strings.EqualFold(fieldName, projectedName) {
 			fieldName = aliasedFieldName
 		}
 	} else if fieldName != "" && hasFieldName {
-		aliasedFieldName := q._aliasToGroupByFieldName[fieldName]
+		aliasedFieldName := q.aliasToGroupByFieldName[fieldName]
 		fieldName = aliasedFieldName
 	}
 
@@ -303,7 +303,7 @@ func (q *AbstractDocumentQuery) groupByCount(projectedName string) {
 	q.selectTokens = append(q.selectTokens, t)
 }
 
-func (q *AbstractDocumentQuery) _whereTrue() {
+func (q *AbstractDocumentQuery) whereTrue() {
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, "")
@@ -319,12 +319,12 @@ func (q *AbstractDocumentQuery) moreLikeThis() *MoreLikeThisScope {
 	token := newMoreLikeThisToken()
 	q.whereTokens = append(q.whereTokens, token)
 
-	q._isInMoreLikeThis = true
+	q.isInMoreLikeThis = true
 	add := func(o interface{}) string {
 		return q.addQueryParameter(o)
 	}
 	onDispose := func() {
-		q._isInMoreLikeThis = false
+		q.isInMoreLikeThis = false
 	}
 	return NewMoreLikeThisScope(token, add, onDispose)
 }
@@ -356,7 +356,7 @@ func (q *AbstractDocumentQuery) whereLucene(fieldName string, whereClause string
 }
 
 func (q *AbstractDocumentQuery) openSubclause() {
-	q._currentClauseDepth++
+	q.currentClauseDepth++
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
@@ -368,7 +368,7 @@ func (q *AbstractDocumentQuery) openSubclause() {
 }
 
 func (q *AbstractDocumentQuery) closeSubclause() {
-	q._currentClauseDepth--
+	q.currentClauseDepth--
 
 	tokensRef := q.getCurrentWhereTokensRef()
 	tokens := *tokensRef
@@ -897,7 +897,7 @@ func (q *AbstractDocumentQuery) GenerateIndexQuery(query string) *IndexQuery {
 }
 
 func (q *AbstractDocumentQuery) search(fieldName string, searchTerms string) {
-	q.searchWithOperator(fieldName, searchTerms, SearchOperator_OR)
+	q.searchWithOperator(fieldName, searchTerms, SearchOperatorOr)
 }
 
 func (q *AbstractDocumentQuery) searchWithOperator(fieldName string, searchTerms string, operator SearchOperator) {
@@ -919,9 +919,9 @@ func (q *AbstractDocumentQuery) String() string {
 		return q.queryRaw
 	}
 
-	if q._currentClauseDepth != 0 {
+	if q.currentClauseDepth != 0 {
 		// throw new IllegalStateError("A clause was not closed correctly within this query, current clause depth = " + _currentClauseDepth);
-		panicIf(true, "A clause was not closed correctly within this query, current clause depth = %d", q._currentClauseDepth)
+		panicIf(true, "A clause was not closed correctly within this query, current clause depth = %d", q.currentClauseDepth)
 	}
 
 	queryText := &strings.Builder{}
@@ -1202,7 +1202,7 @@ func (q *AbstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) 
 		token = queryOperatorTokenOr
 	}
 
-	if lastWhere != nil && lastWhere.options.searchOperator != SearchOperator_UNSET {
+	if lastWhere != nil && lastWhere.options.searchOperator != SearchOperatorUnset {
 		token = queryOperatorTokenOr // default to OR operator after search if AND was not specified explicitly
 	}
 
@@ -1247,7 +1247,7 @@ func (q *AbstractDocumentQuery) negateIfNeeded(tokensRef *[]queryToken, fieldNam
 		if fieldName != "" {
 			q.whereExists(fieldName)
 		} else {
-			q._whereTrue()
+			q.whereTrue()
 		}
 		q.andAlso()
 	}
@@ -1318,7 +1318,7 @@ func (q *AbstractDocumentQuery) transformValueWithRange(whereParams *whereParams
 	}
 
 	var stringValueReference string
-	if q._conventions.TryConvertValueForQuery(whereParams.fieldName, whereParams.value, forRange, &stringValueReference) {
+	if q.conventions.TryConvertValueForQuery(whereParams.fieldName, whereParams.value, forRange, &stringValueReference) {
 		return stringValueReference
 	}
 
@@ -1340,7 +1340,7 @@ func (q *AbstractDocumentQuery) addQueryParameter(value interface{}) string {
 }
 
 func (q *AbstractDocumentQuery) getCurrentWhereTokens() []queryToken {
-	if !q._isInMoreLikeThis {
+	if !q.isInMoreLikeThis {
 		return q.whereTokens
 	}
 
@@ -1363,7 +1363,7 @@ func (q *AbstractDocumentQuery) getCurrentWhereTokens() []queryToken {
 }
 
 func (q *AbstractDocumentQuery) getCurrentWhereTokensRef() *[]queryToken {
-	if !q._isInMoreLikeThis {
+	if !q.isInMoreLikeThis {
 		return &q.whereTokens
 	}
 
@@ -1447,7 +1447,7 @@ func (q *AbstractDocumentQuery) withinRadiusOf(fieldName string, radius float64,
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	shape := ShapeToken_circle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
+	shape := ShapeTokenCircle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
 	opts := NewWhereOptionsWithTokenAndDistance(shape, distErrorPercent)
 	whereToken := createWhereTokenWithOptions(WhereOperatorSpatialWithin, fieldName, "", opts)
 
@@ -1463,7 +1463,7 @@ func (q *AbstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	wktToken := ShapeToken_wkt(q.addQueryParameter(shapeWkt))
+	wktToken := ShapeTokenWkt(q.addQueryParameter(shapeWkt))
 
 	var whereOperator WhereOperator
 	switch relation {
@@ -1599,7 +1599,11 @@ func (q *AbstractDocumentQuery) initSync() error {
 	}
 	q.theSession.OnBeforeQueryInvoke(beforeQueryEventArgs)
 
-	q.queryOperation = q.initializeQueryOperation()
+	var err error
+	q.queryOperation, err = q.initializeQueryOperation()
+	if err != nil {
+		return err
+	}
 	return q.executeActualQuery()
 }
 
@@ -1847,25 +1851,33 @@ func (q *AbstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) {
 	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentID))
 }
 
-func (q *AbstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) *Lazy {
+func (q *AbstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) (*Lazy, error) {
 	q.setClazzFromResult(results)
 	if q.queryOperation == nil {
-		q.queryOperation = q.initializeQueryOperation()
+		var err error
+		q.queryOperation, err = q.initializeQueryOperation()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	lazyQueryOperation := NewLazyQueryOperation(results, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
-	return q.theSession.session.addLazyOperation(results, lazyQueryOperation, onEval)
+	return q.theSession.session.addLazyOperation(results, lazyQueryOperation, onEval), nil
 }
 
-func (q *AbstractDocumentQuery) CountLazily(results interface{}, count *int) *Lazy {
+func (q *AbstractDocumentQuery) CountLazily(results interface{}, count *int) (*Lazy, error) {
 	if q.queryOperation == nil {
 		v := 0
 		q.take(&v)
-		q.queryOperation = q.initializeQueryOperation()
+		var err error
+		q.queryOperation, err = q.initializeQueryOperation()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	lazyQueryOperation := NewLazyQueryOperation(results, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
-	return q.theSession.session.addLazyCountOperation(count, lazyQueryOperation)
+	return q.theSession.session.addLazyCountOperation(count, lazyQueryOperation), nil
 }
 
 // SuggestUsing adds a query part for suggestions

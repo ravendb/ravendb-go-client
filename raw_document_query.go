@@ -28,12 +28,12 @@ func (q *RawDocumentQuery) Take(count int) *IRawDocumentQuery {
 }
 
 func (q *RawDocumentQuery) WaitForNonStaleResults() *IRawDocumentQuery {
-	q._waitForNonStaleResults(0)
+	q.waitForNonStaleResults(0)
 	return q
 }
 
 func (q *RawDocumentQuery) WaitForNonStaleResultsWithTimeout(waitTimeout time.Duration) *IRawDocumentQuery {
-	q._waitForNonStaleResults(waitTimeout)
+	q.waitForNonStaleResults(waitTimeout)
 	return q
 }
 
@@ -50,7 +50,7 @@ func (q *RawDocumentQuery) NoCaching() *IRawDocumentQuery {
 }
 
 func (q *RawDocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *IRawDocumentQuery {
-	q._usingDefaultOperator(queryOperator)
+	q.usingDefaultOperator(queryOperator)
 	return q
 }
 

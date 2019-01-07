@@ -89,7 +89,7 @@ func (q *DocumentQuery) OrderByScoreDescending() *DocumentQuery {
 //TBD 4.1  IDocumentQuery<T> explainScores() {
 
 func (q *DocumentQuery) WaitForNonStaleResults(waitTimeout time.Duration) *DocumentQuery {
-	q._waitForNonStaleResults(waitTimeout)
+	q.waitForNonStaleResults(waitTimeout)
 	return q
 }
 
@@ -185,7 +185,7 @@ func (q *DocumentQuery) Statistics(stats **QueryStatistics) *DocumentQuery {
 }
 
 func (q *DocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *IDocumentQuery {
-	q._usingDefaultOperator(queryOperator)
+	q.usingDefaultOperator(queryOperator)
 	return q
 }
 

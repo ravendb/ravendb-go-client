@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,7 +51,8 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		assert.Equal(t, v["abc/1"].ID, "abc/1")
 
 		var v2 []*Xyz
-		test2Classes := session.Query().WaitForNonStaleResults(0).Lazily(&v2, nil)
+		test2Classes, err := session.Query().WaitForNonStaleResults(0).Lazily(&v2, nil)
+		assert.NoError(t, err)
 		err = test2Classes.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, len(v2), 1)

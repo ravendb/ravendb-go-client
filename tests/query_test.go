@@ -73,7 +73,8 @@ func queryQueryLazily(t *testing.T, driver *RavenTestDriver) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		var queryResult []*User
-		lazyQuery := session.Query().Lazily(&queryResult, nil)
+		lazyQuery, err := session.Query().Lazily(&queryResult, nil)
+		assert.NoError(t, err)
 		err = lazyQuery.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(queryResult))
@@ -560,7 +561,7 @@ func queryQuerySearchWithOr(t *testing.T, driver *RavenTestDriver) {
 
 		var uniqueNames []*User
 		q := session.Query()
-		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperator_OR)
+		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperatorOr)
 		err := q.GetResults(&uniqueNames)
 		assert.NoError(t, err)
 
