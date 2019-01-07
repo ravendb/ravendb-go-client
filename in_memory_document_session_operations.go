@@ -386,11 +386,13 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfoOld(clazz r
 	return s.TrackEntityOld(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
+// result is a pointer to expected value
 func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result interface{}, documentFound *documentInfo) error {
 	return s.TrackEntity(result, documentFound.id, documentFound.document, documentFound.metadata, false)
 }
 
 // TrackEntity tracks a given object
+// result is a pointer to a decoded value
 func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) error {
 	if id == "" {
 		s.DeserializeFromTransformer2(result, "", document)
@@ -418,11 +420,12 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 	docInfo = s.includedDocumentsByID[id]
 	if docInfo != nil {
-		noSet := true
+		// TODO: figure out a test case that fails if I invert setResultToDocEntity
+		setResultToDocEntity := true
 		if docInfo.entity == nil {
 			s.entityToJSON.ConvertToEntity2(result, id, document)
 			docInfo.setEntity(result)
-			noSet = false
+			setResultToDocEntity = false
 		}
 
 		if !noTracking {
@@ -430,7 +433,8 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 			s.documentsByID.add(docInfo)
 			setDocumentInfo(&s.documents, docInfo)
 		}
-		if noSet {
+
+		if setResultToDocEntity {
 			setInterfaceToValue(result, docInfo.entity)
 		}
 		return nil
