@@ -87,6 +87,8 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 	return o.session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o.session.DatabaseName)
 }
 
+// results is *[]<type> and we'll create the slice and fill it with values
+// of <type> and do the equivalent of: *results = our_slice
 func (o *QueryOperation) complete(results interface{}) error {
 	queryResult := o.currentQueryResults.createSnapshot()
 
@@ -118,12 +120,13 @@ func (o *QueryOperation) complete(results interface{}) error {
 		panicIf(!ok, "missing metadata")
 		metadata := metadataI.(map[string]interface{})
 		id, _ := JsonGetAsText(metadata, MetadataID)
-
-		el, err := queryOperationDeserialize(clazz, id, document, metadata, o.fieldsToFetch, o.disableEntitiesTracking, o.session)
+		result := reflect.New(clazz) // this is a pointer to desired value
+		err := queryOperationDeserialize(result.Interface(), id, document, metadata, o.fieldsToFetch, o.disableEntitiesTracking, o.session)
 		if err != nil {
 			return newRuntimeError("Unable to read json: %s", err)
 		}
-		v2 := reflect.ValueOf(el)
+		// de-reference pointer value
+		v2 := result.Elem()
 		sliceV2 = reflect.Append(sliceV2, v2)
 	}
 
@@ -147,7 +150,71 @@ func jsonIsValueNode(v interface{}) bool {
 	return false
 }
 
-func queryOperationDeserialize(clazz reflect.Type, id string, document map[string]interface{}, metadata map[string]interface{}, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
+// result is pointer to value that will be set with value decoded from JSON
+func queryOperationDeserialize(result interface{}, id string, document map[string]interface{}, metadata map[string]interface{}, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) error {
+	_, ok := jsonGetAsBool(metadata, MetadataProjection)
+	if !ok {
+		return session.TrackEntity(result, id, document, metadata, disableEntitiesTracking)
+	}
+	tp := reflect.TypeOf(result)
+	panicIf(tp.Kind() != reflect.Ptr, "result should be a *<type>, is %T", result)
+	clazz := tp.Elem()
+	if fieldsToFetch != nil && len(fieldsToFetch.projections) == 1 {
+		// we only select a single field
+		isString := clazz.Kind() == reflect.String
+		if isString || isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
+			projectField := fieldsToFetch.projections[0]
+			jsonNode, ok := document[projectField]
+			if ok && jsonIsValueNode(jsonNode) {
+				res, err := session.GetConventions().DeserializeEntityFromJson(clazz, jsonNode)
+				if err != nil {
+					return err
+				}
+				if res != nil {
+					setInterfaceToValue(result, res)
+					return nil
+				}
+				return nil
+			}
+		}
+
+		inner, ok := document[fieldsToFetch.projections[0]]
+		if !ok {
+			return nil
+		}
+
+		if fieldsToFetch.fieldsToFetch != nil && fieldsToFetch.fieldsToFetch[0] == fieldsToFetch.projections[0] {
+			doc, ok := inner.(map[string]interface{})
+			if ok {
+				// extraction from original type
+				document = doc
+			}
+		}
+	}
+
+	res, err := treeToValue(clazz, document)
+	if err != nil {
+		return err
+	}
+
+	if stringIsNotEmpty(id) {
+		// we need to make an additional check, since it is possible that a value was explicitly stated
+		// for the identity property, in which case we don't want to override it.
+
+		identityProperty := session.GetConventions().GetIdentityProperty(clazz)
+		if identityProperty != "" {
+			if _, ok := document[identityProperty]; !ok {
+				session.GetGenerateEntityIDOnTheClient().trySetIdentity(res, id)
+			}
+		}
+	}
+
+	setInterfaceToValue(result, res)
+	return nil
+}
+
+// TODO: used in DocumentSession.createStreamResult, replacde with queryOperationDeserialize
+func queryOperationDeserializeOld(clazz reflect.Type, id string, document map[string]interface{}, metadata map[string]interface{}, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
 	_, ok := jsonGetAsBool(metadata, MetadataProjection)
 	if !ok {
 		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)
@@ -178,7 +245,7 @@ func queryOperationDeserialize(clazz reflect.Type, id string, document map[strin
 		if fieldsToFetch.fieldsToFetch != nil && fieldsToFetch.fieldsToFetch[0] == fieldsToFetch.projections[0] {
 			doc, ok := inner.(map[string]interface{})
 			if ok {
-				//extraction from original type
+				// extraction from original type
 				document = doc
 			}
 		}

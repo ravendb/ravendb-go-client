@@ -700,7 +700,7 @@ func (s *DocumentSession) createStreamResult(v interface{}, document map[string]
 	// MapReduce indexes return reduce results that don't have @id property
 	id, _ := jsonGetAsString(metadata, MetadataID)
 
-	entity, err := queryOperationDeserialize(rt, id, document, metadata, fieldsToFetch, true, s.InMemoryDocumentSessionOperations)
+	entity, err := queryOperationDeserializeOld(rt, id, document, metadata, fieldsToFetch, true, s.InMemoryDocumentSessionOperations)
 	if err != nil {
 		return nil, err
 	}

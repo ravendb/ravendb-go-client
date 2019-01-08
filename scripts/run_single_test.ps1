@@ -44,3 +44,25 @@ if (0) {
     go test -v -race -timeout 50s ./tests -run ^TestBulkInserts$
 }
 
+if (0) {
+    # those are tests for exercising QueryOperation.complete()
+    go test -v -race -timeout 50s ./tests -run ^TestGo1
+    go test -v -race -timeout 50s ./tests -run ^TestQuery
+    go test -v -race -timeout 50s ./tests -run ^TestCrud
+    go test -v -race -timeout 50s ./tests -run ^TestSpatialSorting
+    go test -v -race -timeout 50s ./tests -run ^TestRavenDB9676
+    go test -v -race -timeout 50s ./tests -run ^TestRavenDB8761
+    go test -v -race -timeout 50s ./tests -run ^TestRavenDB903
+    go test -v -race -timeout 50s ./tests -run ^TestRavenDB5669
+    go test -v -race -timeout 50s ./tests -run ^TestSpatial
+    go test -v -race -timeout 50s ./tests -run ^TestSpatialQueries
+    go test -v -race -timeout 50s ./tests -run ^TestAdvancedPatching
+    go test -v -race -timeout 50s ./tests -run ^TestRegexQuery
+    go test -v -race -timeout 50s ./tests -run ^TestSpatialSearch
+    go test -v -race -timeout 50s ./tests -run ^TestQueriesWithCustomFunctions
+    go test -v -race -timeout 50s ./tests -run ^TestContains
+    go test -v -race -timeout 50s ./tests -run ^TestCustomSerialization
+    go test -v -race -timeout 50s ./tests -run ^TestAggressiveCaching
+    go test -v -race -timeout 50s ./tests -run ^TestLoadAllStartingWith
+    go test -v -race -timeout 50s ./tests -run ^TestMoreLikeThisTestIndexesFromClient
+}

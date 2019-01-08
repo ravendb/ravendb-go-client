@@ -392,7 +392,8 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result int
 }
 
 // TrackEntity tracks a given object
-// result is a pointer to a decoded value
+// result is a pointer to a decoded value (e.g. **Foo) and will be set with
+// value decoded from JSON (e.g. *result = &Foo{})
 func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) error {
 	if id == "" {
 		s.DeserializeFromTransformer2(result, "", document)
