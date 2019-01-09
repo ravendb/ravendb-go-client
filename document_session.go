@@ -653,7 +653,7 @@ func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *Docume
 
 // StreamQuery starts a streaming query and returns iterator for results.
 // If streamQueryStats is provided, it'll be filled with information about query statistics.
-func (s *DocumentSession) StreamQuery(query *IDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
+func (s *DocumentSession) StreamQuery(query *DocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
@@ -708,7 +708,7 @@ func (s *DocumentSession) StreamRawQueryInto(query *IRawDocumentQuery, output io
 
 // StreamQueryInto starts a streaming query that will write the results
 // (in JSON format) to output
-func (s *DocumentSession) StreamQueryInto(query *IDocumentQuery, output io.Writer) error {
+func (s *DocumentSession) StreamQueryInto(query *DocumentQuery, output io.Writer) error {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)

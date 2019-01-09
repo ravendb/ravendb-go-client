@@ -29,7 +29,7 @@ func (b *MoreLikeThisBuilder) UsingDocument(documentJSON string) IMoreLikeThisOp
 	return b
 }
 
-func (b *MoreLikeThisBuilder) UsingDocumentWithBuilder(builder func(*IFilterDocumentQueryBase)) IMoreLikeThisOperations {
+func (b *MoreLikeThisBuilder) UsingDocumentWithBuilder(builder func(*DocumentQuery)) IMoreLikeThisOperations {
 	tmp := NewMoreLikeThisUsingDocumentForDocumentQuery()
 	tmp.setForDocumentQuery(builder)
 	b.moreLikeThis = tmp

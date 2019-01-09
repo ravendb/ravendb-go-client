@@ -5,11 +5,10 @@ import (
 	"time"
 )
 
-// TODO: remove those interfaces
-type IDocumentQueryBase = DocumentQuery
-type IDocumentQueryBaseSingle = DocumentQuery
-type IDocumentQuery = DocumentQuery
-type IFilterDocumentQueryBase = DocumentQuery
+// Note: Java's IDocumentQueryBase is DocumentQuery
+// Note: Java's IDocumentQueryBaseSingle is DocumentQuery
+// Note: Java's IDocumentQuery is DocumentQuery
+// Note: Java's IFilterDocumentQueryBase is DocumentQuery
 
 // DocumentQuery describes a query
 type DocumentQuery struct {
@@ -93,16 +92,16 @@ func (q *DocumentQuery) WaitForNonStaleResults(waitTimeout time.Duration) *Docum
 	return q
 }
 
-func (q *DocumentQuery) AddParameter(name string, value interface{}) *IDocumentQuery {
+func (q *DocumentQuery) AddParameter(name string, value interface{}) *DocumentQuery {
 	q.addParameter(name, value)
 	return q
 }
 
-func (q *DocumentQuery) AddOrder(fieldName string, descending bool) *IDocumentQuery {
+func (q *DocumentQuery) AddOrder(fieldName string, descending bool) *DocumentQuery {
 	return q.AddOrderWithOrdering(fieldName, descending, OrderingTypeString)
 }
 
-func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, ordering OrderingType) *IDocumentQuery {
+func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, ordering OrderingType) *DocumentQuery {
 	if descending {
 		q.OrderByDescendingWithOrdering(fieldName, ordering)
 	} else {
@@ -138,29 +137,29 @@ func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, 
 }
 */
 
-func (q *DocumentQuery) OpenSubclause() *IDocumentQuery {
+func (q *DocumentQuery) OpenSubclause() *DocumentQuery {
 	q.openSubclause()
 	return q
 }
 
-func (q *DocumentQuery) CloseSubclause() *IDocumentQuery {
+func (q *DocumentQuery) CloseSubclause() *DocumentQuery {
 	q.closeSubclause()
 	return q
 }
 
-func (q *DocumentQuery) Search(fieldName string, searchTerms string) *IDocumentQuery {
+func (q *DocumentQuery) Search(fieldName string, searchTerms string) *DocumentQuery {
 	q.search(fieldName, searchTerms)
 	return q
 }
 
-func (q *DocumentQuery) SearchWithOperator(fieldName string, searchTerms string, operator SearchOperator) *IDocumentQuery {
+func (q *DocumentQuery) SearchWithOperator(fieldName string, searchTerms string, operator SearchOperator) *DocumentQuery {
 	q.searchWithOperator(fieldName, searchTerms, operator)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> Search<TValue>(Expression<Func<T, TValue>> propertySelector, string searchTerms, SearchOperator @operator)
 
-func (q *DocumentQuery) Intersect() *IDocumentQuery {
+func (q *DocumentQuery) Intersect() *DocumentQuery {
 	q.intersect()
 	return q
 }
@@ -184,24 +183,24 @@ func (q *DocumentQuery) Statistics(stats **QueryStatistics) *DocumentQuery {
 	return q
 }
 
-func (q *DocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *IDocumentQuery {
+func (q *DocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *DocumentQuery {
 	q.usingDefaultOperator(queryOperator)
 	return q
 }
 
-func (q *DocumentQuery) NoTracking() *IDocumentQuery {
+func (q *DocumentQuery) NoTracking() *DocumentQuery {
 	q.noTracking()
 	return q
 }
 
-func (q *DocumentQuery) NoCaching() *IDocumentQuery {
+func (q *DocumentQuery) NoCaching() *DocumentQuery {
 	q.noCaching()
 	return q
 }
 
 //TBD 4.1  IDocumentQuery<T> showTimings()
 
-func (q *DocumentQuery) Include(path string) *IDocumentQuery {
+func (q *DocumentQuery) Include(path string) *DocumentQuery {
 	q.include(path)
 	return q
 }
@@ -223,7 +222,7 @@ func (q *DocumentQuery) Skip(count int) *DocumentQuery {
 	return q
 }
 
-func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *IDocumentQuery {
+func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *DocumentQuery {
 	q.whereLucene(fieldName, whereClause)
 	return q
 }
@@ -387,22 +386,22 @@ func (q *DocumentQuery) GroupBy2(field *GroupBy, fields ...*GroupBy) *IGroupByDo
 }
 
 // OrderBy makes a query ordered by a given field
-func (q *DocumentQuery) OrderBy(field string) *IDocumentQuery {
+func (q *DocumentQuery) OrderBy(field string) *DocumentQuery {
 	return q.OrderByWithOrdering(field, OrderingTypeString)
 }
 
-func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
+func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType) *DocumentQuery {
 	q.orderByWithOrdering(field, ordering)
 	return q
 }
 
 //TBD expr  IDocumentQuery<T> OrderBy<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
-func (q *DocumentQuery) OrderByDescending(field string) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDescending(field string) *DocumentQuery {
 	return q.OrderByDescendingWithOrdering(field, OrderingTypeString)
 }
 
-func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering OrderingType) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering OrderingType) *DocumentQuery {
 	q.orderByDescendingWithOrdering(field, ordering)
 	return q
 }
@@ -535,13 +534,13 @@ func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *Aggregation
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.SetHighlighterTags(string[] preTags, string[] postTags)
 //TBD expr  IDocumentQuery<T> Spatial(Expression<Func<T, object>> path, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
 
-func (q *DocumentQuery) Spatial3(fieldName string, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
+func (q *DocumentQuery) Spatial3(fieldName string, clause func(*SpatialCriteriaFactory) SpatialCriteria) *DocumentQuery {
 	criteria := clause(spatialCriteriaFactoryInstance)
 	q.spatial3(fieldName, criteria)
 	return q
 }
 
-func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*SpatialCriteriaFactory) SpatialCriteria) *IDocumentQuery {
+func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*SpatialCriteriaFactory) SpatialCriteria) *DocumentQuery {
 	criteria := clause(spatialCriteriaFactoryInstance)
 	q.spatial2(field, criteria)
 	return q
@@ -550,40 +549,40 @@ func (q *DocumentQuery) Spatial2(field DynamicSpatialField, clause func(*Spatial
 //TBD expr  IDocumentQuery<T> Spatial(Func<SpatialDynamicFieldFactory<T>, DynamicSpatialField> field, Func<SpatialCriteriaFactory, SpatialCriteria> clause)
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.WithinRadiusOf<TValue>(Expression<Func<T, TValue>> propertySelector, float64 radius, float64 latitude, float64 longitude, SpatialUnits? radiusUnits, float64 distanceErrorPct)
 
-func (q *DocumentQuery) WithinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64) *IDocumentQuery {
+func (q *DocumentQuery) WithinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64) *DocumentQuery {
 	q.withinRadiusOf(fieldName, radius, latitude, longitude, "", IndexingSpatialDefaultDistnaceErrorPct)
 	return q
 }
 
-func (q *DocumentQuery) WithinRadiusOfWithUnits(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits) *IDocumentQuery {
+func (q *DocumentQuery) WithinRadiusOfWithUnits(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits) *DocumentQuery {
 	q.withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, IndexingSpatialDefaultDistnaceErrorPct)
 	return q
 }
 
-func (q *DocumentQuery) WithinRadiusOfWithUnitsAndError(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distanceErrorPct float64) *IDocumentQuery {
+func (q *DocumentQuery) WithinRadiusOfWithUnitsAndError(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distanceErrorPct float64) *DocumentQuery {
 	q.withinRadiusOf(fieldName, radius, latitude, longitude, radiusUnits, distanceErrorPct)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.RelatesToShape<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt, SpatialRelation relation, float64 distanceErrorPct)
 
-func (q *DocumentQuery) RelatesToShape(fieldName string, shapeWkt string, relation SpatialRelation) *IDocumentQuery {
+func (q *DocumentQuery) RelatesToShape(fieldName string, shapeWkt string, relation SpatialRelation) *DocumentQuery {
 	return q.RelatesToShapeWithError(fieldName, shapeWkt, relation, IndexingSpatialDefaultDistnaceErrorPct)
 }
 
-func (q *DocumentQuery) RelatesToShapeWithError(fieldName string, shapeWkt string, relation SpatialRelation, distanceErrorPct float64) *IDocumentQuery {
+func (q *DocumentQuery) RelatesToShapeWithError(fieldName string, shapeWkt string, relation SpatialRelation, distanceErrorPct float64) *DocumentQuery {
 	q.spatial(fieldName, shapeWkt, relation, distanceErrorPct)
 	return q
 }
 
-func (q *DocumentQuery) OrderByDistance(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistance(field DynamicSpatialField, latitude float64, longitude float64) *DocumentQuery {
 	q.orderByDistance(field, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) OrderByDistance2(field DynamicSpatialField, shapeWkt string) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistance2(field DynamicSpatialField, shapeWkt string) *DocumentQuery {
 	q.orderByDistance2(field, shapeWkt)
 	return q
 }
@@ -592,26 +591,26 @@ func (q *DocumentQuery) OrderByDistance2(field DynamicSpatialField, shapeWkt str
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) OrderByDistanceLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistanceLatLong(fieldName string, latitude float64, longitude float64) *DocumentQuery {
 	q.orderByDistanceLatLong(fieldName, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
-func (q *DocumentQuery) OrderByDistance3(fieldName string, shapeWkt string) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistance3(fieldName string, shapeWkt string) *DocumentQuery {
 	q.orderByDistance3(fieldName, shapeWkt)
 	return q
 }
 
-func (q *DocumentQuery) OrderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) *DocumentQuery {
 	q.orderByDistanceDescending(field, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) *DocumentQuery {
 	q.orderByDistanceDescending2(field, shapeWkt)
 	return q
 }
@@ -620,14 +619,14 @@ func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, sh
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) OrderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) *DocumentQuery {
 	q.orderByDistanceDescendingLatLong(fieldName, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
-func (q *DocumentQuery) OrderByDistanceDescending3(fieldName string, shapeWkt string) *IDocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescending3(fieldName string, shapeWkt string) *DocumentQuery {
 	q.orderByDistanceDescending3(fieldName, shapeWkt)
 	return q
 }

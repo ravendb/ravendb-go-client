@@ -92,7 +92,7 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", id)
 			}
 			ops := f.UsingDocumentWithBuilder(builder)
@@ -136,7 +136,7 @@ func moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, dr
 		options.Fields = []string{"body"}
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", id)
 			}
 			ops := f.UsingDocumentWithBuilder(builder)
@@ -254,7 +254,7 @@ func moreLikeThisDoNotPassFieldNames(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", key)
 			}
 			f.UsingDocumentWithBuilder(builder)
@@ -300,7 +300,7 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", key1)
 			}
 			o := f.UsingDocumentWithBuilder(builder)
@@ -335,7 +335,7 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", key2)
 			}
 			f.UsingDocumentWithBuilder(builder)
@@ -384,7 +384,7 @@ func moreLikeThisCanUseMinDocFreqParam(t *testing.T, driver *RavenTestDriver) {
 
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", key)
 			}
 			o := f.UsingDocumentWithBuilder(builder)
@@ -437,7 +437,7 @@ func moreLikeThisCanUseBoostParam(t *testing.T, driver *RavenTestDriver) {
 
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", key)
 			}
 			o := f.UsingDocumentWithBuilder(builder)
@@ -503,7 +503,7 @@ func moreLikeThisCanUseStopWords(t *testing.T, driver *RavenTestDriver) {
 
 		query := session.QueryInIndex(dataIndex)
 		builder := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {
-			builder := func(b *ravendb.IFilterDocumentQueryBase) {
+			builder := func(b *ravendb.DocumentQuery) {
 				b.WhereEquals("id()", key)
 			}
 			o := f.UsingDocumentWithBuilder(builder)
@@ -612,7 +612,7 @@ func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.Ab
 	options.Fields = []string{"body"}
 
 	q := session.QueryInIndex(index)
-	fn1 := func(b *ravendb.IFilterDocumentQueryBase) {
+	fn1 := func(b *ravendb.DocumentQuery) {
 		b.WhereEquals("id()", documentKey)
 	}
 	fn2 := func(f ravendb.IMoreLikeThisBuilderForDocumentQuery) {

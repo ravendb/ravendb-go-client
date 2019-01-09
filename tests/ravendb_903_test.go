@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ type Product2 struct {
 
 func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 
-	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
+	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery {
 		q := session.Advanced().DocumentQueryInIndex(index)
 		q = q.Search("description", "Hello")
 		q = q.Intersect()
@@ -26,7 +26,7 @@ func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 }
 
 func ravendb903Test2(t *testing.T, driver *RavenTestDriver) {
-	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery {
+	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery {
 		q := session.Advanced().DocumentQueryInIndex(index)
 		q = q.WhereEquals("name", "Bar")
 		q = q.Intersect()
@@ -37,7 +37,7 @@ func ravendb903Test2(t *testing.T, driver *RavenTestDriver) {
 
 }
 
-func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.IDocumentQuery) {
+func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()

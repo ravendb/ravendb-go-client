@@ -498,7 +498,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 		var list []*Post
 		q := session.QueryInIndex(PostsByTitleAndDesc())
 
-		fn1 := func(x *ravendb.IFilterDocumentQueryBase) {
+		fn1 := func(x *ravendb.DocumentQuery) {
 			x.WhereEquals("id()", "posts/1")
 		}
 
