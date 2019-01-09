@@ -231,7 +231,9 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 		fn := func(theResult interface{}) {
 			// TODO: losing error message
 			s.getOperationResult(result, theResult)
-			onEval(result)
+			// result is *<type>, we want <type> in onEval()
+			v := reflect.ValueOf(result).Elem().Interface()
+			onEval(v)
 		}
 		s.onEvaluateLazy[operation] = fn
 	}

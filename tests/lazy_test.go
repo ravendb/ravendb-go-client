@@ -99,15 +99,13 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 		query := session.Advanced().Lazily()
 		var c1, c2 *Company
 		query.Load(&c1, "companies/1", func(v interface{}) {
-			// TODO: v should be *Company
-			c := v.(**Company)
-			company1Ref = *c
+			c := v.(*Company)
+			company1Ref = c
 		})
 
 		query.Load(&c2, "companies/2", func(v interface{}) {
-			// TODO: v should be *Company
-			c := v.(**Company)
-			company2Ref = *c
+			c := v.(*Company)
+			company2Ref = c
 		})
 
 		assert.Nil(t, company1Ref)
@@ -147,8 +145,7 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 
 		query := session.Advanced().Lazily()
 		query.Load(&user, "users/1", func(v interface{}) {
-			// TODO: v should be *User
-			userRef = *v.(**User)
+			userRef = v.(*User)
 		})
 
 		assert.Nil(t, userRef)
