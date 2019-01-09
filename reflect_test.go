@@ -62,6 +62,22 @@ func TestIsStructy(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestIsMapStringToPtrStruct(t *testing.T) {
+	{
+		v := map[string]*User{}
+		tp, ok := isMapStringToPtrStruct(reflect.TypeOf(v))
+		assert.True(t, ok)
+		assert.Equal(t, reflect.TypeOf(&User{}), tp)
+	}
+	vals := []interface{}{
+		1, true, 3.8, "string", []*User{}, map[string]User{}, map[int]*User{}, User{}, &User{},
+	}
+	for _, v := range vals {
+		_, ok := isMapStringToPtrStruct(reflect.TypeOf(v))
+		assert.False(t, ok)
+	}
+}
+
 func TestGetIdentityProperty(t *testing.T) {
 	got := getIdentityProperty(reflect.TypeOf(""))
 	assert.Equal(t, "", got)
