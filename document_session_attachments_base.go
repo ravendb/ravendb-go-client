@@ -7,12 +7,12 @@ import (
 )
 
 type DocumentSessionAttachmentsBase struct {
-	*AdvancedSessionExtentionBase
+	*AdvancedSessionExtensionBase
 }
 
 func NewDocumentSessionAttachmentsBase(session *InMemoryDocumentSessionOperations) *DocumentSessionAttachmentsBase {
 	res := &DocumentSessionAttachmentsBase{}
-	res.AdvancedSessionExtentionBase = NewAdvancedSessionExtentionBase(session)
+	res.AdvancedSessionExtensionBase = newAdvancedSessionExtensionBase(session)
 	return res
 }
 

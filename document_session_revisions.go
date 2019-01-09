@@ -2,15 +2,19 @@ package ravendb
 
 import "reflect"
 
-type IRevisionsSessionOperations = DocumentSessionRevisions
+// Note: Java's IRevisionsSessionOperations is DocumentSessionRevisions
 
+// TODO: write a unique wrapper type
+type RevisionsSessionOperations = DocumentSessionRevisions
+
+// DocumentSessionRevisions represents revisions operations
 type DocumentSessionRevisions struct {
-	*AdvancedSessionExtentionBase
+	*AdvancedSessionExtensionBase
 }
 
-func NewDocumentSessionRevisions(session *InMemoryDocumentSessionOperations) *DocumentSessionRevisions {
+func newDocumentSessionRevisions(session *InMemoryDocumentSessionOperations) *DocumentSessionRevisions {
 	return &DocumentSessionRevisions{
-		AdvancedSessionExtentionBase: NewAdvancedSessionExtentionBase(session),
+		AdvancedSessionExtensionBase: newAdvancedSessionExtensionBase(session),
 	}
 }
 

@@ -2,14 +2,13 @@ package ravendb
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"reflect"
 	"strconv"
 	"time"
 )
 
-// Note: IDocumentSessionImpl is DocumentSession
+// Note: Java's IDocumentSessionImpl is DocumentSession
 
 // TODO: decide if we want to return ErrNotFound or nil if the value is not found
 // Java returns nil (which, I guess, is default value for reference (i.e. all) types)
@@ -20,8 +19,8 @@ var ErrNotFound = error(nil)
 type DocumentSession struct {
 	*InMemoryDocumentSessionOperations
 
-	attachments *IAttachmentsSessionOperations
-	revisions   *IRevisionsSessionOperations
+	attachments *AttachmentsSessionOperations
+	revisions   *RevisionsSessionOperations
 	valsCount   int
 	customCount int
 }
@@ -42,14 +41,14 @@ func (s *DocumentSession) Eagerly() *IEagerSessionOperations {
 	return s
 }
 
-func (s *DocumentSession) Attachments() *IAttachmentsSessionOperations {
+func (s *DocumentSession) Attachments() *AttachmentsSessionOperations {
 	if s.attachments == nil {
 		s.attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
 	}
 	return s.attachments
 }
 
-func (s *DocumentSession) Revisions() *IRevisionsSessionOperations {
+func (s *DocumentSession) Revisions() *RevisionsSessionOperations {
 	return s.revisions
 }
 
@@ -61,8 +60,8 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 
 	res.InMemoryDocumentSessionOperations.session = res
 
-	//TODO: res._attachments: NewDocumentSessionAttachments(res)
-	res.revisions = NewDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
+	res.attachments = NewDocumentSessionAttachments(res.InMemoryDocumentSessionOperations)
+	res.revisions = newDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
 
 	return res
 }
@@ -396,23 +395,43 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 	return command, nil
 }
 
+// LoadIntoStream loads entities identified by ids and writes them (in JSON form)
+// to output
 func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 	op := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	return s.loadInternalWithOperation(ids, op, output)
 }
 
-// TODO: support **struct or return error message
+// IncrementEntity increments member identified by path in an entity by a given
+// valueToAdd (can be negative, to subtract)
 func (s *DocumentSession) IncrementEntity(entity interface{}, path string, valueToAdd interface{}) error {
+	if path == "" {
+		return newIllegalArgumentError("path can't be empty string")
+	}
+	if valueToAdd == nil {
+		return newIllegalArgumentError("valueToAdd can't be nil")
+	}
 	metadata, err := s.GetMetadataFor(entity)
 	if err != nil {
 		return err
 	}
-	// TODO: return an error if no id or id not string
 	id, _ := metadata.Get(MetadataID)
 	return s.IncrementByID(id.(string), path, valueToAdd)
 }
 
+// IncrementByID increments member identified by path in an entity identified by id by a given
+// valueToAdd (can be negative, to subtract)
 func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd interface{}) error {
+	if id == "" {
+		return newIllegalArgumentError("id can't be empty string")
+	}
+	if path == "" {
+		return newIllegalArgumentError("path can't be empty string")
+	}
+	if valueToAdd == nil {
+		return newIllegalArgumentError("valueToAdd can't be nil")
+	}
+	// TODO: check that valueToAdd is numeric?
 	patchRequest := &PatchRequest{}
 
 	valsCountStr := strconv.Itoa(s.valsCount)
@@ -432,18 +451,33 @@ func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd inter
 	return nil
 }
 
-// TODO: support **struct in addition to *struct or return good error message
+// PatchEntity updates entity by changing part identified by path to a given value
 func (s *DocumentSession) PatchEntity(entity interface{}, path string, value interface{}) error {
+	if path == "" {
+		return newIllegalArgumentError("path can't be empty string")
+	}
+	if value == nil {
+		return newIllegalArgumentError("value can't be nil")
+	}
 	metadata, err := s.GetMetadataFor(entity)
 	if err != nil {
 		return err
 	}
-	// TODO: return an error if no id or id not string
 	id, _ := metadata.Get(MetadataID)
 	return s.PatchByID(id.(string), path, value)
 }
 
+// PatchByID updates entity identified by id by changing part identified by path to a given value
 func (s *DocumentSession) PatchByID(id string, path string, value interface{}) error {
+	if id == "" {
+		return newIllegalArgumentError("id can't be empty string")
+	}
+	if path == "" {
+		return newIllegalArgumentError("path can't be empty string")
+	}
+	if value == nil {
+		return newIllegalArgumentError("value can't be nil")
+	}
 	patchRequest := &PatchRequest{}
 	valsCountStr := strconv.Itoa(s.valsCount)
 	patchRequest.Script = "this." + path + " = args.val_" + valsCountStr + ";"
@@ -461,20 +495,34 @@ func (s *DocumentSession) PatchByID(id string, path string, value interface{}) e
 	return nil
 }
 
-// TODO: should this support **struct in addition to *struct to make API more robust?
-// It's an easy mistake to call with &x (like e.g. Load() APIs). Alternatively:
-// check type early and return good error message
 func (s *DocumentSession) PatchArrayInEntity(entity interface{}, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
+	if pathToArray == "" {
+		return newIllegalArgumentError("pathToArray can't be empty string")
+	}
+	if arrayAdder == nil {
+		return newIllegalArgumentError("arrayAdder can't be nil")
+	}
 	metadata, err := s.GetMetadataFor(entity)
 	if err != nil {
 		return err
 	}
-	// TODO: return an error if no id or id not string
-	id, _ := metadata.Get(MetadataID)
+	id, ok := metadata.Get(MetadataID)
+	if !ok {
+		return newIllegalStateError("entity doesn't have an ID")
+	}
 	return s.PatchArrayByID(id.(string), pathToArray, arrayAdder)
 }
 
 func (s *DocumentSession) PatchArrayByID(id string, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
+	if id == "" {
+		return newIllegalArgumentError("id can't be empty string")
+	}
+	if pathToArray == "" {
+		return newIllegalArgumentError("pathToArray can't be empty string")
+	}
+	if arrayAdder == nil {
+		return newIllegalArgumentError("arrayAdder can't be nil")
+	}
 	s.customCount++
 	scriptArray := NewJavaScriptArray(s.customCount, pathToArray)
 
@@ -674,30 +722,29 @@ func (s *DocumentSession) StreamQueryInto(query *IDocumentQuery, output io.Write
 }
 
 func (s *DocumentSession) createStreamResult(v interface{}, document map[string]interface{}, fieldsToFetch *fieldsToFetchToken) (*StreamResult, error) {
-	//fmt.Printf("createStreamResult: document: %#v\n", document)
-
 	// we expect v to be **Foo. We deserialize into *Foo and assign it to v
 	rt := reflect.TypeOf(v)
 	if rt.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
+		return nil, newIllegalArgumentError("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
 	}
 	rt = rt.Elem()
 	if rt.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
+		return nil, newIllegalArgumentError("v should be a pointer to a pointer to  struct, is %T. rt: %s", v, rt)
 	}
 
 	metadataV, ok := document[MetadataKey]
 	if !ok {
-		//fmt.Printf("document: %#v\n", document)
-		// TODO: maybe convert to errors
-		panicIf(!ok, "Document must have a metadata")
+		return nil, newIllegalStateError("Document must have a metadata")
 	}
 	metadata, ok := metadataV.(map[string]interface{})
-	panicIf(!ok, "Document metadata is not a valid type %T", metadataV)
+	if !ok {
+		return nil, newIllegalStateError("Document metadata should be map[string]interface{} but is %T", metadataV)
+	}
 
 	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
-	// TODO: return an error?
-	panicIf(changeVector == nil, "Document must have a Change Vector")
+	if changeVector == nil {
+		return nil, newIllegalStateError("Document must have a Change Vector")
+	}
 
 	// MapReduce indexes return reduce results that don't have @id property
 	id, _ := jsonGetAsString(metadata, MetadataID)

@@ -1,6 +1,9 @@
 package ravendb
 
-type IAttachmentsSessionOperations = DocumentSessionAttachments
+// Note: Java's IAttachmentsSessionOperations is DocumentSessionAttachments
+
+// TODO: make a unique wrapper type
+type AttachmentsSessionOperations = DocumentSessionAttachments
 
 type DocumentSessionAttachments struct {
 	*DocumentSessionAttachmentsBase

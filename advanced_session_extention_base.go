@@ -1,6 +1,7 @@
 package ravendb
 
-type AdvancedSessionExtentionBase struct {
+// AdvancedSessionExtensionBase implements common advanced session operations
+type AdvancedSessionExtensionBase struct {
 	session             *InMemoryDocumentSessionOperations
 	documents           []*documentInfo
 	requestExecutor     *RequestExecutor
@@ -12,8 +13,8 @@ type AdvancedSessionExtentionBase struct {
 	documentsByID   *documentsByID
 }
 
-func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations) *AdvancedSessionExtentionBase {
-	return &AdvancedSessionExtentionBase{
+func newAdvancedSessionExtensionBase(session *InMemoryDocumentSessionOperations) *AdvancedSessionExtensionBase {
+	return &AdvancedSessionExtensionBase{
 		session:             session,
 		documents:           session.documents,
 		requestExecutor:     session.GetRequestExecutor(),
@@ -25,6 +26,7 @@ func NewAdvancedSessionExtentionBase(session *InMemoryDocumentSessionOperations)
 	}
 }
 
-func (e *AdvancedSessionExtentionBase) DeferMany(commands []ICommandData) {
+// DeferMany defers multiple commands
+func (e *AdvancedSessionExtensionBase) DeferMany(commands []ICommandData) {
 	e.session.DeferMany(commands)
 }

@@ -9,20 +9,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertIllegalArgumentError2(t *testing.T, err error, exp string) {
+func assertIllegalArgumentError(t *testing.T, err error, s ...string) {
 	assert.Error(t, err)
 	if err != nil {
 		_, ok := err.(*ravendb.IllegalArgumentError)
-		assert.True(t, ok)
-		assert.Equal(t, exp, err.Error())
-	}
-}
-
-func assertIllegalArgumentError(t *testing.T, err error) {
-	assert.Error(t, err)
-	if err != nil {
-		_, ok := err.(*ravendb.IllegalArgumentError)
-		assert.True(t, ok)
+		if !ok {
+			assert.True(t, ok, "expected error of type *ravendb.IllegalArgumentError, got %T", err)
+			return
+		}
+		if len(s) > 0 {
+			panicIf(len(s) > 1, "only 0 or 1 strings are expected as s")
+			assert.Equal(t, s[0], err.Error())
+		}
 	}
 }
 
@@ -40,7 +38,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. nil
 		var v interface{}
 		err = session.Store(v)
-		assertIllegalArgumentError2(t, err, "entity can't be nil")
+		assertIllegalArgumentError(t, err, "entity can't be nil")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -54,6 +52,12 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().IncrementEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -61,7 +65,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. nil pointer
 		var v *User
 		err = session.Store(v)
-		assertIllegalArgumentError2(t, err, "entity of type *tests.User can't be nil")
+		assertIllegalArgumentError(t, err, "entity of type *tests.User can't be nil")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -75,6 +79,12 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().IncrementEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -82,7 +92,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. struct
 		v := user
 		err = session.Store(v)
-		assertIllegalArgumentError2(t, err, "entity can't be of type User, try passing *User")
+		assertIllegalArgumentError(t, err, "entity can't be of type User, try passing *User")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -96,6 +106,12 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().IncrementEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -104,7 +120,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		ptrUser := &user
 		v := &ptrUser
 		err = session.Store(v)
-		assertIllegalArgumentError2(t, err, "entity can't be of type **tests.User, try passing *tests.User")
+		assertIllegalArgumentError(t, err, "entity can't be of type **tests.User, try passing *tests.User")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -118,6 +134,12 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().IncrementEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -125,7 +147,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. a nil map
 		var v map[string]interface{}
 		err = session.Store(v)
-		assertIllegalArgumentError2(t, err, "entity can't be a nil map")
+		assertIllegalArgumentError(t, err, "entity can't be a nil map")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -139,6 +161,12 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		_, err = session.HasChanged(v)
 		assertIllegalArgumentError(t, err)
 		err = session.Evict(v)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().IncrementEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -147,7 +175,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		m := map[string]interface{}{}
 		v := &m
 		err = session.Store(v)
-		assertIllegalArgumentError2(t, err, "entity can't be of type *map[string]interface {}, try passing map[string]interface {}")
+		assertIllegalArgumentError(t, err, "entity can't be of type *map[string]interface {}, try passing map[string]interface {}")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -162,6 +190,53 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		err = session.Evict(v)
 		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().IncrementEntity(v, "foo", 1)
+		assertIllegalArgumentError(t, err)
+		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err)
+	}
+
+	{
+		v := &User{} // dummy value that only has to pass type check
+		adv := session.Advanced()
+
+		err = adv.IncrementEntity(v, "", 1)
+		assertIllegalArgumentError(t, err, "path can't be empty string")
+		err = adv.IncrementEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err, "valueToAdd can't be nil")
+
+		err = adv.IncrementByID("", "foo", 1)
+		assertIllegalArgumentError(t, err, "id can't be empty string")
+		err = adv.IncrementByID("id", "", 1)
+		assertIllegalArgumentError(t, err, "path can't be empty string")
+		err = adv.IncrementByID("id", "foo", nil)
+		assertIllegalArgumentError(t, err, "valueToAdd can't be nil")
+
+		err = adv.PatchEntity(v, "", 1)
+		assertIllegalArgumentError(t, err, "path can't be empty string")
+		err = adv.PatchEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err, "value can't be nil")
+
+		err = adv.PatchByID("", "foo", 1)
+		assertIllegalArgumentError(t, err, "id can't be empty string")
+		err = adv.PatchByID("id", "", 1)
+		assertIllegalArgumentError(t, err, "path can't be empty string")
+		err = adv.PatchByID("id", "foo", nil)
+		assertIllegalArgumentError(t, err, "value can't be nil")
+
+		err = adv.PatchArrayInEntity(v, "", nil)
+		assertIllegalArgumentError(t, err, "pathToArray can't be empty string")
+		err = adv.PatchArrayInEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err, "arrayAdder can't be nil")
+
+		err = adv.PatchArrayByID("", "foo", nil)
+		assertIllegalArgumentError(t, err, "id can't be empty string")
+		err = adv.PatchArrayByID("id", "", nil)
+		assertIllegalArgumentError(t, err, "pathToArray can't be empty string")
+		err = adv.PatchArrayByID("id", "foo", nil)
+		assertIllegalArgumentError(t, err, "arrayAdder can't be nil")
 	}
 
 }
