@@ -20,7 +20,7 @@ if ($IsMacOS) {
     $Env:RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
     $Env:RAVENDB_JAVA_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
 } else {
-    $ravdir = Join-Path -Path "$PSScriptRoot" -ChildPath ".." -Resolve
+    $ravdir = Join-Path -Path "$PSScriptRoocreateStreamResultt" -ChildPath ".." -Resolve
     $ravdir = "$ravdir\RavenDB\Server"
     $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$ravdir\Raven.Server.exe"
 }

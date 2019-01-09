@@ -700,13 +700,12 @@ func (s *DocumentSession) createStreamResult(v interface{}, document map[string]
 	// MapReduce indexes return reduce results that don't have @id property
 	id, _ := jsonGetAsString(metadata, MetadataID)
 
-	entity, err := queryOperationDeserializeOld(rt, id, document, metadata, fieldsToFetch, true, s.InMemoryDocumentSessionOperations)
+	err := queryOperationDeserialize(v, id, document, metadata, fieldsToFetch, true, s.InMemoryDocumentSessionOperations)
 	if err != nil {
 		return nil, err
 	}
-	setInterfaceToValue(v, entity)
-
 	meta := NewMetadataAsDictionaryWithSource(metadata)
+	entity := reflect.ValueOf(v).Elem().Interface()
 	streamResult := &StreamResult{
 		ID:           id,
 		changeVector: changeVector,

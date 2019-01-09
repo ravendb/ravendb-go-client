@@ -213,64 +213,6 @@ func queryOperationDeserialize(result interface{}, id string, document map[strin
 	return nil
 }
 
-// TODO: used in DocumentSession.createStreamResult, replacde with queryOperationDeserialize
-func queryOperationDeserializeOld(clazz reflect.Type, id string, document map[string]interface{}, metadata map[string]interface{}, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, session *InMemoryDocumentSessionOperations) (interface{}, error) {
-	_, ok := jsonGetAsBool(metadata, MetadataProjection)
-	if !ok {
-		return session.TrackEntityOld(clazz, id, document, metadata, disableEntitiesTracking)
-	}
-	if fieldsToFetch != nil && len(fieldsToFetch.projections) == 1 {
-		// we only select a single field
-		isString := clazz.Kind() == reflect.String
-		if isString || isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
-			projectField := fieldsToFetch.projections[0]
-			jsonNode, ok := document[projectField]
-			if ok && jsonIsValueNode(jsonNode) {
-				res, err := session.GetConventions().DeserializeEntityFromJson(clazz, jsonNode)
-				if err != nil {
-					return nil, err
-				}
-				if res != nil {
-					return res, nil
-				}
-				return getDefaultValueForType(clazz), nil
-			}
-		}
-
-		inner, ok := document[fieldsToFetch.projections[0]]
-		if !ok {
-			return getDefaultValueForType(clazz), nil
-		}
-
-		if fieldsToFetch.fieldsToFetch != nil && fieldsToFetch.fieldsToFetch[0] == fieldsToFetch.projections[0] {
-			doc, ok := inner.(map[string]interface{})
-			if ok {
-				// extraction from original type
-				document = doc
-			}
-		}
-	}
-
-	result, err := treeToValue(clazz, document)
-	if err != nil {
-		return nil, err
-	}
-
-	if stringIsNotEmpty(id) {
-		// we need to make an additional check, since it is possible that a value was explicitly stated
-		// for the identity property, in which case we don't want to override it.
-
-		identityProperty := session.GetConventions().GetIdentityProperty(clazz)
-		if identityProperty != "" {
-			if _, ok := document[identityProperty]; !ok {
-				session.GetGenerateEntityIDOnTheClient().trySetIdentity(result, id)
-			}
-		}
-	}
-
-	return result, nil
-}
-
 func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
 	if result == nil {
 		return newIndexDoesNotExistError("Could not find index " + o.indexName)
