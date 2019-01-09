@@ -60,7 +60,8 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 
 	res.InMemoryDocumentSessionOperations.session = res
 
-	res.attachments = NewDocumentSessionAttachments(res.InMemoryDocumentSessionOperations)
+	// TODO: this must be delayed until Attachments() or else attachments_session_test.go fail. Why?
+	//res.attachments = NewDocumentSessionAttachments(res.InMemoryDocumentSessionOperations)
 	res.revisions = newDocumentSessionRevisions(res.InMemoryDocumentSessionOperations)
 
 	return res

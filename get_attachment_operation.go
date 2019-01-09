@@ -90,15 +90,14 @@ func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.
 
 	attachmentDetails := &AttachmentDetails{
 		AttachmentName: AttachmentName{
-			ContentType: contentType,
 			Name:        c._name,
+			ContentType: contentType,
 			Hash:        hash,
 			Size:        size,
 		},
 		ChangeVector: changeVector,
 		DocumentID:   c._documentID,
 	}
-
 	c.Result = newAttachmentResult(response, attachmentDetails)
 	return responseDisposeHandlingManually, nil
 }

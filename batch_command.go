@@ -102,6 +102,10 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 		h.Set("Content-Disposition",
 			fmt.Sprintf(`form-data; name="%s"`, escapeQuotes(name)))
 		h.Set("Command-Type", "AttachmentStream")
+		// Note: Java seems to set those by default
+		h.Set("Content-Type", "application/octet-stream")
+		h.Set("Content-Transfer-Encoding", "binary")
+
 		part, err2 := writer.CreatePart(h)
 		if err2 != nil {
 			return nil, err2
@@ -121,6 +125,7 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	}
 	contentType := writer.FormDataContentType()
 	req.Header.Set("Content-Type", contentType)
+
 	return req, nil
 }
 

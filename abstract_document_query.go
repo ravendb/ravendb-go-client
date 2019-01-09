@@ -1865,7 +1865,14 @@ func (q *AbstractDocumentQuery) Lazily(results interface{}, onEval func(interfac
 	return q.theSession.session.addLazyOperation(results, lazyQueryOperation, onEval), nil
 }
 
+// CountLazily returns a lazy operation that returns number of results in a query. It'll set *count to
+// number of results after Lazy.GetResult() is called.
+// results should be of type []<type> and is only provided so that we know this is a query for <type>
+// TODO: figure out better API.
 func (q *AbstractDocumentQuery) CountLazily(results interface{}, count *int) (*Lazy, error) {
+	if count == nil {
+		return nil, newIllegalArgumentError("count can't be nil")
+	}
 	if q.queryOperation == nil {
 		v := 0
 		q.take(&v)

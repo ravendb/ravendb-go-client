@@ -129,7 +129,6 @@ func (o *LoadOperation) getDocuments(results interface{}) error {
 	uniqueIds = stringArrayRemoveDuplicatesNoCase(uniqueIds)
 	for _, id := range uniqueIds {
 		v := reflect.New(mapElemPtrType).Interface()
-		fmt.Printf("v type: %T\n", v)
 		err := o.getDocumentWithID(v, id)
 		if err != nil {
 			return err

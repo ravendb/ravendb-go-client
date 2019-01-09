@@ -30,7 +30,11 @@ func NewPutAttachmentCommandData(documentID string, name string, stream io.Reade
 func (d *PutAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
 	res := d.baseJSON()
 	res["Name"] = d.Name
-	res["ContentType"] = d.contentType
+	if d.contentType != "" {
+		res["ContentType"] = d.contentType
+	} else {
+		res["ContentType"] = nil
+	}
 	res["Type"] = "AttachmentPUT"
 	res["ChangeVector"] = d.ChangeVector
 	return res, nil
