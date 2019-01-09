@@ -10,9 +10,9 @@ func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	cert := store.GetCertificate()
 	conv := store.GetConventions()
 	if conv.IsDisableTopologyUpdates() {
-		res.requestExecutor = ClusterRequestExecutor_createForSingleNode(urls[0], cert, conv)
+		res.requestExecutor = ClusterRequestExecutorCreateForSingleNode(urls[0], cert, conv)
 	} else {
-		res.requestExecutor = ClusterRequestExecutor_create(urls, cert, conv)
+		res.requestExecutor = ClusterRequestExecutorCreate(urls, cert, conv)
 	}
 	fn := func(store *DocumentStore) {
 		res.requestExecutor.Close()

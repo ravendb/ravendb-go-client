@@ -101,26 +101,6 @@ func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 	return o._session.TrackEntityInDocumentInfo(result, doc)
 }
 
-func (o *LoadOperation) getDocumentWithIDOld(clazz reflect.Type, id string) (interface{}, error) {
-	if id == "" {
-		return getDefaultValueForType(clazz), nil
-	}
-
-	if o._session.IsDeleted(id) {
-		return getDefaultValueForType(clazz), nil
-	}
-
-	doc := o._session.documentsByID.getValue(id)
-	if doc == nil {
-		doc = o._session.includedDocumentsByID[id]
-	}
-	if doc == nil {
-		return getDefaultValueForType(clazz), nil
-	}
-
-	return o._session.TrackEntityInDocumentInfoOld(clazz, doc)
-}
-
 var stringType = reflect.TypeOf("")
 
 // TODO: also handle a pointer to a map?
@@ -148,12 +128,14 @@ func (o *LoadOperation) getDocuments(results interface{}) error {
 	stringArrayRemove(&uniqueIds, "")
 	uniqueIds = stringArrayRemoveDuplicatesNoCase(uniqueIds)
 	for _, id := range uniqueIds {
-		v, err := o.getDocumentWithIDOld(mapElemPtrType, id)
+		v := reflect.New(mapElemPtrType).Interface()
+		fmt.Printf("v type: %T\n", v)
+		err := o.getDocumentWithID(v, id)
 		if err != nil {
 			return err
 		}
 		key := reflect.ValueOf(id)
-		v2 := reflect.ValueOf(v)
+		v2 := reflect.ValueOf(v).Elem() // convert *<type> to <type>
 		m.SetMapIndex(key, v2)
 	}
 

@@ -381,11 +381,6 @@ func (s *InMemoryDocumentSessionOperations) IncrementRequestCount() error {
 	return nil
 }
 
-// TrackEntityInDocumentInfoOld tracks entity in documentInfo
-func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfoOld(clazz reflect.Type, documentFound *documentInfo) (interface{}, error) {
-	return s.TrackEntityOld(clazz, documentFound.id, documentFound.document, documentFound.metadata, false)
-}
-
 // result is a pointer to expected value
 func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result interface{}, documentFound *documentInfo) error {
 	return s.TrackEntity(result, documentFound.id, documentFound.document, documentFound.metadata, false)
@@ -477,84 +472,6 @@ func matchValueToType(o interface{}, tp reflect.Type) interface{} {
 	v := reflect.ValueOf(o)
 	v = v.Elem()
 	return v.Interface()
-}
-
-// TrackEntityOld tracks entity
-func (s *InMemoryDocumentSessionOperations) TrackEntityOld(entityType reflect.Type, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) (interface{}, error) {
-	var err error
-	if id == "" {
-		return s.DeserializeFromTransformer(entityType, "", document)
-	}
-
-	docInfo := s.documentsByID.getValue(id)
-	if docInfo != nil {
-		// the local instance may have been changed, we adhere to the current Unit of Work
-		// instance, and return that, ignoring anything new.
-
-		needsToMatchType := true
-		if docInfo.entity == nil {
-			needsToMatchType = false
-			e, err := s.entityToJSON.ConvertToEntity(entityType, id, document)
-			if err != nil {
-				return nil, err
-			}
-			docInfo.setEntity(e)
-		}
-
-		if !noTracking {
-			delete(s.includedDocumentsByID, id)
-			setDocumentInfo(&s.documents, docInfo)
-		}
-		if needsToMatchType {
-			// TODO: probably there's a better way. Figure out why docInfo.entity is **Foo in the first place
-			// Test case: TestCachingOfDocumentInclude.cofi_can_avoid_using_server_for_multiload_with_include_if_everything_is_in_session_cache
-			return matchValueToType(docInfo.entity, entityType), nil
-		}
-		return docInfo.entity, nil
-	}
-
-	docInfo = s.includedDocumentsByID[id]
-	if docInfo != nil {
-		if docInfo.entity == nil {
-			e, err := s.entityToJSON.ConvertToEntity(entityType, id, document)
-			if err != nil {
-				return nil, err
-			}
-			docInfo.setEntity(e)
-		}
-
-		if !noTracking {
-			delete(s.includedDocumentsByID, id)
-			s.documentsByID.add(docInfo)
-			setDocumentInfo(&s.documents, docInfo)
-		}
-
-		return docInfo.entity, nil
-	}
-
-	entity, err := s.entityToJSON.ConvertToEntity(entityType, id, document)
-	if err != nil {
-		return nil, err
-	}
-
-	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
-	if changeVector == nil {
-		return nil, newIllegalStateError("Document %s must have Change Vector", id)
-	}
-
-	if !noTracking {
-		newDocumentInfo := &documentInfo{}
-		newDocumentInfo.id = id
-		newDocumentInfo.document = document
-		newDocumentInfo.metadata = metadata
-		newDocumentInfo.setEntity(entity)
-		newDocumentInfo.changeVector = changeVector
-
-		s.documentsByID.add(newDocumentInfo)
-		setDocumentInfo(&s.documents, newDocumentInfo)
-	}
-
-	return entity, nil
 }
 
 // DeleteEntity marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.

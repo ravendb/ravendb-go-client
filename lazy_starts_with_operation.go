@@ -108,11 +108,12 @@ func (o *LazyStartsWithOperation) handleResponse(response *GetResponse) error {
 		}
 		doc := o.sessionOperations.documentsByID.getValue(newDocumentInfo.id)
 		if doc != nil {
-			v, err := o.sessionOperations.TrackEntityInDocumentInfoOld(tp, doc)
+			v := reflect.New(tp).Interface()
+			err = o.sessionOperations.TrackEntityInDocumentInfo(v, doc)
 			if err != nil {
 				return err
 			}
-			finalResult.SetMapIndex(key, reflect.ValueOf(v))
+			finalResult.SetMapIndex(key, reflect.ValueOf(v).Elem())
 			continue
 		}
 		nilPtr := reflect.New(tp)

@@ -29,38 +29,38 @@ type ClusterRequestExecutor = RequestExecutor
 
 // RequestExecutor describes executor of HTTP requests
 type RequestExecutor struct {
-	_updateDatabaseTopologySemaphore    *Semaphore
-	_updateClientConfigurationSemaphore *Semaphore
+	updateDatabaseTopologySemaphore    *Semaphore
+	updateClientConfigurationSemaphore *Semaphore
 
-	_failedNodesTimers sync.Map // *ServerNode => *NodeStatus
+	failedNodesTimers sync.Map // *ServerNode => *NodeStatus
 
-	certificate           *KeyStore
-	_databaseName         string
-	_lastReturnedResponse atomic.Value // atomic to avoid data races
+	certificate          *KeyStore
+	databaseName         string
+	lastReturnedResponse atomic.Value // atomic to avoid data races
 
-	_updateTopologyTimer *time.Timer
-	_nodeSelector        atomic.Value // atomic to avoid data races
+	updateTopologyTimer *time.Timer
+	nodeSelector        atomic.Value // atomic to avoid data races
 
 	NumberOfServerRequests  atomicInteger
 	topologyEtag            int
 	clientConfigurationEtag int
 	conventions             *DocumentConventions
 
-	_disableTopologyUpdates            bool
-	_disableClientConfigurationUpdates bool
+	disableTopologyUpdates            bool
+	disableClientConfigurationUpdates bool
 
 	_firstTopologyUpdate *completableFuture
 
-	_readBalanceBehavior   ReadBalanceBehavior
-	Cache                  *HttpCache
-	httpClient             *http.Client
-	_topologyTakenFromNode *ServerNode
+	readBalanceBehavior   ReadBalanceBehavior
+	Cache                 *HttpCache
+	httpClient            *http.Client
+	topologyTakenFromNode *ServerNode
 
-	_lastKnownUrls []string
+	lastKnownUrls []string
 
 	mu sync.Mutex
 
-	_disposed bool
+	disposed bool
 
 	// those are needed to implement ClusterRequestExecutor logic
 	isCluster                bool
@@ -72,11 +72,11 @@ type RequestExecutor struct {
 }
 
 func (re *RequestExecutor) getNodeSelector() *NodeSelector {
-	return re._nodeSelector.Load().(*NodeSelector)
+	return re.nodeSelector.Load().(*NodeSelector)
 }
 
 func (re *RequestExecutor) setNodeSelector(s *NodeSelector) {
-	re._nodeSelector.Store(s)
+	re.nodeSelector.Store(s)
 }
 
 func (re *RequestExecutor) GetTopology() *Topology {
@@ -196,17 +196,17 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		conventions = NewDocumentConventions()
 	}
 	res := &RequestExecutor{
-		_updateDatabaseTopologySemaphore:    NewSemaphore(1),
-		_updateClientConfigurationSemaphore: NewSemaphore(1),
+		updateDatabaseTopologySemaphore:    NewSemaphore(1),
+		updateClientConfigurationSemaphore: NewSemaphore(1),
 
-		Cache:                NewHttpCache(conventions.getMaxHttpCacheSize()),
-		_readBalanceBehavior: conventions.ReadBalanceBehavior,
-		_databaseName:        databaseName,
-		certificate:          certificate,
+		Cache:               NewHttpCache(conventions.getMaxHttpCacheSize()),
+		readBalanceBehavior: conventions.ReadBalanceBehavior,
+		databaseName:        databaseName,
+		certificate:         certificate,
 
 		conventions: conventions.Clone(),
 	}
-	res._lastReturnedResponse.Store(time.Now())
+	res.lastReturnedResponse.Store(time.Now())
 	res.setNodeSelector(nil)
 	// TODO: create a different client if settings like compression
 	// or certificate differ
@@ -235,7 +235,7 @@ func RequestExecutorCreate(initialUrls []string, databaseName string, certificat
 
 func RequestExecutorCreateForSingleNodeWithConfigurationUpdates(url string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 	executor := RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url, databaseName, certificate, conventions)
-	executor._disableClientConfigurationUpdates = false
+	executor.disableClientConfigurationUpdates = false
 	return executor
 }
 
@@ -255,13 +255,13 @@ func RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url string, d
 
 	executor.setNodeSelector(NewNodeSelector(topology))
 	executor.topologyEtag = -2
-	executor._disableTopologyUpdates = true
-	executor._disableClientConfigurationUpdates = true
+	executor.disableTopologyUpdates = true
+	executor.disableClientConfigurationUpdates = true
 
 	return executor
 }
 
-func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+func ClusterRequestExecutorCreateForSingleNode(url string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 
 	initialUrls := []string{url}
 	url = requestExecutorValidateUrls(initialUrls, certificate)[0]
@@ -284,8 +284,8 @@ func ClusterRequestExecutor_createForSingleNode(url string, certificate *KeyStor
 
 	executor.setNodeSelector(nodeSelector)
 	executor.topologyEtag = -2
-	executor._disableClientConfigurationUpdates = true
-	executor._disableTopologyUpdates = true
+	executor.disableClientConfigurationUpdates = true
+	executor.disableTopologyUpdates = true
 
 	return executor
 }
@@ -295,14 +295,14 @@ func (re *RequestExecutor) MakeCluster() {
 	re.clusterTopologySemaphore = NewSemaphore(1)
 }
 
-func ClusterRequestExecutor_create(initialUrls []string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+func ClusterRequestExecutorCreate(initialUrls []string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
 	if conventions == nil {
 		conventions = getDefaultConventions()
 	}
 	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
 	executor.MakeCluster()
 
-	executor._disableClientConfigurationUpdates = true
+	executor.disableClientConfigurationUpdates = true
 	executor.mu.Lock()
 	executor._firstTopologyUpdate = executor.firstTopologyUpdate(initialUrls)
 	executor.mu.Unlock()
@@ -321,7 +321,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 		return re.clusterUpdateClientConfigurationAsync()
 	}
 
-	if re._disposed {
+	if re.disposed {
 		return newCompletableFutureAlreadyCompleted(nil)
 	}
 
@@ -337,14 +337,14 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 			}
 		}()
 
-		re._updateClientConfigurationSemaphore.acquire()
-		defer re._updateClientConfigurationSemaphore.release()
+		re.updateClientConfigurationSemaphore.acquire()
+		defer re.updateClientConfigurationSemaphore.release()
 
-		oldDisableClientConfigurationUpdates := re._disableClientConfigurationUpdates
-		re._disableClientConfigurationUpdates = true
+		oldDisableClientConfigurationUpdates := re.disableClientConfigurationUpdates
+		re.disableClientConfigurationUpdates = true
 
 		defer func() {
-			re._disableClientConfigurationUpdates = oldDisableClientConfigurationUpdates
+			re.disableClientConfigurationUpdates = oldDisableClientConfigurationUpdates
 		}()
 
 		command := NewGetClientConfigurationCommand()
@@ -365,7 +365,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 		re.conventions.UpdateFrom(result.GetConfiguration())
 		re.clientConfigurationEtag = result.GetEtag()
 
-		if re._disposed {
+		if re.disposed {
 			return
 		}
 	}
@@ -381,7 +381,7 @@ func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) *c
 func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *completableFuture {
 	panicIf(!re.isCluster, "clusterUpdateTopologyAsyncWithForceUpdate() called on non-cluster RequestExecutor")
 
-	if re._disposed {
+	if re.disposed {
 		return newCompletableFutureAlreadyCompleted(false)
 	}
 
@@ -399,7 +399,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		}()
 
 		re.clusterTopologySemaphore.acquire()
-		if re._disposed {
+		if re.disposed {
 			res = false
 			return
 		}
@@ -427,13 +427,13 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			nodeSelector = NewNodeSelector(newTopology)
 			re.setNodeSelector(nodeSelector)
 
-			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
+			if re.readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		} else if nodeSelector.onUpdateTopology(newTopology, forceUpdate) {
 			re.disposeAllFailedNodesTimers()
 
-			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
+			if re.readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		}
@@ -460,12 +460,12 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 				future.complete(res)
 			}
 		}()
-		if re._disposed {
+		if re.disposed {
 			res = false
 			return
 		}
-		re._updateDatabaseTopologySemaphore.acquire()
-		defer re._updateDatabaseTopologySemaphore.release()
+		re.updateDatabaseTopologySemaphore.acquire()
+		defer re.updateDatabaseTopologySemaphore.release()
 		command := NewGetDatabaseTopologyCommand()
 		err = re.Execute(node, 0, command, false, nil)
 		if err != nil {
@@ -476,12 +476,12 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		if nodeSelector == nil {
 			nodeSelector = NewNodeSelector(result)
 			re.setNodeSelector(nodeSelector)
-			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
+			if re.readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		} else if nodeSelector.onUpdateTopology(result, forceUpdate) {
 			re.disposeAllFailedNodesTimers()
-			if re._readBalanceBehavior == ReadBalanceBehaviorFastestNode {
+			if re.readBalanceBehavior == ReadBalanceBehaviorFastestNode {
 				nodeSelector.scheduleSpeedTest()
 			}
 		}
@@ -499,8 +499,8 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 		status.Close()
 		return true
 	}
-	re._failedNodesTimers.Range(f)
-	re._failedNodesTimers = sync.Map{}
+	re.failedNodesTimers.Range(f)
+	re.failedNodesTimers = sync.Map{}
 }
 
 // execute(command) in java
@@ -511,7 +511,7 @@ func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
 // execute(command, session) in java
 func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
-	if (topologyUpdate != nil && topologyUpdate.isDone()) || re._disableTopologyUpdates {
+	if (topologyUpdate != nil && topologyUpdate.isDone()) || re.disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return err
@@ -527,7 +527,7 @@ func (re *RequestExecutor) chooseNodeForRequest(cmd RavenCommand, sessionInfo *S
 		return re.getPreferredNode()
 	}
 
-	switch re._readBalanceBehavior {
+	switch re.readBalanceBehavior {
 	case ReadBalanceBehaviorNone:
 		return re.getPreferredNode()
 	case ReadBalanceBehaviorRoundRobin:
@@ -539,7 +539,7 @@ func (re *RequestExecutor) chooseNodeForRequest(cmd RavenCommand, sessionInfo *S
 	case ReadBalanceBehaviorFastestNode:
 		return re.getFastestNode()
 	default:
-		panicIf(true, "Unknown re.ReadBalanceBehavior: '%s'", re._readBalanceBehavior)
+		panicIf(true, "Unknown re.ReadBalanceBehavior: '%s'", re.readBalanceBehavior)
 	}
 	return nil, nil
 }
@@ -549,12 +549,12 @@ func (re *RequestExecutor) unlikelyExecuteInner(command RavenCommand, topologyUp
 	if topologyUpdate == nil {
 		re.mu.Lock()
 		if re._firstTopologyUpdate == nil {
-			if len(re._lastKnownUrls) == 0 {
+			if len(re.lastKnownUrls) == 0 {
 				re.mu.Unlock()
 				return nil, newIllegalStateError("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
-			re._firstTopologyUpdate = re.firstTopologyUpdate(re._lastKnownUrls)
+			re._firstTopologyUpdate = re.firstTopologyUpdate(re.lastKnownUrls)
 		}
 		topologyUpdate = re._firstTopologyUpdate
 		re.mu.Unlock()
@@ -585,7 +585,7 @@ func (re *RequestExecutor) unlikelyExecute(command RavenCommand, topologyUpdate 
 }
 
 func (re *RequestExecutor) updateTopologyCallback() {
-	last := re._lastReturnedResponse.Load().(time.Time)
+	last := re.lastReturnedResponse.Load().(time.Time)
 	dur := time.Since(last)
 	if dur < time.Minute {
 		return
@@ -627,13 +627,13 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 			{
 				serverNode := NewServerNode()
 				serverNode.URL = url
-				serverNode.Database = re._databaseName
+				serverNode.Database = re.databaseName
 
 				res := re.UpdateTopologyAsync(serverNode, math.MaxInt32)
 				_, err = res.Get()
 				if err == nil {
 					re.initializeUpdateTopologyTimer()
-					re._topologyTakenFromNode = serverNode
+					re.topologyTakenFromNode = serverNode
 					return
 				}
 			}
@@ -641,12 +641,12 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 			if _, ok := (err).(*DatabaseDoesNotExistError); ok {
 				// Will happen on all node in the cluster,
 				// so errors immediately
-				re._lastKnownUrls = initialUrls
+				re.lastKnownUrls = initialUrls
 				return
 			}
 
 			if len(initialUrls) == 0 {
-				re._lastKnownUrls = initialUrls
+				re.lastKnownUrls = initialUrls
 				err = newIllegalStateError("Cannot get topology from server: %s", url)
 				return
 			}
@@ -660,7 +660,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 			for _, uri := range initialUrls {
 				serverNode := NewServerNode()
 				serverNode.URL = uri
-				serverNode.Database = re._databaseName
+				serverNode.Database = re.databaseName
 				serverNode.ClusterTag = "!"
 				topologyNodes = append(topologyNodes, serverNode)
 			}
@@ -671,7 +671,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 			re.initializeUpdateTopologyTimer()
 			return
 		}
-		re._lastKnownUrls = initialUrls
+		re.lastKnownUrls = initialUrls
 
 		var a []string
 		for _, el := range list {
@@ -701,7 +701,7 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 	re.mu.Lock()
 	defer re.mu.Unlock()
 
-	if re._updateTopologyTimer != nil {
+	if re.updateTopologyTimer != nil {
 		return
 	}
 	// TODO: make it into an infinite goroutine instead
@@ -709,11 +709,11 @@ func (re *RequestExecutor) initializeUpdateTopologyTimer() {
 		re.updateTopologyCallback()
 		// Go doesn't have repeatable timer, so re-trigger ourselves
 		re.mu.Lock()
-		re._updateTopologyTimer = nil
+		re.updateTopologyTimer = nil
 		re.mu.Unlock()
 		re.initializeUpdateTopologyTimer()
 	}
-	re._updateTopologyTimer = time.AfterFunc(time.Minute, f)
+	re.updateTopologyTimer = time.AfterFunc(time.Minute, f)
 }
 
 func isNetworkTimeoutError(err error) bool {
@@ -750,12 +750,12 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		request.Header.Set(headersIfNoneMatch, "\""+*cachedChangeVector+"\"")
 	}
 
-	if !re._disableClientConfigurationUpdates {
+	if !re.disableClientConfigurationUpdates {
 		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
 		request.Header.Set(headersClientConfigurationEtag, etag)
 	}
 
-	if !re._disableTopologyUpdates {
+	if !re.disableTopologyUpdates {
 		etag := `"` + strconv.Itoa(re.topologyEtag) + `"`
 		request.Header.Set(headersTopologyEtag, etag)
 	}
@@ -829,7 +829,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 
 	var responseDispose responseDisposeHandling
 	responseDispose, err = processCommandResponse(command, re.Cache, response, urlRef)
-	re._lastReturnedResponse.Store(time.Now())
+	re.lastReturnedResponse.Store(time.Now())
 	if err != nil {
 		return err
 	}
@@ -844,7 +844,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 
 		serverNode := NewServerNode()
 		serverNode.URL = chosenNode.URL
-		serverNode.Database = re._databaseName
+		serverNode.Database = re.databaseName
 
 		var topologyTask *completableFuture
 		if refreshTopology {
@@ -887,7 +887,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 	}
 	message += strings.Join(urls, ", ")
 
-	if nodeSelector != nil && re._topologyTakenFromNode != nil {
+	if nodeSelector != nil && re.topologyTakenFromNode != nil {
 		nodes := nodeSelector.getTopology().Nodes
 		var a []string
 		for _, n := range nodes {
@@ -896,7 +896,7 @@ func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, re
 		}
 		nodesStr := strings.Join(a, ", ")
 
-		message += "\nI was able to fetch " + re._topologyTakenFromNode.Database + " topology from " + re._topologyTakenFromNode.URL + ".\n" + "Fetched topology: " + nodesStr
+		message += "\nI was able to fetch " + re.topologyTakenFromNode.Database + " topology from " + re.topologyTakenFromNode.URL + ".\n" + "Fetched topology: " + nodesStr
 	}
 
 	return newAllTopologyNodesDownError("%s", message)
@@ -912,7 +912,7 @@ func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command Ra
 	multipleNodes := (nodeSelector != nil) && (len(nodeSelector.getTopology().Nodes) > 1)
 
 	cmd := command.GetBase()
-	return re._readBalanceBehavior == ReadBalanceBehaviorFastestNode &&
+	return re.readBalanceBehavior == ReadBalanceBehaviorFastestNode &&
 		nodeSelector != nil &&
 		nodeSelector.inSpeedTestPhase() &&
 		multipleNodes &&
@@ -1038,7 +1038,7 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 
 func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex int) {
 	nodeStatus := NewNodeStatus(re, nodeIndex, chosenNode)
-	_, loaded := re._failedNodesTimers.LoadOrStore(chosenNode, nodeStatus)
+	_, loaded := re.failedNodesTimers.LoadOrStore(chosenNode, nodeStatus)
 	if !loaded {
 		nodeStatus.startTimer()
 	}
@@ -1062,17 +1062,17 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 	err := re.performHealthCheck(serverNode, idx)
 	if err != nil {
 		// TODO: logging
-		_, ok := re._failedNodesTimers.Load(nodeStatus.node)
+		_, ok := re.failedNodesTimers.Load(nodeStatus.node)
 		if !ok {
 			nodeStatus.updateTimer()
 		}
 
 		return // will wait for the next timer call
 	}
-	statusI, ok := re._failedNodesTimers.Load(nodeStatus.node)
+	statusI, ok := re.failedNodesTimers.Load(nodeStatus.node)
 	if ok {
 		status := statusI.(*NodeStatus)
-		re._failedNodesTimers.Delete(nodeStatus.node)
+		re.failedNodesTimers.Delete(nodeStatus.node)
 		status.Close()
 	}
 
@@ -1139,7 +1139,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 
 // Close should be called when deleting executor
 func (re *RequestExecutor) Close() {
-	if re._disposed {
+	if re.disposed {
 		return
 	}
 
@@ -1149,15 +1149,15 @@ func (re *RequestExecutor) Close() {
 		re.clusterTopologySemaphore.acquire()
 	}
 
-	re._disposed = true
+	re.disposed = true
 	re.Cache.Close()
 
 	re.mu.Lock()
 	defer re.mu.Unlock()
 
-	if re._updateTopologyTimer != nil {
-		re._updateTopologyTimer.Stop()
-		re._updateTopologyTimer = nil
+	if re.updateTopologyTimer != nil {
+		re.updateTopologyTimer.Stop()
+		re.updateTopologyTimer = nil
 	}
 	re.disposeAllFailedNodesTimers()
 }
@@ -1308,7 +1308,7 @@ func (s *NodeStatus) updateTimer() {
 }
 
 func (s *NodeStatus) timerCallback() {
-	if !s._requestExecutor._disposed {
+	if !s._requestExecutor.disposed {
 		s._requestExecutor.checkNodeStatusCallback(s)
 	}
 }
