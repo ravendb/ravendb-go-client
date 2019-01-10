@@ -90,13 +90,15 @@ func (s *DocumentSession) SaveChanges() error {
 
 // Exists returns true if an entity with a given id exists in the database
 func (s *DocumentSession) Exists(id string) (bool, error) {
+	if id == "" {
+		return false, newIllegalArgumentError("id cannot be empty string")
+	}
 	if s.documentsByID.getValue(id) != nil {
 		return true, nil
 	}
 	command := NewHeadDocumentCommand(id, nil)
 
-	err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
-	if err != nil {
+	if err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo); err != nil {
 		return false, err
 	}
 
@@ -127,6 +129,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 
 // TODO:    protected string generateID(Object entity) {
 
+// ExecuteAllPendingLazyOperations executes all pending lazy operations
 func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInformation, error) {
 	var requests []*GetRequest
 	var pendingTmp []ILazyOperation

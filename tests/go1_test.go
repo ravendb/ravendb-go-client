@@ -266,6 +266,12 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err, "arrayAdder can't be nil")
 	}
 
+	{
+		_, err = session.Exists("")
+		assertIllegalArgumentError(t, err, "id cannot be empty string")
+	}
+
+	session.Close()
 }
 
 func goStore(t *testing.T, session *ravendb.DocumentSession) []*User {
