@@ -38,7 +38,9 @@ func aggressiveCachingCanAggressivelyCacheLoads404(t *testing.T, driver *RavenTe
 		{
 			dur := time.Minute * 5
 			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
-			session.Load(&User{}, "users/not-there")
+			var u *User
+			err := session.Load(&u, "users/not-there")
+			assert.NoError(t, err)
 			context.Close()
 		}
 		session.Close()

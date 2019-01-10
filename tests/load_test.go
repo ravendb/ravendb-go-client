@@ -132,7 +132,7 @@ func loadTestLoadNullShouldReturnNull(t *testing.T, driver *RavenTestDriver) {
 		newSession := openSessionMust(t, store)
 		var user1 *User
 		err = newSession.Load(&user1, "")
-		assert.NoError(t, err)
+		assert.Error(t, err)
 		assert.Nil(t, user1)
 		newSession.Close()
 	}

@@ -292,14 +292,12 @@ func checkValidLoadArg(v interface{}, argName string) error {
 		return newIllegalArgumentError("%s can't be nil", argName)
 	}
 
-	/* TODO: allow map as an argument
 	if _, ok := v.(*map[string]interface{}); ok {
-		// possibly a common mistake, so try to provide a helpful error message
-		typeGot := fmt.Sprintf("%T", v)
-		typeExpect := typeGot[1:] // remove '*' from the beginning
-		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+		// TODO: not sure should allow this, maybe just a map
+		return nil
 	}
 
+	/* TODO: allow map as an argument
 	if _, ok := v.(map[string]interface{}); ok {
 		if reflect.ValueOf(v).IsNil() {
 			return newIllegalArgumentError("%s can't be a nil map", argName)
