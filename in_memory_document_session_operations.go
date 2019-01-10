@@ -1169,21 +1169,12 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	if err != nil {
 		return err
 	}
-	// TODO: it seems to me this should work as the inactive false branch
-	// see https://github.com/ravendb/ravendb-go-client/issues/107
-	if false {
-		panicIf(entity != documentInfo.entity, "entity != documentInfo.entity")
-		if err = copyValueProperties(documentInfo.entity, e); err != nil {
-			return newRuntimeError("Unable to refresh entity: %s", err)
-		}
 
-	} else {
-		documentInfo.setEntity(e)
-
-		if err = copyValueProperties(entity, documentInfo.entity); err != nil {
-			return newRuntimeError("Unable to refresh entity: %s", err)
-		}
+	panicIf(entity != documentInfo.entity, "entity != documentInfo.entity")
+	if err = copyValueProperties(documentInfo.entity, e); err != nil {
+		return newRuntimeError("Unable to refresh entity: %s", err)
 	}
+
 	return nil
 }
 
