@@ -281,3 +281,83 @@ type CancellationError struct {
 func (e *CancellationError) Error() string {
 	return "CancellationError"
 }
+
+// SubscriberErrorError represents error about subscriber error
+// Note: name is unfortunate but it corresponds to Java's SubscriberErrorException
+type SubscriberErrorError struct {
+	errorBase
+}
+
+func newSubscriberErrorError(format string, args ...interface{}) *SubscriberErrorError {
+	res := &SubscriberErrorError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionChangeVectorUpdateConcurrencyError represents an error about
+// subscription change vector update concurrency
+type SubscriptionChangeVectorUpdateConcurrencyError struct {
+	errorBase
+}
+
+func newSubscriptionChangeVectorUpdateConcurrencyError(format string, args ...interface{}) *SubscriptionChangeVectorUpdateConcurrencyError {
+	res := &SubscriptionChangeVectorUpdateConcurrencyError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionClosedError is returned when subscription is closed
+type SubscriptionClosedError struct {
+	errorBase
+}
+
+func newSubscriptionClosedError(format string, args ...interface{}) *SubscriptionClosedError {
+	res := &SubscriptionClosedError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionDoesNotBelongToNodeError is returned when subscription does not belong
+// to node
+type SubscriptionDoesNotBelongToNodeError struct {
+	errorBase
+}
+
+func newSubscriptionDoesNotBelongToNodeError(format string, args ...interface{}) *SubscriptionDoesNotBelongToNodeError {
+	res := &SubscriptionDoesNotBelongToNodeError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionDoesNotExistError is returned when subscription doesn't exist
+type SubscriptionDoesNotExistError struct {
+	errorBase
+}
+
+func newSubscriptionDoesNotExistError(format string, args ...interface{}) *SubscriptionDoesNotExistError {
+	res := &SubscriptionDoesNotExistError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionError is a generic error related to subscription
+type SubscriptionError struct {
+	errorBase
+}
+
+func newSubscriptionError(format string, args ...interface{}) *SubscriptionError {
+	res := &SubscriptionError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionInvalidStateError is returned when subscription is in invalid state
+type SubscriptionInvalidStateError struct {
+	errorBase
+}
+
+func newSubscriptionInvalidStateError(format string, args ...interface{}) *SubscriptionInvalidStateError {
+	res := &SubscriptionInvalidStateError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
