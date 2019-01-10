@@ -496,7 +496,6 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, nBeforeDeleteCalledCountPrev, nBeforeDeleteCalledCount)
 	}
 
-	// test that Refresh() only works if entity is in session
 	{
 		// test that Refresh() only works if entity is in session
 		session := openSessionMust(t, store)
@@ -539,6 +538,42 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 
 		session.Close()
 	}
+
+	{
+		// check Load() does proper argument validation
+		session := openSessionMust(t, store)
+
+		var v *User
+		err = session.Load(&v, "")
+		assertIllegalArgumentError(t, err, "id cannot be empty string")
+
+		err = session.Load(nil, "id")
+		assertIllegalArgumentError(t, err, "result can't be nil")
+
+		err = session.Load(User{}, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type tests.User, try passing **tests.User")
+
+		err = session.Load(&User{}, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type *tests.User, try passing **tests.User")
+
+		err = session.Load([]*User{}, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type []*tests.User")
+
+		err = session.Load(&[]*User{}, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type *[]*tests.User")
+
+		var n int
+		err = session.Load(n, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type int")
+		err = session.Load(&n, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type *int")
+		nPtr := &n
+		err = session.Load(&nPtr, "id")
+		assertIllegalArgumentError(t, err, "result can't be of type **int")
+
+		session.Close()
+	}
+
 }
 
 func TestGo1(t *testing.T) {

@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"reflect"
 	"strconv"
@@ -284,10 +285,67 @@ func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, in
 	return s.addLazyOperation(results, lazyOp, onEval)
 }
 
+// check if v is a valid argument to Load().
+// it must be *<type> where <type> is *struct
+func checkValidLoadArg(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+
+	/* TODO: allow map as an argument
+	if _, ok := v.(*map[string]interface{}); ok {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := typeGot[1:] // remove '*' from the beginning
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+	}
+
+	if _, ok := v.(map[string]interface{}); ok {
+		if reflect.ValueOf(v).IsNil() {
+			return newIllegalArgumentError("%s can't be a nil map", argName)
+		}
+		return nil
+	}
+	*/
+
+	tp := reflect.TypeOf(v)
+
+	if tp.Kind() == reflect.Struct {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := "**" + typeGot
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+	}
+
+	if tp.Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+
+	if tp.Elem().Kind() == reflect.Struct {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := "*" + typeGot
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+	}
+
+	if tp.Elem().Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+
+	// we only allow pointer to struct
+	if tp.Elem().Elem().Kind() == reflect.Struct {
+		return nil
+	}
+
+	return newIllegalArgumentError("%s can't be of type %T", argName, v)
+}
+
 func (s *DocumentSession) Load(result interface{}, id string) error {
 	if id == "" {
-		// TODO: or should it return default value?
-		return ErrNotFound
+		return newIllegalArgumentError("id cannot be empty string")
+	}
+	if err := checkValidLoadArg(result, "result"); err != nil {
+		return err
 	}
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 
@@ -307,9 +365,22 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	return loadOperation.getDocument(result)
 }
 
+// check if v is a valid argument to Load().
+// it must be map[string]*<type> where <type> is struct
+func checkValidLoadMultiArg(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+	// TODO: implement me
+	return nil
+}
+
 // LoadMulti loads multiple values with given ids into results, which should
 // be a map from string (id) to pointer to struct
 func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
+	if err := checkValidLoadMultiArg(results, "results"); err != nil {
+		return err
+	}
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	err := s.loadInternalWithOperation(ids, loadOperation, nil)
 	if err != nil {
