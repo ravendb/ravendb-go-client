@@ -292,11 +292,11 @@ func checkValidLoadArg(v interface{}, argName string) error {
 		return newIllegalArgumentError("%s can't be nil", argName)
 	}
 
-	if _, ok := v.(*map[string]interface{}); ok {
-		// TODO: not sure should allow this, maybe just a map
+	if _, ok := v.(**map[string]interface{}); ok {
 		return nil
 	}
 
+	// TODO: better error message for *map[string]interface{} and map[string]interface{}
 	/* TODO: allow map as an argument
 	if _, ok := v.(map[string]interface{}); ok {
 		if reflect.ValueOf(v).IsNil() {

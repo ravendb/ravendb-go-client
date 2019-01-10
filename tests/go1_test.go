@@ -588,6 +588,59 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 
 }
 
+// TODO: this must be more comprehensive. Need to test all APIs.
+func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
+	var err error
+
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		m := map[string]interface{}{
+			"foo":     5,
+			"bar":     true,
+			"nullVal": nil,
+			"strVal":  "a string",
+		}
+		err = session.StoreWithID(&m, "maps/1")
+		assert.NoError(t, err)
+
+		m2 := map[string]interface{}{
+			"foo":    8,
+			"strVal": "more string",
+		}
+		err = session.Store(&m2)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		meta, err := session.GetMetadataFor(m)
+		assertIllegalArgumentError(t, err, "instance can't be of type map[string]interface {}, try passing *map[string]interface {}")
+		assert.Nil(t, meta)
+
+		meta, err = session.GetMetadataFor(&m)
+		assert.NoError(t, err)
+		assert.NotNil(t, meta)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		var mp *map[string]interface{}
+		err = session.Load(&mp, "maps/1")
+		assert.NoError(t, err)
+		m := *mp
+		assert.Equal(t, float64(5), m["foo"])
+		assert.Equal(t, "a string", m["strVal"])
+
+		session.Close()
+	}
+
+}
+
 func TestGo1(t *testing.T) {
 	t.Parallel()
 
@@ -595,7 +648,8 @@ func TestGo1(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	go1Test(t, driver)
-	goTestGetLastModifiedForAndChanges(t, driver)
-	goTestListeners(t, driver)
+	goTestStoreMap(t, driver)
+	//go1Test(t, driver)
+	//goTestGetLastModifiedForAndChanges(t, driver)
+	//goTestListeners(t, driver)
 }

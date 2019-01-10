@@ -62,10 +62,19 @@ func setInterfaceToValue(result interface{}, v interface{}) {
 	out.Set(vin)
 }
 
+// makes a copy of a map and returns a pointer to it
+func mapDup(m map[string]interface{}) *map[string]interface{} {
+	res := map[string]interface{}{}
+	for k, v := range m {
+		res[k] = v
+	}
+	return &res
+}
+
 // ConvertToEntity2 converts document to a value result, matching type of result
 func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document map[string]interface{}) {
-	if _, ok := result.(*map[string]interface{}); ok {
-		setInterfaceToValue(result, document)
+	if _, ok := result.(**map[string]interface{}); ok {
+		setInterfaceToValue(result, mapDup(document))
 		return
 	}
 

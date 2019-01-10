@@ -529,33 +529,39 @@ func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, ex
 }
 
 // checks if entity is of valid type for operations like Store(), Delete(), GetMetadataFor() etc.
-// We support non-nil values of *struct and map[string]interface{}
-// TODO: we might relax rules and allow **struct by auto-magically converting it to *struct
+// We support non-nil values of *struct and *map[string]interface{}
+// see handling_maps.md for why *map[string]interface{} and not map[string]interface{}
 func checkValidEntityIn(v interface{}, argName string) error {
 	if v == nil {
 		return newIllegalArgumentError("%s can't be nil", argName)
 	}
-	tp := reflect.TypeOf(v)
 
-	if tp.Kind() == reflect.Struct {
+	if _, ok := v.(map[string]interface{}); ok {
 		// possibly a common mistake, so try to provide a helpful error message
-		typeGot := tp.Name()
+		typeGot := fmt.Sprintf("%T", v)
 		typeExpect := "*" + typeGot
 		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+		return nil
 	}
 
 	if _, ok := v.(*map[string]interface{}); ok {
-		// possibly a common mistake, so try to provide a helpful error message
-		typeGot := fmt.Sprintf("%T", v)
-		typeExpect := typeGot[1:] // remove '*' from the beginning
-		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
-	}
-
-	if _, ok := v.(map[string]interface{}); ok {
-		if reflect.ValueOf(v).IsNil() {
-			return newIllegalArgumentError("%s can't be a nil map", argName)
+		rv := reflect.ValueOf(v)
+		if rv.IsNil() {
+			return newIllegalArgumentError("%s can't be a nil pointer to a map", argName)
+		}
+		rv = rv.Elem()
+		if rv.IsNil() {
+			return newIllegalArgumentError("%s can't be a pointer to a nil map", argName)
 		}
 		return nil
+	}
+
+	tp := reflect.TypeOf(v)
+	if tp.Kind() == reflect.Struct {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := "*" + typeGot
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
 	}
 
 	if tp.Kind() != reflect.Ptr {

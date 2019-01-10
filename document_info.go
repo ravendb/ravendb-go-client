@@ -36,6 +36,12 @@ type documentInfo struct {
 // not, e.g., **struct). It's hard to track the difference between
 // *struct and **struct otherwise
 func (d *documentInfo) setEntity(value interface{}) {
+	// TODO: maybe also support value of type *map[string]interface{}?
+	if _, ok := value.(map[string]interface{}); ok {
+		d.entity = value
+		return
+	}
+
 	tp := reflect.TypeOf(value)
 	if tp.Kind() == reflect.Struct {
 		panicIf(true, "trying to set struct %T", value)
