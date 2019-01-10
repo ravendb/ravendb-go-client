@@ -24,14 +24,17 @@ func NewAggregationDocumentQuery(source *DocumentQuery) *AggregationDocumentQuer
 }
 
 func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
-	command := q.GetCommand()
+	command, err := q.GetCommand()
+	if err != nil {
+		return nil, err
+	}
 
 	q._duration = newStopWatchStarted()
 
-	if err := q._session.incrementRequestCount(); err != nil {
+	if err = q._session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
-	if err := q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
+	if err = q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
 		return nil, err
 	}
 	return q.processResults(command.Result, q._session.GetConventions())
@@ -93,7 +96,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 	return results, nil
 }
 
-func (q *AggregationQueryBase) GetCommand() *QueryCommand {
+func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
 	q._query = q.GetIndexQuery()
 
 	return NewQueryCommand(q._session.GetConventions(), q._query, false, false)

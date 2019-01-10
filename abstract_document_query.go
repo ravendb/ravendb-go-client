@@ -1610,8 +1610,11 @@ func (q *AbstractDocumentQuery) initSync() error {
 func (q *AbstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
-		command := q.queryOperation.CreateRequest()
-		err := q.theSession.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, q.theSession.sessionInfo)
+		command, err := q.queryOperation.CreateRequest()
+		if err != nil {
+			return err
+		}
+		err = q.theSession.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, q.theSession.sessionInfo)
 		q.queryOperation.setResult(command.Result)
 		context.Close()
 		if err != nil {

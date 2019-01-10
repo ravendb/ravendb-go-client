@@ -21,13 +21,16 @@ func NewSuggestionDocumentQuery(source *DocumentQuery) *SuggestionDocumentQuery 
 }
 
 func (q *SuggestionDocumentQuery) Execute() (map[string]*SuggestionResult, error) {
-	command := q.getCommand()
-
-	q._duration = newStopWatchStarted()
-	if err := q._session.incrementRequestCount(); err != nil {
+	command, err := q.getCommand()
+	if err != nil {
 		return nil, err
 	}
-	if err := q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
+
+	q._duration = newStopWatchStarted()
+	if err = q._session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
+	if err = q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +88,7 @@ func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) 
 func (q *SuggestionDocumentQuery) getIndexQuery() *IndexQuery {
 	return q._source.GetIndexQuery()
 }
-func (q *SuggestionDocumentQuery) getCommand() *QueryCommand {
+func (q *SuggestionDocumentQuery) getCommand() (*QueryCommand, error) {
 	q._query = q.getIndexQuery()
 
 	return NewQueryCommand(q._session.GetConventions(), q._query, false, false)

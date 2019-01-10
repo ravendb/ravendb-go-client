@@ -30,8 +30,11 @@ func (r *DocumentSessionRevisions) GetForStartAt(clazz reflect.Type, id string, 
 func (r *DocumentSessionRevisions) GetForPaged(clazz reflect.Type, id string, start int, pageSize int) ([]interface{}, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
 
-	command := operation.CreateRequest()
-	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
+	command, err := operation.CreateRequest()
+	if err != nil {
+		return nil, err
+	}
+	err = r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +52,11 @@ func (r *DocumentSessionRevisions) GetMetadataForStartAt(id string, start int) (
 
 func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
-	command := operation.CreateRequest()
-	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
+	command, err := operation.CreateRequest()
+	if err != nil {
+		return nil, err
+	}
+	err = r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +68,11 @@ func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pag
 // TODO: change changeVector to *string?
 func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) (interface{}, error) {
 	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)
-	command := operation.CreateRequest()
-	err := r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
+	command, err := operation.CreateRequest()
+	if err != nil {
+		return nil, err
+	}
+	err = r.requestExecutor.ExecuteCommandWithSessionInfo(command, r.sessionInfo)
 	if err != nil {
 		return nil, err
 	}

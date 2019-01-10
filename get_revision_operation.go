@@ -25,8 +25,8 @@ func NewGetRevisionOperationRange(session *InMemoryDocumentSessionOperations, id
 	}
 }
 
-func (o *GetRevisionOperation) CreateRequest() *GetRevisionsCommand {
-	return o._command
+func (o *GetRevisionOperation) CreateRequest() (*GetRevisionsCommand, error) {
+	return o._command, nil
 }
 
 func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {

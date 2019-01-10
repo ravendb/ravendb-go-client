@@ -39,8 +39,10 @@ func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName str
 }
 
 // CreateRequest creates a request
-func (o *QueryOperation) CreateRequest() *QueryCommand {
-	o.session.incrementRequestCount()
+func (o *QueryOperation) CreateRequest() (*QueryCommand, error) {
+	if err := o.session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
 
 	//o.logQuery();
 

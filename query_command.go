@@ -19,8 +19,10 @@ type QueryCommand struct {
 	Result *QueryResult
 }
 
-func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, metadataOnly bool, indexEntriesOnly bool) *QueryCommand {
-	panicIf(indexQuery == nil, "IndexQuery cannot be null")
+func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, metadataOnly bool, indexEntriesOnly bool) (*QueryCommand, error) {
+	if indexQuery == nil {
+		return nil, newIllegalArgumentError("IndexQuery cannot be null")
+	}
 	cmd := &QueryCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -30,7 +32,7 @@ func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, m
 		_indexEntriesOnly: indexEntriesOnly,
 	}
 	cmd.IsReadRequest = true
-	return cmd
+	return cmd, nil
 }
 
 func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
