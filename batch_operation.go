@@ -24,8 +24,7 @@ func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
 		return nil, nil
 	}
 
-	err = b._session.IncrementRequestCount()
-	if err != nil {
+	if err = b._session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
 

@@ -31,7 +31,7 @@ func (o *StreamOperation) createRequestForIndexQuery(query *IndexQuery) *QuerySt
 		panic("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported")
 	}
 
-	o.session.IncrementRequestCount()
+	o.session.incrementRequestCount()
 
 	return NewQueryStreamCommand(o.session.Conventions, query)
 }

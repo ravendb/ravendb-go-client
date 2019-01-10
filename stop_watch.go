@@ -2,22 +2,22 @@ package ravendb
 
 import "time"
 
-type Stopwatch struct {
+type stopWatch struct {
 	start time.Time
 	dur   time.Duration
 }
 
-func Stopwatch_createStarted() *Stopwatch {
-	return &Stopwatch{
+func newStopWatchStarted() *stopWatch {
+	return &stopWatch{
 		start: time.Now(),
 	}
 }
 
-func (w *Stopwatch) stop() time.Duration {
+func (w *stopWatch) stop() time.Duration {
 	w.dur = time.Since(w.start)
 	return w.dur
 }
 
-func (w *Stopwatch) String() string {
+func (w *stopWatch) String() string {
 	return w.dur.String()
 }

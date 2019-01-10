@@ -30,7 +30,7 @@ func (o *LoadOperation) CreateRequest() *GetDocumentsCommand {
 	}
 
 	// TODO: should propagate error
-	o._session.IncrementRequestCount()
+	o._session.incrementRequestCount()
 
 	return NewGetDocumentsCommand(o._idsToCheckOnServer, o._includes, false)
 }

@@ -15,7 +15,7 @@ type QueryOperation struct {
 	indexEntriesOnly        bool
 	currentQueryResults     *QueryResult
 	fieldsToFetch           *fieldsToFetchToken
-	sp                      *Stopwatch
+	sp                      *stopWatch
 	disableEntitiesTracking bool
 
 	// static  Log logger = LogFactory.getLog(QueryOperation.class);
@@ -40,7 +40,7 @@ func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName str
 
 // CreateRequest creates a request
 func (o *QueryOperation) CreateRequest() *QueryCommand {
-	o.session.IncrementRequestCount()
+	o.session.incrementRequestCount()
 
 	//o.logQuery();
 
@@ -65,7 +65,7 @@ func (o *QueryOperation) assertPageSizeSet() error {
 }
 
 func (o *QueryOperation) startTiming() {
-	o.sp = Stopwatch_createStarted()
+	o.sp = newStopWatchStarted()
 }
 
 func (o *QueryOperation) logQuery() {
@@ -256,7 +256,7 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 	return nil
 }
 
-func queryOperationEnsureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *Stopwatch, session *InMemoryDocumentSessionOperations) error {
+func queryOperationEnsureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *stopWatch, session *InMemoryDocumentSessionOperations) error {
 	if waitForNonStaleResults && result.IsStale {
 		duration.stop()
 		msg := "Waited for " + duration.String() + " for the query to return non stale result."

@@ -6,7 +6,7 @@ import "reflect"
 type AggregationQueryBase struct {
 	_session  *InMemoryDocumentSessionOperations
 	_query    *IndexQuery
-	_duration *Stopwatch
+	_duration *stopWatch
 
 	// from AggregationDocumentQuery
 	_source *AbstractDocumentQuery
@@ -26,11 +26,12 @@ func NewAggregationDocumentQuery(source *DocumentQuery) *AggregationDocumentQuer
 func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 	command := q.GetCommand()
 
-	q._duration = Stopwatch_createStarted()
+	q._duration = newStopWatchStarted()
 
-	q._session.IncrementRequestCount()
-	err := q._session.GetRequestExecutor().ExecuteCommand(command)
-	if err != nil {
+	if err := q._session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
+	if err := q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
 		return nil, err
 	}
 	return q.processResults(command.Result, q._session.GetConventions())

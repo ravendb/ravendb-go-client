@@ -8,7 +8,7 @@ type SuggestionDocumentQuery struct {
 	// from SuggestionQueryBase
 	_session  *InMemoryDocumentSessionOperations
 	_query    *IndexQuery
-	_duration *Stopwatch
+	_duration *stopWatch
 
 	_source *DocumentQuery
 }
@@ -23,10 +23,11 @@ func NewSuggestionDocumentQuery(source *DocumentQuery) *SuggestionDocumentQuery 
 func (q *SuggestionDocumentQuery) Execute() (map[string]*SuggestionResult, error) {
 	command := q.getCommand()
 
-	q._duration = Stopwatch_createStarted()
-	q._session.IncrementRequestCount()
-	err := q._session.GetRequestExecutor().ExecuteCommand(command)
-	if err != nil {
+	q._duration = newStopWatchStarted()
+	if err := q._session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
+	if err := q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
 		return nil, err
 	}
 

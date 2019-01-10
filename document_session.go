@@ -111,7 +111,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 	if documentInfo == nil {
 		return newIllegalStateError("Cannot refresh a transient instance")
 	}
-	if err := s.IncrementRequestCount(); err != nil {
+	if err := s.incrementRequestCount(); err != nil {
 		return err
 	}
 
@@ -143,7 +143,9 @@ func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInform
 	}
 
 	sw := time.Now()
-	s.IncrementRequestCount()
+	if err := s.incrementRequestCount(); err != nil {
+		return nil, err
+	}
 
 	defer func() { s.pendingLazyOperations = nil }()
 
