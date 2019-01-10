@@ -574,6 +574,40 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
+	{
+		// check LoadMulti() does proper argument validation
+		session := openSessionMust(t, store)
+
+		var v map[string]*User
+		err = session.LoadMulti(v, nil)
+		assertIllegalArgumentError(t, err, "ids cannot be empty array")
+		err = session.LoadMulti(&v, []string{})
+		assertIllegalArgumentError(t, err, "ids cannot be empty array")
+
+		err = session.LoadMulti(User{}, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be of type tests.User, must be map[string]<type>")
+
+		err = session.LoadMulti(&User{}, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be of type *tests.User, must be map[string]<type>")
+
+		err = session.LoadMulti(map[int]*User{}, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be of type map[int]*tests.User, must be map[string]<type>")
+
+		err = session.LoadMulti(map[string]int{}, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be of type map[string]int, must be map[string]<type>")
+
+		err = session.LoadMulti(map[string]*int{}, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be of type map[string]*int, must be map[string]<type>")
+
+		err = session.LoadMulti(map[string]User{}, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be of type map[string]tests.User, must be map[string]<type>")
+
+		err = session.LoadMulti(v, []string{"id"})
+		assertIllegalArgumentError(t, err, "results can't be a nil map")
+
+		session.Close()
+	}
+
 }
 
 func TestGo1(t *testing.T) {

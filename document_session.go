@@ -371,13 +371,35 @@ func checkValidLoadMultiArg(v interface{}, argName string) error {
 	if v == nil {
 		return newIllegalArgumentError("%s can't be nil", argName)
 	}
-	// TODO: implement me
+	tp := reflect.TypeOf(v)
+	if tp.Kind() != reflect.Map {
+		typeGot := fmt.Sprintf("%T", v)
+		return newIllegalArgumentError("%s can't be of type %s, must be map[string]<type>", argName, typeGot)
+	}
+	if tp.Key().Kind() != reflect.String {
+		typeGot := fmt.Sprintf("%T", v)
+		return newIllegalArgumentError("%s can't be of type %s, must be map[string]<type>", argName, typeGot)
+	}
+	// type of the map element, must be *struct
+	// TODO: also accept map[string]interface{} as type of map element
+	tp = tp.Elem()
+	if tp.Kind() != reflect.Ptr || tp.Elem().Kind() != reflect.Struct {
+		typeGot := fmt.Sprintf("%T", v)
+		return newIllegalArgumentError("%s can't be of type %s, must be map[string]<type>", argName, typeGot)
+	}
+
+	if reflect.ValueOf(v).IsNil() {
+		return newIllegalArgumentError("%s can't be a nil map", argName)
+	}
 	return nil
 }
 
 // LoadMulti loads multiple values with given ids into results, which should
 // be a map from string (id) to pointer to struct
 func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
+	if len(ids) == 0 {
+		return newIllegalArgumentError("ids cannot be empty array")
+	}
 	if err := checkValidLoadMultiArg(results, "results"); err != nil {
 		return err
 	}
