@@ -104,9 +104,11 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	return ok, nil
 }
 
-// Refresh refreshes information about a given entity from the database
+// Refresh reloads information about a given entity in the session from the database
 func (s *DocumentSession) Refresh(entity interface{}) error {
-
+	if err := checkValidEntityIn(entity, "entity"); err != nil {
+		return err
+	}
 	documentInfo := getDocumentInfoByEntity(s.documents, entity)
 	if documentInfo == nil {
 		return newIllegalStateError("Cannot refresh a transient instance")

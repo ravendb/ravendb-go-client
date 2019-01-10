@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -15,6 +15,21 @@ func assertIllegalArgumentError(t *testing.T, err error, s ...string) {
 		_, ok := err.(*ravendb.IllegalArgumentError)
 		if !ok {
 			assert.True(t, ok, "expected error of type *ravendb.IllegalArgumentError, got %T", err)
+			return
+		}
+		if len(s) > 0 {
+			panicIf(len(s) > 1, "only 0 or 1 strings are expected as s")
+			assert.Equal(t, s[0], err.Error())
+		}
+	}
+}
+
+func assertIllegalStateError(t *testing.T, err error, s ...string) {
+	assert.Error(t, err)
+	if err != nil {
+		_, ok := err.(*ravendb.IllegalStateError)
+		if !ok {
+			assert.True(t, ok, "expected error of type *ravendb.IllegalStateError, got %T", err)
 			return
 		}
 		if len(s) > 0 {
@@ -59,6 +74,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
+		err = session.Refresh(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -86,6 +103,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
+		err = session.Refresh(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -112,6 +131,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		err = session.Advanced().IncrementEntity(v, "foo", 1)
 		assertIllegalArgumentError(t, err)
 		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err)
+		err = session.Refresh(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -141,6 +162,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		assertIllegalArgumentError(t, err)
 		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
 		assertIllegalArgumentError(t, err)
+		err = session.Refresh(v)
+		assertIllegalArgumentError(t, err)
 	}
 
 	{
@@ -167,6 +190,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		err = session.Advanced().IncrementEntity(v, "foo", 1)
 		assertIllegalArgumentError(t, err)
 		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err)
+		err = session.Refresh(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -195,6 +220,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		err = session.Advanced().IncrementEntity(v, "foo", 1)
 		assertIllegalArgumentError(t, err)
 		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
+		assertIllegalArgumentError(t, err)
+		err = session.Refresh(v)
 		assertIllegalArgumentError(t, err)
 	}
 
@@ -463,6 +490,49 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, nBeforeDeleteCalledCountPrev, nBeforeDeleteCalledCount)
 	}
 
+	// test that Refresh() only works if entity is in session
+	{
+		// test that Refresh() only works if entity is in session
+		session := openSessionMust(t, store)
+		var u *User
+		err = session.Load(&u, "users/3-A")
+		assert.NoError(t, err)
+		assert.NotNil(t, u)
+		err = session.Refresh(u)
+		assert.NoError(t, err)
+
+		// TODO: refreshing the second time is invalid. This matches
+		// Java behavior (I think) but I think it should be fine
+		// The reason for that is that in refreshInternal() instead of
+		// updating documentInfo.entity (which is the same object as entity
+		// argument to Refresh()) we create a new object, set it as the
+		// new documentInfo.entity and copy its properties to entity
+		// to fix this, we should copy properties of the new object
+		// to documentInfo.entity
+		// https://github.com/ravendb/ravendb-go-client/issues/107
+		err = session.Refresh(u)
+		assertIllegalStateError(t, err, "Cannot refresh a transient instance")
+
+		// test going over the limit of requests per session (32)
+		// TODO: doesn't work because even Load() doesn't make second
+		// Refresh() valid. Must fix https://github.com/ravendb/ravendb-go-client/issues/107
+		// first
+		/*
+			n := 0
+			for i := 0; err == nil && i < 32; i++ {
+				u = nil
+				err = session.Load(&u, "users/3-A")
+				assert.NotNil(t, u)
+				if err == nil {
+					err = session.Refresh(u)
+				}
+				n++
+			}
+			assertIllegalStateError(t, err, "exceeded max number of requests per session of 32")
+		*/
+
+		session.Close()
+	}
 }
 
 func TestGo1(t *testing.T) {

@@ -32,7 +32,8 @@ func storeTestRefreshTest(t *testing.T, driver *RavenTestDriver) {
 			assert.NoError(t, err)
 		}
 
-		session.Advanced().Refresh(user)
+		err = session.Advanced().Refresh(user)
+		assert.NoError(t, err)
 
 		name := *user.Name
 		assert.Equal(t, name, "RavenDB 4.0")

@@ -376,7 +376,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 func (s *InMemoryDocumentSessionOperations) incrementRequestCount() error {
 	s.numberOfRequests++
 	if s.numberOfRequests > s.maxNumberOfRequestsPerSession {
-		return newIllegalStateError("exceeded max number of reqeusts per session of %d", s.maxNumberOfRequestsPerSession)
+		return newIllegalStateError("exceeded max number of requests per session of %d", s.maxNumberOfRequestsPerSession)
 	}
 	return nil
 }
@@ -1169,11 +1169,20 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	if err != nil {
 		return err
 	}
-	documentInfo.setEntity(e)
+	// TODO: it seems to me this should work as the inactive false branch
+	// see https://github.com/ravendb/ravendb-go-client/issues/107
+	if false {
+		panicIf(entity != documentInfo.entity, "entity != documentInfo.entity")
+		if err = copyValueProperties(documentInfo.entity, e); err != nil {
+			return newRuntimeError("Unable to refresh entity: %s", err)
+		}
 
-	err = copyValueProperties(entity, documentInfo.entity)
-	if err != nil {
-		return newRuntimeError("Unable to refresh entity: %s", err)
+	} else {
+		documentInfo.setEntity(e)
+
+		if err = copyValueProperties(entity, documentInfo.entity); err != nil {
+			return newRuntimeError("Unable to refresh entity: %s", err)
+		}
 	}
 	return nil
 }
