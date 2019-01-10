@@ -36,6 +36,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 	assert.NoError(t, err)
 	typ := reflect.TypeOf(s)
 	v2, err := makeStructFromJSONMap(typ, jsmap)
+
 	assert.NoError(t, err)
 	vTyp := fmt.Sprintf("%T", s)
 	v2Typ := fmt.Sprintf("%T", v2)
@@ -46,9 +47,16 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 		t.Fatalf("'%s' != '%s'", string(vd), string(v2d))
 	}
 
-	s2 := v2.(*FooStruct)
-	assert.Equal(t, s.S, s2.S)
-	assert.Equal(t, s.N, s2.N)
+	{
+		s2 := v2.(*FooStruct)
+		assert.Equal(t, s.S, s2.S)
+		assert.Equal(t, s.N, s2.N)
+	}
+
+	var s2 *FooStruct
+	err = makeStructFromJSONMap2(&s2, jsmap)
+	assert.NoError(t, err)
+	assert.Equal(t, s, s2)
 }
 
 func TestIsStructy(t *testing.T) {
