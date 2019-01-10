@@ -111,7 +111,7 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 		// can't store/delete etc. struct
 		v := user
 		err = session.Store(v)
-		assertIllegalArgumentError(t, err, "entity can't be of type User, try passing *User")
+		assertIllegalArgumentError(t, err, "entity can't be of type tests.User, try passing *tests.User")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -167,40 +167,10 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-		// can't store/delete etc. a nil map
+		// can't store/delete etc. a map
 		var v map[string]interface{}
 		err = session.Store(v)
-		assertIllegalArgumentError(t, err, "entity can't be a nil map")
-		err = session.StoreWithID(v, "users/1")
-		assertIllegalArgumentError(t, err)
-		err = session.DeleteEntity(v)
-		assertIllegalArgumentError(t, err)
-		_, err = session.GetMetadataFor(v)
-		assertIllegalArgumentError(t, err)
-		_, err = session.GetChangeVectorFor(v)
-		assertIllegalArgumentError(t, err)
-		_, err = session.GetLastModifiedFor(v)
-		assertIllegalArgumentError(t, err)
-		_, err = session.HasChanged(v)
-		assertIllegalArgumentError(t, err)
-		err = session.Evict(v)
-		assertIllegalArgumentError(t, err)
-		err = session.Advanced().PatchEntity(v, "foo", 1)
-		assertIllegalArgumentError(t, err)
-		err = session.Advanced().IncrementEntity(v, "foo", 1)
-		assertIllegalArgumentError(t, err)
-		err = session.Advanced().PatchArrayInEntity(v, "foo", nil)
-		assertIllegalArgumentError(t, err)
-		err = session.Refresh(v)
-		assertIllegalArgumentError(t, err)
-	}
-
-	{
-		// can't store/delete etc. *map[string]interface{}
-		m := map[string]interface{}{}
-		v := &m
-		err = session.Store(v)
-		assertIllegalArgumentError(t, err, "entity can't be of type *map[string]interface {}, try passing map[string]interface {}")
+		assertIllegalArgumentError(t, err, "entity can't be of type map[string]interface {}, try passing *map[string]interface {}")
 		err = session.StoreWithID(v, "users/1")
 		assertIllegalArgumentError(t, err)
 		err = session.DeleteEntity(v)
@@ -649,7 +619,7 @@ func TestGo1(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	goTestStoreMap(t, driver)
-	//go1Test(t, driver)
-	//goTestGetLastModifiedForAndChanges(t, driver)
-	//goTestListeners(t, driver)
+	go1Test(t, driver)
+	goTestGetLastModifiedForAndChanges(t, driver)
+	goTestListeners(t, driver)
 }
