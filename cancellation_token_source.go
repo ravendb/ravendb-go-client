@@ -50,11 +50,9 @@ func (t *cancellationToken) isCancellationRequested() bool {
 	return isAfter
 }
 
-/* TODO: remove
 func (t *cancellationToken) throwIfCancellationRequested() error {
 	if t.isCancellationRequested() {
 		return newOperationCancelledError("")
 	}
 	return nil
 }
-*/

@@ -66,8 +66,8 @@ func runJava() {
 
 	//runSingleJavaTest("AdvancedPatchingTest")
 	//runSingleJavaTest("AggregationTest")
-	runSingleJavaTest("AttachmentsSessionTest")
-	runSingleJavaTest("AttachmentsRevisionsTest")
+	//runSingleJavaTest("AttachmentsSessionTest")
+	//runSingleJavaTest("AttachmentsRevisionsTest")
 	//runSingleJavaTest("BasicDocumentsTest")
 	//runSingleJavaTest("BulkInsertsTest")
 	//runSingleJavaTest("ClientConfigurationTest")
@@ -125,6 +125,7 @@ func runJava() {
 	//runSingleJavaTest("LazyAggregationEmbedded")
 	//runSingleJavaTest("AggressiveCaching")
 	//runSingleJavaTest("CachingOfDocumentInclude")
+	runSingleJavaTest("SubscriptionsBasicTest")
 }
 
 func main() {

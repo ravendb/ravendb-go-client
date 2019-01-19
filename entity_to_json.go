@@ -91,7 +91,21 @@ func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document 
 }
 
 // Converts a json object to an entity.
+// TODO: remove in favor of entityToJSONConvertToEntity
 func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
+	if isTypeObjectNode(entityType) {
+		return document, nil
+	}
+	// TODO: deal with default values
+	entity, err := makeStructFromJSONMap(entityType, document)
+	if err != nil {
+		return nil, err
+	}
+	TrySetIDOnEntity(entity, id)
+	return entity, nil
+}
+
+func entityToJSONConvertToEntity(entityType reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}
@@ -149,3 +163,29 @@ func tryRemoveIdentityProperty(document map[string]interface{}) bool {
 	delete(document, IdentityProperty)
 	return true
 }
+
+/*
+   public static Object convertToEntity(Class<?> entityClass, String id, ObjectNode document, DocumentConventions conventions) {
+       try {
+           Object defaultValue = InMemoryDocumentSessionOperations.getDefaultValue(entityClass);
+
+           Object entity = defaultValue;
+
+           String documentType = conventions.getJavaClass(id, document);
+           if (documentType != null) {
+               Class<?> clazz = Class.forName(documentType);
+               if (clazz != null && entityClass.isAssignableFrom(clazz)) {
+                   entity = conventions.getEntityMapper().treeToValue(document, clazz);
+               }
+           }
+
+           if (entity == null) {
+               entity = conventions.getEntityMapper().treeToValue(document, entityClass);
+           }
+
+           return entity;
+       } catch (Exception e) {
+           throw new IllegalStateException("Could not convert document " + id + " to entity of type " + entityClass);
+       }
+   }
+*/

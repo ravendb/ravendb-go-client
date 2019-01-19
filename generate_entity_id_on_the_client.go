@@ -7,7 +7,7 @@ type generateEntityIDOnTheClient struct {
 	_generateID  genIDFunc
 }
 
-func newgenerateEntityIDOnTheClient(conventions *DocumentConventions, generateID genIDFunc) *generateEntityIDOnTheClient {
+func newGenerateEntityIDOnTheClient(conventions *DocumentConventions, generateID genIDFunc) *generateEntityIDOnTheClient {
 	return &generateEntityIDOnTheClient{
 		_conventions: conventions,
 		_generateID:  generateID,

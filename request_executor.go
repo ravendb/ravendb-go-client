@@ -723,7 +723,9 @@ func isNetworkTimeoutError(err error) bool {
 }
 
 // Execute executes a command on a given node
+// If nodeIndex is -1, we don't know the index
 func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
+	// nodeIndex -1 is equivalent to Java's null
 	request, err := re.CreateRequest(chosenNode, command)
 	if err != nil {
 		return err
@@ -1084,7 +1086,7 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 
 func (re *RequestExecutor) clusterPerformHealthCheck(serverNode *ServerNode, nodeIndex int) error {
 	panicIf(!re.isCluster, "clusterPerformHealthCheck() called on non-cluster RequestExector")
-	command := NewGetTcpInfoCommand("health-check")
+	command := NewGetTcpInfoCommand("health-check", "")
 	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 

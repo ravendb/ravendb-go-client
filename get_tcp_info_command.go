@@ -8,6 +8,7 @@ var (
 	_ RavenCommand = &GetTcpInfoCommand{}
 )
 
+// GetTcpInfoCommand describes "get tcp info" command
 type GetTcpInfoCommand struct {
 	RavenCommandBase
 
@@ -18,11 +19,9 @@ type GetTcpInfoCommand struct {
 	Result *TcpConnectionInfo
 }
 
-func NewGetTcpInfoCommand(tag string) *GetTcpInfoCommand {
-	return NewGetTcpInfoCommandWithDatbase(tag, "")
-}
-
-func NewGetTcpInfoCommandWithDatbase(tag, dbName string) *GetTcpInfoCommand {
+// NewGetTcpInfoCommand returns new GetTcpInfoCommand
+// dbName is optional
+func NewGetTcpInfoCommand(tag, dbName string) *GetTcpInfoCommand {
 	cmd := &GetTcpInfoCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -33,6 +32,7 @@ func NewGetTcpInfoCommandWithDatbase(tag, dbName string) *GetTcpInfoCommand {
 	return cmd
 }
 
+// CreateRequest creates a http request
 func (c *GetTcpInfoCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := ""
 	if c.dbName == "" {
@@ -44,6 +44,7 @@ func (c *GetTcpInfoCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	return NewHttpGet(url)
 }
 
+// SetResponse sets results from http response
 func (c *GetTcpInfoCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()

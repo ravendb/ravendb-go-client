@@ -9,6 +9,7 @@ import (
 )
 
 // Note: Java's IDocumentStore is DocumentStore
+// Note: Java's DocumentStoreBase is folded into DocumentStore
 
 // DocumentStore represents a database
 type DocumentStore struct {
@@ -20,6 +21,7 @@ type DocumentStore struct {
 	onBeforeQuery  []func(*BeforeQueryEventArgs)
 	// TODO: there's no way to register for this event
 	onSessionCreated []func(*SessionCreatedEventArgs)
+	Subscriptions    *DocumentSubscriptions
 
 	disposed    bool
 	conventions *DocumentConventions
@@ -227,6 +229,7 @@ func NewDocumentStore() *DocumentStore {
 		databaseChanges:        map[string]*databaseChanges{},
 		aggressiveCacheChanges: map[string]*Lazy{},
 	}
+	s.Subscriptions = NewDocumentSubscriptions(s)
 	return s
 }
 
@@ -295,6 +298,10 @@ func (s *DocumentStore) Close() {
 
 	if s.multiDbHiLo != nil {
 		s.multiDbHiLo.ReturnUnusedRange()
+	}
+
+	if s.Subscriptions != nil {
+		s.Subscriptions.Close()
 	}
 
 	s.disposed = true

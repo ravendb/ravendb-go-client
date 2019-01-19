@@ -47,10 +47,10 @@ func jsonGetAsTextPointer(doc map[string]interface{}, key string) *string {
 }
 
 func jsonGetAsString(doc map[string]interface{}, key string) (string, bool) {
-	return JsonGetAsText(doc, key)
+	return jsonGetAsText(doc, key)
 }
 
-func JsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
+func jsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
 	v, ok := doc[key]
 	if !ok {
 		return "", false

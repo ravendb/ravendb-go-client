@@ -107,7 +107,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	genIDFunc := func(entity interface{}) string {
 		return res.GenerateID(entity)
 	}
-	res.generateEntityIDOnTheClient = newgenerateEntityIDOnTheClient(re.conventions, genIDFunc)
+	res.generateEntityIDOnTheClient = newGenerateEntityIDOnTheClient(re.conventions, genIDFunc)
 	res.entityToJSON = newEntityToJSON(res)
 	return res
 }

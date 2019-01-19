@@ -121,7 +121,7 @@ func (o *QueryOperation) complete(results interface{}) error {
 		metadataI, ok := document[MetadataKey]
 		panicIf(!ok, "missing metadata")
 		metadata := metadataI.(map[string]interface{})
-		id, _ := JsonGetAsText(metadata, MetadataID)
+		id, _ := jsonGetAsText(metadata, MetadataID)
 		result := reflect.New(clazz) // this is a pointer to desired value
 		err := queryOperationDeserialize(result.Interface(), id, document, metadata, o.fieldsToFetch, o.disableEntitiesTracking, o.session)
 		if err != nil {

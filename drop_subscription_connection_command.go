@@ -1,0 +1,33 @@
+package ravendb
+
+import (
+	"net/http"
+)
+
+var (
+	_ RavenCommand = &DropSubscriptionConnectionCommand{}
+)
+
+// DropSubscriptionConnectionCommand describes "drop subscription" command
+type DropSubscriptionConnectionCommand struct {
+	RavenCommandBase
+
+	name string
+}
+
+func newDropSubscriptionConnectionCommand(name string) *DropSubscriptionConnectionCommand {
+	cmd := &DropSubscriptionConnectionCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
+		name: name,
+	}
+	cmd.ResponseType = RavenCommandResponseTypeEmpty
+	return cmd
+}
+
+// CreateRequest creates http request for the command
+func (c *DropSubscriptionConnectionCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+	url := node.URL + "/databases/" + node.Database + "/subscriptions?drop?name=" + urlUtilsEscapeDataString(c.name)
+
+	return NewHttpPost(url, nil)
+}

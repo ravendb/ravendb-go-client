@@ -81,7 +81,7 @@ func getNewDocumentInfo(document map[string]interface{}) *documentInfo {
 
 	// TODO: return an error?
 
-	id, ok := JsonGetAsText(metadata, MetadataID)
+	id, ok := jsonGetAsText(metadata, MetadataID)
 	// TODO: return an error?
 	panicIf(!ok || id == "", "Document must have an id")
 

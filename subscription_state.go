@@ -1,15 +1,14 @@
 package ravendb
 
 // SubscriptionState describes state of subscription
-// TODO: if serialized, make fields public and json-annotate
 type SubscriptionState struct {
-	query                                 string
-	changeVectorForNextBatchStartingPoint string
-	subscriptionId                        int64
-	subscriptionName                      string
-	mentorNode                            string
-	nodeTag                               string
-	lastBatchAckTime                      Time
-	lastClientConnectionTime              Time
-	disabled                              bool
+	Query                                 string  `json:"Query"`
+	ChangeVectorForNextBatchStartingPoint *string `json:"ChangeVectorForNextBatchStartingPoint"`
+	SubscriptionID                        int64   `json:"SubscriptionId"`
+	SubscriptionName                      string  `json:"SubscriptionName"`
+	MentorNode                            string  `json:"MentorNode"`
+	NodeTag                               string  `json:"NodeTag"`
+	LastBatchAckTime                      Time    `json:"LastBatchAckTime"`
+	LastClientConnectionTime              Time    `json:"LastClientConnectionTime"`
+	Disabled                              bool    `json:"Disabled"`
 }

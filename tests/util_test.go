@@ -89,3 +89,15 @@ func intArrayHasDuplicates(a []int) bool {
 	}
 	return false
 }
+
+func jsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
+	v, ok := doc[key]
+	if !ok {
+		return "", false
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "", false
+	}
+	return s, true
+}

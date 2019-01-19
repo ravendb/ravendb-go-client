@@ -44,7 +44,7 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 			return
 			//TODO: throw new IllegalArgumentError();
 		}
-		typ, _ := JsonGetAsText(batchResult, "Type")
+		typ, _ := jsonGetAsText(batchResult, "Type")
 		if typ != "PUT" {
 			continue
 		}
@@ -58,7 +58,7 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 			return
 			//TODO: throw new IllegalStateError("PUT response is invalid. @change-vector is missing on " + documentInfo.GetID());
 		}
-		id, _ := JsonGetAsText(batchResult, MetadataID)
+		id, _ := jsonGetAsText(batchResult, MetadataID)
 		if id == "" {
 			return
 			//TODO: throw new IllegalStateError("PUT response is invalid. @id is missing on " + documentInfo.GetID());

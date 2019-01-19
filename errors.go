@@ -321,6 +321,8 @@ func newSubscriptionClosedError(format string, args ...interface{}) *Subscriptio
 // to node
 type SubscriptionDoesNotBelongToNodeError struct {
 	errorBase
+
+	appropriateNode string
 }
 
 func newSubscriptionDoesNotBelongToNodeError(format string, args ...interface{}) *SubscriptionDoesNotBelongToNodeError {
@@ -358,6 +360,17 @@ type SubscriptionInvalidStateError struct {
 
 func newSubscriptionInvalidStateError(format string, args ...interface{}) *SubscriptionInvalidStateError {
 	res := &SubscriptionInvalidStateError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// SubscriptionInUseError is returned when subscription is in use
+type SubscriptionInUseError struct {
+	errorBase
+}
+
+func newSubscriptionInUseError(format string, args ...interface{}) *SubscriptionInUseError {
+	res := &SubscriptionInUseError{}
 	res.errorBase.setErrorf(format, args...)
 	return res
 }

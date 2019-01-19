@@ -2,8 +2,8 @@ package ravendb
 
 // SubscriptionCreationOptions describes options for creating a subscription
 type SubscriptionCreationOptions struct {
-	name         string
-	query        string
-	changeVector *string
-	mentorNode   string
+	Name         string  `json:"Name"`
+	Query        string  `json:"Query"`
+	ChangeVector *string `json:"ChangeVector"`
+	MentorNode   string  `json:"MentorNode,omitempty"`
 }

@@ -40,7 +40,7 @@ func loadIntoStreamCanLoadByIdsIntoStream(t *testing.T, driver *RavenTestDriver)
 
 		for _, v := range a {
 			v2 := v.(map[string]interface{})
-			s, _ := ravendb.JsonGetAsText(v2, "firstName")
+			s, _ := jsonGetAsText(v2, "firstName")
 			assert.True(t, stringArrayContains(names, s))
 		}
 
@@ -78,7 +78,7 @@ func loadIntoStreamCanLoadStartingWithIntoStream(t *testing.T, driver *RavenTest
 		names := []string{"Aviv", "Iftah", "Tal", "Maxim", "Karmel", "Grisha", "Michael"}
 		for _, v := range a {
 			v2 := v.(map[string]interface{})
-			s, _ := ravendb.JsonGetAsText(v2, "firstName")
+			s, _ := jsonGetAsText(v2, "firstName")
 			assert.True(t, stringArrayContains(names, s))
 		}
 

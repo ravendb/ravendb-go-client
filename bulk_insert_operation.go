@@ -99,7 +99,7 @@ func NewBulkInsertOperation(database string, store *DocumentStore) *BulkInsertOp
 	res := &BulkInsertOperation{
 		_conventions:                 store.GetConventions(),
 		_requestExecutor:             re,
-		_generateEntityIDOnTheClient: newgenerateEntityIDOnTheClient(re.GetConventions(), f),
+		_generateEntityIDOnTheClient: newGenerateEntityIDOnTheClient(re.GetConventions(), f),
 		_reader:                      reader,
 		_currentWriter:               writer,
 		_operationID:                 -1,

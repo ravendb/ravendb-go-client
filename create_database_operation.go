@@ -71,7 +71,7 @@ func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, 
 	return NewHttpPut(url, js)
 }
 
-// SetResponse sets response
+// SetResponse sets result based on http response
 func (c *CreateDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
