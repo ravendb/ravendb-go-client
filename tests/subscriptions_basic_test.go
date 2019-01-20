@@ -523,6 +523,87 @@ func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenT
 }
 
 func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	var subscriptionWorker *ravendb.SubscriptionWorker
+	var throwingSubscriptionWorker *ravendb.SubscriptionWorker
+	var notThrowingSubscriptionWorker *ravendb.SubscriptionWorker
+
+	defer func() {
+		if subscriptionWorker != nil {
+			subscriptionWorker.Close()
+		}
+		if throwingSubscriptionWorker != nil {
+			throwingSubscriptionWorker.Close()
+		}
+		if notThrowingSubscriptionWorker != nil {
+			notThrowingSubscriptionWorker.Close()
+		}
+	}()
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	clazz := reflect.TypeOf(&User{})
+	id, err := store.Subscriptions.CreateForType(clazz, opts, "")
+	assert.NoError(t, err)
+
+	options1, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	options1.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
+	clazz = reflect.TypeOf(map[string]interface{}{})
+	subscriptionWorker, err = store.Subscriptions.GetSubscriptionWorker(clazz, options1, "")
+	assert.NoError(t, err)
+
+	mre := make(chan bool)
+	putUserDoc(t, store)
+
+	processBatch := func(batch *ravendb.SubscriptionBatch) error {
+		mre <- true
+		return nil
+	}
+	_, err = subscriptionWorker.Run(processBatch)
+	assert.NoError(t, err)
+	timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
+	assert.False(t, timedOut)
+
+	options2, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	options2.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
+	throwingSubscriptionWorker, err = store.Subscriptions.GetSubscriptionWorker(clazz, options2, "")
+	assert.NoError(t, err)
+
+	processBatchNoOp := func(batch *ravendb.SubscriptionBatch) error {
+		return nil
+	}
+
+	subscriptionTask, err := throwingSubscriptionWorker.Run(processBatchNoOp)
+	_, err = subscriptionTask.Get()
+	_, ok := err.(*ravendb.SubscriptionInUseError)
+	assert.True(t, ok)
+
+	err = store.Subscriptions.DropConnection(id, "")
+	assert.NoError(t, err)
+
+	wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	notThrowingSubscriptionWorker, err = store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
+	notThrowingSubscriptionWorker.Run(processBatch)
+	putUserDoc(t, store)
+
+	timedOut = chanWaitTimedOut(mre, _reasonableWaitTime)
+	assert.False(t, timedOut)
+}
+
+func putUserDoc(t *testing.T, store *ravendb.DocumentStore) {
+	session, err := store.OpenSession()
+	assert.NoError(t, err)
+	defer session.Close()
+
+	err = session.Store(&User{})
+	assert.NoError(t, err)
+	err = session.SaveChanges()
+	assert.NoError(t, err)
 }
 
 func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver *RavenTestDriver) {
@@ -563,9 +644,9 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
 		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
+		subscriptionsBasic_canReleaseSubscription(t, driver)
 	}
 
-	subscriptionsBasic_canReleaseSubscription(t, driver)
 	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
 	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
