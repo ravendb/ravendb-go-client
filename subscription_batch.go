@@ -8,7 +8,7 @@ import (
 type SubscriptionBatchItem struct {
 	_result          interface{}
 	exceptionMessage string
-	id               string
+	ID               string
 	changeVector     string
 
 	rawResult   map[string]interface{}
@@ -17,17 +17,17 @@ type SubscriptionBatchItem struct {
 }
 
 func (i *SubscriptionBatchItem) throwItemProcessException() error {
-	return newIllegalStateError("Failed to process document " + i.id + " with Change Vector " + i.changeVector + " because: \n" + i.exceptionMessage)
+	return newIllegalStateError("Failed to process document " + i.ID + " with Change Vector " + i.changeVector + " because: \n" + i.exceptionMessage)
 }
 
-func (i *SubscriptionBatchItem) getResult() (interface{}, error) {
+func (i *SubscriptionBatchItem) GetResult() (interface{}, error) {
 	if i.exceptionMessage != "" {
 		return nil, i.throwItemProcessException()
 	}
 	return i._result, nil
 }
 
-func (i *SubscriptionBatchItem) getMetadata() *MetadataAsDictionary {
+func (i *SubscriptionBatchItem) GetMetadata() *MetadataAsDictionary {
 	if i._metadata == nil {
 		i._metadata = NewMetadataAsDictionary(i.rawMetadata, nil, "")
 	}
@@ -44,15 +44,11 @@ type SubscriptionBatch struct {
 	_logger                      *log.Logger
 	_generateEntityIdOnTheClient *generateEntityIDOnTheClient
 
-	_items []*SubscriptionBatchItem
+	Items []*SubscriptionBatchItem
 }
 
 func (b *SubscriptionBatch) getNumberOfItemsInBatch() int {
-	return len(b._items)
-}
-
-func (b *SubscriptionBatch) getItems() []*SubscriptionBatchItem {
-	return b._items
+	return len(b.Items)
 }
 
 func (b *SubscriptionBatch) openSession() (*DocumentSession, error) {
@@ -83,7 +79,7 @@ func NewSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *R
 }
 
 func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMessage) (string, error) {
-	b._items = nil
+	b.Items = nil
 
 	lastReceivedChangeVector := ""
 
@@ -151,13 +147,13 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 		}
 		itemToAdd := &SubscriptionBatchItem{
 			changeVector:     changeVector,
-			id:               id,
+			ID:               id,
 			rawResult:        curDoc,
 			rawMetadata:      metadata,
 			_result:          instance,
 			exceptionMessage: item.Exception,
 		}
-		b._items = append(b._items, itemToAdd)
+		b.Items = append(b.Items, itemToAdd)
 	}
 	return lastReceivedChangeVector, nil
 }

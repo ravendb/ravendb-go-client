@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -36,6 +37,21 @@ type SubscriptionWorker struct {
 
 	lastConnectionFailure time.Time
 	onClosed              func(*SubscriptionWorker)
+
+	mu sync.Mutex
+}
+
+func (w *SubscriptionWorker) getTcpClient() net.Conn {
+	w.mu.Lock()
+	res := w._tcpClient
+	w.mu.Unlock()
+	return res
+}
+
+func (w *SubscriptionWorker) setTcpClient(c net.Conn) {
+	w.mu.Lock()
+	w._tcpClient = c
+	w.mu.Unlock()
 }
 
 func (w *SubscriptionWorker) isDisposed() bool {
@@ -181,10 +197,11 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 
 	uri := command.Result.URL
 	// TODO: pass cert + timeout?
-	w._tcpClient, err = tcpConnect(uri)
+	tcpClient, err := tcpConnect(uri)
 	if err != nil {
 		return nil, err
 	}
+	w.setTcpClient(tcpClient)
 	//TODO: _stream = await TcpUtils.WrapStreamWithSslAsync(_tcpClient, command.Result, _store.Certificate, requestExecutor.DefaultTimeout).ConfigureAwait(false);
 	databaseName := w._dbName
 	if databaseName == "" {
@@ -207,11 +224,11 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 		return nil, err
 	}
 
-	_, err = w._tcpClient.Write(header)
+	_, err = w.getTcpClient().Write(header)
 	if err != nil {
 		return nil, err
 	}
-	w._parser = json.NewDecoder(w._tcpClient)
+	w._parser = json.NewDecoder(w.getTcpClient())
 
 	var reply *TcpConnectionHeaderResponse
 	//Reading reply from server
@@ -231,11 +248,11 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 			Info:             "Couldn't agree on subscription tcp version ours: " + strconv.Itoa(SUBSCRIPTION_TCP_VERSION) + " theirs: " + strconv.Itoa(reply.Version),
 		}
 		header, _ = jsonMarshal(dropMsg)
-		w._tcpClient.Write(header)
+		tcpClient.Write(header)
 		return nil, newIllegalStateError("Can't connect to database " + databaseName + " because: " + reply.Message)
 	}
 
-	_, err = w._tcpClient.Write(options)
+	_, err = tcpClient.Write(options)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +263,7 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	cert := requestExecutor.GetCertificate()
 	uri = command.requestedNode.URL
 	w._subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w._dbName, cert, conv)
-	return w._tcpClient, nil
+	return tcpClient, nil
 }
 
 func (w *SubscriptionWorker) assertConnectionState(connectionStatus *SubscriptionConnectionServerMessage) error {
@@ -301,7 +318,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 		return err
 	}
 
-	tcpClientCopy := w._tcpClient
+	tcpClientCopy := w.getTcpClient()
 
 	connectionStatus, err := w.readNextObject(tcpClientCopy)
 	if err != nil {
@@ -431,7 +448,7 @@ func (w *SubscriptionWorker) readSingleSubscriptionBatchFromServer(socket net.Co
 				cb(batch)
 			}
 			incomingBatch = nil
-			batch._items = nil
+			batch.Items = nil
 		case SubscriptionServerMessageConnectionStatus:
 			if err = w.assertConnectionState(receivedMessage); err != nil {
 				return nil, err
@@ -599,8 +616,9 @@ func (w *SubscriptionWorker) shouldTryToReconnect(ex error) (bool, error) {
 func (w *SubscriptionWorker) closeTcpClient() {
 	//w._parser = nil // Note: not necessary and causes data race
 
-	if w._tcpClient != nil {
-		w._tcpClient.Close()
-		w._tcpClient = nil
+	tcpClient := w.getTcpClient()
+	if tcpClient != nil {
+		tcpClient.Close()
+		w.setTcpClient(nil)
 	}
 }
