@@ -56,6 +56,9 @@ func subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t *testing.T
 	assert.NotNil(t, err)
 	_, ok := err.(*ravendb.SubscriptionDoesNotExistError)
 	assert.True(t, ok)
+
+	err = subscription.Close()
+	assert.NoError(t, err)
 }
 
 func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *testing.T, driver *RavenTestDriver) {
@@ -114,7 +117,13 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 			_, err = future.Get()
 			_, ok := err.(*ravendb.SubscriptionInUseError)
 			assert.True(t, ok)
+
+			err = secondSubscription.Close()
+			assert.NoError(t, err)
 		}
+
+		err = subscription.Close()
+		assert.NoError(t, err)
 	}
 
 }
@@ -157,7 +166,6 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 	{
 		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
 		assert.NoError(t, err)
-		// SubscriptionWorker<User>
 		clazz := reflect.TypeOf(&User{})
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
@@ -213,10 +221,109 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 		assert.Equal(t, age, 27)
 		age = getNextAge()
 		assert.Equal(t, age, 25)
+
+		err = subscription.Close()
+		assert.NoError(t, err)
 	}
 }
 
 func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), nil, "")
+	assert.NoError(t, err)
+
+	{
+		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
+		assert.NoError(t, err)
+		clazz := reflect.TypeOf(map[string]interface{}{})
+		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+		assert.NoError(t, err)
+
+		names := make(chan string)
+
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			for _, item := range batch.Items {
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				m := v.(map[string]interface{})
+				name := m["name"].(string)
+				names <- name
+			}
+			return nil
+		}
+
+		{
+			session := openSessionMust(t, store)
+
+			user := &User{}
+			user.setName("James")
+			err = session.StoreWithID(user, "users/1")
+			assert.NoError(t, err)
+
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		_, err = subscription.Run(processBatch)
+		assert.NoError(t, err)
+
+		getNextName := func() string {
+			select {
+			case v := <-names:
+				return v
+			case <-time.After(_reasonableWaitTime):
+				// no-op
+			}
+			return ""
+		}
+
+		name := getNextName()
+		assert.Equal(t, name, "James")
+
+		{
+			session := openSessionMust(t, store)
+
+			user := &User{}
+			user.setName("Adam")
+			err = session.StoreWithID(user, "users/12")
+			assert.NoError(t, err)
+
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		name = getNextName()
+		assert.Equal(t, name, "Adam")
+
+		//Thread.sleep(15000); // test with sleep - let few heartbeats come to us - commented out for CI
+
+		{
+			session := openSessionMust(t, store)
+
+			user := &User{}
+			user.setName("David")
+			err = session.StoreWithID(user, "users/1")
+			assert.NoError(t, err)
+
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		name = getNextName()
+		assert.Equal(t, name, "David")
+
+		err = subscription.Close()
+		assert.NoError(t, err)
+	}
 }
 
 func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *RavenTestDriver) {
@@ -265,10 +372,10 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
 		subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
 		subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
+		subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
 	}
 
 	/*
-		subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
 		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
 		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
