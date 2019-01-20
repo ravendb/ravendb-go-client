@@ -2,10 +2,11 @@ package tests
 
 import (
 	"reflect"
+	"sync/atomic"
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -327,6 +328,59 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 }
 
 func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		for i := 0; i < 100; i++ {
+			err = session.Store(&Company{})
+			assert.NoError(t, err)
+		}
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	clazz := reflect.TypeOf(&Company{})
+	id, err := store.Subscriptions.CreateForType(clazz, nil, "")
+	assert.NoError(t, err)
+
+	options, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	options.MaxDocsPerBatch = 25
+
+	{
+		clazz = reflect.TypeOf(map[string]interface{}{})
+		subscriptionWorker, err := store.Subscriptions.GetSubscriptionWorker(clazz, options, "")
+		assert.NoError(t, err)
+
+		var totalItems int32
+		semaphore := make(chan bool)
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			n := len(batch.Items)
+			assert.True(t, n <= 25)
+			total := atomic.AddInt32(&totalItems, int32(n))
+			if total == 100 {
+				semaphore <- true
+			}
+			return nil
+		}
+		_, err = subscriptionWorker.Run(processBatch)
+		assert.NoError(t, err)
+
+		select {
+		case <-semaphore:
+		// no-op
+		case <-time.After(_reasonableWaitTime):
+			assert.True(t, false)
+		}
+		subscriptionWorker.Close()
+	}
 }
 
 func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *RavenTestDriver) {
@@ -373,10 +427,10 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
 		subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
 		subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
+		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
 	}
 
 	/*
-		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
 		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
 		subscriptionsBasic_canReleaseSubscription(t, driver)
