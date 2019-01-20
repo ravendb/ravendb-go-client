@@ -22,7 +22,6 @@ func chanWaitTimedOut(ch chan bool, timeout time.Duration) bool {
 	case <-time.After(timeout):
 		return true
 	}
-	return true
 }
 
 func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDriver) {
@@ -55,6 +54,7 @@ func subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t *testing.T
 	clazz := reflect.TypeOf(&map[string]interface{}{})
 	opts, err := ravendb.NewSubscriptionWorkerOptions("1")
 	assert.NoError(t, err)
+
 	subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
 	fn := func(x *ravendb.SubscriptionBatch) error {
@@ -607,6 +607,60 @@ func putUserDoc(t *testing.T, store *ravendb.DocumentStore) {
 }
 
 func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
+	assert.NoError(t, err)
+
+	{
+		clazz := reflect.TypeOf(&User{})
+		wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
+		assert.NoError(t, err)
+		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
+		docs := make(chan *User, 10)
+
+		{
+			bulk := store.BulkInsert()
+			_, err = bulk.Store(&User{}, nil)
+			assert.NoError(t, err)
+			_, err = bulk.Store(&User{}, nil)
+			assert.NoError(t, err)
+			_, err = bulk.Store(&User{}, nil)
+			assert.NoError(t, err)
+			err = bulk.Close()
+			assert.NoError(t, err)
+		}
+
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			for _, item := range batch.Items {
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				u := v.(*User)
+				docs <- u
+			}
+			return nil
+		}
+		_, err = subscription.Run(processBatch)
+
+		// returns false if timed out
+		getNextUser := func() (*User, bool) {
+			select {
+			case u := <-docs:
+				return u, true
+			case <-time.After(_reasonableWaitTime):
+				return nil, false
+			}
+		}
+		u, ok := getNextUser()
+		assert.NotNil(t, u)
+		assert.True(t, ok)
+		u, ok = getNextUser()
+		assert.NotNil(t, u)
+		assert.True(t, ok)
+	}
 }
 
 func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t *testing.T, driver *RavenTestDriver) {
@@ -645,9 +699,9 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
 		subscriptionsBasic_canReleaseSubscription(t, driver)
+		subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	}
 
-	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
 	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
 	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
