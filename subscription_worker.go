@@ -2,10 +2,10 @@ package ravendb
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net"
+	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -19,7 +19,7 @@ type SubscriptionWorker struct {
 	_logger           *log.Logger
 	_store            *DocumentStore
 	_dbName           string
-	_processingCts    *cancellationTokenSource // = new CancellationTokenSource();
+	_processingCts    *cancellationTokenSource
 	_options          *SubscriptionWorkerOptions
 	_subscriber       func(*SubscriptionBatch) error
 	_tcpClient        net.Conn
@@ -75,11 +75,12 @@ func NewSubscriptionWorker(clazz reflect.Type, options *SubscriptionWorkerOption
 	}
 
 	res := &SubscriptionWorker{
-		_clazz:     clazz,
-		_options:   options,
-		_revisions: withRevisions,
-		_store:     documentStore,
-		_dbName:    dbName,
+		_clazz:         clazz,
+		_options:       options,
+		_revisions:     withRevisions,
+		_store:         documentStore,
+		_dbName:        dbName,
+		_processingCts: &cancellationTokenSource{},
 	}
 
 	return res, nil
@@ -136,7 +137,17 @@ func (w *SubscriptionWorker) getSubscriptionName() string {
 }
 
 func tcpConnect(uri string) (net.Conn, error) {
-	return nil, errors.New("NYI")
+	//  uri is in the format: tcp://127.0.0.1:14206
+	parsed, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
+	if parsed.Scheme != "tcp" {
+		return nil, fmt.Errorf("bad url: '%s', expected scheme to be 'ftp', is '%s'", uri, parsed.Scheme)
+	}
+
+	// parsed.Host is in the form "127.0.0.1:14206"
+	return net.Dial("tcp", parsed.Host)
 }
 
 func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
@@ -159,7 +170,6 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	}
 
 	uri := command.Result.URL
-	fmt.Printf("connectToServer: url: %s\n", uri)
 	// TODO: pass cert + timeout?
 	w._tcpClient, err = tcpConnect(uri)
 	if err != nil {
@@ -275,6 +285,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 	if err != nil {
 		return err
 	}
+
 	defer socket.Close()
 	if err := w._processingCts.getToken().throwIfCancellationRequested(); err != nil {
 		return err
@@ -286,12 +297,15 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 	if err != nil {
 		return err
 	}
+
 	if w._processingCts.getToken().isCancellationRequested() {
 		return nil
 	}
 
 	if (connectionStatus.Type != SubscriptionServerMessageConnectionStatus) || (connectionStatus.Status != SubscriptionConnectionStatusAccepted) {
-		w.assertConnectionState(connectionStatus)
+		if err = w.assertConnectionState(connectionStatus); err != nil {
+			return err
+		}
 	}
 
 	w.lastConnectionFailure = time.Time{}

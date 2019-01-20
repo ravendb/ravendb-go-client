@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -165,9 +165,9 @@ func TestSubscriptionsBasic(t *testing.T) {
 	// matches order of Java tests
 
 	// TODO: arrange in Java order
-	//subscriptionsBasic_canDeleteSubscription(t, driver)
-	//subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
-	//subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
+	subscriptionsBasic_canDeleteSubscription(t, driver)
+	subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
+	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
 
 	/*
 		subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
