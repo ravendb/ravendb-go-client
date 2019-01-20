@@ -30,7 +30,10 @@ func TryGetIDFromInstance(entity interface{}) (string, bool) {
 		if structField.Type.Kind() != reflect.String {
 			continue
 		}
-		return rv.Field(i).String(), true
+		// there is ID field of string type but it's only valid
+		// if not empty string
+		s := rv.Field(i).String()
+		return s, s != ""
 	}
 	return "", false
 }

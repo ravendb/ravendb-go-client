@@ -2,6 +2,8 @@ package ravendb
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type WithID struct {
@@ -39,57 +41,58 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		exp := "hello"
 		s := WithID{ID: exp}
 		got, ok := TryGetIDFromInstance(s)
-		if !ok {
-			t.Fatalf("TryGetIDFromInstance on %#v failed", s)
-		}
-		if got != exp {
-			t.Fatalf("got %v expected %v", got, exp)
-		}
+		assert.True(t, ok)
+		assert.Equal(t, exp, got)
+
 		got, ok = TryGetIDFromInstance(&s)
-		if !ok {
-			t.Fatalf("TryGetIDFromInstance on %#v failed", &s)
-		}
-		if got != exp {
-			t.Fatalf("got %v expected %v", got, exp)
-		}
+		assert.True(t, ok)
+		assert.Equal(t, exp, got)
 
 		exp = "new"
 		ok = TrySetIDOnEntity(s, exp)
+
 		// can't set on structs, only on pointer to structs
-		if ok || s.ID == exp {
-			t.Fatalf("TrySetIDOnEntity should not succeed on %#v", s)
-		}
+		assert.False(t, ok)
+		assert.NotEqual(t, exp, s.ID)
+
 		ok = TrySetIDOnEntity(&s, exp)
-		if !ok {
-			t.Fatalf("TrySetIDOnEntity failed on %#v", s)
-		}
-		if s.ID != exp {
-			t.Fatalf("TrySetIDOnEntity didn't set ID field to %v on %#v", exp, s)
-		}
+		assert.True(t, ok)
+		assert.Equal(t, exp, s.ID)
 	}
 
 	{
-		// verify can't get/set field name Id of type string
+		// id that is empty string is not valid
+		s := WithID{}
+		got, ok := TryGetIDFromInstance(s)
+		assert.False(t, ok)
+		assert.Equal(t, "", got)
+
+		exp := "new"
+		ok = TrySetIDOnEntity(&s, exp)
+		assert.True(t, ok)
+		assert.Equal(t, exp, s.ID)
+	}
+
+	{
+		// "Id" is not valid name for id field, must be "ID"
 		exp := "hello"
 		s := WithId{Id: exp}
 		got, ok := TryGetIDFromInstance(s)
-		if ok || got != "" {
-			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
-		}
+		assert.False(t, ok)
+		assert.Equal(t, "", got)
+
 		got, ok = TryGetIDFromInstance(&s)
-		if ok || got != "" {
-			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
-		}
+		assert.False(t, ok)
+		assert.Equal(t, "", got)
+
 		exp = "new"
 		ok = TrySetIDOnEntity(s, exp)
 		// can't set on structs, only on pointer to structs
-		if ok || s.Id == exp {
-			t.Fatalf("TrySetIDOnEntity should not succeed on %#v", s)
-		}
+		assert.False(t, ok)
+		assert.NotEqual(t, exp, s.Id)
+
 		ok = TrySetIDOnEntity(&s, exp)
-		if ok {
-			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
-		}
+		assert.False(t, ok)
 	}
 
 	{
@@ -97,14 +100,13 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		exp := "hello"
 		s := Withid{id: exp}
 		got, ok := TryGetIDFromInstance(s)
-		if ok || got != "" {
-			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
-		}
+		assert.False(t, ok)
+		assert.Equal(t, "", got)
+
 		exp = "new"
 		ok = TrySetIDOnEntity(s, exp)
-		if ok {
-			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
-		}
+		assert.False(t, ok)
+		assert.Equal(t, "hello", s.id)
 	}
 
 	{
@@ -112,13 +114,10 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		exp := "new"
 		s := NoID{}
 		got, ok := TryGetIDFromInstance(s)
-		if ok || got != "" {
-			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
-		}
+		assert.False(t, ok)
+		assert.Equal(t, "", got)
 		ok = TrySetIDOnEntity(s, exp)
-		if ok {
-			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
-		}
+		assert.False(t, ok)
 	}
 
 	{
@@ -126,13 +125,10 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		exp := "new"
 		s := WithIntID{ID: 5}
 		got, ok := TryGetIDFromInstance(s)
-		if ok || got != "" {
-			t.Fatalf("got %v expected %v, ok: %v", got, exp, ok)
-		}
-		ok = TrySetIDOnEntity(s, exp)
-		if ok {
-			t.Fatalf("TrySetIDOnEntity should fail on %#v", s)
-		}
-	}
+		assert.False(t, ok)
+		assert.Equal(t, "", got)
 
+		ok = TrySetIDOnEntity(s, exp)
+		assert.False(t, ok)
+	}
 }
