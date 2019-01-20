@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -24,7 +25,7 @@ type SubscriptionWorker struct {
 	_subscriber       func(*SubscriptionBatch) error
 	_tcpClient        net.Conn
 	_parser           *json.Decoder
-	_disposed         bool
+	_disposed         int32 // atomic
 	_subscriptionTask *completableFuture
 
 	afterAcknowledgment           []func(*SubscriptionBatch)
@@ -35,6 +36,15 @@ type SubscriptionWorker struct {
 
 	lastConnectionFailure time.Time
 	onClosed              func(*SubscriptionWorker)
+}
+
+func (w *SubscriptionWorker) isDisposed() bool {
+	v := atomic.LoadInt32(&w._disposed)
+	return v != 0
+}
+
+func (w *SubscriptionWorker) markDisposed() {
+	atomic.StoreInt32(&w._disposed, 1)
 }
 
 // AddAfterAcknowledgmentListener adds callback function that will be called after
@@ -92,7 +102,7 @@ func (w *SubscriptionWorker) Close() error {
 }
 
 func (w *SubscriptionWorker) close(waitForSubscriptionTask bool) error {
-	if w._disposed {
+	if w.isDisposed() {
 		return nil
 	}
 	defer func() {
@@ -100,7 +110,7 @@ func (w *SubscriptionWorker) close(waitForSubscriptionTask bool) error {
 			w.onClosed(w)
 		}
 	}()
-	w._disposed = true
+	w.markDisposed()
 	w._processingCts.cancel()
 	w.closeTcpClient() // we disconnect immediately
 
@@ -385,7 +395,7 @@ func (w *SubscriptionWorker) processSubscription() error {
 		return nil
 	}
 	if _, ok := err.(*OperationCancelledError); ok {
-		if !w._disposed {
+		if !w.isDisposed() {
 			return err
 		}
 		// otherwise this is thrown when shutting down, it
@@ -454,7 +464,7 @@ func (w *SubscriptionWorker) readNextObject(socket net.Conn) (*SubscriptionConne
 		return nil, nil
 	}
 
-	if w._disposed { //if we are disposed, nothing to do...
+	if w.isDisposed() { //if we are disposed, nothing to do...
 		return nil, nil
 	}
 
@@ -491,7 +501,7 @@ func (w *SubscriptionWorker) runSubscriptionAsync() *completableFuture {
 			}
 
 			if w._processingCts.getToken().isCancellationRequested() {
-				if !w._disposed {
+				if !w.isDisposed() {
 					future.completeWithError(ex)
 					return
 				}
@@ -587,7 +597,7 @@ func (w *SubscriptionWorker) shouldTryToReconnect(ex error) (bool, error) {
 }
 
 func (w *SubscriptionWorker) closeTcpClient() {
-	w._parser = nil
+	//w._parser = nil // Note: not necessary and causes data race
 
 	if w._tcpClient != nil {
 		w._tcpClient.Close()
