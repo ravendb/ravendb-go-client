@@ -384,6 +384,61 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 }
 
 func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		for i := 0; i < 100; i++ {
+			err = session.Store(&Company{})
+			assert.NoError(t, err)
+			err = session.Store(&User{})
+			assert.NoError(t, err)
+		}
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	clazz := reflect.TypeOf(&User{})
+	id, err := store.Subscriptions.CreateForType(clazz, nil, "")
+	assert.NoError(t, err)
+
+	options, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	options.MaxDocsPerBatch = 31
+
+	{
+		clazz = reflect.TypeOf(map[string]interface{}{})
+		subscriptionWorker, err := store.Subscriptions.GetSubscriptionWorker(clazz, options, "")
+		assert.NoError(t, err)
+
+		var totalItems int32
+		semaphore := make(chan bool)
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			n := len(batch.Items)
+			assert.True(t, n <= 31)
+			total := atomic.AddInt32(&totalItems, int32(n))
+			if total == 100 {
+				semaphore <- true
+			}
+			return nil
+		}
+		_, err = subscriptionWorker.Run(processBatch)
+		assert.NoError(t, err)
+
+		select {
+		case <-semaphore:
+		// no-op
+		case <-time.After(_reasonableWaitTime):
+			assert.True(t, false)
+		}
+		subscriptionWorker.Close()
+	}
 }
 
 func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenTestDriver) {
@@ -428,17 +483,15 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
 		subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
 		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
+		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 	}
 
-	/*
-		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
-		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
-		subscriptionsBasic_canReleaseSubscription(t, driver)
-		subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
-		subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
-		subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
-		subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
-		subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
-		subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
-	*/
+	subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
+	subscriptionsBasic_canReleaseSubscription(t, driver)
+	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
+	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
+	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
+	subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
+	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
 }
