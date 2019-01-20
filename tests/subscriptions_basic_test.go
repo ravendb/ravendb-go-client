@@ -14,6 +14,17 @@ const (
 	_reasonableWaitTime = time.Second * 5 // TODO: is it 60 seconds in Java?
 )
 
+// returns true if timed out
+func chanWaitTimedOut(ch chan bool, timeout time.Duration) bool {
+	select {
+	case <-ch:
+		return false
+	case <-time.After(timeout):
+		return true
+	}
+	return true
+}
+
 func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -95,12 +106,7 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 		_, err = subscription.Run(fn)
 		assert.NoError(t, err)
 
-		select {
-		case <-semaphore:
-			// no-op
-		case <-time.After(_reasonableWaitTime):
-			// no-op
-		}
+		chanWaitTimedOut(semaphore, _reasonableWaitTime)
 
 		options2, err := ravendb.NewSubscriptionWorkerOptions(id)
 		assert.NoError(t, err)
@@ -373,12 +379,9 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 		_, err = subscriptionWorker.Run(processBatch)
 		assert.NoError(t, err)
 
-		select {
-		case <-semaphore:
-		// no-op
-		case <-time.After(_reasonableWaitTime):
-			assert.True(t, false)
-		}
+		timedOut := chanWaitTimedOut(semaphore, _reasonableWaitTime)
+		assert.False(t, timedOut)
+
 		subscriptionWorker.Close()
 	}
 }
@@ -431,17 +434,92 @@ func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *Ra
 		_, err = subscriptionWorker.Run(processBatch)
 		assert.NoError(t, err)
 
-		select {
-		case <-semaphore:
-		// no-op
-		case <-time.After(_reasonableWaitTime):
-			assert.True(t, false)
-		}
+		timedOut := chanWaitTimedOut(semaphore, _reasonableWaitTime)
+		assert.False(t, timedOut)
+
 		subscriptionWorker.Close()
 	}
 }
 
 func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	subscriptionDocuments, err := store.Subscriptions.GetSubscriptions(0, 10, "")
+	assert.NoError(t, err)
+	assert.Equal(t, len(subscriptionDocuments), 0)
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	clazz := reflect.TypeOf(&User{})
+	allId, err := store.Subscriptions.CreateForType(clazz, opts, "")
+	assert.NoError(t, err)
+
+	{
+		clazz = reflect.TypeOf(map[string]interface{}{})
+		opts, err := ravendb.NewSubscriptionWorkerOptions(allId)
+		assert.NoError(t, err)
+		allSubscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+		assert.NoError(t, err)
+
+		var allCounter int32
+		allSemaphore := make(chan bool)
+
+		filteredOptions := &ravendb.SubscriptionCreationOptions{
+			Query: "from Users where age < 0",
+		}
+		filteredUsersId, err := store.Subscriptions.Create(filteredOptions, "")
+		assert.NoError(t, err)
+
+		{
+			clazz = reflect.TypeOf(map[string]interface{}{})
+			opts, err := ravendb.NewSubscriptionWorkerOptions(filteredUsersId)
+			assert.NoError(t, err)
+			filteredUsersSubscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+			assert.NoError(t, err)
+
+			usersDocsSemaphore := make(chan bool)
+
+			{
+				session := openSessionMust(t, store)
+
+				for i := 0; i < 500; i++ {
+					err = session.StoreWithID(&User{}, "another/")
+					assert.NoError(t, err)
+				}
+
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			processBatch := func(batch *ravendb.SubscriptionBatch) error {
+				n := len(batch.Items)
+				total := atomic.AddInt32(&allCounter, int32(n))
+				if total >= 100 {
+					allSemaphore <- true
+				}
+				return nil
+			}
+			_, err = allSubscription.Run(processBatch)
+			assert.NoError(t, err)
+
+			processBatch2 := func(batch *ravendb.SubscriptionBatch) error {
+				usersDocsSemaphore <- true
+				return nil
+			}
+			_, err = filteredUsersSubscription.Run(processBatch2)
+			assert.NoError(t, err)
+
+			timedOut := chanWaitTimedOut(allSemaphore, _reasonableWaitTime)
+			assert.False(t, timedOut)
+			timedOut = chanWaitTimedOut(usersDocsSemaphore, time.Millisecond*50)
+			assert.True(t, timedOut)
+		}
+
+		allSubscription.Close()
+	}
 }
 
 func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDriver) {
@@ -484,9 +562,9 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
 		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
 		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
+		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
 	}
 
-	subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
 	subscriptionsBasic_canReleaseSubscription(t, driver)
 	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
