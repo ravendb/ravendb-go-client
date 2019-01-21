@@ -92,8 +92,8 @@ func (f *completableFuture) cancel(mayInterruptIfRunning bool) {
 	f.completeWithError(&CancellationError{})
 }
 
-// isDone returns true if future has been completed, either with a result or error
-func (f *completableFuture) isDone() bool {
+// IsDone returns true if future has been completed, either with a result or error
+func (f *completableFuture) IsDone() bool {
 	done, _, _ := f.getState()
 	return done
 }

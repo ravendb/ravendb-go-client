@@ -511,7 +511,7 @@ func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
 // execute(command, session) in java
 func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
-	if (topologyUpdate != nil && topologyUpdate.isDone()) || re.disableTopologyUpdates {
+	if (topologyUpdate != nil && topologyUpdate.IsDone()) || re.disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return err
@@ -1251,7 +1251,7 @@ func (re *RequestExecutor) ensureNodeSelector() (*NodeSelector, error) {
 	firstTopologyUpdate := re._firstTopologyUpdate
 	re.mu.Unlock()
 
-	if firstTopologyUpdate != nil && !firstTopologyUpdate.isDone() {
+	if firstTopologyUpdate != nil && !firstTopologyUpdate.IsDone() {
 		_, err := firstTopologyUpdate.Get()
 		if err != nil {
 			return nil, err

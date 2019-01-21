@@ -82,7 +82,7 @@ func (c *databaseChanges) onConnectionStatusChanged() {
 		return
 	}
 
-	if c.tcs.isDone() {
+	if c.tcs.IsDone() {
 		c.tcs = newCompletableFuture()
 	}
 }

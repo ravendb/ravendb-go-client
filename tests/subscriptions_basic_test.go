@@ -25,6 +25,19 @@ func chanWaitTimedOut(ch chan bool, timeout time.Duration) bool {
 	}
 }
 
+// returns false if timed out
+func getNextUser(docs chan *User, timeout time.Duration) (*User, bool) {
+	if timeout == 0 {
+		timeout = _reasonableWaitTime
+	}
+	select {
+	case u := <-docs:
+		return u, true
+	case <-time.After(timeout):
+		return nil, false
+	}
+}
+
 func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -646,19 +659,10 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 		}
 		_, err = subscription.Run(processBatch)
 
-		// returns false if timed out
-		getNextUser := func() (*User, bool) {
-			select {
-			case u := <-docs:
-				return u, true
-			case <-time.After(_reasonableWaitTime):
-				return nil, false
-			}
-		}
-		u, ok := getNextUser()
+		u, ok := getNextUser(docs, 0)
 		assert.NotNil(t, u)
 		assert.True(t, ok)
-		u, ok = getNextUser()
+		u, ok = getNextUser(docs, 0)
 		assert.NotNil(t, u)
 		assert.True(t, ok)
 
@@ -740,19 +744,10 @@ func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *Rav
 		subscriptionTask, err := subscription.Run(processBatch)
 		assert.NoError(t, err)
 
-		// returns false if timed out
-		getNextUser := func() (*User, bool) {
-			select {
-			case u := <-docs:
-				return u, true
-			case <-time.After(_reasonableWaitTime):
-				return nil, false
-			}
-		}
-		u, ok := getNextUser()
+		u, ok := getNextUser(docs, 0)
 		assert.True(t, ok)
 		assert.NotNil(t, u)
-		u, ok = getNextUser()
+		u, ok = getNextUser(docs, 0)
 		assert.True(t, ok)
 		assert.NotNil(t, u)
 
@@ -765,6 +760,91 @@ func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *Rav
 }
 
 func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
+	assert.NoError(t, err)
+
+	options1, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	options1.TimeToWaitBeforeConnectionRetry = ravendb.Duration(time.Second)
+
+	{
+		clazz := reflect.TypeOf(&User{})
+		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, options1, "")
+		assert.NoError(t, err)
+
+		{
+			session, err := store.OpenSession()
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{}, "users/1")
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{}, "users/2")
+			assert.NoError(t, err)
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		docs := make(chan *User, 20)
+
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			for _, item := range batch.Items {
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				u := v.(*User)
+				docs <- u
+			}
+			return nil
+		}
+		subscribe, err := subscription.Run(processBatch)
+		assert.NoError(t, err)
+
+		u, ok := getNextUser(docs, 0)
+		assert.True(t, ok)
+		assert.NotNil(t, u)
+		u, ok = getNextUser(docs, 0)
+		assert.True(t, ok)
+		assert.NotNil(t, u)
+
+		err = store.Subscriptions.DropConnection(id, "")
+		assert.NoError(t, err)
+
+		// this can exit normally or throw on drop connection
+		// depending on exactly where the drop happens
+		_, err = subscribe.GetWithTimeout(_reasonableWaitTime)
+		if err != nil {
+			_, ok = err.(*ravendb.SubscriptionClosedError)
+			assert.True(t, ok)
+		}
+
+		{
+			session, err := store.OpenSession()
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{}, "users/3")
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{}, "users/4")
+			assert.NoError(t, err)
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		// should time out since we dropped the connection
+		u, ok = getNextUser(docs, 50*time.Millisecond)
+		assert.False(t, ok)
+		assert.Nil(t, u)
+
+		assert.True(t, subscribe.IsDone())
+
+		err = subscription.Close()
+		assert.NoError(t, err)
+	}
 }
 
 func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t *testing.T, driver *RavenTestDriver) {
@@ -797,9 +877,9 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 		subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
 		subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
+		subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	}
 
-	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
 	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
 }
