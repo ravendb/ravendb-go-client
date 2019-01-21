@@ -768,11 +768,11 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
 	assert.NoError(t, err)
 
-	options1, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
-	options1.TimeToWaitBeforeConnectionRetry = ravendb.Duration(time.Second)
-
 	{
+		options1, err := ravendb.NewSubscriptionWorkerOptions(id)
+		assert.NoError(t, err)
+		options1.TimeToWaitBeforeConnectionRetry = ravendb.Duration(time.Second)
+
 		clazz := reflect.TypeOf(&User{})
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, options1, "")
 		assert.NoError(t, err)
@@ -848,9 +848,181 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 }
 
 func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
+	assert.NoError(t, err)
+
+	{
+		clazz := reflect.TypeOf(&User{})
+		wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
+		assert.NoError(t, err)
+
+		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
+		assert.NoError(t, err)
+
+		{
+			session, err := store.OpenSession()
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{Age: 31}, "users/1")
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{Age: 27}, "users/12")
+			assert.NoError(t, err)
+			err = session.StoreWithID(&User{Age: 25}, "users/3")
+			assert.NoError(t, err)
+			err = session.SaveChanges()
+			assert.NoError(t, err)
+
+			session.Close()
+		}
+
+		docs := make(chan *User, 20)
+
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			for _, item := range batch.Items {
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				u := v.(*User)
+				docs <- u
+			}
+			return nil
+		}
+		_, err = subscription.Run(processBatch)
+		assert.NoError(t, err)
+		u, ok := getNextUser(docs, 0)
+		assert.True(t, ok)
+		assert.Equal(t, u.ID, "users/1")
+		assert.Equal(t, u.Age, 31)
+
+		u, ok = getNextUser(docs, 0)
+		assert.True(t, ok)
+		assert.Equal(t, u.ID, "users/12")
+		assert.Equal(t, u.Age, 27)
+
+		u, ok = getNextUser(docs, 0)
+		assert.True(t, ok)
+		assert.Equal(t, u.ID, "users/3")
+		assert.Equal(t, u.Age, 25)
+
+		err = subscription.Close()
+		assert.NoError(t, err)
+	}
 }
 
 func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	var subscription1 *ravendb.SubscriptionWorker
+	var subscription2 *ravendb.SubscriptionWorker
+	defer func() {
+		if subscription1 != nil {
+			subscription1.Close()
+		}
+		if subscription2 != nil {
+			subscription2.Close()
+		}
+	}()
+
+	id1, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), nil, "")
+	assert.NoError(t, err)
+	id2, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), nil, "")
+	assert.NoError(t, err)
+
+	{
+		session, err := store.OpenSession()
+		assert.NoError(t, err)
+		err = session.StoreWithID(&User{}, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreWithID(&User{}, "users/2")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	clazz := reflect.TypeOf(&User{})
+	opts, err := ravendb.NewSubscriptionWorkerOptions(id1)
+	assert.NoError(t, err)
+
+	subscription1, err = store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+	assert.NoError(t, err)
+	items1 := make(chan *User, 10)
+
+	processBatch := func(batch *ravendb.SubscriptionBatch) error {
+		for _, item := range batch.Items {
+			v, err := item.GetResult()
+			assert.NoError(t, err)
+			u := v.(*User)
+			items1 <- u
+		}
+		return nil
+	}
+	_, err = subscription1.Run(processBatch)
+	assert.NoError(t, err)
+
+	opts, err = ravendb.NewSubscriptionWorkerOptions(id2)
+	assert.NoError(t, err)
+	subscription2, err = store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+	assert.NoError(t, err)
+	items2 := make(chan *User, 10)
+
+	processBatch2 := func(batch *ravendb.SubscriptionBatch) error {
+		for _, item := range batch.Items {
+			v, err := item.GetResult()
+			assert.NoError(t, err)
+			u := v.(*User)
+			items2 <- u
+		}
+		return nil
+	}
+	_, err = subscription2.Run(processBatch2)
+	assert.NoError(t, err)
+
+	u, ok := getNextUser(items1, 0)
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, "users/1")
+
+	u, ok = getNextUser(items1, 0)
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, "users/2")
+
+	u, ok = getNextUser(items2, 0)
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, "users/1")
+
+	u, ok = getNextUser(items2, 0)
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, "users/2")
+
+	subscription1.Close()
+	subscription1 = nil
+
+	{
+		session, err := store.OpenSession()
+		assert.NoError(t, err)
+		err = session.StoreWithID(&User{}, "users/3")
+		assert.NoError(t, err)
+		err = session.StoreWithID(&User{}, "users/4")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	u, ok = getNextUser(items2, 0)
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, "users/3")
+
+	u, ok = getNextUser(items2, 0)
+	assert.True(t, ok)
+	assert.Equal(t, u.ID, "users/4")
 }
 
 func TestSubscriptionsBasic(t *testing.T) {
@@ -863,23 +1035,19 @@ func TestSubscriptionsBasic(t *testing.T) {
 	// matches order of Java tests
 
 	// TODO: arrange in Java order
-
-	if true {
-		subscriptionsBasic_canDeleteSubscription(t, driver)
-		subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
-		subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
-		subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
-		subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
-		subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
-		subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
-		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
-		subscriptionsBasic_canReleaseSubscription(t, driver)
-		subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
-		subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
-		subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
-		subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
-	}
-
+	subscriptionsBasic_canDeleteSubscription(t, driver)
+	subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
+	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
+	subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
+	subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
+	subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
+	subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
+	subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
+	subscriptionsBasic_canReleaseSubscription(t, driver)
+	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
+	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
+	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
 	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
 }
