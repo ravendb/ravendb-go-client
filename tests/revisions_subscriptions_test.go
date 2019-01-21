@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
-	"github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *RavenTestDriver) {
@@ -235,8 +236,6 @@ func TestRevisionsSubscriptions(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-
-	// TODO: match the order of Java tests
-	revisionsSubscriptions_plainRevisionsSubscriptions(t, driver)
 	revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t, driver)
+	revisionsSubscriptions_plainRevisionsSubscriptions(t, driver)
 }

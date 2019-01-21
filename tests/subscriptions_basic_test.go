@@ -1033,21 +1033,19 @@ func TestSubscriptionsBasic(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-
-	// TODO: arrange in Java order
-	subscriptionsBasic_canDeleteSubscription(t, driver)
-	subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
-	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
-	subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
-	subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
+	subscriptionsBasic_canReleaseSubscription(t, driver)
 	subscriptionsBasic_shouldRespectMaxDocCountInBatch(t, driver)
+	subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
 	subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 	subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
-	subscriptionsBasic_canReleaseSubscription(t, driver)
-	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
+	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
 	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
+	subscriptionsBasic_canDeleteSubscription(t, driver)
+	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
+	subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
+	subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
 	subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
-	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
 }
