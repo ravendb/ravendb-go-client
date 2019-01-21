@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"strconv"
+	"sync"
 	"testing"
 )
 
@@ -87,7 +88,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 					currName = *u.Name
 				}
 				if result.Previous != nil {
-					u := result.Current.(*User)
+					u := result.Previous.(*User)
 					prevName = *u.Name
 				}
 				name := currName + prevName
@@ -110,76 +111,120 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 }
 
 func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T, driver *RavenTestDriver) {
-	/*
-	   try (IDocumentStore store = getDocumentStore()) {
-	       String subscriptionId = store.subscriptions().createForRevisions(User.class);
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
 
-	       RevisionsCollectionConfiguration defaultCollection = new RevisionsCollectionConfiguration();
-	       defaultCollection.setDisabled(false);
-	       defaultCollection.setMinimumRevisionsToKeep(5l);
+	subscriptionId, err := store.Subscriptions.CreateForRevisions(reflect.TypeOf(&User{}), nil, "")
+	assert.NoError(t, err)
 
-	       RevisionsCollectionConfiguration usersConfig = new RevisionsCollectionConfiguration();
-	       usersConfig.setDisabled(false);
+	defaultCollection := &ravendb.RevisionsCollectionConfiguration{
+		MinimumRevisionsToKeep: 5,
+	}
 
-	       RevisionsCollectionConfiguration donsConfig = new RevisionsCollectionConfiguration();
-	       donsConfig.setDisabled(false);
+	usersConfig := &ravendb.RevisionsCollectionConfiguration{}
+	donsConfig := &ravendb.RevisionsCollectionConfiguration{}
 
-	       RevisionsConfiguration configuration = new RevisionsConfiguration();
-	       configuration.setDefaultConfig(defaultCollection);
+	configuration := &ravendb.RevisionsConfiguration{
+		DefaultConfig: defaultCollection,
+	}
+	perCollectionConfig := map[string]*ravendb.RevisionsCollectionConfiguration{
+		"Users": usersConfig,
+		"Dons":  donsConfig,
+	}
 
-	       HashMap<String, RevisionsCollectionConfiguration> perCollectionConfig = new HashMap<>();
-	       perCollectionConfig.put("Users", usersConfig);
-	       perCollectionConfig.put("Dons", donsConfig);
+	configuration.Collections = perCollectionConfig
 
-	       configuration.setCollections(perCollectionConfig);
+	operation := ravendb.NewConfigureRevisionsOperation(configuration)
 
-	       ConfigureRevisionsOperation operation = new ConfigureRevisionsOperation(configuration);
+	err = store.Maintenance().Send(operation)
+	assert.NoError(t, err)
 
-	       store.maintenance().send(operation);
+	for j := 0; j < 10; j++ {
+		{
+			session, err := store.OpenSession()
+			assert.NoError(t, err)
 
+			user := &User{
+				Age: j,
+			}
+			user.setName("users1 ver " + strconv.Itoa(j))
+			err = session.StoreWithID(user, "users/1")
+			assert.NoError(t, err)
 
-	       for (int j = 0; j < 10; j++) {
-	           try (IDocumentSession session = store.openSession()) {
-	               User user = new User();
-	               user.setName("users1 ver " + j);
-	               user.setAge(j);
-	               session.store(user, "users/1");
+			company := &Company{
+				Name: "dons1 ver " + strconv.Itoa(j),
+			}
+			err = session.StoreWithID(company, "dons/1")
+			assert.NoError(t, err)
 
-	               Company company = new Company();
-	               company.setName("dons1 ver " + j);
-	               session.store(company, "dons/1");
+			err = session.SaveChanges()
+			assert.NoError(t, err)
 
-	               session.saveChanges();
-	           }
-	       }
+			session.Close()
+		}
+	}
 
-	       try (SubscriptionWorker<Revision<User>> sub = store.subscriptions().getSubscriptionWorkerForRevisions(User.class, new SubscriptionWorkerOptions(subscriptionId))) {
-	           Semaphore mre = new Semaphore(0);
-	           Set<String> names = new HashSet<>();
+	{
+		opts, err := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
+		assert.NoError(t, err)
+		clazz := reflect.TypeOf(&User{})
+		sub, err := store.Subscriptions.GetSubscriptionWorkerForRevisions(clazz, opts, "")
+		assert.NoError(t, err)
 
-	           final AtomicInteger maxAge = new AtomicInteger(-1);
+		mre := make(chan bool)
+		names := map[string]struct{}{}
 
-	           sub.run(a -> {
-	               for (SubscriptionBatch.Item<Revision<User>> item : a.getItems()) {
-	                   Revision<User> x = item.getResult();
-	                   if (x.getCurrent().getAge() > maxAge.get() && x.getCurrent().getAge() > Optional.ofNullable(x.getPrevious()).map(y -> y.getAge()).orElse(-1)) {
-	                       names.add(Optional.ofNullable(x.getCurrent()).map(y -> y.getName()).orElse(null) + " "
-	                               +  Optional.ofNullable(x.getPrevious()).map(y -> y.getName()).orElse(null));
-	                       maxAge.set(x.getCurrent().getAge());
-	                   }
+		var mu sync.Mutex
+		maxAge := -1
 
-	                   if (names.size() == 10) {
-	                       mre.release();
-	                   }
-	               }
-	           });
+		fn := func(a *ravendb.SubscriptionBatch) error {
+			for _, item := range a.Items {
+				// result is ravendb.Revision of type User
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				result := v.(*ravendb.Revision)
 
-	           assertThat(mre.tryAcquire(_reasonableWaitTime, TimeUnit.SECONDS))
-	                   .isTrue();
+				var currName, prevName string
+				currAge := -1
+				prevAge := -1
+				if result.Current != nil {
+					u := result.Current.(*User)
+					currName = *u.Name
+					currAge = u.Age
+				}
+				if result.Previous != nil {
+					u := result.Previous.(*User)
+					prevName = *u.Name
+					prevAge = u.Age
+				}
 
-	       }
-	   }
-	*/
+				mu.Lock()
+
+				if currAge > maxAge && currAge > prevAge {
+					name := currName + " " + prevName
+					names[name] = struct{}{}
+					maxAge = currAge
+				}
+
+				shouldRelease := len(names) == 10
+				mu.Unlock()
+
+				if shouldRelease {
+					mre <- true
+				}
+			}
+			return nil
+		}
+		_, err = sub.Run(fn)
+		assert.NoError(t, err)
+
+		timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
+		assert.False(t, timedOut)
+
+		err = sub.Close()
+		assert.NoError(t, err)
+	}
 }
 
 func TestRevisionsSubscriptions(t *testing.T) {
@@ -189,8 +234,9 @@ func TestRevisionsSubscriptions(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
+	// matches order of Java tests
+
+	// TODO: match the order of Java tests
 	revisionsSubscriptions_plainRevisionsSubscriptions(t, driver)
 	revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t, driver)
-
-	// matches order of Java tests
 }
