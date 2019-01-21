@@ -438,7 +438,7 @@ func (c *databaseChanges) send(command, value string) error {
 		return err
 	}
 
-	_, err = taskCompletionSource.getWithTimeout(time.Second * 15)
+	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
 	return err
 }
 

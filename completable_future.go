@@ -98,9 +98,9 @@ func (f *completableFuture) isDone() bool {
 	return done
 }
 
-// isCompletedExceptionally returns true if future has been completed due to an error
-func (f *completableFuture) isCompletedExceptionally() bool {
-	_, err, _ := f.getState()
+// IsCompletedExceptionally returns true if future has been completed due to an error
+func (f *completableFuture) IsCompletedExceptionally() bool {
+	_, _, err := f.getState()
 	return err != nil // implies f.done
 }
 
@@ -118,10 +118,10 @@ func (f *completableFuture) isCancelled() bool {
 // If already completed, returns immediately.
 // TODO: hide it, unused in one test
 func (f *completableFuture) Get() (interface{}, error) {
-	return f.getWithTimeout(0)
+	return f.GetWithTimeout(0)
 }
 
-func (f *completableFuture) getWithTimeout(dur time.Duration) (interface{}, error) {
+func (f *completableFuture) GetWithTimeout(dur time.Duration) (interface{}, error) {
 	done, res, err := f.getState()
 	if done {
 		return res, err

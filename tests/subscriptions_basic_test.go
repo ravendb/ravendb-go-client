@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"errors"
 	"reflect"
 	"sync/atomic"
 	"testing"
@@ -660,13 +661,107 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 		u, ok = getNextUser()
 		assert.NotNil(t, u)
 		assert.True(t, ok)
+
+		err = subscription.Close()
+		assert.NoError(t, err)
 	}
 }
 
 func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
+	assert.NoError(t, err)
+
+	{
+		clazz := reflect.TypeOf(map[string]interface{}{})
+		wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
+		assert.NoError(t, err)
+		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
+
+		putUserDoc(t, store)
+
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			return errors.New("Fake error")
+		}
+		subscriptionTask, err := subscription.Run(processBatch)
+		assert.NoError(t, err)
+
+		_, err = subscriptionTask.GetWithTimeout(_reasonableWaitTime)
+		_, ok := err.(*ravendb.SubscriberErrorError)
+		assert.True(t, ok)
+		assert.True(t, subscriptionTask.IsCompletedExceptionally())
+
+		res, err := store.Subscriptions.GetSubscriptions(0, 1, "")
+		assert.NoError(t, err)
+		subscriptionConfig := res[0]
+		assert.Nil(t, subscriptionConfig.ChangeVectorForNextBatchStartingPoint)
+
+		err = subscription.Close()
+		assert.NoError(t, err)
+	}
 }
 
 func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	opts := &ravendb.SubscriptionCreationOptions{}
+	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
+	assert.NoError(t, err)
+
+	options1, err := ravendb.NewSubscriptionWorkerOptions(id)
+	assert.NoError(t, err)
+	options1.IgnoreSubscriberErrors = true
+
+	{
+		clazz := reflect.TypeOf(&User{})
+		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, options1, "")
+		assert.NoError(t, err)
+
+		docs := make(chan *User, 20)
+
+		putUserDoc(t, store)
+		putUserDoc(t, store)
+
+		processBatch := func(batch *ravendb.SubscriptionBatch) error {
+			for _, item := range batch.Items {
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				u := v.(*User)
+				docs <- u
+			}
+			return errors.New("Fake error")
+		}
+		subscriptionTask, err := subscription.Run(processBatch)
+		assert.NoError(t, err)
+
+		// returns false if timed out
+		getNextUser := func() (*User, bool) {
+			select {
+			case u := <-docs:
+				return u, true
+			case <-time.After(_reasonableWaitTime):
+				return nil, false
+			}
+		}
+		u, ok := getNextUser()
+		assert.True(t, ok)
+		assert.NotNil(t, u)
+		u, ok = getNextUser()
+		assert.True(t, ok)
+		assert.NotNil(t, u)
+
+		// false because we asked to ignore errors
+		assert.False(t, subscriptionTask.IsCompletedExceptionally())
+
+		err = subscription.Close()
+		assert.NoError(t, err)
+	}
 }
 
 func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.T, driver *RavenTestDriver) {
@@ -700,10 +795,10 @@ func TestSubscriptionsBasic(t *testing.T) {
 		subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
 		subscriptionsBasic_canReleaseSubscription(t, driver)
 		subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
+		subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+		subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
 	}
 
-	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
-	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
 	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
 	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
