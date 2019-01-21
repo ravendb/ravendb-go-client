@@ -19,4 +19,9 @@ echo "pwd:              ${wd}"
 echo "GOPATH:           ${GOPATH}"
 
 # go test -v -race -coverpkg=all -covermode=atomic -coverprofile=coverage.txt ./tests
-go test -v -race -parallel 1 -timeout 20m -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt . ./tests
+# Travis aborts the test if there's no output in 10 mins
+# go test seems to hijack os.Stdout and buffers everything until the end,
+# even with -v flag.
+# travis_wait is a "keep alive" that prints to stdout
+# https://docs.travis-ci.com/user/common-build-problems/#my-builds-are-timing-out
+travis_wait go test -v -race -parallel 1 -timeout 20m -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt . ./tests
