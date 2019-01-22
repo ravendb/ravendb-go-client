@@ -187,12 +187,11 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 	defer store.Close()
 
 	usersByName := NewUsers_ByName()
+	err = store.ExecuteIndex(usersByName)
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
-
-		err = store.ExecuteIndex(usersByName)
-		assert.NoError(t, err)
 
 		user1 := &User{}
 		user1.setName("Fitzchak")
@@ -216,8 +215,6 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 		var users []*User
 		q := session.QueryInIndex(usersByName)
 		q = q.WaitForNonStaleResults(0)
-		// TODO: should this be Name (name of the struct field) and we would
-		// convert that to json tag (if necessary) internally?
 		q = q.WhereEquals("name", "Arek")
 		err := q.GetResults(&users)
 		assert.NoError(t, err)
