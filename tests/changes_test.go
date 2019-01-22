@@ -259,7 +259,7 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	semaphore := make(chan bool)
+	semaphore := make(chan bool, 1)
 
 	changes := store.ChangesWithDatabaseName("no_such_db")
 
