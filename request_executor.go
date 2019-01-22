@@ -87,15 +87,18 @@ func (re *RequestExecutor) GetTopology() *Topology {
 	return nil
 }
 
+// GetTopologyNodes returns a copy of topology nodes
 func (re *RequestExecutor) GetTopologyNodes() []*ServerNode {
-	if re.GetTopology() == nil {
+	// Note: Java just returns re.GetTopology().Nodes and sometimes
+	// makes a copy. We always return copy (easier to make it safe)
+	t := re.GetTopology()
+	if t == nil || len(t.Nodes) == 0 {
 		return nil
 	}
-	var res []*ServerNode
-	nodes := re.GetTopology().Nodes
-	return append(res, nodes...)
+	return append([]*ServerNode{}, t.Nodes...)
 }
 
+// GetURL returns an URL
 func (re *RequestExecutor) GetURL() string {
 	if re.getNodeSelector() == nil {
 		return ""
