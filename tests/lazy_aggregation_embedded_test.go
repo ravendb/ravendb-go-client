@@ -41,7 +41,7 @@ func lazyAggregationEmbeddedLazyTest(t *testing.T, driver *RavenTestDriver) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		index.Execute(store)
+		index.Execute(store, nil, "")
 		driver.waitForIndexing(store, "", 0)
 
 		q := session.QueryInIndex(index)

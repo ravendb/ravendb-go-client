@@ -222,7 +222,7 @@ func suggestionsCanGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := NewUsers4ByName()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{

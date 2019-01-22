@@ -51,7 +51,7 @@ func patchTestCanWaitForIndexAfterPatch(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	usersByName := NewUsers_ByName()
-	err = usersByName.Execute(store)
+	err = usersByName.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{

@@ -43,7 +43,7 @@ func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(
 	defer store.Close()
 
 	index := NewTestIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	{

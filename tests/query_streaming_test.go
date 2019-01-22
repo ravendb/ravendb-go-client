@@ -18,7 +18,7 @@ func queryStreamingCanStreamQueryResults(t *testing.T, driver *RavenTestDriver) 
 	defer store.Close()
 
 	index := NewUsersByName2()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -63,7 +63,7 @@ func queryStreamingCanStreamQueryResultsWithQueryStatistics(t *testing.T, driver
 	defer store.Close()
 
 	index := NewUsersByName2()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -111,7 +111,7 @@ func queryStreamingCanStreamRawQueryResults(t *testing.T, driver *RavenTestDrive
 	defer store.Close()
 
 	index := NewUsersByName2()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -157,7 +157,7 @@ func queryStreamingCanStreamRawQueryResultsWithQueryStatistics(t *testing.T, dri
 	defer store.Close()
 
 	index := NewUsersByName2()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -205,7 +205,7 @@ func queryStreamingCanStreamRawQueryIntoStream(t *testing.T, driver *RavenTestDr
 	defer store.Close()
 
 	index := NewUsersByName2()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -240,7 +240,7 @@ func queryStreamingCanStreamQueryIntoStream(t *testing.T, driver *RavenTestDrive
 	defer store.Close()
 
 	index := NewUsersByName2()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{

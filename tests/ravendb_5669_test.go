@@ -13,7 +13,7 @@ func ravendb5669WorkingTestWithDifferentSearchTermOrder(t *testing.T, driver *Ra
 	defer store.Close()
 
 	index := NewAnimalIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	ravendb5669storeAnimals(t, store, driver)
@@ -48,7 +48,7 @@ func ravendb5669workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) 
 	defer store.Close()
 
 	index := NewAnimalIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	ravendb5669storeAnimals(t, store, driver)

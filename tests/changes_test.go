@@ -175,7 +175,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	changesList := make(chan *ravendb.IndexChange, 8)
@@ -218,7 +218,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	changesList := make(chan *ravendb.IndexChange, 8)
@@ -288,7 +288,7 @@ func changesTestResourcesCleanup(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := makeUsersByNameIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	// repeat this few times and watch deadlocks

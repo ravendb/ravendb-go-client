@@ -2,6 +2,9 @@ package ravendb
 
 import "strings"
 
+type IndexCreator interface {
+}
+
 // AbstractIndexCreationTask is for creating an index
 // TODO: rename to IndexCreationTask
 type AbstractIndexCreationTask struct {
@@ -22,7 +25,7 @@ type AbstractIndexCreationTask struct {
 
 	OutputReduceToCollection string
 
-	// in Go IndexName must provided explicitly
+	// Note: in Go IndexName must provided explicitly
 	// In Java it's dynamically calculated as getClass().getSimpleName()
 	IndexName string
 }
@@ -77,11 +80,7 @@ func (t *AbstractIndexCreationTask) GetIndexName() string {
 }
 
 // Execute executes index in specified document store
-func (t *AbstractIndexCreationTask) Execute(store *DocumentStore) error {
-	return store.ExecuteIndex(t)
-}
-
-func (t *AbstractIndexCreationTask) Execute2(store *DocumentStore, conventions *DocumentConventions, database string) error {
+func (t *AbstractIndexCreationTask) Execute(store *DocumentStore, conventions *DocumentConventions, database string) error {
 	return t.putIndex(store, conventions, database)
 }
 

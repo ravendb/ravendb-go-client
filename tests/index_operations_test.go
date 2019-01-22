@@ -25,7 +25,7 @@ func testIndexCanDeleteIndex(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := NewUsersIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	op := ravendb.NewGetIndexNamesOperation(0, 10)
@@ -51,7 +51,7 @@ func testIndexCanDisableAndEnableIndex(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := NewUsersIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -91,7 +91,7 @@ func testIndexGetCanIndexes(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := NewUsersIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -107,7 +107,7 @@ func testIndexGetCanIndexesStats(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	index := NewUsersIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -125,7 +125,7 @@ func testIndexGetTerms(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	index := NewUsersIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -366,7 +366,7 @@ func testIndexCanGetIndexStatistics(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	userIndex := NewUsers_Index()
-	err = userIndex.Execute(store)
+	err = userIndex.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	op := ravendb.NewGetIndexesStatisticsOperation()

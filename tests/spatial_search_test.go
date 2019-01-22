@@ -25,7 +25,7 @@ func spatialSearchCanDoSpatialSearchWithClientApi(t *testing.T, driver *RavenTes
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = NewSpatialIdx().Execute(store)
+	err = NewSpatialIdx().Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	now := now()
@@ -81,7 +81,7 @@ func spatialSearchCanDoSpatialSearchWithClientApi3(t *testing.T, driver *RavenTe
 	defer store.Close()
 
 	index := NewSpatialIdx()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -111,7 +111,7 @@ func spatialSearchCanDoSpatialSearchWithClientApiWithinGivenCapacity(t *testing.
 	defer store.Close()
 
 	index := NewSpatialIdx()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	now := now()
@@ -177,7 +177,7 @@ func spatialSearchCanDoSpatialSearchWithClientApiAddOrder(t *testing.T, driver *
 	defer store.Close()
 
 	index := NewSpatialIdx()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{

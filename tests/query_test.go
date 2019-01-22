@@ -819,7 +819,7 @@ func queryQueryWithDuration(t *testing.T, driver *RavenTestDriver) {
 	now := ravendb.Time(time.Now())
 
 	index := NewOrderTime()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	{
@@ -1114,7 +1114,7 @@ func queryAddUsers(t *testing.T, store *ravendb.DocumentStore, driver *RavenTest
 		session.Close()
 	}
 
-	err = store.ExecuteIndex(makeUsersByNameIndex())
+	err = store.ExecuteIndex(makeUsersByNameIndex(), "")
 	assert.NoError(t, err)
 	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
@@ -1124,7 +1124,7 @@ func queryQueryWithCustomize(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	err := store.ExecuteIndex(makeDogsIndex())
+	err := store.ExecuteIndex(makeDogsIndex(), "")
 	assert.NoError(t, err)
 
 	{
@@ -1307,7 +1307,7 @@ func queryQueryByIndex(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = store.ExecuteIndex(makeDogsIndex())
+	err = store.ExecuteIndex(makeDogsIndex(), "")
 	assert.NoError(t, err)
 
 	{

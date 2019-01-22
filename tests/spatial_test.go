@@ -80,7 +80,7 @@ func spatialWeirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	index := NewMyIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -135,7 +135,7 @@ func spatialMatchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	index := NewMyIndex()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{

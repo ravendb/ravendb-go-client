@@ -17,7 +17,7 @@ func IndexCreationCreateIndexes(indexes []*AbstractIndexCreationTask, store *Doc
 
 	// For old servers that don't have the new endpoint for executing multiple indexes
 	for _, index := range indexes {
-		err = index.Execute2(store, conventions, "")
+		err = index.Execute(store, conventions, "")
 		if err != nil {
 			return err
 		}

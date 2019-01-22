@@ -62,7 +62,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	userIndex := NewUsersIndex()
-	err = store.ExecuteIndex(userIndex)
+	err = store.ExecuteIndex(userIndex, "")
 	assert.NoError(t, err)
 
 	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
@@ -100,7 +100,7 @@ func indexesFromClientTestCanExecuteManyIndexes(t *testing.T, driver *RavenTestD
 	defer store.Close()
 
 	indexes := []*ravendb.AbstractIndexCreationTask{NewUsersIndex()}
-	err = store.ExecuteIndexes(indexes)
+	err = store.ExecuteIndexes(indexes, "")
 	assert.NoError(t, err)
 
 	indexNamesOperation := ravendb.NewGetIndexNamesOperation(0, 10)
@@ -122,7 +122,7 @@ func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	userIndex := NewUsersIndex()
-	err = store.ExecuteIndex(userIndex)
+	err = store.ExecuteIndex(userIndex, "")
 	assert.NoError(t, err)
 
 	op := ravendb.NewDeleteIndexOperation(NewUsersIndex().GetIndexName())
@@ -141,7 +141,7 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = NewUsers_ByName().Execute(store)
+	err = NewUsers_ByName().Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -224,7 +224,7 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 	defer store.Close()
 
 	usersByName := NewUsers_ByName()
-	err = store.ExecuteIndex(usersByName)
+	err = store.ExecuteIndex(usersByName, "")
 	assert.NoError(t, err)
 
 	{
@@ -516,7 +516,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	err = PostsByTitleAndDesc().Execute(store)
+	err = PostsByTitleAndDesc().Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	err = driver.waitForIndexing(store, "", 0)

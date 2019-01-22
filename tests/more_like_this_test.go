@@ -47,7 +47,7 @@ func moreLikeThisCanGetResultsUsingTermVectors(t *testing.T, driver *RavenTestDr
 
 	var id string
 	dataIndex := NewDataIndex2(true, false)
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 	{
 		session := openSessionMust(t, store)
 		list := getDataList()
@@ -74,7 +74,7 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
+		dataIndex.Execute(store, nil, "")
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -116,7 +116,7 @@ func moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, dr
 
 	var id string
 	dataIndex := NewDataIndex2(true, false)
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -159,7 +159,7 @@ func moreLikeThisCanGetResultsUsingStorage(t *testing.T, driver *RavenTestDriver
 
 	var id string
 	dataIndex := NewDataIndex2(false, true)
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -184,7 +184,7 @@ func moreLikeThisCanGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *R
 
 	var id string
 	dataIndex := NewDataIndex2(true, true)
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -208,7 +208,7 @@ func moreLikeThisTestWithLotsOfRandomData(t *testing.T, driver *RavenTestDriver)
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -233,7 +233,7 @@ func moreLikeThisDoNotPassFieldNames(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -274,7 +274,7 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 
 	key1 := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -317,7 +317,7 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store)
+		dataIndex.Execute(store, nil, "")
 		for i := 0; i < 10; i++ {
 			data := &Data{}
 			data.WhitespaceAnalyzerField = "bob@hotmail.com bob@hotmail.com"
@@ -355,7 +355,7 @@ func moreLikeThisCanUseMinDocFreqParam(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -405,7 +405,7 @@ func moreLikeThisCanUseBoostParam(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -459,7 +459,7 @@ func moreLikeThisCanUseStopWords(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -523,7 +523,7 @@ func moreLikeThisCanMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDr
 	defer store.Close()
 
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)
@@ -564,7 +564,7 @@ func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T
 	defer store.Close()
 
 	dataIndex := NewComplexDataIndex()
-	dataIndex.Execute(store)
+	dataIndex.Execute(store, nil, "")
 
 	{
 		session := openSessionMust(t, store)

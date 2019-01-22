@@ -23,7 +23,7 @@ func spatialQueriesCanRunSpatialQueriesInMemory(t *testing.T, driver *RavenTestD
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	err = NewSpatialQueriesInMemoryTestIdx().Execute(store)
+	err = NewSpatialQueriesInMemoryTestIdx().Execute(store, nil, "")
 	assert.NoError(t, err)
 }
 

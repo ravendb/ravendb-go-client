@@ -13,7 +13,7 @@ func simonBartlettLineStringsShouldIntersect(t *testing.T, driver *RavenTestDriv
 	defer store.Close()
 
 	index := NewGeoIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	{
@@ -64,7 +64,7 @@ func simonBartlettCirclesShouldNotIntersect(t *testing.T, driver *RavenTestDrive
 	defer store.Close()
 
 	index := NewGeoIndex()
-	err = store.ExecuteIndex(index)
+	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
 	{

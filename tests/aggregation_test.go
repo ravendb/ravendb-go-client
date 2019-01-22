@@ -43,7 +43,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDri
 	defer store.Close()
 
 	index := NewOrdersAll()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -121,7 +121,7 @@ func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTe
 	defer store.Close()
 
 	index := NewOrdersAll()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -206,7 +206,7 @@ func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *
 	defer store.Close()
 
 	index := NewOrdersAll()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -278,7 +278,7 @@ func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTest
 	defer store.Close()
 
 	index := NewOrdersAll()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -346,7 +346,7 @@ func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDrive
 	defer store.Close()
 
 	index := NewOrdersAll()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{
@@ -474,7 +474,7 @@ func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.
 	defer store.Close()
 
 	index := NewItemsOrdersAll()
-	err = index.Execute(store)
+	err = index.Execute(store, nil, "")
 	assert.NoError(t, err)
 
 	{

@@ -348,22 +348,14 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	return session, nil
 }
 
-func (s *DocumentStore) ExecuteIndex(task *AbstractIndexCreationTask) error {
-	return s.ExecuteIndexWithDatabase(task, "")
-}
-
-func (s *DocumentStore) ExecuteIndexWithDatabase(task *AbstractIndexCreationTask, database string) error {
+func (s *DocumentStore) ExecuteIndex(task *AbstractIndexCreationTask, database string) error {
 	if err := s.assertInitialized(); err != nil {
 		return err
 	}
-	return task.Execute2(s, s.conventions, database)
+	return task.Execute(s, s.conventions, database)
 }
 
-func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask) error {
-	return s.ExecuteIndexesWithDatabase(tasks, "")
-}
-
-func (s *DocumentStore) ExecuteIndexesWithDatabase(tasks []*AbstractIndexCreationTask, database string) error {
+func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask, database string) error {
 	if err := s.assertInitialized(); err != nil {
 		return err
 	}
