@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -210,6 +211,13 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 
 func TestSecuredSubscriptionsBasic(t *testing.T) {
 	t.Parallel()
+
+	// self-signing cert on windows is not added as root ca
+	if isWindows() {
+		fmt.Printf("Skipping TestHttps on windows\n")
+		t.Skip("Skipping on windows")
+		return
+	}
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
