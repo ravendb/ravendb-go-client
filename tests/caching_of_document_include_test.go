@@ -234,7 +234,7 @@ func cofiCanAvoidUsingServerForMultiloadWithIncludeIfEverythingIsInSessionCache(
 	{
 		session := openSessionMust(t, store)
 
-		names := []string{"Additional", "Ayende", "Michael", "Fitzhak", "Maxim"}
+		names := []string{"Additional", "Ayende", "Michael", "Fitzchak", "Maxim"}
 		for _, name := range names {
 			user := &User5{
 				Name: name,

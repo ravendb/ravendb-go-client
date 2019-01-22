@@ -61,7 +61,7 @@ func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDri
 	assert.Equal(t, len(subscriptions), 0)
 }
 
-func subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t *testing.T, driver *RavenTestDriver) {
+func subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -1045,7 +1045,7 @@ func TestSubscriptionsBasic(t *testing.T) {
 	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	subscriptionsBasic_canDeleteSubscription(t, driver)
 	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
-	subscriptionsBasic_shouldThrowWhenOpeningNoExisingSubscription(t, driver)
+	subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t, driver)
 	subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)
 	subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t, driver)
 }
