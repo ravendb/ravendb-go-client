@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -263,7 +263,7 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		names := make(chan string)
+		names := make(chan string, 20)
 
 		processBatch := func(batch *ravendb.SubscriptionBatch) error {
 			for _, item := range batch.Items {

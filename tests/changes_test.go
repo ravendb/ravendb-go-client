@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,7 +87,7 @@ func changesTestChangesWithHttps(t *testing.T, driver *RavenTestDriver) {
 		t.Skip("skipping https test on windows")
 		return
 	}
-	store := getSecuredDocumentStoreMust(t, driver)
+	store := driver.getSecuredDocumentStoreMust(t)
 	defer store.Close()
 	changesTestSingleDocumentChangesCommon(t, store)
 }

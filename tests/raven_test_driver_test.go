@@ -77,10 +77,10 @@ func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
 	return nil, fmt.Errorf("Failed to parse private key")
 }
 
-func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
+func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, []byte, error) {
 	raw, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var cert tls.Certificate
@@ -94,27 +94,31 @@ func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
 		} else {
 			cert.PrivateKey, err = parsePrivateKey(block.Bytes)
 			if err != nil {
-				return nil, fmt.Errorf("Failure reading private key from \"%s\": %s", path, err)
+				return nil, nil, fmt.Errorf("Failure reading private key from \"%s\": %s", path, err)
 			}
 		}
 		raw = rest
 	}
 
 	if len(cert.Certificate) == 0 {
-		return nil, fmt.Errorf("No certificate found in \"%s\"", path)
+		return nil, nil, fmt.Errorf("No certificate found in \"%s\"", path)
 	} else if cert.PrivateKey == nil {
-		return nil, fmt.Errorf("No private key found in \"%s\"", path)
+		return nil, nil, fmt.Errorf("No private key found in \"%s\"", path)
 	}
 
-	return &cert, nil
+	return &cert, raw, nil
 }
 
 func getTestClientCertificate() *ravendb.KeyStore {
 	res := &ravendb.KeyStore{}
 	path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
-	cert, err := loadCertficateAndKeyFromFile(path)
+	cert, raw, err := loadCertficateAndKeyFromFile(path)
 	must(err)
-	res.Certificates = append(res.Certificates, *cert)
+	keyCert := &ravendb.KeyStoreCertificate{
+		PEM:     raw,
+		TLSCert: cert,
+	}
+	res.Certificates = append(res.Certificates, keyCert)
 	return res
 }
 
@@ -380,6 +384,13 @@ func (d *RavenTestDriver) getDocumentStoreMust(t *testing.T) *ravendb.DocumentSt
 	return store
 }
 
+func (d *RavenTestDriver) getSecuredDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
+	store, err := d.getSecuredDocumentStore()
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+	return store
+}
+
 func (d *RavenTestDriver) Close() {
 	if d.disposed {
 		return
@@ -408,17 +419,6 @@ func isEnvVarTrue(name string) bool {
 		return true
 	}
 	return false
-}
-
-func getDocumentStoreMust(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
-	return driver.getDocumentStoreMust(t)
-}
-
-func getSecuredDocumentStoreMust(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
-	store, err := driver.getSecuredDocumentStore()
-	assert.NoError(t, err)
-	assert.NotNil(t, store)
-	return store
 }
 
 func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.DocumentSession {

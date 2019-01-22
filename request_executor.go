@@ -168,13 +168,16 @@ func tlsConfigFromCerts(keystore *KeyStore) *tls.Config {
 	if keystore == nil || keystore.Certificates == nil {
 		return nil
 	}
-	return &tls.Config{
-		Certificates: keystore.Certificates,
+	res := &tls.Config{
 		// TODO: this is for testing only, we should either manually
 		// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
 		// or add certificate to global cert store
 		InsecureSkipVerify: true,
 	}
+	for _, c := range keystore.Certificates {
+		res.Certificates = append(res.Certificates, *c.TLSCert)
+	}
+	return res
 }
 
 func makeHTTPClient(keystore *KeyStore) *http.Client {

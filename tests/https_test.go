@@ -9,7 +9,7 @@ import (
 
 func httpsTestCanConnectWithCertificate(t *testing.T, driver *RavenTestDriver) {
 	var err error
-	store := getSecuredDocumentStoreMust(t, driver)
+	store := driver.getSecuredDocumentStoreMust(t)
 	defer store.Close()
 
 	{

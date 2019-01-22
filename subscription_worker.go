@@ -2,10 +2,8 @@ package ravendb
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net"
-	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -162,20 +160,6 @@ func (w *SubscriptionWorker) getSubscriptionName() string {
 	return ""
 }
 
-func tcpConnect(uri string) (net.Conn, error) {
-	//  uri is in the format: tcp://127.0.0.1:14206
-	parsed, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	if parsed.Scheme != "tcp" {
-		return nil, fmt.Errorf("bad url: '%s', expected scheme to be 'ftp', is '%s'", uri, parsed.Scheme)
-	}
-
-	// parsed.Host is in the form "127.0.0.1:14206"
-	return net.Dial("tcp", parsed.Host)
-}
-
 func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	command := NewGetTcpInfoCommand("Subscription/"+w._dbName, w._dbName)
 	requestExecutor := w._store.GetRequestExecutor(w._dbName)
@@ -196,13 +180,16 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	}
 
 	uri := command.Result.URL
-	// TODO: pass cert + timeout?
-	tcpClient, err := tcpConnect(uri)
+	var serverCert []byte
+	if command.Result.Certificate != nil {
+		serverCert = []byte(*command.Result.Certificate)
+	}
+	cert := w._store.GetCertificate()
+	tcpClient, err := tcpConnect(uri, serverCert, cert)
 	if err != nil {
 		return nil, err
 	}
 	w.setTcpClient(tcpClient)
-	//TODO: _stream = await TcpUtils.WrapStreamWithSslAsync(_tcpClient, command.Result, _store.Certificate, requestExecutor.DefaultTimeout).ConfigureAwait(false);
 	databaseName := w._dbName
 	if databaseName == "" {
 		databaseName = w._store.GetDatabase()
@@ -260,7 +247,7 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 		w._subscriptionLocalRequestExecutor.Close()
 	}
 	conv := w._store.GetConventions()
-	cert := requestExecutor.GetCertificate()
+	cert = requestExecutor.GetCertificate()
 	uri = command.requestedNode.URL
 	w._subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w._dbName, cert, conv)
 	return tcpClient, nil
