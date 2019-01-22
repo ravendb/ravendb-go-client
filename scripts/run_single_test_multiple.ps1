@@ -26,7 +26,7 @@ if ($IsMacOS) {
 For ($i=0; $i -lt 10; $i++) {
 
     go clean -testcache
-    go test -parallel 1 -v -timeout 50s ./tests -run ^TestAttachmentsSession$
+    go test -parallel 1 -v -timeout 50s ./tests -run ^TestBulkInserts$
 
     if ($lastexitcode -ne 0) {
         exit
