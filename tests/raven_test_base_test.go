@@ -42,7 +42,10 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 	}
 
 	parsed, err := url.Parse(httpsServerURL)
-	panicIf(err != nil, err.Error())
+	if err != nil {
+		fmt.Printf("url.Parse('%s') failed with %s\n", httpsServerURL, err)
+		return nil, err
+	}
 	host := parsed.Host
 	// host can be name:port, extract "name" part
 	host = strings.Split(host, ":")[0]
