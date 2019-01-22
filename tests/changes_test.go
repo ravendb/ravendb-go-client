@@ -264,13 +264,13 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	changes := store.ChangesWithDatabaseName("no_such_db")
 
 	onError := func(e error) {
-		<-semaphore // release
+		semaphore <- true
 	}
 	changes.AddOnError(onError)
 
 	timedOut := false
 	select {
-	case <-semaphore: // try acquire
+	case <-semaphore:
 		// do nothing
 	case <-time.After(time.Second * 15):
 		timedOut = true
