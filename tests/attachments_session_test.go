@@ -542,7 +542,7 @@ func attachmentsSessionAttachmentExists(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestAttachmentsSession(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

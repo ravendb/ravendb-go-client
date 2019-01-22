@@ -347,7 +347,7 @@ func ravendb8761putDocs(t *testing.T, store *ravendb.DocumentStore) {
 }
 
 func TestRavenDB8761(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

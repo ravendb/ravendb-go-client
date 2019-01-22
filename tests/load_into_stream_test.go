@@ -125,7 +125,7 @@ type Employee2 struct {
 }
 
 func TestLoadIntoStream(t *testing.T) {
-	t.Parallel()
+	// // t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

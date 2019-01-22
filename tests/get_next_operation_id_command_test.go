@@ -19,7 +19,7 @@ func getNextOperationIdCommandTestCanGetNextOperationId(t *testing.T, driver *Ra
 }
 
 func TestGetNextOperationIDCommand(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

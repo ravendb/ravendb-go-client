@@ -711,7 +711,7 @@ func crudTestCrudCanUpdatePropertyFromNullToObject(t *testing.T, driver *RavenTe
 }
 
 func TestCrud(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

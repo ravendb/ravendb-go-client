@@ -62,7 +62,7 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 }
 
 func TestLoadAllStartingWith(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

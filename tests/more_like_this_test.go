@@ -694,7 +694,7 @@ func NewComplexDataIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestMoreLikeThis(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

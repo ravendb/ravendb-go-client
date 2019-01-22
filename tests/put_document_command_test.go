@@ -37,7 +37,7 @@ func putDocumentCommandCanPutDocumentUsingCommand(t *testing.T, driver *RavenTes
 }
 
 func TestPutDocumentCommand(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

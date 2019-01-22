@@ -39,7 +39,7 @@ func compactTestCanCompactDatabase(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestCompact(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

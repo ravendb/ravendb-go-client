@@ -349,7 +349,7 @@ func assertRevisionAttachments(t *testing.T, names []string, expectedCount int, 
 }
 
 func TestAttachmentsRevisions(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

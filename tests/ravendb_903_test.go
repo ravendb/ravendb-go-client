@@ -98,7 +98,7 @@ func NewTestIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestRavenDB903(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

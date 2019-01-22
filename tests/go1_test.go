@@ -612,7 +612,7 @@ func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestGo1(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

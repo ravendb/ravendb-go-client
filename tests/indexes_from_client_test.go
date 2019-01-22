@@ -543,7 +543,7 @@ func PostsByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestIndexesFromClient(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

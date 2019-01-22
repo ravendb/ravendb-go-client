@@ -134,7 +134,7 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestBasicDocuments(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

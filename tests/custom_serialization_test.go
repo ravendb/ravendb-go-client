@@ -117,7 +117,7 @@ func (m *Money) UnmarshalJSON(d []byte) error {
 }
 
 func TestCustomSerialization(t *testing.T) {
-	t.Parallel()
+	// // t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

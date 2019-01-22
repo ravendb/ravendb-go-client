@@ -51,7 +51,7 @@ func loadTestCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestDeleteByQuery(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

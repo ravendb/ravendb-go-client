@@ -132,7 +132,7 @@ func NewAnimalIndex() *ravendb.AbstractIndexCreationTask {
 }
 
 func TestRavenDB5669(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

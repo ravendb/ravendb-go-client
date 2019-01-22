@@ -118,7 +118,7 @@ func aggressiveCachingWaitForNonStaleResultsIgnoresAggressiveCaching(t *testing.
 }
 
 func TestAggressiveCaching(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

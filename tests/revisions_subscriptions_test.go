@@ -229,7 +229,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 }
 
 func TestRevisionsSubscriptions(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

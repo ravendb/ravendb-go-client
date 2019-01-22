@@ -24,7 +24,7 @@ func httpsTestCanConnectWithCertificate(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestHttps(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	// self-signing cert on windows is not added as root ca
 	if isWindows() {

@@ -152,7 +152,7 @@ type FooBar struct {
 }
 
 func TestBulkInserts(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

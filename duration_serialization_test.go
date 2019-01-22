@@ -8,7 +8,7 @@ import (
 )
 
 func TestCanSerializeDuration(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	tests := []struct {
 		d   time.Duration

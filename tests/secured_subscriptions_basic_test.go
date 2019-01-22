@@ -210,7 +210,7 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 }
 
 func TestSecuredSubscriptionsBasic(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	// self-signing cert on windows is not added as root ca
 	if isWindows() {

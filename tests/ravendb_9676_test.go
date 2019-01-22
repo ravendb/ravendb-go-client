@@ -92,7 +92,7 @@ type Item struct {
 }
 
 func TestRavenDB9676(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }

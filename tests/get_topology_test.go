@@ -28,7 +28,7 @@ func getTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestGetTopology(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
