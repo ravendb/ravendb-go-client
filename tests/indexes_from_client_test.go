@@ -8,6 +8,43 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func indexesFromClientTestCanCreateIndexesUsingIndexCreation(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	indexes := []*ravendb.AbstractIndexCreationTask{NewUsers_ByName()}
+	err = ravendb.IndexCreationCreateIndexes(indexes, store, nil)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+		user1 := &User{}
+		user1.setName("Marcin")
+		err = session.StoreWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+
+		var users []*User
+		q := session.QueryInIndex(indexes[0])
+		err := q.GetResults(&users)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(users))
+
+		session.Close()
+	}
+}
+
 func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -559,4 +596,7 @@ func TestIndexesFromClient(t *testing.T) {
 	indexesFromClientTestMoreLikeThis(t, driver)
 	indexesFromClientTestSetLockModeAndSetPriority(t, driver)
 	indexesFromClientTestGetTerms(t, driver)
+
+	// TODO: order doesn't match Java
+	indexesFromClientTestCanCreateIndexesUsingIndexCreation(t, driver)
 }

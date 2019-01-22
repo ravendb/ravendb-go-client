@@ -1,27 +1,31 @@
 package tests
 
 import (
+	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
-func loadTestCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
+func deleteByQueryCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
 	{
 		session := openSessionMust(t, store)
-		user1 := &User{}
-		user1.Age = 5
+		user1 := &User{
+			Age: 5,
+		}
 		err = session.Store(user1)
 		assert.NoError(t, err)
 
-		user2 := &User{}
-		user2.Age = 10
+		user2 := &User{
+			Age: 10,
+		}
 		err = session.Store(user2)
 		assert.NoError(t, err)
 
@@ -50,6 +54,57 @@ func loadTestCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		user1 := &User{
+			Age: 5,
+		}
+		err = session.Store(user1)
+		assert.NoError(t, err)
+
+		user2 := &User{
+			Age: 10,
+		}
+		err = session.Store(user2)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+	}
+	semaphore := make(chan bool)
+
+	{
+		changes := store.Changes()
+		err = changes.EnsureConnectedNow()
+		require.NoError(t, err)
+
+		//IChangesObservable<OperationStatusChange>
+		allOperationChanges, err := changes.ForAllOperations()
+		require.NoError(t, err)
+
+		action := func(v interface{}) {
+			semaphore <- true
+		}
+		observer := ravendb.NewActionBasedObserver(action)
+		allOperationChanges.Subscribe(observer)
+
+		indexQuery := ravendb.NewIndexQuery("from users where age == 5")
+		operation := ravendb.NewDeleteByQueryOperation(indexQuery)
+		_, err = store.Operations().SendAsync(operation)
+		assert.NoError(t, err)
+
+		timedOut := chanWaitTimedOut(semaphore, 15*time.Second)
+		assert.False(t, timedOut)
+		changes.Close()
+	}
+}
+
 func TestDeleteByQuery(t *testing.T) {
 	// t.Parallel()
 
@@ -58,5 +113,8 @@ func TestDeleteByQuery(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	loadTestCanDeleteByQuery(t, driver)
+	//TODO: match order of Java tests
+	deleteByQueryCanDeleteByQuery(t, driver)
+
+	deleteByQueryCanDeleteByQueryWaitUsingChanges(t, driver)
 }

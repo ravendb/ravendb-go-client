@@ -857,8 +857,8 @@ func queryQueryWithDuration(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	driver.waitForIndexing(store, "", 0)
-
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 	{
 		session := openSessionMust(t, store)
 

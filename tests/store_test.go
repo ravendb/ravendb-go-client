@@ -124,10 +124,14 @@ func storeTestNotifyAfterStore(t *testing.T, driver *RavenTestDriver) {
 		isLoaded := session.Advanced().IsLoaded("users/1")
 		assert.True(t, isLoaded)
 
-		changeVEctor, err := session.Advanced().GetChangeVectorFor(user1)
+		changeVector, err := session.Advanced().GetChangeVectorFor(user1)
 		assert.NoError(t, err)
+		assert.NotNil(t, changeVector)
 
-		assert.NotNil(t, changeVEctor)
+		lastModified, err := session.Advanced().GetLastModifiedFor(user1)
+		assert.NoError(t, err)
+		assert.NotNil(t, lastModified)
+
 		session.Close()
 	}
 

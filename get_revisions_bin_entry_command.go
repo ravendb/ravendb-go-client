@@ -12,28 +12,29 @@ var (
 type GetRevisionsBinEntryCommand struct {
 	RavenCommandBase
 
-	_etag     int
-	_pageSize int
+	etag     int64
+	pageSize int
 
-	Result []map[string]interface{}
+	Result *JSONArrayResult
 }
 
-func NewGetRevisionsBinEntryCommand(etag int, pageSize int) *GetRevisionsBinEntryCommand {
+func NewGetRevisionsBinEntryCommand(etag int64, pageSize int) *GetRevisionsBinEntryCommand {
 	cmd := &GetRevisionsBinEntryCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_etag:     etag,
-		_pageSize: pageSize,
+		etag:     etag,
+		pageSize: pageSize,
 	}
 	cmd.IsReadRequest = true
 	return cmd
 }
 
 func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/revisions/bin?etag=" + strconv.Itoa(c._etag)
+	etagStr := strconv.FormatInt(c.etag, 10)
+	url := node.URL + "/databases/" + node.Database + "/revisions/bin?etag=" + etagStr
 
-	if c._pageSize > 0 {
-		url += "&pageSize=" + strconv.Itoa(c._pageSize)
+	if c.pageSize > 0 {
+		url += "&pageSize=" + strconv.Itoa(c.pageSize)
 	}
 
 	return NewHttpGet(url)

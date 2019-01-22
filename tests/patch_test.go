@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -44,6 +45,50 @@ func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func patchTestCanWaitForIndexAfterPatch(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	usersByName := NewUsers_ByName()
+	err = usersByName.Execute(store)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+		user := &User{}
+		user.setName("RavenDB")
+
+		err = session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		builder := func(x *ravendb.IndexesWaitOptsBuilder) {
+			x.WaitForIndexes("Users/ByName")
+		}
+		session.Advanced().WaitForIndexesAfterSaveChanges(builder)
+
+		var user *User
+		err = session.Load(&user, "users/1")
+		assert.NoError(t, err)
+
+		err = session.Advanced().PatchEntity(user, "name", "New Name")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+}
+
 func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -58,6 +103,18 @@ func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
+		// TODO: CountLazily doesn't need results
+		// and we crash if it's Query() and not QueryType()
+		// (need to validate and not crash)
+		var n int
+		var results []*User
+		clazz := reflect.TypeOf(&User{})
+		lazy, err := session.QueryType(clazz).CountLazily(&results, &n)
+		assert.NoError(t, err)
+		lazy.GetValue()
+		assert.Equal(t, n, 1)
+
 		session.Close()
 	}
 
@@ -117,4 +174,7 @@ func TestPatch(t *testing.T) {
 	patchTestcanPatchManyDocuments(t, driver)
 	patchTestthrowsOnInvalidScript(t, driver)
 	patchTestcanPatchSingleDocument(t, driver)
+
+	// TODO: not in order of Java
+	patchTestCanWaitForIndexAfterPatch(t, driver)
 }

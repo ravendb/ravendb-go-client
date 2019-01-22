@@ -51,6 +51,13 @@ func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDri
 	subscriptions, err := store.Subscriptions.GetSubscriptions(0, 5, "")
 	assert.NoError(t, err)
 	assert.Equal(t, len(subscriptions), 2)
+
+	// test getSubscriptionState as well
+	subscriptionState, err := store.Subscriptions.GetSubscriptionState(id1, "")
+	assert.NoError(t, err)
+	cv := subscriptionState.ChangeVectorForNextBatchStartingPoint
+	assert.Nil(t, cv)
+
 	err = store.Subscriptions.Delete(id1, "")
 	assert.NoError(t, err)
 	err = store.Subscriptions.Delete(id2, "")

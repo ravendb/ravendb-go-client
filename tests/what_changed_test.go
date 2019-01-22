@@ -396,6 +396,70 @@ func whatChangedWhatChangedShouldBeIdempotentOperation(t *testing.T, driver *Rav
 	}
 }
 
+func whatChangedHasChanges(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user1 := &User{}
+		user1.setName("user1")
+
+		user2 := &User{}
+		user2.setName("user2")
+		user2.Age = 1
+
+		err = session.StoreWithID(user1, "users/1")
+		assert.NoError(t, err)
+		err = session.StoreWithID(user2, "users/2")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		hasChanges := session.Advanced().HasChanges()
+		assert.False(t, hasChanges)
+
+		var u1, u2 *User
+
+		err = session.Load(&u1, "users/1")
+		assert.NoError(t, err)
+		err = session.Load(&u2, "users/2")
+		assert.NoError(t, err)
+
+		hasChanged, err := session.Advanced().HasChanged(u1)
+		assert.NoError(t, err)
+		assert.False(t, hasChanged)
+
+		hasChanged, err = session.Advanced().HasChanged(u2)
+		assert.NoError(t, err)
+		assert.False(t, hasChanged)
+
+		u1.setName("new name")
+
+		hasChanged, err = session.Advanced().HasChanged(u1)
+		assert.NoError(t, err)
+		assert.True(t, hasChanged)
+
+		hasChanged, err = session.Advanced().HasChanged(u2)
+		assert.NoError(t, err)
+		assert.False(t, hasChanged)
+
+		hasChanges = session.Advanced().HasChanges()
+		assert.True(t, hasChanges)
+
+		session.Close()
+	}
+}
+
 type BasicName struct {
 	Name string
 }
@@ -437,4 +501,7 @@ func TestWhatChanged(t *testing.T) {
 	whatChangedRavenDB8169(t, driver)
 	whatChangedWhatChangedRemovedField(t, driver)
 	whatChangedWhatChangedShouldBeIdempotentOperation(t, driver)
+
+	// TODO: order doesn't match Java
+	whatChangedHasChanges(t, driver)
 }

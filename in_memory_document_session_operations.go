@@ -957,7 +957,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 	return false
 }
 
-// Determines whether the specified entity has changed.
+// HasChanged returns true if an entity has changed.
 func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) (bool, error) {
 	err := checkValidEntityIn(entity, "entity")
 	if err != nil {
@@ -971,6 +971,30 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) (bool
 
 	document := convertEntityToJSON(entity, documentInfo)
 	return s.entityChanged(document, documentInfo, nil), nil
+}
+
+func (s *InMemoryDocumentSessionOperations) WaitForReplicationAfterSaveChanges(options func(*ReplicationWaitOptsBuilder)) {
+	// TODO: what does it do? looks like a no-op
+	builder := &ReplicationWaitOptsBuilder{}
+	options(builder)
+
+	builderOptions := builder.getOptions()
+	if builderOptions.waitForReplicasTimeout == 0 {
+		builderOptions.waitForReplicasTimeout = time.Second * 15
+	}
+	builderOptions.waitForReplicas = true
+}
+
+func (s *InMemoryDocumentSessionOperations) WaitForIndexesAfterSaveChanges(options func(*IndexesWaitOptsBuilder)) {
+	// TODO: what does it do? looks like a no-op
+	builder := &IndexesWaitOptsBuilder{}
+	options(builder)
+
+	builderOptions := builder.getOptions()
+	if builderOptions.waitForIndexesTimeout == 0 {
+		builderOptions.waitForIndexesTimeout = time.Second * 15
+	}
+	builderOptions.waitForIndexes = true
 }
 
 func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
@@ -1256,4 +1280,63 @@ func copyDeferredCommandsMap(in map[idTypeAndName]ICommandData) map[idTypeAndNam
 		res[k] = v
 	}
 	return res
+}
+
+type ReplicationWaitOptsBuilder struct {
+	saveChangesOptions *BatchOptions
+}
+
+func (b *ReplicationWaitOptsBuilder) getOptions() *BatchOptions {
+	if b.saveChangesOptions == nil {
+		b.saveChangesOptions = &BatchOptions{}
+	}
+	return b.saveChangesOptions
+}
+
+func (b *ReplicationWaitOptsBuilder) WithTimeout(timeout time.Duration) *ReplicationWaitOptsBuilder {
+	b.getOptions().waitForReplicasTimeout = timeout
+	return b
+}
+
+func (b *ReplicationWaitOptsBuilder) ThrowOnTimeout(shouldThrow bool) *ReplicationWaitOptsBuilder {
+	b.getOptions().throwOnTimeoutInWaitForReplicas = shouldThrow
+	return b
+}
+
+func (b *ReplicationWaitOptsBuilder) NumberOfReplicas(replicas int) *ReplicationWaitOptsBuilder {
+	b.getOptions().numberOfReplicasToWaitFor = replicas
+	return b
+}
+
+func (b *ReplicationWaitOptsBuilder) Majority(waitForMajority bool) *ReplicationWaitOptsBuilder {
+	b.getOptions().majority = waitForMajority
+	return b
+}
+
+type IndexesWaitOptsBuilder struct {
+	saveChangesOptions *BatchOptions
+}
+
+func (b *IndexesWaitOptsBuilder) getOptions() *BatchOptions {
+	if b.saveChangesOptions == nil {
+		b.saveChangesOptions = &BatchOptions{}
+	}
+	return b.saveChangesOptions
+}
+
+func (b *IndexesWaitOptsBuilder) WithTimeout(timeout time.Duration) *IndexesWaitOptsBuilder {
+	// TODO: most likely a bug and meant waitForIndexesTimeout
+	b.getOptions().waitForReplicasTimeout = timeout
+	return b
+}
+
+func (b *IndexesWaitOptsBuilder) ThrowOnTimeout(shouldThrow bool) *IndexesWaitOptsBuilder {
+	// TODO: most likely a bug and meant throwOnTimeoutInWaitForIndexes
+	b.getOptions().throwOnTimeoutInWaitForReplicas = shouldThrow
+	return b
+}
+
+func (b *IndexesWaitOptsBuilder) WaitForIndexes(indexes ...string) *IndexesWaitOptsBuilder {
+	b.getOptions().waitForSpecificIndexes = indexes
+	return b
 }

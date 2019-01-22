@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"math"
 	"reflect"
 	"sort"
 	"strconv"
@@ -88,6 +89,49 @@ func revisionsTestRevisions(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func revisionsTestCanListRevisionsBin(t *testing.T, driver *RavenTestDriver) {
+
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	_, err = setupRevisions(store, false, 4)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+
+		user := &User{}
+		user.setName("user1")
+		err = session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		err = session.Delete("users/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+	revisionsBinEntryCommand := ravendb.NewGetRevisionsBinEntryCommand(math.MaxInt64, 20)
+	err = store.GetRequestExecutor("").ExecuteCommand(revisionsBinEntryCommand)
+	assert.NoError(t, err)
+	result := revisionsBinEntryCommand.Result
+	assert.Equal(t, len(result.Results), 1)
+	metaI := result.Results[0]["@metadata"]
+	meta := metaI.(map[string]interface{})
+	id, _ := jsonGetAsText(meta, "@id")
+	assert.Equal(t, id, "users/1")
+}
+
 func TestRevisions(t *testing.T) {
 	// t.Parallel()
 
@@ -96,4 +140,6 @@ func TestRevisions(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	revisionsTestRevisions(t, driver)
+	// TODO: order might be different than Java
+	revisionsTestCanListRevisionsBin(t, driver)
 }
