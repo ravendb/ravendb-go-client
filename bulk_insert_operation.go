@@ -119,11 +119,16 @@ func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) err
 	return newBulkInsertAbortedError("Failed to execute bulk insert, error: %s", err)
 }
 
-func (o *BulkInsertOperation) getErrorFromOperation() *BulkInsertAbortedError {
+func (o *BulkInsertOperation) getErrorFromOperation() error {
 	stateRequest := NewGetOperationStateCommand(o._requestExecutor.GetConventions(), o._operationID)
 	err := o._requestExecutor.ExecuteCommand(stateRequest)
 	if err != nil {
-		return nil // TODO: return an error?
+		return err
+	}
+
+	status, _ := jsonGetAsText(stateRequest.Result, "Status")
+	if status != "Faulted" {
+		return nil
 	}
 
 	if result, ok := stateRequest.Result["Result"]; ok {
