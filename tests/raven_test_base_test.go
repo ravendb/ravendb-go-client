@@ -2,7 +2,9 @@ package tests
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
 )
@@ -14,6 +16,7 @@ func NewTestServiceLocator() (*RavenServerLocator, error) {
 	}
 	locator.commandArguments = []string{
 		"--ServerUrl=http://127.0.0.1:0",
+		"--ServerUrl.Tcp=tcp://127.0.0.1:38881",
 	}
 	return locator, nil
 }
@@ -37,10 +40,19 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 	if certificatePath == "" {
 		return nil, fmt.Errorf("Unable to find RavenDB server certificate path. Please make sure %s environment variable is set and is valid (current value = %v)", envCertificatePath, envHTTPSServerURL)
 	}
+
+	parsed, err := url.Parse(httpsServerURL)
+	panicIf(err != nil, err.Error())
+	host := parsed.Host
+	// host can be name:port, extract "name" part
+	host = strings.Split(host, ":")[0]
+	tcpServerURL := "tcp://" + host + ":38882"
+
 	locator.commandArguments = []string{
 		"--Security.Certificate.Path=" + certificatePath,
 		"--Security.Certificate.Password=pwd1234",
 		"--ServerUrl=" + httpsServerURL,
+		"--ServerUrl.Tcp=" + tcpServerURL,
 	}
 	return locator, nil
 }
