@@ -311,6 +311,9 @@ func (c *databaseChanges) invokeConnectionStatusChanged() {
 }
 
 func (c *databaseChanges) AddOnError(handler func(error)) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	idx := len(c.onError)
 	c.onError = append(c.onError, handler)
 	return idx
@@ -321,7 +324,16 @@ func (c *databaseChanges) RemoveOnError(handlerIdx int) {
 }
 
 func (c *databaseChanges) invokeOnError(err error) {
-	for _, fn := range c.onError {
+	// make a copy so that we can safely access outside of a lock
+	c.mu.Lock()
+	if len(c.onError) == 0 {
+		c.mu.Unlock()
+		return
+	}
+	handlers := append([]func(error){}, c.onError...)
+	c.mu.Unlock()
+
+	for _, fn := range handlers {
 		if fn != nil {
 			fn(err)
 		}
