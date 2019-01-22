@@ -49,7 +49,7 @@ if ($IsMacOS) {
 
 $sw = [Diagnostics.Stopwatch]::StartNew()
 # -parallel 1 to disable parallel execution of tests
-go test -race -timeout 20m -v ./tests
+go test -parallel 1 -race -timeout 20m -v ./tests
 Start-Sleep -s 3
 $sw.Stop()
 FormatElapsedTime $sw.Elapsed
