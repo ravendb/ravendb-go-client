@@ -259,8 +259,7 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	semaphore := make(chan bool, 1)
-	semaphore <- true // acquire
+	semaphore := make(chan bool)
 
 	changes := store.ChangesWithDatabaseName("no_such_db")
 
@@ -269,12 +268,14 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	}
 	changes.AddOnError(onError)
 
+	timedOut := false
 	select {
-	case <-semaphore:
+	case <-semaphore: // try acquire
 		// do nothing
 	case <-time.After(time.Second * 15):
-		assert.True(t, false, "timed out waiting for error")
+		timedOut = true
 	}
+	assert.False(t, timedOut)
 
 	op := ravendb.NewGetStatisticsOperation()
 	err = store.Maintenance().Send(op)

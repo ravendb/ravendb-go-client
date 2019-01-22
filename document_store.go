@@ -394,9 +394,9 @@ func (s *DocumentStore) GetRequestExecutor(database string) *RequestExecutor {
 	}
 
 	if !s.GetConventions().IsDisableTopologyUpdates() {
-		executor = RequestExecutorCreate(s.GetUrls(), s.GetDatabase(), s.GetCertificate(), s.GetConventions())
+		executor = RequestExecutorCreate(s.GetUrls(), database, s.GetCertificate(), s.GetConventions())
 	} else {
-		executor = RequestExecutorCreateForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], s.GetDatabase(), s.GetCertificate(), s.GetConventions())
+		executor = RequestExecutorCreateForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], database, s.GetCertificate(), s.GetConventions())
 	}
 
 	s.mu.Lock()
