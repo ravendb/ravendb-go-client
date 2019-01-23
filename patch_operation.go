@@ -1,7 +1,9 @@
 package ravendb
 
 import (
+	"fmt"
 	"net/http"
+	"reflect"
 )
 
 var (
@@ -18,8 +20,19 @@ type PatchOperationPayload struct {
 // PatchOperationResult represents result of patch operation
 // Note: in Java it's Result nested in PatchOperation
 type PatchOperationResult struct {
-	Status   PatchStatus `json:"Status"`
-	Document interface{} `json:"Document"`
+	Status   PatchStatus            `json:"Status"`
+	Document map[string]interface{} `json:"Document"`
+}
+
+func (r *PatchOperationResult) GetResult(result interface{}) error {
+	fmt.Printf("Document: %v\n", r.Document)
+	entityType := reflect.TypeOf(result)
+	entity, err := makeStructFromJSONMap(entityType, r.Document)
+	if err != nil {
+		return err
+	}
+	setInterfaceToValue(result, entity)
+	return nil
 }
 
 // PatchOperation represents patch operation
@@ -68,7 +81,7 @@ type PatchCommand struct {
 	_returnDebugInformation          bool
 	_test                            bool
 
-	Result *PatchOperationResult
+	Result *PatchResult
 }
 
 // NewPatchCommand returns new PatchCommand

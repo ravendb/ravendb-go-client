@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -57,7 +57,6 @@ func advancedPatchingTestWithVariables(t *testing.T, driver *RavenTestDriver) {
 }
 
 func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, driver *RavenTestDriver) {
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -94,6 +93,7 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 
 	{
 		session := openSessionMust(t, store)
+
 		var notUsed []*CustomType
 		q := session.Advanced().DocumentQueryAll("TestIndex", "", false)
 		q = q.WaitForNonStaleResults(0)
@@ -122,6 +122,103 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 	}
 }
 
+const SAMPLE_SCRIPT = `this.comments.splice(2, 1);
+    this.owner = 'Something new';
+    this.value++;
+    this.newValue = "err!!";
+    this.comments = this.comments.map(function(comment) {
+        return (comment == "one") ? comment + " test" : comment;
+    });`
+
+func advancedPatchingCanApplyBasicScriptAsPatch(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		test := &CustomType{
+			ID:       "someId",
+			Owner:    "bob",
+			Value:    12143,
+			Comments: []string{"one", "two", "seven"},
+		}
+
+		err = session.Store(test)
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+	req := &ravendb.PatchRequest{
+		Script: SAMPLE_SCRIPT,
+	}
+
+	op := ravendb.NewPatchOperation("someId", nil, req, nil, false)
+	err = store.Operations().Send(op, nil)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+
+		var result *CustomType
+		err = session.Load(&result, "someId")
+
+		assert.Equal(t, result.Owner, "Something new")
+		assert.Equal(t, len(result.Comments), 2)
+		assert.Equal(t, result.Comments[0], "one test")
+		assert.Equal(t, result.Comments[1], "two")
+		assert.Equal(t, result.Value, 12144)
+
+		session.Close()
+	}
+}
+
+func advancedPatchingCanDeserializeModifiedDocument(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	customType := &CustomType{
+		Owner: "somebody@somewhere.com",
+	}
+	{
+		session := openSessionMust(t, store)
+
+		err = session.StoreWithID(customType, "doc")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	req := &ravendb.PatchRequest{
+		Script: "this.owner = '123';",
+	}
+	patch1 := ravendb.NewPatchOperation("doc", nil, req, nil, false)
+	patchResult, err := store.Operations().SendPatchOperation(patch1, nil)
+	assert.NoError(t, err)
+	var result *CustomType
+	err = patchResult.GetResult(&result)
+	assert.NoError(t, err)
+
+	assert.Equal(t, patchResult.Status, ravendb.PatchStatusPatched)
+	assert.Equal(t, result.Owner, "123")
+
+	patch2 := ravendb.NewPatchOperation("doc", nil, req, nil, false)
+	patchResult, err = store.Operations().SendPatchOperation(patch2, nil)
+	assert.NoError(t, err)
+	result = nil
+	err = patchResult.GetResult(&result)
+	assert.NoError(t, err)
+
+	assert.Equal(t, patchResult.Status, ravendb.PatchStatusNotModified)
+	assert.Equal(t, result.Owner, "123")
+}
+
 func TestAdvancedPatching(t *testing.T) {
 	// t.Parallel()
 
@@ -132,4 +229,8 @@ func TestAdvancedPatching(t *testing.T) {
 	// matches order of Java tests
 	advancedPatchingTestWithVariables(t, driver)
 	advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t, driver)
+
+	// TODO: order doesn't match Java
+	advancedPatchingCanApplyBasicScriptAsPatch(t, driver)
+	advancedPatchingCanDeserializeModifiedDocument(t, driver)
 }

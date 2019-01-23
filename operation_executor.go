@@ -1,6 +1,9 @@
 package ravendb
 
-import "strings"
+import (
+	"net/http"
+	"strings"
+)
 
 type OperationExecutor struct {
 	store           *DocumentStore
@@ -60,23 +63,29 @@ func (e *OperationExecutor) SendAsync(operation IOperation, sessionInfo *Session
 
 }
 
-/*
-   public PatchStatus send(PatchOperation operation, SessionInfo sessionInfo) {
-       RavenCommand<PatchResult> command = operation.getCommand(store, requestExecutor.getConventions(), requestExecutor.getCache());
+// Note: use SendPatchOperation() instead and check PatchOperationResult.Status
+// public PatchStatus send(PatchOperation operation) {
+// public PatchStatus send(PatchOperation operation, SessionInfo sessionInfo) {
 
-       requestExecutor.execute(command, sessionInfo);
+func (e *OperationExecutor) SendPatchOperation(operation *PatchOperation, sessionInfo *SessionInfo) (*PatchOperationResult, error) {
+	conventions := e.requestExecutor.GetConventions()
+	cache := e.requestExecutor.Cache
+	command := operation.GetCommand(e.store, conventions, cache)
+	err := e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
+	if err != nil {
+		return nil, err
+	}
 
-       if (command.getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
-           return PatchStatus.NOT_MODIFIED;
-       }
-
-       if (command.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-           return PatchStatus.DOCUMENT_DOES_NOT_EXIST;
-       }
-
-       return command.getResult().getStatus();
-   }
-*/
-
-//     public PatchStatus send(PatchOperation operation, SessionInfo sessionInfo) {
-//    public <TEntity> PatchOperation.Result<TEntity> send(Class<TEntity> entityClass, PatchOperation operation, SessionInfo sessionInfo) {
+	cmdResult := operation.Command.Result
+	result := &PatchOperationResult{
+		Status:   cmdResult.Status,
+		Document: cmdResult.ModifiedDocument,
+	}
+	switch operation.Command.StatusCode {
+	case http.StatusNotModified:
+		result.Status = PatchStatusNotModified
+	case http.StatusNotFound:
+		result.Status = PatchStatusDocumentDoesNotExist
+	}
+	return result, nil
+}
