@@ -5,10 +5,17 @@ import "strings"
 type IndexCreator interface {
 }
 
+// Note: AbstractIndexCreationTask combines functionality of AbstractMultiMapIndexCreationTask
+
 // AbstractIndexCreationTask is for creating an index
 // TODO: rename to IndexCreationTask
 type AbstractIndexCreationTask struct {
-	Map    string
+
+	// for a single map index, set Map
+	// for multiple map index, set Maps
+	Map  string
+	Maps []string
+
 	Reduce string
 
 	Conventions       *DocumentConventions
@@ -65,7 +72,12 @@ func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	indexDefinitionBuilder.outputReduceToCollection = t.OutputReduceToCollection
 	indexDefinitionBuilder.additionalSources = t.AdditionalSources
 
-	return indexDefinitionBuilder.toIndexDefinition(t.Conventions, false)
+	// validate for single map (Map set), don't validate multiple map (Maps)
+	validate := len(t.Maps) == 0
+
+	def := indexDefinitionBuilder.toIndexDefinition(t.Conventions, validate)
+	def.Maps = t.Maps
+	return def
 }
 
 // IsMapReduce returns true if this is map-reduce index
@@ -80,6 +92,7 @@ func (t *AbstractIndexCreationTask) GetIndexName() string {
 }
 
 // Execute executes index in specified document store
+// TODO: remove conventions argument, can set AbstractIndexCreationTask.Conventions
 func (t *AbstractIndexCreationTask) Execute(store *DocumentStore, conventions *DocumentConventions, database string) error {
 	return t.putIndex(store, conventions, database)
 }

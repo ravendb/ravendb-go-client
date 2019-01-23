@@ -1,7 +1,7 @@
 package ravendb
 
 type IndexDefinitionBuilder struct {
-	_indexName string
+	indexName string
 
 	smap   string // Note: in Go map is a reserved keyword
 	reduce string
@@ -20,12 +20,11 @@ type IndexDefinitionBuilder struct {
 
 func NewIndexDefinitionBuilder(indexName string) *IndexDefinitionBuilder {
 	if indexName == "" {
-		indexName = "IndexDefinitionBuilder" // TODO: is it getClass().getSimpleName() ?
+		indexName = "IndexDefinitionBuilder"
 	}
-	// TODO: make an error
 	panicIf(len(indexName) > 256, "The index name is limited to 256 characters, but was: %s", indexName)
 	return &IndexDefinitionBuilder{
-		_indexName:            indexName,
+		indexName:             indexName,
 		storesStrings:         make(map[string]FieldStorage),
 		indexesStrings:        make(map[string]FieldIndexing),
 		analyzersStrings:      make(map[string]string),
@@ -36,12 +35,12 @@ func NewIndexDefinitionBuilder(indexName string) *IndexDefinitionBuilder {
 
 func (d *IndexDefinitionBuilder) toIndexDefinition(conventions *DocumentConventions, validateMap bool) *IndexDefinition {
 	if d.smap == "" && validateMap {
-		panicIf(true, "Map is required to generate an index, you cannot create an index without a valid Map property (in index "+d._indexName+").")
+		panicIf(true, "Map is required to generate an index, you cannot create an index without a valid Map property (in index "+d.indexName+").")
 		// TODO: return error IllegalStateError("Map is required to generate an index, you cannot create an index without a valid Map property (in index " + _indexName + ").");
 	}
 
 	indexDefinition := NewIndexDefinition()
-	indexDefinition.Name = d._indexName
+	indexDefinition.Name = d.indexName
 	if d.reduce != "" {
 		indexDefinition.Reduce = &d.reduce
 	}
