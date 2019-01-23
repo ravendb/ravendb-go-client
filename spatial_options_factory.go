@@ -79,22 +79,32 @@ func NewCartesianBoundingBoxIndex() *SpatialOptions {
 // NewCartesianQuadPrefixTreeIndex returns cartesian SpatialOptions for
 // quad prefix tree index
 func NewCartesianQuadPrefixTreeIndex(maxTreeLevel int, bounds *SpatialBounds) *SpatialOptions {
-	panicIf(maxTreeLevel > 0, "maxTreeLevel must be > 0")
+	panicIf(maxTreeLevel <= 0, "maxTreeLevel must be > 0")
 	opts := NewSpatialOptions()
 	opts.Type = SpatialFieldCartesian
 	opts.MaxTreeLevel = maxTreeLevel
 	opts.Strategy = SpatialSearchStrategyQuadPrefixTree
-	opts.MinX = bounds.minX
-	opts.MinY = bounds.minY
-	opts.MaxX = bounds.maxX
-	opts.MaxY = bounds.maxY
+	opts.MinX = bounds.MinX
+	opts.MinY = bounds.MinY
+	opts.MaxX = bounds.MaxX
+	opts.MaxY = bounds.MaxY
 	return opts
 }
 
 // SpatialBounds describes bounds of a region
 type SpatialBounds struct {
-	minX float64
-	maxX float64
-	minY float64
-	maxY float64
+	MinX float64
+	MaxX float64
+	MinY float64
+	MaxY float64
+}
+
+// NewSpatialBounds returns new SpatialBounds
+func NewSpatialBounds(minX float64, minY float64, maxX float64, maxY float64) *SpatialBounds {
+	return &SpatialBounds{
+		MinX: minX,
+		MaxX: maxX,
+		MinY: minY,
+		MaxY: maxY,
+	}
 }
