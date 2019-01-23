@@ -42,7 +42,7 @@ func advancedPatchingTestWithVariables(t *testing.T, driver *RavenTestDriver) {
 	}
 	patchRequest.Values = m
 	patchOperation := ravendb.NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
-	err = store.Operations().Send(patchOperation)
+	err = store.Operations().Send(patchOperation, nil)
 	assert.NoError(t, err)
 
 	{
@@ -104,7 +104,7 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 	}
 
 	op2 := ravendb.NewPatchByQueryOperation("FROM INDEX 'TestIndex' WHERE value = 1 update { put('NewItem/3', {'copiedValue': this.value });}")
-	operation, err := store.Operations().SendAsync(op2)
+	operation, err := store.Operations().SendAsync(op2, nil)
 	assert.NoError(t, err)
 
 	operation.WaitForCompletion()

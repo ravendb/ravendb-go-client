@@ -168,7 +168,7 @@ func queryOperationDeserialize(result interface{}, id string, document map[strin
 			projectField := fieldsToFetch.projections[0]
 			jsonNode, ok := document[projectField]
 			if ok && jsonIsValueNode(jsonNode) {
-				res, err := session.GetConventions().DeserializeEntityFromJson(clazz, jsonNode)
+				res, err := treeToValue(clazz, jsonNode)
 				if err != nil {
 					return err
 				}

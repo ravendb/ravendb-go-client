@@ -219,9 +219,7 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 	{
 		profileStream := bytes.NewBuffer([]byte{1, 2, 3})
 		op := ravendb.NewPutAttachmentOperation("users/1", names[0], profileStream, "image/png", nil)
-		// TODO this test is flaky. Sometimes it works, sometimes it doesn't
-		// even though the data sent on wire seem to be the same
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 
 		assert.NoError(t, err)
 
@@ -236,7 +234,7 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 	{
 		backgroundStream := bytes.NewReader([]byte{10, 20, 30, 40, 50})
 		op := ravendb.NewPutAttachmentOperation("users/1", names[1], backgroundStream, "ImGgE/jPeG", nil)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		result := op.Command.Result
 		s := *result.ChangeVector
@@ -248,7 +246,7 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 	{
 		fileStream := bytes.NewReader([]byte{1, 2, 3, 4, 5})
 		op := ravendb.NewPutAttachmentOperation("users/1", names[2], fileStream, "", nil)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		result := op.Command.Result
 		s := *result.ChangeVector

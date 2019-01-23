@@ -190,14 +190,6 @@ func (c *DocumentConventions) GetTransformClassCollectionNameToDocumentIdPrefix(
 	return c._transformClassCollectionNameToDocumentIDPrefix
 }
 
-func (c *DocumentConventions) DeserializeEntityFromJson(documentType reflect.Type, document interface{}) (interface{}, error) {
-	res, e := treeToValue(documentType, document)
-	if e != nil {
-		return nil, newRavenError("Cannot deserialize entity %s", e)
-	}
-	return res, nil
-}
-
 func (c *DocumentConventions) TryConvertValueForQuery(fieldName string, value interface{}, forRange bool, stringValue *string) bool {
 	// TODO: implement me
 	// Tested by CustomSerializationTest

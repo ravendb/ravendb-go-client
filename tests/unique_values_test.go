@@ -15,7 +15,7 @@ func uniqueValuesCanReadNotExistingKey(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(0), "test")
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.Nil(t, res)
@@ -29,19 +29,19 @@ func uniqueValuesCanWorkWithPrimitiveTypes(t *testing.T, driver *RavenTestDriver
 
 	{
 		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(0), "test")
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.Nil(t, res)
 	}
 	{
 		op := ravendb.NewPutCompareExchangeValueOperation("test", 5, 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 	}
 	{
 		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(0), "test")
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.NotNil(t, res)
@@ -60,11 +60,11 @@ func uniqueValuesCanPutUniqueString(t *testing.T, driver *RavenTestDriver) {
 		// Note: not sure why Java test opens a session
 		_ = openSessionMust(t, store)
 		op := ravendb.NewPutCompareExchangeValueOperation("test", "Karmel", 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 
 		op2 := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(""), "test")
-		err = store.Operations().Send(op2)
+		err = store.Operations().Send(op2, nil)
 		assert.NoError(t, err)
 
 		res := op2.Command.Result
@@ -83,7 +83,7 @@ func uniqueValuesCanPutMultiDifferentValues(t *testing.T, driver *RavenTestDrive
 		user1.setName("Karmel")
 
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user1, 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 
@@ -91,7 +91,7 @@ func uniqueValuesCanPutMultiDifferentValues(t *testing.T, driver *RavenTestDrive
 		user2.setName("Karmel")
 
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test2", user2, 0)
-		err = store.Operations().Send(op2)
+		err = store.Operations().Send(op2, nil)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 
@@ -114,7 +114,7 @@ func uniqueValuesCanListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 		user1 := &User{}
 		user1.setName("Karmel")
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user1, 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res1 := op.Command.Result
 		val1 := res1.Value.(*User)
@@ -123,7 +123,7 @@ func uniqueValuesCanListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 		user2.setName("Karmel")
 
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test2", user2, 0)
-		err = store.Operations().Send(op2)
+		err = store.Operations().Send(op2, nil)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 		val2 := res2.Value.(*User)
@@ -136,7 +136,7 @@ func uniqueValuesCanListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 	}
 	{
 		op := ravendb.NewGetCompareExchangeValuesOperation(reflect.TypeOf(&User{}), "test", -1, -1)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		values := op.Command.Result
 		assert.Equal(t, len(values), 2)
@@ -157,7 +157,7 @@ func uniqueValuesCanRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		op := ravendb.NewPutCompareExchangeValueOperation("test", "Karmel", 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.Value.(string)
@@ -165,7 +165,7 @@ func uniqueValuesCanRemoveUnique(t *testing.T, driver *RavenTestDriver) {
 		assert.True(t, res.IsSuccessful)
 		{
 			op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", res.Index)
-			err = store.Operations().Send(op)
+			err = store.Operations().Send(op, nil)
 			assert.NoError(t, err)
 			assert.True(t, res.IsSuccessful)
 		}
@@ -179,7 +179,7 @@ func uniqueValuesRemoveUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		op := ravendb.NewPutCompareExchangeValueOperation("test", "Karmel", 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.Value.(string)
@@ -188,14 +188,14 @@ func uniqueValuesRemoveUniqueFailed(t *testing.T, driver *RavenTestDriver) {
 	}
 	{
 		op := ravendb.NewDeleteCompareExchangeValueOperation(reflect.TypeOf(""), "test", 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		assert.False(t, res.IsSuccessful)
 	}
 	{
 		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(""), "test")
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		readValue := op.Command.Result
 		val := readValue.Value.(string)
@@ -216,12 +216,12 @@ func uniqueValuesReturnCurrentValueWhenPuttingConcurrently(t *testing.T, driver 
 		user2.setName("Karmel2")
 
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user, 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test", user2, 0)
-		err = store.Operations().Send(op2)
+		err = store.Operations().Send(op2, nil)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 
@@ -238,7 +238,7 @@ func uniqueValuesReturnCurrentValueWhenPuttingConcurrently(t *testing.T, driver 
 		user3.setName("Karmel2")
 
 		op3 := ravendb.NewPutCompareExchangeValueOperation("test", user3, res2.Index)
-		err = store.Operations().Send(op3)
+		err = store.Operations().Send(op3, nil)
 		assert.NoError(t, err)
 		res2 = op3.Command.Result
 		assert.True(t, res2.IsSuccessful)
@@ -256,12 +256,12 @@ func uniqueValuesCanGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 		user := &User{}
 		user.setName("Karmel")
 		op := ravendb.NewPutCompareExchangeValueOperation("test", user, 0)
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 	}
 	{
 		op := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(&User{}), "test")
-		err = store.Operations().Send(op)
+		err = store.Operations().Send(op, nil)
 		assert.NoError(t, err)
 		res := op.Command.Result
 		val := res.Value.(*User)
@@ -270,7 +270,7 @@ func uniqueValuesCanGetIndexValue(t *testing.T, driver *RavenTestDriver) {
 		user2 := &User{}
 		user2.setName("Karmel2")
 		op2 := ravendb.NewPutCompareExchangeValueOperation("test", user2, res.Index)
-		err = store.Operations().Send(op2)
+		err = store.Operations().Send(op2, nil)
 		assert.NoError(t, err)
 		res2 := op2.Command.Result
 		assert.True(t, res2.IsSuccessful)

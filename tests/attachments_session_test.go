@@ -290,7 +290,7 @@ func attachmentsSessionDeleteAttachmentsUsingCommand(t *testing.T, driver *Raven
 	}
 
 	op := ravendb.NewDeleteAttachmentOperation("users/1", "file2", nil)
-	err = store.Operations().Send(op)
+	err = store.Operations().Send(op, nil)
 	assert.NoError(t, err)
 
 	{

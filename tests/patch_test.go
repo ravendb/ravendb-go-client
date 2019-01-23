@@ -30,7 +30,7 @@ func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 		Script: `this.name = "Patched"`,
 	}
 	patchOperation := ravendb.NewPatchOperation("users/1", nil, patchRequest, nil, false)
-	err = store.Operations().Send(patchOperation)
+	err = store.Operations().Send(patchOperation, nil)
 	assert.NoError(t, err)
 	status := patchOperation.Command.Result
 	assert.Equal(t, status.Status, ravendb.PatchStatusPatched)
@@ -119,7 +119,7 @@ func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	operation := ravendb.NewPatchByQueryOperation("from Users update {  this.name= \"Patched\"  }")
-	op, err := store.Operations().SendAsync(operation)
+	op, err := store.Operations().SendAsync(operation, nil)
 	assert.NoError(t, err)
 	err = op.WaitForCompletion()
 	assert.NoError(t, err)
@@ -153,7 +153,7 @@ func patchTestthrowsOnInvalidScript(t *testing.T, driver *RavenTestDriver) {
 
 	operation := ravendb.NewPatchByQueryOperation("from Users update {  throw 5 }")
 
-	op, err := store.Operations().SendAsync(operation)
+	op, err := store.Operations().SendAsync(operation, nil)
 	assert.NoError(t, err)
 
 	err = op.WaitForCompletion()
