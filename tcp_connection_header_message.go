@@ -3,13 +3,14 @@ package ravendb
 type OperationTypes = string
 
 const (
-	OperationNone         = "None"
-	OperationDrop         = "Drop"
-	OperationSubscription = "Subscription"
-	OperationReplicatoin  = "Replication"
-	OperationCluster      = "Cluster"
-	OperationHeartbeats   = "Heartbeats"
-	OperationPing         = "Ping"
+	OperationNone           = "None"
+	OperationDrop           = "Drop"
+	OperationSubscription   = "Subscription"
+	OperationReplicatoin    = "Replication"
+	OperationCluster        = "Cluster"
+	OperationHeartbeats     = "Heartbeats"
+	OperationPing           = "Ping"
+	OperationTestConnection = "TestConnection"
 )
 
 const (

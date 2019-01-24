@@ -27,7 +27,7 @@ type DocumentConventions struct {
 	// timeout for wait to server
 	Timeout                  time.Duration
 	UseOptimisticConcurrency bool
-	// JsonDdefaultMethod = DocumentConventions.json_default
+	// JsonDefaultMethod = DocumentConventions.json_default
 	MaxLengthOfQueryUsingGetURL int
 	IdentityPartsSeparator      string
 	_disableTopologyUpdates     bool

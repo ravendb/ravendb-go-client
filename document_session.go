@@ -94,6 +94,11 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	if id == "" {
 		return false, newIllegalArgumentError("id cannot be empty string")
 	}
+
+	if stringArrayContainsNoCase(s.knownMissingIds, id) {
+		return false, nil
+	}
+
 	if s.documentsByID.getValue(id) != nil {
 		return true, nil
 	}
@@ -433,6 +438,10 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 
 // results should be map[string]*struct
 func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, includes []string) error {
+	if len(ids) == 0 {
+		return newIllegalArgumentError("ids cannot be empty array")
+	}
+
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
@@ -462,6 +471,12 @@ func (s *DocumentSession) LoadStartingWith(results interface{}, args *StartsWith
 }
 
 func (s *DocumentSession) LoadStartingWithIntoStream(output io.Writer, args *StartsWithArgs) error {
+	if output == nil {
+		return newIllegalArgumentError("Output cannot be null")
+	}
+	if args.StartsWith == "" {
+		return newIllegalArgumentError("args.StartsWith cannot be empty string")
+	}
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
 	if args.PageSize == 0 {
 		args.PageSize = 25
@@ -497,6 +512,10 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 // LoadIntoStream loads entities identified by ids and writes them (in JSON form)
 // to output
 func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
+	if len(ids) == 0 {
+		return newIllegalArgumentError("Ids cannot be empty")
+	}
+
 	op := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	return s.loadInternalWithOperation(ids, op, output)
 }

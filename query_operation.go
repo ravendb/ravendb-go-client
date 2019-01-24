@@ -165,8 +165,15 @@ func queryOperationDeserialize(result interface{}, id string, document map[strin
 		// we only select a single field
 		isString := clazz.Kind() == reflect.String
 		if isString || isPrimitiveOrWrapper(clazz) || typeIsEnum(clazz) {
-			projectField := fieldsToFetch.projections[0]
-			jsonNode, ok := document[projectField]
+			projectionField := fieldsToFetch.projections[0]
+
+			if fieldsToFetch.sourceAlias != "" {
+				// remove source-alias from projection name
+				projectionField = projectionField[len(fieldsToFetch.sourceAlias)+1:]
+
+			}
+
+			jsonNode, ok := document[projectionField]
 			if ok && jsonIsValueNode(jsonNode) {
 				res, err := treeToValue(clazz, jsonNode)
 				if err != nil {

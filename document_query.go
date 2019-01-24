@@ -442,7 +442,8 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 			}
 		}
 
-		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.Projections, queryData.IsCustomFunction)
+		sourceAliasReference := getSourceAliasIfExists(resultClass, queryData, fields)
+		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.Projections, queryData.IsCustomFunction, sourceAliasReference)
 	}
 
 	if newFieldsToFetch != nil {

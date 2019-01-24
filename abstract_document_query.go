@@ -197,6 +197,8 @@ func (q *AbstractDocumentQuery) getProjectionFields() []string {
 
 func (q *AbstractDocumentQuery) randomOrdering() {
 	q.assertNoRawQuery()
+
+	q.noCaching()
 	q.orderByTokens = append(q.orderByTokens, orderByTokenRandom)
 }
 
@@ -208,6 +210,7 @@ func (q *AbstractDocumentQuery) randomOrderingWithSeed(seed string) {
 		return
 	}
 
+	q.noCaching()
 	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateRandom(seed))
 }
 
@@ -1405,6 +1408,37 @@ func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 	}
 }
 
+func getSourceAliasIfExists(clazz reflect.Type, queryData *QueryData, fields []string) string {
+	if len(fields) != 1 {
+		return ""
+	}
+
+	if clazz != reflect.TypeOf("") && !isPrimitiveOrWrapper(clazz) {
+		return ""
+	}
+	indexOf := strings.Index(fields[0], ".")
+	if indexOf == -1 {
+		return ""
+	}
+
+	possibleAlias := fields[0][:indexOf]
+	if queryData.FromAlias == possibleAlias {
+		return possibleAlias
+	}
+
+	if len(queryData.LoadTokens) == 0 {
+		return ""
+	}
+
+	// TODO: is this the logic?
+	for _, x := range queryData.LoadTokens {
+		if x.alias == possibleAlias {
+			return possibleAlias
+		}
+	}
+	return ""
+}
+
 func (q *AbstractDocumentQuery) addBeforeQueryExecutedListener(action func(*IndexQuery)) int {
 	q.beforeQueryExecutedCallback = append(q.beforeQueryExecutedCallback, action)
 	return len(q.beforeQueryExecutedCallback) - 1
@@ -1488,6 +1522,8 @@ func (q *AbstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 }
 
 func (q *AbstractDocumentQuery) spatial2(dynamicField DynamicSpatialField, criteria SpatialCriteria) {
+	must(q.assertIsDynamicQuery(dynamicField, "spatial"))
+
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, "")
@@ -1525,6 +1561,8 @@ func (q *AbstractDocumentQuery) orderByDistance(field DynamicSpatialField, latit
 		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
+	must(q.assertIsDynamicQuery(field, "orderByDistance"))
+
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
@@ -1542,6 +1580,8 @@ func (q *AbstractDocumentQuery) orderByDistance2(field DynamicSpatialField, shap
 		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
+	must(q.assertIsDynamicQuery(field, "orderByDistance2"))
+
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
@@ -1558,6 +1598,7 @@ func (q *AbstractDocumentQuery) orderByDistanceDescending(field DynamicSpatialFi
 		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
+	must(q.assertIsDynamicQuery(field, "orderByDistanceDescending"))
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
@@ -1574,6 +1615,7 @@ func (q *AbstractDocumentQuery) orderByDistanceDescending2(field DynamicSpatialF
 		//throw new IllegalArgumentError("Field cannot be null");
 		panicIf(true, "Field cannot be null")
 	}
+	must(q.assertIsDynamicQuery(field, "orderByDistanceDescending2"))
 	ensure := func(fieldName string, isNestedPath bool) string {
 		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
@@ -1583,6 +1625,17 @@ func (q *AbstractDocumentQuery) orderByDistanceDescending2(field DynamicSpatialF
 func (q *AbstractDocumentQuery) orderByDistanceDescending3(fieldName string, shapeWkt string) {
 	tok := orderByTokenCreateDistanceDescending2(fieldName, q.addQueryParameter(shapeWkt))
 	q.orderByTokens = append(q.orderByTokens, tok)
+}
+
+func (q *AbstractDocumentQuery) assertIsDynamicQuery(dynamicField DynamicSpatialField, methodName string) error {
+	if !q.fromToken.isDynamic {
+		f := func(s string, f bool) string {
+			return q.ensureValidFieldName(s, f)
+		}
+		fld := dynamicField.ToField(f)
+		return newIllegalStateError("Cannot execute query method '" + methodName + "'. Field '" + fld + "' cannot be used when static index '" + q.fromToken.indexName + "' is queried. Dynamic spatial fields can only be used with dynamic queries, " + "for static index queries please use valid spatial fields defined in index definition.")
+	}
+	return nil
 }
 
 func (q *AbstractDocumentQuery) initSync() error {

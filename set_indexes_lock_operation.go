@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"net/http"
+	"strings"
 )
 
 var _ IVoidMaintenanceOperation = &SetIndexesLockOperation{}
@@ -24,9 +25,22 @@ func NewSetIndexesLockOperation(indexName string, mode IndexLockMode) *SetIndexe
 func NewSetIndexesLockOperationWithParameters(parameters *SetIndexesLockParameters) *SetIndexesLockOperation {
 	panicIf(parameters == nil, "parameters cannot be nil")
 
-	return &SetIndexesLockOperation{
+	res := &SetIndexesLockOperation{
 		_parameters: parameters,
 	}
+	must(res.filterAutoIndexes())
+	return res
+}
+
+func (o *SetIndexesLockOperation) filterAutoIndexes() error {
+	// Check for auto-indexes - we do not set lock for auto-indexes
+	for _, indexName := range o._parameters.IndexNames {
+		s := strings.ToLower(indexName)
+		if strings.HasPrefix(s, "auto/") {
+			return newIllegalArgumentError("Indexes list contains Auto-Indexes. Lock Mode is not set for Auto-Indexes.")
+		}
+	}
+	return nil
 }
 
 func (o *SetIndexesLockOperation) GetCommand(conventions *DocumentConventions) RavenCommand {

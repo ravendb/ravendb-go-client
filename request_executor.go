@@ -71,6 +71,14 @@ type RequestExecutor struct {
 	aggressiveCaching *AggressiveCacheOptions
 }
 
+func (re *RequestExecutor) getFailedNodeTimer(n *ServerNode) *NodeStatus {
+	v, ok := re.failedNodesTimers.Load(n)
+	if !ok {
+		return nil
+	}
+	return v.(*NodeStatus)
+}
+
 func (re *RequestExecutor) getNodeSelector() *NodeSelector {
 	return re.nodeSelector.Load().(*NodeSelector)
 }
@@ -89,8 +97,6 @@ func (re *RequestExecutor) GetTopology() *Topology {
 
 // GetTopologyNodes returns a copy of topology nodes
 func (re *RequestExecutor) GetTopologyNodes() []*ServerNode {
-	// Note: Java just returns re.GetTopology().Nodes and sometimes
-	// makes a copy. We always return copy (easier to make it safe)
 	t := re.GetTopology()
 	if t == nil || len(t.Nodes) == 0 {
 		return nil
@@ -396,6 +402,9 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		var err error
 		var res bool
 		defer func() {
+			if err != nil && !re.disposed {
+				err = nil
+			}
 			if err != nil {
 				future.completeWithError(err)
 			} else {
@@ -599,7 +608,10 @@ func (re *RequestExecutor) updateTopologyCallback() {
 
 	var serverNode *ServerNode
 
-	// TODO: early exist if getPreferredNode() returns an error
+	selector := re.getNodeSelector()
+	if selector == nil {
+		return
+	}
 	preferredNode, err := re.getPreferredNode()
 	if err != nil {
 		return
@@ -948,7 +960,7 @@ func (re *RequestExecutor) CreateRequest(node *ServerNode, command RavenCommand)
 	if err != nil {
 		return nil, err
 	}
-	request.Header.Set("Raven-Client-Version", goClientVersion)
+	request.Header.Set(headersClientVersion, goClientVersion)
 	return request, err
 }
 
@@ -1046,6 +1058,7 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 
 func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex int) {
 	nodeStatus := NewNodeStatus(re, nodeIndex, chosenNode)
+
 	_, loaded := re.failedNodesTimers.LoadOrStore(chosenNode, nodeStatus)
 	if !loaded {
 		nodeStatus.startTimer()
@@ -1054,6 +1067,7 @@ func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex i
 
 func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 	nodesCopy := re.GetTopologyNodes()
+
 	idx := nodeStatus.nodeIndex
 	// TODO: idx < 0 probably shouldn't happen but it's the only cause of
 	// https://travis-ci.org/kjk/ravendb-go-client/builds/404760557
@@ -1070,16 +1084,16 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 	err := re.performHealthCheck(serverNode, idx)
 	if err != nil {
 		// TODO: logging
-		_, ok := re.failedNodesTimers.Load(nodeStatus.node)
-		if !ok {
-			nodeStatus.updateTimer()
+		status := re.getFailedNodeTimer(nodeStatus.node)
+		if status != nil {
+			status.updateTimer()
 		}
 
 		return // will wait for the next timer call
 	}
-	statusI, ok := re.failedNodesTimers.Load(nodeStatus.node)
-	if ok {
-		status := statusI.(*NodeStatus)
+
+	status := re.getFailedNodeTimer(nodeStatus.node)
+	if status != nil {
 		re.failedNodesTimers.Delete(nodeStatus.node)
 		status.Close()
 	}

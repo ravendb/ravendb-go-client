@@ -374,3 +374,25 @@ func newSubscriptionInUseError(format string, args ...interface{}) *Subscription
 	res.errorBase.setErrorf(format, args...)
 	return res
 }
+
+// ClientVersionMismatchError is returned when subscription is in use
+type ClientVersionMismatchError struct {
+	errorBase
+}
+
+func newClientVersionMismatchError(format string, args ...interface{}) *ClientVersionMismatchError {
+	res := &ClientVersionMismatchError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}
+
+// CertificateNameMismatchError is returned when subscription is in use
+type CertificateNameMismatchError struct {
+	errorBase
+}
+
+func newCertificateNameMismatchError(format string, args ...interface{}) *CertificateNameMismatchError {
+	res := &CertificateNameMismatchError{}
+	res.errorBase.setErrorf(format, args...)
+	return res
+}

@@ -8,17 +8,19 @@ type fieldsToFetchToken struct {
 	fieldsToFetch  []string
 	projections    []string
 	customFunction bool
+	sourceAlias    string
 }
 
-func newFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
+func newFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool, sourceAlias string) *fieldsToFetchToken {
 	return &fieldsToFetchToken{
 		fieldsToFetch:  fieldsToFetch,
 		projections:    projections,
 		customFunction: customFunction,
+		sourceAlias:    sourceAlias,
 	}
 }
 
-func createFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool) *fieldsToFetchToken {
+func createFieldsToFetchToken(fieldsToFetch []string, projections []string, customFunction bool, sourceAlias string) *fieldsToFetchToken {
 	if len(fieldsToFetch) == 0 {
 		panicIf(true, "fieldToFetch cannot be null")
 		//return newIllegalArgumentError("fieldToFetch cannot be null");
@@ -29,7 +31,7 @@ func createFieldsToFetchToken(fieldsToFetch []string, projections []string, cust
 		// return newIllegalArgumentError("Length of projections must be the same as length of field to fetch");
 	}
 
-	return newFieldsToFetchToken(fieldsToFetch, projections, customFunction)
+	return newFieldsToFetchToken(fieldsToFetch, projections, customFunction, sourceAlias)
 }
 
 func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) {

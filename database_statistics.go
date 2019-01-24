@@ -22,6 +22,7 @@ type DatabaseStatistics struct {
 	Pager                                    string `json:"Pager"`
 	LastIndexingTime                         *Time  `json:"LastIndexingTime"`
 	SizeOnDisk                               *Size  `json:"SizeOnDisk"`
+	TempBuffersSizeOnDisk                    *Size  `json:"TempBuffersSizeOnDisk"`
 	NumberOfTransactionMergerQueueOperations int    `json:"NumberOfTransactionMergerQueueOperations"`
 }
 

@@ -5,7 +5,6 @@ type DocumentChange struct {
 	Type           DocumentChangeTypes
 	ID             string
 	CollectionName string
-	TypeName       string
 	ChangeVector   *string
 }
 

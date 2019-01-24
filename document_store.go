@@ -67,6 +67,7 @@ func (s *DocumentStore) GetConventions() *DocumentConventions {
 
 // SetConventions sets DocumentConventions
 func (s *DocumentStore) SetConventions(conventions *DocumentConventions) {
+	s.assertNotInitialized("conventions")
 	s.conventions = conventions
 }
 
@@ -77,6 +78,7 @@ func (s *DocumentStore) GetUrls() []string {
 
 // SetUrls sets initial urls of RavenDB nodes
 func (s *DocumentStore) SetUrls(value []string) {
+	s.assertNotInitialized("conventions")
 	panicIf(len(value) == 0, "value is empty")
 	for i, s := range value {
 		value[i] = strings.TrimSuffix(s, "/")
@@ -195,12 +197,16 @@ func (s *DocumentStore) assertInitialized() error {
 	return nil
 }
 
+func (s *DocumentStore) assertNotInitialized(property string) {
+	panicIf(s.initialized, "You cannot set '%s' after the document store has been initialized.", property)
+}
+
 func (s *DocumentStore) GetDatabase() string {
 	return s.database
 }
 
 func (s *DocumentStore) SetDatabase(database string) {
-	panicIf(s.initialized, "is already initialized")
+	s.assertNotInitialized("database")
 	s.database = database
 }
 
@@ -209,7 +215,7 @@ func (s *DocumentStore) GetCertificate() *KeyStore {
 }
 
 func (s *DocumentStore) SetCertificate(certificate *KeyStore) {
-	panicIf(s.initialized, "is already initialized")
+	s.assertNotInitialized("certificate")
 	s.certificate = certificate
 }
 

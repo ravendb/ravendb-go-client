@@ -94,6 +94,10 @@ func (s *DocumentSubscriptions) ensureCriteria(criteria *SubscriptionCreationOpt
 // The connection options determine client and server cooperation rules like document batch sizes or a timeout in a matter of which a client
 // needs to acknowledge that batch has been processed. The acknowledgment is sent after all documents are processed by subscription's handlers.
 func (s *DocumentSubscriptions) GetSubscriptionWorker(clazz reflect.Type, options *SubscriptionWorkerOptions, database string) (*SubscriptionWorker, error) {
+	if err := s.store.assertInitialized(); err != nil {
+		return nil, err
+	}
+
 	if options == nil {
 		return nil, newIllegalStateError("Cannot open a subscription if options are null")
 	}

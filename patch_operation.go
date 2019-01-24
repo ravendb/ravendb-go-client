@@ -39,11 +39,11 @@ func (r *PatchOperationResult) GetResult(result interface{}) error {
 type PatchOperation struct {
 	Command *PatchCommand
 
-	_id                              string
-	_changeVector                    *string
-	_patch                           *PatchRequest
-	_patchIfMissing                  *PatchRequest
-	_skipPatchIfChangeVectorMismatch bool
+	id                              string
+	changeVector                    *string
+	patch                           *PatchRequest
+	patchIfMissing                  *PatchRequest
+	skipPatchIfChangeVectorMismatch bool
 }
 
 // NewPatchOperation returns new PatchOperation
@@ -52,16 +52,16 @@ func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, pat
 	panicIf(stringIsWhitespace(patch.Script), "Patch script cannot be empty")
 	panicIf(patchIfMissing != nil && stringIsWhitespace(patchIfMissing.Script), "PatchIfMissing script cannot be empty")
 	return &PatchOperation{
-		_id:                              id,
-		_changeVector:                    changeVector,
-		_patch:                           patch,
-		_patchIfMissing:                  patchIfMissing,
-		_skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
+		id:                              id,
+		changeVector:                    changeVector,
+		patch:                           patch,
+		patchIfMissing:                  patchIfMissing,
+		skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
 	}
 }
 
 func (o *PatchOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewPatchCommand(conventions, o._id, o._changeVector, o._patch, o._patchIfMissing, o._skipPatchIfChangeVectorMismatch, false, false)
+	o.Command = NewPatchCommand(conventions, o.id, o.changeVector, o.patch, o.patchIfMissing, o.skipPatchIfChangeVectorMismatch, false, false)
 	return o.Command
 }
 
@@ -74,12 +74,12 @@ type PatchCommand struct {
 	// TODO: unused
 	//conventions                     *DocumentConventions
 
-	_id                              string
-	_changeVector                    *string
-	_patch                           *PatchOperationPayload
-	_skipPatchIfChangeVectorMismatch bool
-	_returnDebugInformation          bool
-	_test                            bool
+	id                              string
+	changeVector                    *string
+	patch                           *PatchOperationPayload
+	skipPatchIfChangeVectorMismatch bool
+	returnDebugInformation          bool
+	test                            bool
 
 	Result *PatchResult
 }
@@ -98,12 +98,12 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 	cmd := &PatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_id:                              id,
-		_changeVector:                    changeVector,
-		_patch:                           payload,
-		_skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
-		_returnDebugInformation:          returnDebugInformation,
-		_test:                            test,
+		id:                              id,
+		changeVector:                    changeVector,
+		patch:                           payload,
+		skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
+		returnDebugInformation:          returnDebugInformation,
+		test:                            test,
 	}
 
 	return cmd
@@ -111,28 +111,28 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 
 // CreateRequest creates http request
 func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlUtilsEscapeDataString(c._id)
+	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlUtilsEscapeDataString(c.id)
 
-	if c._skipPatchIfChangeVectorMismatch {
+	if c.skipPatchIfChangeVectorMismatch {
 		url += "&skipPatchIfChangeVectorMismatch=true"
 	}
 
-	if c._returnDebugInformation {
+	if c.returnDebugInformation {
 		url += "&debug=true"
 	}
 
-	if c._test {
+	if c.test {
 		url += "&test=true"
 	}
 
 	patch := map[string]interface{}{}
-	if c._patch.patch != nil {
-		patch = c._patch.patch.Serialize()
+	if c.patch.patch != nil {
+		patch = c.patch.patch.Serialize()
 	}
 
 	var patchIfMissing map[string]interface{}
-	if c._patch.patchIfMissing != nil {
-		patchIfMissing = c._patch.patchIfMissing.Serialize()
+	if c.patch.patchIfMissing != nil {
+		patchIfMissing = c.patch.patchIfMissing.Serialize()
 	}
 
 	m := map[string]interface{}{
@@ -146,7 +146,7 @@ func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	addChangeVectorIfNotNull(c._changeVector, request)
+	addChangeVectorIfNotNull(c.changeVector, request)
 	return request, nil
 }
 

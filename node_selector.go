@@ -12,7 +12,7 @@ type NodeSelector struct {
 
 // NewNodeSelector creates a new NodeSelector
 func NewNodeSelector(t *Topology) *NodeSelector {
-	state := NewNodeSelectorState(0, t)
+	state := NewNodeSelectorState(t)
 	return &NodeSelector{
 		_state: state,
 	}
@@ -43,7 +43,7 @@ func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bo
 		return false
 	}
 
-	s._state = NewNodeSelectorState(0, topology)
+	s._state = NewNodeSelectorState(topology)
 
 	return true
 }
@@ -106,8 +106,8 @@ func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 
 func (s *NodeSelector) restoreNodeIndex(nodeIndex int) {
 	state := s._state
-	if state.currentNodeIndex < nodeIndex {
-		return // nothing to do
+	if len(state.failures) < nodeIndex {
+		return // the state was changed and we no longer have it?
 	}
 
 	state.failures[nodeIndex].set(0)
@@ -211,21 +211,19 @@ func (s *NodeSelector) Close() {
 }
 
 type NodeSelectorState struct {
-	topology         *Topology
-	currentNodeIndex int
-	nodes            []*ServerNode
-	failures         []atomicInteger
-	fastestRecords   []int
-	fastest          int
-	speedTestMode    atomicInteger
+	topology       *Topology
+	nodes          []*ServerNode
+	failures       []atomicInteger
+	fastestRecords []int
+	fastest        int
+	speedTestMode  atomicInteger
 }
 
-func NewNodeSelectorState(currentNodeIndex int, topology *Topology) *NodeSelectorState {
+func NewNodeSelectorState(topology *Topology) *NodeSelectorState {
 	nodes := topology.Nodes
 	res := &NodeSelectorState{
-		topology:         topology,
-		currentNodeIndex: currentNodeIndex,
-		nodes:            nodes,
+		topology: topology,
+		nodes:    nodes,
 	}
 	failures := make([]atomicInteger, len(nodes))
 	res.failures = failures

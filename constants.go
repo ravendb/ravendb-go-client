@@ -32,6 +32,7 @@ const (
 	headersTopologyEtag               = "Topology-Etag"
 	headersClientConfigurationEtag    = "Client-Configuration-Etag"
 	headersRefreshClientConfiguration = "Refresh-Client-Configuration"
+	headersClientVersion              = "Raven-Client-Version"
 	headersEtag                       = "ETag"
 	headersIfNoneMatch                = "If-None-Match"
 )

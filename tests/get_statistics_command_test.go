@@ -37,8 +37,8 @@ func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) 
 	assert.NotNil(t, stats.Pager)
 	assert.NotNil(t, stats.GetLastIndexingTime())
 	assert.NotNil(t, stats.Indexes)
-	assert.NotEqual(t, stats.SizeOnDisk.GetHumaneSize(), "")
-	assert.NotEqual(t, stats.SizeOnDisk.GetSizeInBytes(), 0)
+	assert.NotEqual(t, stats.SizeOnDisk.HumaneSize, "")
+	assert.NotEqual(t, stats.SizeOnDisk.SizeInBytes, 0)
 
 	indexes := stats.Indexes
 	for _, indexInformation := range indexes {
