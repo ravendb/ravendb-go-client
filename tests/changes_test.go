@@ -1,11 +1,10 @@
 package tests
 
 import (
-	"strconv"
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -282,61 +281,6 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	assert.NoError(t, err)
 }
 
-func changesTestResourcesCleanup(t *testing.T, driver *RavenTestDriver) {
-	var err error
-	store := driver.getDocumentStoreMust(t)
-	defer store.Close()
-
-	index := makeUsersByNameIndex()
-	err = store.ExecuteIndex(index, "")
-	assert.NoError(t, err)
-
-	// repeat this few times and watch deadlocks
-	for i := 0; i < 100; i++ {
-		changesList := make(chan *ravendb.DocumentChange, 8)
-
-		{
-			changes := store.Changes()
-			err = changes.EnsureConnectedNow()
-			assert.NoError(t, err)
-
-			observable, err := changes.ForDocument("users/" + strconv.Itoa(i))
-			assert.NoError(t, err)
-
-			{
-				action := func(v interface{}) {
-					change := v.(*ravendb.DocumentChange)
-					changesList <- change
-				}
-				observer := ravendb.NewActionBasedObserver(action)
-				subscription := observable.Subscribe(observer)
-
-				{
-					session := openSessionMust(t, store)
-					user := &User{}
-					err = session.StoreWithID(user, "users/"+strconv.Itoa(i))
-					assert.NoError(t, err)
-					err = session.SaveChanges()
-					assert.NoError(t, err)
-				}
-
-				select {
-				case documentChange := <-changesList:
-					assert.NotNil(t, documentChange)
-					assert.Equal(t, documentChange.ID, "users/"+strconv.Itoa(i))
-					assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
-
-				case <-time.After(time.Second * 10):
-					assert.True(t, false, "timed out waiting for changes")
-				}
-
-				subscription.Close()
-			}
-
-		}
-	}
-}
-
 func TestChanges(t *testing.T) {
 	// t.Parallel()
 
@@ -347,7 +291,6 @@ func TestChanges(t *testing.T) {
 	// follows execution order of java tests
 	changesTestAllDocumentsChanges(t, driver)
 	changesTestSingleDocumentChanges(t, driver)
-	changesTestResourcesCleanup(t, driver)
 	changesTestChangesWithHttps(t, driver)
 	changesTestSingleIndexChanges(t, driver)
 	changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t, driver)
