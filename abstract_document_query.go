@@ -1628,7 +1628,7 @@ func (q *AbstractDocumentQuery) orderByDistanceDescending3(fieldName string, sha
 }
 
 func (q *AbstractDocumentQuery) assertIsDynamicQuery(dynamicField DynamicSpatialField, methodName string) error {
-	if !q.fromToken.isDynamic {
+	if q.fromToken != nil && !q.fromToken.isDynamic {
 		f := func(s string, f bool) string {
 			return q.ensureValidFieldName(s, f)
 		}
