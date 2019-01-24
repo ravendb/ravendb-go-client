@@ -21,6 +21,10 @@ echo "GOPATH:           ${GOPATH}"
 go test -v -race -parallel 1 -timeout 20m -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt . ./tests
 exitCode=$?
 
+# upload coverage.txt to codecov.io
+bash <(curl -s https://codecov.io/bash)
+
 zip -r logs.zip logs
 appveyor PushArtifact logs.zip
+
 exit ${exitCode}
