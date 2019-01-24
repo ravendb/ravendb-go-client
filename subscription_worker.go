@@ -275,11 +275,9 @@ func (w *SubscriptionWorker) assertConnectionState(connectionStatus *Subscriptio
 	case SubscriptionConnectionStatusNotFound:
 		return newSubscriptionDoesNotExistError("Subscription with id " + w._options.SubscriptionName + " cannot be opened, because it does not exist. " + connectionStatus.Exception)
 	case SubscriptionConnectionStatusRedirect:
-		// data := connectionStatus.Data
-		/// TODO
-		//appropriateNode := data[nameof(SubscriptionConnectionServerMessage.SubscriptionRedirectData.RedirectedTag)]?.ToString();
-		appropriateNode := ""
-		err := newSubscriptionDoesNotBelongToNodeError("Subscription With Id '%s' cannot be processed by current node, it will be redirected to %s", w._options.SubscriptionName, appropriateNode)
+		data := connectionStatus.Data
+		appropriateNode, _ := jsonGetAsText(data, "RedirectedTag")
+		err := newSubscriptionDoesNotBelongToNodeError("Subscription With id %s cannot be processed by current node, it will be redirected to %s", w._options.SubscriptionName, appropriateNode)
 		err.appropriateNode = appropriateNode
 		return err
 	case SubscriptionConnectionStatusConcurrencyReconnect:

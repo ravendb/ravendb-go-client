@@ -15,3 +15,10 @@ type BatchOptions struct {
 	throwOnTimeoutInWaitForIndexes bool
 	waitForSpecificIndexes         []string
 }
+
+// NewBatchOptions returns new BatchOptions
+func NewBatchOptions() *BatchOptions {
+	return &BatchOptions{
+		throwOnTimeoutInWaitForReplicas: true,
+	}
+}

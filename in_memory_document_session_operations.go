@@ -1288,7 +1288,7 @@ type ReplicationWaitOptsBuilder struct {
 
 func (b *ReplicationWaitOptsBuilder) getOptions() *BatchOptions {
 	if b.saveChangesOptions == nil {
-		b.saveChangesOptions = &BatchOptions{}
+		b.saveChangesOptions = NewBatchOptions()
 	}
 	return b.saveChangesOptions
 }
@@ -1319,7 +1319,7 @@ type IndexesWaitOptsBuilder struct {
 
 func (b *IndexesWaitOptsBuilder) getOptions() *BatchOptions {
 	if b.saveChangesOptions == nil {
-		b.saveChangesOptions = &BatchOptions{}
+		b.saveChangesOptions = NewBatchOptions()
 	}
 	return b.saveChangesOptions
 }
