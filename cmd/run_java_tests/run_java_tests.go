@@ -127,7 +127,8 @@ func runJava() {
 	//runSingleJavaTest("CachingOfDocumentInclude")
 	//runSingleJavaTest("RevisionsSubscriptionsTest")
 	//runSingleJavaTest("SubscriptionsBasicTest")
-	runSingleJavaTest("SecuredSubscriptionsBasicTest")
+	//runSingleJavaTest("SecuredSubscriptionsBasicTest")
+	runSingleJavaTest("FacetPagingTest")
 }
 
 func main() {

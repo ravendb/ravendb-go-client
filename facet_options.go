@@ -1,15 +1,33 @@
 package ravendb
 
+import (
+	"math"
+	"unsafe"
+)
+
 var (
 	// DefaultFacetOptions are default facet options
 	DefaultFacetOptions = &FacetOptions{}
 )
 
 // FacetOptions describes options for facet
-// TODO: is it json-encoded and therefore should be json-annotated?
 type FacetOptions struct {
-	TermSortMode          FacetTermSortMode
-	IncludeRemainingTerms bool
-	Start                 int
-	PageSize              int
+	TermSortMode          FacetTermSortMode `json:"TermSortMode"`
+	IncludeRemainingTerms bool              `json:"IncludeRemainingTerms"`
+	Start                 int               `json:"Start"`
+	PageSize              int               `json:"PageSize"`
+}
+
+func maxInt() int {
+	if unsafe.Sizeof(int(0)) == unsafe.Sizeof(int32(0)) {
+		return int(math.MaxInt32)
+	}
+	return int(math.MaxInt64)
+}
+
+// NewFacetOptions returns new FacetOptions
+func NewFacetOptions() *FacetOptions {
+	return &FacetOptions{
+		PageSize: int(math.MaxInt32),
+	}
 }

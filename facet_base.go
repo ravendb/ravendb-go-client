@@ -2,9 +2,10 @@ package ravendb
 
 type FacetBase interface {
 	// those are supplied by each type
+	// TODO: make it private
 	ToFacetToken(addQueryParameter func(interface{}) string) *facetToken
 
-	// inherited from FacetBaseCommon
+	// those are inherited from FacetBaseCommon
 	GetOptions() *FacetOptions
 	GetAggregations() map[FacetAggregation]string
 	SetDisplayFieldName(string)
@@ -12,37 +13,37 @@ type FacetBase interface {
 }
 
 type FacetBaseCommon struct {
-	displayFieldName string
-	options          *FacetOptions
-	aggregations     map[FacetAggregation]string
+	DisplayFieldName string                      `json:"DisplayFieldName,omitempty"`
+	Options          *FacetOptions               `json:"Options"`
+	Aggregations     map[FacetAggregation]string `json:"Aggregations"`
 }
 
 func NewFacetBaseCommon() FacetBaseCommon {
 	return FacetBaseCommon{
-		aggregations: make(map[FacetAggregation]string),
+		Aggregations: make(map[FacetAggregation]string),
 	}
 }
 
 func (f *FacetBaseCommon) GetDisplayFieldName() string {
-	return f.displayFieldName
+	return f.DisplayFieldName
 }
 
 func (f *FacetBaseCommon) SetDisplayFieldName(displayFieldName string) {
-	f.displayFieldName = displayFieldName
+	f.DisplayFieldName = displayFieldName
 }
 
 func (f *FacetBaseCommon) GetOptions() *FacetOptions {
-	return f.options
+	return f.Options
 }
 
 func (f *FacetBaseCommon) SetOptions(options *FacetOptions) {
-	f.options = options
+	f.Options = options
 }
 
 func (f *FacetBaseCommon) GetAggregations() map[FacetAggregation]string {
-	return f.aggregations
+	return f.Aggregations
 }
 
 func (f *FacetBaseCommon) SetAggregations(aggregations map[FacetAggregation]string) {
-	f.aggregations = aggregations
+	f.Aggregations = aggregations
 }

@@ -8,10 +8,10 @@ type RangeFacet struct {
 
 	_parent FacetBase
 
-	Ranges []string
+	Ranges []string `json:"Ranges"`
 }
 
-// NewRnageFacet returns new RangeFacet
+// NewRangeFacet returns new RangeFacet
 // parent is optional (can be nil)
 func NewRangeFacet(parent FacetBase) *RangeFacet {
 	return &RangeFacet{

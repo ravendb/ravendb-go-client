@@ -695,6 +695,10 @@ func (s *DocumentSession) DocumentQueryInIndex(index *AbstractIndexCreationTask)
 	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
 }
 
+func (s *DocumentSession) DocumentQueryInIndexNamed(indexName string) *DocumentQuery {
+	return s.DocumentQueryAll(indexName, "", false)
+}
+
 // DocumentQuery starts a new DocumentQuery
 func (s *DocumentSession) DocumentQuery() *DocumentQuery {
 	return s.DocumentQueryAll("", "", false)
@@ -746,8 +750,12 @@ func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *Document
 	return s.DocumentQueryAll(collectionOrIndexName.IndexName, collectionOrIndexName.Collection, false)
 }
 
+func (s *DocumentSession) QueryInIndexNamed(indexName string) *DocumentQuery {
+	return s.DocumentQueryAll(indexName, "", false)
+}
+
 func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryInIndex(index)
+	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
 }
 
 // StreamQuery starts a streaming query and returns iterator for results.

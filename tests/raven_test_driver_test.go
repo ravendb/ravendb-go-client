@@ -282,6 +282,10 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 }
 
 func (d *RavenTestDriver) waitForIndexing(store *ravendb.DocumentStore, database string, timeout time.Duration) error {
+	return waitForIndexing(store, database, timeout)
+}
+
+func waitForIndexing(store *ravendb.DocumentStore, database string, timeout time.Duration) error {
 	admin := store.Maintenance().ForDatabase(database)
 	if timeout == 0 {
 		timeout = time.Minute

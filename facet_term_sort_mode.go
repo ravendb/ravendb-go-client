@@ -4,8 +4,8 @@ package ravendb
 type FacetTermSortMode = string
 
 const (
-	FacetTermSortByValueAsc  = "ValueAsc"
-	FacetTermSortByValueDesc = "ValueDesc"
-	FacetTermSortByCountAsc  = "CountAsc"
-	FacetTermSortByCountDesc = "CountDesc"
+	FacetTermSortModeValueAsc  = "ValueAsc"
+	FacetTermSortModeValueDesc = "ValueDesc"
+	FacetTermSortModeCountAsc  = "CountAsc"
+	FacetTermSortModeCountDesc = "CountDesc"
 )
