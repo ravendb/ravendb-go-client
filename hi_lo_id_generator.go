@@ -72,8 +72,8 @@ func (g *HiLoIDGenerator) NextID() (int, error) {
 		g.generatorLock.Lock()
 		defer g.generatorLock.Unlock()
 
-		id = rangev.Current.get()
-		if id <= rangev.Max {
+		id = g._range.Current.get()
+		if id <= g._range.Max {
 			return id, nil
 		}
 		err := g.GetNextRange()

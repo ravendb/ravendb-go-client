@@ -211,6 +211,10 @@ func hiloTestMultiDb(t *testing.T, driver *RavenTestDriver) {
 	session.Close()
 }
 
+func hiloTestDoesNotGetAnotherRangeWhenDoingParallelRequests(t *testing.T, driver *RavenTestDriver) {
+	// Note: not applicable to Go as we doesn't have Executor to limit concurrency
+}
+
 func TestHiLo(t *testing.T) {
 	// t.Parallel()
 
@@ -223,4 +227,6 @@ func TestHiLo(t *testing.T) {
 	hiloTestReturnUnusedRangeOnClose(t, driver)
 	hiloTestCanNotGoDown(t, driver)
 	hiloTestMultiDb(t, driver)
+
+	hiloTestDoesNotGetAnotherRangeWhenDoingParallelRequests(t, driver)
 }
