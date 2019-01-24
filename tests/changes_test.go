@@ -253,6 +253,150 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	changesList := make(chan *ravendb.DocumentChange)
+
+	{
+		changes := store.Changes()
+		err = changes.EnsureConnectedNow()
+		assert.NoError(t, err)
+
+		observable, err := changes.ForDocumentsStartingWith("users/")
+		assert.NoError(t, err)
+
+		{
+			action := func(v interface{}) {
+				change := v.(*ravendb.DocumentChange)
+				changesList <- change
+			}
+			observer := ravendb.NewActionBasedObserver(action)
+			subscription := observable.Subscribe(observer)
+
+			{
+				session := openSessionMust(t, store)
+				err = session.StoreWithID(&User{}, "users/1")
+				assert.NoError(t, err)
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			{
+				session := openSessionMust(t, store)
+				err = session.StoreWithID(&User{}, "differentDocumentPrefix/1")
+				assert.NoError(t, err)
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			{
+				session := openSessionMust(t, store)
+				err = session.StoreWithID(&User{}, "users/2")
+				assert.NoError(t, err)
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			select {
+			case documentChange := <-changesList:
+				assert.Equal(t, documentChange.ID, "users/1")
+			case <-time.After(time.Second * 2):
+				assert.True(t, false, "timed out waiting for changes")
+			}
+
+			select {
+			case documentChange := <-changesList:
+				assert.Equal(t, documentChange.ID, "users/2")
+			case <-time.After(time.Second * 2):
+				assert.True(t, false, "timed out waiting for changes")
+			}
+			subscription.Close()
+
+		}
+	}
+}
+
+func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	changesList := make(chan *ravendb.DocumentChange)
+
+	{
+		changes := store.Changes()
+		err = changes.EnsureConnectedNow()
+		assert.NoError(t, err)
+
+		observable, err := changes.ForDocumentsInCollection("users")
+		assert.NoError(t, err)
+
+		{
+			action := func(v interface{}) {
+				change := v.(*ravendb.DocumentChange)
+				changesList <- change
+			}
+			observer := ravendb.NewActionBasedObserver(action)
+			subscription := observable.Subscribe(observer)
+
+			{
+				session := openSessionMust(t, store)
+				err = session.StoreWithID(&User{}, "users/1")
+				assert.NoError(t, err)
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			{
+				session := openSessionMust(t, store)
+				err = session.StoreWithID(&Order{}, "orders/1")
+				assert.NoError(t, err)
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			{
+				session := openSessionMust(t, store)
+				err = session.StoreWithID(&User{}, "users/2")
+				assert.NoError(t, err)
+				err = session.SaveChanges()
+				assert.NoError(t, err)
+
+				session.Close()
+			}
+
+			select {
+			case documentChange := <-changesList:
+				assert.Equal(t, documentChange.ID, "users/1")
+			case <-time.After(time.Second * 2):
+				assert.True(t, false, "timed out waiting for changes")
+			}
+
+			select {
+			case documentChange := <-changesList:
+				assert.Equal(t, documentChange.ID, "users/2")
+			case <-time.After(time.Second * 2):
+				assert.True(t, false, "timed out waiting for changes")
+			}
+
+			subscription.Close()
+		}
+	}
+}
+
 func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -295,4 +439,8 @@ func TestChanges(t *testing.T) {
 	changesTestSingleIndexChanges(t, driver)
 	changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t, driver)
 	changesTestAllIndexChanges(t, driver)
+
+	// TODO: order different than Java's
+	changesTestCanCanNotificationAboutDocumentsStartingWiths(t, driver)
+	changesTestCanCanNotificationAboutDocumentsFromCollection(t, driver)
 }

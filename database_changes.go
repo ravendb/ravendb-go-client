@@ -3,6 +3,7 @@ package ravendb
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -253,47 +254,10 @@ func (c *databaseChanges) ForDocumentsInCollection(collectionName string) (IChan
 	return taskedObservable, nil
 }
 
-/*
-func (c *databaseChanges) ForDocumentsInCollection(Class<?> clazz) (IChangesObservable, error) {
-	String collectionName = conventions.getCollectionName(clazz);
-	return forDocumentsInCollection(collectionName);
+func (c *databaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type) (IChangesObservable, error) {
+	collectionName := c.conventions.GetCollectionName(clazz)
+	return c.ForDocumentsInCollection(collectionName)
 }
-*/
-
-func (c *databaseChanges) ForDocumentsOfType(typeName string) (IChangesObservable, error) {
-	if typeName == "" {
-		return nil, newIllegalArgumentError("TypeName cannot be empty")
-	}
-
-	encodedTypeName := urlUtilsEscapeDataString(typeName)
-
-	counter, err := c.getOrAddConnectionState("types/"+typeName, "watch-type", "unwatch-type", encodedTypeName)
-	if err != nil {
-		return nil, err
-	}
-
-	filter := func(notification interface{}) bool {
-		v := notification.(*DocumentChange)
-		return strings.EqualFold(typeName,
-			v.TypeName)
-	}
-
-	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
-
-	return taskedObservable, nil
-}
-
-/*
-   public IChangesObservable<DocumentChange> ForDocumentsOfType(Class<?> clazz) {
-       if (clazz == null) {
-           throw new IllegalArgumentError("Clazz cannot be null");
-       }
-
-       String className = conventions.getFindJavaClassName().apply(clazz);
-       return forDocumentsOfType(className);
-   }
-
-*/
 
 func (c *databaseChanges) invokeConnectionStatusChanged() {
 	var dup []func()
