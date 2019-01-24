@@ -86,7 +86,7 @@ func (g *HiLoIDGenerator) NextID() (int, error) {
 func (g *HiLoIDGenerator) GetNextRange() error {
 	hiloCommand := NewNextHiLoCommand(g._tag, g._lastBatchSize, &g._lastRangeDate,
 		g._identityPartsSeparator, g._range.Max)
-	re := g._store.GetRequestExecutor("")
+	re := g._store.GetRequestExecutor(g._dbName)
 	err := re.ExecuteCommand(hiloCommand)
 	if err != nil {
 		return err
