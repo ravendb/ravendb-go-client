@@ -34,6 +34,7 @@ type SubscriptionWorker struct {
 	_subscriptionLocalRequestExecutor *RequestExecutor
 
 	lastConnectionFailure time.Time
+	_supportedFeatures    *SupportedFeatures
 	onClosed              func(*SubscriptionWorker)
 
 	mu sync.Mutex
@@ -195,48 +196,30 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 		databaseName = w._store.GetDatabase()
 	}
 
-	tcpHeaderMsg := &TcpConnectionHeaderMessage{
-		Operation:        OperationSubscription,
-		DatabaseName:     databaseName,
-		OperationVersion: SUBSCRIPTION_TCP_VERSION,
+	parameters := &TcpNegotiateParameters{}
+	parameters.database = databaseName
+	parameters.operation = OperationSubscription
+	parameters.version = SUBSCRIPTION_TCP_VERSION
+	fn := func(s string) int {
+		n, _ := w.readServerResponseAndGetVersion(s)
+		return n
 	}
+	parameters.readResponseAndGetVersionCallback = fn
+	parameters.destinationNodeTag = w.getCurrentNodeTag()
+	parameters.destinationUrl = command.Result.URL
 
-	header, err := jsonMarshal(tcpHeaderMsg)
+	w._supportedFeatures, err = negotiateProtocolVersion(tcpClient, parameters)
 	if err != nil {
 		return nil, err
+	}
+
+	if w._supportedFeatures.protocolVersion <= 0 {
+		return nil, newIllegalStateError(w._options.SubscriptionName + " : TCP negotiation resulted with an invalid protocol version: " + strconv.Itoa(w._supportedFeatures.protocolVersion))
 	}
 
 	options, err := jsonMarshal(w._options)
 	if err != nil {
 		return nil, err
-	}
-
-	_, err = w.getTcpClient().Write(header)
-	if err != nil {
-		return nil, err
-	}
-	w._parser = json.NewDecoder(w.getTcpClient())
-
-	var reply *TcpConnectionHeaderResponse
-	//Reading reply from server
-	err = w._parser.Decode(&reply)
-
-	switch reply.Status {
-	case TcpConnectionStatusOk:
-		// no-op
-	case TcpConnectionStatusAuthorizationFailed:
-		return nil, newAuthorizationError("Cannot access database " + databaseName + " because " + reply.Message)
-	case TcpConnectionStatusTcpVersionMismatch:
-		//Kindly request the server to drop the connection
-		dropMsg := &TcpConnectionHeaderMessage{
-			Operation:        OperationDrop,
-			DatabaseName:     databaseName,
-			OperationVersion: SUBSCRIPTION_TCP_VERSION,
-			Info:             "Couldn't agree on subscription tcp version ours: " + strconv.Itoa(SUBSCRIPTION_TCP_VERSION) + " theirs: " + strconv.Itoa(reply.Version),
-		}
-		header, _ = jsonMarshal(dropMsg)
-		tcpClient.Write(header)
-		return nil, newIllegalStateError("Can't connect to database " + databaseName + " because: " + reply.Message)
 	}
 
 	_, err = tcpClient.Write(options)
@@ -251,6 +234,54 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	uri = command.requestedNode.URL
 	w._subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w._dbName, cert, conv)
 	return tcpClient, nil
+}
+
+func (w *SubscriptionWorker) ensureParser() {
+	if w._parser == nil {
+		w._parser = json.NewDecoder(w._tcpClient)
+	}
+}
+
+func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, error) {
+	//Reading reply from server
+	w.ensureParser()
+	var reply *TcpConnectionHeaderResponse
+	err := w._parser.Decode(&reply)
+	if err != nil {
+		return 0, err
+	}
+
+	switch reply.Status {
+	case TcpConnectionStatusOk:
+		return reply.Version, nil
+	case TcpConnectionStatusAuthorizationFailed:
+		return 0, newAuthorizationError("Cannot access database " + w._dbName + " because " + reply.Message)
+	case TcpConnectionStatusTcpVersionMismatch:
+		if reply.Version != OUT_OF_RANGE_STATUS {
+			return reply.Version, nil
+		}
+		//Kindly request the server to drop the connection
+		w.sendDropMessage(reply)
+		return 0, newIllegalStateError("Can't connect to database " + w._dbName + " because: " + reply.Message)
+	}
+
+	return 0, newIllegalStateError("Unknown status '%s'", reply.Status)
+}
+
+func (w *SubscriptionWorker) sendDropMessage(reply *TcpConnectionHeaderResponse) error {
+	dropMsg := &TcpConnectionHeaderMessage{}
+	dropMsg.Operation = OperationDrop
+	dropMsg.DatabaseName = w._dbName
+	dropMsg.OperationVersion = SUBSCRIPTION_TCP_VERSION
+	dropMsg.Info = "Couldn't agree on subscription tcp version ours: " + strconv.Itoa(SUBSCRIPTION_TCP_VERSION) + " theirs: " + strconv.Itoa(reply.Version)
+	header, err := jsonMarshal(dropMsg)
+	if err != nil {
+		return err
+	}
+	if _, err = w._tcpClient.Write(header); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (w *SubscriptionWorker) assertConnectionState(connectionStatus *SubscriptionConnectionServerMessage) error {
