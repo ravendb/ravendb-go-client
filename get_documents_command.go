@@ -30,6 +30,7 @@ type GetDocumentsCommand struct {
 }
 
 func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *GetDocumentsCommand {
+	panicIf(len(ids) == 0, "ids cannot be empty")
 	cmd := &GetDocumentsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
