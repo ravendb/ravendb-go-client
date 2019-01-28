@@ -11,10 +11,6 @@ import (
 )
 
 func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getSecuredDocumentStoreMust(t)
 	defer store.Close()
@@ -115,10 +111,6 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 }
 
 func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getSecuredDocumentStoreMust(t)
 	defer store.Close()

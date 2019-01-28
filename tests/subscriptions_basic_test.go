@@ -39,10 +39,6 @@ func getNextUser(docs chan *User, timeout time.Duration) (*User, bool) {
 }
 
 func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -73,10 +69,6 @@ func subscriptionsBasic_canDeleteSubscription(t *testing.T, driver *RavenTestDri
 }
 
 func subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -103,10 +95,6 @@ func subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t *testing.
 }
 
 func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -169,10 +157,6 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 }
 
 func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -272,10 +256,6 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 }
 
 func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -375,10 +355,6 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 }
 
 func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -432,10 +408,6 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 }
 
 func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -491,10 +463,6 @@ func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *Ra
 }
 
 func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -576,10 +544,6 @@ func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenT
 }
 
 func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -664,10 +628,6 @@ func putUserDoc(t *testing.T, store *ravendb.DocumentStore) {
 }
 
 func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -719,10 +679,6 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 }
 
 func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -761,10 +717,6 @@ func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErr
 }
 
 func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -815,10 +767,6 @@ func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *Rav
 }
 
 func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -907,10 +855,6 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 }
 
 func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterTypedSubscription(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -976,10 +920,6 @@ func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterType
 }
 
 func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t *testing.T, driver *RavenTestDriver) {
-	if isRunningOn41Server() {
-		return
-	}
-
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
