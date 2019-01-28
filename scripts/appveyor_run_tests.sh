@@ -12,7 +12,7 @@ export LOG_FAILED_HTTP_REQUESTS_DELAYED=true
 # ravendb server executable
 wd=`pwd`
 export RAVENDB_JAVA_TEST_CERTIFICATE_PATH="${wd}/certs/server.pfx"
-export RAVENDB_JAVA_TEST_CA_PATH="${wd}/certs/ca.cert"
+export RAVENDB_JAVA_TEST_CA_PATH="${wd}/certs/ca.crt"
 export RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
 export RAVENDB_JAVA_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
 
