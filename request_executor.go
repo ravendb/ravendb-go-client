@@ -1163,7 +1163,7 @@ func (re *RequestExecutor) ensureNodeSelector() (*NodeSelector, error) {
 	firstTopologyUpdate := re._firstTopologyUpdate
 	re.mu.Unlock()
 
-	if firstTopologyUpdate != nil && !firstTopologyUpdate.IsDone() {
+	if firstTopologyUpdate != nil && (!firstTopologyUpdate.IsDone() || firstTopologyUpdate.IsCompletedExceptionally()) {
 		_, err := firstTopologyUpdate.Get()
 		if err != nil {
 			return nil, err

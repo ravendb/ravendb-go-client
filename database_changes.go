@@ -428,6 +428,7 @@ func (c *databaseChanges) doWork() error {
 	if err != nil {
 		c.invokeConnectionStatusChanged()
 		c.notifyAboutError(err)
+		c.tcs.completeWithError(err)
 		return err
 	}
 

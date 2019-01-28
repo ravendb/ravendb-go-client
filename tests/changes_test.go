@@ -402,23 +402,11 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	semaphore := make(chan bool, 1)
-
 	changes := store.ChangesWithDatabaseName("no_such_db")
-
-	onError := func(e error) {
-		semaphore <- true
-	}
-	changes.AddOnError(onError)
-
-	timedOut := false
-	select {
-	case <-semaphore:
-		// do nothing
-	case <-time.After(time.Second * 15):
-		timedOut = true
-	}
-	assert.False(t, timedOut)
+	err = changes.EnsureConnectedNow()
+	assert.NotNil(t, err)
+	_, ok := err.(*ravendb.DatabaseDoesNotExistError)
+	assert.True(t, ok)
 
 	op := ravendb.NewGetStatisticsOperation()
 	err = store.Maintenance().Send(op)
