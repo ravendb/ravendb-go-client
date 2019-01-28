@@ -230,7 +230,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		b.WriteByte(',')
 	}
 	m := map[string]interface{}{}
-	m["Id"] = id
+	m["Id"] = o.escapeID(id)
 	m["Type"] = "PUT"
 	m["Document"] = jsNode
 
@@ -252,6 +252,23 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 		return o.err
 	}
 	return o.err
+}
+
+func (o *BulkInsertOperation) escapeID(input string) string {
+	if !strings.Contains(input, `"`) {
+		return input
+	}
+	var res bytes.Buffer
+	for i := 0; i < len(input); i++ {
+		c := input[i]
+		if c == '"' {
+			if i == 0 || input[i-1] != '\\' {
+				res.WriteByte('\\')
+			}
+		}
+		res.WriteByte(c)
+	}
+	return res.String()
 }
 
 func (o *BulkInsertOperation) ensureCommand() error {

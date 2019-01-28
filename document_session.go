@@ -553,7 +553,10 @@ func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd inter
 	patchRequest := &PatchRequest{}
 
 	valsCountStr := strconv.Itoa(s.valsCount)
-	patchRequest.Script = "this." + path + " += args.val_" + valsCountStr + ";"
+	variable := "this." + path
+	value := "args.val_" + valsCountStr
+
+	patchRequest.Script = variable + " = " + variable + " ? " + variable + " + " + value + " : " + value + ";"
 
 	m := map[string]interface{}{
 		"val_" + valsCountStr: valueToAdd,

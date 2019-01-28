@@ -23,7 +23,7 @@ func NewConfigureRevisionsOperation(configuration *RevisionsConfiguration) *Conf
 
 // GetCommand returns new RavenCommand for this operation
 func (o *ConfigureRevisionsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewConfigureRevisionsCommand(conventions, o._configuration)
+	o.Command = NewConfigureRevisionsCommand(o._configuration)
 	return o.Command
 }
 
@@ -33,18 +33,16 @@ var _ RavenCommand = &ConfigureRevisionsCommand{}
 type ConfigureRevisionsCommand struct {
 	RavenCommandBase
 
-	_conventions   *DocumentConventions
 	_configuration *RevisionsConfiguration
 
 	Result *ConfigureRevisionsOperationResult
 }
 
 // NewConfigureRevisionsCommand returns new ConfigureRevisionsCommand
-func NewConfigureRevisionsCommand(conventions *DocumentConventions, configuration *RevisionsConfiguration) *ConfigureRevisionsCommand {
+func NewConfigureRevisionsCommand(configuration *RevisionsConfiguration) *ConfigureRevisionsCommand {
 	cmd := &ConfigureRevisionsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_conventions:   conventions,
 		_configuration: configuration,
 	}
 	return cmd
@@ -68,5 +66,5 @@ func (c *ConfigureRevisionsCommand) SetResponse(response []byte, fromCache bool)
 
 // ConfigureRevisionsOperationResult represents result of configure revisions operation
 type ConfigureRevisionsOperationResult struct {
-	Etag int `json:"ETag"`
+	RaftCommandIndex int64 `json:"RaftCommandIndex"`
 }

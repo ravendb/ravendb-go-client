@@ -1241,6 +1241,10 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 
 	if !isIndex && !isCollection {
 		collectionName = conventions.GetCollectionName(clazz)
+		if collectionName == "" {
+			// TODO: what test would exercise this code path?
+			collectionName = MetadataAllDocumentsCollection
+		}
 	}
 
 	return indexName, collectionName
