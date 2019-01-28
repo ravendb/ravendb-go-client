@@ -7,12 +7,13 @@ type ServerOperationExecutor struct {
 func NewServerOperationExecutor(store *DocumentStore) *ServerOperationExecutor {
 	res := &ServerOperationExecutor{}
 	urls := store.GetUrls()
-	cert := store.GetCertificate()
+	cert := store.Certificate
+	trustStore := store.TrustStore
 	conv := store.GetConventions()
 	if conv.IsDisableTopologyUpdates() {
-		res.requestExecutor = ClusterRequestExecutorCreateForSingleNode(urls[0], cert, conv)
+		res.requestExecutor = ClusterRequestExecutorCreateForSingleNode(urls[0], cert, trustStore, conv)
 	} else {
-		res.requestExecutor = ClusterRequestExecutorCreate(urls, cert, conv)
+		res.requestExecutor = ClusterRequestExecutorCreate(urls, cert, trustStore, conv)
 	}
 	fn := func(store *DocumentStore) {
 		res.requestExecutor.Close()

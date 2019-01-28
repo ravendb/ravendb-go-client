@@ -1,6 +1,8 @@
 package ravendb
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"strings"
@@ -27,7 +29,8 @@ type DocumentStore struct {
 	conventions *DocumentConventions
 	urls        []string // urls for HTTP endopoints of server nodes
 	initialized bool
-	certificate *KeyStore
+	Certificate *tls.Certificate
+	TrustStore  *x509.Certificate
 	database    string // name of the database
 
 	// maps database name to databaseChanges. Must be protected with mutex
@@ -210,15 +213,6 @@ func (s *DocumentStore) SetDatabase(database string) {
 	s.database = database
 }
 
-func (s *DocumentStore) GetCertificate() *KeyStore {
-	return s.certificate
-}
-
-func (s *DocumentStore) SetCertificate(certificate *KeyStore) {
-	s.assertNotInitialized("certificate")
-	s.certificate = certificate
-}
-
 func (s *DocumentStore) AggressivelyCache() {
 	s.AggressivelyCacheWithDatabase("")
 }
@@ -392,9 +386,9 @@ func (s *DocumentStore) GetRequestExecutor(database string) *RequestExecutor {
 	}
 
 	if !s.GetConventions().IsDisableTopologyUpdates() {
-		executor = RequestExecutorCreate(s.GetUrls(), database, s.GetCertificate(), s.GetConventions())
+		executor = RequestExecutorCreate(s.GetUrls(), database, s.Certificate, s.TrustStore, s.GetConventions())
 	} else {
-		executor = RequestExecutorCreateForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], database, s.GetCertificate(), s.GetConventions())
+		executor = RequestExecutorCreateForSingleNodeWithConfigurationUpdates(s.GetUrls()[0], database, s.Certificate, s.TrustStore, s.GetConventions())
 	}
 
 	s.mu.Lock()

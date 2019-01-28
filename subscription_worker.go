@@ -185,7 +185,7 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	if command.Result.Certificate != nil {
 		serverCert = []byte(*command.Result.Certificate)
 	}
-	cert := w._store.GetCertificate()
+	cert := w._store.Certificate
 	tcpClient, err := tcpConnect(uri, serverCert, cert)
 	if err != nil {
 		return nil, err
@@ -230,9 +230,10 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 		w._subscriptionLocalRequestExecutor.Close()
 	}
 	conv := w._store.GetConventions()
-	cert = requestExecutor.GetCertificate()
+	cert = requestExecutor.Certificate
+	trustStore := requestExecutor.TrustStore
 	uri = command.requestedNode.URL
-	w._subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w._dbName, cert, conv)
+	w._subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w._dbName, cert, trustStore, conv)
 	return tcpClient, nil
 }
 

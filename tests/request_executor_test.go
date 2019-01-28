@@ -21,7 +21,7 @@ func requestExecutorTestFailuresDoesNotBlockConnectionPool(t *testing.T, driver 
 	defer store.Close()
 
 	{
-		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, conventions)
+		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, nil, conventions)
 		errorsCount := 0
 
 		for i := 0; i < 40; i++ {
@@ -52,7 +52,7 @@ func requestExecutorTestCanIssueManyRequests(t *testing.T, driver *RavenTestDriv
 	defer store.Close()
 
 	{
-		executor := ravendb.RequestExecutorCreate(store.GetUrls(), store.GetDatabase(), nil, conventions)
+		executor := ravendb.RequestExecutorCreate(store.GetUrls(), store.GetDatabase(), nil, nil, conventions)
 		for i := 0; i < 50; i++ {
 			databaseNamesOperation := ravendb.NewGetDatabaseNamesOperation(0, 20)
 			command := databaseNamesOperation.GetCommand(conventions)
@@ -74,7 +74,7 @@ func requestExecutorTestCanFetchDatabasesNames(t *testing.T, driver *RavenTestDr
 	defer store.Close()
 
 	{
-		executor := ravendb.RequestExecutorCreate(store.GetUrls(), store.GetDatabase(), nil, conventions)
+		executor := ravendb.RequestExecutorCreate(store.GetUrls(), store.GetDatabase(), nil, nil, conventions)
 
 		databaseNamesOperation := ravendb.NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.GetCommand(conventions)
@@ -98,7 +98,7 @@ func requestExecutorTestThrowsWhenUpdatingTopologyOfNotExistingDb(t *testing.T, 
 	defer store.Close()
 
 	{
-		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, conventions)
+		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, nil, conventions)
 		serverNode := ravendb.NewServerNode()
 		serverNode.URL = store.GetUrls()[0]
 		serverNode.Database = "no_such"
@@ -120,7 +120,7 @@ func requestExecutorTestThrowsWhenDatabaseDoesNotExist(t *testing.T, driver *Rav
 	defer store.Close()
 
 	{
-		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, conventions)
+		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, nil, conventions)
 		command := ravendb.NewGetNextOperationIDCommand()
 		err := executor.ExecuteCommand(command)
 		_ = err.(*ravendb.DatabaseDoesNotExistError)
@@ -139,7 +139,7 @@ func requestExecutorTestCanCreateSingleNodeRequestExecutor(t *testing.T, driver 
 	defer store.Close()
 
 	{
-		executor := ravendb.RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(store.GetUrls()[0], store.GetDatabase(), nil, documentConventions)
+		executor := ravendb.RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(store.GetUrls()[0], store.GetDatabase(), nil, nil, documentConventions)
 		nodes := executor.GetTopologyNodes()
 		assert.Equal(t, 1, len(nodes))
 
@@ -168,7 +168,7 @@ func requestExecutorTestCanChooseOnlineNode(t *testing.T, driver *RavenTestDrive
 	url := store.GetUrls()[0]
 	dbName := store.GetDatabase()
 	{
-		executor := ravendb.RequestExecutorCreate([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, documentConventions)
+		executor := ravendb.RequestExecutorCreate([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, nil, documentConventions)
 		command := ravendb.NewGetNextOperationIDCommand()
 		err := executor.ExecuteCommand(command)
 		assert.NoError(t, err)
@@ -189,7 +189,7 @@ func requestExecutorTestFailsWhenServerIsOffline(t *testing.T, driver *RavenTest
 		fmt.Printf("requestExecutorTest_failsWhenServerIsOffline start\n")
 	}
 	documentConventions := ravendb.NewDocumentConventions()
-	executor := ravendb.RequestExecutorCreate([]string{"http://no_such_host:8081"}, "db1", nil, documentConventions)
+	executor := ravendb.RequestExecutorCreate([]string{"http://no_such_host:8081"}, "db1", nil, nil, documentConventions)
 	command := ravendb.NewGetNextOperationIDCommand()
 	err := executor.ExecuteCommand(command)
 	assert.Error(t, err)

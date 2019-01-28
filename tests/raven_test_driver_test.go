@@ -77,10 +77,10 @@ func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
 	return nil, fmt.Errorf("Failed to parse private key")
 }
 
-func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, []byte, error) {
+func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
 	raw, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var cert tls.Certificate
@@ -94,32 +94,41 @@ func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, []byte, error)
 		} else {
 			cert.PrivateKey, err = parsePrivateKey(block.Bytes)
 			if err != nil {
-				return nil, nil, fmt.Errorf("Failure reading private key from \"%s\": %s", path, err)
+				return nil, fmt.Errorf("Failure reading private key from \"%s\": %s", path, err)
 			}
 		}
 		raw = rest
 	}
 
 	if len(cert.Certificate) == 0 {
-		return nil, nil, fmt.Errorf("No certificate found in \"%s\"", path)
+		return nil, fmt.Errorf("No certificate found in \"%s\"", path)
 	} else if cert.PrivateKey == nil {
-		return nil, nil, fmt.Errorf("No private key found in \"%s\"", path)
+		return nil, fmt.Errorf("No private key found in \"%s\"", path)
 	}
 
-	return &cert, raw, nil
+	return &cert, nil
 }
 
-func getTestClientCertificate() *ravendb.KeyStore {
-	res := &ravendb.KeyStore{}
+func getTestClientCertificate() *tls.Certificate {
 	path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
-	cert, raw, err := loadCertficateAndKeyFromFile(path)
+	cert, err := loadCertficateAndKeyFromFile(path)
 	must(err)
-	keyCert := &ravendb.KeyStoreCertificate{
-		PEM:     raw,
-		TLSCert: cert,
+	return cert
+}
+
+func getTestCaCertificate() *x509.Certificate {
+	path := os.Getenv("RAVENDB_JAVA_TEST_CA_PATH")
+	// TODO: should I make it mandator?
+	if len(path) == 0 {
+		return nil
 	}
-	res.Certificates = append(res.Certificates, keyCert)
-	return res
+	certPEM, err := ioutil.ReadFile(path)
+	must(err)
+	block, _ := pem.Decode([]byte(certPEM))
+	panicIf(block == nil, "failed to decode cert PEM from %s", path)
+	cert, err := x509.ParseCertificate(block.Bytes)
+	must(err)
+	return cert
 }
 
 func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
@@ -157,7 +166,8 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	store := ravendb.NewDocumentStoreWithURLsAndDatabase(urls, name)
 
 	if secured {
-		store.SetCertificate(getTestClientCertificate())
+		store.Certificate = getTestClientCertificate()
+		store.TrustStore = getTestCaCertificate()
 	}
 
 	// TODO: is over-written by CustomSerializationTest
@@ -272,8 +282,8 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 
 	if secured {
 		d.securedStore = store
-		clientCert := getTestClientCertificate()
-		store.SetCertificate(clientCert)
+		store.Certificate = getTestClientCertificate()
+		store.TrustStore = getTestCaCertificate()
 	} else {
 		d.server = store
 	}

@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -34,7 +35,8 @@ type RequestExecutor struct {
 
 	failedNodesTimers sync.Map // *ServerNode => *NodeStatus
 
-	certificate          *KeyStore
+	Certificate          *tls.Certificate
+	TrustStore           *x509.Certificate
 	databaseName         string
 	lastReturnedResponse atomic.Value // atomic to avoid data races
 
@@ -130,80 +132,8 @@ func (re *RequestExecutor) GetConventions() *DocumentConventions {
 	return re.conventions
 }
 
-func (re *RequestExecutor) GetCertificate() *KeyStore {
-	return re.certificate
-}
-
-/*
-func makeHTTPClientNoKeepAlive(certs []tls.Certificate) *http.Client {
-	// based on http.DefaultTransport with DisableKeepAlives set to true
-	tr := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		DisableKeepAlives:     true,
-	}
-
-	client := &http.Client{
-		Timeout:   time.Second * 30,
-		Transport: tr,
-	}
-
-	if certs != nil {
-		fmt.Printf("Creating HTTP client with certificates\n")
-		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: certs,
-				// TODO: this is for testing only, we should either manually
-				// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
-				// or add certificate to global cert store
-				InsecureSkipVerify: true,
-			},
-		}
-	}
-
-	return client
-}
-*/
-
-func tlsConfigFromCerts(keystore *KeyStore) *tls.Config {
-	if keystore == nil || keystore.Certificates == nil {
-		return nil
-	}
-	res := &tls.Config{
-		// TODO: this is for testing only, we should either manually
-		// create RootCAs as in https://github.com/jcbsmpsn/golang-https-example/blob/master/https_client.go
-		// or add certificate to global cert store
-		InsecureSkipVerify: true,
-	}
-	for _, c := range keystore.Certificates {
-		res.Certificates = append(res.Certificates, *c.TLSCert)
-	}
-	return res
-}
-
-func makeHTTPClient(keystore *KeyStore) *http.Client {
-	client := &http.Client{
-		Timeout: time.Second * 30,
-	}
-	tlsConfig := tlsConfigFromCerts(keystore)
-	if tlsConfig != nil {
-		client.Transport = &http.Transport{
-			TLSClientConfig: tlsConfig,
-		}
-	}
-	return client
-}
-
 // NewRequestExecutor creates a new executor
-func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
+func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	if conventions == nil {
 		conventions = NewDocumentConventions()
 	}
@@ -214,21 +144,20 @@ func NewRequestExecutor(databaseName string, certificate *KeyStore, conventions 
 		Cache:               NewHttpCache(conventions.getMaxHttpCacheSize()),
 		readBalanceBehavior: conventions.ReadBalanceBehavior,
 		databaseName:        databaseName,
-		certificate:         certificate,
+		Certificate:         certificate,
+		TrustStore:          trustStore,
 
 		conventions: conventions.Clone(),
 	}
 	res.lastReturnedResponse.Store(time.Now())
 	res.setNodeSelector(nil)
-	// TODO: create a different client if settings like compression
-	// or certificate differ
-	//res.httpClient = res.createClient()
-	res.httpClient = makeHTTPClient(certificate)
+	// TODO: handle an error
+	res.httpClient, _ = res.createClient()
 	return res
 }
 
-func NewClusterRequestExecutor(certificate *KeyStore, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
-	res := NewRequestExecutor("", certificate, conventions, initialUrls)
+func NewClusterRequestExecutor(certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
+	res := NewRequestExecutor("", certificate, trustStore, conventions, initialUrls)
 	res.MakeCluster()
 
 	return res
@@ -237,23 +166,23 @@ func NewClusterRequestExecutor(certificate *KeyStore, conventions *DocumentConve
 // TODO: only used for http cache?
 //private string extractThumbprintFromCertificate(KeyStore certificate) {
 
-func RequestExecutorCreate(initialUrls []string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
-	re := NewRequestExecutor(databaseName, certificate, conventions, initialUrls)
+func RequestExecutorCreate(initialUrls []string, databaseName string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions) *RequestExecutor {
+	re := NewRequestExecutor(databaseName, certificate, trustStore, conventions, initialUrls)
 	re.mu.Lock()
 	re._firstTopologyUpdate = re.firstTopologyUpdate(initialUrls)
 	re.mu.Unlock()
 	return re
 }
 
-func RequestExecutorCreateForSingleNodeWithConfigurationUpdates(url string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
-	executor := RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url, databaseName, certificate, conventions)
+func RequestExecutorCreateForSingleNodeWithConfigurationUpdates(url string, databaseName string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions) *RequestExecutor {
+	executor := RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url, databaseName, certificate, trustStore, conventions)
 	executor.disableClientConfigurationUpdates = false
 	return executor
 }
 
-func RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url string, databaseName string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+func RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url string, databaseName string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions) *RequestExecutor {
 	initialUrls := requestExecutorValidateUrls([]string{url}, certificate)
-	executor := NewRequestExecutor(databaseName, certificate, conventions, initialUrls)
+	executor := NewRequestExecutor(databaseName, certificate, trustStore, conventions, initialUrls)
 
 	topology := &Topology{
 		Etag: -1,
@@ -273,7 +202,7 @@ func RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url string, d
 	return executor
 }
 
-func ClusterRequestExecutorCreateForSingleNode(url string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+func ClusterRequestExecutorCreateForSingleNode(url string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions) *RequestExecutor {
 
 	initialUrls := []string{url}
 	url = requestExecutorValidateUrls(initialUrls, certificate)[0]
@@ -281,7 +210,7 @@ func ClusterRequestExecutorCreateForSingleNode(url string, certificate *KeyStore
 	if conventions == nil {
 		conventions = getDefaultConventions()
 	}
-	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
+	executor := NewClusterRequestExecutor(certificate, trustStore, conventions, initialUrls)
 	executor.MakeCluster()
 
 	serverNode := NewServerNode()
@@ -307,11 +236,11 @@ func (re *RequestExecutor) MakeCluster() {
 	re.clusterTopologySemaphore = NewSemaphore(1)
 }
 
-func ClusterRequestExecutorCreate(initialUrls []string, certificate *KeyStore, conventions *DocumentConventions) *RequestExecutor {
+func ClusterRequestExecutorCreate(initialUrls []string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions) *RequestExecutor {
 	if conventions == nil {
 		conventions = getDefaultConventions()
 	}
-	executor := NewClusterRequestExecutor(certificate, conventions, initialUrls)
+	executor := NewClusterRequestExecutor(certificate, trustStore, conventions, initialUrls)
 	executor.MakeCluster()
 
 	executor.disableClientConfigurationUpdates = true
@@ -627,7 +556,7 @@ type tupleStringError struct {
 }
 
 func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableFuture {
-	initialUrls := requestExecutorValidateUrls(inputUrls, re.certificate)
+	initialUrls := requestExecutorValidateUrls(inputUrls, re.Certificate)
 
 	future := newCompletableFuture()
 	var list []*tupleStringError
@@ -710,7 +639,7 @@ func (re *RequestExecutor) throwError(details string) error {
 	return err
 }
 
-func requestExecutorValidateUrls(initialUrls []string, certificate *KeyStore) []string {
+func requestExecutorValidateUrls(initialUrls []string, certificate *tls.Certificate) []string {
 	// TODO: implement me
 	return initialUrls
 }
@@ -1184,59 +1113,22 @@ func (re *RequestExecutor) Close() {
 	re.disposeAllFailedNodesTimers()
 }
 
-// TODO: remove
-/*
-var (
-	envProxyURL string
-)
-*/
-
-// TODO: remove
-/*
-func buildProxyURL(req *http.Request) (*url.URL, error) {
-	proxy := envProxyURL
-	proxyURL, err := url.Parse(proxy)
-	if err != nil ||
-		(proxyURL.Scheme != "http" &&
-			proxyURL.Scheme != "https" &&
-			proxyURL.Scheme != "socks5") {
-		// proxy was bogus. Try prepending "http://" to it and
-		// see if that parses correctly. If not, we fall
-		// through and complain about the original one.
-		if proxyURL, err = url.Parse("http://" + proxy); err == nil {
-			return proxyURL, nil
-		}
-
-	}
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
-	}
-	return proxyURL, nil
-}
-*/
-
-// TODO: remove
-/*
-var proxyTransport http.RoundTripper = &http.Transport{
-	Proxy: buildProxyURL,
-	DialContext: (&net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
-		DualStack: true,
-	}).DialContext,
-	MaxIdleConns:          100,
-	IdleConnTimeout:       90 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ExpectContinueTimeout: 1 * time.Second,
-}
-*/
-
-func (re *RequestExecutor) createClient() *http.Client {
-	// TODO: certificate
+// TODO: create a different client if settings like compression
+// or certificate differ
+func (re *RequestExecutor) createClient() (*http.Client, error) {
 	client := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 30,
 	}
-	return client
+	if re.Certificate != nil || re.TrustStore != nil {
+		tlsConfig, err := newTLSConfig(re.Certificate, re.TrustStore)
+		if err != nil {
+			return nil, err
+		}
+		client.Transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
+	}
+	return client, nil
 }
 
 func (re *RequestExecutor) getPreferredNode() (*CurrentIndexAndNode, error) {

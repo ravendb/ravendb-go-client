@@ -424,13 +424,10 @@ func toWebSocketPath(path string) string {
 }
 
 func (c *databaseChanges) doWork() error {
-	//fmt.Printf("databaseChanges.doWork(): started\n")
-
 	_, err := c.requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
 		c.notifyAboutError(err)
-		//fmt.Printf("databaseChanges.doWork(): c.requestExecutor.getPreferredNode failed with err: %s\n", err)
 		return err
 	}
 
@@ -438,12 +435,9 @@ func (c *databaseChanges) doWork() error {
 	urlString = toWebSocketPath(urlString)
 
 	for {
-		//fmt.Printf("databaseChanges.doWork(): before c._cts.getToken().isCancellationRequested() check\n")
 		if c._cts.getToken().isCancellationRequested() {
-			//fmt.Printf("databaseChanges.doWork(): c._cts.getToken().isCancellationRequested() returned true so exiting\n")
 			return nil
 		}
-		//fmt.Printf("databaseChanges.doWork(): after c._cts.getToken().isCancellationRequested() check\n")
 
 		var processor *webSocketChangesProcessor
 		var err error
@@ -451,21 +445,23 @@ func (c *databaseChanges) doWork() error {
 
 		dialer := *websocket.DefaultDialer
 		dialer.HandshakeTimeout = time.Second * 2
-		tlsConfig := tlsConfigFromCerts(c.requestExecutor.certificate)
-		if tlsConfig != nil {
+		re := c.requestExecutor
+		if re.Certificate != nil || re.TrustStore != nil {
+			tlsConfig, err := newTLSConfig(re.Certificate, re.TrustStore)
+			if err != nil {
+				return err
+			}
 			dialer.TLSClientConfig = tlsConfig
 		}
 
 		ctx := context.Background()
 		var client *websocket.Conn
-		//fmt.Printf("databaseChanges.doWork: before dialer.DialContext()\n")
 		client, _, err = dialer.DialContext(ctx, urlString, nil)
 		c.setWsClient(client)
 
 		// recheck cancellation because it might have been cancelled
 		// since DialContext()
 		if c._cts.getToken().isCancellationRequested() {
-			//fmt.Printf("databaseChanges.doWork(): c._cts.getToken().isCancellationRequested() returned true so exiting\n")
 			if client != nil {
 				client.Close()
 				c.setWsClient(nil)
@@ -473,14 +469,11 @@ func (c *databaseChanges) doWork() error {
 			return err
 		}
 
-		//fmt.Printf("databaseChanges.doWork: after dialer.DialContext() and calling setWsClient\n")
 		if err != nil {
-			//fmt.Printf("databaseChanges.doWork(): websocket.Dial(%s) failed with %s()\n", urlString, err)
 			time.Sleep(time.Second)
 			continue
 		}
 
-		//fmt.Printf("databaseChanges started websocket connection\n")
 		processor = newWebSocketChangesProcessor(client)
 		go processor.processMessages(c)
 		c.immediateConnection.set(1)
@@ -495,7 +488,6 @@ func (c *databaseChanges) doWork() error {
 		processor.processing.Get()
 		c.invokeConnectionStatusChanged()
 		shouldReconnect := c.reconnectClient()
-		//fmt.Printf("databaseChanges.doWork: shouldReconnect=%v\n", shouldReconnect)
 
 		for _, confirmation := range c.confirmations {
 			confirmation.cancel(false)
@@ -593,16 +585,12 @@ func (p *webSocketChangesProcessor) processMessages(changes *databaseChanges) {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
-		//fmt.Printf("webSocketChangesProcessor.processMessages, before ReadJSON\n")
 		err = p.client.ReadJSON(&msgArray)
-		//fmt.Printf("webSocketChangesProcessor.processMessages, after ReadJSON\n")
 		if err != nil {
-			//fmt.Printf("webSocketChangesProcessor.processMessages, ReadJSON failed with '%s'\n", err)
 			dbg("webSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
 		}
 
-		//fmt.Printf("webSocketChangesProcessor.processMessages() msgArray: %T %v\n", msgArray, msgArray)
 		for _, msgNodeV := range msgArray {
 			msgNode := msgNodeV.(map[string]interface{})
 			typ, _ := jsonGetAsString(msgNode, "Type")
@@ -631,7 +619,6 @@ func (p *webSocketChangesProcessor) processMessages(changes *databaseChanges) {
 		}
 	}
 	// TODO: check for io.EOF for clean connection close?
-	//fmt.Printf("databaseChanges.processMessages() ended with %s\n", err)
 	changes.notifyAboutError(err)
 	p.processing.completeWithError(err)
 }
