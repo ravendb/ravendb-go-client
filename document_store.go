@@ -600,7 +600,7 @@ func (s *DocumentStore) Maintenance() *MaintenanceOperationExecutor {
 	must(s.assertInitialized())
 
 	if s.maintenanceOperationExecutor == nil {
-		s.maintenanceOperationExecutor = NewMaintenanceOperationExecutor(s)
+		s.maintenanceOperationExecutor = NewMaintenanceOperationExecutor(s, "")
 	}
 
 	return s.maintenanceOperationExecutor

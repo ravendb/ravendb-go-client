@@ -152,6 +152,7 @@ func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trust
 	res.lastReturnedResponse.Store(time.Now())
 	res.setNodeSelector(nil)
 	// TODO: handle an error
+	// TODO: java globally caches http clients
 	res.httpClient, _ = res.createClient()
 	return res
 }
@@ -455,7 +456,8 @@ func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
 // execute(command, session) in java
 func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
-	if (topologyUpdate != nil && topologyUpdate.IsDone()) || re.disableTopologyUpdates {
+	isDone := topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
+	if (topologyUpdate != nil && isDone) || re.disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return err
