@@ -45,8 +45,9 @@ func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentS
 // fields := ravendb.FieldsFor(&MyType{})
 // q = q.SelectFields(fields...)
 func (q *DocumentQuery) SelectFields(fields ...string) *DocumentQuery {
-	// Note: we delay executing the logic until ToList because only then
-	// we know the type of the result
+	// Note: we delay executing the logic (processing Java's projectionClass)
+	// until AbstractDocumentQuery.GetResult because only then
+	// we know the type of the result (i.e. projectionClass)
 	panicIf(len(fields) == 0, "must provide at least one field")
 	for _, field := range fields {
 		panicIf(field == "", "field cannot be empty string")
