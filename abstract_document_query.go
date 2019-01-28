@@ -1775,7 +1775,7 @@ func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
 // First runs a query and returns a first result.
 func (q *AbstractDocumentQuery) First(result interface{}) error {
 	if result == nil {
-		return fmt.Errorf("result can't be nil")
+		return newIllegalArgumentError("result can't be nil")
 	}
 	q.setClazzFromResult(result)
 
@@ -1792,8 +1792,8 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 		return err
 	}
 	slice := slicePtr.Elem()
-	if slice.Len() < 1 {
-		return nil
+	if slice.Len() == 0 {
+		return newIllegalStateError("Expectecd at least one result")
 	}
 	el := slice.Index(0)
 	setInterfaceToValue(result, el.Interface())
