@@ -51,7 +51,8 @@ func crudTestEntitiesAreSavedUsingLowerCase(t *testing.T, driver *RavenTestDrive
 		newSession.Close()
 	}
 
-	documentsCommand := ravendb.NewGetDocumentsCommand([]string{"users/1"}, nil, false)
+	documentsCommand, err := ravendb.NewGetDocumentsCommand([]string{"users/1"}, nil, false)
+	assert.NoError(t, err)
 	err = store.GetRequestExecutor("").ExecuteCommand(documentsCommand)
 	assert.NoError(t, err)
 

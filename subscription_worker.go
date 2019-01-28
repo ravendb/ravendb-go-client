@@ -133,6 +133,11 @@ func (w *SubscriptionWorker) close(waitForSubscriptionTask bool) error {
 		// just need to wait for it to end
 		w._subscriptionTask.Get()
 	}
+
+	if w._subscriptionLocalRequestExecutor != nil {
+		w._subscriptionLocalRequestExecutor.Close()
+		w._subscriptionLocalRequestExecutor = nil
+	}
 	return nil
 }
 

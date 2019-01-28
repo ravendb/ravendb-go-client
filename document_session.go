@@ -125,9 +125,11 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 		return err
 	}
 
-	command := NewGetDocumentsCommand([]string{documentInfo.id}, nil, false)
-	err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	command, err := NewGetDocumentsCommand([]string{documentInfo.id}, nil, false)
 	if err != nil {
+		return err
+	}
+	if err = s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo); err != nil {
 		return err
 	}
 	return s.refreshInternal(entity, command, documentInfo)
@@ -354,7 +356,10 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 
 	loadOperation.byID(id)
 
-	command := loadOperation.CreateRequest()
+	command, err := loadOperation.CreateRequest()
+	if err != nil {
+		return err
+	}
 
 	if command != nil {
 		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
@@ -417,7 +422,10 @@ func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
 func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {
 	operation.byIds(ids)
 
-	command := operation.CreateRequest()
+	command, err := operation.CreateRequest()
+	if err != nil {
+		return err
+	}
 	if command != nil {
 		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
@@ -446,7 +454,10 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
 
-	command := loadOperation.CreateRequest()
+	command, err := loadOperation.CreateRequest()
+	if err != nil {
+		return err
+	}
 	if command != nil {
 		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {
@@ -490,7 +501,10 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 
 	operation.withStartWithFull(idPrefix, matches, start, pageSize, exclude, startAfter)
 
-	command := operation.CreateRequest()
+	command, err := operation.CreateRequest()
+	if err != nil {
+		return nil, err
+	}
 	if command != nil {
 		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 		if err != nil {

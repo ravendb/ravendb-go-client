@@ -26,12 +26,14 @@ func NewLoadStartingWithOperation(session *InMemoryDocumentSessionOperations) *L
 	}
 }
 
-func (o *LoadStartingWithOperation) CreateRequest() *GetDocumentsCommand {
-	// TODO: should propagate error
-	o._session.incrementRequestCount()
+func (o *LoadStartingWithOperation) CreateRequest() (*GetDocumentsCommand, error) {
+	if err := o._session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
 
-	o.Command = NewGetDocumentsCommandFull(o._startWith, o._startAfter, o._matches, o._exclude, o._start, o._pageSize, false)
-	return o.Command
+	var err error
+	o.Command, err = NewGetDocumentsCommandFull(o._startWith, o._startAfter, o._matches, o._exclude, o._start, o._pageSize, false)
+	return o.Command, err
 }
 
 func (o *LoadStartingWithOperation) withStartWith(idPrefix string) {

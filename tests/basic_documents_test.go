@@ -82,7 +82,8 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 	requestExecutor := store.GetRequestExecutor("")
-	getDocumentsCommand := ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
+	getDocumentsCommand, err := ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, false)
+	assert.NoError(t, err)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	assert.NoError(t, err)
 	docs := getDocumentsCommand.Result
@@ -114,7 +115,8 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, *user2.Name, "Arek")
 		session.Close()
 	}
-	getDocumentsCommand = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
+	getDocumentsCommand, err = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
+	assert.NoError(t, err)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand)
 	assert.NoError(t, err)
 	docs = getDocumentsCommand.Result

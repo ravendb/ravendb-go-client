@@ -42,7 +42,7 @@ func (q *IndexQuery) GetQueryParameters() Parameters {
 }
 
 func (q *IndexQuery) GetQueryHash() string {
-	hasher := NewQueryHashCalculator()
+	hasher := &HashCalculator{}
 	hasher.write(q.query)
 	hasher.write(q.waitForNonStaleResults)
 	hasher.write(q.skipDuplicateChecking)

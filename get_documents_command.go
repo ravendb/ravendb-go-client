@@ -29,8 +29,11 @@ type GetDocumentsCommand struct {
 	Result *GetDocumentsResult
 }
 
-func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) *GetDocumentsCommand {
-	panicIf(len(ids) == 0, "ids cannot be empty")
+func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) (*GetDocumentsCommand, error) {
+	if len(ids) == 0 {
+		return nil, newIllegalArgumentError("Please supply at least one id")
+	}
+
 	cmd := &GetDocumentsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -46,11 +49,13 @@ func NewGetDocumentsCommand(ids []string, includes []string, metadataOnly bool) 
 		cmd._ids = ids
 	}
 	cmd.IsReadRequest = true
-	return cmd
+	return cmd, nil
 }
 
-func NewGetDocumentsCommandFull(startWith string, startAfter string, matches string, exclude string, start int, pageSize int, metadataOnly bool) *GetDocumentsCommand {
-	panicIf(startWith == "", "startWith cannot be null")
+func NewGetDocumentsCommandFull(startWith string, startAfter string, matches string, exclude string, start int, pageSize int, metadataOnly bool) (*GetDocumentsCommand, error) {
+	if startWith == "" {
+		return nil, newIllegalArgumentError("startWith cannot be null")
+	}
 	return &GetDocumentsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -61,7 +66,7 @@ func NewGetDocumentsCommandFull(startWith string, startAfter string, matches str
 		_start:        start,
 		_pageSize:     pageSize,
 		_metadataOnly: metadataOnly,
-	}
+	}, nil
 }
 
 func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
@@ -132,12 +137,24 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 		return NewHttpGet(url)
 	}
 
+	calculateHash := c.calculateHash(uniqueIds)
+	url += "&loadHash="
+	url += calculateHash
+
 	m := map[string]interface{}{
 		"Ids": uniqueIds,
 	}
 	d, err := jsonMarshal(m)
 	panicIf(err != nil, "jsonMarshal() failed with %s", err)
 	return NewHttpPost(url, d)
+}
+
+func (c *GetDocumentsCommand) calculateHash(uniqueIds []string) string {
+	hasher := &HashCalculator{}
+	for _, x := range uniqueIds {
+		hasher.write(x)
+	}
+	return hasher.getHash()
 }
 
 func (c *GetDocumentsCommand) SetResponse(response []byte, fromCache bool) error {

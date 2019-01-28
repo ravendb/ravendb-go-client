@@ -20,17 +20,18 @@ func NewLoadOperation(_session *InMemoryDocumentSessionOperations) *LoadOperatio
 	}
 }
 
-func (o *LoadOperation) CreateRequest() *GetDocumentsCommand {
+func (o *LoadOperation) CreateRequest() (*GetDocumentsCommand, error) {
 	if len(o._idsToCheckOnServer) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	if o._session.checkIfIdAlreadyIncluded(o._ids, o._includes) {
-		return nil
+		return nil, nil
 	}
 
-	// TODO: should propagate error
-	o._session.incrementRequestCount()
+	if err := o._session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
 
 	return NewGetDocumentsCommand(o._idsToCheckOnServer, o._includes, false)
 }

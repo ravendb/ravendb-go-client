@@ -1409,7 +1409,7 @@ func (q *AbstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 }
 
 func getSourceAliasIfExists(clazz reflect.Type, queryData *QueryData, fields []string) string {
-	if len(fields) != 1 {
+	if len(fields) != 1 || fields[0] == "" {
 		return ""
 	}
 

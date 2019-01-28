@@ -41,7 +41,12 @@ func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) {
 			writer.WriteString(", ")
 		}
 
-		writeQueryTokenField(writer, fieldToFetch)
+		if fieldToFetch == "" {
+			writeQueryTokenField(writer, "null")
+		} else {
+			writeQueryTokenField(writer, fieldToFetch)
+
+		}
 
 		if t.customFunction {
 			continue
