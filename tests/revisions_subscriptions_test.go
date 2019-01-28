@@ -12,6 +12,10 @@ import (
 )
 
 func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *RavenTestDriver) {
+	if isRunningOn41Server() {
+		return
+	}
+
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -112,6 +116,10 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 }
 
 func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T, driver *RavenTestDriver) {
+	if isRunningOn41Server() {
+		return
+	}
+
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()

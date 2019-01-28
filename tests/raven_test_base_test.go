@@ -25,6 +25,12 @@ const (
 	envHTTPSServerURL = "RAVENDB_JAVA_TEST_HTTPS_SERVER_URL"
 )
 
+// note: in Java for tests marked as @DisabledOn41Server
+func isRunningOn41Server() bool {
+	v := os.Getenv("RAVENDB_SERVER_VERSION")
+	return strings.HasPrefix(v, "4.1")
+}
+
 func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 	locator, err := NewRavenServerLocator()
 	if err != nil {
