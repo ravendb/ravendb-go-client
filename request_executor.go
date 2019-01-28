@@ -448,16 +448,15 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 	re.failedNodesTimers = sync.Map{}
 }
 
-// execute(command) in java
 func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
 	return re.ExecuteCommandWithSessionInfo(command, nil)
 }
 
-// execute(command, session) in java
+// TODO: make it ExecuteCommand
 func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
-	isDone := topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
-	if (topologyUpdate != nil && isDone) || re.disableTopologyUpdates {
+	isDone := topologyUpdate != nil && topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
+	if isDone || re.disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
 		if err != nil {
 			return err
