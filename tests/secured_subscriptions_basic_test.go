@@ -46,8 +46,7 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 	assert.NoError(t, err)
 
 	{
-		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		clazz := reflect.TypeOf(&User{})
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
@@ -119,8 +118,7 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 	assert.NoError(t, err)
 
 	{
-		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		clazz := reflect.TypeOf(map[string]interface{}{})
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)

@@ -67,8 +67,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 	}
 
 	{
-		opts, err := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
 		clazz := reflect.TypeOf(&User{})
 		sub, err := store.Subscriptions.GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
@@ -167,8 +166,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 	}
 
 	{
-		opts, err := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
 		clazz := reflect.TypeOf(&User{})
 		sub, err := store.Subscriptions.GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)

@@ -73,8 +73,7 @@ func subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t *testing.
 	defer store.Close()
 
 	clazz := reflect.TypeOf(&map[string]interface{}{})
-	opts, err := ravendb.NewSubscriptionWorkerOptions("1")
-	assert.NoError(t, err)
+	opts := ravendb.NewSubscriptionWorkerOptions("1")
 
 	subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
@@ -103,8 +102,7 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 
 	{
 		clazz := reflect.TypeOf(map[string]interface{}{})
-		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
@@ -129,8 +127,7 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 
 		chanWaitTimedOut(semaphore, _reasonableWaitTime)
 
-		options2, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		options2 := ravendb.NewSubscriptionWorkerOptions(id)
 		options2.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
 
 		{
@@ -192,8 +189,7 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 	assert.NoError(t, err)
 
 	{
-		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		clazz := reflect.TypeOf(&User{})
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
@@ -264,8 +260,7 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 	assert.NoError(t, err)
 
 	{
-		opts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		clazz := reflect.TypeOf(map[string]interface{}{})
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
@@ -377,8 +372,7 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 	id, err := store.Subscriptions.CreateForType(clazz, nil, "")
 	assert.NoError(t, err)
 
-	options, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
+	options := ravendb.NewSubscriptionWorkerOptions(id)
 	options.MaxDocsPerBatch = 25
 
 	{
@@ -432,8 +426,7 @@ func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *Ra
 	id, err := store.Subscriptions.CreateForType(clazz, nil, "")
 	assert.NoError(t, err)
 
-	options, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
+	options := ravendb.NewSubscriptionWorkerOptions(id)
 	options.MaxDocsPerBatch = 31
 
 	{
@@ -478,8 +471,7 @@ func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenT
 
 	{
 		clazz = reflect.TypeOf(map[string]interface{}{})
-		opts, err := ravendb.NewSubscriptionWorkerOptions(allId)
-		assert.NoError(t, err)
+		opts := ravendb.NewSubscriptionWorkerOptions(allId)
 		allSubscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
@@ -494,8 +486,7 @@ func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenT
 
 		{
 			clazz = reflect.TypeOf(map[string]interface{}{})
-			opts, err := ravendb.NewSubscriptionWorkerOptions(filteredUsersId)
-			assert.NoError(t, err)
+			opts := ravendb.NewSubscriptionWorkerOptions(filteredUsersId)
 			filteredUsersSubscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 			assert.NoError(t, err)
 
@@ -569,8 +560,7 @@ func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDr
 	id, err := store.Subscriptions.CreateForType(clazz, opts, "")
 	assert.NoError(t, err)
 
-	options1, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
+	options1 := ravendb.NewSubscriptionWorkerOptions(id)
 	options1.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
 	clazz = reflect.TypeOf(map[string]interface{}{})
 	subscriptionWorker, err = store.Subscriptions.GetSubscriptionWorker(clazz, options1, "")
@@ -588,8 +578,7 @@ func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDr
 	timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
 	assert.False(t, timedOut)
 
-	options2, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
+	options2 := ravendb.NewSubscriptionWorkerOptions(id)
 	options2.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
 	throwingSubscriptionWorker, err = store.Subscriptions.GetSubscriptionWorker(clazz, options2, "")
 	assert.NoError(t, err)
@@ -606,8 +595,7 @@ func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDr
 	err = store.Subscriptions.DropConnection(id, "")
 	assert.NoError(t, err)
 
-	wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
+	wopts := ravendb.NewSubscriptionWorkerOptions(id)
 	notThrowingSubscriptionWorker, err = store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
 	notThrowingSubscriptionWorker.Run(processBatch)
 	putUserDoc(t, store)
@@ -638,8 +626,7 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 
 	{
 		clazz := reflect.TypeOf(&User{})
-		wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		wopts := ravendb.NewSubscriptionWorkerOptions(id)
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
 		docs := make(chan *User, 10)
 
@@ -689,8 +676,7 @@ func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErr
 
 	{
 		clazz := reflect.TypeOf(map[string]interface{}{})
-		wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		wopts := ravendb.NewSubscriptionWorkerOptions(id)
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
 
 		putUserDoc(t, store)
@@ -725,8 +711,7 @@ func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *Rav
 	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), opts, "")
 	assert.NoError(t, err)
 
-	options1, err := ravendb.NewSubscriptionWorkerOptions(id)
-	assert.NoError(t, err)
+	options1 := ravendb.NewSubscriptionWorkerOptions(id)
 	options1.IgnoreSubscriberErrors = true
 
 	{
@@ -776,8 +761,7 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 	assert.NoError(t, err)
 
 	{
-		options1, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		options1 := ravendb.NewSubscriptionWorkerOptions(id)
 		options1.TimeToWaitBeforeConnectionRetry = ravendb.Duration(time.Second)
 
 		clazz := reflect.TypeOf(&User{})
@@ -865,8 +849,7 @@ func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterType
 
 	{
 		clazz := reflect.TypeOf(&User{})
-		wopts, err := ravendb.NewSubscriptionWorkerOptions(id)
-		assert.NoError(t, err)
+		wopts := ravendb.NewSubscriptionWorkerOptions(id)
 
 		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, wopts, "")
 		assert.NoError(t, err)
@@ -954,8 +937,7 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 	}
 
 	clazz := reflect.TypeOf(&User{})
-	opts, err := ravendb.NewSubscriptionWorkerOptions(id1)
-	assert.NoError(t, err)
+	opts := ravendb.NewSubscriptionWorkerOptions(id1)
 
 	subscription1, err = store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
@@ -973,8 +955,7 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 	_, err = subscription1.Run(processBatch)
 	assert.NoError(t, err)
 
-	opts, err = ravendb.NewSubscriptionWorkerOptions(id2)
-	assert.NoError(t, err)
+	opts = ravendb.NewSubscriptionWorkerOptions(id2)
 	subscription2, err = store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
 	items2 := make(chan *User, 10)

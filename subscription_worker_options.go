@@ -14,15 +14,13 @@ type SubscriptionWorkerOptions struct {
 }
 
 // NewSubscriptionWorkerOptions returns new SubscriptionWorkerOptions
-func NewSubscriptionWorkerOptions(subscriptionName string) (*SubscriptionWorkerOptions, error) {
-	if subscriptionName == "" {
-		return nil, newIllegalArgumentError("SubscriptionName cannot be null or empty")
-	}
+func NewSubscriptionWorkerOptions(subscriptionName string) *SubscriptionWorkerOptions {
+	panicIf(subscriptionName == "", "SubscriptionName cannot be null or empty")
 	return &SubscriptionWorkerOptions{
 		Strategy:                        SubscriptionOpeningStrategyOpenIfFree,
 		MaxDocsPerBatch:                 4096,
 		TimeToWaitBeforeConnectionRetry: Duration(time.Second * 5),
 		MaxErroneousPeriod:              Duration(time.Minute * 5),
 		SubscriptionName:                subscriptionName,
-	}, nil
+	}
 }
