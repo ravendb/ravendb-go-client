@@ -29,7 +29,8 @@ func patchTestcanPatchSingleDocument(t *testing.T, driver *RavenTestDriver) {
 	patchRequest := &ravendb.PatchRequest{
 		Script: `this.name = "Patched"`,
 	}
-	patchOperation := ravendb.NewPatchOperation("users/1", nil, patchRequest, nil, false)
+	patchOperation, err := ravendb.NewPatchOperation("users/1", nil, patchRequest, nil, false)
+	assert.NoError(t, err)
 	patchResult, err := store.Operations().SendPatchOperation(patchOperation, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, patchResult.Status, ravendb.PatchStatusPatched)

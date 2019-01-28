@@ -21,8 +21,10 @@ type GetCompareExchangeValuesOperation struct {
 	_pageSize  int
 }
 
-func NewGetCompareExchangeValuesOperationWithKeys(clazz reflect.Type, keys []string) *GetCompareExchangeValuesOperation {
-	// TODO: validate
+func NewGetCompareExchangeValuesOperationWithKeys(clazz reflect.Type, keys []string) (*GetCompareExchangeValuesOperation, error) {
+	if len(keys) == 0 {
+		return nil, newIllegalArgumentError("Keys cannot be null or empty array")
+	}
 	return &GetCompareExchangeValuesOperation{
 		_keys:  keys,
 		_clazz: clazz,
@@ -30,25 +32,25 @@ func NewGetCompareExchangeValuesOperationWithKeys(clazz reflect.Type, keys []str
 		_start:     -1,
 		_pageSize:  0,
 		_startWith: "",
-	}
+	}, nil
 }
 
-func NewGetCompareExchangeValuesOperation(clazz reflect.Type, startWith string, start int, pageSize int) *GetCompareExchangeValuesOperation {
+func NewGetCompareExchangeValuesOperation(clazz reflect.Type, startWith string, start int, pageSize int) (*GetCompareExchangeValuesOperation, error) {
 	return &GetCompareExchangeValuesOperation{
 		_clazz: clazz,
 
 		_start:     start,
 		_pageSize:  pageSize,
 		_startWith: startWith,
-	}
-
+	}, nil
 }
 
 var _ RavenCommand = &GetCompareExchangeValuesCommand{}
 
-func (o *GetCompareExchangeValuesOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewGetCompareExchangeValuesCommand(o, conventions)
-	return o.Command
+func (o *GetCompareExchangeValuesOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewGetCompareExchangeValuesCommand(o, conventions)
+	return o.Command, err
 }
 
 type GetCompareExchangeValuesCommand struct {
@@ -59,7 +61,7 @@ type GetCompareExchangeValuesCommand struct {
 	Result       map[string]*CompareExchangeValue
 }
 
-func NewGetCompareExchangeValuesCommand(operation *GetCompareExchangeValuesOperation, conventions *DocumentConventions) *GetCompareExchangeValuesCommand {
+func NewGetCompareExchangeValuesCommand(operation *GetCompareExchangeValuesOperation, conventions *DocumentConventions) (*GetCompareExchangeValuesCommand, error) {
 	cmd := &GetCompareExchangeValuesCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -67,7 +69,7 @@ func NewGetCompareExchangeValuesCommand(operation *GetCompareExchangeValuesOpera
 		_conventions: conventions,
 	}
 	cmd.IsReadRequest = true
-	return cmd
+	return cmd, nil
 }
 
 func (c *GetCompareExchangeValuesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

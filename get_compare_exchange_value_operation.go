@@ -16,16 +16,21 @@ type GetCompareExchangeValueOperation struct {
 	_clazz reflect.Type
 }
 
-func NewGetCompareExchangeValueOperation(clazz reflect.Type, key string) *GetCompareExchangeValueOperation {
+func NewGetCompareExchangeValueOperation(clazz reflect.Type, key string) (*GetCompareExchangeValueOperation, error) {
+	if stringIsEmpty(key) {
+		return nil, newIllegalArgumentError("The key argument must have value")
+	}
+
 	return &GetCompareExchangeValueOperation{
 		_clazz: clazz,
 		_key:   key,
-	}
+	}, nil
 }
 
-func (o *GetCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewGetCompareExchangeValueCommand(o._clazz, o._key, conventions)
-	return o.Command
+func (o *GetCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewGetCompareExchangeValueCommand(o._clazz, o._key, conventions)
+	return o.Command, err
 }
 
 var _ RavenCommand = &GetCompareExchangeValueCommand{}
@@ -40,8 +45,11 @@ type GetCompareExchangeValueCommand struct {
 	Result *CompareExchangeValue
 }
 
-func NewGetCompareExchangeValueCommand(clazz reflect.Type, key string, conventions *DocumentConventions) *GetCompareExchangeValueCommand {
-	// TODO: validation
+func NewGetCompareExchangeValueCommand(clazz reflect.Type, key string, conventions *DocumentConventions) (*GetCompareExchangeValueCommand, error) {
+	if stringIsEmpty(key) {
+		return nil, newIllegalArgumentError("The key argument must have value")
+	}
+
 	cmd := &GetCompareExchangeValueCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -50,7 +58,7 @@ func NewGetCompareExchangeValueCommand(clazz reflect.Type, key string, conventio
 		_conventions: conventions,
 	}
 	cmd.IsReadRequest = true
-	return cmd
+	return cmd, nil
 }
 
 func (c *GetCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

@@ -18,8 +18,14 @@ type HeadAttachmentCommand struct {
 	Result string // TODO: should this be *string?
 }
 
-func NewHeadAttachmentCommand(documentID string, name string, changeVector *string) *HeadAttachmentCommand {
-	// TODO: validation
+func NewHeadAttachmentCommand(documentID string, name string, changeVector *string) (*HeadAttachmentCommand, error) {
+	if stringIsBlank(documentID) {
+		return nil, newIllegalArgumentError("DocumentId cannot be null or empty")
+	}
+	if stringIsBlank(name) {
+		return nil, newIllegalArgumentError("Name cannot be null or empty")
+	}
+
 	cmd := &HeadAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -27,7 +33,7 @@ func NewHeadAttachmentCommand(documentID string, name string, changeVector *stri
 		_name:         name,
 		_changeVector: changeVector,
 	}
-	return cmd
+	return cmd, nil
 }
 
 func (c *HeadAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

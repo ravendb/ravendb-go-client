@@ -23,9 +23,10 @@ func NewPatchByQueryOperation(queryToUpdate string) *PatchByQueryOperation {
 	}
 }
 
-func (o *PatchByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewPatchByQueryCommand(conventions, o._queryToUpdate, o._options)
-	return o.Command
+func (o *PatchByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewPatchByQueryCommand(conventions, o._queryToUpdate, o._options)
+	return o.Command, err
 }
 
 var _ RavenCommand = &PatchByQueryCommand{}
@@ -40,7 +41,11 @@ type PatchByQueryCommand struct {
 	Result *OperationIDResult
 }
 
-func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *IndexQuery, options *QueryOperationOptions) *PatchByQueryCommand {
+func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *IndexQuery, options *QueryOperationOptions) (*PatchByQueryCommand, error) {
+	if queryToUpdate == nil {
+		return nil, newIllegalArgumentError("QueryToUpdate cannot be null")
+	}
+
 	if options == nil {
 		options = &QueryOperationOptions{}
 	}
@@ -51,7 +56,7 @@ func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *Ind
 		_queryToUpdate: queryToUpdate,
 		_options:       options,
 	}
-	return cmd
+	return cmd, nil
 }
 
 func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

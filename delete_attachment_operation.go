@@ -24,9 +24,10 @@ func NewDeleteAttachmentOperation(documentID string, name string, changeVector *
 	}
 }
 
-func (o *DeleteAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewDeleteAttachmentCommand(o._documentID, o._name, o._changeVector)
-	return o.Command
+func (o *DeleteAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewDeleteAttachmentCommand(o._documentID, o._name, o._changeVector)
+	return o.Command, err
 }
 
 var _ RavenCommand = &DeleteAttachmentCommand{}
@@ -39,8 +40,15 @@ type DeleteAttachmentCommand struct {
 	_changeVector *string
 }
 
-func NewDeleteAttachmentCommand(documentID string, name string, changeVector *string) *DeleteAttachmentCommand {
-	// TODO: validation
+func NewDeleteAttachmentCommand(documentID string, name string, changeVector *string) (*DeleteAttachmentCommand, error) {
+	if stringIsBlank(documentID) {
+		return nil, newIllegalArgumentError("documentId cannot be null")
+	}
+
+	if stringIsBlank(name) {
+		return nil, newIllegalArgumentError("name cannot be null")
+	}
+
 	cmd := &DeleteAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 		_documentID:      documentID,
@@ -48,7 +56,7 @@ func NewDeleteAttachmentCommand(documentID string, name string, changeVector *st
 		_changeVector:    changeVector,
 	}
 	cmd.RavenCommandBase.ResponseType = RavenCommandResponseTypeEmpty
-	return cmd
+	return cmd, nil
 }
 
 func (c *DeleteAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

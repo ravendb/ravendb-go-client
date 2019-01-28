@@ -53,10 +53,10 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 // contentType is optional
 // TODO: maybe split into Store() and storeWithContentType()
 func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, stream io.Reader, contentType string) error {
-	if documentID == "" {
+	if stringIsBlank(documentID) {
 		return newIllegalArgumentError("documentID can't be an empty string")
 	}
-	if name == "" {
+	if stringIsBlank(name) {
 		return newIllegalArgumentError("name can't be an empty string")
 	}
 	if stream == nil {
@@ -85,7 +85,10 @@ func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, s
 		return newIllegalStateError("Cannot Store attachment " + name + " of document " + documentID + ", the document was already deleted in this session.")
 	}
 
-	cmdData := NewPutAttachmentCommandData(documentID, name, stream, contentType, nil)
+	cmdData, err := NewPutAttachmentCommandData(documentID, name, stream, contentType, nil)
+	if err != nil {
+		return err
+	}
 	s.DeferMany([]ICommandData{cmdData})
 	return nil
 }
@@ -113,7 +116,13 @@ func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name s
 
 // Delete deletes entity with a given i
 func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) error {
-	// TODO: validate args
+	if stringIsBlank(documentID) {
+		return newIllegalArgumentError("DocumentId cannot be null")
+	}
+
+	if stringIsBlank(name) {
+		return newIllegalArgumentError("Name cannot be null")
+	}
 
 	deferredCommandsMap := s.deferredCommandsMap
 
@@ -137,7 +146,10 @@ func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) 
 		return newIllegalStateError("Cannot delete attachment " + name + " of document " + documentID + ", there is a deferred command registered to create an attachment with the same name.")
 	}
 
-	cmdData := NewDeleteAttachmentCommandData(documentID, name, nil)
+	cmdData, err := NewDeleteAttachmentCommandData(documentID, name, nil)
+	if err != nil {
+		return err
+	}
 	s.DeferMany([]ICommandData{cmdData})
 	return nil
 }

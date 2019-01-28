@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"net/http"
 	"reflect"
 )
@@ -25,7 +24,6 @@ type PatchOperationResult struct {
 }
 
 func (r *PatchOperationResult) GetResult(result interface{}) error {
-	fmt.Printf("Document: %v\n", r.Document)
 	entityType := reflect.TypeOf(result)
 	entity, err := makeStructFromJSONMap(entityType, r.Document)
 	if err != nil {
@@ -47,22 +45,31 @@ type PatchOperation struct {
 }
 
 // NewPatchOperation returns new PatchOperation
-func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, patchIfMissing *PatchRequest, skipPatchIfChangeVectorMismatch bool) *PatchOperation {
-	panicIf(patch == nil, "Patch cannot be nil")
-	panicIf(stringIsWhitespace(patch.Script), "Patch script cannot be empty")
-	panicIf(patchIfMissing != nil && stringIsWhitespace(patchIfMissing.Script), "PatchIfMissing script cannot be empty")
+func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, patchIfMissing *PatchRequest, skipPatchIfChangeVectorMismatch bool) (*PatchOperation, error) {
+	if patch == nil {
+		return nil, newIllegalArgumentError("Patch cannot be null")
+	}
+
+	if stringIsBlank(patch.Script) {
+		return nil, newIllegalArgumentError("Patch script cannot be null")
+	}
+
+	if patchIfMissing != nil && stringIsBlank(patchIfMissing.Script) {
+		return nil, newIllegalArgumentError("PatchIfMissing script cannot be null")
+	}
 	return &PatchOperation{
 		id:                              id,
 		changeVector:                    changeVector,
 		patch:                           patch,
 		patchIfMissing:                  patchIfMissing,
 		skipPatchIfChangeVectorMismatch: skipPatchIfChangeVectorMismatch,
-	}
+	}, nil
 }
 
-func (o *PatchOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewPatchCommand(conventions, o.id, o.changeVector, o.patch, o.patchIfMissing, o.skipPatchIfChangeVectorMismatch, false, false)
-	return o.Command
+func (o *PatchOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewPatchCommand(conventions, o.id, o.changeVector, o.patch, o.patchIfMissing, o.skipPatchIfChangeVectorMismatch, false, false)
+	return o.Command, err
 }
 
 var _ RavenCommand = &PatchCommand{}
@@ -87,9 +94,29 @@ type PatchCommand struct {
 // NewPatchCommand returns new PatchCommand
 func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *string,
 	patch *PatchRequest, patchIfMissing *PatchRequest, skipPatchIfChangeVectorMismatch bool,
-	returnDebugInformation bool, test bool) *PatchCommand {
+	returnDebugInformation bool, test bool) (*PatchCommand, error) {
 
-	// TODO: validations
+	/* TODO: used only for json mapper, not used in Go
+	if conventions == nil {
+		return nil, newIllegalArgumentError("Conventions cannot be null")
+	}
+	*/
+
+	if patch == nil {
+		return nil, newIllegalArgumentError("Patch cannot be null")
+	}
+
+	if stringIsBlank(patch.Script) {
+		return nil, newIllegalArgumentError("Patch script cannot be null")
+	}
+
+	if patchIfMissing != nil && stringIsBlank(patchIfMissing.Script) {
+		return nil, newIllegalArgumentError("PatchIfMissing script cannot be null")
+	}
+
+	if id == "" {
+		return nil, newIllegalArgumentError("Id cannot be null")
+	}
 
 	payload := &PatchOperationPayload{
 		patch:          patch,
@@ -106,7 +133,7 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 		test:                            test,
 	}
 
-	return cmd
+	return cmd, nil
 }
 
 // CreateRequest creates http request

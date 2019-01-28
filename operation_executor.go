@@ -41,16 +41,21 @@ func (e *OperationExecutor) ForDatabase(databaseName string) *OperationExecutor 
 // command and its result
 // sessionInfo can be nil
 func (e *OperationExecutor) Send(operation IOperation, sessionInfo *SessionInfo) error {
-	command := operation.GetCommand(e.store, e.requestExecutor.GetConventions(), e.requestExecutor.Cache)
+	command, err := operation.GetCommand(e.store, e.requestExecutor.GetConventions(), e.requestExecutor.Cache)
+	if err != nil {
+		return err
+	}
 	return e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
 }
 
 // sessionInfo can be nil
 func (e *OperationExecutor) SendAsync(operation IOperation, sessionInfo *SessionInfo) (*Operation, error) {
-	command := operation.GetCommand(e.store, e.requestExecutor.GetConventions(), e.requestExecutor.Cache)
-
-	err := e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
+	command, err := operation.GetCommand(e.store, e.requestExecutor.GetConventions(), e.requestExecutor.Cache)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo); err != nil {
 		return nil, err
 	}
 
@@ -70,9 +75,11 @@ func (e *OperationExecutor) SendAsync(operation IOperation, sessionInfo *Session
 func (e *OperationExecutor) SendPatchOperation(operation *PatchOperation, sessionInfo *SessionInfo) (*PatchOperationResult, error) {
 	conventions := e.requestExecutor.GetConventions()
 	cache := e.requestExecutor.Cache
-	command := operation.GetCommand(e.store, conventions, cache)
-	err := e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
+	command, err := operation.GetCommand(e.store, conventions, cache)
 	if err != nil {
+		return nil, err
+	}
+	if err = e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo); err != nil {
 		return nil, err
 	}
 

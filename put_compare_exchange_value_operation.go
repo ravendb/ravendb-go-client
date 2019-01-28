@@ -18,17 +18,26 @@ type PutCompareExchangeValueOperation struct {
 	_index int
 }
 
-func NewPutCompareExchangeValueOperation(key string, value interface{}, index int) *PutCompareExchangeValueOperation {
+func NewPutCompareExchangeValueOperation(key string, value interface{}, index int) (*PutCompareExchangeValueOperation, error) {
+	if stringIsEmpty(key) {
+		return nil, newIllegalArgumentError("The key argument must have value")
+	}
+
+	if index < 0 {
+		return nil, newIllegalStateError("Index must be a non-negative number")
+	}
+
 	return &PutCompareExchangeValueOperation{
 		_key:   key,
 		_value: value,
 		_index: index,
-	}
+	}, nil
 }
 
-func (o *PutCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewPutCompareExchangeValueCommand(o._key, o._value, o._index, conventions)
-	return o.Command
+func (o *PutCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewPutCompareExchangeValueCommand(o._key, o._value, o._index, conventions)
+	return o.Command, err
 }
 
 var _ RavenCommand = &PutCompareExchangeValueCommand{}
@@ -44,8 +53,14 @@ type PutCompareExchangeValueCommand struct {
 	Result *CompareExchangeResult
 }
 
-func NewPutCompareExchangeValueCommand(key string, value interface{}, index int, conventions *DocumentConventions) *PutCompareExchangeValueCommand {
-	// TODO: validation
+func NewPutCompareExchangeValueCommand(key string, value interface{}, index int, conventions *DocumentConventions) (*PutCompareExchangeValueCommand, error) {
+	if stringIsEmpty(key) {
+		return nil, newIllegalArgumentError("The key argument must have value")
+	}
+
+	if index < 0 {
+		return nil, newIllegalStateError("Index must be a non-negative number")
+	}
 	cmd := &PutCompareExchangeValueCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -54,7 +69,7 @@ func NewPutCompareExchangeValueCommand(key string, value interface{}, index int,
 		_index:       index,
 		_conventions: conventions,
 	}
-	return cmd
+	return cmd, nil
 }
 
 func (c *PutCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

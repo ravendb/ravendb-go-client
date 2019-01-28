@@ -27,9 +27,10 @@ func NewGetAttachmentOperation(documentID string, name string, typ AttachmentTyp
 	}
 }
 
-func (o *GetAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewGetAttachmentCommand(o._documentID, o._name, o._type, o._changeVector)
-	return o.Command
+func (o *GetAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewGetAttachmentCommand(o._documentID, o._name, o._type, o._changeVector)
+	return o.Command, err
 }
 
 var _ RavenCommand = &GetAttachmentCommand{}
@@ -46,8 +47,19 @@ type GetAttachmentCommand struct {
 }
 
 // TODO: should stream be io.ReadCloser? Who owns closing the attachment
-func NewGetAttachmentCommand(documentID string, name string, typ AttachmentType, changeVector *string) *GetAttachmentCommand {
-	// TODO: validation
+func NewGetAttachmentCommand(documentID string, name string, typ AttachmentType, changeVector *string) (*GetAttachmentCommand, error) {
+	if stringIsBlank(documentID) {
+		return nil, newIllegalArgumentError("DocumentId cannot be null or empty")
+	}
+
+	if stringIsBlank(name) {
+		return nil, newIllegalArgumentError("Name cannot be null or empty")
+	}
+
+	if typ != AttachmentDocument && changeVector == nil {
+		return nil, newIllegalArgumentError("Change vector cannot be null for attachment type " + typ)
+	}
+
 	cmd := &GetAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -57,7 +69,7 @@ func NewGetAttachmentCommand(documentID string, name string, typ AttachmentType,
 		_changeVector: changeVector,
 	}
 	cmd.IsReadRequest = true
-	return cmd
+	return cmd, nil
 }
 
 func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

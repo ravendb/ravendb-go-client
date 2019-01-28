@@ -41,7 +41,8 @@ func advancedPatchingTestWithVariables(t *testing.T, driver *RavenTestDriver) {
 		"v1": "not-me",
 	}
 	patchRequest.Values = m
-	patchOperation := ravendb.NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
+	patchOperation, err := ravendb.NewPatchOperation("customTypes/1", nil, patchRequest, nil, false)
+	assert.NoError(t, err)
 	err = store.Operations().Send(patchOperation, nil)
 	assert.NoError(t, err)
 
@@ -156,7 +157,8 @@ func advancedPatchingCanApplyBasicScriptAsPatch(t *testing.T, driver *RavenTestD
 		Script: SAMPLE_SCRIPT,
 	}
 
-	op := ravendb.NewPatchOperation("someId", nil, req, nil, false)
+	op, err := ravendb.NewPatchOperation("someId", nil, req, nil, false)
+	assert.NoError(t, err)
 	err = store.Operations().Send(op, nil)
 	assert.NoError(t, err)
 
@@ -198,7 +200,8 @@ func advancedPatchingCanDeserializeModifiedDocument(t *testing.T, driver *RavenT
 	req := &ravendb.PatchRequest{
 		Script: "this.owner = '123';",
 	}
-	patch1 := ravendb.NewPatchOperation("doc", nil, req, nil, false)
+	patch1, err := ravendb.NewPatchOperation("doc", nil, req, nil, false)
+	assert.NoError(t, err)
 	patchResult, err := store.Operations().SendPatchOperation(patch1, nil)
 	assert.NoError(t, err)
 	var result *CustomType
@@ -208,7 +211,8 @@ func advancedPatchingCanDeserializeModifiedDocument(t *testing.T, driver *RavenT
 	assert.Equal(t, patchResult.Status, ravendb.PatchStatusPatched)
 	assert.Equal(t, result.Owner, "123")
 
-	patch2 := ravendb.NewPatchOperation("doc", nil, req, nil, false)
+	patch2, err := ravendb.NewPatchOperation("doc", nil, req, nil, false)
+	assert.NoError(t, err)
 	patchResult, err = store.Operations().SendPatchOperation(patch2, nil)
 	assert.NoError(t, err)
 	result = nil

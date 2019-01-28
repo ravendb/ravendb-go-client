@@ -18,17 +18,22 @@ type DeleteCompareExchangeValueOperation struct {
 	_index int
 }
 
-func NewDeleteCompareExchangeValueOperation(clazz reflect.Type, key string, index int) *DeleteCompareExchangeValueOperation {
+func NewDeleteCompareExchangeValueOperation(clazz reflect.Type, key string, index int) (*DeleteCompareExchangeValueOperation, error) {
+	if stringIsEmpty(key) {
+		return nil, newIllegalArgumentError("The kye argument must have value")
+	}
+
 	return &DeleteCompareExchangeValueOperation{
 		_clazz: clazz,
 		_key:   key,
 		_index: index,
-	}
+	}, nil
 }
 
-func (o *DeleteCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewRemoveCompareExchangeValueCommand(o._clazz, o._key, o._index, conventions)
-	return o.Command
+func (o *DeleteCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewRemoveCompareExchangeValueCommand(o._clazz, o._key, o._index, conventions)
+	return o.Command, err
 }
 
 var _ RavenCommand = &RemoveCompareExchangeValueCommand{}
@@ -44,8 +49,10 @@ type RemoveCompareExchangeValueCommand struct {
 	Result *CompareExchangeResult
 }
 
-func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index int, conventions *DocumentConventions) *RemoveCompareExchangeValueCommand {
-	// TODO: validation
+func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index int, conventions *DocumentConventions) (*RemoveCompareExchangeValueCommand, error) {
+	if stringIsEmpty(key) {
+		return nil, newIllegalArgumentError("The kye argument must have value")
+	}
 	cmd := &RemoveCompareExchangeValueCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -55,7 +62,7 @@ func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index 
 		_conventions: conventions,
 	}
 	cmd.IsReadRequest = true
-	return cmd
+	return cmd, nil
 }
 
 func (c *RemoveCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

@@ -87,7 +87,7 @@ func (t *facetToken) writeTo(writer *strings.Builder) {
 }
 
 func createFacetToken(facetSetupDocumentID string) *facetToken {
-	if stringIsWhitespace(facetSetupDocumentID) {
+	if stringIsBlank(facetSetupDocumentID) {
 		//throw new IllegalArgumentError("facetSetupDocumentID cannot be null");
 		panicIf(true, "facetSetupDocumentID cannot be null")
 	}
@@ -201,21 +201,21 @@ func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
 }
 
 func facetAggregationTokenMax(fieldName string) *facetAggregationToken {
-	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsBlank(fieldName), "FieldName can not be null")
 	return newFacetAggregationToken(fieldName, FacetAggregationMax)
 }
 
 func facetAggregationTokenMin(fieldName string) *facetAggregationToken {
-	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsBlank(fieldName), "FieldName can not be null")
 	return newFacetAggregationToken(fieldName, FacetAggregationMin)
 }
 
 func facetAggregationTokenAverage(fieldName string) *facetAggregationToken {
-	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsBlank(fieldName), "FieldName can not be null")
 	return newFacetAggregationToken(fieldName, FacetAggregationAverage)
 }
 
 func facetAggregationTokenSum(fieldName string) *facetAggregationToken {
-	panicIf(stringIsWhitespace(fieldName), "FieldName can not be null")
+	panicIf(stringIsBlank(fieldName), "FieldName can not be null")
 	return newFacetAggregationToken(fieldName, FacetAggregationSum)
 }

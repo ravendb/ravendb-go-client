@@ -36,7 +36,8 @@ func deleteByQueryCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		indexQuery := ravendb.NewIndexQuery("from users where age == 5")
-		operation := ravendb.NewDeleteByQueryOperation(indexQuery)
+		operation, err := ravendb.NewDeleteByQueryOperation(indexQuery, nil)
+		assert.NoError(t, err)
 		asyncOp, err := store.Operations().SendAsync(operation, nil)
 		assert.NoError(t, err)
 
@@ -95,7 +96,8 @@ func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTe
 		allOperationChanges.Subscribe(observer)
 
 		indexQuery := ravendb.NewIndexQuery("from users where age == 5")
-		operation := ravendb.NewDeleteByQueryOperation(indexQuery)
+		operation, err := ravendb.NewDeleteByQueryOperation(indexQuery, nil)
+		assert.NoError(t, err)
 		_, err = store.Operations().SendAsync(operation, nil)
 		assert.NoError(t, err)
 

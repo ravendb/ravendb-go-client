@@ -17,22 +17,20 @@ type DeleteByQueryOperation struct {
 	_options       *QueryOperationOptions
 }
 
-func NewDeleteByQueryOperation(queryToDelete *IndexQuery) *DeleteByQueryOperation {
-	return NewDeleteByQueryOperationWithOptions(queryToDelete, nil)
-}
-
-func NewDeleteByQueryOperationWithOptions(queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByQueryOperation {
-
-	// TODO: validate queryToDelete
+func NewDeleteByQueryOperation(queryToDelete *IndexQuery, options *QueryOperationOptions) (*DeleteByQueryOperation, error) {
+	if queryToDelete == nil {
+		return nil, newIllegalArgumentError("QueryToDelete cannot be null")
+	}
 	return &DeleteByQueryOperation{
 		_queryToDelete: queryToDelete,
 		_options:       options,
-	}
+	}, nil
 }
 
-func (o *DeleteByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewDeleteByIndexCommand(conventions, o._queryToDelete, o._options)
-	return o.Command
+func (o *DeleteByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewDeleteByIndexCommand(conventions, o._queryToDelete, o._options)
+	return o.Command, err
 }
 
 var _ RavenCommand = &DeleteByIndexCommand{}
@@ -47,7 +45,7 @@ type DeleteByIndexCommand struct {
 	Result *OperationIDResult
 }
 
-func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *IndexQuery, options *QueryOperationOptions) *DeleteByIndexCommand {
+func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *IndexQuery, options *QueryOperationOptions) (*DeleteByIndexCommand, error) {
 	if options == nil {
 		options = &QueryOperationOptions{}
 	}
@@ -58,7 +56,7 @@ func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *In
 		_queryToDelete: queryToDelete,
 		_options:       options,
 	}
-	return cmd
+	return cmd, nil
 }
 
 func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

@@ -30,9 +30,10 @@ func NewPutAttachmentOperation(documentID string, name string, stream io.Reader,
 	}
 }
 
-func (o *PutAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) RavenCommand {
-	o.Command = NewPutAttachmentCommand(o._documentID, o._name, o._stream, o._contentType, o._changeVector)
-	return o.Command
+func (o *PutAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewPutAttachmentCommand(o._documentID, o._name, o._stream, o._contentType, o._changeVector)
+	return o.Command, err
 }
 
 var _ RavenCommand = &PutAttachmentCommand{}
@@ -50,8 +51,15 @@ type PutAttachmentCommand struct {
 }
 
 // TODO: should stream be io.ReadCloser? Who owns closing the attachment
-func NewPutAttachmentCommand(documentID string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommand {
-	// TODO: validation
+func NewPutAttachmentCommand(documentID string, name string, stream io.Reader, contentType string, changeVector *string) (*PutAttachmentCommand, error) {
+	if stringIsBlank(documentID) {
+		return nil, newIllegalArgumentError("documentId cannot be null")
+	}
+
+	if stringIsBlank(name) {
+		return nil, newIllegalArgumentError("name cannot be null")
+	}
+
 	cmd := &PutAttachmentCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -61,7 +69,7 @@ func NewPutAttachmentCommand(documentID string, name string, stream io.Reader, c
 		_contentType:  contentType,
 		_changeVector: changeVector,
 	}
-	return cmd
+	return cmd, nil
 }
 
 var noReader = true

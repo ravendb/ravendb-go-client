@@ -10,9 +10,13 @@ type PutAttachmentCommandData struct {
 
 var _ ICommandData = &PutAttachmentCommandData{} // verify interface match
 
-func NewPutAttachmentCommandData(documentID string, name string, stream io.Reader, contentType string, changeVector *string) *PutAttachmentCommandData {
-	panicIf(documentID == "", "DocumentId cannot be empty")
-	panicIf(name == "", "Name cannot be empty")
+func NewPutAttachmentCommandData(documentID string, name string, stream io.Reader, contentType string, changeVector *string) (*PutAttachmentCommandData, error) {
+	if stringIsBlank(documentID) {
+		return nil, newIllegalArgumentError("DocumentId cannot be null or empty")
+	}
+	if stringIsBlank(name) {
+		return nil, newIllegalArgumentError("Name cannot be null or empty")
+	}
 
 	res := &PutAttachmentCommandData{
 		CommandData: &CommandData{
@@ -24,7 +28,7 @@ func NewPutAttachmentCommandData(documentID string, name string, stream io.Reade
 		stream:      stream,
 		contentType: contentType,
 	}
-	return res
+	return res, nil
 }
 
 func (d *PutAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {

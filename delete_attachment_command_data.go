@@ -5,7 +5,14 @@ type DeleteAttachmentCommandData struct {
 }
 
 // NewDeleteAttachmentCommandData creates CommandData for Delete Attachment command
-func NewDeleteAttachmentCommandData(documentID string, name string, changeVector *string) *DeleteAttachmentCommandData {
+func NewDeleteAttachmentCommandData(documentID string, name string, changeVector *string) (*DeleteAttachmentCommandData, error) {
+	if stringIsBlank(documentID) {
+		return nil, newIllegalArgumentError("DocumentId cannot be null or empty")
+	}
+	if stringIsBlank(name) {
+		return nil, newIllegalArgumentError("Name cannot be null or empty")
+	}
+
 	res := &DeleteAttachmentCommandData{
 		&CommandData{
 			Type:         CommandDelete,
@@ -14,7 +21,7 @@ func NewDeleteAttachmentCommandData(documentID string, name string, changeVector
 			ChangeVector: changeVector,
 		},
 	}
-	return res
+	return res, nil
 }
 
 func (d *DeleteAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {

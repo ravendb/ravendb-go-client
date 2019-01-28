@@ -16,8 +16,11 @@ func NewDocumentSessionAttachments(session *InMemoryDocumentSessionOperations) *
 }
 
 func (s *DocumentSessionAttachments) Exists(documentID string, name string) (bool, error) {
-	command := NewHeadAttachmentCommand(documentID, name, nil)
-	err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	command, err := NewHeadAttachmentCommand(documentID, name, nil)
+	if err != nil {
+		return false, err
+	}
+	err = s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
 	if err != nil {
 		return false, err
 	}
