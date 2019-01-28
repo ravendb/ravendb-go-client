@@ -1821,7 +1821,7 @@ func (q *AbstractDocumentQuery) Single(result interface{}) error {
 		return err
 	}
 	slice := slicePtr.Elem()
-	if slice.Len() > 1 {
+	if slice.Len() != 1 {
 		return newIllegalStateError("Expected single result, got: %d", slice.Len())
 	}
 	el := slice.Index(0)
