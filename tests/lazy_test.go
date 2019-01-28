@@ -24,6 +24,8 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
+		session.Close()
 	}
 
 	{
@@ -70,6 +72,8 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 
 		assert.Nil(t, missingItems["no_such_1"])
 		assert.Nil(t, missingItems["no_such_2"])
+
+		session.Close()
 	}
 }
 
@@ -90,6 +94,8 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
+		session.Close()
 	}
 
 	{
@@ -118,6 +124,8 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 
 		assert.Equal(t, c1, company1Ref)
 		assert.Equal(t, c2, company2Ref)
+
+		session.Close()
 	}
 }
 
@@ -135,6 +143,8 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
+		session.Close()
 	}
 
 	{
@@ -154,6 +164,8 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, *userRef.LastName, "Oren")
 		assert.Equal(t, user, userRef)
+
+		session.Close()
 	}
 }
 
@@ -171,6 +183,8 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
+
+		session.Close()
 	}
 
 	{
@@ -183,6 +197,8 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, user.ID, "users/1")
+
+		session.Close()
 	}
 
 	{
@@ -194,6 +210,72 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 		err = lazyUser.GetValue()
 		assert.NoError(t, err)
 		assert.Equal(t, *user.LastName, "Oren")
+
+		session.Close()
+	}
+}
+
+func lazDontLazyLoadAlreadyLoadedValues(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+
+		user := &User{}
+		user.setLastName("Oren")
+		err = session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
+
+		user2 := &User{}
+		user2.setLastName("Marcin")
+		err = session.StoreWithID(user2, "users/2")
+		assert.NoError(t, err)
+
+		user3 := &User{}
+		user3.setLastName("John")
+		err = session.StoreWithID(user3, "users/3")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		users := map[string]*User{}
+		lazyLoad := session.Advanced().Lazily().LoadMulti(users, []string{"users/2", "users/3"}, nil)
+
+		users2 := map[string]*User{}
+		session.Advanced().Lazily().LoadMulti(users2, []string{"users/1", "users/3"}, nil)
+
+		var u1, u2 *User
+		err = session.Load(&u1, "users/2")
+		assert.NoError(t, err)
+		err = session.Load(&u2, "users/3")
+		assert.NoError(t, err)
+
+		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
+		assert.NoError(t, err)
+
+		assert.True(t, session.Advanced().IsLoaded("users/1"))
+
+		lazyLoad.GetValue()
+		assert.Equal(t, len(users), 2)
+
+		oldRequestCount := session.Advanced().GetNumberOfRequests()
+
+		lazyLoad = session.Advanced().Lazily().LoadMulti(users, []string{"users/3"}, nil)
+		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
+		assert.NoError(t, err)
+
+		assert.Equal(t, session.Advanced().GetNumberOfRequests(), oldRequestCount)
+
+		session.Close()
 	}
 }
 
@@ -209,4 +291,7 @@ func TestLazy(t *testing.T) {
 	lazyCanLazilyLoadEntity(t, driver)
 	lazyCanUseCacheWhenLazyLoading(t, driver)
 	lazyWithQueuedActionsLoad(t, driver)
+
+	// TODO: order not same as Java
+	lazDontLazyLoadAlreadyLoadedValues(t, driver)
 }
