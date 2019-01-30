@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -499,14 +499,6 @@ func ravenLogsDirFromTestName(t *testing.T) string {
 	return path
 }
 
-func fileExists(path string) bool {
-	st, err := os.Lstat(path)
-	if err != nil {
-		return false
-	}
-	return !st.IsDir()
-}
-
 func deleteTestDriver(driver *RavenTestDriver) {
 	if driver == nil {
 		return
@@ -566,8 +558,8 @@ func downloadServerIfNeededWindows() {
 		fmt.Printf("Server already present in %s\n", path)
 		return
 	}
-	_, err = os.Stat(ravenWindowsZipPath)
-	if err != nil {
+	exists := fileExists(ravenWindowsZipPath)
+	if !exists {
 		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
 		timeStart := time.Now()
 		err = HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
@@ -596,6 +588,7 @@ func downloadServerIfNeeded() {
 // this helps running tests from within Visual Studio Code,
 // where env variables are not set
 func detectServerPath() {
+	var exists bool
 	// explicitly setting RAVEN_GO_NO_DB_TESTS=true disables database tests
 	// so no need for the server
 	if isEnvVarTrue("RAVEN_GO_NO_DB_TESTS") {
@@ -603,33 +596,30 @@ func detectServerPath() {
 	}
 
 	// auto-detect env variables if not explicitly set
-	serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
-	found := false
-	if serverPath != "" {
-		if _, err := os.Stat(serverPath); err == nil {
-			found = true
-		}
+	path := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
+	if path != "" {
+		exists = fileExists(path)
 	}
-	if !found {
-		path := getRavendbExePath()
-		_, err := os.Stat(path)
-		must(err)
+	if !exists {
+		path = getRavendbExePath()
+		exists = fileExists(path)
+		panicIf(!exists, "file %s doesn't exist", path)
 		os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
 	}
 
 	if os.Getenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH") == "" {
-		path := filepath.Join("..", "certs", "server.pfx")
-		_, err := os.Stat(path)
-		must(err)
+		path = filepath.Join("..", "certs", "server.pfx")
+		exists = fileExists(path)
+		panicIf(!exists, "file %s doesn't exist", path)
 		os.Setenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH", path)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_CERTIFICATE_PATH to '%s'\n", path)
 	}
 
 	if os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH") == "" {
-		path := filepath.Join("..", "certs", "cert.pem")
-		_, err := os.Stat(path)
-		must(err)
+		path = filepath.Join("..", "certs", "cert.pem")
+		exists = fileExists(path)
+		panicIf(!exists, "file %s doesn't exist", path)
 		os.Setenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH", path)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH to '%s'\n", path)
 	}
@@ -638,6 +628,29 @@ func detectServerPath() {
 		uri := "https://a.javatest11.development.run:8085"
 		os.Setenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL", uri)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_HTTPS_SERVER_URL to '%s'\n", uri)
+	}
+
+	// for CI we set RAVEN_License env variable to dev license, so that
+	// we can run replication tests
+	if len(os.Getenv("RAVEN_License")) > 0 {
+		return
+	}
+
+	//
+	path = os.Getenv("RAVEN_License_Path")
+	cwd, err := os.Getwd()
+	must(err)
+	if !fileExists(path) {
+		path = filepath.Clean(filepath.Join(cwd, "..", "raven_license.json"))
+		if !fileExists(path) {
+			path = filepath.Clean(filepath.Join(cwd, "..", "..", "raven_license.json"))
+			if !fileExists(path) {
+				fmt.Printf("Replication tests are disabled because RAVEN_License_Path not set and file %s doesn't exist.\n", path)
+				return
+			}
+		}
+		os.Setenv("RAVEN_License_Path", path)
+		fmt.Printf("Setting RAVEN_License_Path to '%s'\n", path)
 	}
 }
 

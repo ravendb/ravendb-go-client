@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"sort"
 	"strings"
 )
@@ -100,4 +101,9 @@ func jsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
 		return "", false
 	}
 	return s, true
+}
+
+func fileExists(path string) bool {
+	st, err := os.Lstat(path)
+	return err == nil && !st.IsDir()
 }
