@@ -1,9 +1,9 @@
 package ravendb
 
 // ConnectionString represents connection string
-// TODO: unused
+// used as argument to PutConnectionStringCommand
 type ConnectionString struct {
-	Name string
+	Name string `json:"Name"`
 	// Note: Java has this as a virtual function getType()
-	Type ConnectionStringType
+	Type ConnectionStringType `json:"Type"`
 }

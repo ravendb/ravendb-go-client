@@ -30,23 +30,24 @@ var _ RavenCommand = &PutConnectionStringCommand{}
 type PutConnectionStringCommand struct {
 	RavenCommandBase
 
-	_connectionString interface{}
+	connectionString interface{}
 
 	Result *PutConnectionStringResult
 }
 
+// connectionString should be ConnectionString or RavenConnectionString
 func NewPutConnectionStringCommand(connectionString interface{}) *PutConnectionStringCommand {
 	return &PutConnectionStringCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_connectionString: connectionString,
+		connectionString: connectionString,
 	}
 }
 
 func (c *PutConnectionStringCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/connection-strings"
 
-	d, err := jsonMarshal(c._connectionString)
+	d, err := jsonMarshal(c.connectionString)
 	if err != nil {
 		// TODO: change err into RuntimeError() ?
 		return nil, err

@@ -22,9 +22,9 @@ func putDocumentCommandCanPutDocumentUsingCommand(t *testing.T, driver *RavenTes
 	assert.NoError(t, err)
 
 	result := command.Result
-	assert.Equal(t, "users/1", result.GetID())
+	assert.Equal(t, "users/1", result.ID)
 
-	assert.NotNil(t, result.GetChangeVector())
+	assert.NotNil(t, result.ChangeVector)
 
 	{
 		session := openSessionMust(t, store)

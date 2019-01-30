@@ -6,7 +6,7 @@ import (
 )
 
 type GetServerWideOperationStateOperation struct {
-	_id int
+	_id int64
 }
 
 func (o *GetServerWideOperationStateOperation) GetCommand(conventions *DocumentConventions) *GetServerWideOperationStateCommand {
@@ -17,12 +17,12 @@ type GetServerWideOperationStateCommand struct {
 	RavenCommandBase
 
 	_conventions *DocumentConventions
-	_id          int
+	_id          int64
 
 	Result map[string]interface{}
 }
 
-func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id int) *GetServerWideOperationStateCommand {
+func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id int64) *GetServerWideOperationStateCommand {
 	cmd := &GetServerWideOperationStateCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -35,7 +35,7 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 }
 
 func (c *GetServerWideOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/operations/state?id=" + strconv.Itoa(c._id)
+	url := node.URL + "/operations/state?id=" + strconv.FormatInt(c._id, 10)
 	return NewHttpGet(url)
 }
 

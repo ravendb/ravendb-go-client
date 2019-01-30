@@ -8,17 +8,17 @@ type Operation struct {
 	_requestExecutor *RequestExecutor
 	//TBD private readonly Func<databaseChanges> _changes;
 	_conventions *DocumentConventions
-	_id          int
+	_id          int64
 
 	// if true, this represents ServerWideOperation
 	IsServerWide bool
 }
 
-func (o *Operation) GetID() int {
+func (o *Operation) GetID() int64 {
 	return o._id
 }
 
-func NewOperation(requestExecutor *RequestExecutor, changes func() *databaseChanges, conventions *DocumentConventions, id int) *Operation {
+func NewOperation(requestExecutor *RequestExecutor, changes func() *databaseChanges, conventions *DocumentConventions, id int64) *Operation {
 	return &Operation{
 		_requestExecutor: requestExecutor,
 		//TBD _changes = changes;
@@ -44,7 +44,7 @@ func (o *Operation) fetchOperationsStatus() (map[string]interface{}, error) {
 	return nil, nil
 }
 
-func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int) RavenCommand {
+func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int64) RavenCommand {
 	if o.IsServerWide {
 		return NewGetServerWideOperationStateCommand(o._conventions, id)
 	}

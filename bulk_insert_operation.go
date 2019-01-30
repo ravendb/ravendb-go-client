@@ -20,7 +20,7 @@ type BulkInsertCommand struct {
 
 	_stream io.Reader
 
-	_id int
+	_id int64
 
 	useCompression bool
 
@@ -28,7 +28,7 @@ type BulkInsertCommand struct {
 }
 
 // NewBulkInsertCommand returns new BulkInsertCommand
-func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkInsertCommand {
+func NewBulkInsertCommand(id int64, stream io.Reader, useCompression bool) *BulkInsertCommand {
 	cmd := &BulkInsertCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -41,7 +41,7 @@ func NewBulkInsertCommand(id int, stream io.Reader, useCompression bool) *BulkIn
 
 // CreateRequest creates a request
 func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/bulk_insert?id=" + strconv.Itoa(c._id)
+	url := node.URL + "/databases/" + node.Database + "/bulk_insert?id=" + strconv.FormatInt(c._id, 10)
 	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)
 	return NewHttpPostReader(url, c._stream)
@@ -75,7 +75,7 @@ type BulkInsertOperation struct {
 	_currentWriter *io.PipeWriter
 
 	_first       bool
-	_operationID int
+	_operationID int64
 
 	useCompression bool
 
@@ -302,7 +302,7 @@ func (o *BulkInsertOperation) Abort() error {
 		return err
 	}
 
-	command := NewKillOperationCommand(strconv.Itoa(o._operationID))
+	command := NewKillOperationCommand(strconv.FormatInt(o._operationID, 10))
 	err = o._requestExecutor.ExecuteCommand(command)
 	//o._currentWriter.Close()
 	if err != nil {

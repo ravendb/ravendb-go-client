@@ -42,6 +42,7 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
+// Note: Java's RemoteTestBase is folded into RavenTestDriver
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 

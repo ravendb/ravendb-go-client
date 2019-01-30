@@ -9,7 +9,7 @@ var (
 )
 
 type _GetNextOperationIDCommandResponse struct {
-	ID int `json:"Id"`
+	ID int64 `json:"Id"`
 }
 
 // GetNextOperationIDCommand represents command for getting next
@@ -17,7 +17,7 @@ type _GetNextOperationIDCommandResponse struct {
 type GetNextOperationIDCommand struct {
 	RavenCommandBase
 
-	Result int
+	Result int64
 }
 
 // NewGetNextOperationIDCommand returns GetNextOperationIDCommand

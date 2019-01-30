@@ -64,8 +64,7 @@ func (e *OperationExecutor) SendAsync(operation IOperation, sessionInfo *Session
 	}
 	result := getCommandOperationIDResult(command)
 
-	return NewOperation(e.requestExecutor, changes, e.requestExecutor.GetConventions(), result.getOperationId()), nil
-
+	return NewOperation(e.requestExecutor, changes, e.requestExecutor.GetConventions(), result.OperationID), nil
 }
 
 // Note: use SendPatchOperation() instead and check PatchOperationResult.Status

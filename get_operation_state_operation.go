@@ -6,28 +6,28 @@ import (
 )
 
 type GetOperationStateOperation struct {
-	_id int
+	id int64
 }
 
 func (o *GetOperationStateOperation) GetCommand(conventions *DocumentConventions) *GetOperationStateCommand {
-	return NewGetOperationStateCommand(getDefaultConventions(), o._id)
+	return NewGetOperationStateCommand(getDefaultConventions(), o.id)
 }
 
 type GetOperationStateCommand struct {
 	RavenCommandBase
 
-	_conventions *DocumentConventions
-	_id          int
+	conventions *DocumentConventions
+	id          int64
 
 	Result map[string]interface{}
 }
 
-func NewGetOperationStateCommand(conventions *DocumentConventions, id int) *GetOperationStateCommand {
+func NewGetOperationStateCommand(conventions *DocumentConventions, id int64) *GetOperationStateCommand {
 	cmd := &GetOperationStateCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_conventions: conventions,
-		_id:          id,
+		conventions: conventions,
+		id:          id,
 	}
 	cmd.IsReadRequest = true
 
@@ -35,7 +35,7 @@ func NewGetOperationStateCommand(conventions *DocumentConventions, id int) *GetO
 }
 
 func (c *GetOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/operations/state?id=" + strconv.Itoa(c._id)
+	url := node.URL + "/databases/" + node.Database + "/operations/state?id=" + strconv.FormatInt(c.id, 10)
 	return NewHttpGet(url)
 }
 
