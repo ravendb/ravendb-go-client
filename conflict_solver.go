@@ -1,6 +1,7 @@
 package ravendb
 
-type conflictSolver struct {
-	ResolveByCollection map[string]*scriptResolver `json:"ResolveByCollection"`
+// ConflictSolver describes how to resolve conflicts
+type ConflictSolver struct {
+	ResolveByCollection map[string]*ScriptResolver `json:"ResolveByCollection"`
 	ResolveToLatest     bool                       `json:"ResolveToLatest"`
 }

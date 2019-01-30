@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,6 +54,8 @@ type RavenTestDriver struct {
 
 	logsDir  string
 	disposed bool
+
+	customize func(*ravendb.DatabaseRecord)
 }
 
 func NewRavenTestDriver() *RavenTestDriver {
@@ -140,6 +142,11 @@ func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, err
 	return d.getDocumentStore2("test_db", true, 0)
 }
 
+func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
+	if d.customize != nil {
+		d.customize(dbRecord)
+	}
+}
 func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
 
 	n := int(atomic.AddInt32(&d.index, 1))
@@ -156,6 +163,8 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	documentStore = d.getGlobalServer(secured)
 	databaseRecord := ravendb.NewDatabaseRecord()
 	databaseRecord.DatabaseName = name
+
+	d.customizeDbRecord(databaseRecord)
 
 	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord)
 	err := documentStore.Maintenance().Server().Send(createDatabaseOperation)
@@ -507,9 +516,11 @@ func deleteTestDriver(driver *RavenTestDriver) {
 }
 
 var (
-	defaultUserAgent          = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
-	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
-	ravenWindowsZipPath       = "Ravendb-4.1.3.zip"
+	defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
+	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=4.1"
+
+	ravenWindowsZipPath = "ravendb-latest.zip"
 )
 
 func getRavendbExePath() string {
@@ -520,6 +531,7 @@ func getRavendbExePath() string {
 	if isWindows() {
 		path += ".exe"
 	}
+	path = filepath.Clean(path)
 	if fileExists(path) {
 		return path
 	}
@@ -528,13 +540,30 @@ func getRavendbExePath() string {
 	if isWindows() {
 		path += ".exe"
 	}
-	return path
+	path = filepath.Clean(path)
+	if fileExists(path) {
+		return path
+	}
+	return ""
 }
 
 func downloadServerIfNeededWindows() {
-	_, err := os.Stat(getRavendbExePath())
-	if err == nil {
-		fmt.Printf("Server already present in %s\n", getRavendbExePath())
+	// hacky: if we're in tests directory, cd .. for duration of this function
+	cwd, err := os.Getwd()
+	must(err)
+	if strings.HasSuffix(cwd, "tests") {
+		path := filepath.Clean(filepath.Join(cwd, ".."))
+		err = os.Chdir(path)
+		must(err)
+		defer func() {
+			err := os.Chdir(cwd)
+			must(err)
+		}()
+	}
+
+	path := getRavendbExePath()
+	if path != "" {
+		fmt.Printf("Server already present in %s\n", path)
 		return
 	}
 	_, err = os.Stat(ravenWindowsZipPath)
@@ -575,7 +604,13 @@ func detectServerPath() {
 
 	// auto-detect env variables if not explicitly set
 	serverPath := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
-	if serverPath == "" {
+	found := false
+	if serverPath != "" {
+		if _, err := os.Stat(serverPath); err == nil {
+			found = true
+		}
+	}
+	if !found {
 		path := getRavendbExePath()
 		_, err := os.Stat(path)
 		must(err)

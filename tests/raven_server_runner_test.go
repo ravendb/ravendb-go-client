@@ -54,7 +54,7 @@ func getProcessStartInfo(locator *RavenServerLocator, logsDir string) (*ProcessS
 		"--License.Eula.Accepted=true",
 		"--Setup.Mode=None",
 		"--Testing.ParentProcessId=" + getProcessId(),
-		"--non-interactive",
+		// "--non-interactive",
 	}
 	if logsDir != "" {
 		{

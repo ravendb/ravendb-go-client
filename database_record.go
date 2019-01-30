@@ -6,7 +6,7 @@ type DatabaseRecord struct {
 	Disabled             bool              `json:"Disabled"`
 	DataDirectory        string            `json:"DataDirectory,omitempty"`
 	Settings             map[string]string `json:"Settings"`
-	ConflictSolverConfig *conflictSolver   `json:"ConflictSolverConfig"`
+	ConflictSolverConfig *ConflictSolver   `json:"ConflictSolverConfig"`
 }
 
 // NewDatabaseRecord returns new database record
