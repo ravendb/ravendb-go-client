@@ -12,7 +12,7 @@ func exceptionDispatcherGet(schema *exceptionSchema, code int) error {
 
 func exceptionDispatcherGet2(message string, err string, typeAsString string, code int) error {
 	if code == http.StatusConflict {
-		if strings.Contains(typeAsString, "DocumentConflictError") {
+		if strings.Contains(typeAsString, "DocumentConflictException") {
 			return newDocumentConflictErrorFromMessage(message)
 		}
 		return newConcurrencyError(message)
@@ -51,7 +51,7 @@ func exceptionDispatcherThrowError(response *http.Response) error {
 }
 
 func exceptionDispatcherThrowConflict(schema *exceptionSchema, js string) error {
-	if strings.Contains(schema.Type, "DocumentConflictError") {
+	if strings.Contains(schema.Type, "DocumentConflictException") {
 		return newDocumentConflictErrorFromJSON(js)
 	}
 	return newConcurrencyError("%s", schema.Message)
