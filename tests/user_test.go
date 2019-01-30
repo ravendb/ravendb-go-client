@@ -4,7 +4,7 @@ type User struct {
 	ID        string
 	Name      *string `json:"name"`
 	LastName  *string `json:"lastName"`
-	AddressId *string `json:"addressId"`
+	AddressID string  `json:"addressId,omitempty"`
 	Count     int     `json:"count"`
 	Age       int     `json:"age"`
 }

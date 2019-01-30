@@ -260,7 +260,7 @@ func TestDocumentReplication(t *testing.T) {
 	}
 
 	// TODO: ensure order matches Java's order
-	//documentReplication_canReplicateDocument(t, driver)
-	//documentReplication_getConflictsResult_command_should_work_properly(t, driver)
+	documentReplication_canReplicateDocument(t, driver)
+	documentReplication_getConflictsResult_command_should_work_properly(t, driver)
 	documentReplication_shouldCreateConflictThenResolveIt(t, driver)
 }
