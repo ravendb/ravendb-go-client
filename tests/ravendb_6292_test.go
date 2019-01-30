@@ -155,7 +155,7 @@ func TestRavenDB6292(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	if !enableReplicationTests() {
-		fmt.Printf("Skipping TestDocumentReplication because RAVEN_License env variable is not set\n")
+		fmt.Printf("Skipping TestRavenDB6292 because RAVEN_License env variable is not set\n")
 		return
 	}
 
