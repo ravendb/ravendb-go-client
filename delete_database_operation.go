@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	_ IMaintenanceOperation = &DeleteDatabasesOperation{}
+	_ IServerOperation = &DeleteDatabasesOperation{}
 )
 
 type DeleteDatabasesOperation struct {
@@ -46,9 +46,13 @@ func NewDeleteDatabasesOperationWithParameters(parameters *DeleteDatabaseParamet
 	}
 }
 
-func (o *DeleteDatabasesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewDeleteDatabaseCommand(conventions, o.parameters)
-	return o.Command
+func (o *DeleteDatabasesOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewDeleteDatabaseCommand(conventions, o.parameters)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var _ RavenCommand = &DeleteDatabaseCommand{}
@@ -61,16 +65,18 @@ type DeleteDatabaseCommand struct {
 	Result *DeleteDatabaseResult
 }
 
-func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *DeleteDatabaseParameters) *DeleteDatabaseCommand {
+func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *DeleteDatabaseParameters) (*DeleteDatabaseCommand, error) {
 	d, err := jsonMarshal(parameters)
-	must(err)
+	if err != nil {
+		return nil, err
+	}
 
 	cmd := &DeleteDatabaseCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
 		parameters: d,
 	}
-	return cmd
+	return cmd, nil
 }
 
 func (c *DeleteDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

@@ -18,9 +18,9 @@ func NewCreateSampleDataOperation() *CreateSampleDataOperation {
 	return &CreateSampleDataOperation{}
 }
 
-func (o *CreateSampleDataOperation) GetCommand(conventions *ravendb.DocumentConventions) ravendb.RavenCommand {
+func (o *CreateSampleDataOperation) GetCommand(conventions *ravendb.DocumentConventions) (ravendb.RavenCommand, error) {
 	o.Command = NewCreateSampleDataCommand(conventions)
-	return o.Command
+	return o.Command, nil
 }
 
 var _ ravendb.RavenCommand = &CreateSampleDataCommand{}

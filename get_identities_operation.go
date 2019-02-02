@@ -16,9 +16,9 @@ func NewGetIdentitiesOperation() *GetIdentitiesOperation {
 	return &GetIdentitiesOperation{}
 }
 
-func (o *GetIdentitiesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetIdentitiesOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewGetIdentitiesCommand()
-	return o.Command
+	return o.Command, nil
 }
 
 type GetIdentitiesCommand struct {

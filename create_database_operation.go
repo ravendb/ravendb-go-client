@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+var _ IServerOperation = &CreateDatabaseOperation{}
+
 // CreateDatabaseOperation represents "create database" operation
 type CreateDatabaseOperation struct {
 	databaseRecord    *DatabaseRecord
@@ -25,7 +27,7 @@ func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRec
 }
 
 // GetCommand returns command for this operation
-func (o *CreateDatabaseOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *CreateDatabaseOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	return NewCreateDatabaseCommand(conventions, o.databaseRecord, o.replicationFactor)
 }
 
@@ -46,8 +48,10 @@ type CreateDatabaseCommand struct {
 }
 
 // NewCreateDatabaseCommand returns new CreateDatabaseCommand
-func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseCommand {
-	panicIf(databaseRecord.DatabaseName == "", "databaseRecord.DatabaseName cannot be empty")
+func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *DatabaseRecord, replicationFactor int) (*CreateDatabaseCommand, error) {
+	if databaseRecord.DatabaseName == "" {
+		return nil, newIllegalArgumentError("databaseRecord.DatabaseName cannot be empty")
+	}
 	cmd := &CreateDatabaseCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
@@ -56,7 +60,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 		replicationFactor: replicationFactor,
 		databaseName:      databaseRecord.DatabaseName,
 	}
-	return cmd
+	return cmd, nil
 }
 
 // CreateRequest creates http request for the command

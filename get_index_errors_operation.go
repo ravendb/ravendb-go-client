@@ -5,24 +5,24 @@ import (
 )
 
 var (
-	_ IMaintenanceOperation = &GetStatisticsOperation{}
+	_ IMaintenanceOperation = &GetIndexErrorsOperation{}
 )
 
 type GetIndexErrorsOperation struct {
-	_indexNames []string
+	indexNames []string
 
 	Command *GetIndexErrorsCommand
 }
 
 func NewGetIndexErrorsOperation(indexNames []string) *GetIndexErrorsOperation {
 	return &GetIndexErrorsOperation{
-		_indexNames: indexNames,
+		indexNames: indexNames,
 	}
 }
 
-func (o *GetIndexErrorsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewGetIndexErrorsCommand(o._indexNames)
-	return o.Command
+func (o *GetIndexErrorsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	o.Command = NewGetIndexErrorsCommand(o.indexNames)
+	return o.Command, nil
 }
 
 var _ RavenCommand = &GetIndexErrorsCommand{}
@@ -30,7 +30,7 @@ var _ RavenCommand = &GetIndexErrorsCommand{}
 type GetIndexErrorsCommand struct {
 	RavenCommandBase
 
-	_indexNames []string
+	indexNames []string
 
 	Result []*IndexErrors
 }
@@ -39,7 +39,7 @@ func NewGetIndexErrorsCommand(indexNames []string) *GetIndexErrorsCommand {
 	res := &GetIndexErrorsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_indexNames: indexNames,
+		indexNames: indexNames,
 	}
 	res.IsReadRequest = true
 	return res
@@ -48,10 +48,10 @@ func NewGetIndexErrorsCommand(indexNames []string) *GetIndexErrorsCommand {
 func (c *GetIndexErrorsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/errors"
 
-	if len(c._indexNames) > 0 {
+	if len(c.indexNames) > 0 {
 		url += "?"
 
-		for _, indexName := range c._indexNames {
+		for _, indexName := range c.indexNames {
 			url += "&name=" + indexName
 		}
 	}

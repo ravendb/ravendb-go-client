@@ -7,21 +7,27 @@ import (
 var _ IVoidMaintenanceOperation = &StopIndexOperation{}
 
 type StopIndexOperation struct {
-	_indexName string
+	indexName string
 
 	Command *StopIndexCommand
 }
 
-func NewStopIndexOperation(indexName string) *StopIndexOperation {
-	panicIf(indexName == "", "Index name connot be empty")
-	return &StopIndexOperation{
-		_indexName: indexName,
+func NewStopIndexOperation(indexName string) (*StopIndexOperation, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("Index name connot be empty")
 	}
+	return &StopIndexOperation{
+		indexName: indexName,
+	}, nil
 }
 
-func (o *StopIndexOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewStopIndexCommand(o._indexName)
-	return o.Command
+func (o *StopIndexOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewStopIndexCommand(o.indexName)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var (
@@ -31,23 +37,25 @@ var (
 type StopIndexCommand struct {
 	RavenCommandBase
 
-	_indexName string
+	indexName string
 }
 
-func NewStopIndexCommand(indexName string) *StopIndexCommand {
-	panicIf(indexName == "", "Index name connot be empty")
+func NewStopIndexCommand(indexName string) (*StopIndexCommand, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("Index name connot be empty")
+	}
 
 	cmd := &StopIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_indexName: indexName,
+		indexName: indexName,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeEmpty
-	return cmd
+	return cmd, nil
 }
 
 func (c *StopIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/admin/indexes/stop?name=" + urlUtilsEscapeDataString(c._indexName)
+	url := node.URL + "/databases/" + node.Database + "/admin/indexes/stop?name=" + urlUtilsEscapeDataString(c.indexName)
 
 	return NewHttpPost(url, nil)
 }

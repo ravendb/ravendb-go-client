@@ -195,8 +195,8 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			observer := ravendb.NewActionBasedObserver(action)
 			subscription := observable.Subscribe(observer)
 			time.Sleep(500 * time.Millisecond)
-			//SetIndexesPriorityOperation
-			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
+			operation, err := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
+			assert.NoError(t, err)
 			err = store.Maintenance().Send(operation)
 			assert.NoError(t, err)
 
@@ -238,7 +238,8 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			observer := ravendb.NewActionBasedObserver(action)
 			subscription := observable.Subscribe(observer)
 			time.Sleep(500 * time.Millisecond)
-			operation := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
+			operation, err := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
+			assert.NoError(t, err)
 			err = store.Maintenance().Send(operation)
 			assert.NoError(t, err)
 

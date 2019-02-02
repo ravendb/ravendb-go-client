@@ -14,9 +14,9 @@ func NewGetIndexesStatisticsOperation() *GetIndexesStatisticsOperation {
 	return &GetIndexesStatisticsOperation{}
 }
 
-func (o *GetIndexesStatisticsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetIndexesStatisticsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewGetIndexesStatisticsCommand()
-	return o.Command
+	return o.Command, nil
 }
 
 var (

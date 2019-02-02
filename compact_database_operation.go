@@ -10,7 +10,7 @@ var (
 
 // CompactDatabaseOperation describes "compact database" operation
 type CompactDatabaseOperation struct {
-	_compactSettings *CompactSettings
+	compactSettings *CompactSettings
 
 	Command *CompactDatabaseCommand
 }
@@ -18,14 +18,18 @@ type CompactDatabaseOperation struct {
 // NewCompactDatabaseOperation returns new CompactDatabaseOperation
 func NewCompactDatabaseOperation(compactSettings *CompactSettings) *CompactDatabaseOperation {
 	return &CompactDatabaseOperation{
-		_compactSettings: compactSettings,
+		compactSettings: compactSettings,
 	}
 }
 
-// GetCommand returns a comman
-func (o *CompactDatabaseOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewCompactDatabaseCommand(conventions, o._compactSettings)
-	return o.Command
+// GetCommand returns a command
+func (o *CompactDatabaseOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewCompactDatabaseCommand(conventions, o.compactSettings)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var _ RavenCommand = &CompactDatabaseCommand{}
@@ -34,30 +38,36 @@ var _ RavenCommand = &CompactDatabaseCommand{}
 type CompactDatabaseCommand struct {
 	RavenCommandBase
 
-	_compactSettings []byte // CompactSettings serialized to json
+	compactSettings []byte // CompactSettings serialized to json
 
 	Result *OperationIDResult
 }
 
 //NewCompactDatabaseCommand returns new CompactDatabaseCommand
-func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings *CompactSettings) *CompactDatabaseCommand {
-	panicIf(conventions == nil, "Conventions cannot be null")
-	panicIf(compactSettings == nil, "CompactSettings cannot be null")
+func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings *CompactSettings) (*CompactDatabaseCommand, error) {
+	if conventions == nil {
+		return nil, newIllegalArgumentError("Conventions cannot be null")
+	}
+	if compactSettings == nil {
+		return nil, newIllegalArgumentError("CompactSettings cannot be null")
+	}
 
 	d, err := jsonMarshal(compactSettings)
-	panicIf(err != nil, "jsonMarshal failed with '%s'", err)
+	if err != nil {
+		return nil, err
+	}
 	res := &CompactDatabaseCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_compactSettings: d,
+		compactSettings: d,
 	}
-	return res
+	return res, nil
 }
 
 // CreateRequest creates a request
 func (c *CompactDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/compact"
-	return NewHttpPost(url, c._compactSettings)
+	return NewHttpPost(url, c.compactSettings)
 }
 
 // SetResponse sets a reponse

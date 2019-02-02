@@ -9,20 +9,20 @@ var (
 )
 
 type PutConnectionStringOperation struct {
-	_connectionString interface{}
+	connectionString interface{}
 
 	Command *PutConnectionStringCommand
 }
 
 func NewPutConnectionStringOperation(connectionString interface{}) *PutConnectionStringOperation {
 	return &PutConnectionStringOperation{
-		_connectionString: connectionString,
+		connectionString: connectionString,
 	}
 }
 
-func (o *PutConnectionStringOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewPutConnectionStringCommand(o._connectionString)
-	return o.Command
+func (o *PutConnectionStringOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	o.Command = NewPutConnectionStringCommand(o.connectionString)
+	return o.Command, nil
 }
 
 var _ RavenCommand = &PutConnectionStringCommand{}

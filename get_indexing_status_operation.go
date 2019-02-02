@@ -14,9 +14,9 @@ func NewGetIndexingStatusOperation() *GetIndexingStatusOperation {
 	return &GetIndexingStatusOperation{}
 }
 
-func (o *GetIndexingStatusOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetIndexingStatusOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewGetIndexingStatusCommand()
-	return o.Command
+	return o.Command, nil
 }
 
 var (

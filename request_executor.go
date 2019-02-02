@@ -1045,7 +1045,10 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 	if re.isCluster {
 		return re.clusterPerformHealthCheck(serverNode, nodeIndex)
 	}
-	command := requestExecutorFailureCheckOperation.GetCommand(re.conventions)
+	command, err := requestExecutorFailureCheckOperation.GetCommand(re.conventions)
+	if err != nil {
+		return err
+	}
 	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 

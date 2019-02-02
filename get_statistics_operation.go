@@ -9,7 +9,7 @@ var (
 )
 
 type GetStatisticsOperation struct {
-	_debugTag string
+	debugTag string
 
 	Command *GetStatisticsCommand
 }
@@ -20,13 +20,13 @@ func NewGetStatisticsOperation() *GetStatisticsOperation {
 
 func NewGetStatisticsOperationWithDebugTag(debugTag string) *GetStatisticsOperation {
 	return &GetStatisticsOperation{
-		_debugTag: debugTag,
+		debugTag: debugTag,
 	}
 }
 
-func (o *GetStatisticsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewGetStatisticsCommandWithDebugTag(o._debugTag)
-	return o.Command
+func (o *GetStatisticsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	o.Command = NewGetStatisticsCommand(o.debugTag)
+	return o.Command, nil
 }
 
 var (
@@ -41,11 +41,7 @@ type GetStatisticsCommand struct {
 	Result *DatabaseStatistics
 }
 
-func NewGetStatisticsCommand() *GetStatisticsCommand {
-	return NewGetStatisticsCommandWithDebugTag("")
-}
-
-func NewGetStatisticsCommandWithDebugTag(debugTag string) *GetStatisticsCommand {
+func NewGetStatisticsCommand(debugTag string) *GetStatisticsCommand {
 	cmd := &GetStatisticsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 

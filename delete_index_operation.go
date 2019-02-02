@@ -20,9 +20,13 @@ func NewDeleteIndexOperation(indexName string) *DeleteIndexOperation {
 	}
 }
 
-func (o *DeleteIndexOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewDeleteIndexCommand(o._indexName)
-	return o.Command
+func (o *DeleteIndexOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewDeleteIndexCommand(o._indexName)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var (
@@ -35,15 +39,17 @@ type DeleteIndexCommand struct {
 	_indexName string
 }
 
-func NewDeleteIndexCommand(indexName string) *DeleteIndexCommand {
-	panicIf(indexName == "", "indexName cannot be empty")
+func NewDeleteIndexCommand(indexName string) (*DeleteIndexCommand, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("indexName cannot be empty")
+	}
 	cmd := &DeleteIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
 		_indexName: indexName,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeEmpty
-	return cmd
+	return cmd, nil
 }
 
 // CreateRequest creates http request for the command

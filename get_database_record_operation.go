@@ -9,20 +9,20 @@ var (
 )
 
 type GetDatabaseRecordOperation struct {
-	_database string
+	database string
 
 	Command *GetDatabaseRecordCommand
 }
 
 func NewGetDatabaseRecordOperation(database string) *GetDatabaseRecordOperation {
 	return &GetDatabaseRecordOperation{
-		_database: database,
+		database: database,
 	}
 }
 
-func (o *GetDatabaseRecordOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewGetDatabaseRecordCommand(conventions, o._database)
-	return o.Command
+func (o *GetDatabaseRecordOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	o.Command = NewGetDatabaseRecordCommand(conventions, o.database)
+	return o.Command, nil
 }
 
 var _ RavenCommand = &GetDatabaseRecordCommand{}
@@ -30,8 +30,8 @@ var _ RavenCommand = &GetDatabaseRecordCommand{}
 type GetDatabaseRecordCommand struct {
 	RavenCommandBase
 
-	_conventions *DocumentConventions
-	_database    string
+	conventions *DocumentConventions
+	database    string
 
 	Result *DatabaseRecordWithEtag
 }
@@ -40,14 +40,14 @@ func NewGetDatabaseRecordCommand(conventions *DocumentConventions, database stri
 	cmd := &GetDatabaseRecordCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_conventions: conventions,
-		_database:    database,
+		conventions: conventions,
+		database:    database,
 	}
 	return cmd
 }
 
 func (c *GetDatabaseRecordCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/admin/databases?name=" + c._database
+	url := node.URL + "/admin/databases?name=" + c.database
 	return NewHttpGet(url)
 }
 

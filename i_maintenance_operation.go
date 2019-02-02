@@ -5,5 +5,5 @@ package ravendb
 type IVoidMaintenanceOperation = IMaintenanceOperation
 
 type IMaintenanceOperation interface {
-	GetCommand(*DocumentConventions) RavenCommand
+	GetCommand(*DocumentConventions) (RavenCommand, error)
 }

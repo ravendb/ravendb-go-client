@@ -8,27 +8,33 @@ var _ IVoidMaintenanceOperation = &SetIndexesPriorityOperation{}
 
 // SetIndexesPriorityOperation represents operation for setting indexes priority
 type SetIndexesPriorityOperation struct {
-	_parameters *SetIndexesPriorityParameters
-	Command     *SetIndexesPriorityCommand
+	parameters *SetIndexesPriorityParameters
+	Command    *SetIndexesPriorityCommand
 }
 
 // NewSetIndexesPriorityOperation returns new SetIndexesPriorityParameters
-func NewSetIndexesPriorityOperation(indexName string, priority IndexPriority) *SetIndexesPriorityOperation {
-	panicIf(indexName == "", "indexName cannot be empty")
+func NewSetIndexesPriorityOperation(indexName string, priority IndexPriority) (*SetIndexesPriorityOperation, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("indexName cannot be empty")
+	}
 
 	p := &SetIndexesPriorityParameters{
 		IndexNames: []string{indexName},
 		Priority:   priority,
 	}
 	return &SetIndexesPriorityOperation{
-		_parameters: p,
-	}
+		parameters: p,
+	}, nil
 }
 
 // GetCommand returns a command
-func (o *SetIndexesPriorityOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewSetIndexesPriorityCommand(conventions, o._parameters)
-	return o.Command
+func (o *SetIndexesPriorityOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewSetIndexesPriorityCommand(conventions, o.parameters)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var (
@@ -43,9 +49,13 @@ type SetIndexesPriorityCommand struct {
 }
 
 // NewSetIndexesPriorityCommand returns new SetIndexesPriorityCommand
-func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *SetIndexesPriorityParameters) *SetIndexesPriorityCommand {
-	panicIf(conventions == nil, "conventions cannot be null")
-	panicIf(parameters == nil, "parameters cannot be null")
+func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *SetIndexesPriorityParameters) (*SetIndexesPriorityCommand, error) {
+	if conventions == nil {
+		return nil, newIllegalArgumentError("conventions cannot be null")
+	}
+	if parameters == nil {
+		return nil, newIllegalArgumentError("parameters cannot be null")
+	}
 
 	// Note: compared to Java, we shortcut things by serializing to JSON
 	// here as it's simpler and faster than two-step serialization,
@@ -58,7 +68,7 @@ func NewSetIndexesPriorityCommand(conventions *DocumentConventions, parameters *
 		_parameters: d,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeEmpty
-	return cmd
+	return cmd, nil
 }
 
 // CreateRequest creates http request for the command

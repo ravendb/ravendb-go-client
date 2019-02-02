@@ -17,9 +17,9 @@ func NewGetClientConfigurationOperation() *GetClientConfigurationOperation {
 	return &GetClientConfigurationOperation{}
 }
 
-func (o *GetClientConfigurationOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *GetClientConfigurationOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewGetClientConfigurationCommand()
-	return o.Command
+	return o.Command, nil
 }
 
 type GetClientConfigurationCommand struct {

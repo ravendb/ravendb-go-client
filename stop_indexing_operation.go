@@ -14,9 +14,9 @@ func NewStopIndexingOperation() *StopIndexingOperation {
 	return &StopIndexingOperation{}
 }
 
-func (o *StopIndexingOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *StopIndexingOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewStopIndexingCommand()
-	return o.Command
+	return o.Command, nil
 }
 
 var (

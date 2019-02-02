@@ -14,9 +14,9 @@ func NewStartIndexingOperation() *StartIndexingOperation {
 	return &StartIndexingOperation{}
 }
 
-func (o *StartIndexingOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *StartIndexingOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewStartIndexingCommand()
-	return o.Command
+	return o.Command, nil
 }
 
 var (

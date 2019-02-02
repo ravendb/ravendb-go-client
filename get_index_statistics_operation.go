@@ -7,7 +7,7 @@ import (
 var _ IMaintenanceOperation = &GetIndexStatisticsOperation{}
 
 type GetIndexStatisticsOperation struct {
-	_indexName string
+	indexName string
 
 	Command *GetIndexStatisticsCommand
 }
@@ -15,13 +15,17 @@ type GetIndexStatisticsOperation struct {
 func NewGetIndexStatisticsOperation(indexName string) *GetIndexStatisticsOperation {
 	panicIf(indexName == "", "Index name connot be empty")
 	return &GetIndexStatisticsOperation{
-		_indexName: indexName,
+		indexName: indexName,
 	}
 }
 
-func (o *GetIndexStatisticsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewGetIndexStatisticsCommand(o._indexName)
-	return o.Command
+func (o *GetIndexStatisticsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewGetIndexStatisticsCommand(o.indexName)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var (
@@ -36,8 +40,10 @@ type GetIndexStatisticsCommand struct {
 	Result *IndexStats
 }
 
-func NewGetIndexStatisticsCommand(indexName string) *GetIndexStatisticsCommand {
-	panicIf(indexName == "", "Index name connot be empty")
+func NewGetIndexStatisticsCommand(indexName string) (*GetIndexStatisticsCommand, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("Index name connot be empty")
+	}
 
 	res := &GetIndexStatisticsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -45,7 +51,7 @@ func NewGetIndexStatisticsCommand(indexName string) *GetIndexStatisticsCommand {
 		_indexName: indexName,
 	}
 	res.IsReadRequest = true
-	return res
+	return res, nil
 }
 
 func (c *GetIndexStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

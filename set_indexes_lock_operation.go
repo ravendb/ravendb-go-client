@@ -8,12 +8,14 @@ import (
 var _ IVoidMaintenanceOperation = &SetIndexesLockOperation{}
 
 type SetIndexesLockOperation struct {
-	_parameters *SetIndexesLockParameters
-	Command     *SetIndexesLockCommand
+	parameters *SetIndexesLockParameters
+	Command    *SetIndexesLockCommand
 }
 
-func NewSetIndexesLockOperation(indexName string, mode IndexLockMode) *SetIndexesLockOperation {
-	panicIf(indexName == "", "indexName cannot be empty")
+func NewSetIndexesLockOperation(indexName string, mode IndexLockMode) (*SetIndexesLockOperation, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("indexName cannot be empty")
+	}
 
 	p := &SetIndexesLockParameters{
 		IndexNames: []string{indexName},
@@ -22,19 +24,23 @@ func NewSetIndexesLockOperation(indexName string, mode IndexLockMode) *SetIndexe
 	return NewSetIndexesLockOperationWithParameters(p)
 }
 
-func NewSetIndexesLockOperationWithParameters(parameters *SetIndexesLockParameters) *SetIndexesLockOperation {
-	panicIf(parameters == nil, "parameters cannot be nil")
+func NewSetIndexesLockOperationWithParameters(parameters *SetIndexesLockParameters) (*SetIndexesLockOperation, error) {
+	if parameters == nil {
+		return nil, newIllegalArgumentError("parameters cannot be nil")
+	}
 
 	res := &SetIndexesLockOperation{
-		_parameters: parameters,
+		parameters: parameters,
 	}
-	must(res.filterAutoIndexes())
-	return res
+	if err := res.filterAutoIndexes(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (o *SetIndexesLockOperation) filterAutoIndexes() error {
 	// Check for auto-indexes - we do not set lock for auto-indexes
-	for _, indexName := range o._parameters.IndexNames {
+	for _, indexName := range o.parameters.IndexNames {
 		s := strings.ToLower(indexName)
 		if strings.HasPrefix(s, "auto/") {
 			return newIllegalArgumentError("Indexes list contains Auto-Indexes. Lock Mode is not set for Auto-Indexes.")
@@ -43,9 +49,13 @@ func (o *SetIndexesLockOperation) filterAutoIndexes() error {
 	return nil
 }
 
-func (o *SetIndexesLockOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewSetIndexesLockCommand(conventions, o._parameters)
-	return o.Command
+func (o *SetIndexesLockOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewSetIndexesLockCommand(conventions, o.parameters)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var (
@@ -55,31 +65,37 @@ var (
 type SetIndexesLockCommand struct {
 	RavenCommandBase
 
-	_parameters []byte
+	parameters []byte
 }
 
-func NewSetIndexesLockCommand(conventions *DocumentConventions, parameters *SetIndexesLockParameters) *SetIndexesLockCommand {
-	panicIf(conventions == nil, "conventions cannot be null")
-	panicIf(parameters == nil, "parameters cannot be null")
+func NewSetIndexesLockCommand(conventions *DocumentConventions, parameters *SetIndexesLockParameters) (*SetIndexesLockCommand, error) {
+	if conventions == nil {
+		return nil, newIllegalArgumentError("conventions cannot be null")
+	}
+	if parameters == nil {
+		return nil, newIllegalArgumentError("parameters cannot be null")
+	}
 
 	// Note: compared to Java, we shortcut things by serializing to JSON
 	// here as it's simpler and faster than two-step serialization,
 	// first to ObjectNode and then to JSON
 	d, err := jsonMarshal(parameters)
-	panicIf(err != nil, "jsonMarshal failed with %s", err)
+	if err != nil {
+		return nil, err
+	}
 	cmd := &SetIndexesLockCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_parameters: d,
+		parameters: d,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeEmpty
-	return cmd
+	return cmd, nil
 }
 
 func (c *SetIndexesLockCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/set-lock"
 
-	return NewHttpPost(url, c._parameters)
+	return NewHttpPost(url, c.parameters)
 }
 
 // Note: in Java it's Parameters class nested in SetIndexesLockOperation

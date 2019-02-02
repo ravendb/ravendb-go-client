@@ -10,7 +10,7 @@ var (
 
 // PutIndexesOperation represents put indexes operation
 type PutIndexesOperation struct {
-	_indexToAdd []*IndexDefinition
+	indexToAdd []*IndexDefinition
 
 	Command *PutIndexesCommand
 }
@@ -18,14 +18,18 @@ type PutIndexesOperation struct {
 // NewPutIndexesOperation returns new PutIndexesOperation
 func NewPutIndexesOperation(indexToAdd ...*IndexDefinition) *PutIndexesOperation {
 	return &PutIndexesOperation{
-		_indexToAdd: indexToAdd,
+		indexToAdd: indexToAdd,
 	}
 }
 
 // GetCommand returns a command for this operation
-func (o *PutIndexesOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewPutIndexesCommand(conventions, o._indexToAdd)
-	return o.Command
+func (o *PutIndexesOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewPutIndexesCommand(conventions, o.indexToAdd)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var _ RavenCommand = &PutIndexesCommand{}
@@ -34,15 +38,19 @@ var _ RavenCommand = &PutIndexesCommand{}
 type PutIndexesCommand struct {
 	RavenCommandBase
 
-	_indexToAdd []map[string]interface{}
+	indexToAdd []map[string]interface{}
 
 	Result []*PutIndexResult
 }
 
 // NewPutIndexesCommand returns new PutIndexesCommand
-func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*IndexDefinition) *PutIndexesCommand {
-	panicIf(conventions == nil, "conventions cannot be nil")
-	panicIf(indexesToAdd == nil, "indexesToAdd cannot be nil")
+func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*IndexDefinition) (*PutIndexesCommand, error) {
+	if conventions == nil {
+		return nil, newIllegalArgumentError("conventions cannot be nil")
+	}
+	if indexesToAdd == nil {
+		return nil, newIllegalArgumentError("indexesToAdd cannot be nil")
+	}
 
 	cmd := &PutIndexesCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -56,10 +64,10 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 
 		panicIf(indexToAdd.Name == "", "Index name cannot be empty")
 		objectNode := convertEntityToJSON(indexToAdd, nil)
-		cmd._indexToAdd = append(cmd._indexToAdd, objectNode)
+		cmd.indexToAdd = append(cmd.indexToAdd, objectNode)
 	}
 
-	return cmd
+	return cmd, nil
 }
 
 // CreateRequest creates http request for this command
@@ -67,7 +75,7 @@ func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, erro
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes"
 
 	m := map[string]interface{}{
-		"Indexes": c._indexToAdd,
+		"Indexes": c.indexToAdd,
 	}
 	d, err := jsonMarshal(m)
 	if err != nil {

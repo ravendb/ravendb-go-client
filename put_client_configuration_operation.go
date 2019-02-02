@@ -21,9 +21,13 @@ func NewPutClientConfigurationOperation(configuration *ClientConfiguration) (*Pu
 	}, nil
 }
 
-func (o *PutClientConfigurationOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewPutClientConfigurationCommand(conventions, o.configuration)
-	return o.Command
+func (o *PutClientConfigurationOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewPutClientConfigurationCommand(conventions, o.configuration)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, nil
 }
 
 var (
@@ -36,19 +40,25 @@ type PutClientConfigurationCommand struct {
 	configuration []byte
 }
 
-func NewPutClientConfigurationCommand(conventions *DocumentConventions, configuration *ClientConfiguration) *PutClientConfigurationCommand {
-	panicIf(conventions == nil, "conventions cannot be null")
-	panicIf(configuration == nil, "configuration cannot be null")
+func NewPutClientConfigurationCommand(conventions *DocumentConventions, configuration *ClientConfiguration) (*PutClientConfigurationCommand, error) {
+	if conventions == nil {
+		return nil, newIllegalArgumentError("conventions cannot be null")
+	}
+	if configuration == nil {
+		return nil, newIllegalArgumentError("configuration cannot be null")
+	}
 
 	d, err := jsonMarshal(configuration)
-	panicIf(err != nil, "jsonMarshal failed with %s", err)
+	if err != nil {
+		return nil, err
+	}
 	cmd := &PutClientConfigurationCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
 		configuration: d,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeEmpty
-	return cmd
+	return cmd, nil
 }
 
 func (c *PutClientConfigurationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {

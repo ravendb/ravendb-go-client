@@ -22,9 +22,9 @@ func NewConfigureRevisionsOperation(configuration *RevisionsConfiguration) *Conf
 }
 
 // GetCommand returns new RavenCommand for this operation
-func (o *ConfigureRevisionsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
+func (o *ConfigureRevisionsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
 	o.Command = NewConfigureRevisionsCommand(o._configuration)
-	return o.Command
+	return o.Command, nil
 }
 
 var _ RavenCommand = &ConfigureRevisionsCommand{}

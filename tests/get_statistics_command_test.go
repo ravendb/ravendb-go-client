@@ -20,7 +20,8 @@ func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) 
 
 	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
-	command := ravendb.NewGetStatisticsCommand()
+	command := ravendb.NewGetStatisticsCommand("")
+	assert.NoError(t, err)
 	err = executor.ExecuteCommand(command)
 	assert.NoError(t, err)
 	stats := command.Result

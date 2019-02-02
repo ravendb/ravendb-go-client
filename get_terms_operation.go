@@ -18,21 +18,30 @@ type GetTermsOperation struct {
 }
 
 // NewGetTermsOperation returns GetTermsOperation. pageSize 0 means default size
-func NewGetTermsOperation(indexName string, field string, fromValue string, pageSize int) *GetTermsOperation {
-	panicIf(indexName == "", "Index name connot be empty")
-	panicIf(field == "", "Field name connot be empty")
+func NewGetTermsOperation(indexName string, field string, fromValue string, pageSize int) (*GetTermsOperation, error) {
+	if indexName == "" {
+		return nil, newIllegalStateError("Index name connot be empty")
+	}
+	if field == "" {
+		return nil, newIllegalStateError("Field name connot be empty")
+
+	}
 	return &GetTermsOperation{
 		_indexName: indexName,
 		_field:     field,
 		_fromValue: fromValue,
 		_pageSize:  pageSize,
-	}
+	}, nil
 }
 
 // GetCommand returns command for this operation
-func (o *GetTermsOperation) GetCommand(conventions *DocumentConventions) RavenCommand {
-	o.Command = NewGetTermsCommand(o._indexName, o._field, o._fromValue, o._pageSize)
-	return o.Command
+func (o *GetTermsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
+	var err error
+	o.Command, err = NewGetTermsCommand(o._indexName, o._field, o._fromValue, o._pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return o.Command, err
 }
 
 var (
@@ -52,8 +61,10 @@ type GetTermsCommand struct {
 }
 
 // NewGetTermsCommand returns new GetTermsCommand
-func NewGetTermsCommand(indexName string, field string, fromValue string, pageSize int) *GetTermsCommand {
-	panicIf(indexName == "", "Index name connot be empty")
+func NewGetTermsCommand(indexName string, field string, fromValue string, pageSize int) (*GetTermsCommand, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("Index name connot be empty")
+	}
 
 	res := &GetTermsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -64,7 +75,7 @@ func NewGetTermsCommand(indexName string, field string, fromValue string, pageSi
 		_pageSize:  pageSize,
 	}
 	res.IsReadRequest = true
-	return res
+	return res, nil
 }
 
 // CreateRequest creates a request

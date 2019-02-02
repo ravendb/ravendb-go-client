@@ -1,5 +1,5 @@
 package ravendb
 
 type IServerOperation interface {
-	GetCommand(*DocumentConventions) RavenCommand
+	GetCommand(*DocumentConventions) (RavenCommand, error)
 }

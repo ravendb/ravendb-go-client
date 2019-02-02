@@ -68,7 +68,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	command := ravendb.NewGetStatisticsCommand()
+	command := ravendb.NewGetStatisticsCommand("")
 	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
@@ -78,7 +78,8 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	// now reset index
 	time.Sleep(time.Millisecond * 2)
 	{
-		op := ravendb.NewResetIndexOperation(indexName)
+		op, err := ravendb.NewResetIndexOperation(indexName)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -86,7 +87,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	err = driver.waitForIndexing(store, store.GetDatabase(), 0)
 	assert.NoError(t, err)
 
-	command = ravendb.NewGetStatisticsCommand()
+	command = ravendb.NewGetStatisticsCommand("")
 	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics = command.Result
@@ -129,7 +130,7 @@ func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	command := ravendb.NewGetStatisticsCommand()
+	command := ravendb.NewGetStatisticsCommand("")
 	err = store.GetRequestExecutor("").ExecuteCommand(command)
 	assert.NoError(t, err)
 	statistics := command.Result
@@ -190,7 +191,8 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 	}
 
 	{
-		op := ravendb.NewStopIndexOperation(indexName)
+		op, err := ravendb.NewStopIndexOperation(indexName)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		{
@@ -276,13 +278,15 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 	}
 
 	{
-		op := ravendb.NewSetIndexesLockOperation(index.Name, ravendb.IndexLockModeLockedIgnore)
+		op, err := ravendb.NewSetIndexesLockOperation(index.Name, ravendb.IndexLockModeLockedIgnore)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
 
 	{
-		op := ravendb.NewSetIndexesPriorityOperation(index.Name, ravendb.IndexPriorityLow)
+		op, err := ravendb.NewSetIndexesPriorityOperation(index.Name, ravendb.IndexPriorityLow)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -339,7 +343,8 @@ func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	op := ravendb.NewGetTermsOperation(indexName, "name", "", 128)
+	op, err := ravendb.NewGetTermsOperation(indexName, "name", "", 128)
+	assert.NoError(t, err)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	terms := op.Command.Result

@@ -55,7 +55,8 @@ func testIndexCanDisableAndEnableIndex(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	{
-		op := ravendb.NewDisableIndexOperation("UsersIndex")
+		op, err := ravendb.NewDisableIndexOperation("UsersIndex")
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -70,7 +71,8 @@ func testIndexCanDisableAndEnableIndex(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-		op := ravendb.NewEnableIndexOperation("UsersIndex")
+		op, err := ravendb.NewEnableIndexOperation("UsersIndex")
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -143,7 +145,8 @@ func testIndexGetTerms(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	{
-		op := ravendb.NewGetTermsOperation("UsersIndex", "name", "", 0)
+		op, err := ravendb.NewGetTermsOperation("UsersIndex", "name", "", 0)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 		terms := op.Command.Result
@@ -238,7 +241,8 @@ func testIndexCanStopStartIndex(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-		op := ravendb.NewStopIndexOperation(indexDef.Name)
+		op, err := ravendb.NewStopIndexOperation(indexDef.Name)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -254,7 +258,8 @@ func testIndexCanStopStartIndex(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-		op := ravendb.NewStartIndexOperation(indexDef.Name)
+		op, err := ravendb.NewStartIndexOperation(indexDef.Name)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -284,7 +289,8 @@ func testIndexCanSetIndexLockMode(t *testing.T, driver *RavenTestDriver) {
 	}
 
 	{
-		op := ravendb.NewSetIndexesLockOperation(indexDef.Name, ravendb.IndexLockModeLockedError)
+		op, err := ravendb.NewSetIndexesLockOperation(indexDef.Name, ravendb.IndexLockModeLockedError)
+		assert.NoError(t, err)
 		err = store.Maintenance().Send(op)
 		assert.NoError(t, err)
 	}
@@ -309,7 +315,8 @@ func testIndexCanSetIndexPriority(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 
-	op2 := ravendb.NewSetIndexesPriorityOperation(indexDef.Name, ravendb.IndexPriorityHigh)
+	op2, err := ravendb.NewSetIndexesPriorityOperation(indexDef.Name, ravendb.IndexPriorityHigh)
+	assert.NoError(t, err)
 	err = store.Maintenance().Send(op2)
 	assert.NoError(t, err)
 

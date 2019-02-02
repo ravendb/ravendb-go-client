@@ -49,7 +49,10 @@ func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) err
 	if err := e.assertDatabaseNameSet(); err != nil {
 		return err
 	}
-	command := operation.GetCommand(e.GetRequestExecutor().GetConventions())
+	command, err := operation.GetCommand(e.GetRequestExecutor().GetConventions())
+	if err != nil {
+		return err
+	}
 	return e.GetRequestExecutor().ExecuteCommand(command)
 }
 
