@@ -8,7 +8,7 @@ import (
 )
 
 type HiLoDoc struct {
-	Max int `json:"Max"`
+	Max int64 `json:"Max"`
 }
 
 type Product struct {
@@ -46,7 +46,7 @@ func hiloTestCapacityShouldDouble(t *testing.T, driver *RavenTestDriver) {
 		err = session.Load(&hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
 		max := hiloDoc.Max
-		assert.Equal(t, max, 96)
+		assert.Equal(t, max, int64(96))
 
 		//we should be receiving a range of 64 now
 		hiLoIdGenerator.GenerateDocumentID(&User{})
@@ -126,7 +126,7 @@ func hiloTestReturnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 		err = session.Load(&hiloDoc, "Raven/Hilo/users")
 		assert.NoError(t, err)
 		max := hiloDoc.Max
-		assert.Equal(t, max, 34)
+		assert.Equal(t, max, int64(34))
 		session.Close()
 	}
 
