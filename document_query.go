@@ -666,12 +666,12 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	return q
 }
 
-func (q *DocumentQuery) SuggestUsing(suggestion SuggestionBase) *ISuggestionDocumentQuery {
+func (q *DocumentQuery) SuggestUsing(suggestion SuggestionBase) *SuggestionDocumentQuery {
 	q.suggestUsing(suggestion)
 	return NewSuggestionDocumentQuery(q)
 }
 
-func (q *DocumentQuery) SuggestUsingBuilder(builder func(ISuggestionBuilder)) *ISuggestionDocumentQuery {
+func (q *DocumentQuery) SuggestUsingBuilder(builder func(ISuggestionBuilder)) *SuggestionDocumentQuery {
 	f := NewSuggestionBuilder()
 	builder(f)
 

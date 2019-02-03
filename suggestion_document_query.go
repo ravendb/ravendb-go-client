@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type ISuggestionDocumentQuery = SuggestionDocumentQuery
+// Note: ISuggestionDocumentQuery is SuggestionDocumentQuery
 
 type SuggestionDocumentQuery struct {
 	// from SuggestionQueryBase
