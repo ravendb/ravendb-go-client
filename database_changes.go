@@ -447,11 +447,10 @@ func (c *databaseChanges) doWork() error {
 		dialer.HandshakeTimeout = time.Second * 2
 		re := c.requestExecutor
 		if re.Certificate != nil || re.TrustStore != nil {
-			tlsConfig, err := newTLSConfig(re.Certificate, re.TrustStore)
+			dialer.TLSClientConfig, err = newTLSConfig(re.Certificate, re.TrustStore)
 			if err != nil {
 				return err
 			}
-			dialer.TLSClientConfig = tlsConfig
 		}
 
 		ctx := context.Background()

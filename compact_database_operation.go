@@ -70,7 +70,7 @@ func (c *CompactDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, c.compactSettings)
 }
 
-// SetResponse sets a reponse
+// SetResponse sets a response
 func (c *CompactDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()

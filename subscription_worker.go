@@ -75,8 +75,8 @@ func (w *SubscriptionWorker) RemoveAfterAcknowledgmentListener(id int) {
 	w.afterAcknowledgment[id] = nil
 }
 
-// AddOnSubscriptionConnectionRetry adds a callback funtion that will be called when subscription
-// conection is retried.
+// AddOnSubscriptionConnectionRetry adds a callback function that will be called
+// when subscription  connection is retried.
 // Returns id that can be used in RemoveOnSubscriptionConnectionRetry
 func (w *SubscriptionWorker) AddOnSubscriptionConnectionRetry(handler func(error)) int {
 	w.onSubscriptionConnectionRetry = append(w.onSubscriptionConnectionRetry, handler)
@@ -576,7 +576,7 @@ func (w *SubscriptionWorker) assertLastConnectionFailure() error {
 		return nil
 	}
 
-	dur := time.Now().Sub(w.lastConnectionFailure)
+	dur := time.Since(w.lastConnectionFailure)
 
 	if dur > time.Duration(w._options.MaxErroneousPeriod) {
 		return newSubscriptionInvalidStateError("Subscription connection was in invalid state for more than %s and therefore will be terminated", time.Duration(w._options.MaxErroneousPeriod))

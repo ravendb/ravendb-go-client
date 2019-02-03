@@ -76,9 +76,7 @@ func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	validate := len(t.Maps) == 0
 
 	def := indexDefinitionBuilder.toIndexDefinition(t.Conventions, validate)
-	for _, m := range t.Maps {
-		def.Maps = append(def.Maps, m)
-	}
+	def.Maps = append(def.Maps, t.Maps...)
 	return def
 }
 

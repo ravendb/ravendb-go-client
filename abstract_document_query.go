@@ -1801,7 +1801,7 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 }
 
 // Single runs a query that expects only a single result.
-// If there is more than one result, it retuns IllegalStateError.
+// If there is more than one result, it returns IllegalStateError.
 func (q *AbstractDocumentQuery) Single(result interface{}) error {
 	if result == nil {
 		return fmt.Errorf("result can't be nil")

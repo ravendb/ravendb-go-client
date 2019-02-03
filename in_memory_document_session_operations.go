@@ -541,7 +541,6 @@ func checkValidEntityIn(v interface{}, argName string) error {
 		typeGot := fmt.Sprintf("%T", v)
 		typeExpect := "*" + typeGot
 		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
-		return nil
 	}
 
 	if _, ok := v.(*map[string]interface{}); ok {

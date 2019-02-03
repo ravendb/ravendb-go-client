@@ -714,7 +714,8 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		// Note: Java here re-throws if err is IOException and !shouldRetry
 		// but for us that propagates the wrong error to RequestExecutorTest_failsWhenServerIsOffline
 		urlRef = request.URL.String()
-		ok, err := re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo)
+		var ok bool
+		ok, err = re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo)
 		if err != nil {
 			return err
 		}

@@ -71,7 +71,6 @@ func NewSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *R
 
 	fn := func(entity interface{}) string {
 		panic("Shouldn't be generating new ids here")
-		return ""
 	}
 	c := res._requestExecutor.GetConventions()
 	res._generateEntityIdOnTheClient = newGenerateEntityIDOnTheClient(c, fn)
