@@ -39,5 +39,5 @@ before_install:
 script:
   - travis_wait ./scripts/travis_run_tests.sh
 
-#after_success:
-#  - bash <(curl -s https://codecov.io/bash)
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
