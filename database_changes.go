@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -177,8 +176,8 @@ func (c *databaseChanges) ForAllDocuments() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForOperationID(operationID int) (IChangesObservable, error) {
-	opIDStr := strconv.Itoa(operationID)
+func (c *databaseChanges) ForOperationID(operationID int64) (IChangesObservable, error) {
+	opIDStr := i64toa(operationID)
 	counter, err := c.getOrAddConnectionState("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
 		return nil, err

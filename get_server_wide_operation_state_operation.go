@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"net/http"
-	"strconv"
 )
 
 type GetServerWideOperationStateOperation struct {
@@ -35,7 +34,7 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 }
 
 func (c *GetServerWideOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/operations/state?id=" + strconv.FormatInt(c._id, 10)
+	url := node.URL + "/operations/state?id=" + i64toa(c._id)
 	return NewHttpGet(url)
 }
 

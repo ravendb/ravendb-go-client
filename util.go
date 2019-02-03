@@ -37,6 +37,10 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
+func i64toa(n int64) string {
+	return strconv.FormatInt(n, 10)
+}
+
 /*
 // TODO:
 func isValidDbNameChar(c rune) bool {

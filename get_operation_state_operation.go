@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"net/http"
-	"strconv"
 )
 
 type GetOperationStateOperation struct {
@@ -35,7 +34,7 @@ func NewGetOperationStateCommand(conventions *DocumentConventions, id int64) *Ge
 }
 
 func (c *GetOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/operations/state?id=" + strconv.FormatInt(c.id, 10)
+	url := node.URL + "/databases/" + node.Database + "/operations/state?id=" + i64toa(c.id)
 	return NewHttpGet(url)
 }
 

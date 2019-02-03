@@ -154,7 +154,7 @@ func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 
 	nextID, err := hiLoKeyGenerator.NextID()
 	assert.Nil(t, err)
-	ids := []int{nextID}
+	ids := []int64{nextID}
 
 	hiloDoc.Max = 12
 	session.StoreWithChangeVectorAndID(hiloDoc, "", "Raven/Hilo/users")
@@ -164,15 +164,15 @@ func hiloTestCanNotGoDown(t *testing.T, driver *RavenTestDriver) {
 	for i := 0; i < 128; i++ {
 		nextID, err = hiLoKeyGenerator.NextID()
 		assert.NoError(t, err)
-		contains := intArrayContains(ids, nextID)
+		contains := int64ArrayContains(ids, nextID)
 		assert.False(t, contains)
 		ids = append(ids, nextID)
 	}
-	assert.False(t, intArrayHasDuplicates(ids))
+	assert.False(t, int64ArrayHasDuplicates(ids))
 	session.Close()
 }
 
-func intArrayContains(a []int, n int) bool {
+func int64ArrayContains(a []int64, n int64) bool {
 	for _, el := range a {
 		if el == n {
 			return true

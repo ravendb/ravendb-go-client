@@ -6,26 +6,30 @@ var (
 	_ RavenCommand = &KillOperationCommand{}
 )
 
+// KillOperationCommand represents "kill operation" command
 type KillOperationCommand struct {
 	RavenCommandBase
 
-	_id string
+	id string
 }
 
-func NewKillOperationCommand(id string) *KillOperationCommand {
-	panicIf(id == "", "id cannot be empty")
+// NewKillOperationCommand returns new KillOperationCommand
+func NewKillOperationCommand(id string) (*KillOperationCommand, error) {
+	if id == "" {
+		return nil, newIllegalArgumentError("id cannot be empty")
+	}
 	cmd := &KillOperationCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_id: id,
+		id: id,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeEmpty
 
-	return cmd
+	return cmd, nil
 }
 
 func (c *KillOperationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/operations/kill?id=" + c._id
+	url := node.URL + "/databases/" + node.Database + "/operations/kill?id=" + c.id
 
 	return NewHttpPost(url, nil)
 }

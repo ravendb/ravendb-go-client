@@ -75,18 +75,16 @@ func stringArrayReverse(a []string) {
 	}
 }
 
-func intArrayHasDuplicates(a []int) bool {
+func int64ArrayHasDuplicates(a []int64) bool {
 	if len(a) == 0 {
 		return false
 	}
-	sort.Ints(a)
-	prev := a[0]
-	a = a[1:]
-	for _, el := range a {
-		if el == prev {
+	m := map[int64]int{}
+	for _, i := range a {
+		m[i]++
+		if m[i] > 1 {
 			return true
 		}
-		prev = el
 	}
 	return false
 }

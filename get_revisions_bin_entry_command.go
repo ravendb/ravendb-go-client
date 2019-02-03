@@ -30,7 +30,7 @@ func NewGetRevisionsBinEntryCommand(etag int64, pageSize int) *GetRevisionsBinEn
 }
 
 func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	etagStr := strconv.FormatInt(c.etag, 10)
+	etagStr := i64toa(c.etag)
 	url := node.URL + "/databases/" + node.Database + "/revisions/bin?etag=" + etagStr
 
 	if c.pageSize > 0 {

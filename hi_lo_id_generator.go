@@ -3,23 +3,24 @@ package ravendb
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 // RangeValue represents an inclusive integer range min to max
 type RangeValue struct {
-	Min     int
-	Max     int
-	Current atomicInteger
+	Min     int64
+	Max     int64
+	Current int64 // atomic
 }
 
 // NewRangeValue creates a new RangeValue
-func NewRangeValue(min int, max int) *RangeValue {
+func NewRangeValue(min int64, max int64) *RangeValue {
 	res := &RangeValue{
 		Min: min,
 		Max: max,
 	}
-	res.Current.set(min - 1)
+	atomic.StoreInt64(&res.Current, min-1)
 	return res
 }
 
@@ -29,7 +30,7 @@ type HiLoIDGenerator struct {
 	_store                  *DocumentStore
 	_tag                    string
 	prefix                  string
-	_lastBatchSize          int
+	_lastBatchSize          int64
 	_lastRangeDate          time.Time
 	_dbName                 string
 	_identityPartsSeparator string
@@ -48,7 +49,7 @@ func NewHiLoIDGenerator(tag string, store *DocumentStore, dbName string, identit
 	}
 }
 
-func (g *HiLoIDGenerator) GetDocumentIDFromID(nextID int) string {
+func (g *HiLoIDGenerator) GetDocumentIDFromID(nextID int64) string {
 	return fmt.Sprintf("%s%d-%s", g.prefix, nextID, g.serverTag)
 }
 
@@ -59,11 +60,11 @@ func (g *HiLoIDGenerator) GenerateDocumentID(entity interface{}) string {
 	return g.GetDocumentIDFromID(id)
 }
 
-func (g *HiLoIDGenerator) NextID() (int, error) {
+func (g *HiLoIDGenerator) NextID() (int64, error) {
 	for {
 		// local range is not exhausted yet
 		rangev := g._range
-		id := rangev.Current.incrementAndGet()
+		id := atomic.AddInt64(&rangev.Current, 1)
 		if id <= rangev.Max {
 			return id, nil
 		}
@@ -72,7 +73,7 @@ func (g *HiLoIDGenerator) NextID() (int, error) {
 		g.generatorLock.Lock()
 		defer g.generatorLock.Unlock()
 
-		id = g._range.Current.get()
+		id = atomic.LoadInt64(&g._range.Current)
 		if id <= g._range.Max {
 			return id, nil
 		}
@@ -101,7 +102,11 @@ func (g *HiLoIDGenerator) GetNextRange() error {
 
 // ReturnUnusedRange returns unused range to the server
 func (g *HiLoIDGenerator) ReturnUnusedRange() error {
-	returnCommand := NewHiLoReturnCommand(g._tag, g._range.Current.get(), g._range.Max)
+	curr := atomic.LoadInt64(&g._range.Current)
+	returnCommand, err := NewHiLoReturnCommand(g._tag, curr, g._range.Max)
+	if err != nil {
+		return err
+	}
 	re := g._store.GetRequestExecutor(g._dbName)
 	return re.ExecuteCommand(returnCommand, nil)
 }

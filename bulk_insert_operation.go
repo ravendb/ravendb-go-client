@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -41,7 +40,7 @@ func NewBulkInsertCommand(id int64, stream io.Reader, useCompression bool) *Bulk
 
 // CreateRequest creates a request
 func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/bulk_insert?id=" + strconv.FormatInt(c._id, 10)
+	url := node.URL + "/databases/" + node.Database + "/bulk_insert?id=" + i64toa(c._id)
 	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)
 	return NewHttpPostReader(url, c._stream)
@@ -301,8 +300,11 @@ func (o *BulkInsertOperation) Abort() error {
 		return err
 	}
 
-	command := NewKillOperationCommand(strconv.FormatInt(o._operationID, 10))
-	err := o._requestExecutor.ExecuteCommand(command, nil)
+	command, err := NewKillOperationCommand(i64toa(o._operationID))
+	if err != nil {
+		return err
+	}
+	err = o._requestExecutor.ExecuteCommand(command, nil)
 	if err != nil {
 		if _, ok := err.(*RavenError); ok {
 			return newBulkInsertAbortedError("Unable to kill ths bulk insert operation, because it was not found on the server.")
