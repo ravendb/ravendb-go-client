@@ -51,22 +51,6 @@ func (c *GetClientConfigurationCommand) SetResponse(response []byte, fromCache b
 }
 
 type GetClientConfigurationCommandResult struct {
-	Etag          int                  `json:"Etag"`
+	Etag          int64                `json:"Etag"`
 	Configuration *ClientConfiguration `json:"Configuration"`
-}
-
-func (r *GetClientConfigurationCommandResult) GetEtag() int {
-	return r.Etag
-}
-
-func (r *GetClientConfigurationCommandResult) SetEtag(etag int) {
-	r.Etag = etag
-}
-
-func (r *GetClientConfigurationCommandResult) GetConfiguration() *ClientConfiguration {
-	return r.Configuration
-}
-
-func (r *GetClientConfigurationCommandResult) SetConfiguration(configuration *ClientConfiguration) {
-	r.Configuration = configuration
 }

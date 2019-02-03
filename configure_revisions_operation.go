@@ -10,20 +10,20 @@ var (
 
 // ConfigureRevisionsOperation represents configure revisions operation
 type ConfigureRevisionsOperation struct {
-	_configuration *RevisionsConfiguration
-	Command        *ConfigureRevisionsCommand
+	configuration *RevisionsConfiguration
+	Command       *ConfigureRevisionsCommand
 }
 
 // NewConfigureRevisionsOperation returns new ConfigureRevisionsOperation
 func NewConfigureRevisionsOperation(configuration *RevisionsConfiguration) *ConfigureRevisionsOperation {
 	return &ConfigureRevisionsOperation{
-		_configuration: configuration,
+		configuration: configuration,
 	}
 }
 
 // GetCommand returns new RavenCommand for this operation
 func (o *ConfigureRevisionsOperation) GetCommand(conventions *DocumentConventions) (RavenCommand, error) {
-	o.Command = NewConfigureRevisionsCommand(o._configuration)
+	o.Command = NewConfigureRevisionsCommand(o.configuration)
 	return o.Command, nil
 }
 
@@ -33,7 +33,7 @@ var _ RavenCommand = &ConfigureRevisionsCommand{}
 type ConfigureRevisionsCommand struct {
 	RavenCommandBase
 
-	_configuration *RevisionsConfiguration
+	configuration *RevisionsConfiguration
 
 	Result *ConfigureRevisionsOperationResult
 }
@@ -43,7 +43,7 @@ func NewConfigureRevisionsCommand(configuration *RevisionsConfiguration) *Config
 	cmd := &ConfigureRevisionsCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_configuration: configuration,
+		configuration: configuration,
 	}
 	return cmd
 }
@@ -52,7 +52,7 @@ func NewConfigureRevisionsCommand(configuration *RevisionsConfiguration) *Config
 func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/revisions/config"
 
-	d, err := jsonMarshal(c._configuration)
+	d, err := jsonMarshal(c.configuration)
 	if err != nil {
 		return nil, err
 	}

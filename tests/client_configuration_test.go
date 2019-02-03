@@ -15,8 +15,8 @@ func clientConfigurationCanHandleNoConfiguration(t *testing.T, driver *RavenTest
 	err := store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
-	assert.Nil(t, result.GetConfiguration())
-	//TODO: java checks that result.getEtag() is not nil, which does not apply
+	assert.Nil(t, result.Configuration)
+	assert.True(t, result.Etag > 0)
 }
 
 func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *RavenTestDriver) {
@@ -37,8 +37,8 @@ func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *
 	err = store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
-	assert.True(t, result.GetEtag() > 0)
-	newConfiguration := result.GetConfiguration()
+	assert.True(t, result.Etag > 0)
+	newConfiguration := result.Configuration
 	assert.NotNil(t, newConfiguration)
 	assert.True(t, newConfiguration.Etag > configurationToSave.Etag)
 	assert.True(t, newConfiguration.IsDisabled)

@@ -3,7 +3,6 @@ package ravendb
 import (
 	"net/http"
 	"reflect"
-	"strconv"
 )
 
 var (
@@ -15,10 +14,10 @@ type DeleteCompareExchangeValueOperation struct {
 
 	_clazz reflect.Type
 	_key   string
-	_index int
+	_index int64
 }
 
-func NewDeleteCompareExchangeValueOperation(clazz reflect.Type, key string, index int) (*DeleteCompareExchangeValueOperation, error) {
+func NewDeleteCompareExchangeValueOperation(clazz reflect.Type, key string, index int64) (*DeleteCompareExchangeValueOperation, error) {
 	if stringIsEmpty(key) {
 		return nil, newIllegalArgumentError("The kye argument must have value")
 	}
@@ -43,13 +42,13 @@ type RemoveCompareExchangeValueCommand struct {
 
 	_clazz       reflect.Type
 	_key         string
-	_index       int
+	_index       int64
 	_conventions *DocumentConventions
 
 	Result *CompareExchangeResult
 }
 
-func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index int, conventions *DocumentConventions) (*RemoveCompareExchangeValueCommand, error) {
+func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index int64, conventions *DocumentConventions) (*RemoveCompareExchangeValueCommand, error) {
 	if stringIsEmpty(key) {
 		return nil, newIllegalArgumentError("The kye argument must have value")
 	}
@@ -66,7 +65,7 @@ func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index 
 }
 
 func (c *RemoveCompareExchangeValueCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/cmpxchg?key=" + c._key + "&index=" + strconv.Itoa(c._index)
+	url := node.URL + "/databases/" + node.Database + "/cmpxchg?key=" + c._key + "&index=" + i64toa(c._index)
 
 	return NewHttpDelete(url, nil)
 }

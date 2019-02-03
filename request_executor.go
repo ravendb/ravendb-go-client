@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -46,8 +45,8 @@ type RequestExecutor struct {
 	nodeSelector        atomic.Value // atomic to avoid data races
 
 	NumberOfServerRequests  atomicInteger
-	topologyEtag            int
-	clientConfigurationEtag int
+	TopologyEtag            int64
+	ClientConfigurationEtag int64
 	conventions             *DocumentConventions
 
 	disableTopologyUpdates            bool
@@ -122,14 +121,6 @@ func (re *RequestExecutor) GetURL() string {
 	return ""
 }
 
-func (re *RequestExecutor) GetTopologyEtag() int {
-	return re.topologyEtag
-}
-
-func (re *RequestExecutor) GetClientConfigurationEtag() int {
-	return re.clientConfigurationEtag
-}
-
 func (re *RequestExecutor) GetConventions() *DocumentConventions {
 	return re.conventions
 }
@@ -198,7 +189,7 @@ func RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(url string, d
 	topology.Nodes = []*ServerNode{serverNode}
 
 	executor.setNodeSelector(NewNodeSelector(topology))
-	executor.topologyEtag = -2
+	executor.TopologyEtag = -2
 	executor.disableTopologyUpdates = true
 	executor.disableClientConfigurationUpdates = true
 
@@ -227,7 +218,7 @@ func ClusterRequestExecutorCreateForSingleNode(url string, certificate *tls.Cert
 	nodeSelector := NewNodeSelector(topology)
 
 	executor.setNodeSelector(nodeSelector)
-	executor.topologyEtag = -2
+	executor.TopologyEtag = -2
 	executor.disableClientConfigurationUpdates = true
 	executor.disableTopologyUpdates = true
 
@@ -306,8 +297,8 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 			return
 		}
 
-		re.conventions.UpdateFrom(result.GetConfiguration())
-		re.clientConfigurationEtag = result.GetEtag()
+		re.conventions.UpdateFrom(result.Configuration)
+		re.ClientConfigurationEtag = result.Etag
 
 		if re.disposed {
 			return
@@ -431,7 +422,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 				nodeSelector.scheduleSpeedTest()
 			}
 		}
-		re.topologyEtag = nodeSelector.getTopology().Etag
+		re.TopologyEtag = nodeSelector.getTopology().Etag
 		res = true
 	}
 
@@ -598,7 +589,7 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 			list = append(list, &tupleStringError{url, err})
 		}
 		topology := &Topology{
-			Etag: re.topologyEtag,
+			Etag: re.TopologyEtag,
 		}
 		topologyNodes := re.GetTopologyNodes()
 		if len(topologyNodes) == 0 {
@@ -698,12 +689,12 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	}
 
 	if !re.disableClientConfigurationUpdates {
-		etag := `"` + strconv.Itoa(re.clientConfigurationEtag) + `"`
+		etag := `"` + i64toa(re.ClientConfigurationEtag) + `"`
 		request.Header.Set(headersClientConfigurationEtag, etag)
 	}
 
 	if !re.disableTopologyUpdates {
-		etag := `"` + strconv.Itoa(re.topologyEtag) + `"`
+		etag := `"` + i64toa(re.TopologyEtag) + `"`
 		request.Header.Set(headersTopologyEtag, etag)
 	}
 
@@ -1237,7 +1228,7 @@ func (re *RequestExecutor) ensureNodeSelector() (*NodeSelector, error) {
 	if nodeSelector == nil {
 		topology := &Topology{
 			Nodes: re.GetTopologyNodes(),
-			Etag:  re.topologyEtag,
+			Etag:  re.TopologyEtag,
 		}
 
 		nodeSelector = NewNodeSelector(topology)

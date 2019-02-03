@@ -72,7 +72,7 @@ func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 	return locator, nil
 }
 
-func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int) (*ravendb.ConfigureRevisionsOperationResult, error) {
+func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int64) (*ravendb.ConfigureRevisionsOperationResult, error) {
 
 	revisionsConfiguration := &ravendb.RevisionsConfiguration{}
 	defaultCollection := &ravendb.RevisionsCollectionConfiguration{}

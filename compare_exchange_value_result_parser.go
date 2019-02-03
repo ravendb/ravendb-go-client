@@ -34,8 +34,7 @@ func compareExchangeValueResultParserGetValues(clazz reflect.Type, response []by
 		if !ok {
 			return nil, newIllegalStateError("Response is invalid. Key is missing.")
 		}
-
-		index, ok := jsonGetAsInt(item, "Index")
+		index, ok := jsonGetAsInt64(item, "Index")
 
 		if !ok {
 			return nil, newIllegalStateError("Response is invalid. Index is missing")

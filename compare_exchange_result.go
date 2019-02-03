@@ -7,7 +7,7 @@ import (
 // CompareExchangeResult describes result of compare exchange
 type CompareExchangeResult struct {
 	Value        interface{}
-	Index        int
+	Index        int64
 	IsSuccessful bool
 }
 
@@ -17,7 +17,7 @@ func parseCompareExchangeResultFromString(clazz reflect.Type, responseString []b
 	if err != nil {
 		return nil, err
 	}
-	index, ok := jsonGetAsInt(response, "Index")
+	index, ok := jsonGetAsInt64(response, "Index")
 	if !ok {
 		return nil, newIllegalStateError("Response is invalid. Index is missing")
 	}

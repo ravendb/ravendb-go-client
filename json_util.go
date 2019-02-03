@@ -82,6 +82,26 @@ func jsonGetAsInt(doc map[string]interface{}, key string) (int, bool) {
 	return n, true
 }
 
+func jsonGetAsInt64(doc map[string]interface{}, key string) (int64, bool) {
+	v, ok := doc[key]
+	if !ok {
+		return 0, false
+	}
+	f, ok := v.(float64)
+	if ok {
+		return int64(f), true
+	}
+	s, ok := v.(string)
+	if !ok {
+		return 0, false
+	}
+	n, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return n, true
+}
+
 func jsonGetAsBool(doc map[string]interface{}, key string) (bool, bool) {
 	v, ok := doc[key]
 	if !ok {
