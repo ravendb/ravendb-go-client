@@ -498,14 +498,6 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	return query
 }
 
-// TODO: rename to aggregateByBuilder and aggregateByFacet => aggregateBy
-func (q *DocumentQuery) AggregateBy(builder func(IFacetBuilder)) *AggregationDocumentQuery {
-	ff := NewFacetBuilder()
-	builder(ff)
-
-	return q.AggregateByFacet(ff.getFacet())
-}
-
 func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
 	q.aggregateBy(facet)
 

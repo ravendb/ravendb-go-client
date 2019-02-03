@@ -3,7 +3,6 @@ package ravendb
 import "strings"
 
 var (
-	_ IFacetBuilder    = &FacetBuilder{}
 	_ IFacetOperations = &FacetBuilder{}
 )
 
@@ -68,36 +67,36 @@ func (b *FacetBuilder) AllResults() IFacetOperations {
 }
 
 func (b *FacetBuilder) WithOptions(options *FacetOptions) IFacetOperations {
-	b.getFacet().SetOptions(options)
+	b.GetFacet().SetOptions(options)
 	return b
 }
 
 func (b *FacetBuilder) WithDisplayName(displayName string) IFacetOperations {
-	b.getFacet().SetDisplayFieldName(displayName)
+	b.GetFacet().SetDisplayFieldName(displayName)
 	return b
 }
 
 func (b *FacetBuilder) SumOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregationSum] = path
+	b.GetFacet().GetAggregations()[FacetAggregationSum] = path
 	return b
 }
 
 func (b *FacetBuilder) MinOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregationMin] = path
+	b.GetFacet().GetAggregations()[FacetAggregationMin] = path
 	return b
 }
 
 func (b *FacetBuilder) MaxOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregationMax] = path
+	b.GetFacet().GetAggregations()[FacetAggregationMax] = path
 	return b
 }
 
 func (b *FacetBuilder) AverageOn(path string) IFacetOperations {
-	b.getFacet().GetAggregations()[FacetAggregationAverage] = path
+	b.GetFacet().GetAggregations()[FacetAggregationAverage] = path
 	return b
 }
 
-func (b *FacetBuilder) getFacet() FacetBase {
+func (b *FacetBuilder) GetFacet() FacetBase {
 	if b._default != nil {
 		return b._default
 	}

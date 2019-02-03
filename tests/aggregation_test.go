@@ -79,10 +79,9 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDri
 		session := openSessionMust(t, store)
 
 		q := session.QueryInIndex(index)
-		builder := func(f ravendb.IFacetBuilder) {
-			f.ByField("region").MaxOn("total").MinOn("total")
-		}
-		q2 := q.AggregateBy(builder)
+		f := ravendb.NewFacetBuilder()
+		f.ByField("region").MaxOn("total").MinOn("total")
+		q2 := q.AggregateByFacet(f.GetFacet())
 		result, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -164,14 +163,12 @@ func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTe
 		session := openSessionMust(t, store)
 
 		q := session.QueryInIndex(index)
-		builder := func(f ravendb.IFacetBuilder) {
-			f.ByField("product").SumOn("total")
-		}
-		q2 := q.AggregateBy(builder)
-		builder2 := func(f ravendb.IFacetBuilder) {
-			f.ByField("currency").SumOn("total")
-		}
-		q2 = q2.AndAggregateBy(builder2)
+		f := ravendb.NewFacetBuilder()
+		f.ByField("product").SumOn("total")
+		q2 := q.AggregateByFacet(f.GetFacet())
+		f = ravendb.NewFacetBuilder()
+		f.ByField("currency").SumOn("total")
+		q2 = q2.AndAggregateByFacet(f.GetFacet())
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -249,10 +246,9 @@ func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *
 		session := openSessionMust(t, store)
 
 		q := session.QueryInIndex(index)
-		builder := func(f ravendb.IFacetBuilder) {
-			f.ByField("product").MaxOn("total").MinOn("total")
-		}
-		q2 := q.AggregateBy(builder)
+		f := ravendb.NewFacetBuilder()
+		f.ByField("product").MaxOn("total").MinOn("total")
+		q2 := q.AggregateByFacet(f.GetFacet())
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -321,14 +317,12 @@ func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTest
 		session := openSessionMust(t, store)
 
 		q := session.QueryInIndex(index)
-		builder := func(f ravendb.IFacetBuilder) {
-			f.ByField("product").WithDisplayName("productMax").MaxOn("total")
-		}
-		q2 := q.AggregateBy(builder)
-		builder2 := func(f ravendb.IFacetBuilder) {
-			f.ByField("product").WithDisplayName("productMin")
-		}
-		q2 = q2.AndAggregateBy(builder2)
+		f := ravendb.NewFacetBuilder()
+		f.ByField("product").WithDisplayName("productMax").MaxOn("total")
+		q2 := q.AggregateByFacet(f.GetFacet())
+		f = ravendb.NewFacetBuilder()
+		f.ByField("product").WithDisplayName("productMin")
+		q2 = q2.AndAggregateByFacet(f.GetFacet())
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -390,21 +384,18 @@ func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDrive
 		_range := ravendb.RangeBuilder_forPath("total")
 
 		q := session.QueryInIndex(index)
-		builder := func(f ravendb.IFacetBuilder) {
-			f.ByField("product").SumOn("total")
-		}
-
-		q2 := q.AggregateBy(builder)
-		builder2 := func(f ravendb.IFacetBuilder) {
-			fop := f.ByRanges(
-				_range.IsLessThan(100),
-				_range.IsGreaterThanOrEqualTo(100).IsLessThan(500),
-				_range.IsGreaterThanOrEqualTo(500).IsLessThan(1500),
-				_range.IsGreaterThanOrEqualTo(1500))
-			fop.SumOn("total")
-
-		}
-		q2 = q2.AndAggregateBy(builder2)
+		f := ravendb.NewFacetBuilder()
+		f.ByField("product").SumOn("total")
+		q2 := q.AggregateByFacet(f.GetFacet())
+		f = ravendb.NewFacetBuilder()
+		fop := f.ByRanges(
+			_range.IsLessThan(100),
+			_range.IsGreaterThanOrEqualTo(100).IsLessThan(500),
+			_range.IsGreaterThanOrEqualTo(500).IsLessThan(1500),
+			_range.IsGreaterThanOrEqualTo(1500))
+		fop.SumOn("total")
+		facet := f.GetFacet()
+		q2 = q2.AndAggregateByFacet(facet)
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -529,13 +520,12 @@ func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.
 		session := openSessionMust(t, store)
 		q := session.QueryInIndex(index)
 		q = q.WhereGreaterThanOrEqual("at", end0)
-		fn := func(f ravendb.IFacetBuilder) {
-			r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4
-			r2 := builder.IsGreaterThanOrEqualTo(end0).IsLessThan(end1) // 1
-			r3 := builder.IsGreaterThanOrEqualTo(end1).IsLessThan(end2) // 3
-			f.ByRanges(r1, r2, r3)
-		}
-		q2 := q.AggregateBy(fn)
+		f := ravendb.NewFacetBuilder()
+		r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4
+		r2 := builder.IsGreaterThanOrEqualTo(end0).IsLessThan(end1) // 1
+		r3 := builder.IsGreaterThanOrEqualTo(end1).IsLessThan(end2) // 3
+		f.ByRanges(r1, r2, r3)
+		q2 := q.AggregateByFacet(f.GetFacet())
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
