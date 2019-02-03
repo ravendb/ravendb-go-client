@@ -45,7 +45,7 @@ func (e *OperationExecutor) Send(operation IOperation, sessionInfo *SessionInfo)
 	if err != nil {
 		return err
 	}
-	return e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo)
+	return e.requestExecutor.ExecuteCommand(command, sessionInfo)
 }
 
 // sessionInfo can be nil
@@ -55,7 +55,7 @@ func (e *OperationExecutor) SendAsync(operation IOperation, sessionInfo *Session
 		return nil, err
 	}
 
-	if err = e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo); err != nil {
+	if err = e.requestExecutor.ExecuteCommand(command, sessionInfo); err != nil {
 		return nil, err
 	}
 
@@ -78,7 +78,7 @@ func (e *OperationExecutor) SendPatchOperation(operation *PatchOperation, sessio
 	if err != nil {
 		return nil, err
 	}
-	if err = e.requestExecutor.ExecuteCommandWithSessionInfo(command, sessionInfo); err != nil {
+	if err = e.requestExecutor.ExecuteCommand(command, sessionInfo); err != nil {
 		return nil, err
 	}
 

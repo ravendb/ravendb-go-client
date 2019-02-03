@@ -37,7 +37,7 @@ func (s *DocumentSubscriptions) Create(options *SubscriptionCreationOptions, dat
 	requestExecutor := s.store.GetRequestExecutor(database)
 
 	command := newCreateSubscriptionCommand(s.store.GetConventions(), options, "")
-	if err := requestExecutor.ExecuteCommand(command); err != nil {
+	if err := requestExecutor.ExecuteCommand(command, nil); err != nil {
 		return "", err
 	}
 
@@ -150,7 +150,7 @@ func (s *DocumentSubscriptions) GetSubscriptions(start int, take int, database s
 	requestExecutor := s.store.GetRequestExecutor(database)
 
 	command := newGetSubscriptionsCommand(start, take)
-	if err := requestExecutor.ExecuteCommand(command); err != nil {
+	if err := requestExecutor.ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
 
@@ -165,7 +165,7 @@ func (s *DocumentSubscriptions) Delete(name string, database string) error {
 	requestExecutor := s.store.GetRequestExecutor(database)
 
 	command := newDeleteSubscriptionCommand(name)
-	return requestExecutor.ExecuteCommand(command)
+	return requestExecutor.ExecuteCommand(command, nil)
 }
 
 // GetSubscriptionState returns subscription definition and it's current state
@@ -180,7 +180,7 @@ func (s *DocumentSubscriptions) GetSubscriptionState(subscriptionName string, da
 	requestExecutor := s.store.GetRequestExecutor(database)
 
 	command := newGetSubscriptionStateCommand(subscriptionName)
-	if err := requestExecutor.ExecuteCommand(command); err != nil {
+	if err := requestExecutor.ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
 	return command.Result, nil
@@ -210,5 +210,5 @@ func (s *DocumentSubscriptions) DropConnection(name string, database string) err
 	requestExecutor := s.store.GetRequestExecutor(database)
 
 	command := newDropSubscriptionConnectionCommand(name)
-	return requestExecutor.ExecuteCommand(command)
+	return requestExecutor.ExecuteCommand(command, nil)
 }

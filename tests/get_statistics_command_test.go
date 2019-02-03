@@ -22,7 +22,7 @@ func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) 
 	assert.NoError(t, err)
 	command := ravendb.NewGetStatisticsCommand("")
 	assert.NoError(t, err)
-	err = executor.ExecuteCommand(command)
+	err = executor.ExecuteCommand(command, nil)
 	assert.NoError(t, err)
 	stats := command.Result
 	assert.NotNil(t, stats)

@@ -87,8 +87,7 @@ func (g *HiLoIDGenerator) GetNextRange() error {
 	hiloCommand := NewNextHiLoCommand(g._tag, g._lastBatchSize, &g._lastRangeDate,
 		g._identityPartsSeparator, g._range.Max)
 	re := g._store.GetRequestExecutor(g._dbName)
-	err := re.ExecuteCommand(hiloCommand)
-	if err != nil {
+	if err := re.ExecuteCommand(hiloCommand, nil); err != nil {
 		return err
 	}
 	result := hiloCommand.Result
@@ -104,5 +103,5 @@ func (g *HiLoIDGenerator) GetNextRange() error {
 func (g *HiLoIDGenerator) ReturnUnusedRange() error {
 	returnCommand := NewHiLoReturnCommand(g._tag, g._range.Current.get(), g._range.Max)
 	re := g._store.GetRequestExecutor(g._dbName)
-	return re.ExecuteCommand(returnCommand)
+	return re.ExecuteCommand(returnCommand, nil)
 }

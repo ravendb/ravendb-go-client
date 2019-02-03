@@ -395,7 +395,6 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 	if re.isCluster {
 		return re.clusterUpdateTopologyAsyncWithForceUpdate(node, timeout, forceUpdate)
 	}
-	//fmt.Printf("updateTopologyAsyncWithForceUpdate\n")
 	future := newCompletableFuture()
 	f := func() {
 		var err error
@@ -450,12 +449,8 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 	re.failedNodesTimers = sync.Map{}
 }
 
-func (re *RequestExecutor) ExecuteCommand(command RavenCommand) error {
-	return re.ExecuteCommandWithSessionInfo(command, nil)
-}
-
-// TODO: make it ExecuteCommand
-func (re *RequestExecutor) ExecuteCommandWithSessionInfo(command RavenCommand, sessionInfo *SessionInfo) error {
+// sessionInfo can be nil
+func (re *RequestExecutor) ExecuteCommand(command RavenCommand, sessionInfo *SessionInfo) error {
 	topologyUpdate := re._firstTopologyUpdate
 	isDone := topologyUpdate != nil && topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
 	if isDone || re.disableTopologyUpdates {
@@ -728,7 +723,11 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		// Note: Java here re-throws if err is IOException and !shouldRetry
 		// but for us that propagates the wrong error to RequestExecutorTest_failsWhenServerIsOffline
 		urlRef = request.URL.String()
-		if !re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo) {
+		ok, err := re.handleServerDown(urlRef, chosenNode, nodeIndex, command, request, response, err, sessionInfo)
+		if err != nil {
+			return err
+		}
+		if !ok {
 			return re.throwFailedToContactAllNodes(command, request, err, nil)
 		}
 		return nil
@@ -987,8 +986,8 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		return false, err
 	case http.StatusGatewayTimeout, http.StatusRequestTimeout,
 		http.StatusBadGateway, http.StatusServiceUnavailable:
-		ok := re.handleServerDown(url, chosenNode, nodeIndex, command, request, response, nil, sessionInfo)
-		return ok, nil
+		ok, err := re.handleServerDown(url, chosenNode, nodeIndex, command, request, response, nil, sessionInfo)
+		return ok, err
 	case http.StatusConflict:
 		err = requestExecutorHandleConflict(response)
 	default:
@@ -1005,7 +1004,7 @@ func requestExecutorHandleConflict(response *http.Response) error {
 
 //     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
 
-func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) bool {
+func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) (bool, error) {
 	if command.GetBase().GetFailedNodes() == nil {
 		command.GetBase().SetFailedNodes(make(map[*ServerNode]error))
 	}
@@ -1015,32 +1014,34 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 	// TODO: Java checks for nodeIndex != null, don't know how that could happen
 	// TODO: change to false
 	if true && nodeIndex == 0 {
-		//We executed request over a node not in the topology. This means no failover...
-		return false
+		// We executed request over a node not in the topology. This means no failover...
+		return false, nil
 	}
 
 	re.spawnHealthChecks(chosenNode, nodeIndex)
 
 	nodeSelector := re.getNodeSelector()
 	if nodeSelector == nil {
-		return false
+		return false, nil
 	}
 
 	nodeSelector.onFailedRequest(nodeIndex)
 
 	currentIndexAndNode, err := re.getPreferredNode()
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	if _, ok := command.GetBase().GetFailedNodes()[currentIndexAndNode.currentNode]; ok {
-		return false //we tried all the nodes...nothing left to do
+		//we tried all the nodes...nothing left to do
+		return false, nil
 	}
 
-	// TODO: propagate error?
-	re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
-
-	return true
+	err = re.Execute(currentIndexAndNode.currentNode, currentIndexAndNode.currentIndex, command, false, sessionInfo)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (re *RequestExecutor) spawnHealthChecks(chosenNode *ServerNode, nodeIndex int) {

@@ -121,7 +121,7 @@ func documentReplication_getConflictsResult_command_should_work_properly(t *test
 	assert.NoError(t, err)
 
 	command := ravendb.NewGetConflictsCommand("docs/1")
-	err = destination.GetRequestExecutor("").ExecuteCommand(command)
+	err = destination.GetRequestExecutor("").ExecuteCommand(command, nil)
 	assert.NoError(t, err)
 	results := command.Result.Results
 	assert.Equal(t, len(results), 2)
@@ -196,7 +196,7 @@ func documentReplication_shouldCreateConflictThenResolveIt(t *testing.T, driver 
 	assert.NoError(t, err)
 
 	command := ravendb.NewGetConflictsCommand("docs/1")
-	err = destination.GetRequestExecutor("").ExecuteCommand(command)
+	err = destination.GetRequestExecutor("").ExecuteCommand(command, nil)
 	assert.NoError(t, err)
 	results := command.Result.Results
 	assert.Equal(t, len(results), 2)
@@ -220,7 +220,7 @@ func documentReplication_shouldCreateConflictThenResolveIt(t *testing.T, driver 
 	//now actually resolve the conflict
 	//(resolve by using first variant)
 	putCommand := ravendb.NewPutDocumentCommand("docs/1", nil, results[0].Doc)
-	err = destination.GetRequestExecutor("").ExecuteCommand(putCommand)
+	err = destination.GetRequestExecutor("").ExecuteCommand(putCommand, nil)
 	assert.NoError(t, err)
 
 	{

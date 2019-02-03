@@ -27,7 +27,7 @@ func (e *ServerOperationExecutor) Send(operation IServerOperation) error {
 	if err != nil {
 		return err
 	}
-	return e.requestExecutor.ExecuteCommand(command)
+	return e.requestExecutor.ExecuteCommand(command, nil)
 }
 
 func (e *ServerOperationExecutor) SendAsync(operation IServerOperation) (*Operation, error) {
@@ -36,7 +36,7 @@ func (e *ServerOperationExecutor) SendAsync(operation IServerOperation) (*Operat
 	if err != nil {
 		return nil, err
 	}
-	if err = requestExecutor.ExecuteCommand(command); err != nil {
+	if err = requestExecutor.ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
 	result := getCommandOperationIDResult(command)

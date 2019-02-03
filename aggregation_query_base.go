@@ -34,7 +34,7 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 	if err = q._session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
-	if err = q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
+	if err = q._session.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
 	return q.processResults(command.Result, q._session.GetConventions())

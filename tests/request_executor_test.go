@@ -26,7 +26,7 @@ func requestExecutorTestFailuresDoesNotBlockConnectionPool(t *testing.T, driver 
 
 		for i := 0; i < 40; i++ {
 			command := ravendb.NewGetNextOperationIDCommand()
-			err := executor.ExecuteCommand(command)
+			err := executor.ExecuteCommand(command, nil)
 			if err != nil {
 				errorsCount++
 			}
@@ -35,7 +35,7 @@ func requestExecutorTestFailuresDoesNotBlockConnectionPool(t *testing.T, driver 
 
 		databaseNamesOperation := ravendb.NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.GetCommand(conventions)
-		err := executor.ExecuteCommand(command)
+		err := executor.ExecuteCommand(command, nil)
 		_ = err.(*ravendb.DatabaseDoesNotExistError)
 	}
 	if dbgRequestExecutorTests {
@@ -56,7 +56,7 @@ func requestExecutorTestCanIssueManyRequests(t *testing.T, driver *RavenTestDriv
 		for i := 0; i < 50; i++ {
 			databaseNamesOperation := ravendb.NewGetDatabaseNamesOperation(0, 20)
 			command := databaseNamesOperation.GetCommand(conventions)
-			err := executor.ExecuteCommand(command)
+			err := executor.ExecuteCommand(command, nil)
 			assert.NoError(t, err)
 		}
 	}
@@ -78,7 +78,7 @@ func requestExecutorTestCanFetchDatabasesNames(t *testing.T, driver *RavenTestDr
 
 		databaseNamesOperation := ravendb.NewGetDatabaseNamesOperation(0, 20)
 		command := databaseNamesOperation.GetCommand(conventions)
-		err := executor.ExecuteCommand(command)
+		err := executor.ExecuteCommand(command, nil)
 		assert.NoError(t, err)
 
 		dbNames := command.Result
@@ -122,7 +122,7 @@ func requestExecutorTestThrowsWhenDatabaseDoesNotExist(t *testing.T, driver *Rav
 	{
 		executor := ravendb.RequestExecutorCreate(store.GetUrls(), "no_such_db", nil, nil, conventions)
 		command := ravendb.NewGetNextOperationIDCommand()
-		err := executor.ExecuteCommand(command)
+		err := executor.ExecuteCommand(command, nil)
 		_ = err.(*ravendb.DatabaseDoesNotExistError)
 	}
 	if dbgRequestExecutorTests {
@@ -148,7 +148,7 @@ func requestExecutorTestCanCreateSingleNodeRequestExecutor(t *testing.T, driver 
 		assert.Equal(t, serverNode.Database, store.GetDatabase())
 
 		command := ravendb.NewGetNextOperationIDCommand()
-		err := executor.ExecuteCommand(command)
+		err := executor.ExecuteCommand(command, nil)
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
 	}
@@ -170,7 +170,7 @@ func requestExecutorTestCanChooseOnlineNode(t *testing.T, driver *RavenTestDrive
 	{
 		executor := ravendb.RequestExecutorCreate([]string{"http://no_such_host:8080", "http://another_offlilne:8080", url}, dbName, nil, nil, documentConventions)
 		command := ravendb.NewGetNextOperationIDCommand()
-		err := executor.ExecuteCommand(command)
+		err := executor.ExecuteCommand(command, nil)
 		assert.NoError(t, err)
 		assert.NotNil(t, command.Result)
 		topologyNodes := executor.GetTopologyNodes()
@@ -191,7 +191,7 @@ func requestExecutorTestFailsWhenServerIsOffline(t *testing.T, driver *RavenTest
 	documentConventions := ravendb.NewDocumentConventions()
 	executor := ravendb.RequestExecutorCreate([]string{"http://no_such_host:8081"}, "db1", nil, nil, documentConventions)
 	command := ravendb.NewGetNextOperationIDCommand()
-	err := executor.ExecuteCommand(command)
+	err := executor.ExecuteCommand(command, nil)
 	assert.Error(t, err)
 
 	_ = err.(*ravendb.AllTopologyNodesDownError)

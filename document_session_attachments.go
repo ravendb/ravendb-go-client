@@ -20,7 +20,7 @@ func (s *DocumentSessionAttachments) Exists(documentID string, name string) (boo
 	if err != nil {
 		return false, err
 	}
-	err = s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err = s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return false, err
 	}

@@ -29,7 +29,7 @@ func NewOperation(requestExecutor *RequestExecutor, changes func() *databaseChan
 
 func (o *Operation) fetchOperationsStatus() (map[string]interface{}, error) {
 	command := o.getOperationStateCommand(o._conventions, o._id)
-	err := o._requestExecutor.ExecuteCommand(command)
+	err := o._requestExecutor.ExecuteCommand(command, nil)
 	if err != nil {
 		return nil, err
 	}

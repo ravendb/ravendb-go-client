@@ -98,7 +98,7 @@ func ravendb6292_ifIncludedDocumentIsConflictedItShouldNotThrowConflictException
 		queryCommand, err := ravendb.NewQueryCommand(ravendb.NewDocumentConventions(), iq, false, false)
 		assert.NoError(t, err)
 
-		err = store2.GetRequestExecutor("").ExecuteCommand(queryCommand)
+		err = store2.GetRequestExecutor("").ExecuteCommand(queryCommand, nil)
 		assert.NoError(t, err)
 
 		result := queryCommand.Result

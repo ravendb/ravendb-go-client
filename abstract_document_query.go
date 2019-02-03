@@ -1667,7 +1667,7 @@ func (q *AbstractDocumentQuery) executeActualQuery() error {
 		if err != nil {
 			return err
 		}
-		err = q.theSession.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, q.theSession.sessionInfo)
+		err = q.theSession.GetRequestExecutor().ExecuteCommand(command, q.theSession.sessionInfo)
 		q.queryOperation.setResult(command.Result)
 		context.Close()
 		if err != nil {

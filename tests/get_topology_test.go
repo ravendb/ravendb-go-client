@@ -13,7 +13,7 @@ func getTopologyTestCanGetTopology(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	command := ravendb.NewGetDatabaseTopologyCommand()
-	err = store.GetRequestExecutor("").ExecuteCommand(command)
+	err = store.GetRequestExecutor("").ExecuteCommand(command, nil)
 	assert.NoError(t, err)
 	result := command.Result
 	assert.NotNil(t, result)

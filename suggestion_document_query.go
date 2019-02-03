@@ -30,7 +30,7 @@ func (q *SuggestionDocumentQuery) Execute() (map[string]*SuggestionResult, error
 	if err = q._session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
-	if err = q._session.GetRequestExecutor().ExecuteCommand(command); err != nil {
+	if err = q._session.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
 

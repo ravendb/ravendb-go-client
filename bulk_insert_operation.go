@@ -121,7 +121,7 @@ func (o *BulkInsertOperation) throwBulkInsertAborted(e error, flushEx error) err
 
 func (o *BulkInsertOperation) getErrorFromOperation() error {
 	stateRequest := NewGetOperationStateCommand(o._requestExecutor.GetConventions(), o._operationID)
-	err := o._requestExecutor.ExecuteCommand(stateRequest)
+	err := o._requestExecutor.ExecuteCommand(stateRequest, nil)
 	if err != nil {
 		// TODO: not sure if should return nil, err or wrap
 		// in newBulkInsertAbortedError()
@@ -162,7 +162,7 @@ func (o *BulkInsertOperation) WaitForID() error {
 	}
 
 	bulkInsertGetIDRequest := NewGetNextOperationIDCommand()
-	o.err = o._requestExecutor.ExecuteCommand(bulkInsertGetIDRequest)
+	o.err = o._requestExecutor.ExecuteCommand(bulkInsertGetIDRequest, nil)
 	if o.err != nil {
 		return o.err
 	}
@@ -279,7 +279,7 @@ func (o *BulkInsertOperation) ensureCommand() error {
 	panicIf(o._bulkInsertExecuteTask != nil, "already started _bulkInsertExecuteTask")
 	o._bulkInsertExecuteTask = newCompletableFuture()
 	go func() {
-		err := o._requestExecutor.ExecuteCommand(bulkCommand)
+		err := o._requestExecutor.ExecuteCommand(bulkCommand, nil)
 		if err != nil {
 			o._bulkInsertExecuteTask.completeWithError(err)
 		} else {
@@ -297,18 +297,18 @@ func (o *BulkInsertOperation) Abort() error {
 		return nil // nothing was done, nothing to kill
 	}
 
-	err := o.WaitForID()
-	if err != nil {
+	if err := o.WaitForID(); err != nil {
 		return err
 	}
 
 	command := NewKillOperationCommand(strconv.FormatInt(o._operationID, 10))
-	err = o._requestExecutor.ExecuteCommand(command)
-	//o._currentWriter.Close()
+	err := o._requestExecutor.ExecuteCommand(command, nil)
 	if err != nil {
-		return newBulkInsertAbortedError("%s", "Unable to kill ths bulk insert operation, because it was not found on the server.")
+		if _, ok := err.(*RavenError); ok {
+			return newBulkInsertAbortedError("Unable to kill ths bulk insert operation, because it was not found on the server.")
+		}
+		return err
 	}
-	o._currentWriter.CloseWithError(newBulkInsertAbortedError("killed operation"))
 	return nil
 }
 

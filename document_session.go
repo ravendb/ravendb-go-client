@@ -80,7 +80,7 @@ func (s *DocumentSession) SaveChanges() error {
 		return nil
 	}
 	defer command.Close()
-	err = s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err = s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (s *DocumentSession) Exists(id string) (bool, error) {
 	}
 	command := NewHeadDocumentCommand(id, nil)
 
-	if err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo); err != nil {
+	if err := s.requestExecutor.ExecuteCommand(command, s.sessionInfo); err != nil {
 		return false, err
 	}
 
@@ -129,7 +129,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 	if err != nil {
 		return err
 	}
-	if err = s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo); err != nil {
+	if err = s.requestExecutor.ExecuteCommand(command, s.sessionInfo); err != nil {
 		return err
 	}
 	return s.refreshInternal(entity, command, documentInfo)
@@ -194,7 +194,7 @@ func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformatio
 	}
 	multiGetCommand := multiGetOperation.createRequest(requests)
 
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(multiGetCommand, s.sessionInfo)
+	err := s.GetRequestExecutor().ExecuteCommand(multiGetCommand, s.sessionInfo)
 	if err != nil {
 		return false, err
 	}
@@ -362,7 +362,7 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	}
 
 	if command != nil {
-		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -427,7 +427,7 @@ func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *Loa
 		return err
 	}
 	if command != nil {
-		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -459,7 +459,7 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 		return err
 	}
 	if command != nil {
-		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 		if err != nil {
 			return err
 		}
@@ -506,7 +506,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 		return nil, err
 	}
 	if command != nil {
-		err := s.requestExecutor.ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+		err := s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -800,7 +800,7 @@ func (s *DocumentSession) StreamQuery(query *DocumentQuery, streamQueryStats *St
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -820,7 +820,7 @@ func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQuerySt
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -840,7 +840,7 @@ func (s *DocumentSession) StreamRawQueryInto(query *IRawDocumentQuery, output io
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -855,7 +855,7 @@ func (s *DocumentSession) StreamQueryInto(query *DocumentQuery, output io.Writer
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -912,7 +912,7 @@ func (s *DocumentSession) Stream(args *StartsWithArgs) (*StreamIterator, error) 
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 
 	command := streamOperation.createRequest(args.StartsWith, args.Matches, args.Start, args.PageSize, "", args.StartAfter)
-	err := s.GetRequestExecutor().ExecuteCommandWithSessionInfo(command, s.sessionInfo)
+	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}

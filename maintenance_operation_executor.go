@@ -53,7 +53,7 @@ func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) err
 	if err != nil {
 		return err
 	}
-	return e.GetRequestExecutor().ExecuteCommand(command)
+	return e.GetRequestExecutor().ExecuteCommand(command, nil)
 }
 
 // TODO: port me

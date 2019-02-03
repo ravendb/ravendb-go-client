@@ -180,7 +180,7 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 			return nil, newRuntimeError(err.Error())
 		}
 	} else {
-		if err = requestExecutor.ExecuteCommand(command); err != nil {
+		if err = requestExecutor.ExecuteCommand(command, nil); err != nil {
 			return nil, err
 		}
 	}
