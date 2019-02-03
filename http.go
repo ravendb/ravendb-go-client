@@ -24,7 +24,7 @@ var (
 	muLog sync.Mutex
 )
 
-// retruns copy of resp.Body but also makes it available for subsequent reads
+// returns copy of resp.Body but also makes it available for subsequent reads
 func getCopyOfResponseBody(resp *http.Response) ([]byte, error) {
 	if resp == nil {
 		return nil, nil
@@ -151,7 +151,6 @@ func maybeLogRequestSummary(req *http.Request) {
 }
 
 func NewHttpHead(uri string) (*http.Request, error) {
-	//fmt.Printf("GET %s\n", uri)
 	req, err := http.NewRequest(http.MethodHead, uri, nil)
 	if err != nil {
 		return nil, err

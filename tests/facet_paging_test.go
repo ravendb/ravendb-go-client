@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 	"sort"
@@ -98,6 +97,7 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeNoMaxResults_HitsDes
 		assert.Equal(t, fr.RemainingTermsCount, 0)
 		assert.Equal(t, len(fr.RemainingTerms), 0)
 		assert.Equal(t, fr.RemainingHits, 0)
+
 		session.Close()
 	}
 }
@@ -189,23 +189,16 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeWithMaxResults_HitsD
 		assert.Equal(t, fr.RemainingTermsCount, 1)
 		assert.Equal(t, len(fr.RemainingTerms), 1)
 
-		fmt.Printf("Remaining hits: %d\n", fr.RemainingHits)
-		/*
-				   List<Long> counts = cameraCounts
-						   .entrySet()
-						   .stream()
-						   .sorted(Comparator.<Map.Entry<String, Long>>comparingLong(x -> x.getValue()).reversed().thenComparing(x -> x.getKey()))
-						   .map(x -> x.getValue())
-						   .collect(Collectors.toList());
-
-				   assertThat(counts.get(counts.size() - 1))
-						   .isEqualTo(facetResults.get("manufacturer").getRemainingHits());
-			   }
-		*/
+		var counts []int
+		for _, count := range cameraCounts {
+			counts = append(counts, count)
+		}
+		sort.Ints(counts)
+		assert.Equal(t, counts[0], fr.RemainingHits)
+		// fmt.Printf("Remaining hits: %d, first: %d, last: %d\n", fr.RemainingHits, counts[0], counts[len(counts)-1])
 
 		session.Close()
 	}
-
 }
 
 func facetPaging_setup(t *testing.T, store *ravendb.DocumentStore) {

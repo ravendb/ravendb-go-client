@@ -48,7 +48,6 @@ func tcpConnect(uri string, serverCertificateBase64 []byte, clientCertificate *t
 		if len(serverCertificateBase64) > 0 {
 			serverCertificate, err := base64.StdEncoding.DecodeString(string(serverCertificateBase64))
 			if err != nil {
-				fmt.Printf("base64.StdEncoding.DecodeString() failed with %s\n", err)
 				return nil, err
 			}
 			trustStore, err = x509.ParseCertificate(serverCertificate)
@@ -66,9 +65,6 @@ func tcpConnect(uri string, serverCertificateBase64 []byte, clientCertificate *t
 		config.MaxVersion = tls.VersionTLS12
 
 		conn, err := tls.Dial("tcp", parsed.Host, config)
-		if err != nil {
-			fmt.Printf("tls.Dial() failed with %s\n", err)
-		}
 		return conn, err
 	}
 
