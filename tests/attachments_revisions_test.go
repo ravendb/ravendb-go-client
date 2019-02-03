@@ -276,7 +276,7 @@ func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string
 
 	assert.Equal(t, statistics.CountOfDocuments, expectedCountOfDocuments)
 
-	assert.Equal(t, statistics.CountOfIndexes, int64(0))
+	assert.Equal(t, statistics.CountOfIndexes, 0)
 
 	{
 		session := openSessionMust(t, store)

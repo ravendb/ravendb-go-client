@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -989,11 +990,8 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 }
 
 func requestExecutorHandleConflict(response *http.Response) error {
-	//fmt.Printf("requestExecutorHandleConflict\n")
 	return exceptionDispatcherThrowError(response)
 }
-
-//     public static InputStream readAsStream(CloseableHttpResponse response) throws IOException {
 
 func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) (bool, error) {
 	if command.GetBase().GetFailedNodes() == nil {
@@ -1002,9 +1000,7 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 
 	re.addFailedResponseToCommand(chosenNode, command, request, response, e)
 
-	// TODO: Java checks for nodeIndex != null, don't know how that could happen
-	// TODO: change to false
-	if true && nodeIndex == 0 {
+	if nodeIndex < 0 {
 		// We executed request over a node not in the topology. This means no failover...
 		return false, nil
 	}
@@ -1102,7 +1098,6 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 }
 
 // note: static
-// TODO: propagate error
 func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command RavenCommand, request *http.Request, response *http.Response, e error) {
 	failedNodes := command.GetBase().GetFailedNodes()
 
