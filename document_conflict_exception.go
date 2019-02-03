@@ -4,10 +4,10 @@ package ravendb
 type DocumentConflictError struct {
 	*ConflictException
 	DocID       string
-	LargestEtag int
+	LargestEtag int64
 }
 
-func newDocumentConflictError(message string, docID string, etag int) *DocumentConflictError {
+func newDocumentConflictError(message string, docID string, etag int64) *DocumentConflictError {
 	res := &DocumentConflictError{}
 	res.ConflictException = NewConflictException("%s", message)
 	res.DocID = docID
@@ -27,7 +27,7 @@ func newDocumentConflictErrorFromJSON(js string) error {
 	}
 	docID, _ := jsonGetAsText(jsonNode, "DocId")
 	message, _ := jsonGetAsText(jsonNode, "Message")
-	largestEtag, _ := jsonGetAsInt(jsonNode, "LargestEtag")
+	largestEtag, _ := jsonGetAsInt64(jsonNode, "LargestEtag")
 
 	return newDocumentConflictError(message, docID, largestEtag)
 }

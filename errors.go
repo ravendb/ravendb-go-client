@@ -55,8 +55,8 @@ func NewConflictException(format string, args ...interface{}) *ConflictException
 type ConcurrencyError struct {
 	RavenError
 
-	ExpectedETag         int
-	ActualETag           int
+	ExpectedETag         int64
+	ActualETag           int64
 	ExpectedChangeVector string
 	ActualChangeVector   string
 }

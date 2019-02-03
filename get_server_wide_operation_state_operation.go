@@ -5,18 +5,18 @@ import (
 )
 
 type GetServerWideOperationStateOperation struct {
-	_id int64
+	id int64
 }
 
 func (o *GetServerWideOperationStateOperation) GetCommand(conventions *DocumentConventions) *GetServerWideOperationStateCommand {
-	return NewGetServerWideOperationStateCommand(getDefaultConventions(), o._id)
+	return NewGetServerWideOperationStateCommand(getDefaultConventions(), o.id)
 }
 
 type GetServerWideOperationStateCommand struct {
 	RavenCommandBase
 
-	_conventions *DocumentConventions
-	_id          int64
+	conventions *DocumentConventions
+	id          int64
 
 	Result map[string]interface{}
 }
@@ -25,8 +25,8 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 	cmd := &GetServerWideOperationStateCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_conventions: conventions,
-		_id:          id,
+		conventions: conventions,
+		id:          id,
 	}
 	cmd.IsReadRequest = true
 
@@ -34,7 +34,7 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 }
 
 func (c *GetServerWideOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/operations/state?id=" + i64toa(c._id)
+	url := node.URL + "/operations/state?id=" + i64toa(c.id)
 	return NewHttpGet(url)
 }
 
