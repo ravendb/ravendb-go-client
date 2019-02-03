@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"time"
 )
 
 // QueryOperation describes query operation
@@ -15,7 +16,7 @@ type QueryOperation struct {
 	indexEntriesOnly        bool
 	currentQueryResults     *QueryResult
 	fieldsToFetch           *fieldsToFetchToken
-	sp                      *stopWatch
+	startTime               time.Time
 	disableEntitiesTracking bool
 
 	// static  Log logger = LogFactory.getLog(QueryOperation.class);
@@ -67,7 +68,7 @@ func (o *QueryOperation) assertPageSizeSet() error {
 }
 
 func (o *QueryOperation) startTiming() {
-	o.sp = newStopWatchStarted()
+	o.startTime = time.Now()
 }
 
 func (o *QueryOperation) logQuery() {
@@ -227,7 +228,7 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 		return newIndexDoesNotExistError("Could not find index " + o.indexName)
 	}
 
-	err := queryOperationEnsureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o.sp, o.session)
+	err := queryOperationEnsureIsAcceptable(result, o.indexQuery.waitForNonStaleResults, o.startTime, o.session)
 	if err != nil {
 		return err
 	}
@@ -265,9 +266,9 @@ func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) er
 	return nil
 }
 
-func queryOperationEnsureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, duration *stopWatch, session *InMemoryDocumentSessionOperations) error {
+func queryOperationEnsureIsAcceptable(result *QueryResult, waitForNonStaleResults bool, startTime time.Time, session *InMemoryDocumentSessionOperations) error {
 	if waitForNonStaleResults && result.IsStale {
-		duration.stop()
+		duration := time.Since(startTime)
 		msg := "Waited for " + duration.String() + " for the query to return non stale result."
 		return NewTimeoutError(msg)
 	}

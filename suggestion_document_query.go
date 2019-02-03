@@ -1,22 +1,25 @@
 package ravendb
 
-import "reflect"
+import (
+	"reflect"
+	"time"
+)
 
 type ISuggestionDocumentQuery = SuggestionDocumentQuery
 
 type SuggestionDocumentQuery struct {
 	// from SuggestionQueryBase
-	_session  *InMemoryDocumentSessionOperations
-	_query    *IndexQuery
-	_duration *stopWatch
+	session   *InMemoryDocumentSessionOperations
+	query     *IndexQuery
+	startTime time.Time
 
-	_source *DocumentQuery
+	source *DocumentQuery
 }
 
 func NewSuggestionDocumentQuery(source *DocumentQuery) *SuggestionDocumentQuery {
 	return &SuggestionDocumentQuery{
-		_source:  source,
-		_session: source.getSession(),
+		source:  source,
+		session: source.getSession(),
 	}
 }
 
@@ -26,15 +29,15 @@ func (q *SuggestionDocumentQuery) Execute() (map[string]*SuggestionResult, error
 		return nil, err
 	}
 
-	q._duration = newStopWatchStarted()
-	if err = q._session.incrementRequestCount(); err != nil {
+	q.startTime = time.Now()
+	if err = q.session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
-	if err = q._session.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
+	if err = q.session.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
 
-	return q.processResults(command.Result, q._session.GetConventions())
+	return q.processResults(command.Result, q.session.GetConventions())
 }
 
 func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*SuggestionResult, error) {
@@ -53,14 +56,14 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 		results[res.Name] = res
 	}
 
-	queryOperationEnsureIsAcceptable(queryResult, q._query.waitForNonStaleResults, q._duration, q._session)
+	queryOperationEnsureIsAcceptable(queryResult, q.query.waitForNonStaleResults, q.startTime, q.session)
 
 	return results, nil
 }
 
 // onEval: v is map[string]*SuggestionResult
 func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResult, onEval func(v interface{})) *Lazy {
-	q._query = q.getIndexQuery()
+	q.query = q.getIndexQuery()
 	afterFn := func(result *QueryResult) {
 		q.InvokeAfterQueryExecuted(result)
 	}
@@ -77,21 +80,21 @@ func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResu
 		return res, err
 	}
 
-	op := NewLazySuggestionQueryOperation(q._session.Conventions, q._query, afterFn, processFn)
-	return q._session.session.addLazyOperation(results, op, onEval)
+	op := NewLazySuggestionQueryOperation(q.session.Conventions, q.query, afterFn, processFn)
+	return q.session.session.addLazyOperation(results, op, onEval)
 }
 
 func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
-	q._source.invokeAfterQueryExecuted(result)
+	q.source.invokeAfterQueryExecuted(result)
 }
 
 func (q *SuggestionDocumentQuery) getIndexQuery() *IndexQuery {
-	return q._source.GetIndexQuery()
+	return q.source.GetIndexQuery()
 }
 func (q *SuggestionDocumentQuery) getCommand() (*QueryCommand, error) {
-	q._query = q.getIndexQuery()
+	q.query = q.getIndexQuery()
 
-	return NewQueryCommand(q._session.GetConventions(), q._query, false, false)
+	return NewQueryCommand(q.session.GetConventions(), q.query, false, false)
 }
 
 func (q *SuggestionDocumentQuery) String() string {

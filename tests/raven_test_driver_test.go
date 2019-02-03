@@ -248,10 +248,10 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	// Server available on: http://127.0.0.1:50386
 	wantedPrefix := "Server available on: "
 	scanner := bufio.NewScanner(proc.stdoutReader)
-	timeStart := time.Now()
+	startTime := time.Now()
 	url := ""
 	for scanner.Scan() {
-		dur := time.Since(timeStart)
+		dur := time.Since(startTime)
 		if dur > time.Minute {
 			break
 		}
@@ -561,17 +561,17 @@ func downloadServerIfNeededWindows() {
 	exists := fileExists(ravenWindowsZipPath)
 	if !exists {
 		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
-		timeStart := time.Now()
+		startTime := time.Now()
 		err = HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
 		must(err)
-		fmt.Printf(" took %s\n", time.Since(timeStart))
+		fmt.Printf(" took %s\n", time.Since(startTime))
 	}
 	destDir := "RavenDB"
 	fmt.Printf("Unzipping %s to %s...", ravenWindowsZipPath, destDir)
-	timeStart := time.Now()
+	startTime := time.Now()
 	err = unzip(ravenWindowsZipPath, destDir)
 	must(err)
-	fmt.Printf(" took %s\n", time.Since(timeStart))
+	fmt.Printf(" took %s\n", time.Since(startTime))
 }
 
 var muServerDownload sync.Mutex

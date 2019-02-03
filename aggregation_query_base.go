@@ -1,21 +1,24 @@
 package ravendb
 
-import "reflect"
+import (
+	"reflect"
+	"time"
+)
 
 // Note: AggregationQueryBase also includes AggregationDocumentQuery
 type AggregationQueryBase struct {
-	_session  *InMemoryDocumentSessionOperations
-	_query    *IndexQuery
-	_duration *stopWatch
+	session   *InMemoryDocumentSessionOperations
+	query     *IndexQuery
+	startTime time.Time
 
 	// from AggregationDocumentQuery
-	_source *AbstractDocumentQuery
+	source *AbstractDocumentQuery
 }
 
 func NewAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
 	return &AggregationQueryBase{
-		_session: source.getSession(),
-		_source:  source.AbstractDocumentQuery,
+		session: source.getSession(),
+		source:  source.AbstractDocumentQuery,
 	}
 
 }
@@ -29,21 +32,21 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 		return nil, err
 	}
 
-	q._duration = newStopWatchStarted()
+	q.startTime = time.Now()
 
-	if err = q._session.incrementRequestCount(); err != nil {
+	if err = q.session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
-	if err = q._session.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
+	if err = q.session.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
-	return q.processResults(command.Result, q._session.GetConventions())
+	return q.processResults(command.Result, q.session.GetConventions())
 }
 
 // arg to onEval is map[string]*FacetResult
 // results is map[string]*FacetResult
 func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) *Lazy {
-	q._query = q.GetIndexQuery()
+	q.query = q.GetIndexQuery()
 
 	afterFn := func(result *QueryResult) {
 		q.invokeAfterQueryExecuted(result)
@@ -61,8 +64,8 @@ func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEv
 		}
 		return res, nil
 	}
-	op := NewLazyAggregationQueryOperation(q._session.Conventions, q._query, afterFn, processResultFn)
-	return q._session.session.addLazyOperation(results, op, onEval)
+	op := NewLazyAggregationQueryOperation(q.session.Conventions, q.query, afterFn, processResultFn)
+	return q.session.session.addLazyOperation(results, op, onEval)
 }
 
 /*
@@ -89,7 +92,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 		results[facetResult.Name] = facetResult
 	}
 
-	err := queryOperationEnsureIsAcceptable(queryResult, q._query.waitForNonStaleResults, q._duration, q._session)
+	err := queryOperationEnsureIsAcceptable(queryResult, q.query.waitForNonStaleResults, q.startTime, q.session)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +100,9 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 }
 
 func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
-	q._query = q.GetIndexQuery()
+	q.query = q.GetIndexQuery()
 
-	return NewQueryCommand(q._session.GetConventions(), q._query, false, false)
+	return NewQueryCommand(q.session.GetConventions(), q.query, false, false)
 }
 
 func (q *AggregationQueryBase) String() string {
@@ -115,14 +118,14 @@ func (q *AggregationDocumentQuery) AndAggregateBy(builder func(IFacetBuilder)) *
 }
 
 func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
-	q._source.aggregateBy(facet)
+	q.source.aggregateBy(facet)
 	return q
 }
 
 func (q *AggregationDocumentQuery) GetIndexQuery() *IndexQuery {
-	return q._source.GetIndexQuery()
+	return q.source.GetIndexQuery()
 }
 
 func (q *AggregationDocumentQuery) invokeAfterQueryExecuted(result *QueryResult) {
-	q._source.invokeAfterQueryExecuted(result)
+	q.source.invokeAfterQueryExecuted(result)
 }
