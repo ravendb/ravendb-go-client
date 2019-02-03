@@ -18,10 +18,6 @@ func NewRangeBuilder(path string) *RangeBuilder {
 	}
 }
 
-func RangeBuilder_forPath(path string) *RangeBuilder {
-	return NewRangeBuilder(path)
-}
-
 func (b *RangeBuilder) CreateClone() *RangeBuilder {
 	builder := *b
 	return &builder

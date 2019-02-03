@@ -89,13 +89,13 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDri
 
 		values := facetResult.Values
 		val := values[0]
-		assert.Equal(t, val.GetCount(), 2)
-		assert.Equal(t, *val.GetMin(), float64(1))
-		assert.Equal(t, *val.GetMax(), float64(1.1))
+		assert.Equal(t, val.Count, 2)
+		assert.Equal(t, *val.Min, float64(1))
+		assert.Equal(t, *val.Max, float64(1.1))
 
 		n := 0
 		for _, x := range values {
-			if x.GetRange() == "1" {
+			if x.Range == "1" {
 				n++
 			}
 		}
@@ -107,7 +107,7 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDri
 
 func getFirstFacetValueOfRange(values []*ravendb.FacetValue, rang string) *ravendb.FacetValue {
 	for _, x := range values {
-		if x.GetRange() == rang {
+		if x.Range == rang {
 			return x
 		}
 	}
@@ -178,20 +178,20 @@ func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTe
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
-		assert.Equal(t, *x.GetSum(), float64(12))
+		assert.Equal(t, *x.Sum, float64(12))
 
 		x = getFirstFacetValueOfRange(values, "iphone")
-		assert.Equal(t, *x.GetSum(), float64(3333))
+		assert.Equal(t, *x.Sum, float64(3333))
 
 		facetResult = r["currency"]
 		values = facetResult.Values
 		assert.Equal(t, len(values), 2)
 
 		x = getFirstFacetValueOfRange(values, "eur")
-		assert.Equal(t, *x.GetSum(), float64(3336))
+		assert.Equal(t, *x.Sum, float64(3336))
 
 		x = getFirstFacetValueOfRange(values, "nis")
-		assert.Equal(t, *x.GetSum(), float64(9))
+		assert.Equal(t, *x.Sum, float64(9))
 
 		session.Close()
 	}
@@ -257,12 +257,12 @@ func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
-		assert.Equal(t, *x.GetMax(), float64(9))
-		assert.Equal(t, *x.GetMin(), float64(3))
+		assert.Equal(t, *x.Max, float64(9))
+		assert.Equal(t, *x.Min, float64(3))
 
 		x = getFirstFacetValueOfRange(values, "iphone")
-		assert.Equal(t, *x.GetMax(), float64(3333))
-		assert.Equal(t, *x.GetMin(), float64(3333))
+		assert.Equal(t, *x.Max, float64(3333))
+		assert.Equal(t, *x.Min, float64(3333))
 
 		session.Close()
 	}
@@ -327,8 +327,8 @@ func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTest
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(r), 2)
-		assert.Equal(t, *r["productMax"].Values[0].GetMax(), float64(3333))
-		assert.Equal(t, r["productMin"].Values[1].GetCount(), 2)
+		assert.Equal(t, *r["productMax"].Values[0].Max, float64(3333))
+		assert.Equal(t, r["productMin"].Values[1].Count, 2)
 
 		session.Close()
 	}
@@ -381,7 +381,7 @@ func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDrive
 
 	{
 		session := openSessionMust(t, store)
-		_range := ravendb.RangeBuilder_forPath("total")
+		_range := ravendb.NewRangeBuilder("total")
 
 		q := session.QueryInIndex(index)
 		f := ravendb.NewFacetBuilder()
@@ -399,26 +399,25 @@ func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDrive
 		r, err := q2.Execute()
 		assert.NoError(t, err)
 
-		// Map<String, FacetResult> r = session
 		facetResult := r["product"]
 		values := facetResult.Values
 		assert.Equal(t, len(values), 2)
 
 		x := getFirstFacetValueOfRange(values, "milk")
-		assert.Equal(t, *x.GetSum(), float64(12))
+		assert.Equal(t, *x.Sum, float64(12))
 
 		x = getFirstFacetValueOfRange(values, "iphone")
-		assert.Equal(t, *x.GetSum(), float64(3333))
+		assert.Equal(t, *x.Sum, float64(3333))
 
 		facetResult = r["total"]
 		values = facetResult.Values
 		assert.Equal(t, len(values), 4)
 
 		x = getFirstFacetValueOfRange(values, "total < 100")
-		assert.Equal(t, *x.GetSum(), float64(12))
+		assert.Equal(t, *x.Sum, float64(12))
 
 		x = getFirstFacetValueOfRange(values, "total >= 1500")
-		assert.Equal(t, *x.GetSum(), float64(3333))
+		assert.Equal(t, *x.Sum, float64(3333))
 
 		session.Close()
 	}
@@ -514,7 +513,7 @@ func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.
 	err = driver.waitForIndexing(store, "", 0)
 	assert.NoError(t, err)
 
-	builder := ravendb.RangeBuilder_forPath("at")
+	builder := ravendb.NewRangeBuilder("at")
 
 	{
 		session := openSessionMust(t, store)
@@ -530,10 +529,94 @@ func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.
 		assert.NoError(t, err)
 
 		facetResults := r["at"].Values
-		assert.Equal(t, facetResults[0].GetCount(), 4)
+		assert.Equal(t, facetResults[0].Count, 4)
 
-		assert.Equal(t, facetResults[1].GetCount(), 1)
-		assert.Equal(t, facetResults[2].GetCount(), 3)
+		assert.Equal(t, facetResults[1].Count, 1)
+		assert.Equal(t, facetResults[2].Count, 3)
+
+		session.Close()
+	}
+}
+
+// code coverage for RangeBuilder.IsLessThanOrEqualTo and RangeBuilder.IsGreaterThan
+func goAggregationIsGreaterThanAndIsLessThanOrEqualTo(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	index := NewOrdersAll()
+	err = index.Execute(store, nil, "")
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+		data := []struct {
+			currency Currency
+			product  string
+			total    float64
+		}{
+			{EUR, "Milk", 3},
+			{NIS, "Milk", 9},
+			{EUR, "iPhone", 3333},
+		}
+		for _, d := range data {
+			obj := &AggOrder{
+				Currency: d.currency,
+				Product:  d.product,
+				Total:    d.total,
+			}
+			err = session.Store(obj)
+			assert.NoError(t, err)
+		}
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
+
+	{
+		session := openSessionMust(t, store)
+
+		q := session.QueryInIndex(index)
+		b := ravendb.NewFacetBuilder()
+		b.ByField("product").SumOn("total")
+		q2 := q.AggregateByFacet(b.GetFacet())
+		b = ravendb.NewFacetBuilder()
+		rng := ravendb.NewRangeBuilder("total")
+		fop := b.ByRanges(
+			rng.IsGreaterThan(1),
+			rng.IsGreaterThanOrEqualTo(100).IsLessThanOrEqualTo(499),
+			rng.IsGreaterThanOrEqualTo(500).IsLessThanOrEqualTo(1499),
+			rng.IsGreaterThanOrEqualTo(1500))
+		fop.SumOn("total")
+		facet := b.GetFacet()
+		q2 = q2.AndAggregateByFacet(facet)
+		r, err := q2.Execute()
+		assert.NoError(t, err)
+
+		facetResult := r["product"]
+		values := facetResult.Values
+		assert.Equal(t, len(values), 2)
+
+		x := getFirstFacetValueOfRange(values, "milk")
+		assert.Equal(t, *x.Sum, float64(12))
+
+		x = getFirstFacetValueOfRange(values, "iphone")
+		assert.Equal(t, *x.Sum, float64(3333))
+
+		facetResult = r["total"]
+		values = facetResult.Values
+		assert.Equal(t, len(values), 4)
+
+		x = getFirstFacetValueOfRange(values, "total > 1")
+		assert.Equal(t, *x.Sum, float64(3345))
+
+		x = getFirstFacetValueOfRange(values, "total >= 1500")
+		assert.Equal(t, *x.Sum, float64(3333))
 
 		session.Close()
 	}
@@ -565,4 +648,7 @@ func TestAggregation(t *testing.T) {
 	aggregationCanCorrectlyAggregateMultipleAggregations(t, driver)
 	aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t, driver)
 	aggregationCanCorrectlyAggregateDisplayName(t, driver)
+
+	// tests unique to go
+	goAggregationIsGreaterThanAndIsLessThanOrEqualTo(t, driver)
 }
