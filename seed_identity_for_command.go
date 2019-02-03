@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"net/http"
-	"strconv"
 )
 
 var (
@@ -12,39 +11,37 @@ var (
 type SeedIdentityForCommand struct {
 	RavenCommandBase
 
-	_id     string
-	_value  int
-	_forced bool
+	id     string
+	value  int64
+	forced bool
 
 	Result int
 }
 
-func NewSeedIdentityForCommand(id string, value int) *SeedIdentityForCommand {
-	return NewSeedIdentityForCommandWithForced(id, value, false)
-}
-
-func NewSeedIdentityForCommandWithForced(id string, value int, forced bool) *SeedIdentityForCommand {
-	panicIf(id == "", "Id cannot be null")
+func NewSeedIdentityForCommand(id string, value int64, forced bool) (*SeedIdentityForCommand, error) {
+	if id == "" {
+		return nil, newIllegalArgumentError("Id cannot be null")
+	}
 
 	res := &SeedIdentityForCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_id:     id,
-		_value:  value,
-		_forced: forced,
+		id:     id,
+		value:  value,
+		forced: forced,
 	}
-	return res
+	return res, nil
 }
 
 func (c *SeedIdentityForCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	err := ensureIsNotNullOrString(c._id, "ID")
+	err := ensureIsNotNullOrString(c.id, "ID")
 	if err != nil {
 		return nil, err
 	}
 
-	url := node.URL + "/databases/" + node.Database + "/identity/seed?name=" + urlEncode(c._id) + "&value=" + strconv.Itoa(c._value)
+	url := node.URL + "/databases/" + node.Database + "/identity/seed?name=" + urlEncode(c.id) + "&value=" + i64toa(c.value)
 
-	if c._forced {
+	if c.forced {
 		url += "&force=true"
 	}
 

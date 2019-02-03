@@ -4,15 +4,15 @@ import "time"
 
 // DatabaseStatistics describes a result of GetStatisticsCommand
 type DatabaseStatistics struct {
-	LastDocEtag               int `json:"LastDocEtag"`
-	CountOfIndexes            int `json:"CountOfIndexes"`
-	CountOfDocuments          int `json:"CountOfDocuments"`
-	CountOfRevisionDocuments  int `json:"CountOfRevisionDocuments"` // TODO: present in Java, not seen in JSON
-	CountOfDocumentsConflicts int `json:"CountOfDocumentsConflicts"`
-	CountOfTombstones         int `json:"CountOfTombstones"`
-	CountOfConflicts          int `json:"CountOfConflicts"`
-	CountOfAttachments        int `json:"CountOfAttachments"`
-	CountOfUniqueAttachments  int `json:"CountOfUniqueAttachments"`
+	LastDocEtag               int64 `json:"LastDocEtag"`
+	CountOfIndexes            int   `json:"CountOfIndexes"`
+	CountOfDocuments          int64 `json:"CountOfDocuments"`
+	CountOfRevisionDocuments  int64 `json:"CountOfRevisionDocuments"` // TODO: present in Java, not seen in JSON
+	CountOfDocumentsConflicts int64 `json:"CountOfDocumentsConflicts"`
+	CountOfTombstones         int64 `json:"CountOfTombstones"`
+	CountOfConflicts          int64 `json:"CountOfConflicts"`
+	CountOfAttachments        int64 `json:"CountOfAttachments"`
+	CountOfUniqueAttachments  int64 `json:"CountOfUniqueAttachments"`
 
 	Indexes []*IndexInformation `json:"Indexes"`
 

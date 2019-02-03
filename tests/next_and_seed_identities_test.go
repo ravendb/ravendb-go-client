@@ -80,7 +80,8 @@ func nextAndSeedIdentitiesTestSeedIdentityFor(t *testing.T, driver *RavenTestDri
 		session.Close()
 	}
 
-	command := ravendb.NewSeedIdentityForCommand("users", 1990)
+	command, err := ravendb.NewSeedIdentityForCommand("users", 1990, false)
+	assert.NoError(t, err)
 	err = store.GetRequestExecutor("").ExecuteCommand(command, nil)
 	assert.NoError(t, err)
 	result := command.Result
@@ -128,7 +129,8 @@ func nextAndSeedIdentitiesTestSeedIdentityFor(t *testing.T, driver *RavenTestDri
 		session.Close()
 	}
 
-	command = ravendb.NewSeedIdentityForCommand("users", 1975)
+	command, err = ravendb.NewSeedIdentityForCommand("users", 1975, false)
+	assert.NoError(t, err)
 	err = store.GetRequestExecutor("").ExecuteCommand(command, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, command.Result, 1991)
