@@ -12,19 +12,23 @@ type EvictItemsFromCacheBasedOnChanges struct {
 	_requestExecutor       *RequestExecutor
 }
 
-func NewEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName string) *EvictItemsFromCacheBasedOnChanges {
+func NewEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName string) (*EvictItemsFromCacheBasedOnChanges, error) {
 	res := &EvictItemsFromCacheBasedOnChanges{
 		_databaseName:    databaseName,
 		_changes:         store.ChangesWithDatabaseName(databaseName),
 		_requestExecutor: store.GetRequestExecutor(databaseName),
 	}
 	docSub, err := res._changes.ForAllDocuments()
-	must(err) // TODO: return an error?
+	if err != nil {
+		return nil, err
+	}
 	res._documentsSubscription = docSub.Subscribe(res)
 	indexSub, err := res._changes.ForAllIndexes()
-	must(err) // TODO: return an error?
+	if err != nil {
+		return nil, err
+	}
 	res._indexesSubscription = indexSub.Subscribe(res)
-	return res
+	return res, nil
 }
 
 func (e *EvictItemsFromCacheBasedOnChanges) OnNext(value interface{}) {

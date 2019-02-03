@@ -562,7 +562,10 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 
 	if lazy == nil {
 		valueFactory := func(result interface{}) error {
-			res := NewEvictItemsFromCacheBasedOnChanges(s, database)
+			res, err := NewEvictItemsFromCacheBasedOnChanges(s, database)
+			if err != nil {
+				return err
+			}
 			resultPtr := result.(**EvictItemsFromCacheBasedOnChanges)
 			*resultPtr = res
 			return nil

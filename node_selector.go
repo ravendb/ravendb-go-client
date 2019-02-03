@@ -113,11 +113,12 @@ func (s *NodeSelector) restoreNodeIndex(nodeIndex int) {
 	state.failures[nodeIndex].set(0)
 }
 
-// TODO: return an error
-func nodeSelectorThrowEmptyTopology() {
-	//throw new IllegalStateError("Empty database topology, this shouldn't happen.");
-	panicIf(true, "Empty database topology, this shouldn't happen.")
+/*
+TODO: not used, remove?
+func nodeSelectorThrowEmptyTopology() error {
+	return newIllegalStateError("Empty database topology, this shouldn't happen.")
 }
+*/
 
 func (s *NodeSelector) switchToSpeedTestPhase() {
 	state := s._state
@@ -163,11 +164,11 @@ func (s *NodeSelector) recordFastest(index int, node *ServerNode) {
 	}
 
 	//too many concurrent speed tests are happening
-	maxIndex := NodeSelector_findMaxIndex(state)
+	maxIndex := s.findMaxIndex(state)
 	s.selectFastest(state, maxIndex)
 }
 
-func NodeSelector_findMaxIndex(state *NodeSelectorState) int {
+func (s *NodeSelector) findMaxIndex(state *NodeSelectorState) int {
 	stateFastest := state.fastestRecords
 	maxIndex := 0
 	maxValue := 0

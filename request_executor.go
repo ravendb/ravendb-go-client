@@ -16,15 +16,17 @@ import (
 
 var (
 	requestExecutorFailureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperationWithDebugTag("failure=check")
-)
 
-// public static Consumer<HttpRequestBase> requestPostProcessor = null;
+	// RequestPostProcessor allows to tweak http request after it has been created
+	// but before it was sent
+	RequestPostProcessor func(*http.Request)
+)
 
 const (
 	goClientVersion = "4.0.0"
 )
 
-// Note: for simplicty ClusterRequestExecutor logic is implemented in RequestExecutor
+// Note: for simplicity ClusterRequestExecutor logic is implemented in RequestExecutor
 // because Go doesn't support inheritance
 type ClusterRequestExecutor = RequestExecutor
 
@@ -871,9 +873,61 @@ func (re *RequestExecutor) shouldExecuteOnAll(chosenNode *ServerNode, command Ra
 		chosenNode != nil
 }
 
+type responseAndError struct {
+	response *http.Response
+	err      error
+}
+
 func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerNode, command RavenCommand) (*http.Response, error) {
-	panic("NYI")
-	return nil, nil
+	// note: implementation is intentionally different than Java
+
+	var fastestWasRecorded int32 // atomic
+	chanPreferredResponse := make(chan *responseAndError, 1)
+
+	nPreferred := 0
+	nodes := re.getNodeSelector().getTopology().Nodes
+	for idx, node := range nodes {
+		re.NumberOfServerRequests.incrementAndGet()
+
+		isPreferred := node.ClusterTag == chosenNode.ClusterTag
+		if isPreferred {
+			nPreferred++
+			panicIf(nPreferred > 1, "nPreferred is %d, should not be > 1", nPreferred)
+		}
+
+		go func(nodeIndex int, node *ServerNode) {
+			var response *http.Response
+			request, err := re.CreateRequest(node, command)
+			if err == nil {
+				response, err = command.GetBase().Send(re.httpClient, request)
+				n := atomic.AddInt32(&fastestWasRecorded, 1)
+				if n == 1 {
+					// this is the first one, so record as fastest
+					re.getNodeSelector().recordFastest(nodeIndex, node)
+				}
+			}
+			// we return http response of the preferred node and close
+			// all others
+			if isPreferred {
+				chanPreferredResponse <- &responseAndError{
+					response: response,
+					err:      err,
+				}
+			} else {
+				if response != nil && err == nil {
+					response.Body.Close()
+				}
+			}
+		}(idx, node)
+	}
+
+	select {
+	case ret := <-chanPreferredResponse:
+		// note: can be nil if there was an error
+		return ret.response, ret.err
+	case <-time.After(time.Second * 15):
+		return nil, fmt.Errorf("request timed out")
+	}
 }
 
 func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*ReleaseCacheItem, *string, []byte) {
@@ -891,6 +945,9 @@ func (re *RequestExecutor) CreateRequest(node *ServerNode, command RavenCommand)
 		return nil, err
 	}
 	request.Header.Set(headersClientVersion, goClientVersion)
+	if RequestPostProcessor != nil {
+		RequestPostProcessor(request)
+	}
 	return request, err
 }
 
@@ -1052,7 +1109,8 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 	return re.Execute(serverNode, nodeIndex, command, false, nil)
 }
 
-// TODO: this is static
+// note: static
+// TODO: propagate error
 func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command RavenCommand, request *http.Request, response *http.Response, e error) {
 	failedNodes := command.GetBase().GetFailedNodes()
 
