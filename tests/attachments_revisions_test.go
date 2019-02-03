@@ -258,11 +258,11 @@ func createDocumentWithAttachments(t *testing.T, store *ravendb.DocumentStore) [
 	return names
 }
 
-func assertRevisions(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int) {
+func assertRevisions(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int64) {
 	assertRevisions2(t, store, names, assertAction, expectedCountOfAttachments, 1, 3)
 }
 
-func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int, expectedCountOfDocuments int, expectedCountOfUniqueAttachments int) {
+func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int64, expectedCountOfDocuments int64, expectedCountOfUniqueAttachments int64) {
 	op := ravendb.NewGetStatisticsOperation()
 	err := store.Maintenance().Send(op)
 	assert.NoError(t, err)
@@ -272,11 +272,11 @@ func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string
 
 	assert.Equal(t, statistics.CountOfUniqueAttachments, expectedCountOfUniqueAttachments)
 
-	assert.Equal(t, statistics.CountOfRevisionDocuments, 4)
+	assert.Equal(t, statistics.CountOfRevisionDocuments, int64(4))
 
 	assert.Equal(t, statistics.CountOfDocuments, expectedCountOfDocuments)
 
-	assert.Equal(t, statistics.CountOfIndexes, 0)
+	assert.Equal(t, statistics.CountOfIndexes, int64(0))
 
 	{
 		session := openSessionMust(t, store)
