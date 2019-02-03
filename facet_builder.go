@@ -2,10 +2,6 @@ package ravendb
 
 import "strings"
 
-var (
-	_ IFacetOperations = &FacetBuilder{}
-)
-
 func isRqlKeyword(s string) bool {
 	s = strings.ToLower(s)
 	switch s {
@@ -24,7 +20,7 @@ func NewFacetBuilder() *FacetBuilder {
 	return &FacetBuilder{}
 }
 
-func (b *FacetBuilder) ByRanges(rng *RangeBuilder, ranges ...*RangeBuilder) IFacetOperations {
+func (b *FacetBuilder) ByRanges(rng *RangeBuilder, ranges ...*RangeBuilder) *FacetBuilder {
 	if rng == nil {
 		//throw new IllegalArgumentError("Range cannot be null")
 		panic("Range cannot be null")
@@ -43,7 +39,7 @@ func (b *FacetBuilder) ByRanges(rng *RangeBuilder, ranges ...*RangeBuilder) IFac
 	return b
 }
 
-func (b *FacetBuilder) ByField(fieldName string) IFacetOperations {
+func (b *FacetBuilder) ByField(fieldName string) *FacetBuilder {
 	if b._default == nil {
 		b._default = NewFacet()
 	}
@@ -57,7 +53,7 @@ func (b *FacetBuilder) ByField(fieldName string) IFacetOperations {
 	return b
 }
 
-func (b *FacetBuilder) AllResults() IFacetOperations {
+func (b *FacetBuilder) AllResults() *FacetBuilder {
 	if b._default == nil {
 		b._default = NewFacet()
 	}
@@ -66,32 +62,32 @@ func (b *FacetBuilder) AllResults() IFacetOperations {
 	return b
 }
 
-func (b *FacetBuilder) WithOptions(options *FacetOptions) IFacetOperations {
+func (b *FacetBuilder) WithOptions(options *FacetOptions) *FacetBuilder {
 	b.GetFacet().SetOptions(options)
 	return b
 }
 
-func (b *FacetBuilder) WithDisplayName(displayName string) IFacetOperations {
+func (b *FacetBuilder) WithDisplayName(displayName string) *FacetBuilder {
 	b.GetFacet().SetDisplayFieldName(displayName)
 	return b
 }
 
-func (b *FacetBuilder) SumOn(path string) IFacetOperations {
+func (b *FacetBuilder) SumOn(path string) *FacetBuilder {
 	b.GetFacet().GetAggregations()[FacetAggregationSum] = path
 	return b
 }
 
-func (b *FacetBuilder) MinOn(path string) IFacetOperations {
+func (b *FacetBuilder) MinOn(path string) *FacetBuilder {
 	b.GetFacet().GetAggregations()[FacetAggregationMin] = path
 	return b
 }
 
-func (b *FacetBuilder) MaxOn(path string) IFacetOperations {
+func (b *FacetBuilder) MaxOn(path string) *FacetBuilder {
 	b.GetFacet().GetAggregations()[FacetAggregationMax] = path
 	return b
 }
 
-func (b *FacetBuilder) AverageOn(path string) IFacetOperations {
+func (b *FacetBuilder) AverageOn(path string) *FacetBuilder {
 	b.GetFacet().GetAggregations()[FacetAggregationAverage] = path
 	return b
 }
