@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -54,11 +55,6 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		counters:                        map[string]*DatabaseConnectionState{},
 	}
 
-	cb := func() {
-		res.onConnectionStatusChanged()
-	}
-	res.connectionStatusEventHandlerIdx = res.AddConnectionStatusChanged(cb)
-
 	res.task = newCompletableFuture()
 	go func() {
 		err := res.doWork()
@@ -68,6 +64,11 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 			res.task.complete(nil)
 		}
 	}()
+
+	cb := func() {
+		res.onConnectionStatusChanged()
+	}
+	res.connectionStatusEventHandlerIdx = res.AddConnectionStatusChanged(cb)
 
 	return res
 }
@@ -393,6 +394,9 @@ func (c *DatabaseChanges) send(command, value string) error {
 	}
 
 	client := c.getWsClient()
+	if client == nil {
+		return errors.New("connection is closed")
+	}
 	err := client.WriteJSON(o)
 	c.mu.Lock()
 	c.confirmations[currentCommandID] = taskCompletionSource
@@ -463,9 +467,18 @@ func (c *DatabaseChanges) doWork() error {
 		}
 
 		c.immediateConnection.set(1)
+
+		var counters []*DatabaseConnectionState
+		c.mu.Lock()
 		for _, counter := range c.counters {
+			counters = append(counters, counter)
+		}
+		c.mu.Unlock()
+
+		for _, counter := range counters {
 			counter.onConnect()
 		}
+
 		c.invokeConnectionStatusChanged()
 		c.processMessages()
 		c.invokeConnectionStatusChanged()
@@ -555,7 +568,11 @@ func (c *DatabaseChanges) processMessages() {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
-		err = c.client.ReadJSON(&msgArray)
+		client := c.getWsClient()
+		if client == nil {
+			break
+		}
+		err = client.ReadJSON(&msgArray)
 		if err != nil {
 			dbg("webSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
