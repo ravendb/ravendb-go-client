@@ -25,7 +25,7 @@ func NewLazyLoadOperation(results interface{}, session *InMemoryDocumentSessionO
 	}
 }
 
-func (o *LazyLoadOperation) createRequest() *GetRequest {
+func (o *LazyLoadOperation) createRequest() *getRequest {
 	var idsToCheckOnServer []string
 	for _, id := range o._ids {
 		if !o._session.IsLoadedOrDeleted(id) {
@@ -54,7 +54,7 @@ func (o *LazyLoadOperation) createRequest() *GetRequest {
 		return nil
 	}
 
-	getRequest := &GetRequest{
+	getRequest := &getRequest{
 		url:   "/docs",
 		query: queryBuilder,
 	}

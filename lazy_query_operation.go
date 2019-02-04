@@ -23,8 +23,8 @@ func NewLazyQueryOperation(result interface{}, conventions *DocumentConventions,
 	}
 }
 
-func (o *LazyQueryOperation) createRequest() *GetRequest {
-	return &GetRequest{
+func (o *LazyQueryOperation) createRequest() *getRequest {
+	return &getRequest{
 		url:     "/queries",
 		method:  "POST",
 		query:   "?queryHash=" + o._queryOperation.indexQuery.GetQueryHash(),

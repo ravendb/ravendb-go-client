@@ -23,8 +23,8 @@ func NewLazySuggestionQueryOperation(conventions *DocumentConventions, indexQuer
 	}
 }
 
-func (o *LazySuggestionQueryOperation) createRequest() *GetRequest {
-	return &GetRequest{
+func (o *LazySuggestionQueryOperation) createRequest() *getRequest {
+	return &getRequest{
 		url:     "/queries",
 		method:  "POST",
 		query:   "?queryHash=" + o._indexQuery.GetQueryHash(),

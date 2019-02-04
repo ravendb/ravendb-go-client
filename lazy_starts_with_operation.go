@@ -41,7 +41,7 @@ func NewLazyStartsWithOperation(results interface{}, idPrefix string, matches st
 	}
 }
 
-func (o *LazyStartsWithOperation) createRequest() *GetRequest {
+func (o *LazyStartsWithOperation) createRequest() *getRequest {
 	pageSize := o.pageSize
 	if pageSize == 0 {
 		pageSize = 25
@@ -54,7 +54,7 @@ func (o *LazyStartsWithOperation) createRequest() *GetRequest {
 		pageSize,
 		o.startAfter)
 
-	request := &GetRequest{
+	request := &getRequest{
 		url:   "/docs",
 		query: q,
 	}

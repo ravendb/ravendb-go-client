@@ -25,8 +25,8 @@ func NewLazyAggregationQueryOperation(conventions *DocumentConventions, indexQue
 	}
 }
 
-func (o *LazyAggregationQueryOperation) createRequest() *GetRequest {
-	request := &GetRequest{
+func (o *LazyAggregationQueryOperation) createRequest() *getRequest {
+	request := &getRequest{
 		url:     "/queries",
 		method:  "POST",
 		query:   "?queryHash=" + o._indexQuery.GetQueryHash(),

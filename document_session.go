@@ -139,7 +139,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 
 // ExecuteAllPendingLazyOperations executes all pending lazy operations
 func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInformation, error) {
-	var requests []*GetRequest
+	var requests []*getRequest
 	var pendingTmp []ILazyOperation
 	for _, op := range s.pendingLazyOperations {
 		req := op.createRequest()
@@ -188,7 +188,7 @@ func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInform
 	return responseTimeDuration, nil
 }
 
-func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*GetRequest) (bool, error) {
+func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*getRequest) (bool, error) {
 	multiGetOperation := &MultiGetOperation{
 		_session: s.InMemoryDocumentSessionOperations,
 	}

@@ -14,14 +14,14 @@ type MultiGetCommand struct {
 	RavenCommandBase
 
 	cache    *HttpCache
-	commands []*GetRequest
+	commands []*getRequest
 	baseURL  string
 
 	Result []*GetResponse // in Java we inherit from List<GetResponse>
 }
 
 // NewMultiGetCommand returns new MultiGetCommand
-func NewMultiGetCommand(cache *HttpCache, commands []*GetRequest) *MultiGetCommand {
+func NewMultiGetCommand(cache *HttpCache, commands []*getRequest) *MultiGetCommand {
 
 	cmd := &MultiGetCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -81,7 +81,7 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 	return NewHttpPost(uri, d)
 }
 
-func (c *MultiGetCommand) getCacheKey(command *GetRequest) (string, string) {
+func (c *MultiGetCommand) getCacheKey(command *getRequest) (string, string) {
 	uri := c.baseURL + command.getUrlAndQuery()
 	key := command.method + "-" + uri
 	return key, uri
@@ -126,7 +126,7 @@ func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Read
 	return nil
 }
 
-func (c *MultiGetCommand) maybeReadFromCache(getResponse *GetResponse, command *GetRequest) {
+func (c *MultiGetCommand) maybeReadFromCache(getResponse *GetResponse, command *getRequest) {
 	if getResponse.StatusCode != http.StatusNotModified {
 		return
 	}
@@ -139,7 +139,7 @@ func (c *MultiGetCommand) maybeReadFromCache(getResponse *GetResponse, command *
 	}
 }
 
-func (c *MultiGetCommand) maybeSetCache(getResponse *GetResponse, command *GetRequest) {
+func (c *MultiGetCommand) maybeSetCache(getResponse *GetResponse, command *getRequest) {
 	if getResponse.StatusCode == http.StatusNotModified {
 		return
 	}

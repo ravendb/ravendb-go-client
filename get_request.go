@@ -2,7 +2,8 @@ package ravendb
 
 import "strings"
 
-type GetRequest struct {
+// getRequest represents get request
+type getRequest struct {
 	url     string
 	headers map[string]string
 	query   string
@@ -10,7 +11,7 @@ type GetRequest struct {
 	content IContent
 }
 
-func (r *GetRequest) getUrlAndQuery() string {
+func (r *getRequest) getUrlAndQuery() string {
 	if r.query == "" {
 		return r.url
 	}
@@ -20,10 +21,6 @@ func (r *GetRequest) getUrlAndQuery() string {
 	}
 
 	return r.url + "?" + r.query
-}
-
-func (r *GetRequest) GetRequest() {
-	r.headers = make(map[string]string)
 }
 
 type IContent interface {

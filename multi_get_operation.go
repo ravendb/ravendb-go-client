@@ -5,7 +5,7 @@ type MultiGetOperation struct {
 	_session *InMemoryDocumentSessionOperations
 }
 
-func (o *MultiGetOperation) createRequest(requests []*GetRequest) *MultiGetCommand {
+func (o *MultiGetOperation) createRequest(requests []*getRequest) *MultiGetCommand {
 	return NewMultiGetCommand(o._session.GetRequestExecutor().Cache, requests)
 }
 

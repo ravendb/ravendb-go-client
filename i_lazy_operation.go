@@ -2,7 +2,7 @@ package ravendb
 
 // ILazyOperation defines methods required to implement lazy operation
 type ILazyOperation interface {
-	createRequest() *GetRequest
+	createRequest() *getRequest
 	getResult() interface{}
 	getQueryResult() *QueryResult
 	isRequiresRetry() bool
