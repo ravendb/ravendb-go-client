@@ -33,8 +33,8 @@ type DocumentStore struct {
 	TrustStore  *x509.Certificate
 	database    string // name of the database
 
-	// maps database name to databaseChanges. Must be protected with mutex
-	databaseChanges map[string]*databaseChanges
+	// maps database name to DatabaseChanges. Must be protected with mutex
+	databaseChanges map[string]*DatabaseChanges
 
 	// Note: access must be protected with mu
 	// Lazy.Value is **EvictItemsFromCacheBasedOnChanges
@@ -226,7 +226,7 @@ func NewDocumentStore() *DocumentStore {
 	s := &DocumentStore{
 		requestsExecutors:      map[string]*RequestExecutor{},
 		conventions:            NewDocumentConventions(),
-		databaseChanges:        map[string]*databaseChanges{},
+		databaseChanges:        map[string]*DatabaseChanges{},
 		aggressiveCacheChanges: map[string]*Lazy{},
 	}
 	s.Subscriptions = NewDocumentSubscriptions(s)
@@ -458,11 +458,11 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 	return res
 }
 
-func (s *DocumentStore) Changes() *databaseChanges {
+func (s *DocumentStore) Changes() *DatabaseChanges {
 	return s.ChangesWithDatabaseName("")
 }
 
-func (s *DocumentStore) ChangesWithDatabaseName(database string) *databaseChanges {
+func (s *DocumentStore) ChangesWithDatabaseName(database string) *DatabaseChanges {
 	must(s.assertInitialized())
 
 	if database == "" {
@@ -484,7 +484,7 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) *databaseChange
 	return changes
 }
 
-func (s *DocumentStore) createDatabaseChanges(database string) *databaseChanges {
+func (s *DocumentStore) createDatabaseChanges(database string) *DatabaseChanges {
 	onDispose := func() {
 		s.mu.Lock()
 		delete(s.databaseChanges, database)

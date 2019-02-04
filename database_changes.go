@@ -13,8 +13,8 @@ import (
 
 // In Java it's hidden behind IDatabaseChanges which also contains IConnectableChanges
 
-// databaseChanges notifies about changes to a database
-type databaseChanges struct {
+// DatabaseChanges notifies about changes to a database
+type DatabaseChanges struct {
 	commandID atomicInteger
 
 	semaphore sync.Mutex
@@ -43,8 +43,8 @@ type databaseChanges struct {
 	onError                         []func(error)
 }
 
-func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose func()) *databaseChanges {
-	res := &databaseChanges{
+func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose func()) *DatabaseChanges {
+	res := &DatabaseChanges{
 		requestExecutor:                 requestExecutor,
 		conventions:                     requestExecutor.GetConventions(),
 		database:                        databaseName,
@@ -73,7 +73,7 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 	return res
 }
 
-func (c *databaseChanges) onConnectionStatusChanged() {
+func (c *DatabaseChanges) onConnectionStatusChanged() {
 	c.semAcquire()
 	defer c.semRelease()
 
@@ -87,30 +87,30 @@ func (c *databaseChanges) onConnectionStatusChanged() {
 	}
 }
 
-func (c *databaseChanges) getWsClient() *websocket.Conn {
+func (c *DatabaseChanges) getWsClient() *websocket.Conn {
 	c.muClient.Lock()
 	res := c.client
 	c.muClient.Unlock()
 	return res
 }
 
-func (c *databaseChanges) setWsClient(client *websocket.Conn) {
+func (c *DatabaseChanges) setWsClient(client *websocket.Conn) {
 	c.muClient.Lock()
 	c.client = client
 	c.muClient.Unlock()
 }
 
-func (c *databaseChanges) IsConnected() bool {
+func (c *DatabaseChanges) IsConnected() bool {
 	client := c.getWsClient()
 	return client != nil
 }
 
-func (c *databaseChanges) EnsureConnectedNow() error {
+func (c *DatabaseChanges) EnsureConnectedNow() error {
 	_, err := c.tcs.Get()
 	return err
 }
 
-func (c *databaseChanges) AddConnectionStatusChanged(handler func()) int {
+func (c *DatabaseChanges) AddConnectionStatusChanged(handler func()) int {
 	c.mu.Lock()
 	idx := len(c.connectionStatusChanged)
 	c.connectionStatusChanged = append(c.connectionStatusChanged, handler)
@@ -118,13 +118,13 @@ func (c *databaseChanges) AddConnectionStatusChanged(handler func()) int {
 	return idx
 }
 
-func (c *databaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
+func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
 	if handlerIdx != -1 {
 		c.connectionStatusChanged[handlerIdx] = nil
 	}
 }
 
-func (c *databaseChanges) ForIndex(indexName string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForIndex(indexName string) (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("indexes/"+indexName, "watch-index", "unwatch-index", indexName)
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (c *databaseChanges) ForIndex(indexName string) (IChangesObservable, error)
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) getLastConnectionStateError() error {
+func (c *DatabaseChanges) getLastConnectionStateError() error {
 	for _, counter := range c.counters {
 		valueLastError := counter.lastError
 		if valueLastError != nil {
@@ -149,7 +149,7 @@ func (c *databaseChanges) getLastConnectionStateError() error {
 	return nil
 }
 
-func (c *databaseChanges) ForDocument(docID string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocument(docID string) (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("docs/"+docID, "watch-doc", "unwatch-doc", docID)
 	if err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func filterAlwaysTrue(notification interface{}) bool {
 	return true
 }
 
-func (c *databaseChanges) ForAllDocuments() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllDocuments() (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("all-docs", "watch-docs", "unwatch-docs", "")
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (c *databaseChanges) ForAllDocuments() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForOperationID(operationID int64) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForOperationID(operationID int64) (IChangesObservable, error) {
 	opIDStr := i64toa(operationID)
 	counter, err := c.getOrAddConnectionState("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
@@ -191,7 +191,7 @@ func (c *databaseChanges) ForOperationID(operationID int64) (IChangesObservable,
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForAllOperations() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllOperations() (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("all-operations", "watch-operations", "unwatch-operations", "")
 	if err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func (c *databaseChanges) ForAllOperations() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForAllIndexes() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllIndexes() (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("all-indexes", "watch-indexes", "unwatch-indexes", "")
 	if err != nil {
 		return nil, err
@@ -213,7 +213,7 @@ func (c *databaseChanges) ForAllIndexes() (IChangesObservable, error) {
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChangesObservable, error) {
 	counter, err := c.getOrAddConnectionState("prefixes/"+docIDPrefix, "watch-prefix", "unwatch-prefix", docIDPrefix)
 	if err != nil {
 		return nil, err
@@ -233,7 +233,7 @@ func (c *databaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChanges
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForDocumentsInCollection(collectionName string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (IChangesObservable, error) {
 	if collectionName == "" {
 		return nil, newIllegalArgumentError("CollectionName cannot be empty")
 	}
@@ -253,12 +253,12 @@ func (c *databaseChanges) ForDocumentsInCollection(collectionName string) (IChan
 	return taskedObservable, nil
 }
 
-func (c *databaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type) (IChangesObservable, error) {
 	collectionName := c.conventions.GetCollectionName(clazz)
 	return c.ForDocumentsInCollection(collectionName)
 }
 
-func (c *databaseChanges) invokeConnectionStatusChanged() {
+func (c *DatabaseChanges) invokeConnectionStatusChanged() {
 	var dup []func()
 	c.mu.Lock()
 	for _, fn := range c.connectionStatusChanged {
@@ -273,7 +273,7 @@ func (c *databaseChanges) invokeConnectionStatusChanged() {
 	}
 }
 
-func (c *databaseChanges) AddOnError(handler func(error)) int {
+func (c *DatabaseChanges) AddOnError(handler func(error)) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -282,11 +282,11 @@ func (c *databaseChanges) AddOnError(handler func(error)) int {
 	return idx
 }
 
-func (c *databaseChanges) RemoveOnError(handlerIdx int) {
+func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
 	c.onError[handlerIdx] = nil
 }
 
-func (c *databaseChanges) invokeOnError(err error) {
+func (c *DatabaseChanges) invokeOnError(err error) {
 	// make a copy so that we can safely access outside of a lock
 	c.mu.Lock()
 	if len(c.onError) == 0 {
@@ -303,26 +303,26 @@ func (c *databaseChanges) invokeOnError(err error) {
 	}
 }
 
-func (c *databaseChanges) Close() {
-	//fmt.Printf("databaseChanges.Close()\n")
+func (c *DatabaseChanges) Close() {
+	//fmt.Printf("DatabaseChanges.Close()\n")
 	c.mu.Lock()
 	for _, confirmation := range c.confirmations {
 		confirmation.cancel(false)
 	}
 	c.mu.Unlock()
 
-	//fmt.Printf("databaseChanges.Close() before _cts.cancel\n")
+	//fmt.Printf("DatabaseChanges.Close() before _cts.cancel\n")
 	c.mu.Lock()
 	c._cts.cancel()
 	c.mu.Unlock()
-	//fmt.Printf("databaseChanges.Close() after _cts.cancel\n")
+	//fmt.Printf("DatabaseChanges.Close() after _cts.cancel\n")
 
 	client := c.getWsClient()
 	if client != nil {
-		//fmt.Printf("databaseChanges.Close(): before client.Close()\n")
+		//fmt.Printf("DatabaseChanges.Close(): before client.Close()\n")
 		err := client.Close()
 		if err != nil {
-			dbg("databaseChanges.Close(): client.Close() failed with %s\n", err)
+			dbg("DatabaseChanges.Close(): client.Close() failed with %s\n", err)
 		}
 		c.setWsClient(nil)
 	}
@@ -339,7 +339,7 @@ func (c *databaseChanges) Close() {
 	}
 }
 
-func (c *databaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
+func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
 	c.mu.Lock()
 	counter, ok := c.counters[name]
 	c.mu.Unlock()
@@ -378,15 +378,15 @@ func (c *databaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	return counter, nil
 }
 
-func (c *databaseChanges) semAcquire() {
+func (c *DatabaseChanges) semAcquire() {
 	c.semaphore.Lock()
 }
 
-func (c *databaseChanges) semRelease() {
+func (c *DatabaseChanges) semRelease() {
 	c.semaphore.Unlock()
 }
 
-func (c *databaseChanges) send(command, value string) error {
+func (c *DatabaseChanges) send(command, value string) error {
 	taskCompletionSource := newCompletableFuture()
 
 	c.semAcquire()
@@ -409,7 +409,7 @@ func (c *databaseChanges) send(command, value string) error {
 
 	c.semRelease()
 	if err != nil {
-		dbg("databaseChanges.send: WriteJSON() failed with %s\n", err)
+		dbg("DatabaseChanges.send: WriteJSON() failed with %s\n", err)
 		return err
 	}
 
@@ -422,7 +422,7 @@ func toWebSocketPath(path string) string {
 	return strings.Replace(path, "https://", "wss://", -1)
 }
 
-func (c *databaseChanges) doWork() error {
+func (c *DatabaseChanges) doWork() error {
 	_, err := c.requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
@@ -505,7 +505,7 @@ func (c *databaseChanges) doWork() error {
 	}
 }
 
-func (c *databaseChanges) reconnectClient() bool {
+func (c *DatabaseChanges) reconnectClient() bool {
 	if c._cts.getToken().isCancellationRequested() {
 		return false
 	}
@@ -516,7 +516,7 @@ func (c *databaseChanges) reconnectClient() bool {
 	return true
 }
 
-func (c *databaseChanges) notifySubscribers(typ string, value interface{}, states []*DatabaseConnectionState) error {
+func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, states []*DatabaseConnectionState) error {
 	switch typ {
 	case "DocumentChange":
 		var documentChange *DocumentChange
@@ -554,7 +554,7 @@ func (c *databaseChanges) notifySubscribers(typ string, value interface{}, state
 	return nil
 }
 
-func (c *databaseChanges) notifyAboutError(e error) {
+func (c *DatabaseChanges) notifyAboutError(e error) {
 	if c._cts.getToken().isCancellationRequested() {
 		return
 	}
@@ -580,7 +580,7 @@ func newWebSocketChangesProcessor(client *websocket.Conn) *webSocketChangesProce
 	}
 }
 
-func (p *webSocketChangesProcessor) processMessages(changes *databaseChanges) {
+func (p *webSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
