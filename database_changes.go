@@ -408,14 +408,14 @@ func (c *DatabaseChanges) send(command, value string) error {
 		return errors.New("connection is closed")
 	}
 	err := client.WriteJSON(o)
-	c.mu.Lock()
-	c.confirmations[currentCommandID] = taskCompletionSource
-	c.mu.Unlock()
-
 	if err != nil {
 		dbg("DatabaseChanges.send: WriteJSON() failed with %s\n", err)
 		return err
 	}
+
+	c.mu.Lock()
+	c.confirmations[currentCommandID] = taskCompletionSource
+	c.mu.Unlock()
 
 	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
 	return err
@@ -466,10 +466,9 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 			}
 		}
 
-		ctx := context.Background()
-		ctx, _ = context.WithTimeout(ctx, time.Second*5)
+		ctxDial, _ := context.WithTimeout(ctx, time.Second*5)
 		var client *websocket.Conn
-		client, _, err = dialer.DialContext(ctx, urlString, nil)
+		client, _, err = dialer.DialContext(ctxDial, urlString, nil)
 		c.setWsClient(client)
 
 		// recheck cancellation because it might have been cancelled
@@ -505,13 +504,13 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 		c.invokeConnectionStatusChanged()
 		shouldReconnect := c.reconnectClient(ctx)
 
+		c.mu.Lock()
 		for _, confirmation := range c.confirmations {
 			confirmation.cancel(false)
 		}
 
-		for k := range c.confirmations {
-			delete(c.confirmations, k)
-		}
+		c.confirmations = map[int]*completableFuture{}
+		c.mu.Unlock()
 
 		if !shouldReconnect {
 			return nil
@@ -591,7 +590,11 @@ func (c *DatabaseChanges) processMessages(ctx context.Context) {
 		}
 		err = client.ReadJSON(&msgArray)
 		if err != nil {
-			dbg("webSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				dbg("webSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
+			} else {
+				err = nil
+			}
 			break
 		}
 
@@ -628,6 +631,7 @@ func (c *DatabaseChanges) processMessages(ctx context.Context) {
 	}
 	// TODO: check for io.EOF for clean connection close?
 	if !isCtxCancelled(ctx) {
+		dbg("Not cancelled so calling notifyAboutError(), err = %v\n", err)
 		c.notifyAboutError(err)
 	}
 }
