@@ -206,8 +206,8 @@ func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformatio
 		uri := requests[i].getUrlAndQuery()
 		dur := time.Millisecond * time.Duration(totalTime)
 		timeItem := ResponseTimeItem{
-			url:      uri,
-			duration: dur,
+			URL:      uri,
+			Duration: dur,
 		}
 		responseTimeInformation.durationBreakdown = append(responseTimeInformation.durationBreakdown, timeItem)
 		if response.requestHasErrors() {

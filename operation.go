@@ -4,32 +4,33 @@ import (
 	"time"
 )
 
+// Operation describes async operation being executed on the server
 type Operation struct {
-	_requestExecutor *RequestExecutor
+	requestExecutor *RequestExecutor
 	//TBD private readonly Func<databaseChanges> _changes;
-	_conventions *DocumentConventions
-	_id          int64
+	conventions *DocumentConventions
+	id          int64
 
 	// if true, this represents ServerWideOperation
 	IsServerWide bool
 }
 
 func (o *Operation) GetID() int64 {
-	return o._id
+	return o.id
 }
 
 func NewOperation(requestExecutor *RequestExecutor, changes func() *databaseChanges, conventions *DocumentConventions, id int64) *Operation {
 	return &Operation{
-		_requestExecutor: requestExecutor,
+		requestExecutor: requestExecutor,
 		//TBD _changes = changes;
-		_conventions: conventions,
-		_id:          id,
+		conventions: conventions,
+		id:          id,
 	}
 }
 
 func (o *Operation) fetchOperationsStatus() (map[string]interface{}, error) {
-	command := o.getOperationStateCommand(o._conventions, o._id)
-	err := o._requestExecutor.ExecuteCommand(command, nil)
+	command := o.getOperationStateCommand(o.conventions, o.id)
+	err := o.requestExecutor.ExecuteCommand(command, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +47,9 @@ func (o *Operation) fetchOperationsStatus() (map[string]interface{}, error) {
 
 func (o *Operation) getOperationStateCommand(conventions *DocumentConventions, id int64) RavenCommand {
 	if o.IsServerWide {
-		return NewGetServerWideOperationStateCommand(o._conventions, id)
+		return NewGetServerWideOperationStateCommand(o.conventions, id)
 	}
-	return NewGetOperationStateCommand(o._conventions, o._id)
+	return NewGetOperationStateCommand(o.conventions, o.id)
 }
 
 func (o *Operation) WaitForCompletion() error {

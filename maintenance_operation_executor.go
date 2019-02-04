@@ -56,16 +56,24 @@ func (e *MaintenanceOperationExecutor) Send(operation IMaintenanceOperation) err
 	return e.GetRequestExecutor().ExecuteCommand(command, nil)
 }
 
-// TODO: port me
-/*
-   public Operation sendAsync(IMaintenanceOperation<OperationIdResult> operation) {
-       assertDatabaseNameSet();
-       RavenCommand<OperationIdResult> command = operation.getCommand(getRequestExecutor().getConventions());
-
-       getRequestExecutor().execute(command);
-       return new Operation(getRequestExecutor(), () -> store.changes(), getRequestExecutor().getConventions(), command.getResult().getOperationId());
-   }
-*/
+func (e *MaintenanceOperationExecutor) SendAsync(operation IMaintenanceOperation) (*Operation, error) {
+	if err := e.assertDatabaseNameSet(); err != nil {
+		return nil, err
+	}
+	command, err := operation.GetCommand(e.GetRequestExecutor().GetConventions())
+	if err != nil {
+		return nil, err
+	}
+	if err = e.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
+		return nil, err
+	}
+	fn := func() *databaseChanges {
+		return e.store.Changes()
+	}
+	re := e.GetRequestExecutor()
+	id := getCommandOperationIDResult(command)
+	return NewOperation(re, fn, re.GetConventions(), id.OperationID), nil
+}
 
 func (e *MaintenanceOperationExecutor) assertDatabaseNameSet() error {
 	if e.databaseName == "" {

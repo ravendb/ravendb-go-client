@@ -2,6 +2,7 @@ package ravendb
 
 import "time"
 
+// ResponseTimeInformation describes timing information of server requests
 type ResponseTimeInformation struct {
 	totalServerDuration time.Duration
 	totalClientDuration time.Duration
@@ -12,45 +13,13 @@ type ResponseTimeInformation struct {
 func (i *ResponseTimeInformation) computeServerTotal() {
 	var total time.Duration
 	for _, rti := range i.durationBreakdown {
-		total += rti.duration
+		total += rti.Duration
 	}
 	i.totalServerDuration = total
 }
 
-/*
-
-   public ResponseTimeInformation() {
-       totalServerDuration = Duration.ZERO;
-       totalClientDuration = Duration.ZERO;
-       durationBreakdown = new ArrayList<>();
-   }
-
-   public Duration getTotalServerDuration() {
-       return totalServerDuration;
-   }
-
-   public void setTotalServerDuration(Duration totalServerDuration) {
-       this.totalServerDuration = totalServerDuration;
-   }
-
-   public Duration getTotalClientDuration() {
-       return totalClientDuration;
-   }
-
-   public void setTotalClientDuration(Duration totalClientDuration) {
-       this.totalClientDuration = totalClientDuration;
-   }
-
-   public List<ResponseTimeItem> getDurationBreakdown() {
-       return durationBreakdown;
-   }
-
-   public void setDurationBreakdown(List<ResponseTimeItem> durationBreakdown) {
-       this.durationBreakdown = durationBreakdown;
-   }
-*/
-
+// ResponseTimeItem represents a duration for executing a given url
 type ResponseTimeItem struct {
-	url      string
-	duration time.Duration
+	URL      string
+	Duration time.Duration
 }
