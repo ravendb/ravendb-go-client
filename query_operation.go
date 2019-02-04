@@ -87,7 +87,7 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 		return res
 	}
 
-	return o.session.GetDocumentStore().DisableAggressiveCachingWithDatabase(o.session.DatabaseName)
+	return o.session.GetDocumentStore().DisableAggressiveCaching(o.session.DatabaseName)
 }
 
 // results is *[]<type> and we'll create the slice and fill it with values

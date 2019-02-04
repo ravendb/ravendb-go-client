@@ -11,7 +11,7 @@ import (
 func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.DocumentStore) {
 	changesList := make(chan *ravendb.DocumentChange, 8)
 
-	changes := store.Changes()
+	changes := store.Changes("")
 	err := changes.EnsureConnectedNow()
 	assert.NoError(t, err)
 
@@ -99,7 +99,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 	{
 		changesList := make(chan *ravendb.DocumentChange, 8)
 
-		changes := store.Changes()
+		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
@@ -178,7 +178,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	changesList := make(chan *ravendb.IndexChange, 8)
 
 	{
-		changes := store.Changes()
+		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
@@ -221,7 +221,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	changesList := make(chan *ravendb.IndexChange, 8)
 
 	{
-		changes := store.Changes()
+		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
@@ -259,7 +259,7 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 	changesList := make(chan *ravendb.DocumentChange)
 
 	{
-		changes := store.Changes()
+		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
@@ -329,7 +329,7 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 	changesList := make(chan *ravendb.DocumentChange)
 
 	{
-		changes := store.Changes()
+		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
@@ -394,7 +394,7 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	changes := store.ChangesWithDatabaseName("no_such_db")
+	changes := store.Changes("no_such_db")
 	err = changes.EnsureConnectedNow()
 	assert.NotNil(t, err)
 	_, ok := err.(*ravendb.DatabaseDoesNotExistError)

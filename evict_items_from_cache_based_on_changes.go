@@ -14,7 +14,7 @@ type EvictItemsFromCacheBasedOnChanges struct {
 func NewEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName string) (*EvictItemsFromCacheBasedOnChanges, error) {
 	res := &EvictItemsFromCacheBasedOnChanges{
 		databaseName:    databaseName,
-		changes:         store.ChangesWithDatabaseName(databaseName),
+		changes:         store.Changes(databaseName),
 		requestExecutor: store.GetRequestExecutor(databaseName),
 	}
 

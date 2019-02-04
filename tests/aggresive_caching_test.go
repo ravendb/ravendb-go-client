@@ -11,7 +11,7 @@ import (
 func initAggressiveCaching(t *testing.T, driver *RavenTestDriver) *ravendb.DocumentStore {
 	var err error
 	store := driver.getDocumentStoreMust(t)
-	store.DisableAggressiveCaching()
+	store.DisableAggressiveCaching("")
 
 	{
 		session := openSessionMust(t, store)
