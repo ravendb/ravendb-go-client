@@ -27,9 +27,9 @@ type DatabaseChanges struct {
 	client   *websocket.Conn
 	muClient sync.Mutex
 
-	task *completableFuture
-	_cts *cancellationTokenSource
-	tcs  *completableFuture
+	task         *completableFuture
+	doWorkCancel context.CancelFunc
+	tcs          *completableFuture
 
 	mu            sync.Mutex // protects confirmations and counters maps
 	confirmations map[int]*completableFuture
@@ -48,7 +48,6 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		conventions:                     requestExecutor.GetConventions(),
 		database:                        databaseName,
 		tcs:                             newCompletableFuture(),
-		_cts:                            &cancellationTokenSource{},
 		onDispose:                       onDispose,
 		connectionStatusEventHandlerIdx: -1,
 		confirmations:                   map[int]*completableFuture{},
@@ -56,8 +55,10 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 	}
 
 	res.task = newCompletableFuture()
+	var ctx context.Context
+	ctx, res.doWorkCancel = context.WithCancel(context.Background())
 	go func() {
-		err := res.doWork()
+		err := res.doWork(ctx)
 		if err != nil {
 			res.task.completeWithError(err)
 		} else {
@@ -311,11 +312,7 @@ func (c *DatabaseChanges) Close() {
 	}
 	c.mu.Unlock()
 
-	//fmt.Printf("DatabaseChanges.Close() before _cts.cancel\n")
-	c.mu.Lock()
-	c._cts.cancel()
-	c.mu.Unlock()
-	//fmt.Printf("DatabaseChanges.Close() after _cts.cancel\n")
+	c.doWorkCancel()
 
 	client := c.getWsClient()
 	if client != nil {
@@ -416,7 +413,16 @@ func toWebSocketPath(path string) string {
 	return strings.Replace(path, "https://", "wss://", -1)
 }
 
-func (c *DatabaseChanges) doWork() error {
+func isCtxCancelled(ctx context.Context) bool {
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *DatabaseChanges) doWork(ctx context.Context) error {
 	_, err := c.requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
@@ -429,7 +435,8 @@ func (c *DatabaseChanges) doWork() error {
 	urlString = toWebSocketPath(urlString)
 
 	for {
-		if c._cts.getToken().isCancellationRequested() {
+
+		if isCtxCancelled(ctx) {
 			return nil
 		}
 
@@ -453,7 +460,7 @@ func (c *DatabaseChanges) doWork() error {
 
 		// recheck cancellation because it might have been cancelled
 		// since DialContext()
-		if c._cts.getToken().isCancellationRequested() {
+		if isCtxCancelled(ctx) {
 			if client != nil {
 				client.Close()
 				c.setWsClient(nil)
@@ -480,9 +487,9 @@ func (c *DatabaseChanges) doWork() error {
 		}
 
 		c.invokeConnectionStatusChanged()
-		c.processMessages()
+		c.processMessages(ctx)
 		c.invokeConnectionStatusChanged()
-		shouldReconnect := c.reconnectClient()
+		shouldReconnect := c.reconnectClient(ctx)
 
 		for _, confirmation := range c.confirmations {
 			confirmation.cancel(false)
@@ -501,8 +508,8 @@ func (c *DatabaseChanges) doWork() error {
 	}
 }
 
-func (c *DatabaseChanges) reconnectClient() bool {
-	if c._cts.getToken().isCancellationRequested() {
+func (c *DatabaseChanges) reconnectClient(ctx context.Context) bool {
+	if isCtxCancelled(ctx) {
 		return false
 	}
 
@@ -551,10 +558,6 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, state
 }
 
 func (c *DatabaseChanges) notifyAboutError(e error) {
-	if c._cts.getToken().isCancellationRequested() {
-		return
-	}
-
 	c.invokeOnError(e)
 
 	c.mu.Lock()
@@ -564,7 +567,7 @@ func (c *DatabaseChanges) notifyAboutError(e error) {
 	}
 }
 
-func (c *DatabaseChanges) processMessages() {
+func (c *DatabaseChanges) processMessages(ctx context.Context) {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
@@ -584,7 +587,9 @@ func (c *DatabaseChanges) processMessages() {
 			switch typ {
 			case "Error":
 				errStr, _ := jsonGetAsString(msgNode, "Error")
-				c.notifyAboutError(newRuntimeError("%s", errStr))
+				if !isCtxCancelled(ctx) {
+					c.notifyAboutError(newRuntimeError("%s", errStr))
+				}
 			case "Confirm":
 				commandID, ok := jsonGetAsInt(msgNode, "CommandId")
 				if ok {
@@ -606,5 +611,7 @@ func (c *DatabaseChanges) processMessages() {
 		}
 	}
 	// TODO: check for io.EOF for clean connection close?
-	c.notifyAboutError(err)
+	if !isCtxCancelled(ctx) {
+		c.notifyAboutError(err)
+	}
 }
