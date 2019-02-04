@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -16,7 +17,7 @@ import (
 
 // DatabaseChanges notifies about changes to a database
 type DatabaseChanges struct {
-	commandID atomicInteger
+	commandID int32 // atomic
 
 	requestExecutor *RequestExecutor
 	conventions     *DocumentConventions
@@ -35,11 +36,16 @@ type DatabaseChanges struct {
 	confirmations map[int]*completableFuture
 	counters      map[string]*databaseConnectionState
 
-	immediateConnection atomicInteger
+	immediateConnection int32 // atomic bool
 
 	connectionStatusEventHandlerIdx int
 	connectionStatusChanged         []func()
 	onError                         []func(error)
+}
+
+func (c *DatabaseChanges) nextCommandID() int {
+	v := atomic.AddInt32(&c.commandID, 1)
+	return int(v)
 }
 
 func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose func()) *DatabaseChanges {
@@ -352,7 +358,10 @@ func (c *DatabaseChanges) Close() {
 
 	c.task.Get()
 	c.invokeConnectionStatusChanged()
-	c.RemoveConnectionStatusChanged(c.connectionStatusEventHandlerIdx)
+	if c.connectionStatusEventHandlerIdx != -1 {
+		c.RemoveConnectionStatusChanged(c.connectionStatusEventHandlerIdx)
+
+	}
 	if c.onDispose != nil {
 		c.onDispose()
 	}
@@ -391,7 +400,7 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	c.counters[name] = counter
 	c.mu.Unlock()
 
-	if c.immediateConnection.get() != 0 {
+	if atomic.LoadInt32(&c.immediateConnection) != 0 {
 		counter.onConnect()
 	}
 	return counter, nil
@@ -400,7 +409,7 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 func (c *DatabaseChanges) send(command, value string) error {
 	taskCompletionSource := newCompletableFuture()
 
-	currentCommandID := c.commandID.incrementAndGet()
+	currentCommandID := c.nextCommandID()
 
 	o := struct {
 		CommandID int    `json:"CommandId"`
@@ -495,7 +504,7 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 			continue
 		}
 
-		c.immediateConnection.set(1)
+		atomic.StoreInt32(&c.immediateConnection, 1)
 
 		var counters []*databaseConnectionState
 		c.mu.Lock()
@@ -535,7 +544,7 @@ func (c *DatabaseChanges) reconnectClient(ctx context.Context) bool {
 		return false
 	}
 
-	c.immediateConnection.set(0)
+	atomic.StoreInt32(&c.immediateConnection, 0)
 
 	c.invokeConnectionStatusChanged()
 	return true
