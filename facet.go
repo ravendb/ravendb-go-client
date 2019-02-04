@@ -17,6 +17,6 @@ func NewFacet() *Facet {
 }
 
 // ToFacetToken returns token for this facet
-func (f *Facet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
-	return createFacetTokenWithFacet(f, addQueryParameter)
+func (f *Facet) ToFacetToken(addQueryParameter func(interface{}) string) (*facetToken, error) {
+	return createFacetTokenWithFacet(f, addQueryParameter), nil
 }

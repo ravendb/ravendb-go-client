@@ -21,7 +21,7 @@ func NewRangeFacet(parent FacetBase) *RangeFacet {
 }
 
 // ToFacetToken converts RangeFacet to a token
-func (f *RangeFacet) ToFacetToken(addQueryParameter func(interface{}) string) *facetToken {
+func (f *RangeFacet) ToFacetToken(addQueryParameter func(interface{}) string) (*facetToken, error) {
 	if f._parent != nil {
 		return f._parent.ToFacetToken(addQueryParameter)
 	}

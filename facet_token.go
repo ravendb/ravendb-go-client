@@ -97,37 +97,41 @@ func createFacetToken(facetSetupDocumentID string) *facetToken {
 
 func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
-	token := NewFacetTokenAll(facet.FieldName, facet.GetDisplayFieldName(), nil, optionsParameterName)
+	token := NewFacetTokenAll(facet.FieldName, facet.DisplayFieldName, nil, optionsParameterName)
 
 	applyAggregations(facet, token)
 	return token
 }
 
-func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(interface{}) string) *facetToken {
+func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(interface{}) string) (*facetToken, error) {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
-	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), facet.Ranges, optionsParameterName)
+	token := NewFacetTokenAll("", facet.DisplayFieldName, facet.Ranges, optionsParameterName)
 
 	applyAggregations(facet, token)
 
-	return token
+	return token, nil
 }
 
-func createFacetTokenWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(interface{}) string) *facetToken {
+func createFacetTokenWithGenericRangeFacet(facet *GenericRangeFacet, addQueryParameter func(interface{}) string) (*facetToken, error) {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
 	var ranges []string
 	for _, rangeBuilder := range facet.Ranges {
-		ranges = append(ranges, GenericRangeFacetParse(rangeBuilder, addQueryParameter))
+		r, err := genericRangeFacetParse(rangeBuilder, addQueryParameter)
+		if err != nil {
+			return nil, err
+		}
+		ranges = append(ranges, r)
 	}
 
-	token := NewFacetTokenAll("", facet.GetDisplayFieldName(), ranges, optionsParameterName)
+	token := NewFacetTokenAll("", facet.DisplayFieldName, ranges, optionsParameterName)
 
 	applyAggregations(facet, token)
-	return token
+	return token, nil
 }
 
-func createFacetTokenWithFacetBase(facet FacetBase, addQueryParameter func(interface{}) string) *facetToken {
+func createFacetTokenWithFacetBase(facet FacetBase, addQueryParameter func(interface{}) string) (*facetToken, error) {
 	// this is just a dispatcher
 	return facet.ToFacetToken(addQueryParameter)
 }

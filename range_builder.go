@@ -1,5 +1,6 @@
 package ravendb
 
+// RangeBuilder helps build a string query for range requests
 type RangeBuilder struct {
 	path string
 
@@ -10,6 +11,8 @@ type RangeBuilder struct {
 
 	lessSet    bool
 	greaterSet bool
+
+	err error
 }
 
 func NewRangeBuilder(path string) *RangeBuilder {
@@ -18,18 +21,21 @@ func NewRangeBuilder(path string) *RangeBuilder {
 	}
 }
 
-func (b *RangeBuilder) CreateClone() *RangeBuilder {
+func (b *RangeBuilder) createClone() *RangeBuilder {
 	builder := *b
 	return &builder
 }
 
 func (b *RangeBuilder) IsLessThan(value interface{}) *RangeBuilder {
+	if b.err != nil {
+		return b
+	}
 	if b.lessSet {
-		//throw new IllegalStateError("Less bound was already set")
-		panic("Less bound was already set")
+		b.err = newIllegalStateError("Less bound was already set")
+		return b
 	}
 
-	clone := b.CreateClone()
+	clone := b.createClone()
 	clone.lessBound = value
 	clone.lessInclusive = false
 	clone.lessSet = true
@@ -37,12 +43,15 @@ func (b *RangeBuilder) IsLessThan(value interface{}) *RangeBuilder {
 }
 
 func (b *RangeBuilder) IsLessThanOrEqualTo(value interface{}) *RangeBuilder {
+	if b.err != nil {
+		return b
+	}
 	if b.lessSet {
-		//throw new IllegalStateError("Less bound was already set")
-		panic("Less bound was already set")
+		b.err = newIllegalStateError("Less bound was already set")
+		return b
 	}
 
-	clone := b.CreateClone()
+	clone := b.createClone()
 	clone.lessBound = value
 	clone.lessInclusive = true
 	clone.lessSet = true
@@ -50,12 +59,15 @@ func (b *RangeBuilder) IsLessThanOrEqualTo(value interface{}) *RangeBuilder {
 }
 
 func (b *RangeBuilder) IsGreaterThan(value interface{}) *RangeBuilder {
+	if b.err != nil {
+		return b
+	}
 	if b.greaterSet {
-		//throw new IllegalStateError("Greater bound was already set")
-		panic("Greater bound was already set")
+		b.err = newIllegalStateError("Greater bound was already set")
+		return b
 	}
 
-	clone := b.CreateClone()
+	clone := b.createClone()
 	clone.greaterBound = value
 	clone.greaterInclusive = false
 	clone.greaterSet = true
@@ -63,25 +75,31 @@ func (b *RangeBuilder) IsGreaterThan(value interface{}) *RangeBuilder {
 }
 
 func (b *RangeBuilder) IsGreaterThanOrEqualTo(value interface{}) *RangeBuilder {
+	if b.err != nil {
+		return b
+	}
 	if b.greaterSet {
-		//throw new IllegalStateError("Greater bound was already set")
-		panic("Greater bound was already set")
+		b.err = newIllegalStateError("Greater bound was already set")
+		return b
 	}
 
-	clone := b.CreateClone()
+	clone := b.createClone()
 	clone.greaterBound = value
 	clone.greaterInclusive = true
 	clone.greaterSet = true
 	return clone
 }
 
-func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(interface{}) string) string {
+func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(interface{}) string) (string, error) {
 	var less string
 	var greater string
 
+	if b.err != nil {
+		return "", b.err
+	}
+
 	if !b.lessSet && !b.greaterSet {
-		//throw new IllegalStateError("Bounds were not set")
-		panic("Bounds were not set")
+		return "", newIllegalStateError("Bounds were not set")
 	}
 
 	if b.lessSet {
@@ -103,11 +121,15 @@ func (b *RangeBuilder) GetStringRepresentation(addQueryParameter func(interface{
 	}
 
 	if less != "" && greater != "" {
-		return greater + " and " + less
+		return greater + " and " + less, nil
 	}
 
 	if less != "" {
-		return less
+		return less, nil
 	}
-	return greater
+	return greater, nil
+}
+
+func (b *RangeBuilder) Err() error {
+	return b.err
 }

@@ -498,18 +498,22 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	return query
 }
 
-func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
-	q.aggregateBy(facet)
-
-	return NewAggregationDocumentQuery(q)
-}
-
-func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *AggregationDocumentQuery {
-	for _, facet := range facets {
-		q.aggregateBy(facet)
+func (q *DocumentQuery) AggregateByFacet(facet FacetBase) (*AggregationDocumentQuery, error) {
+	if err := q.aggregateBy(facet); err != nil {
+		return nil, err
 	}
 
-	return NewAggregationDocumentQuery(q)
+	return NewAggregationDocumentQuery(q), nil
+}
+
+func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) (*AggregationDocumentQuery, error) {
+	for _, facet := range facets {
+		if err := q.aggregateBy(facet); err != nil {
+			return nil, err
+		}
+	}
+
+	return NewAggregationDocumentQuery(q), nil
 }
 
 func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *AggregationDocumentQuery {

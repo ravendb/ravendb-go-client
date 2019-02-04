@@ -2,14 +2,13 @@ package ravendb
 
 type FacetBase interface {
 	// those are supplied by each type
-	// TODO: make it private
-	ToFacetToken(addQueryParameter func(interface{}) string) *facetToken
+	ToFacetToken(addQueryParameter func(interface{}) string) (*facetToken, error)
 
 	// those are inherited from FacetBaseCommon
-	GetOptions() *FacetOptions
-	GetAggregations() map[FacetAggregation]string
 	SetDisplayFieldName(string)
+	GetOptions() *FacetOptions
 	SetOptions(*FacetOptions)
+	GetAggregations() map[FacetAggregation]string
 }
 
 type FacetBaseCommon struct {
@@ -22,10 +21,6 @@ func NewFacetBaseCommon() FacetBaseCommon {
 	return FacetBaseCommon{
 		Aggregations: make(map[FacetAggregation]string),
 	}
-}
-
-func (f *FacetBaseCommon) GetDisplayFieldName() string {
-	return f.DisplayFieldName
 }
 
 func (f *FacetBaseCommon) SetDisplayFieldName(displayFieldName string) {
@@ -42,8 +37,4 @@ func (f *FacetBaseCommon) SetOptions(options *FacetOptions) {
 
 func (f *FacetBaseCommon) GetAggregations() map[FacetAggregation]string {
 	return f.Aggregations
-}
-
-func (f *FacetBaseCommon) SetAggregations(aggregations map[FacetAggregation]string) {
-	f.Aggregations = aggregations
 }

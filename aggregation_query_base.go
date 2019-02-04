@@ -110,9 +110,11 @@ func (q *AggregationQueryBase) String() string {
 }
 
 // from AggregationDocumentQuery
-func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
-	q.source.aggregateBy(facet)
-	return q
+func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) (*AggregationDocumentQuery, error) {
+	if err := q.source.aggregateBy(facet); err != nil {
+		return nil, err
+	}
+	return q, nil
 }
 
 func (q *AggregationDocumentQuery) GetIndexQuery() *IndexQuery {

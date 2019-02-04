@@ -1801,7 +1801,7 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 }
 
 // Single runs a query that expects only a single result.
-// If there is more than one result, it returns IllegalStateError.
+// If there is more than one result, it retuns IllegalStateError.
 func (q *AbstractDocumentQuery) Single(result interface{}) error {
 	if result == nil {
 		return fmt.Errorf("result can't be nil")
@@ -1887,20 +1887,24 @@ func (q *AbstractDocumentQuery) executeQueryOperation(results interface{}, take 
 	return q.queryOperation.complete(results)
 }
 
-func (q *AbstractDocumentQuery) aggregateBy(facet FacetBase) {
+func (q *AbstractDocumentQuery) aggregateBy(facet FacetBase) error {
 	for _, token := range q.selectTokens {
 		if _, ok := token.(*facetToken); ok {
 			continue
 		}
 
-		//throw new IllegalStateError("Aggregation query can select only facets while it got " + token.getClass().getSimpleName() + " token");
-		panicIf(true, "Aggregation query can select only facets while it got %T token", token)
+		return newIllegalStateError("Aggregation query can select only facets while it got %T token", token)
 	}
 
 	add := func(o interface{}) string {
 		return q.addQueryParameter(o)
 	}
-	q.selectTokens = append(q.selectTokens, createFacetTokenWithFacetBase(facet, add))
+	t, err := createFacetTokenWithFacetBase(facet, add)
+	if err != nil {
+		return err
+	}
+	q.selectTokens = append(q.selectTokens, t)
+	return nil
 }
 
 func (q *AbstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) {
