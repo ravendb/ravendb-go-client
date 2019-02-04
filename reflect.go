@@ -376,3 +376,34 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 func copyValueProperties(dest interface{}, src interface{}) error {
 	return copier.Copy(dest, src)
 }
+
+// m is a single-element map[string]*struct
+// returns single map value
+func getSingleMapValue(results interface{}) (interface{}, error) {
+	m := reflect.ValueOf(results)
+	if m.Type().Kind() != reflect.Map {
+		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+	mapKeyType := m.Type().Key()
+	if mapKeyType != stringType {
+		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+	mapElemPtrType := m.Type().Elem()
+	if mapElemPtrType.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+
+	mapElemType := mapElemPtrType.Elem()
+	if mapElemType.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	}
+	keys := m.MapKeys()
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	if len(keys) != 1 {
+		return nil, fmt.Errorf("expected results to have only one element, has %d", len(keys))
+	}
+	v := m.MapIndex(keys[0])
+	return v.Interface(), nil
+}

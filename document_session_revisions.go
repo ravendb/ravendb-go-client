@@ -81,7 +81,7 @@ func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) 
 }
 
 /*
-
+TODO: port me
    public <T> Map<String, T> get(Class<T> clazz, String[] changeVectors) {
        GetRevisionOperation operation = new GetRevisionOperation(session, changeVectors);
 

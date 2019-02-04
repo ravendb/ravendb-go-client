@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -25,17 +24,29 @@ func (l *MultiLoaderWithInclude) Include(path string) *MultiLoaderWithInclude {
 
 // results should be map[string]*struct
 func (l *MultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) error {
+	if len(ids) == 0 {
+		return newIllegalArgumentError("ids cannot be empty array")
+	}
+	if err := checkValidLoadMultiArg(results, "results"); err != nil {
+		return err
+	}
+
 	return l._session.loadInternalMulti(results, ids, l._includes)
 }
 
 // TODO: needs a test
 // TODO: better implementation
 func (l *MultiLoaderWithInclude) Load(result interface{}, id string) error {
+	if id == "" {
+		return newIllegalArgumentError("id cannot be empty string")
+	}
+	// TODO: should allow map[string]interface{} as argument? (and therefore use checkValidLoadArg)
+	if err := checkIsPtrPtrStruct(result, "result"); err != nil {
+		return err
+	}
+
 	// create a map[string]typeof(result)
 	rt := reflect.TypeOf(result)
-	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Ptr && rt.Elem().Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("type of result should be pointer-to-struct but is %T", result)
-	}
 	rt = rt.Elem() // it's now ptr-to-struct
 
 	mapType := reflect.MapOf(stringType, rt)

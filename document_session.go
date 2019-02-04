@@ -234,7 +234,6 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 
 	fn := func(res interface{}) error {
 		_, err := s.ExecuteAllPendingLazyOperations()
-		//fmt.Printf("addLazyOperation: result: %T, res: %T, result: %v, res: %v\n", result, res, result, res)
 		// operation carries the result to be set
 		return err
 	}
@@ -292,27 +291,10 @@ func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, in
 	return s.addLazyOperation(results, lazyOp, onEval)
 }
 
-// check if v is a valid argument to Load().
-// it must be *<type> where <type> is *struct
-func checkValidLoadArg(v interface{}, argName string) error {
+func checkIsPtrPtrStruct(v interface{}, argName string) error {
 	if v == nil {
 		return newIllegalArgumentError("%s can't be nil", argName)
 	}
-
-	if _, ok := v.(**map[string]interface{}); ok {
-		return nil
-	}
-
-	// TODO: better error message for *map[string]interface{} and map[string]interface{}
-	/* TODO: allow map as an argument
-	if _, ok := v.(map[string]interface{}); ok {
-		if reflect.ValueOf(v).IsNil() {
-			return newIllegalArgumentError("%s can't be a nil map", argName)
-		}
-		return nil
-	}
-	*/
-
 	tp := reflect.TypeOf(v)
 
 	if tp.Kind() == reflect.Struct {
@@ -341,8 +323,30 @@ func checkValidLoadArg(v interface{}, argName string) error {
 	if tp.Elem().Elem().Kind() == reflect.Struct {
 		return nil
 	}
-
 	return newIllegalArgumentError("%s can't be of type %T", argName, v)
+}
+
+// check if v is a valid argument to Load().
+// it must be *<type> where <type> is *struct or map[string]interface{}
+func checkValidLoadArg(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+
+	if _, ok := v.(**map[string]interface{}); ok {
+		return nil
+	}
+
+	// TODO: better error message for *map[string]interface{} and map[string]interface{}
+	/* TODO: allow map as an argument
+	if _, ok := v.(map[string]interface{}); ok {
+		if reflect.ValueOf(v).IsNil() {
+			return newIllegalArgumentError("%s can't be a nil map", argName)
+		}
+		return nil
+	}
+	*/
+	return checkIsPtrPtrStruct(v, argName)
 }
 
 func (s *DocumentSession) Load(result interface{}, id string) error {
@@ -373,7 +377,7 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 	return loadOperation.getDocument(result)
 }
 
-// check if v is a valid argument to Load().
+// check if v is a valid argument to LoadMulti().
 // it must be map[string]*<type> where <type> is struct
 func checkValidLoadMultiArg(v interface{}, argName string) error {
 	if v == nil {
@@ -470,6 +474,7 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 }
 
 func (s *DocumentSession) LoadStartingWith(results interface{}, args *StartsWithArgs) error {
+	// TODO: early validation of results
 	loadStartingWithOperation := NewLoadStartingWithOperation(s.InMemoryDocumentSessionOperations)
 	if args.PageSize == 0 {
 		args.PageSize = 25

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -28,52 +27,31 @@ func (l *LazyMultiLoaderWithInclude) Include(path string) *LazyMultiLoaderWithIn
 
 // LoadMulti lazily loads multiple values of a given type with given ids
 // TODO: not covered by tests at all
-func (l *LazyMultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) *Lazy {
-	return l._session.lazyLoadInternal(results, ids, l._includes, nil)
-}
-
-// m is a single-element map[string]*struct
-// returns single map value
-func getOneMapValue(results interface{}) (interface{}, error) {
-	m := reflect.ValueOf(results)
-	if m.Type().Kind() != reflect.Map {
-		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+func (l *LazyMultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) (*Lazy, error) {
+	if len(ids) == 0 {
+		return nil, newIllegalArgumentError("ids cannot be empty array")
 	}
-	mapKeyType := m.Type().Key()
-	if mapKeyType != stringType {
-		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
-	}
-	mapElemPtrType := m.Type().Elem()
-	if mapElemPtrType.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
+	if err := checkValidLoadMultiArg(results, "results"); err != nil {
+		return nil, err
 	}
 
-	mapElemType := mapElemPtrType.Elem()
-	if mapElemType.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
-	}
-	keys := m.MapKeys()
-	if len(keys) == 0 {
-		return nil, nil
-	}
-	if len(keys) != 1 {
-		return nil, fmt.Errorf("expected results to have only one element, has %d", len(keys))
-	}
-	v := m.MapIndex(keys[0])
-	return v.Interface(), nil
+	return l._session.lazyLoadInternal(results, ids, l._includes, nil), nil
 }
 
 // Load lazy loads a value with a given id into result
-func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) *Lazy {
+func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) (*Lazy, error) {
+	if id == "" {
+		return nil, newIllegalArgumentError("id cannot be empty string")
+	}
+	// TODO: should allow map[string]interface{} as argument? (and therefore use checkValidLoadArg)
+	if err := checkIsPtrPtrStruct(result, "result"); err != nil {
+		return nil, err
+	}
+
 	ids := []string{id}
 	// result should be **Foo, make map[string]*Foo
 
 	tp := reflect.TypeOf(result)
-	if tp.Kind() != reflect.Ptr && tp.Elem().Kind() != reflect.Ptr {
-		// TODO: return as an error
-		panicIf(true, "expected result to be **Foo, is %T", result)
-	}
-
 	resultType := reflect.MapOf(stringType, tp.Elem())
 	results := reflect.MakeMap(resultType).Interface()
 
@@ -99,5 +77,5 @@ func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) *Lazy {
 		setInterfaceToValue(result, res.Interface())
 		return nil
 	}
-	return NewLazy(result, valueFactory)
+	return NewLazy(result, valueFactory), nil
 }
