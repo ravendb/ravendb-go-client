@@ -1,40 +1,38 @@
 package ravendb
 
-var _ ISuggestionBuilder = &SuggestionBuilder{}
-var _ ISuggestionOperations = &SuggestionBuilder{}
-
+// SuggestionsBuilder helps to build argument to SuggestUsing
 type SuggestionBuilder struct {
-	_term  *SuggestionWithTerm
-	_terms *SuggestionWithTerms
+	term  *SuggestionWithTerm
+	terms *SuggestionWithTerms
 }
 
 func NewSuggestionBuilder() *SuggestionBuilder {
 	return &SuggestionBuilder{}
 }
 
-func (b *SuggestionBuilder) ByField(fieldName string, term string, terms ...string) ISuggestionOperations {
+func (b *SuggestionBuilder) ByField(fieldName string, term string, terms ...string) *SuggestionBuilder {
 	panicIf(fieldName == "", "fieldName cannot be empty")
 	panicIf(term == "", "term cannot be empty")
 	if len(terms) > 0 {
-		b._terms = NewSuggestionWithTerms(fieldName)
-		b._terms.Terms = append([]string{term}, terms...)
+		b.terms = NewSuggestionWithTerms(fieldName)
+		b.terms.Terms = append([]string{term}, terms...)
 	} else {
-		b._term = NewSuggestionWithTerm(fieldName)
-		b._term.Term = term
+		b.term = NewSuggestionWithTerm(fieldName)
+		b.term.Term = term
 	}
 	return b
 }
 
-func (b *SuggestionBuilder) getSuggestion() SuggestionBase {
-	if b._term != nil {
-		return b._term
+func (b *SuggestionBuilder) GetSuggestion() SuggestionBase {
+	if b.term != nil {
+		return b.term
 	}
 
-	return b._terms
+	return b.terms
 }
 
-func (b *SuggestionBuilder) WithOptions(options *SuggestionOptions) ISuggestionOperations {
-	b.getSuggestion().SetOptions(options)
+func (b *SuggestionBuilder) WithOptions(options *SuggestionOptions) *SuggestionBuilder {
+	b.GetSuggestion().SetOptions(options)
 
 	return b
 }

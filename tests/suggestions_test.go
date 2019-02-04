@@ -71,10 +71,10 @@ func suggestionsExactMatch(t *testing.T, driver *RavenTestDriver) {
 			IndexName: "test",
 		}
 		q := session.QueryWithQuery(queryIndex)
-		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "Oren").WithOptions(options)
-		}
-		q2 := q.SuggestUsingBuilder(fn)
+		x := ravendb.NewSuggestionBuilder()
+		x = x.ByField("name", "Oren").WithOptions(options)
+		q2, err := q.SuggestUsing(x.GetSuggestion())
+		assert.NoError(t, err)
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -96,10 +96,10 @@ func suggestionsUsingLinq(t *testing.T, driver *RavenTestDriver) {
 			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
-		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "Owen")
-		}
-		q2 := q.SuggestUsingBuilder(fn)
+		x := ravendb.NewSuggestionBuilder()
+		x = x.ByField("name", "Owen")
+		q2, err := q.SuggestUsing(x.GetSuggestion())
+		assert.NoError(t, err)
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -125,10 +125,10 @@ func suggestionsUsingLinqWithOptions(t *testing.T, driver *RavenTestDriver) {
 			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
-		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "Owen").WithOptions(options)
-		}
-		q2 := q.SuggestUsingBuilder(fn)
+		x := ravendb.NewSuggestionBuilder()
+		x = x.ByField("name", "Owen").WithOptions(options)
+		q2, err := q.SuggestUsing(x.GetSuggestion())
+		assert.NoError(t, err)
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -156,10 +156,10 @@ func suggestionsUsingLinqMultipleWords(t *testing.T, driver *RavenTestDriver) {
 			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
-		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "John Steinback").WithOptions(options)
-		}
-		q2 := q.SuggestUsingBuilder(fn)
+		x := ravendb.NewSuggestionBuilder()
+		x = x.ByField("name", "John Steinback").WithOptions(options)
+		q2, err := q.SuggestUsing(x.GetSuggestion())
+		assert.NoError(t, err)
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -188,10 +188,10 @@ func suggestionsWithTypo(t *testing.T, driver *RavenTestDriver) {
 			IndexName: "test",
 		}
 		q := s.QueryWithQuery(queryIndex)
-		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "Oern").WithOptions(options)
-		}
-		q2 := q.SuggestUsingBuilder(fn)
+		x := ravendb.NewSuggestionBuilder()
+		x = x.ByField("name", "Oern").WithOptions(options)
+		q2, err := q.SuggestUsing(x.GetSuggestion())
+		assert.NoError(t, err)
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -270,10 +270,9 @@ func suggestionsCanGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 		options.SortMode = ravendb.SuggestionSortModePopularity
 
 		q := session.QueryInIndex(index)
-		fn := func(x ravendb.ISuggestionBuilder) {
-			x.ByField("name", "johne", "davi").WithOptions(options)
-		}
-		q2 := q.SuggestUsingBuilder(fn)
+		x := ravendb.NewSuggestionBuilder()
+		x = x.ByField("name", "johne", "davi").WithOptions(options)
+		q2, err := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 

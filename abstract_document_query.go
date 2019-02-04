@@ -1947,14 +1947,15 @@ func (q *AbstractDocumentQuery) CountLazily(results interface{}, count *int) (*L
 	return q.theSession.session.addLazyCountOperation(count, lazyQueryOperation), nil
 }
 
-// SuggestUsing adds a query part for suggestions
-func (q *AbstractDocumentQuery) suggestUsing(suggestion SuggestionBase) {
+// suggestUsing adds a query part for suggestions
+func (q *AbstractDocumentQuery) suggestUsing(suggestion SuggestionBase) error {
 	if suggestion == nil {
-		panic(newIllegalArgumentError("suggestion cannot be null"))
-		// throw new IllegalArgumentError("suggestion cannot be null");
+		return newIllegalArgumentError("suggestion cannot be null")
 	}
 
-	q.assertCanSuggest()
+	if err := q.assertCanSuggest(); err != nil {
+		return err
+	}
 
 	var token *suggestToken
 
@@ -1971,10 +1972,10 @@ func (q *AbstractDocumentQuery) suggestUsing(suggestion SuggestionBase) {
 			optionsParameterName: q.getOptionsParameterName(terms.Options),
 		}
 	} else {
-		// throw new UnsupportedOperationError("Unknown type of suggestion: " + suggestion.getClass());
-		panic(newUnsupportedOperationError("Unknown type of suggestion: %T", suggestion))
+		return newUnsupportedOperationError("Unknown type of suggestion: %T", suggestion)
 	}
 	q.selectTokens = append(q.selectTokens, token)
+	return nil
 }
 
 func (q *AbstractDocumentQuery) getOptionsParameterName(options *SuggestionOptions) string {
@@ -1986,19 +1987,17 @@ func (q *AbstractDocumentQuery) getOptionsParameterName(options *SuggestionOptio
 	return optionsParameterName
 }
 
-func (q *AbstractDocumentQuery) assertCanSuggest() {
+func (q *AbstractDocumentQuery) assertCanSuggest() error {
 	if len(q.whereTokens) > 0 {
-		//throw new IllegalStateError("Cannot add suggest when WHERE statements are present.");
-		panicIf(true, "Cannot add suggest when WHERE statements are present.")
+		return newIllegalStateError("Cannot add suggest when WHERE statements are present.")
 	}
 
 	if len(q.selectTokens) > 0 {
-		//throw new IllegalStateError("Cannot add suggest when SELECT statements are present.");
-		panicIf(true, "Cannot add suggest when SELECT statements are present.")
+		return newIllegalStateError("Cannot add suggest when SELECT statements are present.")
 	}
 
 	if len(q.orderByTokens) > 0 {
-		//throw new IllegalStateError("Cannot add suggest when ORDER BY statements are present.");
-		panicIf(true, "Cannot add suggest when ORDER BY statements are present.")
+		return newIllegalStateError("Cannot add suggest when ORDER BY statements are present.")
 	}
+	return nil
 }
