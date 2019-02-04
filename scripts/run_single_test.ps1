@@ -34,6 +34,7 @@ go clean -testcache
 #go test -v -race -timeout 50s ./tests -run ^TestGo1$
 go test -v -race -timeout 50s ./tests -run ^TestAggressiveCaching$
 go test -v -race -timeout 50s ./tests -run ^TestChanges$
+go test -v -race -timeout 50s ./tests -run ^TestDeleteByQuery$
 
 if (0) {
     # those are tests for exercising documentInfo.setEntity()

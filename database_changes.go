@@ -33,7 +33,7 @@ type DatabaseChanges struct {
 
 	mu            sync.Mutex // protects confirmations and counters maps
 	confirmations map[int]*completableFuture
-	counters      map[string]*DatabaseConnectionState
+	counters      map[string]*databaseConnectionState
 
 	immediateConnection atomicInteger
 
@@ -51,7 +51,7 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		onDispose:                       onDispose,
 		connectionStatusEventHandlerIdx: -1,
 		confirmations:                   map[int]*completableFuture{},
-		counters:                        map[string]*DatabaseConnectionState{},
+		counters:                        map[string]*databaseConnectionState{},
 	}
 
 	res.task = newCompletableFuture()
@@ -125,19 +125,25 @@ func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
 	}
 }
 
-func (c *DatabaseChanges) ForIndex(indexName string) (IChangesObservable, error) {
+type CloseFunc func()
+
+func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (CloseFunc, error) {
 	counter, err := c.getOrAddConnectionState("indexes/"+indexName, "watch-index", "unwatch-index", indexName)
 	if err != nil {
 		return nil, err
 	}
 
-	filter := func(notification interface{}) bool {
-		v := notification.(*IndexChange)
-		return strings.EqualFold(v.Name, indexName)
+	filtered := func(change *IndexChange) {
+		if strings.EqualFold(change.Name, indexName) {
+			cb(change)
+		}
+	}
+	idx := counter.addOnIndexChangeNotification(filtered)
+	cancel := func() {
+		counter.removeOnIndexChangeNotification(idx)
 	}
 
-	taskedObservable := NewChangesObservable(ChangeIndex, counter, filter)
-	return taskedObservable, nil
+	return cancel, nil
 }
 
 func (c *DatabaseChanges) getLastConnectionStateError() error {
@@ -150,91 +156,105 @@ func (c *DatabaseChanges) getLastConnectionStateError() error {
 	return nil
 }
 
-func (c *DatabaseChanges) ForDocument(docID string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (CloseFunc, error) {
 	counter, err := c.getOrAddConnectionState("docs/"+docID, "watch-doc", "unwatch-doc", docID)
 	if err != nil {
 		return nil, err
 	}
 
-	filter := func(notification interface{}) bool {
-		v := notification.(*DocumentChange)
-		return strings.EqualFold(v.ID, docID)
+	filtered := func(v *DocumentChange) {
+		if strings.EqualFold(v.ID, docID) {
+			cb(v)
+		}
 	}
-	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
-	return taskedObservable, nil
+	idx := counter.addOnDocumentChangeNotification(filtered)
+	cancel := func() {
+		counter.removeOnDocumentChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func filterAlwaysTrue(notification interface{}) bool {
-	return true
-}
-
-func (c *DatabaseChanges) ForAllDocuments() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CloseFunc, error) {
 	counter, err := c.getOrAddConnectionState("all-docs", "watch-docs", "unwatch-docs", "")
 	if err != nil {
 		return nil, err
 	}
-	taskedObservable := NewChangesObservable(ChangeDocument, counter, filterAlwaysTrue)
-	return taskedObservable, nil
+	idx := counter.addOnDocumentChangeNotification(cb)
+	cancel := func() {
+		counter.removeOnDocumentChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForOperationID(operationID int64) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationStatusChange)) (CloseFunc, error) {
 	opIDStr := i64toa(operationID)
 	counter, err := c.getOrAddConnectionState("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
 		return nil, err
 	}
 
-	filter := func(notification interface{}) bool {
-		v := notification.(*OperationStatusChange)
-		return v.OperationID == operationID
+	filtered := func(v *OperationStatusChange) {
+		if v.OperationID == operationID {
+			cb(v)
+		}
 	}
-	taskedObservable := NewChangesObservable(ChangeOperation, counter, filter)
-	return taskedObservable, nil
+
+	idx := counter.addOnOperationChangeNotification(filtered)
+	cancel := func() {
+		counter.removeOnOperationChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllOperations() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (CloseFunc, error) {
 	counter, err := c.getOrAddConnectionState("all-operations", "watch-operations", "unwatch-operations", "")
 	if err != nil {
 		return nil, err
 	}
-
-	taskedObservable := NewChangesObservable(ChangeOperation, counter, filterAlwaysTrue)
-
-	return taskedObservable, nil
+	idx := counter.addOnOperationChangeNotification(cb)
+	cancel := func() {
+		counter.removeOnOperationChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllIndexes() (IChangesObservable, error) {
+func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CloseFunc, error) {
 	counter, err := c.getOrAddConnectionState("all-indexes", "watch-indexes", "unwatch-indexes", "")
 	if err != nil {
 		return nil, err
 	}
 
-	taskedObservable := NewChangesObservable(ChangeIndex, counter, filterAlwaysTrue)
-
-	return taskedObservable, nil
+	idx := counter.addOnIndexChangeNotification(cb)
+	cancel := func() {
+		counter.removeOnIndexChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*DocumentChange)) (CloseFunc, error) {
 	counter, err := c.getOrAddConnectionState("prefixes/"+docIDPrefix, "watch-prefix", "unwatch-prefix", docIDPrefix)
 	if err != nil {
 		return nil, err
 	}
-	filter := func(notification interface{}) bool {
-		v := notification.(*DocumentChange)
+	filtered := func(v *DocumentChange) {
 		n := len(docIDPrefix)
 		if n > len(v.ID) {
-			return false
+			return
 		}
 		prefix := v.ID[:n]
-		return strings.EqualFold(prefix, docIDPrefix)
+		if strings.EqualFold(prefix, docIDPrefix) {
+			cb(v)
+		}
 	}
 
-	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
-
-	return taskedObservable, nil
+	idx := counter.addOnDocumentChangeNotification(filtered)
+	cancel := func() {
+		counter.removeOnDocumentChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb func(*DocumentChange)) (CloseFunc, error) {
 	if collectionName == "" {
 		return nil, newIllegalArgumentError("CollectionName cannot be empty")
 	}
@@ -244,19 +264,21 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (IChan
 		return nil, err
 	}
 
-	filter := func(notification interface{}) bool {
-		v := notification.(*DocumentChange)
-		return strings.EqualFold(collectionName, v.CollectionName)
+	filtered := func(v *DocumentChange) {
+		if strings.EqualFold(collectionName, v.CollectionName) {
+			cb(v)
+		}
 	}
-
-	taskedObservable := NewChangesObservable(ChangeDocument, counter, filter)
-
-	return taskedObservable, nil
+	idx := counter.addOnDocumentChangeNotification(filtered)
+	cancel := func() {
+		counter.removeOnDocumentChangeNotification(idx)
+	}
+	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type) (IChangesObservable, error) {
+func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb func(*DocumentChange)) (CloseFunc, error) {
 	collectionName := c.conventions.GetCollectionName(clazz)
-	return c.ForDocumentsInCollection(collectionName)
+	return c.ForDocumentsInCollection(collectionName, cb)
 }
 
 func (c *DatabaseChanges) invokeConnectionStatusChanged() {
@@ -336,7 +358,7 @@ func (c *DatabaseChanges) Close() {
 	}
 }
 
-func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*DatabaseConnectionState, error) {
+func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand string, unwatchCommand string, value string) (*databaseConnectionState, error) {
 	c.mu.Lock()
 	counter, ok := c.counters[name]
 	c.mu.Unlock()
@@ -364,7 +386,7 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 		c.send(watchCommand, value)
 	}
 
-	counter = NewDatabaseConnectionState(onConnect, onDisconnect)
+	counter = newDatabaseConnectionState(onConnect, onDisconnect)
 	c.mu.Lock()
 	c.counters[name] = counter
 	c.mu.Unlock()
@@ -475,7 +497,7 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 
 		c.immediateConnection.set(1)
 
-		var counters []*DatabaseConnectionState
+		var counters []*databaseConnectionState
 		c.mu.Lock()
 		for _, counter := range c.counters {
 			counters = append(counters, counter)
@@ -519,7 +541,7 @@ func (c *DatabaseChanges) reconnectClient(ctx context.Context) bool {
 	return true
 }
 
-func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, states []*DatabaseConnectionState) error {
+func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}, states []*databaseConnectionState) error {
 	switch typ {
 	case "DocumentChange":
 		var documentChange *DocumentChange
@@ -602,7 +624,7 @@ func (c *DatabaseChanges) processMessages(ctx context.Context) {
 				}
 			default:
 				val := msgNode["Value"]
-				var states []*DatabaseConnectionState
+				var states []*databaseConnectionState
 				for _, state := range c.counters {
 					states = append(states, state)
 				}
