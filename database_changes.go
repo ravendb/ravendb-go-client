@@ -17,8 +17,6 @@ import (
 type DatabaseChanges struct {
 	commandID atomicInteger
 
-	semaphore sync.Mutex
-
 	requestExecutor *RequestExecutor
 	conventions     *DocumentConventions
 	database        string
@@ -56,6 +54,11 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		counters:                        map[string]*DatabaseConnectionState{},
 	}
 
+	cb := func() {
+		res.onConnectionStatusChanged()
+	}
+	res.connectionStatusEventHandlerIdx = res.AddConnectionStatusChanged(cb)
+
 	res.task = newCompletableFuture()
 	go func() {
 		err := res.doWork()
@@ -66,16 +69,12 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		}
 	}()
 
-	_connectionStatusEventHandler := func() {
-		res.onConnectionStatusChanged()
-	}
-	res.connectionStatusEventHandlerIdx = res.AddConnectionStatusChanged(_connectionStatusEventHandler)
 	return res
 }
 
 func (c *DatabaseChanges) onConnectionStatusChanged() {
-	c.semAcquire()
-	defer c.semRelease()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if c.IsConnected() {
 		c.tcs.complete(c)
@@ -378,18 +377,8 @@ func (c *DatabaseChanges) getOrAddConnectionState(name string, watchCommand stri
 	return counter, nil
 }
 
-func (c *DatabaseChanges) semAcquire() {
-	c.semaphore.Lock()
-}
-
-func (c *DatabaseChanges) semRelease() {
-	c.semaphore.Unlock()
-}
-
 func (c *DatabaseChanges) send(command, value string) error {
 	taskCompletionSource := newCompletableFuture()
-
-	c.semAcquire()
 
 	currentCommandID := c.commandID.incrementAndGet()
 
@@ -405,9 +394,10 @@ func (c *DatabaseChanges) send(command, value string) error {
 
 	client := c.getWsClient()
 	err := client.WriteJSON(o)
+	c.mu.Lock()
 	c.confirmations[currentCommandID] = taskCompletionSource
+	c.mu.Unlock()
 
-	c.semRelease()
 	if err != nil {
 		dbg("DatabaseChanges.send: WriteJSON() failed with %s\n", err)
 		return err
@@ -439,7 +429,6 @@ func (c *DatabaseChanges) doWork() error {
 			return nil
 		}
 
-		var processor *webSocketChangesProcessor
 		var err error
 		panicIf(c.IsConnected(), "impoosible: cannot be connected")
 
@@ -473,18 +462,12 @@ func (c *DatabaseChanges) doWork() error {
 			continue
 		}
 
-		processor = newWebSocketChangesProcessor(client)
-		go processor.processMessages(c)
 		c.immediateConnection.set(1)
-
-		c.mu.Lock()
 		for _, counter := range c.counters {
 			counter.onConnect()
 		}
-		c.mu.Unlock()
-
 		c.invokeConnectionStatusChanged()
-		processor.processing.Get()
+		c.processMessages()
 		c.invokeConnectionStatusChanged()
 		shouldReconnect := c.reconnectClient()
 
@@ -568,23 +551,11 @@ func (c *DatabaseChanges) notifyAboutError(e error) {
 	}
 }
 
-type webSocketChangesProcessor struct {
-	processing *completableFuture
-	client     *websocket.Conn
-}
-
-func newWebSocketChangesProcessor(client *websocket.Conn) *webSocketChangesProcessor {
-	return &webSocketChangesProcessor{
-		processing: newCompletableFuture(),
-		client:     client,
-	}
-}
-
-func (p *webSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
+func (c *DatabaseChanges) processMessages() {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
-		err = p.client.ReadJSON(&msgArray)
+		err = c.client.ReadJSON(&msgArray)
 		if err != nil {
 			dbg("webSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
 			break
@@ -596,13 +567,13 @@ func (p *webSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 			switch typ {
 			case "Error":
 				errStr, _ := jsonGetAsString(msgNode, "Error")
-				changes.notifyAboutError(newRuntimeError("%s", errStr))
+				c.notifyAboutError(newRuntimeError("%s", errStr))
 			case "Confirm":
 				commandID, ok := jsonGetAsInt(msgNode, "CommandId")
 				if ok {
-					changes.semAcquire()
-					future := changes.confirmations[commandID]
-					changes.semRelease()
+					c.mu.Lock()
+					future := c.confirmations[commandID]
+					c.mu.Unlock()
 					if future != nil {
 						future.complete(nil)
 					}
@@ -610,14 +581,13 @@ func (p *webSocketChangesProcessor) processMessages(changes *DatabaseChanges) {
 			default:
 				val := msgNode["Value"]
 				var states []*DatabaseConnectionState
-				for _, state := range changes.counters {
+				for _, state := range c.counters {
 					states = append(states, state)
 				}
-				changes.notifySubscribers(typ, val, states)
+				c.notifySubscribers(typ, val, states)
 			}
 		}
 	}
 	// TODO: check for io.EOF for clean connection close?
-	changes.notifyAboutError(err)
-	p.processing.completeWithError(err)
+	c.notifyAboutError(err)
 }
