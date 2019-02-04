@@ -52,7 +52,7 @@ type RequestExecutor struct {
 	disableTopologyUpdates            bool
 	disableClientConfigurationUpdates bool
 
-	_firstTopologyUpdate *completableFuture
+	firstTopologyUpdateFuture *completableFuture
 
 	readBalanceBehavior   ReadBalanceBehavior
 	Cache                 *HttpCache
@@ -63,7 +63,7 @@ type RequestExecutor struct {
 
 	mu sync.Mutex
 
-	disposed bool
+	disposed int32 // atomic
 
 	// those are needed to implement ClusterRequestExecutor logic
 	isCluster                bool
@@ -88,6 +88,15 @@ func (re *RequestExecutor) getNodeSelector() *NodeSelector {
 
 func (re *RequestExecutor) setNodeSelector(s *NodeSelector) {
 	re.nodeSelector.Store(s)
+}
+
+func (re *RequestExecutor) markDisposed() {
+	atomic.StoreInt32(&re.disposed, 1)
+}
+
+func (re *RequestExecutor) isDisposed() bool {
+	v := atomic.LoadInt32(&re.disposed)
+	return v > 0
 }
 
 func (re *RequestExecutor) GetTopology() *Topology {
@@ -163,7 +172,7 @@ func NewClusterRequestExecutor(certificate *tls.Certificate, trustStore *x509.Ce
 func RequestExecutorCreate(initialUrls []string, databaseName string, certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions) *RequestExecutor {
 	re := NewRequestExecutor(databaseName, certificate, trustStore, conventions, initialUrls)
 	re.mu.Lock()
-	re._firstTopologyUpdate = re.firstTopologyUpdate(initialUrls)
+	re.firstTopologyUpdateFuture = re.firstTopologyUpdate(initialUrls)
 	re.mu.Unlock()
 	return re
 }
@@ -239,7 +248,7 @@ func ClusterRequestExecutorCreate(initialUrls []string, certificate *tls.Certifi
 
 	executor.disableClientConfigurationUpdates = true
 	executor.mu.Lock()
-	executor._firstTopologyUpdate = executor.firstTopologyUpdate(initialUrls)
+	executor.firstTopologyUpdateFuture = executor.firstTopologyUpdate(initialUrls)
 	executor.mu.Unlock()
 
 	return executor
@@ -256,7 +265,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 		return re.clusterUpdateClientConfigurationAsync()
 	}
 
-	if re.disposed {
+	if re.isDisposed() {
 		return newCompletableFutureAlreadyCompleted(nil)
 	}
 
@@ -300,7 +309,7 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 		re.conventions.UpdateFrom(result.Configuration)
 		re.ClientConfigurationEtag = result.Etag
 
-		if re.disposed {
+		if re.isDisposed() {
 			return
 		}
 	}
@@ -316,7 +325,7 @@ func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) *c
 func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *completableFuture {
 	panicIf(!re.isCluster, "clusterUpdateTopologyAsyncWithForceUpdate() called on non-cluster RequestExecutor")
 
-	if re.disposed {
+	if re.isDisposed() {
 		return newCompletableFutureAlreadyCompleted(false)
 	}
 
@@ -325,7 +334,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		var err error
 		var res bool
 		defer func() {
-			if err != nil && !re.disposed {
+			if err != nil && !re.isDisposed() {
 				err = nil
 			}
 			if err != nil {
@@ -337,7 +346,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 		}()
 
 		re.clusterTopologySemaphore.acquire()
-		if re.disposed {
+		if re.isDisposed() {
 			res = false
 			return
 		}
@@ -397,7 +406,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 				future.complete(res)
 			}
 		}()
-		if re.disposed {
+		if re.isDisposed() {
 			res = false
 			return
 		}
@@ -442,7 +451,7 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 
 // sessionInfo can be nil
 func (re *RequestExecutor) ExecuteCommand(command RavenCommand, sessionInfo *SessionInfo) error {
-	topologyUpdate := re._firstTopologyUpdate
+	topologyUpdate := re.firstTopologyUpdateFuture
 	isDone := topologyUpdate != nil && topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
 	if isDone || re.disableTopologyUpdates {
 		currentIndexAndNode, err := re.chooseNodeForRequest(command, sessionInfo)
@@ -481,15 +490,15 @@ func (re *RequestExecutor) unlikelyExecuteInner(command RavenCommand, topologyUp
 
 	if topologyUpdate == nil {
 		re.mu.Lock()
-		if re._firstTopologyUpdate == nil {
+		if re.firstTopologyUpdateFuture == nil {
 			if len(re.lastKnownUrls) == 0 {
 				re.mu.Unlock()
 				return nil, newIllegalStateError("No known topology and no previously known one, cannot proceed, likely a bug")
 			}
 
-			re._firstTopologyUpdate = re.firstTopologyUpdate(re.lastKnownUrls)
+			re.firstTopologyUpdateFuture = re.firstTopologyUpdate(re.lastKnownUrls)
 		}
-		topologyUpdate = re._firstTopologyUpdate
+		topologyUpdate = re.firstTopologyUpdateFuture
 		re.mu.Unlock()
 	}
 
@@ -502,8 +511,8 @@ func (re *RequestExecutor) unlikelyExecute(command RavenCommand, topologyUpdate 
 	topologyUpdate, err = re.unlikelyExecuteInner(command, topologyUpdate, sessionInfo)
 	if err != nil {
 		re.mu.Lock()
-		if re._firstTopologyUpdate == topologyUpdate {
-			re._firstTopologyUpdate = nil // next request will raise it
+		if re.firstTopologyUpdateFuture == topologyUpdate {
+			re.firstTopologyUpdateFuture = nil // next request will raise it
 		}
 		re.mu.Unlock()
 		return err
@@ -1139,7 +1148,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 
 // Close should be called when deleting executor
 func (re *RequestExecutor) Close() {
-	if re.disposed {
+	if re.isDisposed() {
 		return
 	}
 
@@ -1149,7 +1158,7 @@ func (re *RequestExecutor) Close() {
 		re.clusterTopologySemaphore.acquire()
 	}
 
-	re.disposed = true
+	re.markDisposed()
 	re.Cache.Close()
 
 	re.mu.Lock()
@@ -1209,7 +1218,7 @@ func (re *RequestExecutor) getFastestNode() (*CurrentIndexAndNode, error) {
 
 func (re *RequestExecutor) ensureNodeSelector() (*NodeSelector, error) {
 	re.mu.Lock()
-	firstTopologyUpdate := re._firstTopologyUpdate
+	firstTopologyUpdate := re.firstTopologyUpdateFuture
 	re.mu.Unlock()
 
 	if firstTopologyUpdate != nil && (!firstTopologyUpdate.IsDone() || firstTopologyUpdate.IsCompletedExceptionally()) {
@@ -1271,7 +1280,7 @@ func (s *NodeStatus) updateTimer() {
 }
 
 func (s *NodeStatus) timerCallback() {
-	if !s._requestExecutor.disposed {
+	if !s._requestExecutor.isDisposed() {
 		s._requestExecutor.checkNodeStatusCallback(s)
 	}
 }
