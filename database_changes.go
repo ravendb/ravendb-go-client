@@ -38,9 +38,8 @@ type DatabaseChanges struct {
 
 	immediateConnection int32 // atomic bool
 
-	connectionStatusEventHandlerIdx int
-	connectionStatusChanged         []func()
-	onError                         []func(error)
+	connectionStatusChanged []func()
+	onError                 []func(error)
 }
 
 func (c *DatabaseChanges) nextCommandID() int {
@@ -50,14 +49,13 @@ func (c *DatabaseChanges) nextCommandID() int {
 
 func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose func()) *DatabaseChanges {
 	res := &DatabaseChanges{
-		requestExecutor:                 requestExecutor,
-		conventions:                     requestExecutor.GetConventions(),
-		database:                        databaseName,
-		tcs:                             newCompletableFuture(),
-		onDispose:                       onDispose,
-		connectionStatusEventHandlerIdx: -1,
-		confirmations:                   map[int]*completableFuture{},
-		counters:                        map[string]*databaseConnectionState{},
+		requestExecutor: requestExecutor,
+		conventions:     requestExecutor.GetConventions(),
+		database:        databaseName,
+		tcs:             newCompletableFuture(),
+		onDispose:       onDispose,
+		confirmations:   map[int]*completableFuture{},
+		counters:        map[string]*databaseConnectionState{},
 	}
 
 	res.task = newCompletableFuture()
@@ -72,26 +70,7 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		}
 	}()
 
-	cb := func() {
-		res.onConnectionStatusChanged()
-	}
-	res.connectionStatusEventHandlerIdx = res.AddConnectionStatusChanged(cb)
-
 	return res
-}
-
-func (c *DatabaseChanges) onConnectionStatusChanged() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if c.IsConnected() {
-		c.tcs.complete(c)
-		return
-	}
-
-	if c.tcs.IsDone() {
-		c.tcs = newCompletableFuture()
-	}
 }
 
 func (c *DatabaseChanges) getWsClient() *websocket.Conn {
@@ -288,6 +267,16 @@ func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb 
 }
 
 func (c *DatabaseChanges) invokeConnectionStatusChanged() {
+	{
+		// our internal processing
+		if c.IsConnected() {
+			c.tcs.complete(c)
+		} else if c.tcs.IsDone() {
+			c.tcs = newCompletableFuture()
+		}
+	}
+
+	// call externally registered handlers outside of a lock
 	var dup []func()
 	c.mu.Lock()
 	for _, fn := range c.connectionStatusChanged {
@@ -333,7 +322,6 @@ func (c *DatabaseChanges) invokeOnError(err error) {
 }
 
 func (c *DatabaseChanges) Close() {
-	//fmt.Printf("DatabaseChanges.Close()\n")
 	c.mu.Lock()
 	for _, confirmation := range c.confirmations {
 		confirmation.cancel(false)
@@ -358,10 +346,6 @@ func (c *DatabaseChanges) Close() {
 
 	c.task.Get()
 	c.invokeConnectionStatusChanged()
-	if c.connectionStatusEventHandlerIdx != -1 {
-		c.RemoveConnectionStatusChanged(c.connectionStatusEventHandlerIdx)
-
-	}
 	if c.onDispose != nil {
 		c.onDispose()
 	}
@@ -485,6 +469,7 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 		}
 
 		ctx := context.Background()
+		ctx, _ = context.WithTimeout(ctx, time.Second*5)
 		var client *websocket.Conn
 		client, _, err = dialer.DialContext(ctx, urlString, nil)
 		c.setWsClient(client)
