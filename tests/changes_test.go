@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,16 +15,12 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 	err := changes.EnsureConnectedNow()
 	assert.NoError(t, err)
 
-	observable, err := changes.ForDocument("users/1")
-	assert.NoError(t, err)
-
 	{
-		action := func(v interface{}) {
-			change := v.(*ravendb.DocumentChange)
+		action := func(change *ravendb.DocumentChange) {
 			changesList <- change
 		}
-		observer := ravendb.NewActionBasedObserver(action)
-		subscription := observable.Subscribe(observer)
+		closer, err := changes.ForDocument("users/1", action)
+		assert.NoError(t, err)
 
 		{
 			session := openSessionMust(t, store)
@@ -52,7 +48,8 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 			// ok, no changes
 			assert.True(t, true)
 		}
-		subscription.Close()
+
+		closer()
 	}
 
 	// at this point we should be unsubscribed from changes on 'users/1'
@@ -73,6 +70,8 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 			assert.True(t, true)
 		}
 	}
+
+	changes.Close()
 }
 
 func changesTestSingleDocumentChanges(t *testing.T, driver *RavenTestDriver) {
@@ -104,16 +103,12 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
-		observable, err := changes.ForAllDocuments()
-		assert.NoError(t, err)
-
 		{
-			action := func(v interface{}) {
-				change := v.(*ravendb.DocumentChange)
+			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			observer := ravendb.NewActionBasedObserver(action)
-			subscription := observable.Subscribe(observer)
+			closer, err := changes.ForAllDocuments(action)
+			assert.NoError(t, err)
 
 			{
 				session := openSessionMust(t, store)
@@ -141,7 +136,8 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 				// ok, no changes
 				assert.True(t, true)
 			}
-			subscription.Close()
+
+			closer()
 		}
 
 		// at this point we should be unsubscribed from changes on 'users/1'
@@ -163,6 +159,8 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 				assert.True(t, true)
 			}
 		}
+
+		changes.Close()
 	}
 }
 
@@ -184,16 +182,13 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
-		observable, err := changes.ForIndex(index.IndexName)
-		assert.NoError(t, err)
-
 		{
-			action := func(v interface{}) {
-				change := v.(*ravendb.IndexChange)
+			action := func(change *ravendb.IndexChange) {
 				changesList <- change
 			}
-			observer := ravendb.NewActionBasedObserver(action)
-			subscription := observable.Subscribe(observer)
+			closer, err := changes.ForIndex(index.IndexName, action)
+			assert.NoError(t, err)
+
 			time.Sleep(500 * time.Millisecond)
 			operation, err := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
 			assert.NoError(t, err)
@@ -206,8 +201,11 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			case <-time.After(time.Second * 2):
 				assert.True(t, false, "timed out waiting for changes")
 			}
-			subscription.Close()
+
+			closer()
 		}
+
+		changes.Close()
 	}
 }
 
@@ -227,16 +225,13 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
-		observable, err := changes.ForAllIndexes()
-		assert.NoError(t, err)
-
 		{
-			action := func(v interface{}) {
-				change := v.(*ravendb.IndexChange)
+			action := func(change *ravendb.IndexChange) {
 				changesList <- change
 			}
-			observer := ravendb.NewActionBasedObserver(action)
-			subscription := observable.Subscribe(observer)
+			closer, err := changes.ForAllIndexes(action)
+			assert.NoError(t, err)
+
 			time.Sleep(500 * time.Millisecond)
 			operation, err := ravendb.NewSetIndexesPriorityOperation(index.IndexName, ravendb.IndexPriorityLow)
 			assert.NoError(t, err)
@@ -249,8 +244,10 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			case <-time.After(time.Second * 2):
 				assert.True(t, false, "timed out waiting for changes")
 			}
-			subscription.Close()
+			closer()
 		}
+
+		changes.Close()
 	}
 }
 
@@ -266,16 +263,12 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
-		observable, err := changes.ForDocumentsStartingWith("users/")
-		assert.NoError(t, err)
-
 		{
-			action := func(v interface{}) {
-				change := v.(*ravendb.DocumentChange)
+			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			observer := ravendb.NewActionBasedObserver(action)
-			subscription := observable.Subscribe(observer)
+			closer, err := changes.ForDocumentsStartingWith("users/", action)
+			assert.NoError(t, err)
 
 			{
 				session := openSessionMust(t, store)
@@ -320,9 +313,11 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 			case <-time.After(time.Second * 2):
 				assert.True(t, false, "timed out waiting for changes")
 			}
-			subscription.Close()
 
+			closer()
 		}
+
+		changes.Close()
 	}
 }
 
@@ -338,16 +333,12 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
-		observable, err := changes.ForDocumentsInCollection("users")
-		assert.NoError(t, err)
-
 		{
-			action := func(v interface{}) {
-				change := v.(*ravendb.DocumentChange)
+			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			observer := ravendb.NewActionBasedObserver(action)
-			subscription := observable.Subscribe(observer)
+			closer, err := changes.ForDocumentsInCollection("users", action)
+			assert.NoError(t, err)
 
 			{
 				session := openSessionMust(t, store)
@@ -393,7 +384,7 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 				assert.True(t, false, "timed out waiting for changes")
 			}
 
-			subscription.Close()
+			closer()
 		}
 	}
 }

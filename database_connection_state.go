@@ -1,57 +1,54 @@
 package ravendb
 
 import (
-	"fmt"
 	"sync"
 )
 
-// Note: in Java IChangesConnectionState hides DatabaseConnectionState
+// Note: in Java IChangesConnectionState hides databaseConnectionState
 
-// DatabaseConnectionState represents state of database connection
-// TODO: make private
-type DatabaseConnectionState struct {
+type databaseConnectionState struct {
 	onError []func(error)
 
-	_onDisconnect func()
-	onConnect     func()
+	onDisconnect func()
+	onConnect    func()
 
-	_value    atomicInteger
+	value     atomicInteger
 	lastError error
 
-	onDocumentChangeNotification        []func(interface{})
-	onIndexChangeNotification           []func(interface{})
-	onOperationStatusChangeNotification []func(interface{})
+	onDocumentChangeNotification        []func(*DocumentChange)
+	onIndexChangeNotification           []func(*IndexChange)
+	onOperationStatusChangeNotification []func(*OperationStatusChange)
 
 	// protects arrays
 	mu sync.Mutex
 }
 
-func (s *DatabaseConnectionState) addOnError(handler func(error)) int {
+func (s *databaseConnectionState) addOnError(handler func(error)) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.onError = append(s.onError, handler)
 	return len(s.onError) - 1
 }
 
-func (s *DatabaseConnectionState) removeOnError(idx int) {
+func (s *databaseConnectionState) removeOnError(idx int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.onError[idx] = nil
 }
 
-func (s *DatabaseConnectionState) inc() {
-	s._value.incrementAndGet()
+func (s *databaseConnectionState) inc() {
+	s.value.incrementAndGet()
 }
 
-func (s *DatabaseConnectionState) dec() {
-	if s._value.decrementAndGet() == 0 {
-		if s._onDisconnect != nil {
-			s._onDisconnect()
+func (s *databaseConnectionState) dec() {
+	if s.value.decrementAndGet() == 0 {
+		if s.onDisconnect != nil {
+			s.onDisconnect()
 		}
 	}
 }
 
-func (s *DatabaseConnectionState) error(e error) {
+func (s *databaseConnectionState) error(e error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.lastError = e
@@ -63,73 +60,59 @@ func (s *DatabaseConnectionState) error(e error) {
 }
 
 // Close closes the connection
-func (s *DatabaseConnectionState) Close() error {
+func (s *databaseConnectionState) Close() error {
 	// Note: not clearing as in Java because removeOnChangeNotification()
 	// can be called after Close()
 	return nil
 }
 
-// NewDatabaseConnectionState returns new DatabaseConnectionState
-func NewDatabaseConnectionState(onConnect func(), onDisconnect func()) *DatabaseConnectionState {
-	return &DatabaseConnectionState{
-		onConnect:     onConnect,
-		_onDisconnect: onDisconnect,
+func newDatabaseConnectionState(onConnect func(), onDisconnect func()) *databaseConnectionState {
+	return &databaseConnectionState{
+		onConnect:    onConnect,
+		onDisconnect: onDisconnect,
 	}
 }
 
-func (s *DatabaseConnectionState) addOnChangeNotification(typ ChangesType, handler func(interface{})) int {
+func (s *databaseConnectionState) addOnDocumentChangeNotification(handler func(*DocumentChange)) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	var idx int
-	switch typ {
-	case ChangeDocument:
-		idx = len(s.onDocumentChangeNotification)
-		s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, handler)
-	case ChangeIndex:
-		idx = len(s.onIndexChangeNotification)
-		s.onIndexChangeNotification = append(s.onIndexChangeNotification, handler)
-	case ChangeOperation:
-		idx = len(s.onOperationStatusChangeNotification)
-		s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, handler)
-	default:
-		//throw new IllegalStateError("ChangeType: " + type + " is not supported");
-		panicIf(true, "ChangeType: %s is not supported", typ)
-	}
-	return idx
+	s.onDocumentChangeNotification = append(s.onDocumentChangeNotification, handler)
+	return len(s.onDocumentChangeNotification) - 1
 }
 
-func (s *DatabaseConnectionState) removeOnChangeNotification(typ ChangesType, idx int) {
+func (s *databaseConnectionState) addOnIndexChangeNotification(handler func(*IndexChange)) int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	switch typ {
-	case ChangeDocument:
-		s.onDocumentChangeNotification[idx] = nil
-	case ChangeIndex:
-		s.onIndexChangeNotification[idx] = nil
-	case ChangeOperation:
-		s.onOperationStatusChangeNotification[idx] = nil
-	default:
-		//throw new IllegalStateError("ChangeType: " + type + " is not supported");
-		panicIf(true, "ChangeType: %s is not supported", typ)
-	}
+	s.onIndexChangeNotification = append(s.onIndexChangeNotification, handler)
+	return len(s.onIndexChangeNotification) - 1
 }
 
-func (s *DatabaseConnectionState) send(v interface{}) error {
-	switch rv := v.(type) {
-	case *DocumentChange:
-		s.sendDocumentChange(rv)
-	case *IndexChange:
-		s.sendIndexChange(rv)
-	case *OperationStatusChange:
-		s.sendOperationStatusChange(rv)
-	default:
-		return fmt.Errorf("DatabaseConnectionState.send(): unsupporrted type %T", v)
-	}
-	return nil
+func (s *databaseConnectionState) addOnOperationChangeNotification(handler func(*OperationStatusChange)) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onOperationStatusChangeNotification = append(s.onOperationStatusChangeNotification, handler)
+	return len(s.onOperationStatusChangeNotification) - 1
 }
 
-func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
+func (s *databaseConnectionState) removeOnDocumentChangeNotification(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onDocumentChangeNotification[idx] = nil
+}
+
+func (s *databaseConnectionState) removeOnIndexChangeNotification(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onIndexChangeNotification[idx] = nil
+}
+
+func (s *databaseConnectionState) removeOnOperationChangeNotification(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onOperationStatusChangeNotification[idx] = nil
+}
+
+func (s *databaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, f := range s.onDocumentChangeNotification {
@@ -139,7 +122,7 @@ func (s *DatabaseConnectionState) sendDocumentChange(documentChange *DocumentCha
 	}
 }
 
-func (s *DatabaseConnectionState) sendIndexChange(indexChange *IndexChange) {
+func (s *databaseConnectionState) sendIndexChange(indexChange *IndexChange) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, f := range s.onIndexChangeNotification {
@@ -149,7 +132,7 @@ func (s *DatabaseConnectionState) sendIndexChange(indexChange *IndexChange) {
 	}
 }
 
-func (s *DatabaseConnectionState) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
+func (s *databaseConnectionState) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, f := range s.onOperationStatusChangeNotification {

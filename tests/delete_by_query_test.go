@@ -1,12 +1,13 @@
 package tests
 
 import (
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/require"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -85,15 +86,11 @@ func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTe
 		err = changes.EnsureConnectedNow()
 		require.NoError(t, err)
 
-		//IChangesObservable<OperationStatusChange>
-		allOperationChanges, err := changes.ForAllOperations()
-		require.NoError(t, err)
-
-		action := func(v interface{}) {
+		action := func(v *ravendb.OperationStatusChange) {
 			semaphore <- true
 		}
-		observer := ravendb.NewActionBasedObserver(action)
-		allOperationChanges.Subscribe(observer)
+		closer, err := changes.ForAllOperations(action)
+		require.NoError(t, err)
 
 		indexQuery := ravendb.NewIndexQuery("from users where age == 5")
 		operation, err := ravendb.NewDeleteByQueryOperation(indexQuery, nil)
@@ -103,6 +100,8 @@ func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTe
 
 		timedOut := chanWaitTimedOut(semaphore, 15*time.Second)
 		assert.False(t, timedOut)
+
+		closer()
 		changes.Close()
 	}
 }
