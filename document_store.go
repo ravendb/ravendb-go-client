@@ -439,11 +439,7 @@ func (r *RestoreCaching) Close() error {
 	return nil
 }
 
-func (s *DocumentStore) DisableAggressiveCaching() *RestoreCaching {
-	return s.DisableAggressiveCachingWithDatabase("")
-}
-
-func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string) *RestoreCaching {
+func (s *DocumentStore) DisableAggressiveCaching(databaseName string) *RestoreCaching {
 	if databaseName == "" {
 		databaseName = s.GetDatabase()
 	}
@@ -458,11 +454,7 @@ func (s *DocumentStore) DisableAggressiveCachingWithDatabase(databaseName string
 	return res
 }
 
-func (s *DocumentStore) Changes() *DatabaseChanges {
-	return s.ChangesWithDatabaseName("")
-}
-
-func (s *DocumentStore) ChangesWithDatabaseName(database string) *DatabaseChanges {
+func (s *DocumentStore) Changes(database string) *DatabaseChanges {
 	must(s.assertInitialized())
 
 	if database == "" {
@@ -485,6 +477,7 @@ func (s *DocumentStore) ChangesWithDatabaseName(database string) *DatabaseChange
 }
 
 func (s *DocumentStore) createDatabaseChanges(database string) *DatabaseChanges {
+	panicIf(database == "", "database can't be empty string")
 	onDispose := func() {
 		s.mu.Lock()
 		delete(s.databaseChanges, database)

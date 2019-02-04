@@ -68,7 +68,7 @@ func (e *MaintenanceOperationExecutor) SendAsync(operation IMaintenanceOperation
 		return nil, err
 	}
 	fn := func() *DatabaseChanges {
-		return e.store.Changes()
+		return e.store.Changes("")
 	}
 	re := e.GetRequestExecutor()
 	id := getCommandOperationIDResult(command)

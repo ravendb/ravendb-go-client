@@ -502,7 +502,14 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 		c.invokeConnectionStatusChanged()
 		c.processMessages(ctx)
 		c.invokeConnectionStatusChanged()
-		shouldReconnect := c.reconnectClient(ctx)
+
+		shouldReconnect := false
+		{
+			if !isCtxCancelled(ctx) {
+				atomic.StoreInt32(&c.immediateConnection, 0)
+				shouldReconnect = true
+			}
+		}
 
 		c.mu.Lock()
 		for _, confirmation := range c.confirmations {
@@ -522,13 +529,6 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 }
 
 func (c *DatabaseChanges) reconnectClient(ctx context.Context) bool {
-	if isCtxCancelled(ctx) {
-		return false
-	}
-
-	atomic.StoreInt32(&c.immediateConnection, 0)
-
-	c.invokeConnectionStatusChanged()
 	return true
 }
 

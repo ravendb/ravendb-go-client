@@ -82,7 +82,7 @@ func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTe
 	semaphore := make(chan bool)
 
 	{
-		changes := store.Changes()
+		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		require.NoError(t, err)
 
