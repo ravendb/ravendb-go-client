@@ -147,10 +147,9 @@ func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (C
 		return nil, err
 	}
 
-	filtered := func(v *DocumentChange) {
-		if strings.EqualFold(v.ID, docID) {
-			cb(v)
-		}
+	filtered := func(change *DocumentChange) {
+		panicIf(change.ID != docID, "v.ID (%d) != docID", change.ID, docID)
+		cb(change)
 	}
 	idx := counter.addOnDocumentChangeNotification(filtered)
 	cancel := func() {
@@ -221,14 +220,14 @@ func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*
 	if err != nil {
 		return nil, err
 	}
-	filtered := func(v *DocumentChange) {
+	filtered := func(change *DocumentChange) {
 		n := len(docIDPrefix)
-		if n > len(v.ID) {
+		if n > len(change.ID) {
 			return
 		}
-		prefix := v.ID[:n]
+		prefix := change.ID[:n]
 		if strings.EqualFold(prefix, docIDPrefix) {
-			cb(v)
+			cb(change)
 		}
 	}
 
@@ -305,13 +304,12 @@ func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
 }
 
 func (c *DatabaseChanges) invokeOnError(err error) {
-	// make a copy so that we can safely access outside of a lock
+	// call onError handlers outside of a lock
+	var handlers []func(error)
 	c.mu.Lock()
-	if len(c.onError) == 0 {
-		c.mu.Unlock()
-		return
+	if len(c.onError) > 0 {
+		handlers = append(handlers, c.onError...)
 	}
-	handlers := append([]func(error){}, c.onError...)
 	c.mu.Unlock()
 
 	for _, fn := range handlers {
@@ -619,9 +617,11 @@ func (c *DatabaseChanges) processMessages(ctx context.Context) {
 			default:
 				val := msgNode["Value"]
 				var states []*databaseConnectionState
+				c.mu.Lock()
 				for _, state := range c.counters {
 					states = append(states, state)
 				}
+				c.mu.Unlock()
 				c.notifySubscribers(typ, val, states)
 			}
 		}
