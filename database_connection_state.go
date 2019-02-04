@@ -12,8 +12,8 @@ import (
 type DatabaseConnectionState struct {
 	onError []func(error)
 
-	_onDisconnect Runnable
-	onConnect     Runnable
+	_onDisconnect func()
+	onConnect     func()
 
 	_value    atomicInteger
 	lastError error
@@ -70,7 +70,7 @@ func (s *DatabaseConnectionState) Close() error {
 }
 
 // NewDatabaseConnectionState returns new DatabaseConnectionState
-func NewDatabaseConnectionState(onConnect Runnable, onDisconnect Runnable) *DatabaseConnectionState {
+func NewDatabaseConnectionState(onConnect func(), onDisconnect func()) *DatabaseConnectionState {
 	return &DatabaseConnectionState{
 		onConnect:     onConnect,
 		_onDisconnect: onDisconnect,

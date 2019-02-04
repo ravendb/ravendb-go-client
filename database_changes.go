@@ -23,7 +23,7 @@ type databaseChanges struct {
 	conventions     *DocumentConventions
 	database        string
 
-	onDispose Runnable
+	onDispose func()
 
 	client   *websocket.Conn
 	muClient sync.Mutex
@@ -43,7 +43,7 @@ type databaseChanges struct {
 	onError                         []func(error)
 }
 
-func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose Runnable) *databaseChanges {
+func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose func()) *databaseChanges {
 	res := &databaseChanges{
 		requestExecutor:                 requestExecutor,
 		conventions:                     requestExecutor.GetConventions(),
