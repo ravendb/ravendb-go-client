@@ -12,7 +12,6 @@ type databaseConnectionState struct {
 	onDisconnect func()
 	onConnect    func()
 
-	value     atomicInteger
 	lastError error
 
 	onDocumentChangeNotification        []func(*DocumentChange)
@@ -34,18 +33,6 @@ func (s *databaseConnectionState) removeOnError(idx int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.onError[idx] = nil
-}
-
-func (s *databaseConnectionState) inc() {
-	s.value.incrementAndGet()
-}
-
-func (s *databaseConnectionState) dec() {
-	if s.value.decrementAndGet() == 0 {
-		if s.onDisconnect != nil {
-			s.onDisconnect()
-		}
-	}
 }
 
 func (s *databaseConnectionState) error(e error) {
@@ -94,22 +81,58 @@ func (s *databaseConnectionState) addOnOperationChangeNotification(handler func(
 	return len(s.onOperationStatusChangeNotification) - 1
 }
 
+func (s *databaseConnectionState) hasRegisteredHandlers() bool {
+	// s.mu must be locked here
+	for _, cb := range s.onDocumentChangeNotification {
+		if cb != nil {
+			return true
+		}
+	}
+	for _, cb := range s.onIndexChangeNotification {
+		if cb != nil {
+			return true
+		}
+	}
+	for _, cb := range s.onOperationStatusChangeNotification {
+		if cb != nil {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *databaseConnectionState) maybeBroadcastOnDisconnect() {
+	// when all notifications are removed, call onDisconnect() handler
+	if s.onDisconnect == nil {
+		return // moot point if no onDisconnect handler registered
+	}
+	if s.hasRegisteredHandlers() {
+		return
+	}
+	s.mu.Unlock()
+	s.onDisconnect()
+	s.mu.Lock()
+}
+
 func (s *databaseConnectionState) removeOnDocumentChangeNotification(idx int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.onDocumentChangeNotification[idx] = nil
+	s.maybeBroadcastOnDisconnect()
 }
 
 func (s *databaseConnectionState) removeOnIndexChangeNotification(idx int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.onIndexChangeNotification[idx] = nil
+	s.maybeBroadcastOnDisconnect()
 }
 
 func (s *databaseConnectionState) removeOnOperationChangeNotification(idx int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.onOperationStatusChangeNotification[idx] = nil
+	s.maybeBroadcastOnDisconnect()
 }
 
 func (s *databaseConnectionState) sendDocumentChange(documentChange *DocumentChange) {
