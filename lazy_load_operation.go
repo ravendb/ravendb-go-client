@@ -100,13 +100,13 @@ func (o *LazyLoadOperation) isRequiresRetry() bool {
 }
 
 func (o *LazyLoadOperation) handleResponse(response *GetResponse) error {
-	if response.isForceRetry {
+	if response.IsForceRetry {
 		o.result = nil
 		o.requiresRetry = true
 		return nil
 	}
 
-	res := response.result
+	res := response.Result
 	if len(res) == 0 {
 		o.handleResponse2(nil)
 		return nil

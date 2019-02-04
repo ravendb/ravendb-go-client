@@ -9,39 +9,42 @@ import (
 
 var _ RavenCommand = &MultiGetCommand{}
 
+// MultiGetCommand represents multi get command
 type MultiGetCommand struct {
 	RavenCommandBase
 
-	_cache    *HttpCache
-	_commands []*GetRequest
-	_baseUrl  string
+	cache    *HttpCache
+	commands []*GetRequest
+	baseURL  string
 
 	Result []*GetResponse // in Java we inherit from List<GetResponse>
 }
 
+// NewMultiGetCommand returns new MultiGetCommand
 func NewMultiGetCommand(cache *HttpCache, commands []*GetRequest) *MultiGetCommand {
 
 	cmd := &MultiGetCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_cache:    cache,
-		_commands: commands,
+		cache:    cache,
+		commands: commands,
 	}
 	cmd.ResponseType = RavenCommandResponseTypeRaw
 	return cmd
 }
 
+// CreateRequest creates http request for this command
 func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	c._baseUrl = node.URL + "/databases/" + node.Database
+	c.baseURL = node.URL + "/databases/" + node.Database
 
 	m := map[string]interface{}{}
 	var requests []map[string]interface{}
 
-	for _, command := range c._commands {
+	for _, command := range c.commands {
 		v := map[string]interface{}{}
 		cacheKey, _ := c.getCacheKey(command)
 		{
-			item, cachedChangeVector, _ := c._cache.get(cacheKey)
+			item, cachedChangeVector, _ := c.cache.get(cacheKey)
 			headers := map[string]string{}
 			if cachedChangeVector != nil {
 				headers[headersIfNoneMatch] = "\"" + *cachedChangeVector + "\""
@@ -74,12 +77,12 @@ func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error)
 		return nil, err
 	}
 
-	uri := c._baseUrl + "/multi_get"
+	uri := c.baseURL + "/multi_get"
 	return NewHttpPost(uri, d)
 }
 
 func (c *MultiGetCommand) getCacheKey(command *GetRequest) (string, string) {
-	uri := c._baseUrl + command.getUrlAndQuery()
+	uri := c.baseURL + command.getUrlAndQuery()
 	key := command.method + "-" + uri
 	return key, uri
 }
@@ -94,6 +97,7 @@ type resultsJSON struct {
 	Results []*getResponseJSON `json:"Results"`
 }
 
+// SetResponseRaw sets response from http response
 func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Reader) error {
 	var results *resultsJSON
 	d, err := ioutil.ReadAll(stream)
@@ -106,12 +110,12 @@ func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Read
 	}
 
 	for i, rsp := range results.Results {
-		command := c._commands[i]
+		command := c.commands[i]
 		var getResponse GetResponse
 
-		getResponse.statusCode = rsp.StatusCode
-		getResponse.headers = rsp.Headers
-		getResponse.result = rsp.Result
+		getResponse.StatusCode = rsp.StatusCode
+		getResponse.Headers = rsp.Headers
+		getResponse.Result = rsp.Result
 
 		c.maybeSetCache(&getResponse, command)
 		c.maybeReadFromCache(&getResponse, command)
@@ -123,34 +127,34 @@ func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Read
 }
 
 func (c *MultiGetCommand) maybeReadFromCache(getResponse *GetResponse, command *GetRequest) {
-	if getResponse.statusCode != http.StatusNotModified {
+	if getResponse.StatusCode != http.StatusNotModified {
 		return
 	}
 
 	cacheKey, _ := c.getCacheKey(command)
 	{
-		cacheItem, _, cachedResponse := c._cache.get(cacheKey)
-		getResponse.result = cachedResponse
+		cacheItem, _, cachedResponse := c.cache.get(cacheKey)
+		getResponse.Result = cachedResponse
 		cacheItem.Close()
 	}
 }
 
 func (c *MultiGetCommand) maybeSetCache(getResponse *GetResponse, command *GetRequest) {
-	if getResponse.statusCode == http.StatusNotModified {
+	if getResponse.StatusCode == http.StatusNotModified {
 		return
 	}
 
 	cacheKey, _ := c.getCacheKey(command)
 
-	result := getResponse.result
+	result := getResponse.Result
 	if len(result) == 0 {
 		return
 	}
 
-	changeVector := gttpExtensionsGetEtagHeaderFromMap(getResponse.headers)
+	changeVector := gttpExtensionsGetEtagHeaderFromMap(getResponse.Headers)
 	if changeVector == nil {
 		return
 	}
 
-	c._cache.set(cacheKey, changeVector, result)
+	c.cache.set(cacheKey, changeVector, result)
 }

@@ -2,21 +2,16 @@ package ravendb
 
 import "net/http"
 
+// GetResponse represents result of get request
 type GetResponse struct {
-	result       []byte
-	headers      map[string]string
-	statusCode   int
-	isForceRetry bool
-}
-
-func NewGetResponse() *GetResponse {
-	return &GetResponse{
-		headers: map[string]string{},
-	}
+	Result       []byte
+	Headers      map[string]string
+	StatusCode   int
+	IsForceRetry bool
 }
 
 func (r *GetResponse) requestHasErrors() bool {
-	switch r.statusCode {
+	switch r.StatusCode {
 	case 0,
 		http.StatusOK,
 		http.StatusCreated,

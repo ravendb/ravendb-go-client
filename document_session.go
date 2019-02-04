@@ -201,7 +201,7 @@ func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformatio
 	responses := multiGetCommand.Result
 	for i, op := range s.pendingLazyOperations {
 		response := responses[i]
-		tempReqTime := response.headers[headersRequestTime]
+		tempReqTime := response.Headers[headersRequestTime]
 		totalTime, _ := strconv.Atoi(tempReqTime)
 		uri := requests[i].getUrlAndQuery()
 		dur := time.Millisecond * time.Duration(totalTime)
@@ -211,7 +211,7 @@ func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformatio
 		}
 		responseTimeInformation.durationBreakdown = append(responseTimeInformation.durationBreakdown, timeItem)
 		if response.requestHasErrors() {
-			return false, newIllegalStateError("Got an error from server, status code: %d\n%s", response.statusCode, response.result)
+			return false, newIllegalStateError("Got an error from server, status code: %d\n%s", response.StatusCode, response.Result)
 		}
 		err = op.handleResponse(response)
 		if err != nil {

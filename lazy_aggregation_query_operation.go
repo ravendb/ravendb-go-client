@@ -51,14 +51,14 @@ func (o *LazyAggregationQueryOperation) isRequiresRetry() bool {
 }
 
 func (o *LazyAggregationQueryOperation) handleResponse(response *GetResponse) error {
-	if response.isForceRetry {
+	if response.IsForceRetry {
 		o.result = nil
 		o.requiresRetry = true
 		return nil
 	}
 
 	var queryResult *QueryResult
-	err := jsonUnmarshal(response.result, &queryResult)
+	err := jsonUnmarshal(response.Result, &queryResult)
 	if err != nil {
 		return err
 	}
