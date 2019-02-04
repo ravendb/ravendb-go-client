@@ -14,10 +14,18 @@ $Env:LOG_ALL_REQUESTS = "true"
 $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
 
+# $IsMacOS is only defined in powershell 6, but it happens to work
+# in windows with powershell 5 because it's not defined at all, so false
 if ($IsMacOS) {
-    $ravdir = "RavenDB/Server"
+    $wd = Join-Path -Path "$PSScriptRoot" -ChildPath ".." -Resolve
+    $ravdir = "${wd}/RavenDB/Server"
     $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$ravdir/Raven.Server"
-} else {
+    $Env:RAVENDB_JAVA_TEST_CERTIFICATE_PATH = "${wd}/certs/server.pfx"
+    $env:RAVENDB_JAVA_TEST_CA_PATH = "${wd}/certs/ca.crt"
+    $Env:RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH = "${wd}/certs/cert.pem"
+    $Env:RAVENDB_JAVA_TEST_HTTPS_SERVER_URL = "https://a.javatest11.development.run:8085"
+}
+else {
     $ravdir = Join-Path -Path "$PSScriptRoot" -ChildPath ".." -Resolve
     $ravdir = "$ravdir\RavenDB\Server"
     $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$ravdir\Raven.Server.exe"
@@ -26,7 +34,7 @@ if ($IsMacOS) {
 For ($i=0; $i -lt 10; $i++) {
 
     go clean -testcache
-    go test -parallel 1 -v -timeout 50s ./tests -run ^TestBulkInserts$
+    go test -v -timeout 50s ./tests -run ^TestChanges$
 
     if ($lastexitcode -ne 0) {
         exit
