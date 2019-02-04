@@ -67,7 +67,7 @@ func (e *MaintenanceOperationExecutor) SendAsync(operation IMaintenanceOperation
 	if err = e.GetRequestExecutor().ExecuteCommand(command, nil); err != nil {
 		return nil, err
 	}
-	fn := func() *databaseChanges {
+	fn := func() *DatabaseChanges {
 		return e.store.Changes()
 	}
 	re := e.GetRequestExecutor()
