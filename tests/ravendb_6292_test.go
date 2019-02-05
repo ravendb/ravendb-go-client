@@ -122,7 +122,7 @@ func (d *RavenTestDriver) waitForConflict(store *ravendb.DocumentStore, result i
 			return nil
 		}
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			if err != nil {
 				return err
 			}

@@ -203,7 +203,7 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeWithMaxResults_HitsD
 
 func facetPaging_setup(t *testing.T, store *ravendb.DocumentStore) {
 
-	s, err := store.OpenSession()
+	s, err := store.OpenSession("")
 	assert.NoError(t, err)
 	defer s.Close()
 

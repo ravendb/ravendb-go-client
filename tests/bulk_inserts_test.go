@@ -27,7 +27,7 @@ func bulkInsertsTestSimpleBulkInsertShouldWork(t *testing.T, driver *RavenTestDr
 	defer store.Close()
 
 	{
-		bulkInsert := store.BulkInsert()
+		bulkInsert := store.BulkInsert("")
 
 		_, err = bulkInsert.Store(fooBar1, nil)
 		assert.NoError(t, err)
@@ -72,7 +72,7 @@ func bulkInsertsTestKilledToEarly(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	{
-		bulkInsert := store.BulkInsert()
+		bulkInsert := store.BulkInsert("")
 
 		_, err = bulkInsert.Store(&FooBar{}, nil)
 		assert.NoError(t, err)
@@ -99,7 +99,7 @@ func bulkInsertsTestShouldNotAcceptIdsEndingWithPipeLine(t *testing.T, driver *R
 	defer store.Close()
 
 	{
-		bulkInsert := store.BulkInsert()
+		bulkInsert := store.BulkInsert("")
 		err = bulkInsert.StoreWithID(&FooBar{}, "foobars|", nil)
 		assert.Error(t, err)
 		_, ok := err.(*ravendb.UnsupportedOperationError)
@@ -121,7 +121,7 @@ func bulkInsertsTestCanModifyMetadataWithBulkInsert(t *testing.T, driver *RavenT
 	expirationDate := ravendb.Time(et).Format()
 
 	{
-		bulkInsert := store.BulkInsert()
+		bulkInsert := store.BulkInsert("")
 
 		fooBar := &FooBar{}
 		fooBar.Name = "Jon Show"

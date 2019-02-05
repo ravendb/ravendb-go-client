@@ -32,7 +32,7 @@ func facetTestBaseCreateCameraTestIndex(store *ravendb.DocumentStore) error {
 }
 
 func facetTestBaseInsertCameraData(store *ravendb.DocumentStore, cameras []*Camera, shouldWaitForIndexing bool) error {
-	session, err := store.OpenSession()
+	session, err := store.OpenSession("")
 	if err != nil {
 		return err
 	}

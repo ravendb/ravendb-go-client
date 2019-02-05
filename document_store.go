@@ -213,11 +213,7 @@ func (s *DocumentStore) SetDatabase(database string) {
 	s.database = database
 }
 
-func (s *DocumentStore) AggressivelyCache() {
-	s.AggressivelyCacheWithDatabase("")
-}
-
-func (s *DocumentStore) AggressivelyCacheWithDatabase(database string) {
+func (s *DocumentStore) AggressivelyCache(database string) {
 	s.AggressivelyCacheForDatabase(time.Hour*24, database)
 }
 
@@ -317,11 +313,8 @@ func (s *DocumentStore) Close() {
 }
 
 // OpenSession opens a new session to document Store.
-func (s *DocumentStore) OpenSession() (*DocumentSession, error) {
-	return s.OpenSessionWithOptions(&SessionOptions{})
-}
-
-func (s *DocumentStore) OpenSessionWithDatabase(database string) (*DocumentSession, error) {
+// If database is not given, we'll use store's database name
+func (s *DocumentStore) OpenSession(database string) (*DocumentSession, error) {
 	sessionOptions := &SessionOptions{
 		Database: database,
 	}
@@ -337,7 +330,10 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	}
 
 	sessionID := NewUUID().String()
-	databaseName := firstNonEmptyString(options.Database, s.GetDatabase())
+	databaseName := options.Database
+	if databaseName == "" {
+		databaseName = s.GetDatabase()
+	}
 	requestExecutor := options.RequestExecutor
 	if requestExecutor == nil {
 		requestExecutor = s.GetRequestExecutor(databaseName)
@@ -368,7 +364,7 @@ func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask, datab
 	return s.Maintenance().ForDatabase(database).Send(op)
 }
 
-// GetRequestExecutorWithDatabase gets a request executor for a given database
+// GetRequestExecutor gets a request executor.
 // database is optional
 func (s *DocumentStore) GetRequestExecutor(database string) *RequestExecutor {
 	must(s.assertInitialized())
@@ -600,17 +596,13 @@ func (s *DocumentStore) Maintenance() *MaintenanceOperationExecutor {
 
 func (s *DocumentStore) Operations() *OperationExecutor {
 	if s.operationExecutor == nil {
-		s.operationExecutor = NewOperationExecutor(s)
+		s.operationExecutor = NewOperationExecutor(s, "")
 	}
 
 	return s.operationExecutor
 }
 
-func (s *DocumentStore) BulkInsert() *BulkInsertOperation {
-	return s.BulkInsertWithDatabase("")
-}
-
-func (s *DocumentStore) BulkInsertWithDatabase(database string) *BulkInsertOperation {
+func (s *DocumentStore) BulkInsert(database string) *BulkInsertOperation {
 	if database == "" {
 		database = s.GetDatabase()
 	}

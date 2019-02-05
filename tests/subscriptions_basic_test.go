@@ -107,7 +107,7 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 		assert.NoError(t, err)
 
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			assert.NoError(t, err)
 			err = session.Store(&User{})
 			assert.NoError(t, err)
@@ -605,7 +605,7 @@ func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDr
 }
 
 func putUserDoc(t *testing.T, store *ravendb.DocumentStore) {
-	session, err := store.OpenSession()
+	session, err := store.OpenSession("")
 	assert.NoError(t, err)
 	defer session.Close()
 
@@ -631,7 +631,7 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 		docs := make(chan *User, 10)
 
 		{
-			bulk := store.BulkInsert()
+			bulk := store.BulkInsert("")
 			_, err = bulk.Store(&User{}, nil)
 			assert.NoError(t, err)
 			_, err = bulk.Store(&User{}, nil)
@@ -769,7 +769,7 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 		assert.NoError(t, err)
 
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			assert.NoError(t, err)
 			err = session.StoreWithID(&User{}, "users/1")
 			assert.NoError(t, err)
@@ -814,7 +814,7 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 		}
 
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			assert.NoError(t, err)
 			err = session.StoreWithID(&User{}, "users/3")
 			assert.NoError(t, err)
@@ -855,7 +855,7 @@ func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterType
 		assert.NoError(t, err)
 
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			assert.NoError(t, err)
 			err = session.StoreWithID(&User{Age: 31}, "users/1")
 			assert.NoError(t, err)
@@ -924,7 +924,7 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 	assert.NoError(t, err)
 
 	{
-		session, err := store.OpenSession()
+		session, err := store.OpenSession("")
 		assert.NoError(t, err)
 		err = session.StoreWithID(&User{}, "users/1")
 		assert.NoError(t, err)
@@ -992,7 +992,7 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 	subscription1 = nil
 
 	{
-		session, err := store.OpenSession()
+		session, err := store.OpenSession("")
 		assert.NoError(t, err)
 		err = session.StoreWithID(&User{}, "users/3")
 		assert.NoError(t, err)

@@ -44,7 +44,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 10; j++ {
 			{
-				session, err := store.OpenSession()
+				session, err := store.OpenSession("")
 				assert.NoError(t, err)
 
 				user := &User{}
@@ -142,7 +142,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 
 	for j := 0; j < 10; j++ {
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			assert.NoError(t, err)
 
 			user := &User{

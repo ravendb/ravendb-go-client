@@ -47,7 +47,7 @@ func (d *RavenTestDriver) waitForDocumentToReplicate(store *ravendb.DocumentStor
 			return nil
 		}
 		{
-			session, err := store.OpenSession()
+			session, err := store.OpenSession("")
 			if err != nil {
 				return err
 			}

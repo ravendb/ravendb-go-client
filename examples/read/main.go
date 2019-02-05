@@ -77,7 +77,7 @@ func main() {
 	panicIfErr(err)
 
 	{
-		session, err := store.OpenSession()
+		session, err := store.OpenSession("")
 		panicIfErr(err)
 		var e *Employee
 		err = session.Load(&e, "employees/7-A")
@@ -87,7 +87,7 @@ func main() {
 
 	{
 		// TODO: not working yet, see https://github.com/ravendb/ravendb-go-client/issues/63
-		session, err := store.OpenSession()
+		session, err := store.OpenSession("")
 		panicIfErr(err)
 		var o *Order
 		err = session.Include("employee").Load(&o, "orders/827-A")

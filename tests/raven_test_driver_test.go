@@ -446,7 +446,7 @@ func isEnvVarTrue(name string) bool {
 }
 
 func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.DocumentSession {
-	session, err := store.OpenSession()
+	session, err := store.OpenSession("")
 	assert.NoError(t, err)
 	assert.NotNil(t, session)
 	return session

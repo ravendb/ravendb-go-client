@@ -11,11 +11,7 @@ type OperationExecutor struct {
 	requestExecutor *RequestExecutor
 }
 
-func NewOperationExecutor(store *DocumentStore) *OperationExecutor {
-	return NewOperationExecutorWithDatabaseName(store, "")
-}
-
-func NewOperationExecutorWithDatabaseName(store *DocumentStore, databaseName string) *OperationExecutor {
+func NewOperationExecutor(store *DocumentStore, databaseName string) *OperationExecutor {
 	res := &OperationExecutor{
 		store:        store,
 		databaseName: databaseName,
@@ -33,7 +29,7 @@ func (e *OperationExecutor) ForDatabase(databaseName string) *OperationExecutor 
 		return e
 	}
 
-	return NewOperationExecutorWithDatabaseName(e.store, databaseName)
+	return NewOperationExecutor(e.store, databaseName)
 }
 
 // Note: we don't return a result because we could only return interface{}
