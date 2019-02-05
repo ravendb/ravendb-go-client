@@ -26,9 +26,6 @@ type changeSubscribers struct {
 	onDocumentChange        []func(*DocumentChange)
 	onIndexChange           []func(*IndexChange)
 	onOperationStatusChange []func(*OperationStatusChange)
-
-	// protects arrays
-	mu sync.Mutex
 }
 
 func (s *changeSubscribers) hasRegisteredHandlers() bool {
@@ -49,36 +46,6 @@ func (s *changeSubscribers) hasRegisteredHandlers() bool {
 		}
 	}
 	return false
-}
-
-func (s *changeSubscribers) sendDocumentChange(documentChange *DocumentChange) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, f := range s.onDocumentChange {
-		if f != nil {
-			f(documentChange)
-		}
-	}
-}
-
-func (s *changeSubscribers) sendIndexChange(indexChange *IndexChange) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, f := range s.onIndexChange {
-		if f != nil {
-			f(indexChange)
-		}
-	}
-}
-
-func (s *changeSubscribers) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, f := range s.onOperationStatusChange {
-		if f != nil {
-			f(operationStatusChange)
-		}
-	}
 }
 
 // DatabaseChanges notifies about changes to a database
@@ -454,6 +421,7 @@ func (c *DatabaseChanges) Close() {
 }
 
 func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, unwatchCommand string, value string) (*changeSubscribers, error) {
+	// must be called while holding mu lock
 	subscribers, ok := c.subscribers[name]
 
 	if ok {
@@ -636,10 +604,31 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 	}
 }
 
-func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (s *changeSubscribers) sendDocumentChange(documentChange *DocumentChange) {
+	for _, f := range s.onDocumentChange {
+		if f != nil {
+			f(documentChange)
+		}
+	}
+}
 
+func (s *changeSubscribers) sendIndexChange(indexChange *IndexChange) {
+	for _, f := range s.onIndexChange {
+		if f != nil {
+			f(indexChange)
+		}
+	}
+}
+
+func (s *changeSubscribers) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
+	for _, f := range s.onOperationStatusChange {
+		if f != nil {
+			f(operationStatusChange)
+		}
+	}
+}
+
+func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error {
 	switch typ {
 	case "DocumentChange":
 		var documentChange *DocumentChange
@@ -648,8 +637,10 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
-		for _, state := range c.subscribers {
-			state.sendDocumentChange(documentChange)
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		for _, s := range c.subscribers {
+			s.sendDocumentChange(documentChange)
 		}
 	case "IndexChange":
 		var indexChange *IndexChange
@@ -658,8 +649,10 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
-		for _, state := range c.subscribers {
-			state.sendIndexChange(indexChange)
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		for _, s := range c.subscribers {
+			s.sendIndexChange(indexChange)
 		}
 	case "OperationStatusChange":
 		var operationStatusChange *OperationStatusChange
@@ -668,8 +661,10 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
-		for _, state := range c.subscribers {
-			state.sendOperationStatusChange(operationStatusChange)
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		for _, s := range c.subscribers {
+			s.sendOperationStatusChange(operationStatusChange)
 		}
 	default:
 		return fmt.Errorf("notifySubscribers: unsupported type '%s'", typ)
