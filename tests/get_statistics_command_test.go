@@ -14,7 +14,7 @@ func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) 
 
 	executor := store.GetRequestExecutor("")
 
-	sampleData := NewCreateSampleDataOperation()
+	sampleData := ravendb.NewCreateSampleDataOperation()
 	err = store.Maintenance().Send(sampleData)
 	assert.NoError(t, err)
 
