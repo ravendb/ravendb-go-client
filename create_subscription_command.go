@@ -42,7 +42,7 @@ func (c *CreateSubscriptionCommand) createRequest(node *ServerNode) (*http.Reque
 		return nil, err
 	}
 
-	return NewHttpPut(uri, d)
+	return newHttpPut(uri, d)
 }
 
 func (c *CreateSubscriptionCommand) setResponse(response []byte, fromCache bool) error {

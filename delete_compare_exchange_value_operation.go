@@ -67,7 +67,7 @@ func NewRemoveCompareExchangeValueCommand(clazz reflect.Type, key string, index 
 func (c *RemoveCompareExchangeValueCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/cmpxchg?key=" + c._key + "&index=" + i64toa(c._index)
 
-	return NewHttpDelete(url, nil)
+	return newHttpDelete(url, nil)
 }
 
 func (c *RemoveCompareExchangeValueCommand) setResponse(response []byte, fromCache bool) error {

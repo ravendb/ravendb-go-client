@@ -44,5 +44,5 @@ func NewHiLoReturnCommand(tag string, last int64, end int64) (*HiLoReturnCommand
 func (c *HiLoReturnCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/hilo/return?tag=" + c.tag + "&end=" + i64toa(c.end) + "&last=" + i64toa(c.last)
 
-	return NewHttpPut(url, nil)
+	return newHttpPut(url, nil)
 }

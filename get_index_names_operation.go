@@ -56,7 +56,7 @@ func (c *GetIndexNamesCommand) createRequest(node *ServerNode) (*http.Request, e
 	pageSize := strconv.Itoa(c._pageSize)
 	url := node.URL + "/databases/" + node.Database + "/indexes?start=" + start + "&pageSize=" + pageSize + "&namesOnly=true"
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetIndexNamesCommand) setResponse(response []byte, fromCache bool) error {

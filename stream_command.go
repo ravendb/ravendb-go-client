@@ -29,7 +29,7 @@ func NewStreamCommand(url string) *StreamCommand {
 
 func (c *StreamCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/" + c._url
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *StreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {

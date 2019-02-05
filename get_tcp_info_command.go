@@ -40,7 +40,7 @@ func (c *GetTcpInfoCommand) createRequest(node *ServerNode) (*http.Request, erro
 		url = node.URL + "/databases/" + c.dbName + "/info/tcp?tag=" + c.tag
 	}
 	c.requestedNode = node
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetTcpInfoCommand) setResponse(response []byte, fromCache bool) error {

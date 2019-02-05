@@ -39,7 +39,7 @@ func (c *GetClientConfigurationCommand) createRequest(node *ServerNode) (*http.R
 
 	url := node.URL + "/databases/" + node.Database + "/configuration/client"
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetClientConfigurationCommand) setResponse(response []byte, fromCache bool) error {

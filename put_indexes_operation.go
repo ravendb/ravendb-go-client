@@ -80,7 +80,7 @@ func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, erro
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPut(url, d)
+	return newHttpPut(url, d)
 }
 
 func (c *PutIndexesCommand) setResponse(response []byte, fromCache bool) error {

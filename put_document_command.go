@@ -39,7 +39,7 @@ func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, err
 	if err != nil {
 		return nil, err
 	}
-	request, err := NewHttpPut(url, d)
+	request, err := newHttpPut(url, d)
 	if err != nil {
 		return nil, err
 	}

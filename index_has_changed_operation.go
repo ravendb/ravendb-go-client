@@ -54,7 +54,7 @@ func NewIndexHasChangedCommand(conventions *DocumentConventions, definition *Ind
 
 func (c *IndexHasChangedCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/has-changed"
-	return NewHttpPost(url, c.definition)
+	return newHttpPost(url, c.definition)
 }
 
 func (c *IndexHasChangedCommand) setResponse(response []byte, fromCache bool) error {

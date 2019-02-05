@@ -93,7 +93,7 @@ func (c *GetCompareExchangeValuesCommand) createRequest(node *ServerNode) (*http
 		}
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetCompareExchangeValuesCommand) setResponse(response []byte, fromCache bool) error {

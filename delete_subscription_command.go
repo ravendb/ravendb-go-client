@@ -28,5 +28,5 @@ func newDeleteSubscriptionCommand(name string) *DeleteSubscriptionCommand {
 func (c *DeleteSubscriptionCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions?taskName=" + urlUtilsEscapeDataString(c.name)
 
-	return NewHttpDelete(url, nil)
+	return newHttpDelete(url, nil)
 }

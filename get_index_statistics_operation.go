@@ -57,7 +57,7 @@ func NewGetIndexStatisticsCommand(indexName string) (*GetIndexStatisticsCommand,
 func (c *GetIndexStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/stats?name=" + urlUtilsEscapeDataString(c._indexName)
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetIndexStatisticsCommand) setResponse(response []byte, fromCache bool) error {

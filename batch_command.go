@@ -83,7 +83,7 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 		return nil, err
 	}
 	if len(c.attachmentStreams) == 0 {
-		return NewHttpPost(url, js)
+		return newHttpPost(url, js)
 	}
 
 	body := &bytes.Buffer{}
@@ -118,7 +118,7 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	req, err := NewHttpPostReader(url, body)
+	req, err := newHttpPostReader(url, body)
 	if err != nil {
 		return nil, err
 	}

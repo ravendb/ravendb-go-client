@@ -168,7 +168,7 @@ func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	d, err := jsonMarshal(m)
 	panicIf(err != nil, "jsonMarshal failed with %s", err)
 
-	request, err := NewHttpPatch(url, d)
+	request, err := newHttpPatch(url, d)
 	if err != nil {
 		return nil, err
 	}

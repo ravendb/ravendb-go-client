@@ -35,7 +35,7 @@ func NewGetOperationStateCommand(conventions *DocumentConventions, id int64) *Ge
 
 func (c *GetOperationStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/operations/state?id=" + i64toa(c.id)
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetOperationStateCommand) setResponse(response []byte, fromCache bool) error {

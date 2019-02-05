@@ -24,7 +24,7 @@ func addCommonHeaders(req *http.Request) {
 	req.Header.Add("User-Agent", "ravendb-go-client/4.0.0")
 }
 
-func NewHttpHead(uri string) (*http.Request, error) {
+func newHttpHead(uri string) (*http.Request, error) {
 	req, err := http.NewRequest(http.MethodHead, uri, nil)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func NewHttpHead(uri string) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpGet(uri string) (*http.Request, error) {
+func newHttpGet(uri string) (*http.Request, error) {
 	req, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func NewHttpGet(uri string) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpReset(uri string) (*http.Request, error) {
+func newHttpReset(uri string) (*http.Request, error) {
 	req, err := http.NewRequest("RESET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func NewHttpReset(uri string) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
+func newHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(http.MethodPost, uri, r)
 	if err != nil {
 		return nil, err
@@ -60,12 +60,10 @@ func NewHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpPost(uri string, data []byte) (*http.Request, error) {
+func newHttpPost(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := maybePrettyPrintJSON([]byte(data))
-		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPost, uri, body)
 	if err != nil {
@@ -78,12 +76,10 @@ func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpPut(uri string, data []byte) (*http.Request, error) {
+func newHttpPut(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := maybePrettyPrintJSON([]byte(data))
-		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPut, uri, body)
 	if err != nil {
@@ -96,7 +92,7 @@ func NewHttpPut(uri string, data []byte) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
+func newHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(http.MethodPut, uri, body)
 	if err != nil {
 		return nil, err
@@ -105,12 +101,10 @@ func NewHttpPutReader(uri string, body io.Reader) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
+func newHttpPatch(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := maybePrettyPrintJSON([]byte(data))
-		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodPatch, uri, body)
 	if err != nil {
@@ -123,12 +117,10 @@ func NewHttpPatch(uri string, data []byte) (*http.Request, error) {
 	return req, nil
 }
 
-func NewHttpDelete(uri string, data []byte) (*http.Request, error) {
+func newHttpDelete(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)
-		//d := maybePrettyPrintJSON([]byte(data))
-		//fmt.Printf("%s\n", string(d))
 	}
 	req, err := http.NewRequest(http.MethodDelete, uri, body)
 	if err != nil {

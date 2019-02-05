@@ -56,7 +56,7 @@ func (c *GetIndexErrorsCommand) createRequest(node *ServerNode) (*http.Request, 
 		}
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetIndexErrorsCommand) setResponse(response []byte, fromCache bool) error {

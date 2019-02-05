@@ -55,5 +55,5 @@ func NewDeleteIndexCommand(indexName string) (*DeleteIndexCommand, error) {
 func (c *DeleteIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes?name=" + urlUtilsEscapeDataString(c._indexName)
 
-	return NewHttpDelete(url, nil)
+	return newHttpDelete(url, nil)
 }

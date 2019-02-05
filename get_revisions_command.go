@@ -75,7 +75,7 @@ func (c *GetRevisionsCommand) createRequest(node *ServerNode) (*http.Request, er
 		url += "&metadataOnly=true"
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetRevisionsCommand) setResponse(response []byte, fromCache bool) error {

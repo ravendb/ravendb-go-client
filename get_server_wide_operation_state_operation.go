@@ -35,7 +35,7 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 
 func (c *GetServerWideOperationStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/operations/state?id=" + i64toa(c.id)
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetServerWideOperationStateCommand) setResponse(response []byte, fromCache bool) error {

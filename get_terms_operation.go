@@ -85,7 +85,7 @@ func (c *GetTermsCommand) createRequest(node *ServerNode) (*http.Request, error)
 	}
 	url := node.URL + "/databases/" + node.Database + "/indexes/terms?name=" + urlUtilsEscapeDataString(c._indexName) + "&field=" + urlUtilsEscapeDataString(c._field) + "&fromValue=" + c._fromValue + "&pageSize=" + pageSize
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetTermsCommand) setResponse(response []byte, fromCache bool) error {

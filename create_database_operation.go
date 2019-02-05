@@ -71,7 +71,7 @@ func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, 
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPut(url, js)
+	return newHttpPut(url, js)
 }
 
 func (c *CreateDatabaseCommand) setResponse(response []byte, fromCache bool) error {

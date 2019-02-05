@@ -30,7 +30,7 @@ func newGetSubscriptionStateCommand(subscriptionName string) *GetSubscriptionSta
 func (c *GetSubscriptionStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions/state?name=" + urlUtilsEscapeDataString(c.subscriptionName)
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetSubscriptionStateCommand) setResponse(response []byte, fromCache bool) error {

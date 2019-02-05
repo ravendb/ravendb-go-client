@@ -38,7 +38,7 @@ func (c *QueryStreamCommand) createRequest(node *ServerNode) (*http.Request, err
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPost(url, d)
+	return newHttpPost(url, d)
 }
 
 func (c *QueryStreamCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {

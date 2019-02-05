@@ -28,5 +28,5 @@ func newDropSubscriptionConnectionCommand(name string) *DropSubscriptionConnecti
 func (c *DropSubscriptionConnectionCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions/drop?name=" + urlUtilsEscapeDataString(c.name)
 
-	return NewHttpPost(url, nil)
+	return newHttpPost(url, nil)
 }

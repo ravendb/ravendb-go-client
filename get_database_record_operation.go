@@ -48,7 +48,7 @@ func NewGetDatabaseRecordCommand(conventions *DocumentConventions, database stri
 
 func (c *GetDatabaseRecordCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/databases?name=" + c.database
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetDatabaseRecordCommand) setResponse(response []byte, fromCache bool) error {

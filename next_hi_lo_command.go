@@ -46,7 +46,7 @@ func (c *NextHiLoCommand) createRequest(node *ServerNode) (*http.Request, error)
 	}
 	path := "/hilo/next?tag=" + c._tag + "&lastBatchSize=" + i64toa(c._lastBatchSize) + "&lastRangeAt=" + date + "&identityPartsSeparator=" + c._identityPartsSeparator + "&lastMax=" + i64toa(c._lastRangeMax)
 	url := node.URL + "/databases/" + node.Database + path
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *NextHiLoCommand) setResponse(response []byte, fromCache bool) error {

@@ -30,7 +30,7 @@ func (c *GetDatabaseTopologyCommand) createRequest(node *ServerNode) (*http.Requ
 		// so we are going to ask the server to respect it
 		url += "&localUrl=" + urlUtilsEscapeDataString(node.URL)
 	}
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetDatabaseTopologyCommand) setResponse(response []byte, fromCache bool) error {

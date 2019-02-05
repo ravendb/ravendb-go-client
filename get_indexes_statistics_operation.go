@@ -41,7 +41,7 @@ func NewGetIndexesStatisticsCommand() *GetIndexesStatisticsCommand {
 func (c *GetIndexesStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/stats"
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetIndexesStatisticsCommand) setResponse(response []byte, fromCache bool) error {

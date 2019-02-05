@@ -55,7 +55,7 @@ func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Reque
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPost(url, d)
+	return newHttpPost(url, d)
 }
 
 func (c *ConfigureRevisionsCommand) setResponse(response []byte, fromCache bool) error {

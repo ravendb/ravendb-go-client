@@ -81,7 +81,7 @@ func (c *PutCompareExchangeValueCommand) createRequest(node *ServerNode) (*http.
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPut(url, d)
+	return newHttpPut(url, d)
 
 }
 

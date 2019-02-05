@@ -27,7 +27,7 @@ func NewDeleteDocumentCommand(id string, changeVector *string) *DeleteDocumentCo
 func (c *DeleteDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlEncode(c._id)
 
-	request, err := NewHttpDelete(url, nil)
+	request, err := newHttpDelete(url, nil)
 	if err != nil {
 		return nil, err
 	}

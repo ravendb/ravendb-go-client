@@ -31,7 +31,7 @@ func NewGetConflictsCommand(id string) *GetConflictsCommand {
 func (c *GetConflictsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/replication/conflicts?docId=" + c._id
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetConflictsCommand) setResponse(response []byte, fromCache bool) error {

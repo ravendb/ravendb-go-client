@@ -87,7 +87,7 @@ func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 		if err != nil {
 			return nil, err
 		}
-		req, err := NewHttpPut(url, buf.Bytes())
+		req, err := newHttpPut(url, buf.Bytes())
 		if err != nil {
 			return nil, err
 		}
@@ -96,7 +96,7 @@ func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 		return req, nil
 	}
 
-	req, err := NewHttpPutReader(url, c._stream)
+	req, err := newHttpPutReader(url, c._stream)
 	if err != nil {
 		return nil, err
 	}

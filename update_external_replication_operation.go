@@ -54,7 +54,7 @@ func (c *UpdateExternalReplicationCommand) createRequest(node *ServerNode) (*htt
 	if err != nil {
 		return nil, err
 	}
-	return NewHttpPost(url, d)
+	return newHttpPost(url, d)
 }
 
 func (c *UpdateExternalReplicationCommand) setResponse(response []byte, fromCache bool) error {

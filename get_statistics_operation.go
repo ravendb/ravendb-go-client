@@ -57,7 +57,7 @@ func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, e
 		url += "?" + c.debugTag
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetStatisticsCommand) setResponse(response []byte, fromCache bool) error {

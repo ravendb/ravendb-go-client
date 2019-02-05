@@ -41,7 +41,7 @@ func (c *ExplainQueryCommand) createRequest(node *ServerNode) (*http.Request, er
 	v := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)
 	d, err := jsonMarshal(v)
 	panicIf(err != nil, "jsonMarshal() failed with %s", err)
-	return NewHttpPost(url, d)
+	return newHttpPost(url, d)
 }
 
 func (c *ExplainQueryCommand) setResponse(response []byte, fromCache bool) error {

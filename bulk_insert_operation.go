@@ -42,7 +42,7 @@ func (c *BulkInsertCommand) createRequest(node *ServerNode) (*http.Request, erro
 	url := node.URL + "/databases/" + node.Database + "/bulk_insert?id=" + i64toa(c.id)
 	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)
-	return NewHttpPostReader(url, c.stream)
+	return newHttpPostReader(url, c.stream)
 }
 
 func (c *BulkInsertCommand) setResponse(response []byte, fromCache bool) error {

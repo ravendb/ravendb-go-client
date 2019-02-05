@@ -84,10 +84,10 @@ func (c *GetAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 		if err != nil {
 			return nil, err
 		}
-		return NewHttpPost(url, d)
+		return newHttpPost(url, d)
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {

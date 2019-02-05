@@ -35,7 +35,7 @@ func (c *NextIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 
 	url := node.URL + "/databases/" + node.Database + "/identity/next?name=" + urlEncode(c._id)
 
-	return NewHttpPost(url, nil)
+	return newHttpPost(url, nil)
 }
 
 func (c *NextIdentityForCommand) setResponse(response []byte, fromCache bool) error {

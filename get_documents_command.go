@@ -115,7 +115,7 @@ func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, er
 		return c.prepareRequestWithMultipleIds(url)
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.Request, error) {
@@ -134,7 +134,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 		for _, s := range uniqueIds {
 			url += "&id=" + urlUtilsEscapeDataString(s)
 		}
-		return NewHttpGet(url)
+		return newHttpGet(url)
 	}
 
 	calculateHash := c.calculateHash(uniqueIds)
@@ -146,7 +146,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 	}
 	d, err := jsonMarshal(m)
 	panicIf(err != nil, "jsonMarshal() failed with %s", err)
-	return NewHttpPost(url, d)
+	return newHttpPost(url, d)
 }
 
 func (c *GetDocumentsCommand) calculateHash(uniqueIds []string) string {

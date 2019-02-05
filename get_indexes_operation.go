@@ -56,7 +56,7 @@ func (c *GetIndexesCommand) createRequest(node *ServerNode) (*http.Request, erro
 
 	url := node.URL + "/databases/" + node.Database + "/indexes?start=" + start + "&pageSize=" + pageSize
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetIndexesCommand) setResponse(response []byte, fromCache bool) error {

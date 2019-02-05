@@ -40,7 +40,7 @@ func NewGetIndexingStatusCommand() *GetIndexingStatusCommand {
 func (c *GetIndexingStatusCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/status"
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetIndexingStatusCommand) setResponse(response []byte, fromCache bool) error {

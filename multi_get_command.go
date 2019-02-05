@@ -77,7 +77,7 @@ func (c *MultiGetCommand) createRequest(node *ServerNode) (*http.Request, error)
 	}
 
 	uri := c.baseURL + "/multi_get"
-	return NewHttpPost(uri, d)
+	return newHttpPost(uri, d)
 }
 
 func (c *MultiGetCommand) getCacheKey(command *getRequest) (string, string) {

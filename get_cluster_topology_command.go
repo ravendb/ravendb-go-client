@@ -23,7 +23,7 @@ func NewGetClusterTopologyCommand() *GetClusterTopologyCommand {
 
 func (c *GetClusterTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/cluster/topology"
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetClusterTopologyCommand) setResponse(response []byte, fromCache bool) error {

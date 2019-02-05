@@ -37,7 +37,7 @@ func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Req
 		url += "&pageSize=" + strconv.Itoa(c.pageSize)
 	}
 
-	return NewHttpGet(url)
+	return newHttpGet(url)
 }
 
 func (c *GetRevisionsBinEntryCommand) setResponse(response []byte, fromCache bool) error {

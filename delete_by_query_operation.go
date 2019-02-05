@@ -79,7 +79,7 @@ func (c *DeleteByIndexCommand) createRequest(node *ServerNode) (*http.Request, e
 	// TODO: return error instead?
 	panicIf(err != nil, "jsonMarshal failed with %s", err)
 
-	request, err := NewHttpDelete(url, d)
+	request, err := newHttpDelete(url, d)
 	if err != nil {
 		return nil, err
 	}
