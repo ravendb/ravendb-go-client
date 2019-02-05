@@ -762,13 +762,13 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 				return newDatabaseDoesNotExistError(dbMissingHeader)
 			}
 
-			if len(command.getBase().GetFailedNodes()) == 0 {
+			if len(command.getBase().FailedNodes) == 0 {
 				return newIllegalStateError("Received unsuccessful response and couldn't recover from it. Also, no record of exceptions per failed nodes. This is weird and should not happen.")
 			}
 
-			if len(command.getBase().GetFailedNodes()) == 1 {
+			if len(command.getBase().FailedNodes) == 1 {
 				// return first error
-				failedNodes := command.getBase().GetFailedNodes()
+				failedNodes := command.getBase().FailedNodes
 				for _, err := range failedNodes {
 					panicIf(err == nil, "err is nil")
 					return err
@@ -1001,8 +1001,8 @@ func requestExecutorHandleConflict(response *http.Response) error {
 }
 
 func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, nodeIndex int, command RavenCommand, request *http.Request, response *http.Response, e error, sessionInfo *SessionInfo) (bool, error) {
-	if command.getBase().GetFailedNodes() == nil {
-		command.getBase().SetFailedNodes(make(map[*ServerNode]error))
+	if command.getBase().FailedNodes == nil {
+		command.getBase().FailedNodes = map[*ServerNode]error{}
 	}
 
 	re.addFailedResponseToCommand(chosenNode, command, request, response, e)
@@ -1026,7 +1026,7 @@ func (re *RequestExecutor) handleServerDown(url string, chosenNode *ServerNode, 
 		return false, err
 	}
 
-	if _, ok := command.getBase().GetFailedNodes()[currentIndexAndNode.currentNode]; ok {
+	if _, ok := command.getBase().FailedNodes[currentIndexAndNode.currentNode]; ok {
 		//we tried all the nodes...nothing left to do
 		return false, nil
 	}
@@ -1106,7 +1106,7 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 
 // note: static
 func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, command RavenCommand, request *http.Request, response *http.Response, e error) {
-	failedNodes := command.getBase().GetFailedNodes()
+	failedNodes := command.getBase().FailedNodes
 
 	if response != nil && response.Body != nil {
 		responseJson, err := ioutil.ReadAll(response.Body)

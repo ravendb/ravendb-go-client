@@ -30,7 +30,7 @@ type RavenCommandBase struct {
 	// if true, can be cached
 	IsReadRequest bool
 
-	failedNodes map[*ServerNode]error
+	FailedNodes map[*ServerNode]error
 }
 
 func NewRavenCommandBase() RavenCommandBase {
@@ -73,14 +73,6 @@ func (c *RavenCommandBase) Send(client *http.Client, req *http.Request) (*http.R
 	return rsp, err
 }
 
-func (c *RavenCommandBase) GetFailedNodes() map[*ServerNode]error {
-	return c.failedNodes
-}
-
-func (c *RavenCommandBase) SetFailedNodes(failedNodes map[*ServerNode]error) {
-	c.failedNodes = failedNodes
-}
-
 func (c *RavenCommandBase) urlEncode(value string) string {
 	return urlEncode(value)
 }
@@ -93,10 +85,10 @@ func ensureIsNotNullOrString(value string, name string) error {
 }
 
 func (c *RavenCommandBase) IsFailedWithNode(node *ServerNode) bool {
-	if c.failedNodes == nil {
+	if c.FailedNodes == nil {
 		return false
 	}
-	_, ok := c.failedNodes[node]
+	_, ok := c.FailedNodes[node]
 	return ok
 }
 
