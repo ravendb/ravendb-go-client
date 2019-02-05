@@ -768,7 +768,7 @@ func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName stri
 }
 
 // RawQuery returns new DocumentQuery representing a raw query
-func (s *DocumentSession) RawQuery(query string) *IRawDocumentQuery {
+func (s *DocumentSession) RawQuery(query string) *RawDocumentQuery {
 	return NewRawDocumentQuery(s.InMemoryDocumentSessionOperations, query)
 }
 
@@ -821,7 +821,7 @@ func (s *DocumentSession) StreamQuery(query *DocumentQuery, streamQueryStats *St
 
 // StreamRawQuery starts a raw streaming query and returns iterator for results.
 // If streamQueryStats is provided, it'll be filled with information about query statistics.
-func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
+func (s *DocumentSession) StreamRawQuery(query *RawDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
@@ -841,7 +841,7 @@ func (s *DocumentSession) StreamRawQuery(query *IRawDocumentQuery, streamQuerySt
 
 // StreamRawQueryInto starts a raw streaming query that will write the results
 // (in JSON format) to output
-func (s *DocumentSession) StreamRawQueryInto(query *IRawDocumentQuery, output io.Writer) error {
+func (s *DocumentSession) StreamRawQueryInto(query *RawDocumentQuery, output io.Writer) error {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
 	q := query.GetIndexQuery()
 	command := streamOperation.createRequestForIndexQuery(q)
