@@ -5,8 +5,8 @@ package ravendb
 type EvictItemsFromCacheBasedOnChanges struct {
 	databaseName                string
 	changes                     *DatabaseChanges
-	documentsSubscriptionCloser CloseFunc
-	indexesSubscriptionCloser   CloseFunc
+	documentsSubscriptionCloser CancelFunc
+	indexesSubscriptionCloser   CancelFunc
 	requestExecutor             *RequestExecutor
 }
 

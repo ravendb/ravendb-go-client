@@ -19,7 +19,7 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 		action := func(change *ravendb.DocumentChange) {
 			changesList <- change
 		}
-		closer, err := changes.ForDocument("users/1", action)
+		cancel, err := changes.ForDocument("users/1", action)
 		assert.NoError(t, err)
 
 		{
@@ -49,7 +49,7 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 			assert.True(t, true)
 		}
 
-		closer()
+		cancel()
 	}
 
 	// at this point we should be unsubscribed from changes on 'users/1'
@@ -107,7 +107,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			closer, err := changes.ForAllDocuments(action)
+			cancel, err := changes.ForAllDocuments(action)
 			assert.NoError(t, err)
 
 			{
@@ -137,7 +137,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 				assert.True(t, true)
 			}
 
-			closer()
+			cancel()
 		}
 
 		// at this point we should be unsubscribed from changes on 'users/1'
@@ -186,7 +186,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			action := func(change *ravendb.IndexChange) {
 				changesList <- change
 			}
-			closer, err := changes.ForIndex(index.IndexName, action)
+			cancel, err := changes.ForIndex(index.IndexName, action)
 			assert.NoError(t, err)
 
 			time.Sleep(500 * time.Millisecond)
@@ -202,7 +202,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 				assert.True(t, false, "timed out waiting for changes")
 			}
 
-			closer()
+			cancel()
 		}
 
 		changes.Close()
@@ -229,7 +229,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			action := func(change *ravendb.IndexChange) {
 				changesList <- change
 			}
-			closer, err := changes.ForAllIndexes(action)
+			cancel, err := changes.ForAllIndexes(action)
 			assert.NoError(t, err)
 
 			time.Sleep(500 * time.Millisecond)
@@ -244,7 +244,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			case <-time.After(time.Second * 2):
 				assert.True(t, false, "timed out waiting for changes")
 			}
-			closer()
+			cancel()
 		}
 
 		changes.Close()
@@ -267,7 +267,7 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			closer, err := changes.ForDocumentsStartingWith("users/", action)
+			cancel, err := changes.ForDocumentsStartingWith("users/", action)
 			assert.NoError(t, err)
 
 			{
@@ -314,7 +314,7 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 				assert.True(t, false, "timed out waiting for changes")
 			}
 
-			closer()
+			cancel()
 		}
 
 		changes.Close()
@@ -337,7 +337,7 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			closer, err := changes.ForDocumentsInCollection("users", action)
+			cancel, err := changes.ForDocumentsInCollection("users", action)
 			assert.NoError(t, err)
 
 			{
@@ -384,7 +384,7 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 				assert.True(t, false, "timed out waiting for changes")
 			}
 
-			closer()
+			cancel()
 		}
 	}
 }
