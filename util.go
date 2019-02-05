@@ -42,6 +42,17 @@ func i64toa(n int64) string {
 }
 
 /*
+func isCtxCancelled(ctx context.Context) bool {
+	select {
+	case <-ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+*/
+
+/*
 // TODO:
 func isValidDbNameChar(c rune) bool {
 	if c >= 'A' && c <= 'Z' {
