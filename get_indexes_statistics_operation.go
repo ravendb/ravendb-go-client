@@ -38,7 +38,7 @@ func NewGetIndexesStatisticsCommand() *GetIndexesStatisticsCommand {
 	return res
 }
 
-func (c *GetIndexesStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexesStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/stats"
 
 	return NewHttpGet(url)

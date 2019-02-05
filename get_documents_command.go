@@ -69,7 +69,7 @@ func NewGetDocumentsCommandFull(startWith string, startAfter string, matches str
 	}, nil
 }
 
-func (c *GetDocumentsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/docs?"
 	if c._start > 0 {
 		url += "&start=" + strconv.Itoa(c._start)

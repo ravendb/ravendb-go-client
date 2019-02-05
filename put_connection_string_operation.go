@@ -44,7 +44,7 @@ func NewPutConnectionStringCommand(connectionString interface{}) *PutConnectionS
 	}
 }
 
-func (c *PutConnectionStringCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutConnectionStringCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/connection-strings"
 
 	d, err := jsonMarshal(c.connectionString)

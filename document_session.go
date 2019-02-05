@@ -72,7 +72,7 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 func (s *DocumentSession) SaveChanges() error {
 	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)
 
-	command, err := saveChangeOperation.CreateRequest()
+	command, err := saveChangeOperation.createRequest()
 	if err != nil {
 		return err
 	}
@@ -360,7 +360,7 @@ func (s *DocumentSession) Load(result interface{}, id string) error {
 
 	loadOperation.byID(id)
 
-	command, err := loadOperation.CreateRequest()
+	command, err := loadOperation.createRequest()
 	if err != nil {
 		return err
 	}
@@ -426,7 +426,7 @@ func (s *DocumentSession) LoadMulti(results interface{}, ids []string) error {
 func (s *DocumentSession) loadInternalWithOperation(ids []string, operation *LoadOperation, stream io.Writer) error {
 	operation.byIds(ids)
 
-	command, err := operation.CreateRequest()
+	command, err := operation.createRequest()
 	if err != nil {
 		return err
 	}
@@ -458,7 +458,7 @@ func (s *DocumentSession) loadInternalMulti(results interface{}, ids []string, i
 	loadOperation.byIds(ids)
 	loadOperation.withIncludes(includes)
 
-	command, err := loadOperation.CreateRequest()
+	command, err := loadOperation.createRequest()
 	if err != nil {
 		return err
 	}
@@ -506,7 +506,7 @@ func (s *DocumentSession) loadStartingWithInternal(idPrefix string, operation *L
 
 	operation.withStartWithFull(idPrefix, matches, start, pageSize, exclude, startAfter)
 
-	command, err := operation.CreateRequest()
+	command, err := operation.createRequest()
 	if err != nil {
 		return nil, err
 	}

@@ -27,7 +27,7 @@ func NewStreamCommand(url string) *StreamCommand {
 	return cmd
 }
 
-func (c *StreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *StreamCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/" + c._url
 	return NewHttpGet(url)
 }

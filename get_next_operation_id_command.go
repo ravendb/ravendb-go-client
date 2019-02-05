@@ -28,8 +28,7 @@ func NewGetNextOperationIDCommand() *GetNextOperationIDCommand {
 	return cmd
 }
 
-// CreateRequest creates a new request
-func (c *GetNextOperationIDCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetNextOperationIDCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/operations/next-operation-id"
 	return NewHttpGet(url)
 }

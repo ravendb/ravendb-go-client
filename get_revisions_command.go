@@ -50,7 +50,7 @@ func (c *GetRevisionsCommand) GetChangeVectors() []string {
 	return c._changeVectors
 }
 
-func (c *GetRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetRevisionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/revisions?"
 
 	if c._id != "" {

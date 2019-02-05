@@ -32,7 +32,7 @@ func NewPutDocumentCommand(id string, changeVector *string, document map[string]
 	return cmd
 }
 
-func (c *PutDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlEncode(c._id)
 
 	d, err := jsonMarshal(c._document)

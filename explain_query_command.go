@@ -35,7 +35,7 @@ func NewExplainQueryCommand(conventions *DocumentConventions, indexQuery *IndexQ
 	return cmd
 }
 
-func (c *ExplainQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *ExplainQueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/queries?debug=explain"
 
 	v := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)

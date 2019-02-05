@@ -30,8 +30,7 @@ func newGetSubscriptionsCommand(start int, pageSize int) *GetSubscriptionsComman
 	return cmd
 }
 
-// CreateRequest creates http request for the command
-func (c *GetSubscriptionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetSubscriptionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions?start=" + strconv.Itoa(c.start) + "&pageSize=" + strconv.Itoa(c.pageSize)
 
 	return NewHttpGet(url)

@@ -74,7 +74,7 @@ func NewPutAttachmentCommand(documentID string, name string, stream io.Reader, c
 
 var noReader = true
 
-func (c *PutAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/attachments?id=" + urlUtilsEscapeDataString(c._documentID) + "&name=" + urlUtilsEscapeDataString(c._name)
 
 	if stringIsNotEmpty(c._contentType) {

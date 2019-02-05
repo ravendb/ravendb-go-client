@@ -25,8 +25,7 @@ func newDeleteSubscriptionCommand(name string) *DeleteSubscriptionCommand {
 	return cmd
 }
 
-// CreateRequest creates http request for the command
-func (c *DeleteSubscriptionCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *DeleteSubscriptionCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions?taskName=" + urlUtilsEscapeDataString(c.name)
 
 	return NewHttpDelete(url, nil)

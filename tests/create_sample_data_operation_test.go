@@ -37,7 +37,7 @@ func NewCreateSampleDataCommand(conventions *ravendb.DocumentConventions) *Creat
 	return cmd
 }
 
-func (c *CreateSampleDataCommand) CreateRequest(node *ravendb.ServerNode) (*http.Request, error) {
+func (c *CreateSampleDataCommand) createRequest(node *ravendb.ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/studio/sample-data"
 
 	return ravendb.NewHttpPost(url, nil)

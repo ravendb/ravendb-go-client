@@ -27,8 +27,7 @@ func newGetSubscriptionStateCommand(subscriptionName string) *GetSubscriptionSta
 	return cmd
 }
 
-// CreateRequest creates http request for the command
-func (c *GetSubscriptionStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetSubscriptionStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions/state?name=" + urlUtilsEscapeDataString(c.subscriptionName)
 
 	return NewHttpGet(url)

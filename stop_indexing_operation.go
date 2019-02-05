@@ -35,7 +35,7 @@ func NewStopIndexingCommand() *StopIndexingCommand {
 	return cmd
 }
 
-func (c *StopIndexingCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *StopIndexingCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes/stop"
 
 	return NewHttpPost(url, nil)

@@ -64,8 +64,7 @@ func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings
 	return res, nil
 }
 
-// CreateRequest creates a request
-func (c *CompactDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *CompactDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/compact"
 	return NewHttpPost(url, c.compactSettings)
 }

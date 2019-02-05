@@ -35,7 +35,7 @@ func NewStartIndexingCommand() *StartIndexingCommand {
 	return cmd
 }
 
-func (c *StartIndexingCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *StartIndexingCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes/start"
 
 	return NewHttpPost(url, nil)

@@ -29,7 +29,7 @@ func NewGetRevisionsBinEntryCommand(etag int64, pageSize int) *GetRevisionsBinEn
 	return cmd
 }
 
-func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	etagStr := i64toa(c.etag)
 	url := node.URL + "/databases/" + node.Database + "/revisions/bin?etag=" + etagStr
 

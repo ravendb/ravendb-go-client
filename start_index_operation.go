@@ -54,7 +54,7 @@ func NewStartIndexCommand(indexName string) (*StartIndexCommand, error) {
 	return cmd, nil
 }
 
-func (c *StartIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *StartIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes/start?name=" + urlUtilsEscapeDataString(c.indexName)
 
 	return NewHttpPost(url, nil)

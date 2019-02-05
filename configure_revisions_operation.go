@@ -48,8 +48,7 @@ func NewConfigureRevisionsCommand(configuration *RevisionsConfiguration) *Config
 	return cmd
 }
 
-// CreateRequest creates http request for this command
-func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/revisions/config"
 
 	d, err := jsonMarshal(c.configuration)

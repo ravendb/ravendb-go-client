@@ -33,8 +33,7 @@ func NewMultiGetCommand(cache *HttpCache, commands []*getRequest) *MultiGetComma
 	return cmd
 }
 
-// CreateRequest creates http request for this command
-func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *MultiGetCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	c.baseURL = node.URL + "/databases/" + node.Database
 
 	m := map[string]interface{}{}

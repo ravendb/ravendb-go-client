@@ -26,7 +26,7 @@ func NewLoadStartingWithOperation(session *InMemoryDocumentSessionOperations) *L
 	}
 }
 
-func (o *LoadStartingWithOperation) CreateRequest() (*GetDocumentsCommand, error) {
+func (o *LoadStartingWithOperation) createRequest() (*GetDocumentsCommand, error) {
 	if err := o._session.incrementRequestCount(); err != nil {
 		return nil, err
 	}

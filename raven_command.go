@@ -15,7 +15,7 @@ var (
 // TODO: should be private type, make the methods private as well
 type RavenCommand interface {
 	// those are meant to be over-written
-	CreateRequest(node *ServerNode) (*http.Request, error)
+	createRequest(node *ServerNode) (*http.Request, error)
 	SetResponse(response []byte, fromCache bool) error
 	SetResponseRaw(response *http.Response, body io.Reader) error
 
@@ -65,8 +65,8 @@ func (c *RavenCommandBase) SetResponseRaw(response *http.Response, stream io.Rea
 	return nil
 }
 
-func (c *RavenCommandBase) CreateRequest(node *ServerNode) (*http.Request, error) {
-	panicIf(true, "must over-write createRequestFunc")
+func (c *RavenCommandBase) createRequest(node *ServerNode) (*http.Request, error) {
+	panicIf(true, "createRequest must be over-written by all types")
 	return nil, nil
 }
 

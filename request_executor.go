@@ -672,7 +672,7 @@ func isNetworkTimeoutError(err error) bool {
 // If nodeIndex is -1, we don't know the index
 func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
 	// nodeIndex -1 is equivalent to Java's null
-	request, err := re.CreateRequest(chosenNode, command)
+	request, err := re.createRequest(chosenNode, command)
 	if err != nil {
 		return err
 	}
@@ -898,7 +898,7 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 
 		go func(nodeIndex int, node *ServerNode) {
 			var response *http.Response
-			request, err := re.CreateRequest(node, command)
+			request, err := re.createRequest(node, command)
 			if err == nil {
 				response, err = command.GetBase().Send(re.httpClient, request)
 				n := atomic.AddInt32(&fastestWasRecorded, 1)
@@ -940,8 +940,8 @@ func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*Rele
 	return NewReleaseCacheItem(nil), nil, nil
 }
 
-func (re *RequestExecutor) CreateRequest(node *ServerNode, command RavenCommand) (*http.Request, error) {
-	request, err := command.CreateRequest(node)
+func (re *RequestExecutor) createRequest(node *ServerNode, command RavenCommand) (*http.Request, error) {
+	request, err := command.createRequest(node)
 	if err != nil {
 		return nil, err
 	}

@@ -30,8 +30,7 @@ func newCreateSubscriptionCommand(conventions *DocumentConventions, options *Sub
 	}
 }
 
-// CreateRequest creates http request for the command
-func (c *CreateSubscriptionCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *CreateSubscriptionCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	uri := node.URL + "/databases/" + node.Database + "/subscriptions"
 
 	if c.id != "" {

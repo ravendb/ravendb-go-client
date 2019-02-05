@@ -54,7 +54,7 @@ func NewEnableIndexCommand(indexName string) (*EnableIndexCommand, error) {
 	return cmd, nil
 }
 
-func (c *EnableIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *EnableIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes/enable?name=" + urlUtilsEscapeDataString(c.indexName)
 
 	return NewHttpPost(url, nil)

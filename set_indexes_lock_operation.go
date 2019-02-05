@@ -92,7 +92,7 @@ func NewSetIndexesLockCommand(conventions *DocumentConventions, parameters *SetI
 	return cmd, nil
 }
 
-func (c *SetIndexesLockCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *SetIndexesLockCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/set-lock"
 
 	return NewHttpPost(url, c.parameters)

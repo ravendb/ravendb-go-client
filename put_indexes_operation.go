@@ -59,7 +59,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	for _, indexToAdd := range indexesToAdd {
 		// Note: unlike java, Type is not calculated on demand. This is a decent
 		// place to ensure it. Assumes that indexToAdd will not be modified
-		// between now an CreateRequest()
+		// between now an createRequest()
 		indexToAdd.updateIndexTypeAndMaps()
 
 		panicIf(indexToAdd.Name == "", "Index name cannot be empty")
@@ -70,8 +70,7 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	return cmd, nil
 }
 
-// CreateRequest creates http request for this command
-func (c *PutIndexesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes"
 
 	m := map[string]interface{}{

@@ -35,7 +35,7 @@ func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, m
 	return cmd, nil
 }
 
-func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	c.CanCache = !c._indexQuery.disableCaching
 
 	// we won't allow aggressive caching of queries with WaitForNonStaleResults

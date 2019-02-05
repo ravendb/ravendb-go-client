@@ -33,7 +33,7 @@ func NewGetServerWideOperationStateCommand(conventions *DocumentConventions, id 
 	return cmd
 }
 
-func (c *GetServerWideOperationStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetServerWideOperationStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/operations/state?id=" + i64toa(c.id)
 	return NewHttpGet(url)
 }

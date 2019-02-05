@@ -78,8 +78,7 @@ func NewGetTermsCommand(indexName string, field string, fromValue string, pageSi
 	return res, nil
 }
 
-// CreateRequest creates a request
-func (c *GetTermsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetTermsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	pageSize := ""
 	if c._pageSize > 0 {
 		pageSize = strconv.Itoa(c._pageSize)

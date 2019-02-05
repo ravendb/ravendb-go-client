@@ -36,7 +36,7 @@ func NewHeadAttachmentCommand(documentID string, name string, changeVector *stri
 	return cmd, nil
 }
 
-func (c *HeadAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *HeadAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/attachments?id=" + urlUtilsEscapeDataString(c._documentID) + "&name=" + urlUtilsEscapeDataString(c._name)
 
 	request, err := NewHttpGet(url)

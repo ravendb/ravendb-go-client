@@ -51,7 +51,7 @@ func NewGetStatisticsCommand(debugTag string) *GetStatisticsCommand {
 	return cmd
 }
 
-func (c *GetStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/stats"
 	if c.debugTag != "" {
 		url += "?" + c.debugTag

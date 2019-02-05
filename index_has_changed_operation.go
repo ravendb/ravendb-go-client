@@ -52,7 +52,7 @@ func NewIndexHasChangedCommand(conventions *DocumentConventions, definition *Ind
 	return res, nil
 }
 
-func (c *IndexHasChangedCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *IndexHasChangedCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/has-changed"
 	return NewHttpPost(url, c.definition)
 }

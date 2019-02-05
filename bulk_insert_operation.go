@@ -38,8 +38,7 @@ func NewBulkInsertCommand(id int64, stream io.Reader, useCompression bool) *Bulk
 	return cmd
 }
 
-// CreateRequest creates a request
-func (c *BulkInsertCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *BulkInsertCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/bulk_insert?id=" + i64toa(c._id)
 	// TODO: implement compression. It must be attached to the writer
 	//message.setEntity(useCompression ? new GzipCompressingEntity(_stream) : _stream)

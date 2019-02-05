@@ -59,7 +59,7 @@ func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *Ind
 	return cmd, nil
 }
 
-func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *PatchByQueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	_options := c._options
 
 	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", _options.allowStale)

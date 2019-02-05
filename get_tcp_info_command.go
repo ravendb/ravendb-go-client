@@ -32,8 +32,7 @@ func NewGetTcpInfoCommand(tag, dbName string) *GetTcpInfoCommand {
 	return cmd
 }
 
-// CreateRequest creates a http request
-func (c *GetTcpInfoCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetTcpInfoCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := ""
 	if c.dbName == "" {
 		url = node.URL + "/info/tcp?tcp=" + c.tag

@@ -54,7 +54,7 @@ func NewDisableIndexCommand(indexName string) (*DisableIndexCommand, error) {
 	return cmd, nil
 }
 
-func (c *DisableIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *DisableIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes/disable?name=" + urlUtilsEscapeDataString(c._indexName)
 
 	return NewHttpPost(url, nil)

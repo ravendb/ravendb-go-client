@@ -30,7 +30,7 @@ func NewQueryStreamCommand(conventions *DocumentConventions, indexQuery *IndexQu
 	return cmd
 }
 
-func (c *QueryStreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *QueryStreamCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/streams/queries"
 
 	m := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)

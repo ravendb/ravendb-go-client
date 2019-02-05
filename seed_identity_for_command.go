@@ -33,7 +33,7 @@ func NewSeedIdentityForCommand(id string, value int64, forced bool) (*SeedIdenti
 	return res, nil
 }
 
-func (c *SeedIdentityForCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *SeedIdentityForCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	err := ensureIsNotNullOrString(c.id, "ID")
 	if err != nil {
 		return nil, err

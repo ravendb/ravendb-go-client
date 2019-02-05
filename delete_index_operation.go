@@ -52,8 +52,7 @@ func NewDeleteIndexCommand(indexName string) (*DeleteIndexCommand, error) {
 	return cmd, nil
 }
 
-// CreateRequest creates http request for the command
-func (c *DeleteIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *DeleteIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes?name=" + urlUtilsEscapeDataString(c._indexName)
 
 	return NewHttpDelete(url, nil)

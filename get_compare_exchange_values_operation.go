@@ -72,7 +72,7 @@ func NewGetCompareExchangeValuesCommand(operation *GetCompareExchangeValuesOpera
 	return cmd, nil
 }
 
-func (c *GetCompareExchangeValuesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetCompareExchangeValuesCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/cmpxchg?"
 
 	if c._operation._keys != nil {

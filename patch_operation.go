@@ -136,8 +136,7 @@ func NewPatchCommand(conventions *DocumentConventions, id string, changeVector *
 	return cmd, nil
 }
 
-// CreateRequest creates http request
-func (c *PatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlUtilsEscapeDataString(c.id)
 
 	if c.skipPatchIfChangeVectorMismatch {

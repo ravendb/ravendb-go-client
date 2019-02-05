@@ -25,8 +25,7 @@ func newDropSubscriptionConnectionCommand(name string) *DropSubscriptionConnecti
 	return cmd
 }
 
-// CreateRequest creates http request for the command
-func (c *DropSubscriptionConnectionCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *DropSubscriptionConnectionCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions/drop?name=" + urlUtilsEscapeDataString(c.name)
 
 	return NewHttpPost(url, nil)

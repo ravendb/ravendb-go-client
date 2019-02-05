@@ -46,7 +46,7 @@ func NewGetDatabaseRecordCommand(conventions *DocumentConventions, database stri
 	return cmd
 }
 
-func (c *GetDatabaseRecordCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetDatabaseRecordCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/databases?name=" + c.database
 	return NewHttpGet(url)
 }

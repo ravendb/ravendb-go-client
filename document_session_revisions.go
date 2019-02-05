@@ -30,7 +30,7 @@ func (r *DocumentSessionRevisions) GetForStartAt(clazz reflect.Type, id string, 
 func (r *DocumentSessionRevisions) GetForPaged(clazz reflect.Type, id string, start int, pageSize int) ([]interface{}, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
 
-	command, err := operation.CreateRequest()
+	command, err := operation.createRequest()
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (r *DocumentSessionRevisions) GetMetadataForStartAt(id string, start int) (
 
 func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
 	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
-	command, err := operation.CreateRequest()
+	command, err := operation.createRequest()
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pag
 // TODO: change changeVector to *string?
 func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) (interface{}, error) {
 	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)
-	command, err := operation.CreateRequest()
+	command, err := operation.createRequest()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ TODO: port me
    public <T> Map<String, T> get(Class<T> clazz, String[] changeVectors) {
        GetRevisionOperation operation = new GetRevisionOperation(session, changeVectors);
 
-       GetRevisionsCommand command = operation.CreateRequest();
+       GetRevisionsCommand command = operation.createRequest();
        requestExecutor.execute(command, sessionInfo);
        operation.setResult(command.getResult());
        return operation.GetRevisions(clazz);

@@ -1,36 +1,38 @@
 package ravendb
 
+// BatchOperation represents a batch operation
 type BatchOperation struct {
-	_session              *InMemoryDocumentSessionOperations
-	_entities             []interface{}
-	_sessionCommandsCount int
+	session              *InMemoryDocumentSessionOperations
+	entities             []interface{}
+	sessionCommandsCount int
 }
 
+// NewBatchOperation
 func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperation {
 	return &BatchOperation{
-		_session: session,
+		session: session,
 	}
 }
 
-func (b *BatchOperation) CreateRequest() (*BatchCommand, error) {
-	result, err := b._session.PrepareForSaveChanges()
+func (b *BatchOperation) createRequest() (*BatchCommand, error) {
+	result, err := b.session.PrepareForSaveChanges()
 	if err != nil {
 		return nil, err
 	}
 
-	b._sessionCommandsCount = len(result.sessionCommands)
+	b.sessionCommandsCount = len(result.sessionCommands)
 	result.sessionCommands = append(result.sessionCommands, result.deferredCommands...)
 	if len(result.sessionCommands) == 0 {
 		return nil, nil
 	}
 
-	if err = b._session.incrementRequestCount(); err != nil {
+	if err = b.session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
 
-	b._entities = result.entities
+	b.entities = result.entities
 
-	return NewBatchCommand(b._session.GetConventions(), result.sessionCommands, result.options)
+	return NewBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options)
 }
 
 func (b *BatchOperation) setResult(result []map[string]interface{}) {
@@ -38,7 +40,7 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 		// TODO: throwOnNullResults()
 		return
 	}
-	for i := 0; i < b._sessionCommandsCount; i++ {
+	for i := 0; i < b.sessionCommandsCount; i++ {
 		batchResult := result[i]
 		if batchResult == nil {
 			return
@@ -48,8 +50,8 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 		if typ != "PUT" {
 			continue
 		}
-		entity := b._entities[i]
-		documentInfo := getDocumentInfoByEntity(b._session.documents, entity)
+		entity := b.entities[i]
+		documentInfo := getDocumentInfoByEntity(b.session.documents, entity)
 		if documentInfo == nil {
 			continue
 		}
@@ -79,10 +81,10 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 		doc[MetadataKey] = documentInfo.metadata
 		documentInfo.metadataInstance = nil
 
-		b._session.documentsByID.add(documentInfo)
-		b._session.GetGenerateEntityIDOnTheClient().trySetIdentity(entity, id)
+		b.session.documentsByID.add(documentInfo)
+		b.session.GetGenerateEntityIDOnTheClient().trySetIdentity(entity, id)
 
-		afterSaveChangesEventArgs := newAfterSaveChangesEventArgs(b._session, documentInfo.id, documentInfo.entity)
-		b._session.OnAfterSaveChangesInvoke(afterSaveChangesEventArgs)
+		afterSaveChangesEventArgs := newAfterSaveChangesEventArgs(b.session, documentInfo.id, documentInfo.entity)
+		b.session.OnAfterSaveChangesInvoke(afterSaveChangesEventArgs)
 	}
 }

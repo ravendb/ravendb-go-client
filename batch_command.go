@@ -19,10 +19,10 @@ var (
 type BatchCommand struct {
 	RavenCommandBase
 
-	_conventions       *DocumentConventions
-	_commands          []ICommandData
-	_attachmentStreams []io.Reader
-	_options           *BatchOptions
+	conventions       *DocumentConventions
+	commands          []ICommandData
+	attachmentStreams []io.Reader
+	options           *BatchOptions
 
 	Result *JSONArrayResult
 }
@@ -35,9 +35,9 @@ func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData, 
 	cmd := &BatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_commands:    commands,
-		_options:     options,
-		_conventions: conventions,
+		commands:    commands,
+		options:     options,
+		conventions: conventions,
 	}
 
 	for i := 0; i < len(commands); i++ {
@@ -45,12 +45,12 @@ func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData, 
 		if putAttachmentCommandData, ok := command.(*PutAttachmentCommandData); ok {
 
 			stream := putAttachmentCommandData.getStream()
-			for _, existingStream := range cmd._attachmentStreams {
+			for _, existingStream := range cmd.attachmentStreams {
 				if stream == existingStream {
 					return nil, throwStreamAlready()
 				}
 			}
-			cmd._attachmentStreams = append(cmd._attachmentStreams, stream)
+			cmd.attachmentStreams = append(cmd.attachmentStreams, stream)
 		}
 	}
 
@@ -63,14 +63,13 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
-// CreateRequest creates http request
-func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/bulk_docs"
 	url = c.appendOptions(url)
 
 	var a []interface{}
-	for _, cmd := range c._commands {
-		el, err := cmd.serialize(c._conventions)
+	for _, cmd := range c.commands {
+		el, err := cmd.serialize(c.conventions)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +82,7 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(c._attachmentStreams) == 0 {
+	if len(c.attachmentStreams) == 0 {
 		return NewHttpPost(url, js)
 	}
 
@@ -95,7 +94,7 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	}
 
 	nameCounter := 1
-	for _, stream := range c._attachmentStreams {
+	for _, stream := range c.attachmentStreams {
 		name := "attachment" + strconv.Itoa(nameCounter)
 		nameCounter++
 		h := make(textproto.MIMEHeader)
@@ -139,7 +138,7 @@ func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 }
 
 func (c *BatchCommand) appendOptions(sb string) string {
-	_options := c._options
+	_options := c.options
 	if _options == nil {
 		return sb
 	}

@@ -51,7 +51,7 @@ func NewGetIndexNamesCommand(start int, pageSize int) *GetIndexNamesCommand {
 	return res
 }
 
-func (c *GetIndexNamesCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexNamesCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	start := strconv.Itoa(c._start)
 	pageSize := strconv.Itoa(c._pageSize)
 	url := node.URL + "/databases/" + node.Database + "/indexes?start=" + start + "&pageSize=" + pageSize + "&namesOnly=true"

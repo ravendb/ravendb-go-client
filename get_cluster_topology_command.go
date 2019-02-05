@@ -21,7 +21,7 @@ func NewGetClusterTopologyCommand() *GetClusterTopologyCommand {
 	return cmd
 }
 
-func (c *GetClusterTopologyCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetClusterTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/cluster/topology"
 	return NewHttpGet(url)
 }

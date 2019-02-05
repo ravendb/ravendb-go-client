@@ -63,8 +63,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 	return cmd, nil
 }
 
-// CreateRequest creates http request for the command
-func (c *CreateDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/databases?name=" + c.databaseName
 	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
 

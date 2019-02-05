@@ -1663,7 +1663,7 @@ func (q *AbstractDocumentQuery) initSync() error {
 func (q *AbstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
-		command, err := q.queryOperation.CreateRequest()
+		command, err := q.queryOperation.createRequest()
 		if err != nil {
 			return err
 		}
