@@ -85,11 +85,8 @@ func bulkInsertsTestKilledToEarly(t *testing.T, driver *RavenTestDriver) {
 		}
 
 		assert.Error(t, err)
-		if enableFlakyTests {
-			// TODO: this fails always on windows and occasionally on Linux on CI
-			_, ok := err.(*ravendb.BulkInsertAbortedError)
-			assert.True(t, ok, "expected error to be of type ravendb.BulkInsertAbortedError, got type '%T', value: '%s'", err, err)
-		}
+		_, ok := err.(*ravendb.BulkInsertAbortedError)
+		assert.True(t, ok, "expected error to be of type ravendb.BulkInsertAbortedError, got type '%T', value: '%s'", err, err)
 	}
 }
 
