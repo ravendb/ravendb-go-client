@@ -34,7 +34,7 @@ func (c *GetConflictsCommand) createRequest(node *ServerNode) (*http.Request, er
 	return NewHttpGet(url)
 }
 
-func (c *GetConflictsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetConflictsCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

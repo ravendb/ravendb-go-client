@@ -57,7 +57,7 @@ func (c *IndexHasChangedCommand) createRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, c.definition)
 }
 
-func (c *IndexHasChangedCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *IndexHasChangedCommand) setResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

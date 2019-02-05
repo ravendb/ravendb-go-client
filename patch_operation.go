@@ -176,8 +176,7 @@ func (c *PatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return request, nil
 }
 
-// SetResponse sets response
-func (c *PatchCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *PatchCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

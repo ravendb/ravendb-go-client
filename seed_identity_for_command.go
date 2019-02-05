@@ -48,7 +48,7 @@ func (c *SeedIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, nil)
 }
 
-func (c *SeedIdentityForCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *SeedIdentityForCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

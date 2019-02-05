@@ -12,20 +12,16 @@ var (
 )
 
 // RavenCommand defines interface for server commands
-// TODO: should be private type, make the methods private as well
 type RavenCommand interface {
 	// those are meant to be over-written
 	createRequest(node *ServerNode) (*http.Request, error)
-	SetResponse(response []byte, fromCache bool) error
-	SetResponseRaw(response *http.Response, body io.Reader) error
+	setResponse(response []byte, fromCache bool) error
+	setResponseRaw(response *http.Response, body io.Reader) error
 
 	// for all other functions, get access to underlying RavenCommandBase
-	GetBase() *RavenCommandBase
+	getBase() *RavenCommandBase
 }
 
-// TODO: optimize so that zero-values are default values so that we
-// don't need NewRavenCommandBase()
-// TODO: should be private type
 type RavenCommandBase struct {
 	StatusCode           int
 	ResponseType         RavenCommandResponseType
@@ -47,11 +43,11 @@ func NewRavenCommandBase() RavenCommandBase {
 	return res
 }
 
-func (c *RavenCommandBase) GetBase() *RavenCommandBase {
+func (c *RavenCommandBase) getBase() *RavenCommandBase {
 	return c
 }
 
-func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
+func (c *RavenCommandBase) setResponse(response []byte, fromCache bool) error {
 	if c.ResponseType == RavenCommandResponseTypeEmpty || c.ResponseType == RavenCommandResponseTypeRaw {
 		return throwInvalidResponse()
 	}
@@ -59,8 +55,7 @@ func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
 	return newUnsupportedOperationError(c.ResponseType + " command must override the SetResponse method which expects response with the following type: " + c.ResponseType)
 }
 
-// TODO: this is only implemented on MultiGetCommand
-func (c *RavenCommandBase) SetResponseRaw(response *http.Response, stream io.Reader) error {
+func (c *RavenCommandBase) setResponseRaw(response *http.Response, stream io.Reader) error {
 	panicIf(true, "When "+c.ResponseType+" is set to Raw then please override this method to handle the response. ")
 	return nil
 }
@@ -131,7 +126,7 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 	}
 
 	//fmt.Printf("processCommandResponse of %T\n", cmd)
-	c := cmd.GetBase()
+	c := cmd.getBase()
 
 	if response.Body == nil {
 		return responseDisposeHandlingAutomatic, nil
@@ -159,11 +154,11 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 			//fmt.Printf("processCommandResponse: caching response for %s\n", url)
 			c.CacheResponse(cache, url, response, js)
 		}
-		err = cmd.SetResponse(js, false)
+		err = cmd.setResponse(js, false)
 		return responseDisposeHandlingAutomatic, err
 	}
 
-	err := cmd.SetResponseRaw(response, response.Body)
+	err := cmd.setResponseRaw(response, response.Body)
 	return responseDisposeHandlingAutomatic, err
 }
 

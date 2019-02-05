@@ -33,8 +33,7 @@ func (c *GetSubscriptionStateCommand) createRequest(node *ServerNode) (*http.Req
 	return NewHttpGet(url)
 }
 
-// SetResponse sets result based on http response
-func (c *GetSubscriptionStateCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetSubscriptionStateCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

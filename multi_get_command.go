@@ -96,8 +96,7 @@ type resultsJSON struct {
 	Results []*getResponseJSON `json:"Results"`
 }
 
-// SetResponseRaw sets response from http response
-func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Reader) error {
+func (c *MultiGetCommand) setResponseRaw(response *http.Response, stream io.Reader) error {
 	var results *resultsJSON
 	d, err := ioutil.ReadAll(stream)
 	if err != nil {

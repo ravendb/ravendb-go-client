@@ -56,7 +56,7 @@ type GetDatabaseNamesResult struct {
 	Databases []string `json:"Databases"`
 }
 
-func (c *GetDatabaseNamesCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetDatabaseNamesCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

@@ -51,7 +51,7 @@ func (c *GetDatabaseRecordCommand) createRequest(node *ServerNode) (*http.Reques
 	return NewHttpGet(url)
 }
 
-func (c *GetDatabaseRecordCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetDatabaseRecordCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		c.Result = nil
 		return nil

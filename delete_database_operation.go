@@ -84,6 +84,6 @@ func (c *DeleteDatabaseCommand) createRequest(node *ServerNode) (*http.Request, 
 	return NewHttpDelete(url, c.parameters)
 }
 
-func (c *DeleteDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *DeleteDatabaseCommand) setResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

@@ -45,8 +45,7 @@ func (c *CreateSubscriptionCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpPut(uri, d)
 }
 
-// SetResponse sets result based on http response
-func (c *CreateSubscriptionCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *CreateSubscriptionCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

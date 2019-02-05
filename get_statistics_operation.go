@@ -60,7 +60,7 @@ func (c *GetStatisticsCommand) createRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetStatisticsCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

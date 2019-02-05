@@ -59,7 +59,7 @@ func (c *GetIndexNamesCommand) createRequest(node *ServerNode) (*http.Request, e
 	return NewHttpGet(url)
 }
 
-func (c *GetIndexNamesCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetIndexNamesCommand) setResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

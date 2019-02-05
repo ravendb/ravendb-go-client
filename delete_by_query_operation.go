@@ -86,7 +86,7 @@ func (c *DeleteByIndexCommand) createRequest(node *ServerNode) (*http.Request, e
 	return request, nil
 }
 
-func (c *DeleteByIndexCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *DeleteByIndexCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

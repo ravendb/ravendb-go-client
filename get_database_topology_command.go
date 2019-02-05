@@ -33,6 +33,6 @@ func (c *GetDatabaseTopologyCommand) createRequest(node *ServerNode) (*http.Requ
 	return NewHttpGet(url)
 }
 
-func (c *GetDatabaseTopologyCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetDatabaseTopologyCommand) setResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

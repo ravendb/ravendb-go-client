@@ -47,6 +47,6 @@ func (c *PutDocumentCommand) createRequest(node *ServerNode) (*http.Request, err
 	return request, nil
 }
 
-func (c *PutDocumentCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *PutDocumentCommand) setResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

@@ -33,8 +33,7 @@ func (c *GetNextOperationIDCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpGet(url)
 }
 
-// SetResponse sets JSON response
-func (c *GetNextOperationIDCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetNextOperationIDCommand) setResponse(response []byte, fromCache bool) error {
 	var res _GetNextOperationIDCommandResponse
 	err := jsonUnmarshal(response, &res)
 	if err != nil {

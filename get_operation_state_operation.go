@@ -38,7 +38,7 @@ func (c *GetOperationStateCommand) createRequest(node *ServerNode) (*http.Reques
 	return NewHttpGet(url)
 }
 
-func (c *GetOperationStateCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetOperationStateCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

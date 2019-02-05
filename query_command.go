@@ -62,7 +62,7 @@ func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return NewHttpPost(path, d)
 }
 
-func (c *QueryCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *QueryCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

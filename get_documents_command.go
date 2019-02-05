@@ -157,7 +157,7 @@ func (c *GetDocumentsCommand) calculateHash(uniqueIds []string) string {
 	return hasher.getHash()
 }
 
-func (c *GetDocumentsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetDocumentsCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

@@ -44,7 +44,7 @@ func (c *GetIndexesStatisticsCommand) createRequest(node *ServerNode) (*http.Req
 	return NewHttpGet(url)
 }
 
-func (c *GetIndexesStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetIndexesStatisticsCommand) setResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

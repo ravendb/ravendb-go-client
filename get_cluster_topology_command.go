@@ -26,7 +26,7 @@ func (c *GetClusterTopologyCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpGet(url)
 }
 
-func (c *GetClusterTopologyCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetClusterTopologyCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

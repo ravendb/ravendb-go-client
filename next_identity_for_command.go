@@ -38,7 +38,7 @@ func (c *NextIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 	return NewHttpPost(url, nil)
 }
 
-func (c *NextIdentityForCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *NextIdentityForCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

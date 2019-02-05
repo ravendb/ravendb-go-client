@@ -74,7 +74,7 @@ func (c *HeadAttachmentCommand) processResponse(cache *HttpCache, response *http
 	return responseDisposeHandlingAutomatic, nil
 }
 
-func (c *HeadAttachmentCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *HeadAttachmentCommand) setResponse(response []byte, fromCache bool) error {
 	if response != nil {
 		return throwInvalidResponse()
 	}

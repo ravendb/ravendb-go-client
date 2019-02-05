@@ -55,7 +55,7 @@ func (c *PutConnectionStringCommand) createRequest(node *ServerNode) (*http.Requ
 	return NewHttpPut(url, d)
 }
 
-func (c *PutConnectionStringCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *PutConnectionStringCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

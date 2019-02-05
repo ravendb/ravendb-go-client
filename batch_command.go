@@ -128,8 +128,7 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	return req, nil
 }
 
-// SetResponse sets response
-func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *BatchCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return newIllegalStateError("Got null response from the server after doing a batch, something is very wrong. Probably a garbled response.")
 	}

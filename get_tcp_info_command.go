@@ -43,8 +43,7 @@ func (c *GetTcpInfoCommand) createRequest(node *ServerNode) (*http.Request, erro
 	return NewHttpGet(url)
 }
 
-// SetResponse sets results from http response
-func (c *GetTcpInfoCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetTcpInfoCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

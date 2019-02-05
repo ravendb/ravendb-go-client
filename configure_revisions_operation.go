@@ -58,8 +58,7 @@ func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Reque
 	return NewHttpPost(url, d)
 }
 
-// SetResponse sets response for this command
-func (c *ConfigureRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *ConfigureRevisionsCommand) setResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }
 

@@ -78,7 +78,7 @@ func (c *GetRevisionsCommand) createRequest(node *ServerNode) (*http.Request, er
 	return NewHttpGet(url)
 }
 
-func (c *GetRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetRevisionsCommand) setResponse(response []byte, fromCache bool) error {
 	var res JSONArrayResult
 	err := jsonUnmarshal(response, &res)
 	if err != nil {

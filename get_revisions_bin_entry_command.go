@@ -40,7 +40,7 @@ func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Req
 	return NewHttpGet(url)
 }
 
-func (c *GetRevisionsBinEntryCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetRevisionsBinEntryCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

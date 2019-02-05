@@ -43,7 +43,7 @@ func (c *GetIndexingStatusCommand) createRequest(node *ServerNode) (*http.Reques
 	return NewHttpGet(url)
 }
 
-func (c *GetIndexingStatusCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetIndexingStatusCommand) setResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

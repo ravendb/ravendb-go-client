@@ -89,7 +89,7 @@ func (c *PatchByQueryCommand) createRequest(node *ServerNode) (*http.Request, er
 	return request, nil
 }
 
-func (c *PatchByQueryCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *PatchByQueryCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

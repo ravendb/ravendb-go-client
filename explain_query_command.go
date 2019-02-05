@@ -44,7 +44,7 @@ func (c *ExplainQueryCommand) createRequest(node *ServerNode) (*http.Request, er
 	return NewHttpPost(url, d)
 }
 
-func (c *ExplainQueryCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *ExplainQueryCommand) setResponse(response []byte, fromCache bool) error {
 	var res struct {
 		Results []*ExplainQueryResult
 	}

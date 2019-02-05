@@ -64,8 +64,7 @@ func (c *HeadDocumentCommand) ProcessResponse(cache *HttpCache, response *http.R
 	return responseDisposeHandlingAutomatic, err
 }
 
-// SetResponse sets the response
-func (c *HeadDocumentCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *HeadDocumentCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) != 0 {
 		return throwInvalidResponse()
 	}

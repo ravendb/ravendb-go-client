@@ -96,7 +96,7 @@ func (c *GetCompareExchangeValuesCommand) createRequest(node *ServerNode) (*http
 	return NewHttpGet(url)
 }
 
-func (c *GetCompareExchangeValuesCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetCompareExchangeValuesCommand) setResponse(response []byte, fromCache bool) error {
 	res, err := compareExchangeValueResultParserGetValues(c._operation._clazz, response, c._conventions)
 	if err != nil {
 		return err

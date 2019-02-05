@@ -105,6 +105,6 @@ func (c *PutAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 
 }
 
-func (c *PutAttachmentCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *PutAttachmentCommand) setResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

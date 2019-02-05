@@ -42,7 +42,7 @@ func (c *GetCollectionStatisticsCommand) createRequest(node *ServerNode) (*http.
 	return NewHttpGet(url)
 }
 
-func (c *GetCollectionStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetCollectionStatisticsCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

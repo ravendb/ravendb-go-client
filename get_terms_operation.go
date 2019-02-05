@@ -88,8 +88,7 @@ func (c *GetTermsCommand) createRequest(node *ServerNode) (*http.Request, error)
 	return NewHttpGet(url)
 }
 
-// SetResponse sets a response
-func (c *GetTermsCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *GetTermsCommand) setResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

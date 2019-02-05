@@ -83,8 +83,7 @@ func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, erro
 	return NewHttpPut(url, d)
 }
 
-// SetResponse decodes http response
-func (c *PutIndexesCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *PutIndexesCommand) setResponse(response []byte, fromCache bool) error {
 	var res PutIndexesResponse
 	err := jsonUnmarshal(response, &res)
 	if err != nil {

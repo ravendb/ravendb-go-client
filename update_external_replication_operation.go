@@ -57,7 +57,7 @@ func (c *UpdateExternalReplicationCommand) createRequest(node *ServerNode) (*htt
 	return NewHttpPost(url, d)
 }
 
-func (c *UpdateExternalReplicationCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *UpdateExternalReplicationCommand) setResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

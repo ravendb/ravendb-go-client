@@ -49,7 +49,6 @@ func (c *NextHiLoCommand) createRequest(node *ServerNode) (*http.Request, error)
 	return NewHttpGet(url)
 }
 
-// SetResponse sets a response
-func (c *NextHiLoCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *NextHiLoCommand) setResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

@@ -70,7 +70,7 @@ func (c *RemoveCompareExchangeValueCommand) createRequest(node *ServerNode) (*ht
 	return NewHttpDelete(url, nil)
 }
 
-func (c *RemoveCompareExchangeValueCommand) SetResponse(response []byte, fromCache bool) error {
+func (c *RemoveCompareExchangeValueCommand) setResponse(response []byte, fromCache bool) error {
 	var err error
 	c.Result, err = parseCompareExchangeResultFromString(c._clazz, response, c._conventions)
 	return err
