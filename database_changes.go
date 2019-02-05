@@ -23,40 +23,12 @@ type changeSubscribers struct {
 	unwatchCommand string
 	commandValue   string
 
-	onError []func(error)
-
-	lastError error
-
 	onDocumentChange        []func(*DocumentChange)
 	onIndexChange           []func(*IndexChange)
 	onOperationStatusChange []func(*OperationStatusChange)
 
 	// protects arrays
 	mu sync.Mutex
-}
-
-func (s *changeSubscribers) addOnError(handler func(error)) int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onError = append(s.onError, handler)
-	return len(s.onError) - 1
-}
-
-func (s *changeSubscribers) removeOnError(idx int) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onError[idx] = nil
-}
-
-func (s *changeSubscribers) error(e error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.lastError = e
-	for _, f := range s.onError {
-		if f != nil {
-			f(e)
-		}
-	}
 }
 
 func (s *changeSubscribers) hasRegisteredHandlers() bool {
@@ -136,6 +108,8 @@ type DatabaseChanges struct {
 
 	connectionStatusChanged []func()
 	onError                 []func(error)
+
+	lastError error
 }
 
 func (c *DatabaseChanges) nextCommandID() int {
@@ -234,13 +208,9 @@ func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (Clo
 }
 
 func (c *DatabaseChanges) getLastConnectionStateError() error {
-	for _, subscribers := range c.subscribers {
-		valueLastError := subscribers.lastError
-		if valueLastError != nil {
-			return valueLastError
-		}
-	}
-	return nil
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.lastError
 }
 
 func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (CloseFunc, error) {
@@ -451,22 +421,6 @@ func (c *DatabaseChanges) AddOnError(handler func(error)) int {
 
 func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
 	c.onError[handlerIdx] = nil
-}
-
-func (c *DatabaseChanges) invokeOnError(err error) {
-	// call onError handlers outside of a lock
-	var handlers []func(error)
-	c.mu.Lock()
-	if len(c.onError) > 0 {
-		handlers = append(handlers, c.onError...)
-	}
-	c.mu.Unlock()
-
-	for _, fn := range handlers {
-		if fn != nil {
-			fn(err)
-		}
-	}
 }
 
 func (c *DatabaseChanges) Close() {
@@ -723,13 +677,20 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 	return nil
 }
 
-func (c *DatabaseChanges) notifyAboutError(e error) {
-	c.invokeOnError(e)
-
+func (c *DatabaseChanges) notifyAboutError(err error) {
+	// call onError handlers outside of a lock
+	var handlers []func(error)
 	c.mu.Lock()
-	defer c.mu.Unlock()
-	for _, state := range c.subscribers {
-		state.error(e)
+	c.lastError = err
+	if len(c.onError) > 0 {
+		handlers = append(handlers, c.onError...)
+	}
+	c.mu.Unlock()
+
+	for _, fn := range handlers {
+		if fn != nil {
+			fn(err)
+		}
 	}
 }
 

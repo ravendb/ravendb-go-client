@@ -487,11 +487,7 @@ func (s *DocumentStore) createDatabaseChanges(database string) *DatabaseChanges 
 	return newDatabaseChanges(re, database, onDispose)
 }
 
-func (s *DocumentStore) GetLastDatabaseChangesStateError() error {
-	return s.GetLastDatabaseChangesStateErrorWithDatabaseName("")
-}
-
-func (s *DocumentStore) GetLastDatabaseChangesStateErrorWithDatabaseName(database string) error {
+func (s *DocumentStore) GetLastDatabaseChangesStateError(database string) error {
 	if database == "" {
 		database = s.GetDatabase()
 	}
