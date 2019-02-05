@@ -23,7 +23,7 @@ type InMemoryDocumentSessionOperations struct {
 	clientSessionID             int
 	deletedEntities             *objectSet
 	requestExecutor             *RequestExecutor
-	_operationExecutor          *OperationExecutor
+	operationExecutor           *OperationExecutor
 	pendingLazyOperations       []ILazyOperation
 	onEvaluateLazy              map[ILazyOperation]func(interface{})
 	generateDocumentKeysOnStore bool
@@ -101,7 +101,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		DatabaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
-		deferredCommandsMap:           make(map[idTypeAndName]ICommandData),
+		deferredCommandsMap:           map[idTypeAndName]ICommandData{},
 	}
 
 	genIDFunc := func(entity interface{}) string {
@@ -201,11 +201,11 @@ func (s *InMemoryDocumentSessionOperations) GetRequestExecutor() *RequestExecuto
 }
 
 func (s *InMemoryDocumentSessionOperations) GetOperations() *OperationExecutor {
-	if s._operationExecutor == nil {
+	if s.operationExecutor == nil {
 		dbName := s.DatabaseName
-		s._operationExecutor = s.GetDocumentStore().Operations().ForDatabase(dbName)
+		s.operationExecutor = s.GetDocumentStore().Operations().ForDatabase(dbName)
 	}
-	return s._operationExecutor
+	return s.operationExecutor
 }
 
 func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
