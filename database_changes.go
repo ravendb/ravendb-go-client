@@ -63,8 +63,8 @@ type DatabaseChanges struct {
 
 	isCancelRequested atomicBool
 
-	task            chan error
-	chanIsConnected chan error
+	chanWorkCompleted chan error
+	chanIsConnected   chan error
 
 	mu          sync.Mutex // protects subscribers maps
 	subscribers map[string]*changeSubscribers
@@ -96,10 +96,10 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		subscribers:     map[string]*changeSubscribers{},
 	}
 
-	res.task = make(chan error, 1)
+	res.chanWorkCompleted = make(chan error, 1)
 	go func() {
 		err := res.doWork()
-		res.task <- err
+		res.chanWorkCompleted <- err
 	}()
 
 	return res
@@ -399,7 +399,7 @@ func (c *DatabaseChanges) Close() {
 	c.subscribers = nil
 	c.mu.Unlock()
 
-	<-c.task
+	<-c.chanWorkCompleted
 
 	c.invokeConnectionStatusChanged()
 	if c.onDispose != nil {
