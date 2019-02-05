@@ -781,7 +781,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	}
 
 	var responseDispose responseDisposeHandling
-	responseDispose, err = processCommandResponse(command, re.Cache, response, urlRef)
+	responseDispose, err = ravenCommand_processResponse(command, re.Cache, response, urlRef)
 	re.lastReturnedResponse.Store(time.Now())
 	if err != nil {
 		return err
@@ -990,7 +990,7 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 	case http.StatusConflict:
 		err = requestExecutorHandleConflict(response)
 	default:
-		command.getBase().OnResponseFailure(response)
+		command.getBase().onResponseFailure(response)
 		err = exceptionDispatcherThrowError(response)
 	}
 	return false, err

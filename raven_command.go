@@ -84,7 +84,8 @@ func ensureIsNotNullOrString(value string, name string) error {
 	return nil
 }
 
-func (c *RavenCommandBase) IsFailedWithNode(node *ServerNode) bool {
+// Note: unused
+func (c *RavenCommandBase) isFailedWithNode(node *ServerNode) bool {
 	if c.FailedNodes == nil {
 		return false
 	}
@@ -92,10 +93,9 @@ func (c *RavenCommandBase) IsFailedWithNode(node *ServerNode) bool {
 	return ok
 }
 
-// Note: in Java this is part of RavenCommand and can be virtual
-// That's imposssible in Go, so we replace with stand-alone function
-func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
-	// In Java this is overridden in HeadDocumentCommand, so hack it this way
+// Note: in Java Raven.processResponse is virtual.
+// That's impossible in Go, so we replace with stand-alone function that dispatches based on type
+func ravenCommand_processResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	if cmdHead, ok := cmd.(*HeadDocumentCommand); ok {
 		return cmdHead.ProcessResponse(cache, response, url)
 	}
@@ -116,7 +116,6 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		return cmdStream.processResponse(cache, response, url)
 	}
 
-	//fmt.Printf("processCommandResponse of %T\n", cmd)
 	c := cmd.getBase()
 
 	if response.Body == nil {
@@ -142,8 +141,7 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 		}
 
 		if cache != nil {
-			//fmt.Printf("processCommandResponse: caching response for %s\n", url)
-			c.CacheResponse(cache, url, response, js)
+			c.cacheResponse(cache, url, response, js)
 		}
 		err = cmd.setResponse(js, false)
 		return responseDisposeHandlingAutomatic, err
@@ -153,34 +151,33 @@ func processCommandResponse(cmd RavenCommand, cache *HttpCache, response *http.R
 	return responseDisposeHandlingAutomatic, err
 }
 
-func (c *RavenCommandBase) CacheResponse(cache *HttpCache, url string, response *http.Response, responseJson []byte) {
+func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url string, response *http.Response, responseJson []byte) {
 	if !c.CanCache {
-		//fmt.Printf("CacheResponse: url: %s, !c.CanCache\n", url)
 		return
 	}
 
 	changeVector := gttpExtensionsGetEtagHeader(response)
 	if changeVector == nil {
-		//fmt.Printf("CacheResponse: url: %s, not caching because changeVector==nil\n", url)
 		return
 	}
 
 	cache.set(url, changeVector, responseJson)
 }
 
-func (c *RavenCommandBase) AddChangeVectorIfNotNull(changeVector *string, request *http.Request) {
+// Note: unused
+func (c *RavenCommandBase) addChangeVectorIfNotNull(changeVector *string, request *http.Request) {
 	if changeVector != nil {
 		request.Header.Add("If-Match", `"`+*changeVector+`"`)
 	}
 }
 
-func (c *RavenCommandBase) OnResponseFailure(response *http.Response) {
-	// TODO: it looks like it's meant to be virtual but there are no
+func (c *RavenCommandBase) onResponseFailure(response *http.Response) {
+	// Note: it looks like it's meant to be virtual but there are no
 	// over-rides in Java code
 }
 
 // Note: hackish solution due to lack of generics
-// For commands whose result is OperationIDResult, return it
+// Returns OperationIDReuslt for commands that have it as a result
 // When new command returning OperationIDResult are added, we must extend it
 func getCommandOperationIDResult(cmd RavenCommand) *OperationIDResult {
 	switch c := cmd.(type) {
