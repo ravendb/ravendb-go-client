@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// Duration is alias for time.Duration that serializes to JSON in a way that
-// ravendb server understands
+// Duration is an alias for time.Duration that serializes to JSON
+// in format compatible with ravendb server
 type Duration time.Duration
 
 // MarshalJSON converts to JSON format (as a string)
