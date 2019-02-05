@@ -144,7 +144,6 @@ func (d *RavenTestDriver) waitForConflict(store *ravendb.DocumentStore, result i
 			}
 		}
 	}
-	return fmt.Errorf("Waited for conflict on '%s' but it did not happen", id)
 }
 
 func TestRavenDB6292(t *testing.T) {
