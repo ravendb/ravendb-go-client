@@ -61,7 +61,7 @@ type DatabaseChanges struct {
 	client   *websocket.Conn
 	muClient sync.Mutex
 
-	task         *completableFuture
+	task         chan error
 	doWorkCancel context.CancelFunc
 	tcs          *completableFuture
 
@@ -71,7 +71,7 @@ type DatabaseChanges struct {
 	muConfirmations sync.Mutex
 	confirmations   map[int]*completableFuture
 
-	immediateConnection int32 // atomic bool
+	immediateConnection atomicBool
 
 	connectionStatusChanged []func()
 	onError                 []func(error)
@@ -95,16 +95,12 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		subscribers:     map[string]*changeSubscribers{},
 	}
 
-	res.task = newCompletableFuture()
+	res.task = make(chan error, 1)
 	var ctx context.Context
 	ctx, res.doWorkCancel = context.WithCancel(context.Background())
 	go func() {
 		err := res.doWork(ctx)
-		if err != nil {
-			res.task.completeWithError(err)
-		} else {
-			res.task.complete(nil)
-		}
+		res.task <- err
 	}()
 
 	return res
@@ -413,7 +409,8 @@ func (c *DatabaseChanges) Close() {
 	c.subscribers = nil
 	c.mu.Unlock()
 
-	c.task.Get()
+	<-c.task
+
 	c.invokeConnectionStatusChanged()
 	if c.onDispose != nil {
 		c.onDispose()
@@ -436,7 +433,7 @@ func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, 
 	}
 	c.subscribers[name] = subscribers
 
-	if atomic.LoadInt32(&c.immediateConnection) != 0 {
+	if c.immediateConnection.isTrue() {
 		if err := c.connectSubscribers(subscribers); err != nil {
 			return nil, err
 		}
@@ -567,7 +564,7 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 			continue
 		}
 
-		atomic.StoreInt32(&c.immediateConnection, 1)
+		(&c.immediateConnection).set(true)
 
 		c.mu.Lock()
 		for _, subscribers := range c.subscribers {
@@ -582,7 +579,7 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 		shouldReconnect := false
 		{
 			if !isCtxCancelled(ctx) {
-				atomic.StoreInt32(&c.immediateConnection, 0)
+				(&c.immediateConnection).set(false)
 				shouldReconnect = true
 			}
 		}
