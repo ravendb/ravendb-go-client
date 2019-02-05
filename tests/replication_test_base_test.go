@@ -58,5 +58,4 @@ func (d *RavenTestDriver) waitForDocumentToReplicate(store *ravendb.DocumentStor
 			}
 		}
 	}
-	return nil
 }
