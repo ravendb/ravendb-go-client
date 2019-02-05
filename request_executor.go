@@ -16,9 +16,10 @@ import (
 var (
 	requestExecutorFailureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperationWithDebugTag("failure=check")
 
-	// RequestPostProcessor allows to tweak http request after it has been created
-	// but before it was sent
-	RequestPostProcessor func(*http.Request)
+	// HTTPClientPostProcessor allows to tweak http client after it has been created
+	// this allows replacing Transport with a custom transport that does logging,
+	// proxying or tweaks each http request
+	HTTPClientPostProcessor func(*http.Client)
 )
 
 const (
@@ -945,9 +946,6 @@ func (re *RequestExecutor) CreateRequest(node *ServerNode, command RavenCommand)
 		return nil, err
 	}
 	request.Header.Set(headersClientVersion, goClientVersion)
-	if RequestPostProcessor != nil {
-		RequestPostProcessor(request)
-	}
 	return request, err
 }
 
@@ -1175,7 +1173,8 @@ func (re *RequestExecutor) Close() {
 // or certificate differ
 func (re *RequestExecutor) createClient() (*http.Client, error) {
 	client := &http.Client{
-		Timeout: time.Second * 30,
+		Timeout:   time.Second * 30,
+		Transport: http.DefaultTransport,
 	}
 	if re.Certificate != nil || re.TrustStore != nil {
 		tlsConfig, err := newTLSConfig(re.Certificate, re.TrustStore)
@@ -1185,6 +1184,9 @@ func (re *RequestExecutor) createClient() (*http.Client, error) {
 		client.Transport = &http.Transport{
 			TLSClientConfig: tlsConfig,
 		}
+	}
+	if HTTPClientPostProcessor != nil {
+		HTTPClientPostProcessor(client)
 	}
 	return client, nil
 }

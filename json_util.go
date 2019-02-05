@@ -178,13 +178,6 @@ func jsonUnmarshalFirst(d []byte, v interface{}) error {
 	return err
 }
 
-// TODO: remove
-/*
-func decodeJSONFromReader(r io.Reader, v interface{}) error {
-	return json.NewDecoder(r).Decode(v)
-}
-*/
-
 func isUnprintable(c byte) bool {
 	if c < 32 {
 		// 9 - tab, 10 - LF, 13 - CR
@@ -233,7 +226,7 @@ func maybePrettyPrintJSON(d []byte) []byte {
 		return d2
 	}
 	var m map[string]interface{}
-	err := jsonUnmarshal(d, &m)
+	err := json.Unmarshal(d, &m)
 	if err != nil {
 		return d
 	}

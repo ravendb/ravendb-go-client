@@ -2,7 +2,6 @@ package tests
 
 import (
 	"bufio"
-	"bytes"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
@@ -12,20 +11,16 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
-	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"runtime/debug"
-	"runtime/pprof"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -654,36 +649,6 @@ func detectServerPath() {
 	}
 }
 
-func maybePrintFailedRequestsLog() {
-	if ravendb.LogFailedRequests && logFailedRequestsDelayed {
-		ravendb.LogsLock()
-		defer ravendb.LogsUnlock()
-
-		buf := ravendb.HTTPFailedRequestsLogger.(*bytes.Buffer)
-		os.Stdout.Write(buf.Bytes())
-		buf.Reset()
-	}
-}
-
-// for temporarily disabling logging of failed requests (if a given
-// test is known to issue failing requests)
-// usage: defer disableLogFailedRequests()()
-// or:
-// restorer := disableLogFailedRequests()
-// ...
-// restorer()
-func disableLogFailedRequests() func() {
-	// TODO: not compatible with parallel tests
-	// would have to make this per RavenServerDriver/store
-	/*
-		old := ravendb.LogFailedRequests
-		ravendb.LogFailedRequests = false
-	*/
-	return func() {
-		//ravendb.LogFailedRequests = old
-	}
-}
-
 var (
 	// if true, enables flaky tests
 	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
@@ -692,28 +657,9 @@ var (
 	// if true, enable failing tests
 	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
 	enableFailingTests = false
-
-	// if true, printing of failed reqeusts is delayed until PrintFailedRequests
-	// is called.
-	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS_DELAYED env variable to "true"
-	logFailedRequestsDelayed = false
-
-	// if true, logs all http requests/responses to a file for further inspection
-	// this is for use in tests so the file has a fixed location:
-	// logs/trace_${test_name}_go.txt
-	logAllRequests = false
-
-	// if true, we log RavenDB's output to stdout
-	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
-	ravenServerVerbose = false
 )
 
 func setStateFromEnv() {
-	if !ravenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
-		ravenServerVerbose = true
-		fmt.Printf("Setting ravenServerVerbose to true\n")
-	}
-
 	if !enableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
 		enableFlakyTests = true
 		fmt.Printf("Setting enableFlakyTests to true\n")
@@ -724,38 +670,20 @@ func setStateFromEnv() {
 		fmt.Printf("Setting enableFailingTests to true\n")
 	}
 
-	if !logFailedRequestsDelayed && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS_DELAYED") {
-		logFailedRequestsDelayed = true
-		fmt.Printf("Setting logFailedRequestsDelayed to true\n")
-	}
-
-	if !ravendb.LogVerbose && isEnvVarTrue("VERBOSE_LOG") {
-		ravendb.LogVerbose = true
-		fmt.Printf("Setting LogVerbose to true\n")
-	}
-
-	if !ravendb.LogRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
-		ravendb.LogRequestSummary = true
-		fmt.Printf("Setting LogRequestSummary to true\n")
-	}
-
-	if !ravendb.LogFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
-		ravendb.LogFailedRequests = true
-		fmt.Printf("Setting LogFailedRequests to true\n")
-	}
-
-	if !logAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
-		logAllRequests = true
-		fmt.Printf("Setting logAllRequests to true\n")
-	}
+	setLoggingStateFromEnv()
 }
+
+var (
+	muCreateTestDriver sync.Mutex
+)
 
 // In Java, RavenTestDriver is created/destroyed for each test
 // In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) *RavenTestDriver {
-	ravendb.LogsLock()
-	defer ravendb.LogsUnlock()
+	// don't download server etc. in parallel
+	muCreateTestDriver.Lock()
+	defer muCreateTestDriver.Unlock()
 
 	downloadServerIfNeeded()
 
@@ -764,27 +692,7 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 
 	fmt.Printf("\nStarting test %s\n", t.Name())
 
-	ravendb.HTTPLoggerWriter = nil
-	if logAllRequests {
-		var err error
-		path := httpLogPathFromTestName(t)
-		f, err := os.Create(path)
-		if err != nil {
-			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
-		} else {
-			fmt.Printf("Logging HTTP traffic to %s\n", path)
-			ravendb.HTTPLoggerWriter = f
-		}
-	}
-
-	ravendb.HTTPFailedRequestsLogger = nil
-	if ravendb.LogFailedRequests {
-		if logFailedRequestsDelayed {
-			ravendb.HTTPFailedRequestsLogger = bytes.NewBuffer(nil)
-		} else {
-			ravendb.HTTPFailedRequestsLogger = os.Stdout
-		}
-	}
+	setupLogging(t)
 
 	driver := NewRavenTestDriver()
 	driver.logsDir = ravenLogsDirFromTestName(t)
@@ -796,13 +704,8 @@ func destroyDriver(t *testing.T, driver *RavenTestDriver) {
 		maybePrintFailedRequestsLog()
 	}
 	deleteTestDriver(driver)
-	ravendb.LogsLock()
-	defer ravendb.LogsUnlock()
-	w := ravendb.HTTPLoggerWriter
-	if w != nil {
-		w.Close()
-		ravendb.HTTPLoggerWriter = nil
-	}
+
+	finishLogging()
 }
 
 func recoverTest(t *testing.T, destroyDriver func()) {
@@ -813,85 +716,6 @@ func recoverTest(t *testing.T, destroyDriver func()) {
 		debug.PrintStack()
 		t.Fail()
 	}
-}
-
-// This helps debugging leaking gorutines by dumping stack traces
-// of all goroutines to a file
-func logGoroutines(file string) {
-	if file == "" {
-		file = "goroutines.txt"
-	}
-	path := filepath.Join("logs", file)
-	dir := filepath.Dir(path)
-	err := os.MkdirAll(dir, 0755)
-	if err != nil {
-		return
-	}
-	profile := pprof.Lookup("goroutine")
-	if profile == nil {
-		return
-	}
-
-	f, err := os.Create(path)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	profile.WriteTo(f, 2)
-}
-
-func isWindows() bool {
-	return runtime.GOOS == "windows"
-}
-
-func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
-	return func(netw, addr string) (net.Conn, error) {
-		conn, err := net.DialTimeout(netw, addr, cTimeout)
-		if err != nil {
-			return nil, err
-		}
-		conn.SetDeadline(time.Now().Add(rwTimeout))
-		return conn, nil
-	}
-}
-
-// can be used for http.Get() requests with better timeouts. New one must be created
-// for each Get() request
-func newTimeoutClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
-			Proxy: http.ProxyFromEnvironment,
-		},
-	}
-}
-
-func downloadURL(url string) ([]byte, error) {
-	// default timeout for http.Get() is really long, so dial it down
-	// for both connection and read/write timeouts
-	timeoutClient := newTimeoutClient(time.Second*120, time.Second*120)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", defaultUserAgent)
-	resp, err := timeoutClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("'%s': status code not 200 (%d)", url, resp.StatusCode)
-	}
-	return ioutil.ReadAll(resp.Body)
-}
-
-func HttpDl(url string, destPath string) error {
-	d, err := downloadURL(url)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(destPath, d, 0755)
 }
 
 func TestMain(m *testing.M) {

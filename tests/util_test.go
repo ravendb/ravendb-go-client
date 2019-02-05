@@ -1,9 +1,16 @@
 package tests
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
+	"time"
 )
 
 const (
@@ -101,7 +108,120 @@ func jsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
 	return s, true
 }
 
+func isUnprintable(c byte) bool {
+	if c < 32 {
+		// 9 - tab, 10 - LF, 13 - CR
+		if c == 9 || c == 10 || c == 13 {
+			return false
+		}
+		return true
+	}
+	return c >= 127
+}
+
+func isBinaryData(d []byte) bool {
+	for _, b := range d {
+		if isUnprintable(b) {
+			return true
+		}
+	}
+	return false
+}
+
+func asHex(d []byte) ([]byte, bool) {
+	if !isBinaryData(d) {
+		return d, false
+	}
+
+	// convert unprintable characters to hex
+	var res []byte
+	for i, c := range d {
+		if i > 2048 {
+			break
+		}
+		if isUnprintable(c) {
+			s := fmt.Sprintf("x%02x ", c)
+			res = append(res, s...)
+		} else {
+			res = append(res, c)
+		}
+	}
+	return res, true
+}
+
+// if d is a valid json, pretty-print it
+// only used for debugging
+func maybePrettyPrintJSON(d []byte) []byte {
+	if d2, ok := asHex(d); ok {
+		return d2
+	}
+	var m map[string]interface{}
+	err := json.Unmarshal(d, &m)
+	if err != nil {
+		return d
+	}
+	d2, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return d
+	}
+	return d2
+}
+
 func fileExists(path string) bool {
 	st, err := os.Lstat(path)
 	return err == nil && !st.IsDir()
+}
+
+func isWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
+func timeoutDialer(cTimeout time.Duration, rwTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
+	return func(netw, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(netw, addr, cTimeout)
+		if err != nil {
+			return nil, err
+		}
+		conn.SetDeadline(time.Now().Add(rwTimeout))
+		return conn, nil
+	}
+}
+
+// can be used for http.Get() requests with better timeouts. New one must be created
+// for each Get() request
+func newTimeoutClient(connectTimeout time.Duration, readWriteTimeout time.Duration) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial:  timeoutDialer(connectTimeout, readWriteTimeout),
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
+}
+
+func downloadURL(url string) ([]byte, error) {
+	// default timeout for http.Get() is really long, so dial it down
+	// for both connection and read/write timeouts
+	timeoutClient := newTimeoutClient(time.Second*120, time.Second*120)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", defaultUserAgent)
+	resp, err := timeoutClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("'%s': status code not 200 (%d)", url, resp.StatusCode)
+	}
+	return ioutil.ReadAll(resp.Body)
+}
+
+func HttpDl(url string, destPath string) error {
+	d, err := downloadURL(url)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(destPath, d, 0755)
 }

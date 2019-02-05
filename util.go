@@ -9,13 +9,6 @@ import (
 var (
 	// if true, does verbose logging.
 	LogVerbose = false
-
-	// if true, logs summary of all HTTP requests i.e. "GET /foo" to stdout
-	LogRequestSummary = false
-
-	// if true, logs request and response of failed http requests (i.e. those returning
-	// status code >= 400) to stdout
-	LogFailedRequests = false
 )
 
 func dbg(format string, args ...interface{}) {
