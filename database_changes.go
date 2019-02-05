@@ -63,8 +63,12 @@ type DatabaseChanges struct {
 
 	isCancelRequested atomicBool
 
+	// will be notified if doWork goroutine finishes
 	chanWorkCompleted chan error
-	chanIsConnected   chan error
+
+	// will be notified if we connect or fail to connect
+	// allows waiting for connection being established
+	chanIsConnected chan error
 
 	mu          sync.Mutex // protects subscribers maps
 	subscribers map[string]*changeSubscribers
@@ -423,7 +427,7 @@ func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, 
 	}
 	c.subscribers[name] = subscribers
 
-	if c.immediateConnection.isTrue() {
+	if c.IsConnected() {
 		if err := c.connectSubscribers(subscribers); err != nil {
 			return nil, err
 		}
@@ -548,8 +552,6 @@ func (c *DatabaseChanges) doWork() error {
 		c.chanIsConnected <- nil
 		close(c.chanIsConnected)
 
-		(&c.immediateConnection).set(true)
-
 		c.mu.Lock()
 		for _, subscribers := range c.subscribers {
 			c.connectSubscribers(subscribers)
@@ -559,14 +561,9 @@ func (c *DatabaseChanges) doWork() error {
 		c.invokeConnectionStatusChanged()
 		c.processMessages()
 		c.invokeConnectionStatusChanged()
+		c.setWsClient(nil)
 
-		shouldReconnect := false
-		{
-			if !(&c.isCancelRequested).isTrue() {
-				(&c.immediateConnection).set(false)
-				shouldReconnect = true
-			}
-		}
+		shouldReconnect := (&c.isCancelRequested).isTrue()
 
 		c.muConfirmations.Lock()
 		for _, confirmation := range c.confirmations {
