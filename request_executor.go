@@ -714,7 +714,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	if re.shouldExecuteOnAll(chosenNode, command) {
 		response, err = re.executeOnAllToFigureOutTheFastest(chosenNode, command)
 	} else {
-		response, err = command.getBase().Send(re.httpClient, request)
+		response, err = command.send(re.httpClient, request)
 	}
 
 	if err != nil {
@@ -900,7 +900,7 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 			var response *http.Response
 			request, err := re.createRequest(node, command)
 			if err == nil {
-				response, err = command.getBase().Send(re.httpClient, request)
+				response, err = command.send(re.httpClient, request)
 				n := atomic.AddInt32(&fastestWasRecorded, 1)
 				if n == 1 {
 					// this is the first one, so record as fastest

@@ -17,6 +17,8 @@ type RavenCommand interface {
 	setResponse(response []byte, fromCache bool) error
 	setResponseRaw(response *http.Response, body io.Reader) error
 
+	send(client *http.Client, req *http.Request) (*http.Response, error)
+
 	// for all other functions, get access to underlying RavenCommandBase
 	getBase() *RavenCommandBase
 }
@@ -68,7 +70,7 @@ func throwInvalidResponse() error {
 	return newIllegalStateError("Invalid response")
 }
 
-func (c *RavenCommandBase) Send(client *http.Client, req *http.Request) (*http.Response, error) {
+func (c *RavenCommandBase) send(client *http.Client, req *http.Request) (*http.Response, error) {
 	rsp, err := client.Do(req)
 	return rsp, err
 }
