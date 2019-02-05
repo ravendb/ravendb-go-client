@@ -148,7 +148,7 @@ func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (C
 	}
 
 	filtered := func(change *DocumentChange) {
-		panicIf(change.ID != docID, "v.ID (%d) != docID", change.ID, docID)
+		panicIf(change.ID != docID, "v.ID (%s) != docID (%s)", change.ID, docID)
 		cb(change)
 	}
 	idx := counter.addOnDocumentChangeNotification(filtered)
