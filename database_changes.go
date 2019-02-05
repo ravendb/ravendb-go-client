@@ -147,9 +147,9 @@ func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
 	}
 }
 
-type CloseFunc func()
+type CancelFunc func()
 
-func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("indexes/"+indexName, "watch-index", "unwatch-index", indexName)
@@ -180,7 +180,7 @@ func (c *DatabaseChanges) getLastConnectionStateError() error {
 	return c.lastError
 }
 
-func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("docs/"+docID, "watch-doc", "unwatch-doc", docID)
@@ -203,7 +203,7 @@ func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (C
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("all-docs", "watch-docs", "unwatch-docs", "")
@@ -221,7 +221,7 @@ func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CloseFunc, 
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationStatusChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationStatusChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	opIDStr := i64toa(operationID)
@@ -247,7 +247,7 @@ func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationSt
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("all-operations", "watch-operations", "unwatch-operations", "")
@@ -270,7 +270,7 @@ func (c *DatabaseChanges) removeSubscriber(subscribers *changeSubscribers, callb
 
 }
 
-func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("all-indexes", "watch-indexes", "unwatch-indexes", "")
@@ -288,7 +288,7 @@ func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CloseFunc, error
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*DocumentChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*DocumentChange)) (CancelFunc, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("prefixes/"+docIDPrefix, "watch-prefix", "unwatch-prefix", docIDPrefix)
@@ -317,7 +317,7 @@ func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb func(*DocumentChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb func(*DocumentChange)) (CancelFunc, error) {
 	if collectionName == "" {
 		return nil, newIllegalArgumentError("CollectionName cannot be empty")
 	}
@@ -347,7 +347,7 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb fun
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb func(*DocumentChange)) (CloseFunc, error) {
+func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb func(*DocumentChange)) (CancelFunc, error) {
 	collectionName := c.conventions.GetCollectionName(clazz)
 	return c.ForDocumentsInCollection(collectionName, cb)
 }
