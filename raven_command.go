@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -66,7 +65,7 @@ func (c *RavenCommandBase) createRequest(node *ServerNode) (*http.Request, error
 }
 
 func throwInvalidResponse() error {
-	return fmt.Errorf("Invalid response")
+	return newIllegalStateError("Invalid response")
 }
 
 func (c *RavenCommandBase) Send(client *http.Client, req *http.Request) (*http.Response, error) {
