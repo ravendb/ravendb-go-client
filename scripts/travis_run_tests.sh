@@ -20,4 +20,4 @@ export RAVENDB_SERVER_VERSION="4.1.3" # see .travis.yml
 echo "pwd:              ${wd}"
 echo "GOPATH:           ${GOPATH}"
 
-go test -v -race -parallel 1 -timeout 30m -coverpkg=github.com/ravendb/ravendb-go-client -covermode=atomic -coverprofile=coverage.txt . ./tests
+go test -v -race -parallel 1 -timeout 30m -coverpkg=github.com/ravendb/ravendb-go-client -covermode=count -coverprofile=coverage.txt . ./tests
