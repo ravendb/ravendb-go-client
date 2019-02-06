@@ -85,8 +85,7 @@ func (s *DocumentSession) SaveChanges() error {
 		return err
 	}
 	result := command.Result
-	saveChangeOperation.setResult(result.Results)
-	return nil
+	return saveChangeOperation.setResult(result.Results)
 }
 
 // Exists returns true if an entity with a given id exists in the database

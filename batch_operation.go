@@ -35,16 +35,14 @@ func (b *BatchOperation) createRequest() (*BatchCommand, error) {
 	return NewBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options)
 }
 
-func (b *BatchOperation) setResult(result []map[string]interface{}) {
+func (b *BatchOperation) setResult(result []map[string]interface{}) error {
 	if len(result) == 0 {
-		// TODO: throwOnNullResults()
-		return
+		return throwOnNullResult()
 	}
 	for i := 0; i < b.sessionCommandsCount; i++ {
 		batchResult := result[i]
 		if batchResult == nil {
-			return
-			//TODO: throw new IllegalArgumentError();
+			return newIllegalArgumentError("batchResult cannot be nil")
 		}
 		typ, _ := jsonGetAsText(batchResult, "Type")
 		if typ != "PUT" {
@@ -57,13 +55,11 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 		}
 		changeVector := jsonGetAsTextPointer(batchResult, MetadataChangeVector)
 		if changeVector == nil {
-			return
-			//TODO: throw new IllegalStateError("PUT response is invalid. @change-vector is missing on " + documentInfo.GetID());
+			return newIllegalStateError("PUT response is invalid. @change-vector is missing on " + documentInfo.id)
 		}
 		id, _ := jsonGetAsText(batchResult, MetadataID)
 		if id == "" {
-			return
-			//TODO: throw new IllegalStateError("PUT response is invalid. @id is missing on " + documentInfo.GetID());
+			return newIllegalStateError("PUT response is invalid. @id is missing on " + documentInfo.id)
 		}
 
 		for propertyName, v := range batchResult {
@@ -82,9 +78,14 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) {
 		documentInfo.metadataInstance = nil
 
 		b.session.documentsByID.add(documentInfo)
-		b.session.GetGenerateEntityIDOnTheClient().trySetIdentity(entity, id)
+		b.session.generateEntityIDOnTheClient.trySetIdentity(entity, id)
 
 		afterSaveChangesEventArgs := newAfterSaveChangesEventArgs(b.session, documentInfo.id, documentInfo.entity)
 		b.session.OnAfterSaveChangesInvoke(afterSaveChangesEventArgs)
 	}
+	return nil
+}
+
+func throwOnNullResult() error {
+	return newIllegalStateError("Received empty response from the server. This is not supposed to happen and is likely a bug.")
 }

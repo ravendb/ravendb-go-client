@@ -170,10 +170,6 @@ func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerId 
 	s.onBeforeQuery[handlerId] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) GetGenerateEntityIDOnTheClient() *generateEntityIDOnTheClient {
-	return s.generateEntityIDOnTheClient
-}
-
 func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *entityToJSON {
 	return s.entityToJSON
 }

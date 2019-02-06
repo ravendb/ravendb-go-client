@@ -9,7 +9,7 @@ func (o *MultiGetOperation) createRequest(requests []*getRequest) *MultiGetComma
 	return NewMultiGetCommand(o._session.GetRequestExecutor().Cache, requests)
 }
 
-/* TODO: not used anywhere
+// Note: not used
 func (o *MultiGetOperation) setResult(result map[string]interface{}) {
+	// no-op
 }
-*/
