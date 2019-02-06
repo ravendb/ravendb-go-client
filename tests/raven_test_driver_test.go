@@ -168,7 +168,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	}
 
 	urls := documentStore.GetUrls()
-	store := ravendb.NewDocumentStoreWithURLsAndDatabase(urls, name)
+	store := ravendb.NewDocumentStore(urls, name)
 
 	if secured {
 		store.Certificate = getTestClientCertificate()
@@ -280,7 +280,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 
 	time.Sleep(time.Second) // TODO: probably not necessary
 
-	store := ravendb.NewDocumentStore()
+	store := ravendb.NewDocumentStore(nil, "")
 	store.SetUrls([]string{url})
 	store.SetDatabase("test.manager")
 	store.GetConventions().SetDisableTopologyUpdates(true)

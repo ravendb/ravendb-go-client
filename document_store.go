@@ -80,13 +80,13 @@ func (s *DocumentStore) GetUrls() []string {
 }
 
 // SetUrls sets initial urls of RavenDB nodes
-func (s *DocumentStore) SetUrls(value []string) {
-	s.assertNotInitialized("conventions")
-	panicIf(len(value) == 0, "value is empty")
-	for i, s := range value {
-		value[i] = strings.TrimSuffix(s, "/")
+func (s *DocumentStore) SetUrls(urls []string) {
+	panicIf(len(urls) == 0, "urls is empty")
+	s.assertNotInitialized("urls")
+	for i, s := range urls {
+		urls[i] = strings.TrimSuffix(s, "/")
 	}
-	s.urls = value
+	s.urls = urls
 }
 
 func (s *DocumentStore) ensureNotClosed() error {
@@ -217,8 +217,7 @@ func (s *DocumentStore) AggressivelyCache(database string) {
 	s.AggressivelyCacheForDatabase(time.Hour*24, database)
 }
 
-// NewDocumentStore creates a DocumentStore
-func NewDocumentStore() *DocumentStore {
+func newDocumentStore() *DocumentStore {
 	s := &DocumentStore{
 		requestsExecutors:      map[string]*RequestExecutor{},
 		conventions:            NewDocumentConventions(),
@@ -229,17 +228,14 @@ func NewDocumentStore() *DocumentStore {
 	return s
 }
 
-func NewDocumentStoreWithURLAndDatabase(url string, database string) *DocumentStore {
-	res := NewDocumentStore()
-	res.SetUrls([]string{url})
-	res.SetDatabase(database)
-	return res
-}
-
-func NewDocumentStoreWithURLsAndDatabase(urls []string, database string) *DocumentStore {
-	res := NewDocumentStore()
-	res.SetUrls(urls)
-	res.SetDatabase(database)
+func NewDocumentStore(urls []string, database string) *DocumentStore {
+	res := newDocumentStore()
+	if len(urls) > 0 {
+		res.SetUrls(urls)
+	}
+	if database != "" {
+		res.SetDatabase(database)
+	}
 	return res
 }
 

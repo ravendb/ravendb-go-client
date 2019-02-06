@@ -79,8 +79,8 @@ func hiloTestReturnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	newStore := ravendb.NewDocumentStore()
-	newStore.SetUrls(store.GetUrls())
+	urls := store.GetUrls()
+	newStore := ravendb.NewDocumentStore(urls, "")
 	newStore.SetDatabase(store.GetDatabase())
 
 	err = newStore.Initialize()
@@ -110,9 +110,8 @@ func hiloTestReturnUnusedRangeOnClose(t *testing.T, driver *RavenTestDriver) {
 
 	newStore.Close() //on document Store close, hilo-return should be called
 
-	newStore = ravendb.NewDocumentStore()
+	newStore = ravendb.NewDocumentStore(nil, store.GetDatabase())
 	newStore.SetUrls(store.GetUrls())
-	newStore.SetDatabase(store.GetDatabase())
 
 	err = newStore.Initialize()
 	assert.NoError(t, err)
