@@ -1663,14 +1663,16 @@ func (q *AbstractDocumentQuery) initSync() error {
 func (q *AbstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
+		defer context.Close()
+
 		command, err := q.queryOperation.createRequest()
 		if err != nil {
 			return err
 		}
-		err = q.theSession.GetRequestExecutor().ExecuteCommand(command, q.theSession.sessionInfo)
-		q.queryOperation.setResult(command.Result)
-		context.Close()
-		if err != nil {
+		if err = q.theSession.GetRequestExecutor().ExecuteCommand(command, q.theSession.sessionInfo); err != nil {
+			return err
+		}
+		if err = q.queryOperation.setResult(command.Result); err != nil {
 			return err
 		}
 	}

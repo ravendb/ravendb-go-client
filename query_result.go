@@ -1,5 +1,6 @@
 package ravendb
 
+// QueryResults represents results of a query
 type QueryResult struct {
 	GenericQueryResult
 }

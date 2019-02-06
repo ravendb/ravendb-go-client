@@ -49,8 +49,8 @@ func (o *QueryOperation) createRequest() (*QueryCommand, error) {
 	return NewQueryCommand(o.session.GetConventions(), o.indexQuery, o.metadataOnly, o.indexEntriesOnly)
 }
 
-func (o *QueryOperation) setResult(queryResult *QueryResult) {
-	o.ensureIsAcceptableAndSaveResult(queryResult)
+func (o *QueryOperation) setResult(queryResult *QueryResult) error {
+	return o.ensureIsAcceptableAndSaveResult(queryResult)
 }
 
 func (o *QueryOperation) assertPageSizeSet() error {
