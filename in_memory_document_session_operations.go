@@ -387,8 +387,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result int
 // value decoded from JSON (e.g. *result = &Foo{})
 func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) error {
 	if id == "" {
-		s.deserializeFromTransformer(result, "", document)
-		return nil
+		return s.deserializeFromTransformer(result, "", document)
 	}
 
 	docInfo := s.documentsByID.getValue(id)
@@ -397,7 +396,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			s.entityToJSON.ConvertToEntity2(result, id, document)
+			err := s.entityToJSON.ConvertToEntity2(result, id, document)
+			if err != nil {
+				return err
+			}
 			docInfo.setEntity(result)
 		} else {
 			setInterfaceToValue(result, docInfo.entity)
@@ -415,7 +417,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		// TODO: figure out a test case that fails if I invert setResultToDocEntity
 		setResultToDocEntity := true
 		if docInfo.entity == nil {
-			s.entityToJSON.ConvertToEntity2(result, id, document)
+			err := s.entityToJSON.ConvertToEntity2(result, id, document)
+			if err != nil {
+				return err
+			}
 			docInfo.setEntity(result)
 			setResultToDocEntity = false
 		}
@@ -432,7 +437,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		return nil
 	}
 
-	s.entityToJSON.ConvertToEntity2(result, id, document)
+	err := s.entityToJSON.ConvertToEntity2(result, id, document)
+	if err != nil {
+		return err
+	}
 
 	changeVector := jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	if changeVector == nil {
@@ -1124,8 +1132,8 @@ func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results []ma
 	*/
 }
 
-func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(result interface{}, id string, document map[string]interface{}) {
-	s.entityToJSON.ConvertToEntity2(result, id, document)
+func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(result interface{}, id string, document map[string]interface{}) error {
+	return s.entityToJSON.ConvertToEntity2(result, id, document)
 }
 
 /*

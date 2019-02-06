@@ -72,22 +72,31 @@ func mapDup(m map[string]interface{}) *map[string]interface{} {
 }
 
 // ConvertToEntity2 converts document to a value result, matching type of result
-func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document map[string]interface{}) {
+func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document map[string]interface{}) error {
 	if _, ok := result.(**map[string]interface{}); ok {
 		setInterfaceToValue(result, mapDup(document))
-		return
+		return nil
 	}
 
 	if _, ok := result.(map[string]interface{}); ok {
-		// TODO: is this codepath ever executed?
+		// TODO: is this code path ever executed?
 		setInterfaceToValue(result, document)
-		return
+		return nil
 	}
 	// TODO: deal with default values
 	entityType := reflect.TypeOf(result)
-	entity, _ := makeStructFromJSONMap(entityType, document)
+	entity, err := makeStructFromJSONMap(entityType, document)
+	if err != nil {
+		// fmt.Printf("makeStructFromJSONMap() failed with %s\n. Wanted type: %s, document: %v\n", err, entityType, document)
+		return err
+	}
 	TrySetIDOnEntity(entity, id)
+	//fmt.Printf("result is: %T, entity is: %T\n", result, entity)
+	if entity == nil {
+		return newIllegalStateError("decoded entity is nil")
+	}
 	setInterfaceToValue(result, entity)
+	return nil
 }
 
 // Converts a json object to an entity.
