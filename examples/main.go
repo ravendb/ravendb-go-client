@@ -26,26 +26,29 @@ func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 }
 
 func loadUpdateSave() {
-	/*
-		store, err := getDocumentStore(dbName)
-		panicIfErr(err)
-	*/
+	store, err := getDocumentStore(dbName)
+	panicIfErr(err)
+	defer store.Close()
+
+	session, err := store.OpenSession("")
+	panicIfErr(err)
+	defer session.Close()
+
 }
 
 func loadEmployee() {
 	store, err := getDocumentStore(dbName)
 	panicIfErr(err)
+	defer store.Close()
 
 	session, err := store.OpenSession("")
 	panicIfErr(err)
 	defer session.Close()
+
 	var e *Employee
 	err = session.Load(&e, "employees/7-A")
 	panicIfErr(err)
 	fmt.Printf("employee: %#v\n", e)
-	session.Close()
-
-	store.Close()
 }
 
 func loadWithIncludes() {
@@ -68,4 +71,5 @@ func loadWithIncludes() {
 }
 
 func main() {
+	loadEmployee()
 }
