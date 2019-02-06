@@ -751,7 +751,8 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 
 func (s *DocumentSession) DocumentQueryType(clazz reflect.Type) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
-	indexName, collectionName := s.processQueryParameters(clazz, "", "", s.GetConventions())
+	indexName, collectionName, err := s.processQueryParameters(clazz, "", "", s.GetConventions())
+	panicIfErr(err)
 	return NewDocumentQueryType(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, false)
 }
 
@@ -762,7 +763,9 @@ func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName stri
 
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
-	indexName, collectionName = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
+	var err error
+	indexName, collectionName, err = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
+	panicIfErr(err)
 	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
 }
 

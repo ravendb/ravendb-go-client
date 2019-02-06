@@ -1650,7 +1650,7 @@ func (q *AbstractDocumentQuery) initSync() error {
 		Session:            q.theSession,
 		QueryCustomization: delegate,
 	}
-	q.theSession.OnBeforeQueryInvoke(beforeQueryEventArgs)
+	q.theSession.onBeforeQueryInvoke(beforeQueryEventArgs)
 
 	var err error
 	q.queryOperation, err = q.initializeQueryOperation()
@@ -1699,6 +1699,7 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 	return nil, fmt.Errorf("expected value of type *[]<type>, got %T", results)
 }
 
+// TODO: propagate error
 func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 	if q.clazz != nil {
 		return
@@ -1709,9 +1710,7 @@ func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 	// see moreLikeThisCanGetResultsUsingTermVectorsLazy test
 	if q.fromToken != nil {
 		q.clazz, err = getTypeFromQueryResults(result)
-		if err != nil {
-			panic(err.Error())
-		}
+		panicIfErr(err)
 		return
 	}
 
@@ -1728,15 +1727,16 @@ func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
 		panicIf(true, "expected result to be **struct or *[]*struct, got: %T", result)
 	}
 	s := q.theSession
-	indexName, collectionName := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
+	indexName, collectionName, err := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
+	panicIfErr(err)
+
 	q.fromToken = createFromToken(indexName, collectionName, "")
 }
 
 // GetResults executes the query and sets results to returned values.
 // results should be of type *[]<type>
-// TODO: name it Execute() instead?
-// Note: ToList in java
 func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
+	// Note: in Java it's called ToList
 	if results == nil {
 		return fmt.Errorf("results can't be nil")
 	}
@@ -1754,7 +1754,10 @@ func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
 		panicIf(q.clazz != projectionClass, "q.clazz != projectionClass")
 		if !hadClazz {
 			s := q.theSession
-			q.indexName, q.collectionName = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
+			q.indexName, q.collectionName, err = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
+			if err != nil {
+				return err
+			}
 			q.fromToken = createFromToken(q.indexName, q.collectionName, "")
 		}
 	}
@@ -1767,7 +1770,10 @@ func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
 			return err
 		}
 		s := q.theSession
-		q.indexName, q.collectionName = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
+		q.indexName, q.collectionName, err = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
+		if err != nil {
+			return err
+		}
 		q.fromToken = createFromToken(q.indexName, q.collectionName, "")
 	}
 

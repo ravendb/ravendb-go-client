@@ -81,7 +81,7 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) error {
 		b.session.generateEntityIDOnTheClient.trySetIdentity(entity, id)
 
 		afterSaveChangesEventArgs := newAfterSaveChangesEventArgs(b.session, documentInfo.id, documentInfo.entity)
-		b.session.OnAfterSaveChangesInvoke(afterSaveChangesEventArgs)
+		b.session.onAfterSaveChangesInvoke(afterSaveChangesEventArgs)
 	}
 	return nil
 }

@@ -30,6 +30,12 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
 func i64toa(n int64) string {
 	return strconv.FormatInt(n, 10)
 }

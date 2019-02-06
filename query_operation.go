@@ -95,7 +95,7 @@ func (o *QueryOperation) complete(results interface{}) error {
 	queryResult := o.currentQueryResults.createSnapshot()
 
 	if !o.disableEntitiesTracking {
-		o.session.RegisterIncludes(queryResult.Includes)
+		o.session.registerIncludes(queryResult.Includes)
 	}
 	rt := reflect.TypeOf(results)
 
@@ -133,7 +133,7 @@ func (o *QueryOperation) complete(results interface{}) error {
 	}
 
 	if !o.disableEntitiesTracking {
-		o.session.RegisterMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
+		o.session.registerMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
 	if sliceV2 != sliceV {
 		sliceV.Set(sliceV2)

@@ -387,7 +387,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntityInDocumentInfo(result int
 // value decoded from JSON (e.g. *result = &Foo{})
 func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id string, document map[string]interface{}, metadata map[string]interface{}, noTracking bool) error {
 	if id == "" {
-		s.DeserializeFromTransformer2(result, "", document)
+		s.deserializeFromTransformer(result, "", document)
 		return nil
 	}
 
@@ -1077,22 +1077,20 @@ func (s *InMemoryDocumentSessionOperations) Close() {
 	s._close(true)
 }
 
-// RegisterMissing registers missing value id
-func (s *InMemoryDocumentSessionOperations) RegisterMissing(id string) {
+func (s *InMemoryDocumentSessionOperations) registerMissing(id string) {
 	s.knownMissingIds = append(s.knownMissingIds, id)
 }
 
-// UnregisterMissing unregisters missing value id
-func (s *InMemoryDocumentSessionOperations) UnregisterMissing(id string) {
+func (s *InMemoryDocumentSessionOperations) unregisterMissing(id string) {
 	s.knownMissingIds = stringArrayRemoveNoCase(s.knownMissingIds, id)
 }
 
-// RegisterIncludes registers includes object
-func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes map[string]interface{}) {
+func (s *InMemoryDocumentSessionOperations) registerIncludes(includes map[string]interface{}) {
 	if includes == nil {
 		return
 	}
 
+	// Java's ObjectNode fieldNames are keys of map[string]interface{}
 	for _, fieldValue := range includes {
 		// TODO: this needs to check if value inside is nil
 		if fieldValue == nil {
@@ -1109,7 +1107,7 @@ func (s *InMemoryDocumentSessionOperations) RegisterIncludes(includes map[string
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results []map[string]interface{}, includes map[string]interface{}, includePaths []string) {
+func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results []map[string]interface{}, includes map[string]interface{}, includePaths []string) {
 	if len(includePaths) == 0 {
 		return
 	}
@@ -1126,13 +1124,15 @@ func (s *InMemoryDocumentSessionOperations) RegisterMissingIncludes(results []ma
 	*/
 }
 
-func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer2(result interface{}, id string, document map[string]interface{}) {
+func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(result interface{}, id string, document map[string]interface{}) {
 	s.entityToJSON.ConvertToEntity2(result, id, document)
 }
 
-func (s *InMemoryDocumentSessionOperations) DeserializeFromTransformer(clazz reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
+/*
+func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(clazz reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
 	return s.entityToJSON.ConvertToEntity(clazz, id, document)
 }
+*/
 
 func (s *InMemoryDocumentSessionOperations) checkIfIdAlreadyIncluded(ids []string, includes []string) bool {
 	for _, id := range ids {
@@ -1209,7 +1209,7 @@ func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface
 	return errors.New("NYI")
 }
 
-func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
+func (s *InMemoryDocumentSessionOperations) onAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {
 	for _, handler := range s.onAfterSaveChanges {
 		if handler != nil {
 			handler(afterSaveChangesEventArgs)
@@ -1217,7 +1217,7 @@ func (s *InMemoryDocumentSessionOperations) OnAfterSaveChangesInvoke(afterSaveCh
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) OnBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
+func (s *InMemoryDocumentSessionOperations) onBeforeQueryInvoke(beforeQueryEventArgs *BeforeQueryEventArgs) {
 	for _, handler := range s.onBeforeQuery {
 		if handler != nil {
 			handler(beforeQueryEventArgs)
@@ -1225,13 +1225,12 @@ func (s *InMemoryDocumentSessionOperations) OnBeforeQueryInvoke(beforeQueryEvent
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect.Type, indexName string, collectionName string, conventions *DocumentConventions) (string, string) {
+func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect.Type, indexName string, collectionName string, conventions *DocumentConventions) (string, string, error) {
 	isIndex := stringIsNotBlank(indexName)
 	isCollection := stringIsNotEmpty(collectionName)
 
 	if isIndex && isCollection {
-		//throw new IllegalStateError("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.");
-		panic("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.")
+		return "", "", newIllegalStateError("Parameters indexName and collectionName are mutually exclusive. Please specify only one of them.")
 	}
 
 	if !isIndex && !isCollection {
@@ -1242,7 +1241,7 @@ func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect
 		}
 	}
 
-	return indexName, collectionName
+	return indexName, collectionName, nil
 }
 
 type saveChangesData struct {

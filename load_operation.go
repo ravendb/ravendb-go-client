@@ -147,7 +147,7 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		return
 	}
 
-	o._session.RegisterIncludes(result.Includes)
+	o._session.registerIncludes(result.Includes)
 
 	results := result.Results
 	for _, document := range results {
@@ -159,5 +159,5 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		o._session.documentsByID.add(newDocumentInfo)
 	}
 
-	o._session.RegisterMissingIncludes(result.Results, result.Includes, o._includes)
+	o._session.registerMissingIncludes(result.Results, result.Includes, o._includes)
 }
