@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	requestExecutorFailureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperationWithDebugTag("failure=check")
+	// Note: unlike Java GetStatisticsOperation.GetCommand() is not thread safe
+	// requestExecutorFailureCheckOperation *GetStatisticsOperation = NewGetStatisticsOperation("failure=check")
 
 	// HTTPClientPostProcessor allows to tweak http client after it has been created
 	// this allows replacing Transport with a custom transport that does logging,
@@ -1097,7 +1098,9 @@ func (re *RequestExecutor) performHealthCheck(serverNode *ServerNode, nodeIndex 
 	if re.isCluster {
 		return re.clusterPerformHealthCheck(serverNode, nodeIndex)
 	}
-	command, err := requestExecutorFailureCheckOperation.GetCommand(re.conventions)
+	// Note: not reusing global singleton because in Go GetCommand() is not thread-safe
+	op := NewGetStatisticsOperation("failure=check")
+	command, err := op.GetCommand(re.conventions)
 	if err != nil {
 		return err
 	}
@@ -1245,51 +1248,51 @@ func (re *RequestExecutor) ensureNodeSelector() (*NodeSelector, error) {
 
 // NodeStatus represents status of server node
 type NodeStatus struct {
-	_timerPeriod     time.Duration
-	_requestExecutor *RequestExecutor
-	nodeIndex        int
-	node             *ServerNode
-	_timer           *time.Timer
+	timerPeriod     time.Duration
+	requestExecutor *RequestExecutor
+	nodeIndex       int
+	node            *ServerNode
+	timer           *time.Timer
 }
 
 func NewNodeStatus(requestExecutor *RequestExecutor, nodeIndex int, node *ServerNode) *NodeStatus {
 	return &NodeStatus{
-		_requestExecutor: requestExecutor,
-		nodeIndex:        nodeIndex,
-		node:             node,
-		_timerPeriod:     time.Millisecond * 100,
+		requestExecutor: requestExecutor,
+		nodeIndex:       nodeIndex,
+		node:            node,
+		timerPeriod:     time.Millisecond * 100,
 	}
 }
 
 func (s *NodeStatus) nextTimerPeriod() time.Duration {
-	if s._timerPeriod > time.Second*5 {
+	if s.timerPeriod > time.Second*5 {
 		return time.Second * 5
 	}
-	s._timerPeriod = s._timerPeriod + (time.Millisecond * 100)
-	return s._timerPeriod
+	s.timerPeriod = s.timerPeriod + (time.Millisecond * 100)
+	return s.timerPeriod
 }
 
 func (s *NodeStatus) startTimer() {
 	f := func() {
 		s.timerCallback()
 	}
-	s._timer = time.AfterFunc(s._timerPeriod, f)
+	s.timer = time.AfterFunc(s.timerPeriod, f)
 }
 
 func (s *NodeStatus) updateTimer() {
 	// TODO: not sure if Reset
-	s._timer.Reset(s.nextTimerPeriod())
+	s.timer.Reset(s.nextTimerPeriod())
 }
 
 func (s *NodeStatus) timerCallback() {
-	if !s._requestExecutor.isDisposed() {
-		s._requestExecutor.checkNodeStatusCallback(s)
+	if !s.requestExecutor.isDisposed() {
+		s.requestExecutor.checkNodeStatusCallback(s)
 	}
 }
 
 func (s *NodeStatus) Close() {
-	if s._timer != nil {
-		s._timer.Stop()
-		s._timer = nil
+	if s.timer != nil {
+		s.timer.Stop()
+		s.timer = nil
 	}
 }

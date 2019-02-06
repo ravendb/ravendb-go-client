@@ -308,7 +308,7 @@ func waitForIndexing(store *ravendb.DocumentStore, database string, timeout time
 
 	sp := time.Now()
 	for time.Since(sp) < timeout {
-		op := ravendb.NewGetStatisticsOperation()
+		op := ravendb.NewGetStatisticsOperation("")
 		err := admin.Send(op)
 		if err != nil {
 			return err

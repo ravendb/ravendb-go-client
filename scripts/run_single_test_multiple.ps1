@@ -34,7 +34,7 @@ else {
 For ($i=0; $i -lt 10; $i++) {
 
     go clean -testcache
-    go test -v -timeout 50s ./tests -run ^TestBulkInserts$
+    go test -v -timeout 50s ./tests -run ^TestSubscriptionsBasic$
 
     if ($lastexitcode -ne 0) {
         exit

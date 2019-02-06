@@ -263,7 +263,7 @@ func assertRevisions(t *testing.T, store *ravendb.DocumentStore, names []string,
 }
 
 func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string, assertAction func(*testing.T, *ravendb.DocumentSession, []*User), expectedCountOfAttachments int64, expectedCountOfDocuments int64, expectedCountOfUniqueAttachments int64) {
-	op := ravendb.NewGetStatisticsOperation()
+	op := ravendb.NewGetStatisticsOperation("")
 	err := store.Maintenance().Send(op)
 	assert.NoError(t, err)
 	statistics := op.Command.Result

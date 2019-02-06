@@ -400,7 +400,7 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	_, ok := err.(*ravendb.DatabaseDoesNotExistError)
 	assert.True(t, ok)
 
-	op := ravendb.NewGetStatisticsOperation()
+	op := ravendb.NewGetStatisticsOperation("")
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 }

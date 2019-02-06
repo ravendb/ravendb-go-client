@@ -14,11 +14,7 @@ type GetStatisticsOperation struct {
 	Command *GetStatisticsCommand
 }
 
-func NewGetStatisticsOperation() *GetStatisticsOperation {
-	return NewGetStatisticsOperationWithDebugTag("")
-}
-
-func NewGetStatisticsOperationWithDebugTag(debugTag string) *GetStatisticsOperation {
+func NewGetStatisticsOperation(debugTag string) *GetStatisticsOperation {
 	return &GetStatisticsOperation{
 		debugTag: debugTag,
 	}
