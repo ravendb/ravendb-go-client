@@ -92,12 +92,12 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 	doc2 := docs.Results[1]
 
 	assert.NotNil(t, doc1)
-	doc1Properties := ravendb.FieldNames(doc1)
+	doc1Properties := objectNodeFieldNames(doc1)
 	assert.True(t, stringArrayContains(doc1Properties, "@metadata"))
 	assert.Equal(t, len(doc1Properties), len(dummy)+1) // +1 for @metadata
 
 	assert.NotNil(t, doc2)
-	doc2Properties := ravendb.FieldNames(doc2)
+	doc2Properties := objectNodeFieldNames(doc2)
 	assert.True(t, stringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), len(dummy)+1) // +1 for @metadata
 
@@ -125,12 +125,12 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 	doc2 = docs.Results[1]
 
 	assert.NotNil(t, doc1)
-	doc1Properties = ravendb.FieldNames(doc1)
+	doc1Properties = objectNodeFieldNames(doc1)
 	assert.True(t, stringArrayContains(doc1Properties, "@metadata"))
 	assert.Equal(t, len(doc1Properties), 1)
 
 	assert.NotNil(t, doc1)
-	doc2Properties = ravendb.FieldNames(doc2)
+	doc2Properties = objectNodeFieldNames(doc2)
 	assert.True(t, stringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), 1)
 }

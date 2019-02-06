@@ -112,15 +112,6 @@ func firstNonZero(i1, i2 int) int {
 	return i2
 }
 
-// TODO: maybe sort or provide fieldNamesSorted when stable order matters
-func FieldNames(js map[string]interface{}) []string {
-	var res []string
-	for k := range js {
-		res = append(res, k)
-	}
-	return res
-}
-
 func deepCopy(v interface{}) interface{} {
 	// TODO: implement me
 	return v

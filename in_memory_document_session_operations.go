@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	_clientSessionIDCounter int32 = 1
+	clientSessionIDCounter int32 = 1
 )
 
 func newClientSessionID() int {
-	newID := atomic.AddInt32(&_clientSessionIDCounter, 1)
+	newID := atomic.AddInt32(&clientSessionIDCounter, 1)
 	return int(newID)
 }
 

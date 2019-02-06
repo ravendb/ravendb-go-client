@@ -353,7 +353,7 @@ func (q *AbstractDocumentQuery) whereLucene(fieldName string, whereClause string
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereToken := createWhereTokenWithOptions(WhereOperatorLucene, fieldName, q.addQueryParameter(whereClause), nil)
+	whereToken := createWhereTokenWithOptions(whereOperatorLucene, fieldName, q.addQueryParameter(whereClause), nil)
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
 }
@@ -403,20 +403,20 @@ func (q *AbstractDocumentQuery) whereEqualsWithParams(whereParams *whereParams) 
 	tokensRef := q.getCurrentWhereTokensRef()
 	q.appendOperatorIfNeeded(tokensRef)
 
-	if q.ifValueIsMethod(WhereOperatorEquals, whereParams, tokensRef) {
+	if q.ifValueIsMethod(whereOperatorEquals, whereParams, tokensRef) {
 		return
 	}
 
 	transformToEqualValue := q.transformValue(whereParams)
 	addQueryParameter := q.addQueryParameter(transformToEqualValue)
-	whereToken := createWhereTokenWithOptions(WhereOperatorEquals, whereParams.fieldName, addQueryParameter, NewWhereOptionsWithExact(whereParams.isExact))
+	whereToken := createWhereTokenWithOptions(whereOperatorEquals, whereParams.fieldName, addQueryParameter, newWhereOptionsWithExact(whereParams.isExact))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
 }
 
-func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *whereParams, tokensRef *[]queryToken) bool {
+func (q *AbstractDocumentQuery) ifValueIsMethod(op whereOperator, whereParams *whereParams, tokensRef *[]queryToken) bool {
 	if mc, ok := whereParams.value.(*CmpXchg); ok {
 		n := len(mc.args)
 		args := make([]string, n)
@@ -424,7 +424,7 @@ func (q *AbstractDocumentQuery) ifValueIsMethod(op WhereOperator, whereParams *w
 			args[i] = q.addQueryParameter(mc.args[i])
 		}
 
-		opts := NewWhereOptionsWithMethod(MethodsTypeCmpXChg, args, mc.accessPath, whereParams.isExact)
+		opts := newWhereOptionsWithMethod(MethodsTypeCmpXChg, args, mc.accessPath, whereParams.isExact)
 		token := createWhereTokenWithOptions(op, whereParams.fieldName, "", opts)
 
 		tokens := *tokensRef
@@ -466,11 +466,11 @@ func (q *AbstractDocumentQuery) whereNotEqualsWithParams(whereParams *whereParam
 
 	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
 
-	if q.ifValueIsMethod(WhereOperatorNotEquals, whereParams, tokensRef) {
+	if q.ifValueIsMethod(whereOperatorNotEquals, whereParams, tokensRef) {
 		return
 	}
 
-	whereToken := createWhereTokenWithOptions(WhereOperatorNotEquals, whereParams.fieldName, q.addQueryParameter(transformToEqualValue), NewWhereOptionsWithExact(whereParams.isExact))
+	whereToken := createWhereTokenWithOptions(whereOperatorNotEquals, whereParams.fieldName, q.addQueryParameter(transformToEqualValue), newWhereOptionsWithExact(whereParams.isExact))
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
@@ -492,7 +492,7 @@ func (q *AbstractDocumentQuery) markLastTokenExact() {
 	switch tok := lastToken.(type) {
 	case *whereToken:
 		if tok.options == nil {
-			tok.options = NewWhereOptionsWithExact(true)
+			tok.options = newWhereOptionsWithExact(true)
 		} else {
 			tok.options.exact = true
 		}
@@ -510,7 +510,7 @@ func (q *AbstractDocumentQuery) whereIn(fieldName string, values []interface{}) 
 	q.appendOperatorIfNeeded(tokensRef)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereToken := createWhereToken(WhereOperatorIn, fieldName, q.addQueryParameter(q.transformCollection(fieldName, abstractDocumentQueryUnpackCollection(values))))
+	whereToken := createWhereToken(whereOperatorIn, fieldName, q.addQueryParameter(q.transformCollection(fieldName, abstractDocumentQueryUnpackCollection(values))))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -532,7 +532,7 @@ func (q *AbstractDocumentQuery) whereStartsWith(fieldName string, value interfac
 	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
 	q.negateIfNeeded(tokensRef, whereParams.fieldName)
 
-	whereToken := createWhereToken(WhereOperatorStartsWith, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
+	whereToken := createWhereToken(whereOperatorStartsWith, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -554,7 +554,7 @@ func (q *AbstractDocumentQuery) whereEndsWith(fieldName string, value interface{
 	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
 	q.negateIfNeeded(tokensRef, whereParams.fieldName)
 
-	whereToken := createWhereToken(WhereOperatorEndsWith, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
+	whereToken := createWhereToken(whereOperatorEndsWith, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -591,7 +591,7 @@ func (q *AbstractDocumentQuery) whereBetween(fieldName string, start interface{}
 	}
 	toParameterName := q.addQueryParameter(toParam)
 
-	whereToken := createWhereTokenWithOptions(WhereOperatorBetween, fieldName, "", NewWhereOptionsWithFromTo(false, fromParameterName, toParameterName))
+	whereToken := createWhereTokenWithOptions(whereOperatorBetween, fieldName, "", newWhereOptionsWithFromTo(false, fromParameterName, toParameterName))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -616,7 +616,7 @@ func (q *AbstractDocumentQuery) whereGreaterThan(fieldName string, value interfa
 	}
 	parameter := q.addQueryParameter(paramValue)
 
-	whereToken := createWhereTokenWithOptions(WhereOperatorGreaterThan, fieldName, parameter, nil)
+	whereToken := createWhereTokenWithOptions(whereOperatorGreaterThan, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -642,7 +642,7 @@ func (q *AbstractDocumentQuery) whereGreaterThanOrEqual(fieldName string, value 
 
 	parameter := q.addQueryParameter(paramValue)
 
-	whereToken := createWhereTokenWithOptions(WhereOperatorGreaterThanOrEqual, fieldName, parameter, nil)
+	whereToken := createWhereTokenWithOptions(whereOperatorGreaterThanOrEqual, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -666,7 +666,7 @@ func (q *AbstractDocumentQuery) whereLessThan(fieldName string, value interface{
 		paramValue = q.transformValueWithRange(whereParams, true)
 	}
 	parameter := q.addQueryParameter(paramValue)
-	whereToken := createWhereTokenWithOptions(WhereOperatorLessThan, fieldName, parameter, nil)
+	whereToken := createWhereTokenWithOptions(whereOperatorLessThan, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -688,7 +688,7 @@ func (q *AbstractDocumentQuery) whereLessThanOrEqual(fieldName string, value int
 		paramValue = q.transformValueWithRange(whereParams, true)
 	}
 	parameter := q.addQueryParameter(paramValue)
-	whereToken := createWhereTokenWithOptions(WhereOperatorLessThanOrEqual, fieldName, parameter, nil)
+	whereToken := createWhereTokenWithOptions(whereOperatorLessThanOrEqual, fieldName, parameter, nil)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -707,7 +707,7 @@ func (q *AbstractDocumentQuery) whereRegex(fieldName string, pattern string) {
 
 	parameter := q.addQueryParameter(q.transformValue(whereParams))
 
-	whereToken := createWhereToken(WhereOperatorRegex, fieldName, parameter)
+	whereToken := createWhereToken(whereOperatorRegex, fieldName, parameter)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -910,7 +910,7 @@ func (q *AbstractDocumentQuery) searchWithOperator(fieldName string, searchTerms
 	fieldName = q.ensureValidFieldName(fieldName, false)
 	q.negateIfNeeded(tokensRef, fieldName)
 
-	whereToken := createWhereTokenWithOptions(WhereOperatorSearch, fieldName, q.addQueryParameter(searchTerms), NewWhereOptionsWithOperator(operator))
+	whereToken := createWhereTokenWithOptions(whereOperatorSearch, fieldName, q.addQueryParameter(searchTerms), newWhereOptionsWithOperator(operator))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -1002,7 +1002,7 @@ func (q *AbstractDocumentQuery) whereExists(fieldName string) {
 	q.negateIfNeeded(tokensRef, fieldName)
 
 	tokens := *tokensRef
-	tokens = append(tokens, createWhereToken(WhereOperatorExists, fieldName, ""))
+	tokens = append(tokens, createWhereToken(whereOperatorExists, fieldName, ""))
 	*tokensRef = tokens
 }
 
@@ -1014,7 +1014,7 @@ func (q *AbstractDocumentQuery) containsAny(fieldName string, values []interface
 	q.negateIfNeeded(tokensRef, fieldName)
 
 	array := q.transformCollection(fieldName, abstractDocumentQueryUnpackCollection(values))
-	whereToken := createWhereTokenWithOptions(WhereOperatorIn, fieldName, q.addQueryParameter(array), NewWhereOptionsWithExact(false))
+	whereToken := createWhereTokenWithOptions(whereOperatorIn, fieldName, q.addQueryParameter(array), newWhereOptionsWithExact(false))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -1034,7 +1034,7 @@ func (q *AbstractDocumentQuery) containsAll(fieldName string, values []interface
 	if len(array) == 0 {
 		tokens = append(tokens, trueTokenInstance)
 	} else {
-		whereToken := createWhereToken(WhereOperatorAllIn, fieldName, q.addQueryParameter(array))
+		whereToken := createWhereToken(whereOperatorAllIn, fieldName, q.addQueryParameter(array))
 		tokens = append(tokens, whereToken)
 	}
 	*tokensRef = tokens
@@ -1482,8 +1482,8 @@ func (q *AbstractDocumentQuery) withinRadiusOf(fieldName string, radius float64,
 	q.negateIfNeeded(tokensRef, fieldName)
 
 	shape := ShapeTokenCircle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
-	opts := NewWhereOptionsWithTokenAndDistance(shape, distErrorPercent)
-	whereToken := createWhereTokenWithOptions(WhereOperatorSpatialWithin, fieldName, "", opts)
+	opts := newWhereOptionsWithTokenAndDistance(shape, distErrorPercent)
+	whereToken := createWhereTokenWithOptions(whereOperatorSpatialWithin, fieldName, "", opts)
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
@@ -1499,23 +1499,23 @@ func (q *AbstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 
 	wktToken := ShapeTokenWkt(q.addQueryParameter(shapeWkt))
 
-	var whereOperator WhereOperator
+	var whereOperator whereOperator
 	switch relation {
 	case SpatialRelationWithin:
-		whereOperator = WhereOperatorSpatialWithin
+		whereOperator = whereOperatorSpatialWithin
 	case SpatialRelationContains:
-		whereOperator = WhereOperatorSpatialContains
+		whereOperator = whereOperatorSpatialContains
 	case SpatialRelationDisjoin:
-		whereOperator = WhereOperatorSpatialDisjoint
+		whereOperator = whereOperatorSpatialDisjoint
 	case SpatialRelationIntersects:
-		whereOperator = WhereOperatorSpatialIntersects
+		whereOperator = whereOperatorSpatialIntersects
 	default:
 		//throw new IllegalArgumentError();
 		panicIf(true, "unknown relation %s", relation)
 	}
 
 	tokens := *tokensRef
-	opts := NewWhereOptionsWithTokenAndDistance(wktToken, distErrorPercent)
+	opts := newWhereOptionsWithTokenAndDistance(wktToken, distErrorPercent)
 	tok := createWhereTokenWithOptions(whereOperator, fieldName, "", opts)
 	tokens = append(tokens, tok)
 	*tokensRef = tokens

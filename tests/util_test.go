@@ -108,6 +108,14 @@ func jsonGetAsText(doc map[string]interface{}, key string) (string, bool) {
 	return s, true
 }
 
+func objectNodeFieldNames(js map[string]interface{}) []string {
+	var res []string
+	for k := range js {
+		res = append(res, k)
+	}
+	return res
+}
+
 func isUnprintable(c byte) bool {
 	if c < 32 {
 		// 9 - tab, 10 - LF, 13 - CR

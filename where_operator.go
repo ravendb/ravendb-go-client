@@ -1,25 +1,25 @@
 package ravendb
 
-type WhereOperator int
+type whereOperator int
 
 const (
-	WhereOperatorEquals WhereOperator = iota
-	WhereOperatorNotEquals
-	WhereOperatorGreaterThan
-	WhereOperatorGreaterThanOrEqual
-	WhereOperatorLessThan
-	WhereOperatorLessThanOrEqual
-	WhereOperatorIn
-	WhereOperatorAllIn
-	WhereOperatorBetween
-	WhereOperatorSearch
-	WhereOperatorLucene
-	WhereOperatorStartsWith
-	WhereOperatorEndsWith
-	WhereOperatorExists
-	WhereOperatorSpatialWithin
-	WhereOperatorSpatialContains
-	WhereOperatorSpatialDisjoint
-	WhereOperatorSpatialIntersects
-	WhereOperatorRegex
+	whereOperatorEquals whereOperator = iota
+	whereOperatorNotEquals
+	whereOperatorGreaterThan
+	whereOperatorGreaterThanOrEqual
+	whereOperatorLessThan
+	whereOperatorLessThanOrEqual
+	whereOperatorIn
+	whereOperatorAllIn
+	whereOperatorBetween
+	whereOperatorSearch
+	whereOperatorLucene
+	whereOperatorStartsWith
+	whereOperatorEndsWith
+	whereOperatorExists
+	whereOperatorSpatialWithin
+	whereOperatorSpatialContains
+	whereOperatorSpatialDisjoint
+	whereOperatorSpatialIntersects
+	whereOperatorRegex
 )

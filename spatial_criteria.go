@@ -21,22 +21,22 @@ func NewSpatialCriteria(relation SpatialRelation, distanceErrorPct float64) Spat
 func (c *SpatialCriteriaCommon) toQueryTokenCommon(sc SpatialCriteria, fieldName string, addQueryParameter func(interface{}) string) queryToken {
 	shapeToken := sc.GetShapeToken(addQueryParameter)
 
-	var whereOperator WhereOperator
+	var whereOperator whereOperator
 
 	switch c._relation {
 	case SpatialRelationWithin:
-		whereOperator = WhereOperatorSpatialWithin
+		whereOperator = whereOperatorSpatialWithin
 	case SpatialRelationContains:
-		whereOperator = WhereOperatorSpatialContains
+		whereOperator = whereOperatorSpatialContains
 	case SpatialRelationDisjoin:
-		whereOperator = WhereOperatorSpatialDisjoint
+		whereOperator = whereOperatorSpatialDisjoint
 	case SpatialRelationIntersects:
-		whereOperator = WhereOperatorSpatialIntersects
+		whereOperator = whereOperatorSpatialIntersects
 	default:
 		//throw new IllegalArgumentError();
 		panicIf(true, "Unknown relation '%s'", c._relation)
 	}
 
-	opts := NewWhereOptionsWithTokenAndDistance(shapeToken, c._distanceErrorPct)
+	opts := newWhereOptionsWithTokenAndDistance(shapeToken, c._distanceErrorPct)
 	return createWhereTokenWithOptions(whereOperator, fieldName, "", opts)
 }

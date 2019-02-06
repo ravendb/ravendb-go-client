@@ -27,19 +27,16 @@ type whereOptions struct {
 	searchOperator    SearchOperator
 	fromParameterName string
 	toParameterName   string
-	// TODO: does it have to be *float64 to indicate 'no value provided' ?
-	boost float64
-	// TODO: does it have to be *float64 to indicate 'no value provided' ?
-	fuzzy float64
-	// TODO: does it have to be *int to indicate 'no value provided' ?
-	proximity        int
-	exact            bool
-	method           *whereMethodCall
-	whereShape       *shapeToken
-	distanceErrorPct float64
+	boost             float64
+	fuzzy             float64
+	proximity         int
+	exact             bool
+	method            *whereMethodCall
+	whereShape        *shapeToken
+	distanceErrorPct  float64
 }
 
-func WhereOptions_defaultOptions() *whereOptions {
+func defaultWhereOptions() *whereOptions {
 	return newWhereOptions()
 }
 
@@ -47,26 +44,26 @@ func newWhereOptions() *whereOptions {
 	return &whereOptions{}
 }
 
-func NewWhereOptionsWithExact(exact bool) *whereOptions {
+func newWhereOptionsWithExact(exact bool) *whereOptions {
 	return &whereOptions{
 		exact: exact,
 	}
 }
 
-func NewWhereOptionsWithOperator(search SearchOperator) *whereOptions {
+func newWhereOptionsWithOperator(search SearchOperator) *whereOptions {
 	return &whereOptions{
 		searchOperator: search,
 	}
 }
 
-func NewWhereOptionsWithTokenAndDistance(shape *shapeToken, distance float64) *whereOptions {
+func newWhereOptionsWithTokenAndDistance(shape *shapeToken, distance float64) *whereOptions {
 	return &whereOptions{
 		whereShape:       shape,
 		distanceErrorPct: distance,
 	}
 }
 
-func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *whereOptions {
+func newWhereOptionsWithMethod(methodType MethodsType, parameters []string, property string, exact bool) *whereOptions {
 	method := newWhereMethodCall()
 	method.methodType = methodType
 	method.parameters = parameters
@@ -78,7 +75,7 @@ func NewWhereOptionsWithMethod(methodType MethodsType, parameters []string, prop
 	}
 }
 
-func NewWhereOptionsWithFromTo(exact bool, from string, to string) *whereOptions {
+func newWhereOptionsWithFromTo(exact bool, from string, to string) *whereOptions {
 	return &whereOptions{
 		exact:             exact,
 		fromParameterName: from,
@@ -88,7 +85,7 @@ func NewWhereOptionsWithFromTo(exact bool, from string, to string) *whereOptions
 
 type whereToken struct {
 	fieldName     string
-	whereOperator WhereOperator
+	whereOperator whereOperator
 	parameterName string
 	options       *whereOptions
 }
@@ -97,11 +94,11 @@ func newWhereToken() *whereToken {
 	return &whereToken{}
 }
 
-func createWhereToken(op WhereOperator, fieldName string, parameterName string) *whereToken {
+func createWhereToken(op whereOperator, fieldName string, parameterName string) *whereToken {
 	return createWhereTokenWithOptions(op, fieldName, parameterName, nil)
 }
 
-func createWhereTokenWithOptions(op WhereOperator, fieldName string, parameterName string, options *whereOptions) *whereToken {
+func createWhereTokenWithOptions(op whereOperator, fieldName string, parameterName string, options *whereOptions) *whereToken {
 	token := newWhereToken()
 	token.fieldName = fieldName
 	token.parameterName = parameterName
@@ -109,7 +106,7 @@ func createWhereTokenWithOptions(op WhereOperator, fieldName string, parameterNa
 	if options != nil {
 		token.options = options
 	} else {
-		token.options = WhereOptions_defaultOptions()
+		token.options = defaultWhereOptions()
 	}
 	return token
 }
@@ -172,25 +169,25 @@ func (t *whereToken) writeTo(writer *strings.Builder) {
 	}
 
 	switch t.whereOperator {
-	case WhereOperatorSearch:
+	case whereOperatorSearch:
 		writer.WriteString("search(")
-	case WhereOperatorLucene:
+	case whereOperatorLucene:
 		writer.WriteString("lucene(")
-	case WhereOperatorStartsWith:
+	case whereOperatorStartsWith:
 		writer.WriteString("startsWith(")
-	case WhereOperatorEndsWith:
+	case whereOperatorEndsWith:
 		writer.WriteString("endsWith(")
-	case WhereOperatorExists:
+	case whereOperatorExists:
 		writer.WriteString("exists(")
-	case WhereOperatorSpatialWithin:
+	case whereOperatorSpatialWithin:
 		writer.WriteString("spatial.within(")
-	case WhereOperatorSpatialContains:
+	case whereOperatorSpatialContains:
 		writer.WriteString("spatial.contains(")
-	case WhereOperatorSpatialDisjoint:
+	case whereOperatorSpatialDisjoint:
 		writer.WriteString("spatial.disjoint(")
-	case WhereOperatorSpatialIntersects:
+	case whereOperatorSpatialIntersects:
 		writer.WriteString("spatial.intersects(")
-	case WhereOperatorRegex:
+	case whereOperatorRegex:
 		writer.WriteString("regex(")
 	}
 
@@ -224,17 +221,17 @@ func (t *whereToken) writeInnerWhere(writer *strings.Builder) {
 	writeQueryTokenField(writer, t.fieldName)
 
 	switch t.whereOperator {
-	case WhereOperatorEquals:
+	case whereOperatorEquals:
 		writer.WriteString(" = ")
-	case WhereOperatorNotEquals:
+	case whereOperatorNotEquals:
 		writer.WriteString(" != ")
-	case WhereOperatorGreaterThan:
+	case whereOperatorGreaterThan:
 		writer.WriteString(" > ")
-	case WhereOperatorGreaterThanOrEqual:
+	case whereOperatorGreaterThanOrEqual:
 		writer.WriteString(" >= ")
-	case WhereOperatorLessThan:
+	case whereOperatorLessThan:
 		writer.WriteString(" < ")
-	case WhereOperatorLessThanOrEqual:
+	case whereOperatorLessThanOrEqual:
 		writer.WriteString(" <= ")
 	default:
 		t.specialOperator(writer)
@@ -251,33 +248,33 @@ func (t *whereToken) specialOperator(writer *strings.Builder) {
 	options := t.options
 	parameterName := t.parameterName
 	switch t.whereOperator {
-	case WhereOperatorIn:
+	case whereOperatorIn:
 		writer.WriteString(" in ($")
 		writer.WriteString(parameterName)
 		writer.WriteString(")")
-	case WhereOperatorAllIn:
+	case whereOperatorAllIn:
 		writer.WriteString(" all in ($")
 		writer.WriteString(parameterName)
 		writer.WriteString(")")
-	case WhereOperatorBetween:
+	case whereOperatorBetween:
 		writer.WriteString(" between $")
 		writer.WriteString(options.fromParameterName)
 		writer.WriteString(" and $")
 		writer.WriteString(options.toParameterName)
-	case WhereOperatorSearch:
+	case whereOperatorSearch:
 		writer.WriteString(", $")
 		writer.WriteString(parameterName)
 		if options.searchOperator == SearchOperatorAnd {
 			writer.WriteString(", and")
 		}
 		writer.WriteString(")")
-	case WhereOperatorLucene, WhereOperatorStartsWith, WhereOperatorEndsWith, WhereOperatorRegex:
+	case whereOperatorLucene, whereOperatorStartsWith, whereOperatorEndsWith, whereOperatorRegex:
 		writer.WriteString(", $")
 		writer.WriteString(parameterName)
 		writer.WriteString(")")
-	case WhereOperatorExists:
+	case whereOperatorExists:
 		writer.WriteString(")")
-	case WhereOperatorSpatialWithin, WhereOperatorSpatialContains, WhereOperatorSpatialDisjoint, WhereOperatorSpatialIntersects:
+	case whereOperatorSpatialWithin, whereOperatorSpatialContains, whereOperatorSpatialDisjoint, whereOperatorSpatialIntersects:
 		writer.WriteString(", ")
 		options.whereShape.writeTo(writer)
 
