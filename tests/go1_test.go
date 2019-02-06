@@ -608,7 +608,6 @@ func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
 
 		session.Close()
 	}
-
 }
 
 func TestGo1(t *testing.T) {

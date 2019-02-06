@@ -13,6 +13,7 @@ $Env:LOG_FAILED_HTTP_REQUESTS = "true"
 $Env:LOG_ALL_REQUESTS = "true"
 $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
+$Env:ENABLE_NORTHWIND_TESTS = "true"
 
 # $IsMacOS is only defined in powershell 6, but it happens to work
 # in windows with powershell 5 because it's not defined at all, so false
