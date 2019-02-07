@@ -2,34 +2,12 @@ package ravendb
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-type FooStruct struct {
-	S   string
-	N   int
-	Foo *FooStruct
-}
-
-func TestDeserializeIncompatible(t *testing.T) {
-	// unlike built-in json deserialization, we are forgiving of type mismatches
-	js := `
-{
-	"S": "foo",
-	"Foo": "foos/1"
-}`
-	var doc map[string]interface{}
-	err := json.Unmarshal([]byte(js), &doc)
-	assert.NoError(t, err)
-	var fs *FooStruct
-	err = makeStructFromJSONMap3(&fs, doc)
-	assert.NoError(t, err)
-}
 
 func TestTypeName(t *testing.T) {
 	v := FooStruct{}
