@@ -40,16 +40,163 @@ if err != nil {
 // ... use session
 session.Close()
 ```
-4. Call `SaveChanges()` once you're done:
+4. Call `SaveChanges()` to persist changes in a session:
 ```go
-session
- .load('users/1-A')
- .then((user) => {
-   user.password = PBKDF2('new password');
- })
- .then(() => session.saveChanges())
- .then(() => {
-    // data is persisted
-    // you can proceed e.g. finish web request
-  });
-   
+var e *northwind.Employee
+err = session.Load(&e, "employees/7-A")
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+
+origName := e.FirstName
+e.FirstName = e.FirstName + "Changed"
+err = session.Store(e)
+if err != nil {
+    log.Fatalf("session.Store() failed with %s\n", err)
+}
+
+err = session.SaveChanges()
+if err != nil {
+    log.Fatalf("session.SaveChanges() failed with %s\n", err)
+}
+
+var e2 *northwind.Employee
+err = session.Load(&e2, "employees/7-A")
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+fmt.Printf("Updated Employee.FirstName from '%s' to '%s'\n", origName, e2.FirstName)
+```
+See `loadUpdateSave()` in [examples/main.go](examples/main.go) for full example.
+
+## CRUD example
+
+### Storing documents
+```go
+product := &northwind.Product{
+    Name:         "iPhone X",
+    PricePerUnit: 999.99,
+    Category:     "electronis",
+    ReorderLevel: 15,
+}
+err = session.Store(product)
+if err != nil {
+    log.Fatalf("session.Store() failed with %s\n", err)
+}
+```
+See `crudStore()` in [examples/main.go](examples/main.go) for full example.
+
+
+### Loading documents
+
+```go
+var e *northwind.Employee
+err = session.Load(&e, "employees/7-A")
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+fmt.Printf("employee: %#v\n", e)
+```
+See `crudLoad()` in [examples/main.go](examples/main.go) for full example.
+
+### Loading documents with includes
+
+Some entities point to other entities via id. For example `Employee` has `ReportsTo` field which is an id of `Employee` that it reports to.
+
+To improve performance by minimizing number of server requests, we can use includes functionality to load such linked entities.
+
+```go
+// load employee with id "employees/7-A" and entity whose id is ReportsTo
+var e *northwind.Employee
+err = session.Include("ReportsTo").Load(&e, "employees/5-A")
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+if e.ReportsTo == "" {
+    fmt.Printf("Employee with id employees/5-A doesn't report to anyone\n")
+    return
+}
+
+numRequests := session.GetNumberOfRequests()
+var reportsTo *northwind.Employee
+err = session.Load(&reportsTo, e.ReportsTo)
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+if numRequests != session.GetNumberOfRequests() {
+    fmt.Printf("Something's wrong, this shouldn't send a request to the server\n")
+} else {
+    fmt.Printf("Loading e.ReportsTo employee didn't require a new request to the server because we've loaded it in original requests thanks to using Include functionality\n")
+}
+```
+See `crudLoadWithInclude()` in [examples/main.go](examples/main.go) for full example.
+
+### Updating documents
+
+```go
+// load entity from the server
+var p *northwind.Product
+err = session.Load(&p, productID)
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+
+// update price
+origPrice = p.PricePerUnit
+newPrice = origPrice + 10
+p.PricePerUnit = newPrice
+err = session.Store(p)
+if err != nil {
+    log.Fatalf("session.Store() failed with %s\n", err)
+}
+
+// persist changes on the server
+err = session.SaveChanges()
+if err != nil {
+    log.Fatalf("session.SaveChanges() failed with %s\n", err)
+}
+```
+See `crudUpdate()` in [examples/main.go](examples/main.go) for full example.
+
+### Deleting documents
+
+Deleting using entity
+
+```go
+// store a product and remember its id in productID
+
+var p *northwind.Product
+err = session.Load(&p, productID)
+if err != nil {
+    log.Fatalf("session.Load() failed with %s\n", err)
+}
+
+err = session.DeleteEntity(p)
+if err != nil {
+    log.Fatalf("session.Delete() failed with %s\n", err)
+}
+
+err = session.SaveChanges()
+if err != nil {
+    log.Fatalf("session.SaveChanges() failed with %s\n", err)
+}
+
+```
+
+Deleting using id
+
+```go
+// store a product and remember its id in productID
+
+err = session.Delete(productID)
+if err != nil {
+    log.Fatalf("session.Delete() failed with %s\n", err)
+}
+
+err = session.SaveChanges()
+if err != nil {
+    log.Fatalf("session.SaveChanges() failed with %s\n", err)
+}
+```
+See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full example.
+
