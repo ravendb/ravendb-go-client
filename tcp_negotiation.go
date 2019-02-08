@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	OUT_OF_RANGE_STATUS = -1
-	DROP_STATUS         = -2
+	outOfRangeStatus = -1
+	dropStatus       = -2
 )
 
-func negotiateProtocolVersion(stream io.Writer, parameters *TcpNegotiateParameters) (*supportedFeatures, error) {
+func negotiateProtocolVersion(stream io.Writer, parameters *tcpNegotiateParameters) (*supportedFeatures, error) {
 	v := parameters.version
 	currentRef := &v
 	for {
@@ -29,14 +29,14 @@ func negotiateProtocolVersion(stream io.Writer, parameters *TcpNegotiateParamete
 		}
 
 		//In this case we usually throw internally but for completeness we better handle it
-		if version == DROP_STATUS {
+		if version == dropStatus {
 			return getSupportedFeaturesFor(operationDrop, dropBaseLine), nil
 		}
 
 		status := operationVersionSupported(parameters.operation, version, currentRef)
 
 		if status == supportedStatus_OUT_OF_RANGE {
-			sendTcpVersionInfo(stream, parameters, OUT_OF_RANGE_STATUS)
+			sendTcpVersionInfo(stream, parameters, outOfRangeStatus)
 			return nil, newIllegalArgumentError("The " + parameters.operation + " version " + strconv.Itoa(parameters.version) + " is out of range, out lowest version is " + strconv.Itoa(*currentRef))
 		}
 
@@ -56,7 +56,7 @@ func negotiateProtocolVersion(stream io.Writer, parameters *TcpNegotiateParamete
 	return getSupportedFeaturesFor(parameters.operation, *currentRef), nil
 }
 
-func sendTcpVersionInfo(stream io.Writer, parameters *TcpNegotiateParameters, currentVersion int) error {
+func sendTcpVersionInfo(stream io.Writer, parameters *tcpNegotiateParameters, currentVersion int) error {
 	/*
 		if (logger.isInfoEnabled()) {
 			logger.info("Send negotiation for " + parameters.getOperation() + " in version " + currentVersion);

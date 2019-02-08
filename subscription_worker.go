@@ -201,7 +201,7 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 		databaseName = w._store.GetDatabase()
 	}
 
-	parameters := &TcpNegotiateParameters{}
+	parameters := &tcpNegotiateParameters{}
 	parameters.database = databaseName
 	parameters.operation = operationSubscription
 	parameters.version = subscriptionTCPVersion
@@ -251,19 +251,19 @@ func (w *SubscriptionWorker) ensureParser() {
 func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, error) {
 	//Reading reply from server
 	w.ensureParser()
-	var reply *TcpConnectionHeaderResponse
+	var reply *tcpConnectionHeaderResponse
 	err := w._parser.Decode(&reply)
 	if err != nil {
 		return 0, err
 	}
 
 	switch reply.Status {
-	case TcpConnectionStatusOk:
+	case tcpConnectionStatusOk:
 		return reply.Version, nil
-	case TcpConnectionStatusAuthorizationFailed:
+	case tcpConnectionStatusAuthorizationFailed:
 		return 0, newAuthorizationError("Cannot access database " + w._dbName + " because " + reply.Message)
-	case TcpConnectionStatusTcpVersionMismatch:
-		if reply.Version != OUT_OF_RANGE_STATUS {
+	case tcpConnectionStatusTcpVersionMismatch:
+		if reply.Version != outOfRangeStatus {
 			return reply.Version, nil
 		}
 		//Kindly request the server to drop the connection
@@ -274,7 +274,7 @@ func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, e
 	return 0, newIllegalStateError("Unknown status '%s'", reply.Status)
 }
 
-func (w *SubscriptionWorker) sendDropMessage(reply *TcpConnectionHeaderResponse) error {
+func (w *SubscriptionWorker) sendDropMessage(reply *tcpConnectionHeaderResponse) error {
 	dropMsg := &tcpConnectionHeaderMessage{}
 	dropMsg.Operation = operationDrop
 	dropMsg.DatabaseName = w._dbName

@@ -1,9 +1,9 @@
 package ravendb
 
-type TcpConnectionStatus = string
+type tcpConnectionStatus = string
 
 const (
-	TcpConnectionStatusOk                  = "Ok"
-	TcpConnectionStatusAuthorizationFailed = "AuthorizationFailed"
-	TcpConnectionStatusTcpVersionMismatch  = "TcpVersionMismatch"
+	tcpConnectionStatusOk                  = "Ok"
+	tcpConnectionStatusAuthorizationFailed = "AuthorizationFailed"
+	tcpConnectionStatusTcpVersionMismatch  = "TcpVersionMismatch"
 )

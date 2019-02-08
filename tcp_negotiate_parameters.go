@@ -1,6 +1,6 @@
 package ravendb
 
-type TcpNegotiateParameters struct {
+type tcpNegotiateParameters struct {
 	operation          operationTypes
 	version            int
 	database           string
