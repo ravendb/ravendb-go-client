@@ -9,6 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type FooStruct struct {
+	S string
+	N int
+}
+
 func TestTypeName(t *testing.T) {
 	v := FooStruct{}
 	name := GetFullTypeName(v)
@@ -47,11 +52,6 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 		assert.Equal(t, s.S, s2.S)
 		assert.Equal(t, s.N, s2.N)
 	}
-
-	var s2 *FooStruct
-	err = makeStructFromJSONMap2(&s2, jsmap)
-	assert.NoError(t, err)
-	assert.Equal(t, s, s2)
 }
 
 func TestIsStructy(t *testing.T) {
