@@ -1,7 +1,7 @@
 package ravendb
 
 type TcpNegotiateParameters struct {
-	operation          OperationTypes
+	operation          operationTypes
 	version            int
 	database           string
 	sourceNodeTag      string

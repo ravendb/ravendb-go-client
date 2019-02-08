@@ -5,203 +5,203 @@ import (
 	"strconv"
 )
 
-type OperationTypes = string
+type operationTypes = string
 
 const (
-	OperationNone           = "None"
-	OperationDrop           = "Drop"
-	OperationSubscription   = "Subscription"
-	OperationReplicatoin    = "Replication"
-	OperationCluster        = "Cluster"
-	OperationHeartbeats     = "Heartbeats"
-	OperationPing           = "Ping"
-	OperationTestConnection = "TestConnection"
+	operationNone           = "None"
+	operationDrop           = "Drop"
+	operationSubscription   = "Subscription"
+	operationReplication    = "Replication"
+	operationCluster        = "Cluster"
+	operationHeartbeats     = "Heartbeats"
+	operationPing           = "Ping"
+	operationTestConnection = "TestConnection"
 )
 
 const (
-	NUMBER_OR_RETRIES_FOR_SENDING_TCP_HEADER = 2
-	PING_BASE_LINE                           = -1
-	NONE_BASE_LINE                           = -1
-	DROP_BASE_LINE                           = -2
-	HEARTBEATS_BASE_LINE                     = 20
-	SUBSCRIPTION_BASE_LINE                   = 40
-	TEST_CONNECTION_BASE_LINE                = 50
+	numberOfRetriesForSendingTCPHeader = 2
+	pingBaseLine                       = -1
+	noneBaseLine                       = -1
+	dropBaseLine                       = -2
+	hearthbeatsBaseLine                = 20
+	subscriptionBaseLine               = 40
+	testConnectionBaseLine             = 50
 
-	HEARTBEATS_TCP_VERSION      = HEARTBEATS_BASE_LINE
-	SUBSCRIPTION_TCP_VERSION    = SUBSCRIPTION_BASE_LINE
-	TEST_CONNECTION_TCP_VERSION = TEST_CONNECTION_BASE_LINE
+	heartbeatsTCPVersion     = hearthbeatsBaseLine
+	subscriptionTCPVersion   = subscriptionBaseLine
+	testConnectionTCPVersion = testConnectionBaseLine
 )
 
-type TcpConnectionHeaderMessage struct {
+type tcpConnectionHeaderMessage struct {
 	DatabaseName     string         `json:"DatabaseName"`
 	SourceNodeTag    string         `json:"SourceNodeTag"`
-	Operation        OperationTypes `json:"Operation"`
+	Operation        operationTypes `json:"Operation"`
 	OperationVersion int            `json:"OperationVersion"`
 	Info             string         `json:"Info"`
 }
 
-type PingFeatures struct {
+type pingFeatures struct {
 	baseLine bool
 }
 
-func NewPingFeatures() *PingFeatures {
-	return &PingFeatures{
+func newPingFeatures() *pingFeatures {
+	return &pingFeatures{
 		baseLine: true,
 	}
 }
 
-type NoneFeatures struct {
+type noneFeatures struct {
 	baseLine bool
 }
 
-func NewNoneFeatures() *NoneFeatures {
-	return &NoneFeatures{
+func newNoneFeatures() *noneFeatures {
+	return &noneFeatures{
 		baseLine: true,
 	}
 }
 
-type DropFeatures struct {
+type dropFeatures struct {
 	baseLine bool
 }
 
-func NewDropFeatures() *DropFeatures {
-	return &DropFeatures{
+func newDropFeatures() *dropFeatures {
+	return &dropFeatures{
 		baseLine: true,
 	}
 }
 
-type SubscriptionFeatures struct {
+type subscriptionFeatures struct {
 	baseLine bool
 }
 
-func NewSubscriptionFeatures() *SubscriptionFeatures {
-	return &SubscriptionFeatures{
+func newSubscriptionFeatures() *subscriptionFeatures {
+	return &subscriptionFeatures{
 		baseLine: true,
 	}
 }
 
-type HeartbeatsFeatures struct {
+type heartbeatsFeatures struct {
 	baseLine bool
 }
 
-func NewHeartbeatsFeatures() *HeartbeatsFeatures {
-	return &HeartbeatsFeatures{
+func newHeartbeatsFeatures() *heartbeatsFeatures {
+	return &heartbeatsFeatures{
 		baseLine: true,
 	}
 }
 
-type TestConnectionFeatures struct {
+type testConnectionFeatures struct {
 	baseLine bool
 }
 
-func NewTestConnectionFeatures() *TestConnectionFeatures {
-	return &TestConnectionFeatures{
+func newTestConnectionFeatures() *testConnectionFeatures {
+	return &testConnectionFeatures{
 		baseLine: true,
 	}
 }
 
-type ReplicationFeatures struct {
+type replicationFeatures struct {
 	baseLine           bool
 	missingAttachments bool
 }
 
-func NewReplicationFeatures() *ReplicationFeatures {
-	return &ReplicationFeatures{
+func newReplicationFeatures() *replicationFeatures {
+	return &replicationFeatures{
 		baseLine: true,
 	}
 }
 
-type SupportedFeatures struct {
+type supportedFeatures struct {
 	protocolVersion int
 
-	ping           *PingFeatures
-	none           *NoneFeatures
-	drop           *DropFeatures
-	subscription   *SubscriptionFeatures
-	heartbeats     *HeartbeatsFeatures
-	testConnection *TestConnectionFeatures
+	ping           *pingFeatures
+	none           *noneFeatures
+	drop           *dropFeatures
+	subscription   *subscriptionFeatures
+	heartbeats     *heartbeatsFeatures
+	testConnection *testConnectionFeatures
 }
 
-func NewSupportedFeatures(version int) *SupportedFeatures {
-	return &SupportedFeatures{
+func newSupportedFeatures(version int) *supportedFeatures {
+	return &supportedFeatures{
 		protocolVersion: version,
 	}
 }
 
 var (
-	operationsToSupportedProtocolVersions = map[OperationTypes][]int{}
-	supportedFeaturesByProtocol           = map[OperationTypes]map[int]*SupportedFeatures{}
+	operationsToSupportedProtocolVersions = map[operationTypes][]int{}
+	supportedFeaturesByProtocol           = map[operationTypes]map[int]*supportedFeatures{}
 )
 
 func init() {
-	operationsToSupportedProtocolVersions[OperationPing] = []int{PING_BASE_LINE}
-	operationsToSupportedProtocolVersions[OperationNone] = []int{NONE_BASE_LINE}
-	operationsToSupportedProtocolVersions[OperationDrop] = []int{DROP_BASE_LINE}
-	operationsToSupportedProtocolVersions[OperationSubscription] = []int{SUBSCRIPTION_BASE_LINE}
-	operationsToSupportedProtocolVersions[OperationHeartbeats] = []int{HEARTBEATS_BASE_LINE}
-	operationsToSupportedProtocolVersions[OperationTestConnection] = []int{TEST_CONNECTION_BASE_LINE}
+	operationsToSupportedProtocolVersions[operationPing] = []int{pingBaseLine}
+	operationsToSupportedProtocolVersions[operationNone] = []int{noneBaseLine}
+	operationsToSupportedProtocolVersions[operationDrop] = []int{dropBaseLine}
+	operationsToSupportedProtocolVersions[operationSubscription] = []int{subscriptionBaseLine}
+	operationsToSupportedProtocolVersions[operationHeartbeats] = []int{hearthbeatsBaseLine}
+	operationsToSupportedProtocolVersions[operationTestConnection] = []int{testConnectionBaseLine}
 
-	pingFeaturesMap := map[int]*SupportedFeatures{}
-	supportedFeaturesByProtocol[OperationPing] = pingFeaturesMap
-	pingFeatures := NewSupportedFeatures(PING_BASE_LINE)
-	pingFeatures.ping = NewPingFeatures()
-	pingFeaturesMap[PING_BASE_LINE] = pingFeatures
+	pingFeaturesMap := map[int]*supportedFeatures{}
+	supportedFeaturesByProtocol[operationPing] = pingFeaturesMap
+	pingFeatures := newSupportedFeatures(pingBaseLine)
+	pingFeatures.ping = newPingFeatures()
+	pingFeaturesMap[pingBaseLine] = pingFeatures
 
-	noneFeaturesMap := map[int]*SupportedFeatures{}
-	supportedFeaturesByProtocol[OperationNone] = noneFeaturesMap
-	noneFeatures := NewSupportedFeatures(NONE_BASE_LINE)
-	noneFeatures.none = NewNoneFeatures()
-	noneFeaturesMap[NONE_BASE_LINE] = noneFeatures
+	noneFeaturesMap := map[int]*supportedFeatures{}
+	supportedFeaturesByProtocol[operationNone] = noneFeaturesMap
+	noneFeatures := newSupportedFeatures(noneBaseLine)
+	noneFeatures.none = newNoneFeatures()
+	noneFeaturesMap[noneBaseLine] = noneFeatures
 
-	dropFeaturesMap := map[int]*SupportedFeatures{}
-	supportedFeaturesByProtocol[OperationDrop] = dropFeaturesMap
-	dropFeatures := NewSupportedFeatures(DROP_BASE_LINE)
-	dropFeatures.drop = NewDropFeatures()
-	dropFeaturesMap[DROP_BASE_LINE] = dropFeatures
+	dropFeaturesMap := map[int]*supportedFeatures{}
+	supportedFeaturesByProtocol[operationDrop] = dropFeaturesMap
+	dropFeatures := newSupportedFeatures(dropBaseLine)
+	dropFeatures.drop = newDropFeatures()
+	dropFeaturesMap[dropBaseLine] = dropFeatures
 
-	subscriptionFeaturesMap := map[int]*SupportedFeatures{}
-	supportedFeaturesByProtocol[OperationSubscription] = subscriptionFeaturesMap
-	subscriptionFeatures := NewSupportedFeatures(SUBSCRIPTION_BASE_LINE)
-	subscriptionFeatures.subscription = NewSubscriptionFeatures()
-	subscriptionFeaturesMap[SUBSCRIPTION_BASE_LINE] = subscriptionFeatures
+	subscriptionFeaturesMap := map[int]*supportedFeatures{}
+	supportedFeaturesByProtocol[operationSubscription] = subscriptionFeaturesMap
+	subscriptionFeatures := newSupportedFeatures(subscriptionBaseLine)
+	subscriptionFeatures.subscription = newSubscriptionFeatures()
+	subscriptionFeaturesMap[subscriptionBaseLine] = subscriptionFeatures
 
-	heartbeatsFeaturesMap := map[int]*SupportedFeatures{}
-	supportedFeaturesByProtocol[OperationHeartbeats] = heartbeatsFeaturesMap
-	heartbeatsFeatures := NewSupportedFeatures(HEARTBEATS_BASE_LINE)
-	heartbeatsFeatures.heartbeats = NewHeartbeatsFeatures()
-	heartbeatsFeaturesMap[HEARTBEATS_BASE_LINE] = heartbeatsFeatures
+	heartbeatsFeaturesMap := map[int]*supportedFeatures{}
+	supportedFeaturesByProtocol[operationHeartbeats] = heartbeatsFeaturesMap
+	heartbeatsFeatures := newSupportedFeatures(hearthbeatsBaseLine)
+	heartbeatsFeatures.heartbeats = newHeartbeatsFeatures()
+	heartbeatsFeaturesMap[hearthbeatsBaseLine] = heartbeatsFeatures
 
-	testConnectionFeaturesMap := map[int]*SupportedFeatures{}
-	supportedFeaturesByProtocol[OperationTestConnection] = testConnectionFeaturesMap
-	testConnectionFeatures := NewSupportedFeatures(TEST_CONNECTION_BASE_LINE)
-	testConnectionFeatures.testConnection = NewTestConnectionFeatures()
-	testConnectionFeaturesMap[TEST_CONNECTION_BASE_LINE] = testConnectionFeatures
+	testConnectionFeaturesMap := map[int]*supportedFeatures{}
+	supportedFeaturesByProtocol[operationTestConnection] = testConnectionFeaturesMap
+	testConnectionFeatures := newSupportedFeatures(testConnectionBaseLine)
+	testConnectionFeatures.testConnection = newTestConnectionFeatures()
+	testConnectionFeaturesMap[testConnectionBaseLine] = testConnectionFeatures
 
 }
 
 var (
 	// validate
-	operations = []OperationTypes{
-		OperationCluster,
-		OperationDrop,
-		OperationHeartbeats,
-		OperationNone,
-		OperationPing,
-		OperationReplicatoin,
-		OperationSubscription,
-		OperationTestConnection,
+	operations = []operationTypes{
+		operationCluster,
+		operationDrop,
+		operationHeartbeats,
+		operationNone,
+		operationPing,
+		operationReplication,
+		operationSubscription,
+		operationTestConnection,
 	}
 )
 
-type SupportedStatus int
+type supportedStatus int
 
 const (
-	SupportedStatus_OUT_OF_RANGE SupportedStatus = iota
-	SupportedStatus_NOT_SUPPORTED
-	SupportedStatus_SUPPORTED
+	supportedStatus_OUT_OF_RANGE supportedStatus = iota
+	supportedStatus_NOT_SUPPORTED
+	supportedStatus_SUPPORTED
 )
 
-func operationVersionSupported(operationType OperationTypes, version int, currentRef *int) SupportedStatus {
+func operationVersionSupported(operationType operationTypes, version int, currentRef *int) supportedStatus {
 	*currentRef = -1
 
 	supportedProtocols := operationsToSupportedProtocolVersions[operationType]
@@ -210,33 +210,33 @@ func operationVersionSupported(operationType OperationTypes, version int, curren
 	for i := 0; i < len(supportedProtocols); i++ {
 		*currentRef = supportedProtocols[i]
 		if *currentRef == version {
-			return SupportedStatus_SUPPORTED
+			return supportedStatus_SUPPORTED
 		}
 
 		if *currentRef < version {
-			return SupportedStatus_NOT_SUPPORTED
+			return supportedStatus_NOT_SUPPORTED
 		}
 	}
 
-	return SupportedStatus_OUT_OF_RANGE
+	return supportedStatus_OUT_OF_RANGE
 }
 
-func getOperationTcpVersion(operationType OperationTypes, index int) int {
+func getOperationTcpVersion(operationType operationTypes, index int) int {
 	// we don't check the if the index go out of range, since this is expected and means that we don't have
 	switch operationType {
-	case OperationPing, OperationNone:
+	case operationPing, operationNone:
 		return -1
-	case OperationDrop:
+	case operationDrop:
 		return -2
-	case OperationSubscription, OperationReplicatoin, OperationCluster,
-		OperationHeartbeats, OperationTestConnection:
+	case operationSubscription, operationReplication, operationCluster,
+		operationHeartbeats, operationTestConnection:
 		return operationsToSupportedProtocolVersions[operationType][index]
 	default:
 		panic(fmt.Sprintf("invalid operationType '%v'", operationType))
 	}
 }
 
-func getSupportedFeaturesFor(typ OperationTypes, protocolVersion int) *SupportedFeatures {
+func getSupportedFeaturesFor(typ operationTypes, protocolVersion int) *supportedFeatures {
 	features := supportedFeaturesByProtocol[typ][protocolVersion]
 	panicIf(features == nil, typ+" in protocol "+strconv.Itoa(protocolVersion)+" was not found in the features set")
 	return features

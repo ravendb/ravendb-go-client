@@ -11,7 +11,7 @@ const (
 	DROP_STATUS         = -2
 )
 
-func negotiateProtocolVersion(stream io.Writer, parameters *TcpNegotiateParameters) (*SupportedFeatures, error) {
+func negotiateProtocolVersion(stream io.Writer, parameters *TcpNegotiateParameters) (*supportedFeatures, error) {
 	v := parameters.version
 	currentRef := &v
 	for {
@@ -30,12 +30,12 @@ func negotiateProtocolVersion(stream io.Writer, parameters *TcpNegotiateParamete
 
 		//In this case we usually throw internally but for completeness we better handle it
 		if version == DROP_STATUS {
-			return getSupportedFeaturesFor(OperationDrop, DROP_BASE_LINE), nil
+			return getSupportedFeaturesFor(operationDrop, dropBaseLine), nil
 		}
 
 		status := operationVersionSupported(parameters.operation, version, currentRef)
 
-		if status == SupportedStatus_OUT_OF_RANGE {
+		if status == supportedStatus_OUT_OF_RANGE {
 			sendTcpVersionInfo(stream, parameters, OUT_OF_RANGE_STATUS)
 			return nil, newIllegalArgumentError("The " + parameters.operation + " version " + strconv.Itoa(parameters.version) + " is out of range, out lowest version is " + strconv.Itoa(*currentRef))
 		}

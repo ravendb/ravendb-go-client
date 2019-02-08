@@ -34,7 +34,7 @@ type SubscriptionWorker struct {
 	_subscriptionLocalRequestExecutor *RequestExecutor
 
 	lastConnectionFailure time.Time
-	_supportedFeatures    *SupportedFeatures
+	_supportedFeatures    *supportedFeatures
 	onClosed              func(*SubscriptionWorker)
 
 	mu sync.Mutex
@@ -203,8 +203,8 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 
 	parameters := &TcpNegotiateParameters{}
 	parameters.database = databaseName
-	parameters.operation = OperationSubscription
-	parameters.version = SUBSCRIPTION_TCP_VERSION
+	parameters.operation = operationSubscription
+	parameters.version = subscriptionTCPVersion
 	fn := func(s string) int {
 		n, _ := w.readServerResponseAndGetVersion(s)
 		return n
@@ -275,11 +275,11 @@ func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, e
 }
 
 func (w *SubscriptionWorker) sendDropMessage(reply *TcpConnectionHeaderResponse) error {
-	dropMsg := &TcpConnectionHeaderMessage{}
-	dropMsg.Operation = OperationDrop
+	dropMsg := &tcpConnectionHeaderMessage{}
+	dropMsg.Operation = operationDrop
 	dropMsg.DatabaseName = w._dbName
-	dropMsg.OperationVersion = SUBSCRIPTION_TCP_VERSION
-	dropMsg.Info = "Couldn't agree on subscription tcp version ours: " + strconv.Itoa(SUBSCRIPTION_TCP_VERSION) + " theirs: " + strconv.Itoa(reply.Version)
+	dropMsg.OperationVersion = subscriptionTCPVersion
+	dropMsg.Info = "Couldn't agree on subscription tcp version ours: " + strconv.Itoa(subscriptionTCPVersion) + " theirs: " + strconv.Itoa(reply.Version)
 	header, err := jsonMarshal(dropMsg)
 	if err != nil {
 		return err
