@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/ravendb/ravendb-go-client/examples/northwind"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +30,14 @@ func goNorthwindEmployeeLoad(t *testing.T, driver *RavenTestDriver) {
 	var e *northwind.Employee
 	err = session.Load(&e, "employees/7-A")
 	assert.NoError(t, err)
-	fmt.Printf("employee: %#v\n", e)
+
+	var all []*northwind.Employee
+	args := &ravendb.StartsWithArgs{
+		StartsWith: "employees/",
+	}
+	err = session.LoadStartingWith(&all, args)
+	assert.NoError(t, err)
+	assert.True(t, len(all) > 5) // it's 9 currently
 }
 
 func TestGoNorthwind(t *testing.T) {
@@ -41,8 +47,5 @@ func TestGoNorthwind(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	if false {
-		// failing
-		goNorthwindEmployeeLoad(t, driver)
-	}
+	goNorthwindEmployeeLoad(t, driver)
 }

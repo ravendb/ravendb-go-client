@@ -37,35 +37,35 @@ type Employee struct {
 	Birthday    ravendb.Time `json:"Birthday"`
 	HomePhone   string       `json:"HomePhone"`
 	Extension   string       `json:"Extension"`
-	ReportsTo   *Employee    `json:"ReportsTo"`
+	ReportsTo   string       `json:"ReportsTo"` // id of Employee struct
 	Notes       []string     `json:"Notes"`
 	Territories []string     `json:"Territories"`
 }
 
 type Order struct {
 	ID        string
-	Company   *Company      `json:"Company"`
-	Employee  *Employee     `json:"Employee"`
+	Company   string        `json:"Company"`  // id of Company struct
+	Employee  string        `json:"Employee"` // id of Employee struct
 	OrderedAt ravendb.Time  `json:"OrderedAt"`
 	RequireAt ravendb.Time  `json:"RequireAt"`
 	ShippedAt *ravendb.Time `json:"ShippedAt"`
 	ShipTo    *Address      `json:"ShipTo"`
-	ShipVia   *Shipper      `json:"ShipVia"`
+	ShipVia   string        `json:"ShipVia"` // id of Shipper struct
 	Freight   float64       `json:"Freight"`
 	Lines     []*OrderLine  `json:"Lines"`
 }
 
 type Product struct {
 	ID              string
-	Name            string    `json:"Name"`
-	Supplier        *Supplier `json:"Supplier"`
-	Category        *Category `json:"Category"`
-	QuantityPerUnit string    `json:"QuantityPerUnit"`
-	PricePerUnit    float64   `json:"PricePerUnit"`
-	UnitsInStock    int       `json:"UnitsInStock"`
-	UnistsOnOrder   int       `json:"UnistsOnOrder"`
-	Discontinued    bool      `json:"Discontinued"`
-	ReorderLevel    int       `json:"ReorderLevel"`
+	Name            string  `json:"Name"`
+	Supplier        string  `json:"Supplier"` // id of Supplier struct
+	Category        string  `json:"Category"` // id of Category struct
+	QuantityPerUnit string  `json:"QuantityPerUnit"`
+	PricePerUnit    float64 `json:"PricePerUnit"`
+	UnitsInStock    int     `json:"UnitsInStock"`
+	UnistsOnOrder   int     `json:"UnistsOnOrder"`
+	Discontinued    bool    `json:"Discontinued"`
+	ReorderLevel    int     `json:"ReorderLevel"`
 }
 
 type Region struct {
@@ -111,9 +111,9 @@ type Location struct {
 }
 
 type OrderLine struct {
-	Product      *Product `json:"Product"`
-	ProductName  string   `json:"ProductName"`
-	PricePerUnit float64  `json:"PricePerUnit"`
-	Quantity     int      `json:"Quantity"`
-	Discount     float64  `json:"Discount"`
+	Product      string  `json:"Product"` // id of Product string
+	ProductName  string  `json:"ProductName"`
+	PricePerUnit float64 `json:"PricePerUnit"`
+	Quantity     int     `json:"Quantity"`
+	Discount     float64 `json:"Discount"`
 }

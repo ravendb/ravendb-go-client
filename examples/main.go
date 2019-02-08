@@ -42,16 +42,11 @@ func loadWithIncludes() {
 	panicIfErr(err)
 
 	{
-		// TODO: not working yet, see https://github.com/ravendb/ravendb-go-client/issues/63
 		session, err := store.OpenSession("")
 		panicIfErr(err)
 		var o *northwind.Order
 		err = session.Include("employee").Load(&o, "orders/827-A")
-		if err != nil {
-			fmt.Printf("error: %s\n", err)
-		} else {
-			fmt.Printf("order: %#v\n", o)
-		}
+		panicIfErr(err)
 	}
 
 }
@@ -73,4 +68,5 @@ func loadEmployee() {
 
 func main() {
 	loadEmployee()
+	loadWithIncludes()
 }
