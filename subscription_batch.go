@@ -5,15 +5,16 @@ import (
 	"reflect"
 )
 
+// SubscriptionBatchItem describes a single result from subscription
 type SubscriptionBatchItem struct {
-	_result          interface{}
+	result           interface{}
 	exceptionMessage string
 	ID               string
 	changeVector     string
 
 	rawResult   map[string]interface{}
 	rawMetadata map[string]interface{}
-	_metadata   *MetadataAsDictionary
+	metadata    *MetadataAsDictionary
 }
 
 func (i *SubscriptionBatchItem) throwItemProcessException() error {
@@ -24,25 +25,26 @@ func (i *SubscriptionBatchItem) GetResult() (interface{}, error) {
 	if i.exceptionMessage != "" {
 		return nil, i.throwItemProcessException()
 	}
-	return i._result, nil
+	return i.result, nil
 }
 
 func (i *SubscriptionBatchItem) GetMetadata() *MetadataAsDictionary {
-	if i._metadata == nil {
-		i._metadata = NewMetadataAsDictionary(i.rawMetadata, nil, "")
+	if i.metadata == nil {
+		i.metadata = NewMetadataAsDictionary(i.rawMetadata, nil, "")
 	}
 
-	return i._metadata
+	return i.metadata
 }
 
+// SubscriptionBatch describes a bunch of results for subscription
 type SubscriptionBatch struct {
-	_clazz                       reflect.Type
-	_revisions                   bool
-	_requestExecutor             *RequestExecutor
-	_store                       *DocumentStore
-	_dbName                      string
-	_logger                      *log.Logger
-	_generateEntityIdOnTheClient *generateEntityIDOnTheClient
+	clazz                       reflect.Type
+	revisions                   bool
+	requestExecutor             *RequestExecutor
+	store                       *DocumentStore
+	dbName                      string
+	logger                      *log.Logger
+	generateEntityIdOnTheClient *generateEntityIDOnTheClient
 
 	Items []*SubscriptionBatchItem
 }
@@ -53,27 +55,27 @@ func (b *SubscriptionBatch) getNumberOfItemsInBatch() int {
 
 func (b *SubscriptionBatch) openSession() (*DocumentSession, error) {
 	sessionOptions := &SessionOptions{
-		Database:        b._dbName,
-		RequestExecutor: b._requestExecutor,
+		Database:        b.dbName,
+		RequestExecutor: b.requestExecutor,
 	}
-	return b._store.OpenSessionWithOptions(sessionOptions)
+	return b.store.OpenSessionWithOptions(sessionOptions)
 }
 
-func NewSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *RequestExecutor, store *DocumentStore, dbName string, logger *log.Logger) *SubscriptionBatch {
+func newSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *RequestExecutor, store *DocumentStore, dbName string, logger *log.Logger) *SubscriptionBatch {
 	res := &SubscriptionBatch{
-		_clazz:           clazz,
-		_revisions:       revisions,
-		_requestExecutor: requestExecutor,
-		_store:           store,
-		_dbName:          dbName,
-		_logger:          logger,
+		clazz:           clazz,
+		revisions:       revisions,
+		requestExecutor: requestExecutor,
+		store:           store,
+		dbName:          dbName,
+		logger:          logger,
 	}
 
 	fn := func(entity interface{}) string {
 		panic("Shouldn't be generating new ids here")
 	}
-	c := res._requestExecutor.GetConventions()
-	res._generateEntityIdOnTheClient = newGenerateEntityIDOnTheClient(c, fn)
+	c := res.requestExecutor.GetConventions()
+	res.generateEntityIdOnTheClient = newGenerateEntityIDOnTheClient(c, fn)
 	return res
 }
 
@@ -99,16 +101,16 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 			return "", throwRequired("@change-vector field")
 		}
 		lastReceivedChangeVector = changeVector
-		if b._logger != nil {
-			b._logger.Printf("Got %s (change vector: [%s], size: %d)", id, lastReceivedChangeVector, len(curDoc))
+		if b.logger != nil {
+			b.logger.Printf("Got %s (change vector: [%s], size: %d)", id, lastReceivedChangeVector, len(curDoc))
 		}
 		var instance interface{}
 
 		if item.Exception == "" {
-			if b._clazz == reflect.TypeOf(map[string]interface{}{}) {
+			if b.clazz == reflect.TypeOf(map[string]interface{}{}) {
 				instance = curDoc
 			} else {
-				if b._revisions {
+				if b.revisions {
 					// parse outer object manually as Previous/Current has PascalCase
 					previous := curDoc["Previous"]
 					current := curDoc["Current"]
@@ -116,7 +118,7 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 					//c := b._requestExecutor.GetConventions()
 					if current != nil {
 						doc := current.(map[string]interface{})
-						v, err := entityToJSONConvertToEntity(b._clazz, id, doc)
+						v, err := entityToJSONConvertToEntity(b.clazz, id, doc)
 						if err != nil {
 							return "", err
 						}
@@ -124,7 +126,7 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 					}
 					if previous != nil {
 						doc := previous.(map[string]interface{})
-						v, err := entityToJSONConvertToEntity(b._clazz, id, doc)
+						v, err := entityToJSONConvertToEntity(b.clazz, id, doc)
 						if err != nil {
 							return "", err
 						}
@@ -133,7 +135,7 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 					instance = revision
 				} else {
 					var err error
-					instance, err = entityToJSONConvertToEntity(b._clazz, id, curDoc)
+					instance, err = entityToJSONConvertToEntity(b.clazz, id, curDoc)
 					if err != nil {
 						return "", err
 					}
@@ -141,7 +143,7 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 			}
 
 			if stringIsNotEmpty(id) {
-				b._generateEntityIdOnTheClient.trySetIdentity(instance, id)
+				b.generateEntityIdOnTheClient.trySetIdentity(instance, id)
 			}
 		}
 		itemToAdd := &SubscriptionBatchItem{
@@ -149,7 +151,7 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 			ID:               id,
 			rawResult:        curDoc,
 			rawMetadata:      metadata,
-			_result:          instance,
+			result:           instance,
 			exceptionMessage: item.Exception,
 		}
 		b.Items = append(b.Items, itemToAdd)

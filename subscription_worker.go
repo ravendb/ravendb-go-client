@@ -363,7 +363,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 	}
 
 	notifiedSubscriber := newCompletableFutureAlreadyCompleted(nil)
-	batch := NewSubscriptionBatch(w._clazz, w._revisions, w._subscriptionLocalRequestExecutor, w._store, w._dbName, w._logger)
+	batch := newSubscriptionBatch(w._clazz, w._revisions, w._subscriptionLocalRequestExecutor, w._store, w._dbName, w._logger)
 
 	for !w._processingCts.getToken().isCancellationRequested() {
 		// start the read from the server
