@@ -6,7 +6,7 @@ import "time"
 
 // DocumentQueryCustomization allows customizing query
 type DocumentQueryCustomization struct {
-	query *AbstractDocumentQuery
+	query *abstractDocumentQuery
 }
 
 // GetQueryOperation returns raw query operation that will be sent to the server

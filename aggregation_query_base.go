@@ -12,13 +12,13 @@ type AggregationQueryBase struct {
 	startTime time.Time
 
 	// from AggregationDocumentQuery
-	source *AbstractDocumentQuery
+	source *abstractDocumentQuery
 }
 
 func NewAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
 	return &AggregationQueryBase{
 		session: source.getSession(),
-		source:  source.AbstractDocumentQuery,
+		source:  source.abstractDocumentQuery,
 	}
 
 }

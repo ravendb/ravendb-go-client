@@ -12,7 +12,7 @@ import (
 
 // DocumentQuery describes a query
 type DocumentQuery struct {
-	*AbstractDocumentQuery
+	*abstractDocumentQuery
 }
 
 // DocumentQueryOptions describes options for creating a query
@@ -54,7 +54,7 @@ func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
 		return nil, err
 	}
 	return &DocumentQuery{
-		AbstractDocumentQuery: aq,
+		abstractDocumentQuery: aq,
 	}, nil
 }
 
@@ -64,7 +64,7 @@ func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
 // q = q.SelectFields(fields...)
 func (q *DocumentQuery) SelectFields(fields ...string) *DocumentQuery {
 	// Note: we delay executing the logic (processing Java's projectionClass)
-	// until AbstractDocumentQuery.GetResult because only then
+	// until abstractDocumentQuery.GetResult because only then
 	// we know the type of the result (i.e. projectionClass)
 	panicIf(len(fields) == 0, "must provide at least one field")
 	for _, field := range fields {
@@ -440,8 +440,8 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 }
 */
 
-// Note: had to move it down to AbstractDocumentQuery
-func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) (*DocumentQuery, error) {
+// Note: had to move it down to abstractDocumentQuery
+func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) (*DocumentQuery, error) {
 
 	var newFieldsToFetch *fieldsToFetchToken
 

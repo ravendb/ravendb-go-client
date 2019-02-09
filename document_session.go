@@ -812,7 +812,7 @@ func (s *DocumentSession) RawQuery(rawQuery string) (*RawDocumentQuery, error) {
 		return nil, err
 	}
 	return &RawDocumentQuery{
-		AbstractDocumentQuery: aq,
+		abstractDocumentQuery: aq,
 	}, nil
 }
 

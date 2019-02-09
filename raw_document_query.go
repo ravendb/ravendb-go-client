@@ -7,7 +7,7 @@ import (
 // Note: Java's RawDocumentQuery is RawDocumentQuery
 
 type RawDocumentQuery struct {
-	*AbstractDocumentQuery
+	*abstractDocumentQuery
 }
 
 func (q *RawDocumentQuery) Skip(count int) *RawDocumentQuery {
