@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -93,7 +94,9 @@ func spatialWeirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
 		q = q.Statistics(&statsRef)
-		q = q.SelectFields("id", "latitude", "longitude")
+		projType := reflect.TypeOf(&MyDocument{})
+		q, err = q.SelectFields(projType, "id", "latitude", "longitude")
+		assert.NoError(t, err)
 		q = q.Take(50)
 
 		var result []*MyDocument
@@ -149,7 +152,9 @@ func spatialMatchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 10, 10)
 		q = q.Statistics(&statsRef)
-		q = q.SelectFields("id", "latitude", "longitude")
+		projType := reflect.TypeOf(&MyDocument{})
+		q, err = q.SelectFields(projType, "id", "latitude", "longitude")
+		assert.NoError(t, err)
 		q = q.Take(50)
 
 		var result []*MyDocument

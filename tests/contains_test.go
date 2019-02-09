@@ -49,7 +49,9 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 		q, err := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
 		assert.NoError(t, err)
 		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
-		q = q.SelectFields("Name")
+		projType := reflect.TypeOf("")
+		q, err = q.SelectFields(projType, "Name")
+		assert.NoError(t, err)
 		var pascalOrGoDeveloperNames []string
 		err = q.GetResults(&pascalOrGoDeveloperNames)
 		assert.NoError(t, err)
@@ -66,7 +68,9 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 		q, err := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
 		assert.NoError(t, err)
 		q = q.ContainsAll("Favourites", []interface{}{"java"})
-		q = q.SelectFields("Name")
+		projType := reflect.TypeOf("")
+		q, err = q.SelectFields(projType, "Name")
+		assert.NoError(t, err)
 		var javaDevelopers []string
 		err = q.GetResults(&javaDevelopers)
 		assert.NoError(t, err)
@@ -86,6 +90,5 @@ func TestContains(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	// TODO: query
-	// containsTestcontainsTest(t, driver)
+	containsTestcontainsTest(t, driver)
 }

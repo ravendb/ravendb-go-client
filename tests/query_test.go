@@ -292,7 +292,9 @@ func queryQuerySingleProperty(t *testing.T, driver *RavenTestDriver) {
 		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		assert.NoError(t, err)
 		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingTypeLong)
-		q = q.SelectFields("age")
+		projType := reflect.TypeOf(int(0))
+		q, err = q.SelectFields(projType, "age")
+		assert.NoError(t, err)
 		var ages []int
 		err = q.GetResults(&ages)
 		assert.NoError(t, err)
@@ -318,7 +320,9 @@ func queryQueryWithSelect(t *testing.T, driver *RavenTestDriver) {
 
 		q, err := session.QueryCollectionForType(userType)
 		assert.NoError(t, err)
-		q = q.SelectFields("age")
+		projType := reflect.TypeOf("")
+		q, err = q.SelectFields(projType, "age")
+		assert.NoError(t, err)
 		var usersAge []*User
 		err = q.GetResults(&usersAge)
 		assert.NoError(t, err)
@@ -492,7 +496,9 @@ func queryQueryWithProjection(t *testing.T, driver *RavenTestDriver) {
 		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		assert.NoError(t, err)
 		fields := ravendb.FieldsFor(&UserProjection{})
-		q = q.SelectFields(fields...)
+		projType := reflect.TypeOf(&UserProjection{})
+		q, err = q.SelectFields(projType, fields...)
+		assert.NoError(t, err)
 		var projections []*UserProjection
 		err = q.GetResults(&projections)
 		assert.NoError(t, err)
@@ -521,7 +527,9 @@ func queryQueryWithProjection2(t *testing.T, driver *RavenTestDriver) {
 
 		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		assert.NoError(t, err)
-		q = q.SelectFields("lastName")
+		projType := reflect.TypeOf(&UserProjection{})
+		q, err = q.SelectFields(projType, "lastName")
+		assert.NoError(t, err)
 		var projections []*UserProjection
 		err = q.GetResults(&projections)
 		assert.NoError(t, err)
@@ -549,7 +557,10 @@ func queryQueryDistinct(t *testing.T, driver *RavenTestDriver) {
 
 		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		assert.NoError(t, err)
-		q = q.SelectFields("name")
+		projType := reflect.TypeOf("")
+		q, err = q.SelectFields(projType, "name")
+		assert.NoError(t, err)
+
 		q = q.Distinct()
 		var uniqueNames []string
 		err = q.GetResults(&uniqueNames)
@@ -1434,14 +1445,13 @@ func TestQuery(t *testing.T) {
 	queryQueryRandomOrder(t, driver)
 	queryQueryNoTracking(t, driver)
 	queryQueryLongRequest(t, driver)
-	// TODO: query
-	// queryQueryWithProjection2(t, driver)
+	queryQueryWithProjection2(t, driver)
+
 	queryQueryWhereNot(t, driver)
 	queryQuerySkipTake(t, driver)
 	queryQueryWithProjection(t, driver)
 	queryQueryFirst(t, driver)
-	// TODO: query
-	// queryQuerySingleProperty(t, driver)
+	queryQuerySingleProperty(t, driver)
 	queryParametersInRawQuery(t, driver)
 	queryQueryWithWhereLessThan(t, driver)
 	queryQueryMapReduceWithCount(t, driver)
@@ -1453,7 +1463,6 @@ func TestQuery(t *testing.T) {
 	queryQueryParameters(t, driver)
 	queryQueryByIndex(t, driver)
 	queryQueryWithWhereIn(t, driver)
-	// TODO: query
-	//queryQueryDistinct(t, driver)
+	queryQueryDistinct(t, driver)
 	queryQueryWithWhereLessThanOrEqual(t, driver)
 }

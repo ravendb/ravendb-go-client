@@ -59,22 +59,23 @@ func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
 }
 
 // SelectFields limits the returned values to one or more fields of the queried type.
-// To select fields for the whole type, do:
-// fields := ravendb.FieldsFor(&MyType{})
-// q = q.SelectFields(fields...)
-func (q *DocumentQuery) SelectFields(fields ...string) *DocumentQuery {
-	// Note: we delay executing the logic (processing Java's projectionClass)
-	// until abstractDocumentQuery.GetResult because only then
-	// we know the type of the result (i.e. projectionClass)
-	panicIf(len(fields) == 0, "must provide at least one field")
-	for _, field := range fields {
-		panicIf(field == "", "field cannot be empty string")
+func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...string) (*DocumentQuery, error) {
+	// TODO: add SelectFieldsWithProjection(projectionType reflect.Type, fields []string, projections []string)
+	var fields []string
+	if len(fieldsIn) == 0 {
+		fields = FieldsFor(projectionType)
+		if len(fields) == 0 {
+			return nil, newIllegalArgumentError("type %T has no exported fields to select")
+		}
+	} else {
+		fields = fieldsIn
 	}
-	q.selectFieldsArgs = &queryData{
+
+	queryData := &queryData{
 		fields:      fields,
 		projections: fields,
 	}
-	return q
+	return q.createDocumentQueryInternal(projectionType, queryData)
 }
 
 /*
