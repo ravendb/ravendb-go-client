@@ -26,17 +26,25 @@ func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 	return store, nil
 }
 
-func loadUpdateSave() {
+func openSession(databaseName string) (*ravendb.DocumentStore, *ravendb.DocumentSession, error) {
 	store, err := getDocumentStore(dbName)
 	if err != nil {
-		log.Fatalf("getDocumentStore() failed with %s\n", err)
+		return nil, nil, fmt.Errorf("getDocumentStore() failed with %s\n", err)
 	}
-	defer store.Close()
 
 	session, err := store.OpenSession("")
 	if err != nil {
-		log.Fatalf("store.OpenSession() failed with %s\n", err)
+		return nil, nil, fmt.Errorf("store.OpenSession() failed with %s\n", err)
 	}
+	return store, session, nil
+}
+
+func loadUpdateSave() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
 	defer session.Close()
 
 	var e *northwind.Employee
@@ -66,16 +74,11 @@ func loadUpdateSave() {
 }
 
 func crudStore() {
-	store, err := getDocumentStore(dbName)
+	store, session, err := openSession(dbName)
 	if err != nil {
-		log.Fatalf("getDocumentStore() failed with %s\n", err)
+		log.Fatalf("openSession() failed with %s\n", err)
 	}
 	defer store.Close()
-
-	session, err := store.OpenSession("")
-	if err != nil {
-		log.Fatalf("store.OpenSession() failed with %s\n", err)
-	}
 	defer session.Close()
 
 	product := &northwind.Product{
@@ -96,16 +99,11 @@ func crudStore() {
 }
 
 func crudLoad() {
-	store, err := getDocumentStore(dbName)
+	store, session, err := openSession(dbName)
 	if err != nil {
-		log.Fatalf("getDocumentStore() failed with %s\n", err)
+		log.Fatalf("openSession() failed with %s\n", err)
 	}
 	defer store.Close()
-
-	session, err := store.OpenSession("")
-	if err != nil {
-		log.Fatalf("store.OpenSession() failed with %s\n", err)
-	}
 	defer session.Close()
 
 	var e *northwind.Employee
@@ -118,16 +116,11 @@ func crudLoad() {
 }
 
 func crudLoadWithIncludes() {
-	store, err := getDocumentStore(dbName)
+	store, session, err := openSession(dbName)
 	if err != nil {
-		log.Fatalf("getDocumentStore() failed with %s\n", err)
+		log.Fatalf("openSession() failed with %s\n", err)
 	}
 	defer store.Close()
-
-	session, err := store.OpenSession("")
-	if err != nil {
-		log.Fatalf("store.OpenSession() failed with %s\n", err)
-	}
 	defer session.Close()
 
 	// load employee with id "employees/7-A" and entity whose id is ReportsTo
@@ -397,6 +390,17 @@ func crudDeleteUsingEntity() {
 	}
 }
 
+func queryCollection() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	session.Query()
+}
+
 func main() {
 	//loadUpdateSave()
 
@@ -409,4 +413,5 @@ func main() {
 
 	//crudDeleteUsingID()
 	//crudDeleteUsingEntity()
+
 }

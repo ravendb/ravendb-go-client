@@ -200,3 +200,5 @@ if err != nil {
 ```
 See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full example.
 
+## Querying documents
+

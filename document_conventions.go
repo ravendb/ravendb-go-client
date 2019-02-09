@@ -79,16 +79,27 @@ func (c *DocumentConventions) Freeze() {
 	c._frozen = true
 }
 
-func (c *DocumentConventions) GetCollectionName(entityOrClazz interface{}) string {
-	return GetCollectionNameForType(entityOrClazz)
+func (c *DocumentConventions) GetCollectionName(entityOrType interface{}) string {
+	name := getShortTypeNameForEntityOrType(entityOrType)
+	return inflect.ToPlural(name)
 }
 
 func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 	return c._throwIfQueryPageSizeIsNotSet
 }
 
-func GetCollectionNameForType(entityOrClazz interface{}) string {
-	name := getShortTypeNameName(entityOrClazz)
+func GetCollectionNameForTypeOrEntity(entityOrType interface{}) string {
+	name := getShortTypeNameForEntityOrType(entityOrType)
+	return inflect.ToPlural(name)
+}
+
+func GetCollectionNameForEntity(entity interface{}) string {
+	name := getShortTypeNameForEntity(entity)
+	return inflect.ToPlural(name)
+}
+
+func GetCollectionNameForType(typ reflect.Type) string {
+	name := getShortTypeNameForType(typ)
 	return inflect.ToPlural(name)
 }
 

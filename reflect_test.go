@@ -20,9 +20,9 @@ func TestTypeName(t *testing.T) {
 	assert.Equal(t, "ravendb.FooStruct", name)
 	name = GetFullTypeName(&v)
 	assert.Equal(t, "ravendb.FooStruct", name)
-	name = getShortTypeNameName(v)
+	name = getShortTypeNameForEntity(v)
 	assert.Equal(t, "FooStruct", name)
-	name = getShortTypeNameName(&v)
+	name = getShortTypeNameForEntity(&v)
 	assert.Equal(t, "FooStruct", name)
 }
 

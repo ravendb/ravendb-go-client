@@ -63,29 +63,33 @@ func GetFullTypeName(v interface{}) string {
 	return typ.String()
 }
 
-// GetShortTypeNameName returns a short (not including package) name of the type,
+// getShortTypeName returns a short (not including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo, the type of Foo and *Foo is "Foo"
-// This is equivalent to Python's v.__class__.__name__
 // Note: this emulates Java's operator over-loading to support
-// GefaultGetCollectionName.
-// We should have separate functions for reflect.Type and regular value
-func getShortTypeNameName(v interface{}) string {
-	var typ reflect.Type
-	var ok bool
-	if typ, ok = v.(reflect.Type); ok {
-		for typ.Kind() == reflect.Ptr {
-			typ = typ.Elem()
-		}
-	} else {
-		rv := reflect.ValueOf(v)
-		for rv.Kind() == reflect.Ptr {
-			rv = rv.Elem()
-		}
-		typ = rv.Type()
+// DefaultGetCollectionName.
+func getShortTypeNameForEntityOrType(v interface{}) string {
+	if typ, ok := v.(reflect.Type); ok {
+		return getShortTypeNameForType(typ)
 	}
-	name := typ.Name()
-	return name
+	return getShortTypeNameForEntity(v)
+}
+
+func getShortTypeNameForEntity(v interface{}) string {
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	typ := rv.Type()
+	return getShortTypeNameForType(typ)
+}
+
+func getShortTypeNameForType(typ reflect.Type) string {
+	// for *Foo and **Foo the name we want to return is Foo
+	for typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	return typ.Name()
 }
 
 // identity property is field of type string with name ID
