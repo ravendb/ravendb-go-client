@@ -624,7 +624,6 @@ func queryQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 }
 
 func queryRawQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
-	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -634,7 +633,8 @@ func queryRawQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.RawQuery("from users")
+		q, err := session.RawQuery("from users")
+		assert.NoError(t, err)
 		q = q.Skip(2)
 		q = q.Take(1)
 		err = q.GetResults(&users)
@@ -649,7 +649,6 @@ func queryRawQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 }
 
 func queryParametersInRawQuery(t *testing.T, driver *RavenTestDriver) {
-	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -659,7 +658,8 @@ func queryParametersInRawQuery(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.RawQuery("from users where age == $p0")
+		q, err := session.RawQuery("from users where age == $p0")
+		assert.NoError(t, err)
 		q = q.AddParameter("p0", 5)
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
@@ -945,7 +945,8 @@ func queryQueryParameters(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.RawQuery("from Users where name = $name")
+		q, err := session.RawQuery("from Users where name = $name")
+		assert.NoError(t, err)
 		q = q.AddParameter("name", "Tarzan")
 		count, err := q.Count()
 		assert.NoError(t, err)

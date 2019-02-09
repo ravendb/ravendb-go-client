@@ -788,16 +788,18 @@ func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName stri
 }
 
 // RawQuery returns new DocumentQuery representing a raw query
-// TODO: propagate error
-func (s *DocumentSession) RawQuery(rawQuery string) *RawDocumentQuery {
+func (s *DocumentSession) RawQuery(rawQuery string) (*RawDocumentQuery, error) {
 	opts := &DocumentQueryOptions{
 		session:  s.InMemoryDocumentSessionOperations,
 		rawQuery: rawQuery,
 	}
-	aq, _ := newAbstractDocumentQuery(opts)
+	aq, err := newAbstractDocumentQuery(opts)
+	if err != nil {
+		return nil, err
+	}
 	return &RawDocumentQuery{
 		AbstractDocumentQuery: aq,
-	}
+	}, nil
 }
 
 // Query return a new DocumentQuery

@@ -85,8 +85,12 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 		assert.Equal(t, *user.Name, "Jerry")
 
 		users = nil
-		err = session.Advanced().RawQuery("from Users where name = cmpxchg(\"Hera\")").GetResults(&users)
-		assert.NoError(t, err)
+		{
+			q, err := session.Advanced().RawQuery("from Users where name = cmpxchg(\"Hera\")")
+			assert.NoError(t, err)
+			err = q.GetResults(&users)
+			assert.NoError(t, err)
+		}
 
 		assert.Equal(t, len(users), 1)
 		user = users[0]
