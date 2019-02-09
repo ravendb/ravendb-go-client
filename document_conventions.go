@@ -16,7 +16,7 @@ var (
 	documentConventionsIdentityPropertyName = "ID"
 )
 
-type DocumentIDGeneratorFunc func(dbName string, entity interface{}) string
+type DocumentIDGeneratorFunc func(dbName string, entity interface{}) (string, error)
 
 // DocumentConventions describes document conventions
 type DocumentConventions struct {
@@ -181,7 +181,7 @@ func (c *DocumentConventions) SetDocumentIDGenerator(documentIDGenerator Documen
 }
 
 // Generates the document id.
-func (c *DocumentConventions) GenerateDocumentID(databaseName string, entity interface{}) string {
+func (c *DocumentConventions) GenerateDocumentID(databaseName string, entity interface{}) (string, error) {
 	return c._documentIDGenerator(databaseName, entity)
 }
 

@@ -86,7 +86,7 @@ type BulkInsertOperation struct {
 // NewBulkInsertOperation returns new BulkInsertOperation
 func NewBulkInsertOperation(database string, store *DocumentStore) *BulkInsertOperation {
 	re := store.GetRequestExecutor(database)
-	f := func(entity interface{}) string {
+	f := func(entity interface{}) (string, error) {
 		return re.GetConventions().GenerateDocumentID(database, entity)
 	}
 
@@ -325,9 +325,12 @@ func (o *BulkInsertOperation) Close() error {
 
 // Store stores entity. metadata can be nil
 func (o *BulkInsertOperation) Store(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
+	var err error
 	var id string
 	if metadata == nil || !metadata.ContainsKey(MetadataID) {
-		id = o.GetID(entity)
+		if id, err = o.GetID(entity); err != nil {
+			return "", err
+		}
 	} else {
 		idVal, ok := metadata.Get(MetadataID)
 		panicIf(!ok, "didn't find %s key in meatadata", MetadataID)
@@ -338,17 +341,21 @@ func (o *BulkInsertOperation) Store(entity interface{}, metadata *MetadataAsDict
 }
 
 // GetID returns id for an entity
-func (o *BulkInsertOperation) GetID(entity interface{}) string {
+func (o *BulkInsertOperation) GetID(entity interface{}) (string, error) {
+	var err error
 	idRef, ok := o.generateEntityIDOnTheClient.tryGetIDFromInstance(entity)
 	if ok {
-		return idRef
+		return idRef, nil
 	}
 
-	idRef = o.generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity)
+	idRef, err = o.generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity)
+	if err != nil {
+		return "", err
+	}
 
 	// set id property if it was null
 	o.generateEntityIDOnTheClient.trySetIdentity(entity, idRef)
-	return idRef
+	return idRef, nil
 }
 
 func (o *BulkInsertOperation) throwOnUnavailableStream(id string, innerEx error) error {

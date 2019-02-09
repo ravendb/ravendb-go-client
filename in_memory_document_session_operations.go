@@ -104,7 +104,7 @@ func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		deferredCommandsMap:           map[idTypeAndName]ICommandData{},
 	}
 
-	genIDFunc := func(entity interface{}) string {
+	genIDFunc := func(entity interface{}) (string, error) {
 		return res.GenerateID(entity)
 	}
 	res.generateEntityIDOnTheClient = newGenerateEntityIDOnTheClient(re.conventions, genIDFunc)
@@ -184,7 +184,7 @@ func (s *InMemoryDocumentSessionOperations) GetConventions() *DocumentConvention
 	return s.requestExecutor.conventions
 }
 
-func (s *InMemoryDocumentSessionOperations) GenerateID(entity interface{}) string {
+func (s *InMemoryDocumentSessionOperations) GenerateID(entity interface{}) (string, error) {
 	return s.GetConventions().GenerateDocumentID(s.DatabaseName, entity)
 }
 
@@ -651,12 +651,14 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		return nil
 	}
 
+	var err error
 	if id == "" {
 		if s.generateDocumentKeysOnStore {
-			id = s.generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity)
+			if id, err = s.generateEntityIDOnTheClient.generateDocumentKeyForStorage(entity); err != nil {
+				return err
+			}
 		} else {
-			err := s.rememberEntityForDocumentIdGeneration(entity)
-			if err != nil {
+			if err = s.rememberEntityForDocumentIdGeneration(entity); err != nil {
 				return err
 			}
 		}

@@ -1,6 +1,8 @@
 package ravendb
 
-type genIDFunc func(interface{}) string
+import "strings"
+
+type genIDFunc func(interface{}) (string, error)
 
 type generateEntityIDOnTheClient struct {
 	_conventions *DocumentConventions
@@ -21,24 +23,29 @@ func (g *generateEntityIDOnTheClient) tryGetIDFromInstance(entity interface{}) (
 }
 
 // Tries to get the identity.
-func (g *generateEntityIDOnTheClient) getOrGenerateDocumentID(entity interface{}) string {
+func (g *generateEntityIDOnTheClient) getOrGenerateDocumentID(entity interface{}) (string, error) {
+	var err error
 	id, ok := g.tryGetIDFromInstance(entity)
 	if !ok || id == "" {
-		id = g._generateID(entity)
+		id, err = g._generateID(entity)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	/* TODO:
-	        if (id != null && id.startsWith("/")) {
-	            throw new IllegalStateError("Cannot use value '" + id + "' as a document id because it begins with a '/'");
-			}
-	*/
-	return id
+	if strings.HasPrefix(id, "/") {
+		return "", newIllegalStateError("Cannot use value '" + id + "' as a document id because it begins with a '/'")
+	}
+	return id, nil
 }
 
-func (g *generateEntityIDOnTheClient) generateDocumentKeyForStorage(entity interface{}) string {
-	id := g.getOrGenerateDocumentID(entity)
+func (g *generateEntityIDOnTheClient) generateDocumentKeyForStorage(entity interface{}) (string, error) {
+	id, err := g.getOrGenerateDocumentID(entity)
+	if err != nil {
+		return "", err
+	}
 	g.trySetIdentity(entity, id)
-	return id
+	return id, nil
 }
 
 // Tries to set the identity property

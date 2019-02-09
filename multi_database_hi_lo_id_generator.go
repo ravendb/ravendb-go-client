@@ -17,7 +17,7 @@ func NewMultiDatabaseHiLoIDGenerator(store *DocumentStore, conventions *Document
 }
 
 // GenerateDocumentID generates id
-func (g *MultiDatabaseHiLoIDGenerator) GenerateDocumentID(dbName string, entity interface{}) string {
+func (g *MultiDatabaseHiLoIDGenerator) GenerateDocumentID(dbName string, entity interface{}) (string, error) {
 	if dbName == "" {
 		dbName = g.store.database
 	}

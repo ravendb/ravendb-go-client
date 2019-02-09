@@ -71,7 +71,7 @@ func newSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *R
 		logger:          logger,
 	}
 
-	fn := func(entity interface{}) string {
+	fn := func(entity interface{}) (string, error) {
 		panic("Shouldn't be generating new ids here")
 	}
 	c := res.requestExecutor.GetConventions()

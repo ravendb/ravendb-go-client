@@ -737,7 +737,6 @@ func (s *DocumentSession) DocumentQueryIndex(indexName string) *DocumentQuery {
 		IndexName: indexName,
 		session:   s.InMemoryDocumentSessionOperations,
 	}
-	// TODO: propagate errors
 	q, _ := newDocumentQuery(opts)
 	return q
 }
@@ -747,7 +746,6 @@ func (s *DocumentSession) DocumentQueryCollection(collectionName string) *Docume
 		CollectionName: collectionName,
 		session:        s.InMemoryDocumentSessionOperations,
 	}
-	// TODO: propagate errors
 	q, _ := newDocumentQuery(opts)
 	return q
 }
@@ -779,14 +777,12 @@ func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName stri
 		session:        s.InMemoryDocumentSessionOperations,
 	}
 	q, _ := newDocumentQuery(opts)
-	// TODO: propagate query
 	return q
 }
 
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	var err error
-	// TODO: propagate error
 	indexName, collectionName, err = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 	panicIfErr(err)
 	opts := &DocumentQueryOptions{

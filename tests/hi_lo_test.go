@@ -203,9 +203,11 @@ func hiloTestMultiDb(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	multiDbHilo := ravendb.NewMultiDatabaseHiLoIDGenerator(store, store.GetConventions())
-	generateDocumentKey := multiDbHilo.GenerateDocumentID("", &User{})
+	generateDocumentKey, err := multiDbHilo.GenerateDocumentID("", &User{})
+	assert.NoError(t, err)
 	assert.Equal(t, generateDocumentKey, "users/65-A")
-	generateDocumentKey = multiDbHilo.GenerateDocumentID("", &Product{})
+	generateDocumentKey, err = multiDbHilo.GenerateDocumentID("", &Product{})
+	assert.NoError(t, err)
 	assert.Equal(t, generateDocumentKey, "products/129-A")
 	session.Close()
 }
