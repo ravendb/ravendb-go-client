@@ -70,7 +70,7 @@ type abstractDocumentQuery struct {
 
 	// SelectFields logic has to be delayed until ToList
 	// because only then we know the type of the result
-	selectFieldsArgs *QueryData
+	selectFieldsArgs *queryData
 }
 
 func (q *abstractDocumentQuery) isDistinct() bool {
@@ -1410,7 +1410,7 @@ func (q *abstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 	}
 }
 
-func getSourceAliasIfExists(clazz reflect.Type, queryData *QueryData, fields []string) string {
+func getSourceAliasIfExists(clazz reflect.Type, queryData *queryData, fields []string) string {
 	if len(fields) != 1 || fields[0] == "" {
 		return ""
 	}
@@ -1424,16 +1424,16 @@ func getSourceAliasIfExists(clazz reflect.Type, queryData *QueryData, fields []s
 	}
 
 	possibleAlias := fields[0][:indexOf]
-	if queryData.FromAlias == possibleAlias {
+	if queryData.fromAlias == possibleAlias {
 		return possibleAlias
 	}
 
-	if len(queryData.LoadTokens) == 0 {
+	if len(queryData.loadTokens) == 0 {
 		return ""
 	}
 
 	// TODO: is this the logic?
-	for _, x := range queryData.LoadTokens {
+	for _, x := range queryData.loadTokens {
 		if x.alias == possibleAlias {
 			return possibleAlias
 		}

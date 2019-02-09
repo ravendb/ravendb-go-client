@@ -70,16 +70,16 @@ func (q *DocumentQuery) SelectFields(fields ...string) *DocumentQuery {
 	for _, field := range fields {
 		panicIf(field == "", "field cannot be empty string")
 	}
-	q.selectFieldsArgs = &QueryData{
-		Fields:      fields,
-		Projections: fields,
+	q.selectFieldsArgs = &queryData{
+		fields:      fields,
+		projections: fields,
 	}
 	return q
 }
 
 /*
 TODO: should expose this version?
-func (q *DocumentQuery) SelectFieldsWithQueryData(queryData *QueryData) *DocumentQuery {
+func (q *DocumentQuery) SelectFieldsWithQueryData(queryData *queryData) *DocumentQuery {
 	q.selectFieldsArgs = queryData
 	return q
 }
@@ -441,12 +441,12 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 */
 
 // Note: had to move it down to abstractDocumentQuery
-func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) (*DocumentQuery, error) {
+func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *queryData) (*DocumentQuery, error) {
 
 	var newFieldsToFetch *fieldsToFetchToken
 
-	if queryData != nil && len(queryData.Fields) > 0 {
-		fields := queryData.Fields
+	if queryData != nil && len(queryData.fields) > 0 {
+		fields := queryData.fields
 
 		identityProperty := q.getConventions().GetIdentityProperty(resultClass)
 
@@ -462,7 +462,7 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 		}
 
 		sourceAliasReference := getSourceAliasIfExists(resultClass, queryData, fields)
-		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.Projections, queryData.IsCustomFunction, sourceAliasReference)
+		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.projections, queryData.isCustomFunction, sourceAliasReference)
 	}
 
 	if newFieldsToFetch != nil {
@@ -473,9 +473,9 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	var loadTokens []*loadToken
 	var fromAlias string
 	if queryData != nil {
-		declareToken = queryData.DeclareToken
-		loadTokens = queryData.LoadTokens
-		fromAlias = queryData.FromAlias
+		declareToken = queryData.declareToken
+		loadTokens = queryData.loadTokens
+		fromAlias = queryData.fromAlias
 	}
 
 	opts := &DocumentQueryOptions{
