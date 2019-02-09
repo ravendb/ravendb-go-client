@@ -826,8 +826,8 @@ TODO: is this used?
 }
 */
 
-func NewOrderTime() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("OrderTime")
+func NewOrderTime() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("OrderTime")
 	res.Map = `from order in docs.Orders
 select new {
   delay = order.shippedAt - ((DateTime?)order.orderedAt)
@@ -1107,8 +1107,8 @@ func queryQueryWithBoost(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func makeUsersByNameIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("UsersByName")
+func makeUsersByNameIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("UsersByName")
 	res.Map = "from c in docs.Users select new " +
 		" {" +
 		"    c.name, " +
@@ -1309,8 +1309,8 @@ type DogsIndex_Result struct {
 	IsVaccinated bool   `json:"vaccinated"`
 }
 
-func makeDogsIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("DogsIndex")
+func makeDogsIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("DogsIndex")
 	res.Map = "from dog in docs.dogs select new { dog.name, dog.age, dog.vaccinated }"
 	return res
 }

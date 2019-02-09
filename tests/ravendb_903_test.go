@@ -15,7 +15,7 @@ type Product2 struct {
 
 func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 
-	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery {
+	fn := func(session *ravendb.DocumentSession, index *ravendb.IndexCreationTask) *ravendb.DocumentQuery {
 		q, err := session.Advanced().QueryIndex(index.IndexName)
 		assert.NoError(t, err)
 		q = q.Search("description", "Hello")
@@ -27,7 +27,7 @@ func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 }
 
 func ravendb903Test2(t *testing.T, driver *RavenTestDriver) {
-	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery {
+	fn := func(session *ravendb.DocumentSession, index *ravendb.IndexCreationTask) *ravendb.DocumentQuery {
 		q, err := session.Advanced().QueryIndex(index.IndexName)
 		assert.NoError(t, err)
 		q = q.WhereEquals("name", "Bar")
@@ -39,7 +39,7 @@ func ravendb903Test2(t *testing.T, driver *RavenTestDriver) {
 
 }
 
-func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery) {
+func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(*ravendb.DocumentSession, *ravendb.IndexCreationTask) *ravendb.DocumentQuery) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -92,8 +92,8 @@ func ravendb903DoTest(t *testing.T, driver *RavenTestDriver, queryFunction func(
 	}
 }
 
-func NewTestIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("TestIndex")
+func NewTestIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("TestIndex")
 	res.Map = "from product in docs.Product2s select new { product.name, product.description }"
 	res.Index("description", ravendb.FieldIndexingSearch)
 	return res

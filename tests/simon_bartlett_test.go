@@ -121,8 +121,8 @@ type GeoDocument struct {
 	Wkt string `json:"WKT"`
 }
 
-func NewGeoIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("GeoIndex")
+func NewGeoIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("GeoIndex")
 	res.Map = "docs.GeoDocuments.Select(doc => new {\n" +
 		"    WKT = this.CreateSpatialField(doc.WKT)\n" +
 		"})"

@@ -1,9 +1,10 @@
 package tests
 
 import (
-	"github.com/ravendb/ravendb-go-client"
 	"math/rand"
 	"time"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 var (
@@ -13,8 +14,8 @@ var (
 	RANDOM        = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
-func NewCameraCostIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("CameraCost")
+func NewCameraCostIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("CameraCost")
 	m := `from camera in docs.Cameras select new  { camera.manufacturer,
                             camera.model,
                             camera.cost,

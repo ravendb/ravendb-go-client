@@ -3,18 +3,18 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
-func NewUsersInvalidIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("UsersInvalidIndex")
+func NewUsersInvalidIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("UsersInvalidIndex")
 	res.Map = "from u in docs.Users select new { a = 5 / u.Age }"
 	return res
 }
 
-func NewUsers_Index() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("Users_Index")
+func NewUsers_Index() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("Users_Index")
 	res.Map = "from u in docs.Users select new { u.name }"
 	return res
 }

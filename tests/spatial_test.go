@@ -26,8 +26,8 @@ type MyProjection struct {
 	Longitude float64   `json:"longitude"`
 }
 
-func NewMyIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("MyIndex")
+func NewMyIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("MyIndex")
 	res.Map = "docs.MyDocuments.SelectMany(doc => doc.items, (doc, item) => new {\n" +
 		"    doc = doc,\n" +
 		"    item = item\n" +

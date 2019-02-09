@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func NewOrdersAll() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("Orders_All")
+func NewOrdersAll() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("Orders_All")
 	res.Map = "docs.AggOrders.Select(order => new { order.currency,\n" +
 		"                          order.product,\n" +
 		"                          order.total,\n" +
@@ -645,8 +645,8 @@ type ItemsOrder struct {
 	At    ravendb.Time `json:"at"`
 }
 
-func NewItemsOrdersAll() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("ItemsOrders_All")
+func NewItemsOrdersAll() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("ItemsOrders_All")
 	res.Map = "docs.ItemsOrders.Select(order => new { order.at,\n" +
 		"                          order.items })"
 	return res

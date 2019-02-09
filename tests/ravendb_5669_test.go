@@ -124,8 +124,8 @@ type Animal struct {
 	Name string `json:"name"`
 }
 
-func NewAnimalIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("Animal_Index")
+func NewAnimalIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("Animal_Index")
 	res.Map = "from animal in docs.Animals select new { name = animal.name, type = animal.type }"
 
 	res.Analyze("name", "StandardAnalyzer")

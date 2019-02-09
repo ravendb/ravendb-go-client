@@ -1,14 +1,10 @@
 package ravendb
 
-type IndexCreator interface {
-}
+// Note: IndexCreationTask combines functionality of Java's
+// AbstractIndexCreationTask and AbstractMultiMapIndexCreationTask
 
-// Note: AbstractIndexCreationTask combines functionality of AbstractMultiMapIndexCreationTask
-
-// AbstractIndexCreationTask is for creating an index
-// TODO: rename to IndexCreationTask
-type AbstractIndexCreationTask struct {
-
+// IndexCreationTask is for creating IndexDefinition
+type IndexCreationTask struct {
 	// for a single map index, set Map
 	// for multiple map index, set Maps
 	Map  string
@@ -35,13 +31,13 @@ type AbstractIndexCreationTask struct {
 	IndexName string
 }
 
-// NewAbstractIndexCreationTask creates AbstractIndexCreationTask
-// Note: in Java we subclass AbstractIndexCreationTask and indexName is derived
-// from derived class name. In Go we don't subclass and must provide index name
-// manually
-func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
+// NewAbstractIndexCreationTask returns new IndexCreationTask
+func NewIndexCreationTask(indexName string) *IndexCreationTask {
+	// Note: in Java we subclass IndexCreationTask and indexName is derived
+	// from derived class name. In Go we don't subclass and must provide index name
+	// manually
 	panicIf(indexName == "", "indexName cannot be empty")
-	return &AbstractIndexCreationTask{
+	return &IndexCreationTask{
 		StoresStrings:         make(map[string]FieldStorage),
 		IndexesStrings:        make(map[string]FieldIndexing),
 		AnalyzersStrings:      make(map[string]string),
@@ -53,7 +49,7 @@ func NewAbstractIndexCreationTask(indexName string) *AbstractIndexCreationTask {
 }
 
 // CreateIndexDefinition creates IndexDefinition
-func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
+func (t *IndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 	if t.Conventions == nil {
 		t.Conventions = NewDocumentConventions()
 	}
@@ -79,17 +75,16 @@ func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 }
 
 // IsMapReduce returns true if this is map-reduce index
-func (t *AbstractIndexCreationTask) IsMapReduce() bool {
+func (t *IndexCreationTask) IsMapReduce() bool {
 	return t.Reduce != ""
 }
 
 // Execute executes index in specified document store
-// TODO: remove conventions argument, can set AbstractIndexCreationTask.Conventions
-func (t *AbstractIndexCreationTask) Execute(store *DocumentStore, conventions *DocumentConventions, database string) error {
+func (t *IndexCreationTask) Execute(store *DocumentStore, conventions *DocumentConventions, database string) error {
 	return t.putIndex(store, conventions, database)
 }
 
-func (t *AbstractIndexCreationTask) putIndex(store *DocumentStore, conventions *DocumentConventions, database string) error {
+func (t *IndexCreationTask) putIndex(store *DocumentStore, conventions *DocumentConventions, database string) error {
 	oldConventions := t.Conventions
 	defer func() { t.Conventions = oldConventions }()
 
@@ -115,37 +110,37 @@ func (t *AbstractIndexCreationTask) putIndex(store *DocumentStore, conventions *
 }
 
 // Index registers field to be indexed
-func (t *AbstractIndexCreationTask) Index(field string, indexing FieldIndexing) {
+func (t *IndexCreationTask) Index(field string, indexing FieldIndexing) {
 	t.IndexesStrings[field] = indexing
 }
 
 // Spatial registers field to be spatially indexed
-func (t *AbstractIndexCreationTask) Spatial(field string, indexing func() *SpatialOptions) {
+func (t *IndexCreationTask) Spatial(field string, indexing func() *SpatialOptions) {
 	v := indexing()
 	t.SpatialOptionsStrings[field] = v
 }
 
 // StoreAllFields selects if we're storing all fields or not
-func (t *AbstractIndexCreationTask) StoreAllFields(storage FieldStorage) {
+func (t *IndexCreationTask) StoreAllFields(storage FieldStorage) {
 	t.StoresStrings[IndexingFieldAllFields] = storage
 }
 
 // Store registers field to be stored
-func (t *AbstractIndexCreationTask) Store(field string, storage FieldStorage) {
+func (t *IndexCreationTask) Store(field string, storage FieldStorage) {
 	t.StoresStrings[field] = storage
 }
 
 // Analyze registers field to be analyzed
-func (t *AbstractIndexCreationTask) Analyze(field string, analyzer string) {
+func (t *IndexCreationTask) Analyze(field string, analyzer string) {
 	t.AnalyzersStrings[field] = analyzer
 }
 
 // TermVector registers field to have term vectors
-func (t *AbstractIndexCreationTask) TermVector(field string, termVector FieldTermVector) {
+func (t *IndexCreationTask) TermVector(field string, termVector FieldTermVector) {
 	t.TermVectorsStrings[field] = termVector
 }
 
 // Suggestion registers field to be indexed as suggestions
-func (t *AbstractIndexCreationTask) Suggestion(field string) {
+func (t *IndexCreationTask) Suggestion(field string) {
 	t.IndexSuggestions = append(t.IndexSuggestions, field)
 }

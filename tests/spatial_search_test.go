@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func NewSpatialIdx() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("SpatialIdx")
+func NewSpatialIdx() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("SpatialIdx")
 	res.Map = "docs.Events.Select(e => new {\n" +
 		"    capacity = e.capacity,\n" +
 		"    venue = e.venue,\n" +

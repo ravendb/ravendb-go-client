@@ -615,7 +615,7 @@ func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T
 	}
 }
 
-func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.AbstractIndexCreationTask, store *ravendb.DocumentStore, documentKey string) {
+func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.IndexCreationTask, store *ravendb.DocumentStore, documentKey string) {
 	session := openSessionMust(t, store)
 
 	options := ravendb.NewMoreLikeThisOptions()
@@ -670,12 +670,12 @@ type ComplexProperty struct {
 	Body string `json:"body"`
 }
 
-func NewDataIndex() *ravendb.AbstractIndexCreationTask {
+func NewDataIndex() *ravendb.IndexCreationTask {
 	return NewDataIndex2(true, false)
 }
 
-func NewDataIndex2(termVector bool, store bool) *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("DataIndex")
+func NewDataIndex2(termVector bool, store bool) *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("DataIndex")
 
 	// Note: in Java it's docs.Datas because Inflector.pluralize() doesn't
 	// handle 'data' properly and we do
@@ -696,8 +696,8 @@ func NewDataIndex2(termVector bool, store bool) *ravendb.AbstractIndexCreationTa
 	return res
 }
 
-func NewComplexDataIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("ComplexDataIndex")
+func NewComplexDataIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("ComplexDataIndex")
 	// Note: In Java it's docs.ComplexDatas due to not pluralizing Data properly
 	res.Map = "from doc in docs.ComplexData select new  { doc.property, doc.property.body }"
 	res.Index("body", ravendb.FieldIndexingSearch)

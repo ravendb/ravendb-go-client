@@ -193,8 +193,8 @@ func suggestionsWithTypo(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func NewUsers4ByName() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
+func NewUsers4ByName() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("NewUsers_ByName")
 	res.Map = "from u in docs.User4s select new { u.name }"
 
 	res.Index("name", ravendb.FieldIndexingSearch)

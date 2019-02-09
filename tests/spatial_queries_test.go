@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func NewSpatialQueriesInMemoryTestIdx() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("SpatialQueriesInMemoryTestIdx")
+func NewSpatialQueriesInMemoryTestIdx() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("SpatialQueriesInMemoryTestIdx")
 	res.Map = "docs.Listings.Select(listingItem => new {\n" +
 		"    classCodes = listingItem.classCodes,\n" +
 		"    latitude = listingItem.latitude,\n" +

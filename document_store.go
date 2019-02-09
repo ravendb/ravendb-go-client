@@ -340,14 +340,14 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	return session, nil
 }
 
-func (s *DocumentStore) ExecuteIndex(task *AbstractIndexCreationTask, database string) error {
+func (s *DocumentStore) ExecuteIndex(task *IndexCreationTask, database string) error {
 	if err := s.assertInitialized(); err != nil {
 		return err
 	}
 	return task.Execute(s, s.conventions, database)
 }
 
-func (s *DocumentStore) ExecuteIndexes(tasks []*AbstractIndexCreationTask, database string) error {
+func (s *DocumentStore) ExecuteIndexes(tasks []*IndexCreationTask, database string) error {
 	if err := s.assertInitialized(); err != nil {
 		return err
 	}

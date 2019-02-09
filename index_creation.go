@@ -2,7 +2,7 @@ package ravendb
 
 // IndexCreationCreateIndexes creates indexes in store
 // TODO: better name
-func IndexCreationCreateIndexes(indexes []*AbstractIndexCreationTask, store *DocumentStore, conventions *DocumentConventions) error {
+func IndexCreationCreateIndexes(indexes []*IndexCreationTask, store *DocumentStore, conventions *DocumentConventions) error {
 
 	if conventions == nil {
 		conventions = store.GetConventions()
@@ -25,7 +25,7 @@ func IndexCreationCreateIndexes(indexes []*AbstractIndexCreationTask, store *Doc
 	return nil
 }
 
-func indexCreationCreateIndexesToAdd(indexCreationTasks []*AbstractIndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
+func indexCreationCreateIndexesToAdd(indexCreationTasks []*IndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
 	var res []*IndexDefinition
 	for _, x := range indexCreationTasks {
 		x.Conventions = conventions

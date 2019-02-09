@@ -71,10 +71,10 @@ func simpleMultiMap_canQueryUsingMultiMap(t *testing.T, driver *RavenTestDriver)
 	}
 }
 
-// Note: in Go AbstractIndexCreationTask covers functionality of
+// Note: in Go IndexCreationTask covers functionality of
 // AbstractMultiMapIndexCreationTask
-func NewCatsAndDogs() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("CatsAndDogs")
+func NewCatsAndDogs() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("CatsAndDogs")
 	res.Maps = []string{
 		"from cat in docs.Cats select new { cat.name }",
 		"from dog in docs.Dogs select new { dog.name }",

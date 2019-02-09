@@ -13,7 +13,7 @@ func indexesFromClientTestCanCreateIndexesUsingIndexCreation(t *testing.T, drive
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	indexes := []*ravendb.AbstractIndexCreationTask{NewUsers_ByName()}
+	indexes := []*ravendb.IndexCreationTask{NewUsers_ByName()}
 	err = ravendb.IndexCreationCreateIndexes(indexes, store, nil)
 	assert.NoError(t, err)
 
@@ -101,7 +101,7 @@ func indexesFromClientTestCanExecuteManyIndexes(t *testing.T, driver *RavenTestD
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	indexes := []*ravendb.AbstractIndexCreationTask{NewUsersIndex()}
+	indexes := []*ravendb.IndexCreationTask{NewUsersIndex()}
 	err = store.ExecuteIndexes(indexes, "")
 	assert.NoError(t, err)
 
@@ -112,8 +112,8 @@ func indexesFromClientTestCanExecuteManyIndexes(t *testing.T, driver *RavenTestD
 	assert.Equal(t, len(indexNames), 1)
 }
 
-func NewUsersIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("UsersIndex")
+func NewUsersIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("UsersIndex")
 	res.Map = "from user in docs.users select new { user.name }"
 	return res
 }
@@ -208,8 +208,8 @@ func indexesFromClientTestCanStopAndStart(t *testing.T, driver *RavenTestDriver)
 	}
 }
 
-func NewUsers_ByName() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName")
+func NewUsers_ByName() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("NewUsers_ByName")
 	res.Map = "from u in docs.Users select new { u.name }"
 
 	res.Index("name", ravendb.FieldIndexingSearch)
@@ -577,8 +577,8 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func PostsByTitleAndDesc() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("Posts_ByTitleAndDesc")
+func PostsByTitleAndDesc() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("Posts_ByTitleAndDesc")
 	res.Map = "from p in docs.Posts select new { p.title, p.desc }"
 	res.Index("title", ravendb.FieldIndexingSearch)
 	res.Store("title", ravendb.FieldStorageYes)

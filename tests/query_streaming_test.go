@@ -275,8 +275,8 @@ func queryStreamingCanStreamQueryIntoStream(t *testing.T, driver *RavenTestDrive
 }
 
 // avoid conflicts with NewUsers_ByName in indexes_from_client_test.go
-func NewUsersByName2() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("NewUsers_ByName2")
+func NewUsersByName2() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("NewUsers_ByName2")
 	res.Map = "from u in docs.Users select new { u.name, lastName = u.lastName.Boost(10) }"
 	res.Index("name", ravendb.FieldIndexingSearch)
 	res.IndexSuggestions = append(res.IndexSuggestions, "name")

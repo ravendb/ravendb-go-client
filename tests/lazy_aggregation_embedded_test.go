@@ -69,8 +69,8 @@ func lazyAggregationEmbeddedLazyTest(t *testing.T, driver *RavenTestDriver) {
 
 }
 
-func NewTaskIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("TaskIndex")
+func NewTaskIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("TaskIndex")
 	res.Map = "from task in docs.Tasks select new { task.AssigneeID } "
 	return res
 }

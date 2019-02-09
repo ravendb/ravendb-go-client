@@ -156,8 +156,8 @@ type SpatialDoc struct {
 	Shape string `json:"shape"`
 }
 
-func NewBBoxIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("BBoxIndex")
+func NewBBoxIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("BBoxIndex")
 	res.Map = "docs.SpatialDocs.Select(doc => new {\n" +
 		"    shape = this.CreateSpatialField(doc.shape)\n" +
 		"})"
@@ -168,8 +168,8 @@ func NewBBoxIndex() *ravendb.AbstractIndexCreationTask {
 	return res
 }
 
-func NewQuadTreeIndex() *ravendb.AbstractIndexCreationTask {
-	res := ravendb.NewAbstractIndexCreationTask("QuadTreeIndex")
+func NewQuadTreeIndex() *ravendb.IndexCreationTask {
+	res := ravendb.NewIndexCreationTask("QuadTreeIndex")
 
 	res.Map = `docs.SpatialDocs.Select(doc => new {
    shape = this.CreateSpatialField(doc.shape)
