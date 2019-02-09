@@ -57,7 +57,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		}
 		q = q.Spatial2(fieldName, clause)
 
-		iq := q.GetIndexQuery()
+		iq, err := q.GetIndexQuery()
+		assert.NoError(t, err)
 		assert.Equal(t, iq.GetQuery(), "from Item2s where spatial.within(spatial.point(latitude, longitude), spatial.circle($p0, $p1, $p2))")
 
 		q, err = session.QueryCollectionForType(clazz)
@@ -65,7 +66,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		fieldName2 := ravendb.NewWktField("shapeWkt")
 		q = q.Spatial2(fieldName2, clause)
 
-		iq = q.GetIndexQuery()
+		iq, err = q.GetIndexQuery()
+		assert.NoError(t, err)
 		assert.Equal(t, iq.GetQuery(), "from Item2s where spatial.within(spatial.wkt(shapeWkt), spatial.circle($p0, $p1, $p2))")
 
 		session.Close()

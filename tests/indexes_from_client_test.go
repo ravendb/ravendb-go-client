@@ -552,7 +552,8 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 			f.UsingDocumentWithBuilder(fn1).WithOptions(options)
 		}
 
-		q = q.MoreLikeThisWithBuilder(fn2)
+		q, err = q.MoreLikeThisWithBuilder(fn2)
+		assert.NoError(t, err)
 
 		err = q.GetResults(&list)
 		assert.NoError(t, err)

@@ -44,7 +44,8 @@ func suggestionsLazyUsingLinq(t *testing.T, driver *RavenTestDriver) {
 		session.Close()
 	}
 
-	driver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 
 	{
 		s := openSessionMust(t, store)
@@ -58,7 +59,8 @@ func suggestionsLazyUsingLinq(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		result := map[string]*ravendb.SuggestionResult{}
-		suggestionQueryResult := q2.ExecuteLazy(result, nil)
+		suggestionQueryResult, err := q2.ExecuteLazy(result, nil)
+		assert.NoError(t, err)
 		assert.Equal(t, oldRequests, s.Advanced().GetNumberOfRequests())
 
 		err = suggestionQueryResult.GetValue()

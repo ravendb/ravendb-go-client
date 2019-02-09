@@ -65,7 +65,7 @@ func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...st
 	if len(fieldsIn) == 0 {
 		fields = FieldsFor(projectionType)
 		if len(fields) == 0 {
-			return nil, newIllegalArgumentError("type %T has no exported fields to select")
+			return nil, newIllegalArgumentError("type %T has no exported fields to select", projectionType)
 		}
 	} else {
 		fields = fieldsIn
@@ -77,14 +77,6 @@ func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...st
 	}
 	return q.createDocumentQueryInternal(projectionType, queryData)
 }
-
-/*
-TODO: should expose this version?
-func (q *DocumentQuery) SelectFieldsWithQueryData(queryData *queryData) *DocumentQuery {
-	q.selectFieldsArgs = queryData
-	return q
-}
-*/
 
 // Distinct marks query as distinct
 func (q *DocumentQuery) Distinct() *DocumentQuery {
@@ -228,7 +220,7 @@ func (q *DocumentQuery) Include(path string) *DocumentQuery {
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Include(Expression<Func<T, object>> path)
 
 func (q *DocumentQuery) Not() *DocumentQuery {
-	q.NegateNext()
+	q.negateNext()
 	return q
 }
 
@@ -449,7 +441,7 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	if queryData != nil && len(queryData.fields) > 0 {
 		fields := queryData.fields
 
-		identityProperty := q.getConventions().GetIdentityProperty(resultClass)
+		identityProperty := q.conventions.GetIdentityProperty(resultClass)
 
 		if identityProperty != "" {
 			// make a copy, just in case, because we might modify it
@@ -655,27 +647,33 @@ func (q *DocumentQuery) OrderByDistanceDescending3(fieldName string, shapeWkt st
 	return q
 }
 
-func (q *DocumentQuery) MoreLikeThis(moreLikeThis MoreLikeThisBase) *DocumentQuery {
-	mlt := q.moreLikeThis()
+func (q *DocumentQuery) MoreLikeThis(moreLikeThis MoreLikeThisBase) (*DocumentQuery, error) {
+	mlt, err := q.moreLikeThis()
+	if err != nil {
+		return nil, err
+	}
 	defer mlt.Close()
 
-	mlt.WithOptions(moreLikeThis.GetOptions())
+	mlt.withOptions(moreLikeThis.GetOptions())
 
 	if mltud, ok := moreLikeThis.(*MoreLikeThisUsingDocument); ok {
 		mlt.withDocument(mltud.documentJSON)
 
 	}
 
-	return q
+	return q, nil
 }
 
-func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilderForDocumentQuery)) *DocumentQuery {
+func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilderForDocumentQuery)) (*DocumentQuery, error) {
 	f := NewMoreLikeThisBuilder()
 	builder(f)
 
-	moreLikeThis := q.moreLikeThis()
+	moreLikeThis, err := q.moreLikeThis()
+	if err != nil {
+		return nil, err
+	}
 
-	moreLikeThis.WithOptions(f.GetMoreLikeThis().GetOptions())
+	moreLikeThis.withOptions(f.GetMoreLikeThis().GetOptions())
 
 	tmp := f.GetMoreLikeThis()
 	if mlt, ok := tmp.(*MoreLikeThisUsingDocument); ok {
@@ -685,7 +683,7 @@ func (q *DocumentQuery) MoreLikeThisWithBuilder(builder func(IMoreLikeThisBuilde
 	}
 	moreLikeThis.Close()
 
-	return q
+	return q, nil
 }
 
 func (q *DocumentQuery) SuggestUsing(suggestion SuggestionBase) (*SuggestionDocumentQuery, error) {

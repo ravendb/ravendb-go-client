@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 )
 
 // Note: Java's IAbstractDocumentQuery is abstractDocumentQuery
@@ -67,10 +66,6 @@ type abstractDocumentQuery struct {
 	afterStreamExecutedCallback []func(map[string]interface{})
 
 	queryOperation *queryOperation
-
-	// SelectFields logic has to be delayed until ToList
-	// because only then we know the type of the result
-	selectFieldsArgs *queryData
 }
 
 func (q *abstractDocumentQuery) isDistinct() bool {
@@ -79,10 +74,6 @@ func (q *abstractDocumentQuery) isDistinct() bool {
 	}
 	_, ok := q.selectTokens[0].(*distinctToken)
 	return ok
-}
-
-func (q *abstractDocumentQuery) getConventions() *DocumentConventions {
-	return q.conventions
 }
 
 func (q *abstractDocumentQuery) getSession() *InMemoryDocumentSessionOperations {
@@ -114,11 +105,10 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*abstractDocumentQuer
 	}
 
 	if res.queryRaw == "" {
-		// until GetResult()
-		if opts.IndexName != "" || opts.CollectionName != "" || opts.fromAlias != "" {
-			res.fromToken = createFromToken(opts.IndexName, opts.CollectionName, opts.fromAlias)
+		if opts.IndexName == "" && opts.CollectionName == "" {
+			return nil, newIllegalArgumentError("Either indexName or collectionName must be specified")
 		}
-		// res.fromToken = createFromToken(indexName, collectionName, fromAlias)
+		res.fromToken = createFromToken(opts.IndexName, opts.CollectionName, opts.fromAlias)
 	}
 
 	f := func(queryResult *QueryResult) {
@@ -133,39 +123,13 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*abstractDocumentQuer
 	return res, nil
 }
 
-// NewAbstractDocumentQuery returns new abstractDocumentQuery
-func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *abstractDocumentQuery {
-	res := &abstractDocumentQuery{
-		defaultOperator:         QueryOperatorAnd,
-		isGroupBy:               isGroupBy,
-		indexName:               indexName,
-		collectionName:          collectionName,
-		declareToken:            declareToken,
-		loadTokens:              loadTokens,
-		theSession:              session,
-		aliasToGroupByFieldName: make(map[string]string),
-		queryParameters:         make(map[string]interface{}),
-		queryStats:              NewQueryStatistics(),
-	}
-	f := func(queryResult *QueryResult) {
-		res.updateStatsAndHighlightings(queryResult)
-	}
-	res.addAfterQueryExecutedListener(f)
-	if session == nil {
-		res.conventions = NewDocumentConventions()
-	} else {
-		res.conventions = session.GetConventions()
-	}
-	return res
-}
-
-func (q *abstractDocumentQuery) usingDefaultOperator(operator QueryOperator) {
+func (q *abstractDocumentQuery) usingDefaultOperator(operator QueryOperator) error {
 	if len(q.whereTokens) > 0 {
-		//throw new IllegalStateError("Default operator can only be set before any where clause is added.");
-		panicIf(true, "Default operator can only be set before any where clause is added.")
+		return newIllegalStateError("Default operator can only be set before any where clause is added.")
 	}
 
 	q.defaultOperator = operator
+	return nil
 }
 
 func (q *abstractDocumentQuery) waitForNonStaleResults(waitTimeout time.Duration) {
@@ -177,16 +141,22 @@ func (q *abstractDocumentQuery) waitForNonStaleResults(waitTimeout time.Duration
 }
 
 func (q *abstractDocumentQuery) initializeQueryOperation() (*queryOperation, error) {
-	indexQuery := q.GetIndexQuery()
+	indexQuery, err := q.GetIndexQuery()
+	if err != nil {
+		return nil, err
+	}
 
 	return newQueryOperation(q.theSession, q.indexName, indexQuery, q.fieldsToFetchToken, q.disableEntitiesTracking, false, false)
 }
 
-func (q *abstractDocumentQuery) GetIndexQuery() *IndexQuery {
-	query := q.String()
-	indexQuery := q.GenerateIndexQuery(query)
+func (q *abstractDocumentQuery) GetIndexQuery() (*IndexQuery, error) {
+	query, err := q.string()
+	if err != nil {
+		return nil, err
+	}
+	indexQuery := q.generateIndexQuery(query)
 	q.invokeBeforeQueryExecuted(indexQuery)
-	return indexQuery
+	return indexQuery, nil
 }
 
 func (q *abstractDocumentQuery) getProjectionFields() []string {
@@ -197,31 +167,44 @@ func (q *abstractDocumentQuery) getProjectionFields() []string {
 	return nil
 }
 
-func (q *abstractDocumentQuery) randomOrdering() {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) randomOrdering() error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 
 	q.noCaching()
 	q.orderByTokens = append(q.orderByTokens, orderByTokenRandom)
+	return nil
 }
 
-func (q *abstractDocumentQuery) randomOrderingWithSeed(seed string) {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) randomOrderingWithSeed(seed string) error {
+	err := q.assertNoRawQuery()
+	if err != nil {
+		return err
+	}
 
 	if stringIsBlank(seed) {
-		q.randomOrdering()
-		return
+		err = q.randomOrdering()
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	q.noCaching()
 	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateRandom(seed))
+	return nil
 }
 
-func (q *abstractDocumentQuery) AddGroupByAlias(fieldName string, projectedName string) {
+func (q *abstractDocumentQuery) addGroupByAlias(fieldName string, projectedName string) {
 	q.aliasToGroupByFieldName[projectedName] = fieldName
 }
 
-func (q *abstractDocumentQuery) assertNoRawQuery() {
-	panicIf(q.queryRaw != "", "RawQuery was called, cannot modify this query by calling on operations that would modify the query (such as Where, Select, OrderBy, GroupBy, etc)")
+func (q *abstractDocumentQuery) assertNoRawQuery() error {
+	if q.queryRaw != "" {
+		return newIllegalStateError("RawQuery was called, cannot modify this query by calling on operations that would modify the query (such as Where, Select, OrderBy, GroupBy, etc)")
+	}
+	return nil
 }
 
 func (q *abstractDocumentQuery) addParameter(name string, value interface{}) {
@@ -234,42 +217,52 @@ func (q *abstractDocumentQuery) addParameter(name string, value interface{}) {
 	q.queryParameters[name] = value
 }
 
-func (q *abstractDocumentQuery) groupBy(fieldName string, fieldNames ...string) {
+func (q *abstractDocumentQuery) groupBy(fieldName string, fieldNames ...string) error {
 	var mapping []*GroupBy
 	for _, x := range fieldNames {
 		el := NewGroupByField(x)
 		mapping = append(mapping, el)
 	}
-	q.groupBy2(NewGroupByField(fieldName), mapping...)
+	return q.groupBy2(NewGroupByField(fieldName), mapping...)
 }
 
 // TODO: better name
-func (q *abstractDocumentQuery) groupBy2(field *GroupBy, fields ...*GroupBy) {
+func (q *abstractDocumentQuery) groupBy2(field *GroupBy, fields ...*GroupBy) error {
 	// TODO: if q.fromToken is nil, needs to do this check in ToList()
 	if q.fromToken != nil && !q.fromToken.isDynamic {
-		//throw new IllegalStateError("groupBy only works with dynamic queries");
-		panicIf(true, "groupBy only works with dynamic queries")
+		return newIllegalStateError("groupBy only works with dynamic queries")
 	}
 
-	q.assertNoRawQuery()
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 	q.isGroupBy = true
 
-	fieldName := q.ensureValidFieldName(field.Field, false)
+	fieldName, err := q.ensureValidFieldName(field.Field, false)
+	if err != nil {
+		return err
+	}
 
 	q.groupByTokens = append(q.groupByTokens, createGroupByTokenWithMethod(fieldName, field.Method))
 
 	if len(fields) == 0 {
-		return
+		return nil
 	}
 
 	for _, item := range fields {
-		fieldName = q.ensureValidFieldName(item.Field, false)
+		fieldName, err = q.ensureValidFieldName(item.Field, false)
+		if err != nil {
+			return err
+		}
 		q.groupByTokens = append(q.groupByTokens, createGroupByTokenWithMethod(fieldName, item.Method))
 	}
+	return nil
 }
 
-func (q *abstractDocumentQuery) groupByKey(fieldName string, projectedName string) {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) groupByKey(fieldName string, projectedName string) error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 	q.isGroupBy = true
 
 	_, hasProjectedName := q.aliasToGroupByFieldName[projectedName]
@@ -286,40 +279,64 @@ func (q *abstractDocumentQuery) groupByKey(fieldName string, projectedName strin
 	}
 
 	q.selectTokens = append(q.selectTokens, createGroupByKeyToken(fieldName, projectedName))
+	return nil
 }
 
 // projectedName is optional
-func (q *abstractDocumentQuery) groupBySum(fieldName string, projectedName string) {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) groupBySum(fieldName string, projectedName string) error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 	q.isGroupBy = true
 
-	fieldName = q.ensureValidFieldName(fieldName, false)
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 	q.selectTokens = append(q.selectTokens, createGroupBySumToken(fieldName, projectedName))
+	return nil
 }
 
 // projectedName is optional
-func (q *abstractDocumentQuery) groupByCount(projectedName string) {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) groupByCount(projectedName string) error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 	q.isGroupBy = true
 
 	t := &groupByCountToken{
 		fieldName: projectedName,
 	}
 	q.selectTokens = append(q.selectTokens, t)
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereTrue() {
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, "")
+func (q *abstractDocumentQuery) whereTrue() error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, "")
+	if err != nil {
+		return err
+	}
 
 	tokens := *tokensRef
 	tokens = append(tokens, trueTokenInstance)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) moreLikeThis() *MoreLikeThisScope {
-	q.appendOperatorIfNeeded(&q.whereTokens)
+func (q *abstractDocumentQuery) moreLikeThis() (*moreLikeThisScope, error) {
+	err := q.appendOperatorIfNeeded(&q.whereTokens)
+	if err != nil {
+		return nil, err
+	}
 
 	token := newMoreLikeThisToken()
 	q.whereTokens = append(q.whereTokens, token)
@@ -331,7 +348,7 @@ func (q *abstractDocumentQuery) moreLikeThis() *MoreLikeThisScope {
 	onDispose := func() {
 		q.isInMoreLikeThis = false
 	}
-	return NewMoreLikeThisScope(token, add, onDispose)
+	return newMoreLikeThisScope(token, add, onDispose), nil
 }
 
 func (q *abstractDocumentQuery) include(path string) {
@@ -347,66 +364,102 @@ func (q *abstractDocumentQuery) skip(count int) {
 	q.start = count
 }
 
-func (q *abstractDocumentQuery) whereLucene(fieldName string, whereClause string) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
-
-	tokensRef := q.getCurrentWhereTokensRef()
+func (q *abstractDocumentQuery) whereLucene(fieldName string, whereClause string) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
 	tokens := *tokensRef
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereToken := createWhereTokenWithOptions(whereOperatorLucene, fieldName, q.addQueryParameter(whereClause), nil)
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) openSubclause() {
+func (q *abstractDocumentQuery) openSubclause() error {
 	q.currentClauseDepth++
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, "")
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, "")
+	if err != nil {
+		return err
+	}
 
 	tokens := *tokensRef
 	tokens = append(tokens, openSubclauseTokenInstance)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) closeSubclause() {
+func (q *abstractDocumentQuery) closeSubclause() error {
 	q.currentClauseDepth--
 
-	tokensRef := q.getCurrentWhereTokensRef()
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
 	tokens := *tokensRef
 	tokens = append(tokens, closeSubclauseTokenInstance)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereEquals(fieldName string, value interface{}) {
+func (q *abstractDocumentQuery) whereEquals(fieldName string, value interface{}) error {
 	params := &whereParams{
 		fieldName: fieldName,
 		value:     value,
 	}
-	q.whereEqualsWithParams(params)
+	return q.whereEqualsWithParams(params)
 }
 
-func (q *abstractDocumentQuery) whereEqualsWithMethodCall(fieldName string, method MethodCall) {
-	q.whereEquals(fieldName, method)
+func (q *abstractDocumentQuery) whereEqualsWithMethodCall(fieldName string, method MethodCall) error {
+	return q.whereEquals(fieldName, method)
 }
 
-func (q *abstractDocumentQuery) whereEqualsWithParams(whereParams *whereParams) {
+func (q *abstractDocumentQuery) whereEqualsWithParams(whereParams *whereParams) error {
 	if q.negate {
 		q.negate = false
-		q.whereNotEqualsWithParams(whereParams)
-		return
+		return q.whereNotEqualsWithParams(whereParams)
 	}
 
-	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	var err error
+	whereParams.fieldName, err = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
 
 	if q.ifValueIsMethod(whereOperatorEquals, whereParams, tokensRef) {
-		return
+		return nil
 	}
 
 	transformToEqualValue := q.transformValue(whereParams)
@@ -416,6 +469,7 @@ func (q *abstractDocumentQuery) whereEqualsWithParams(whereParams *whereParams) 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
 func (q *abstractDocumentQuery) ifValueIsMethod(op whereOperator, whereParams *whereParams, tokensRef *[]queryToken) bool {
@@ -441,44 +495,53 @@ func (q *abstractDocumentQuery) ifValueIsMethod(op whereOperator, whereParams *w
 	return false
 }
 
-func (q *abstractDocumentQuery) whereNotEquals(fieldName string, value interface{}) {
+func (q *abstractDocumentQuery) whereNotEquals(fieldName string, value interface{}) error {
 	params := &whereParams{
 		fieldName: fieldName,
 		value:     value,
 	}
 
-	q.whereNotEqualsWithParams(params)
+	return q.whereNotEqualsWithParams(params)
 }
 
-func (q *abstractDocumentQuery) whereNotEqualsWithMethod(fieldName string, method MethodCall) {
-	q.whereNotEquals(fieldName, method)
+func (q *abstractDocumentQuery) whereNotEqualsWithMethod(fieldName string, method MethodCall) error {
+	return q.whereNotEquals(fieldName, method)
 }
 
-func (q *abstractDocumentQuery) whereNotEqualsWithParams(whereParams *whereParams) {
+func (q *abstractDocumentQuery) whereNotEqualsWithParams(whereParams *whereParams) error {
 	if q.negate {
 		q.negate = false
-		q.whereEqualsWithParams(whereParams)
-		return
+		return q.whereEqualsWithParams(whereParams)
 	}
 
 	transformToEqualValue := q.transformValue(whereParams)
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
 
-	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	whereParams.fieldName, err = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	if err != nil {
+		return err
+	}
 
 	if q.ifValueIsMethod(whereOperatorNotEquals, whereParams, tokensRef) {
-		return
+		return nil
 	}
 
 	whereToken := createWhereTokenWithOptions(whereOperatorNotEquals, whereParams.fieldName, q.addQueryParameter(transformToEqualValue), newWhereOptionsWithExact(whereParams.isExact))
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) NegateNext() {
+func (q *abstractDocumentQuery) negateNext() {
 	q.negate = !q.negate
 }
 
@@ -486,8 +549,11 @@ func (q *abstractDocumentQuery) NegateNext() {
 // it allows fluid APIs like .Where().Exact()
 // will panic if last token wasn't of compatible type as that is considered
 // invalid use of API and returning an error would break fluid API
-func (q *abstractDocumentQuery) markLastTokenExact() {
-	tokensRef := q.getCurrentWhereTokensRef()
+func (q *abstractDocumentQuery) markLastTokenExact() error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
 	tokens := *tokensRef
 	n := len(tokens)
 	lastToken := tokens[n-1]
@@ -499,27 +565,42 @@ func (q *abstractDocumentQuery) markLastTokenExact() {
 			tok.options.exact = true
 		}
 	default:
-		panicIf(true, "expected whereToken, got %T", lastToken)
+		return newIllegalStateError("expected whereToken, got %T", lastToken)
 	}
 
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereIn(fieldName string, values []interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) whereIn(fieldName string, values []interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereToken := createWhereToken(whereOperatorIn, fieldName, q.addQueryParameter(q.transformCollection(fieldName, abstractDocumentQueryUnpackCollection(values))))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereStartsWith(fieldName string, value interface{}) {
+func (q *abstractDocumentQuery) whereStartsWith(fieldName string, value interface{}) error {
 	whereParams := &whereParams{
 		fieldName:      fieldName,
 		value:          value,
@@ -528,20 +609,33 @@ func (q *abstractDocumentQuery) whereStartsWith(fieldName string, value interfac
 
 	transformToEqualValue := q.transformValue(whereParams)
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
 
-	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
-	q.negateIfNeeded(tokensRef, whereParams.fieldName)
+	whereParams.fieldName, err = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, whereParams.fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereToken := createWhereToken(whereOperatorStartsWith, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereEndsWith(fieldName string, value interface{}) {
+func (q *abstractDocumentQuery) whereEndsWith(fieldName string, value interface{}) error {
 	whereParams := &whereParams{
 		fieldName:      fieldName,
 		value:          value,
@@ -550,25 +644,51 @@ func (q *abstractDocumentQuery) whereEndsWith(fieldName string, value interface{
 
 	transformToEqualValue := q.transformValue(whereParams)
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
 
-	whereParams.fieldName = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
-	q.negateIfNeeded(tokensRef, whereParams.fieldName)
+	whereParams.fieldName, err = q.ensureValidFieldName(whereParams.fieldName, whereParams.isNestedPath)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, whereParams.fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereToken := createWhereToken(whereOperatorEndsWith, whereParams.fieldName, q.addQueryParameter(transformToEqualValue))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereBetween(fieldName string, start interface{}, end interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) whereBetween(fieldName string, start interface{}, end interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	startParams := &whereParams{
 		value:     start,
@@ -587,8 +707,7 @@ func (q *abstractDocumentQuery) whereBetween(fieldName string, start interface{}
 	fromParameterName := q.addQueryParameter(fromParam)
 
 	toParam := interface{}("NULL")
-	// TODO: should this be end == nil? A bug in Java code?
-	if start != nil {
+	if end != nil {
 		toParam = q.transformValueWithRange(endParams, true)
 	}
 	toParameterName := q.addQueryParameter(toParam)
@@ -598,14 +717,28 @@ func (q *abstractDocumentQuery) whereBetween(fieldName string, start interface{}
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereGreaterThan(fieldName string, value interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) whereGreaterThan(fieldName string, value interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereParams := &whereParams{
 		value:     value,
@@ -623,14 +756,28 @@ func (q *abstractDocumentQuery) whereGreaterThan(fieldName string, value interfa
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereGreaterThanOrEqual(fieldName string, value interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) whereGreaterThanOrEqual(fieldName string, value interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereParams := &whereParams{
 		value:     value,
@@ -649,14 +796,28 @@ func (q *abstractDocumentQuery) whereGreaterThanOrEqual(fieldName string, value 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereLessThan(fieldName string, value interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) whereLessThan(fieldName string, value interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereParams := &whereParams{
 		value:     value,
@@ -673,12 +834,22 @@ func (q *abstractDocumentQuery) whereLessThan(fieldName string, value interface{
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereLessThanOrEqual(fieldName string, value interface{}) {
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+func (q *abstractDocumentQuery) whereLessThanOrEqual(fieldName string, value interface{}) error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereParams := &whereParams{
 		value:     value,
@@ -695,12 +866,22 @@ func (q *abstractDocumentQuery) whereLessThanOrEqual(fieldName string, value int
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) whereRegex(fieldName string, pattern string) {
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+func (q *abstractDocumentQuery) whereRegex(fieldName string, pattern string) error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereParams := &whereParams{
 		value:     pattern,
@@ -714,148 +895,176 @@ func (q *abstractDocumentQuery) whereRegex(fieldName string, pattern string) {
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) andAlso() {
-	tokensRef := q.getCurrentWhereTokensRef()
+func (q *abstractDocumentQuery) andAlso() error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
 	tokens := *tokensRef
 
 	n := len(tokens)
 	if n == 0 {
-		return
+		return nil
 	}
 
 	lastToken := tokens[n-1]
 	if _, ok := lastToken.(*queryOperatorToken); ok {
-		//throw new IllegalStateError("Cannot add AND, previous token was already an operator token.");
-		panicIf(true, "Cannot add AND, previous token was already an operator token.")
+		return newIllegalStateError("Cannot add AND, previous token was already an operator token.")
 	}
 
 	tokens = append(tokens, queryOperatorTokenAnd)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) orElse() {
-	tokensRef := q.getCurrentWhereTokensRef()
+func (q *abstractDocumentQuery) orElse() error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
 	tokens := *tokensRef
 	n := len(tokens)
 	if n == 0 {
-		return
+		return nil
 	}
 
 	lastToken := tokens[n-1]
 	if _, ok := lastToken.(*queryOperatorToken); ok {
-		//throw new IllegalStateError("Cannot add OR, previous token was already an operator token.");
-		panicIf(true, "Cannot add OR, previous token was already an operator token.")
+		return newIllegalStateError("Cannot add OR, previous token was already an operator token.")
 	}
 
 	tokens = append(tokens, queryOperatorTokenOr)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) boost(boost float64) {
+func (q *abstractDocumentQuery) boost(boost float64) error {
 	if boost == 1.0 {
-		return
+		return nil
 	}
 
-	tokens := q.getCurrentWhereTokens()
+	tokens, err := q.getCurrentWhereTokens()
+	if err != nil {
+		return err
+	}
 	n := len(tokens)
 	if n == 0 {
-		//throw new IllegalStateError("Missing where clause");
-		panicIf(true, "Missing where clause")
+		return newIllegalStateError("Missing where clause")
 	}
 
 	maybeWhereToken := tokens[n-1]
 	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
-		//throw new IllegalStateError("Missing where clause");
-		panicIf(true, "Missing where clause")
+		return newIllegalStateError("Missing where clause")
 	}
 
 	if boost <= 0.0 {
-		//throw new IllegalArgumentError("Boost factor must be a positive number");
-		panicIf(true, "Boost factor must be a positive number")
+		return newIllegalArgumentError("Boost factor must be a positive number")
 	}
 
 	whereToken.options.boost = boost
+	return nil
 }
 
-func (q *abstractDocumentQuery) fuzzy(fuzzy float64) {
-	tokens := q.getCurrentWhereTokens()
+func (q *abstractDocumentQuery) fuzzy(fuzzy float64) error {
+	tokens, err := q.getCurrentWhereTokens()
+	if err != nil {
+		return err
+	}
 	n := len(tokens)
 	if n == 0 {
-		//throw new IllegalStateError("Missing where clause");
-		panicIf(true, "Missing where clause")
+		return newIllegalStateError("Missing where clause")
 	}
 
 	maybeWhereToken := tokens[n-1]
 	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
-		//throw new IllegalStateError("Missing where clause");
-		panicIf(true, "Missing where clause")
+		return newIllegalStateError("Missing where clause")
 	}
 
 	if fuzzy < 0.0 || fuzzy > 1.0 {
-		//throw new IllegalArgumentError("Fuzzy distance must be between 0.0 and 1.0");
-		panicIf(true, "Fuzzy distance must be between 0.0 and 1.0")
+		return newIllegalArgumentError("Fuzzy distance must be between 0.0 and 1.0")
 	}
 
 	whereToken.options.fuzzy = fuzzy
+	return nil
 }
 
-func (q *abstractDocumentQuery) proximity(proximity int) {
-	tokens := q.getCurrentWhereTokens()
+func (q *abstractDocumentQuery) proximity(proximity int) error {
+	tokens, err := q.getCurrentWhereTokens()
+	if err != nil {
+		return err
+	}
 
 	n := len(tokens)
 	if n == 0 {
-		//throw new IllegalStateError("Missing where clause");
-		panicIf(true, "Missing where clause")
+		return newIllegalStateError("Missing where clause")
 	}
 
 	maybeWhereToken := tokens[n-1]
 	whereToken, ok := maybeWhereToken.(*whereToken)
 	if !ok {
-		//throw new IllegalStateError("Missing where clause");
-		panicIf(true, "Missing where clause")
+		return newIllegalStateError("Missing where clause")
 	}
 
 	if proximity < 1 {
-		//throw new IllegalArgumentError("Proximity distance must be a positive number");
-		panicIf(true, "Proximity distance must be a positive number")
+		return newIllegalArgumentError("Proximity distance must be a positive number")
 	}
 
 	whereToken.options.proximity = proximity
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderBy(field string) {
-	q.orderByWithOrdering(field, OrderingTypeString)
+func (q *abstractDocumentQuery) orderBy(field string) error {
+	return q.orderByWithOrdering(field, OrderingTypeString)
 }
 
-func (q *abstractDocumentQuery) orderByWithOrdering(field string, ordering OrderingType) {
-	q.assertNoRawQuery()
-	f := q.ensureValidFieldName(field, false)
+func (q *abstractDocumentQuery) orderByWithOrdering(field string, ordering OrderingType) error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
+	f, err := q.ensureValidFieldName(field, false)
+	if err != nil {
+		return err
+	}
 	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateAscending(f, ordering))
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDescending(field string) {
-	q.orderByDescendingWithOrdering(field, OrderingTypeString)
+func (q *abstractDocumentQuery) orderByDescending(field string) error {
+	return q.orderByDescendingWithOrdering(field, OrderingTypeString)
 }
 
-func (q *abstractDocumentQuery) orderByDescendingWithOrdering(field string, ordering OrderingType) {
-	q.assertNoRawQuery()
-	f := q.ensureValidFieldName(field, false)
+func (q *abstractDocumentQuery) orderByDescendingWithOrdering(field string, ordering OrderingType) error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
+	f, err := q.ensureValidFieldName(field, false)
+	if err != nil {
+		return err
+	}
 	q.orderByTokens = append(q.orderByTokens, orderByTokenCreateDescending(f, ordering))
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByScore() {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) orderByScore() error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 
 	q.orderByTokens = append(q.orderByTokens, orderByTokenScoreAscending)
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByScoreDescending() {
-	q.assertNoRawQuery()
+func (q *abstractDocumentQuery) orderByScoreDescending() error {
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 	q.orderByTokens = append(q.orderByTokens, orderByTokenScoreDescending)
+	return nil
 }
 
 func (q *abstractDocumentQuery) statistics(stats **QueryStatistics) {
@@ -886,7 +1095,7 @@ func (q *abstractDocumentQuery) invokeAfterStreamExecuted(result map[string]inte
 	}
 }
 
-func (q *abstractDocumentQuery) GenerateIndexQuery(query string) *IndexQuery {
+func (q *abstractDocumentQuery) generateIndexQuery(query string) *IndexQuery {
 	indexQuery := NewIndexQuery("")
 	indexQuery.query = query
 	indexQuery.start = q.start
@@ -901,32 +1110,44 @@ func (q *abstractDocumentQuery) GenerateIndexQuery(query string) *IndexQuery {
 	return indexQuery
 }
 
-func (q *abstractDocumentQuery) search(fieldName string, searchTerms string) {
-	q.searchWithOperator(fieldName, searchTerms, SearchOperatorOr)
+func (q *abstractDocumentQuery) search(fieldName string, searchTerms string) error {
+	return q.searchWithOperator(fieldName, searchTerms, SearchOperatorOr)
 }
 
-func (q *abstractDocumentQuery) searchWithOperator(fieldName string, searchTerms string, operator SearchOperator) {
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
+func (q *abstractDocumentQuery) searchWithOperator(fieldName string, searchTerms string, operator SearchOperator) error {
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
 
-	fieldName = q.ensureValidFieldName(fieldName, false)
-	q.negateIfNeeded(tokensRef, fieldName)
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	whereToken := createWhereTokenWithOptions(whereOperatorSearch, fieldName, q.addQueryParameter(searchTerms), newWhereOptionsWithOperator(operator))
 
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) String() string {
+func (q *abstractDocumentQuery) string() (string, error) {
 	if q.queryRaw != "" {
-		return q.queryRaw
+		return q.queryRaw, nil
 	}
 
 	if q.currentClauseDepth != 0 {
-		// throw new IllegalStateError("A clause was not closed correctly within this query, current clause depth = " + _currentClauseDepth);
-		panicIf(true, "A clause was not closed correctly within this query, current clause depth = %d", q.currentClauseDepth)
+		return "", newIllegalStateError("A clause was not closed correctly within this query, current clause depth = %d", q.currentClauseDepth)
 	}
 
 	queryText := &strings.Builder{}
@@ -940,7 +1161,7 @@ func (q *abstractDocumentQuery) String() string {
 	q.buildSelect(queryText)
 	q.buildInclude(queryText)
 
-	return queryText.String()
+	return queryText.String(), nil
 }
 
 func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) {
@@ -975,8 +1196,12 @@ func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) {
 	}
 }
 
-func (q *abstractDocumentQuery) intersect() {
-	tokensRef := q.getCurrentWhereTokensRef()
+func (q *abstractDocumentQuery) intersect() error {
+
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
 	tokens := *tokensRef
 	n := len(tokens)
 	if n > 0 {
@@ -988,32 +1213,58 @@ func (q *abstractDocumentQuery) intersect() {
 
 			tokens = append(tokens, intersectMarkerTokenInstance)
 			*tokensRef = tokens
-			return
+			return nil
 		}
 	}
 
-	//throw new IllegalStateError("Cannot add INTERSECT at this point.");
-	panicIf(true, "Cannot add INTERSECT at this point.")
+	return newIllegalStateError("Cannot add INTERSECT at this point.")
 }
 
-func (q *abstractDocumentQuery) whereExists(fieldName string) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) whereExists(fieldName string) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	tokens := *tokensRef
 	tokens = append(tokens, createWhereToken(whereOperatorExists, fieldName, ""))
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) containsAny(fieldName string, values []interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) containsAny(fieldName string, values []interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	array := q.transformCollection(fieldName, abstractDocumentQueryUnpackCollection(values))
 	whereToken := createWhereTokenWithOptions(whereOperatorIn, fieldName, q.addQueryParameter(array), newWhereOptionsWithExact(false))
@@ -1021,14 +1272,28 @@ func (q *abstractDocumentQuery) containsAny(fieldName string, values []interface
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) containsAll(fieldName string, values []interface{}) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) containsAll(fieldName string, values []interface{}) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	array := q.transformCollection(fieldName, abstractDocumentQueryUnpackCollection(values))
 
@@ -1040,17 +1305,20 @@ func (q *abstractDocumentQuery) containsAll(fieldName string, values []interface
 		tokens = append(tokens, whereToken)
 	}
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) distinct() {
-	panicIf(q.isDistinct(), "The is already a distinct query")
-	//throw new IllegalStateError("The is already a distinct query");
+func (q *abstractDocumentQuery) distinct() error {
+	if q.isDistinct() {
+		return newIllegalStateError("The is already a distinct query")
+	}
 
 	if len(q.selectTokens) == 0 {
 		q.selectTokens = []queryToken{distinctTokenInstance}
-		return
+		return nil
 	}
 	q.selectTokens = append([]queryToken{distinctTokenInstance}, q.selectTokens...)
+	return nil
 }
 
 func (q *abstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
@@ -1174,20 +1442,22 @@ func (q *abstractDocumentQuery) buildOrderBy(writer *strings.Builder) {
 	}
 }
 
-func (q *abstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) {
+func (q *abstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) error {
 	tokens := *tokensRef
-	q.assertNoRawQuery()
+	if err := q.assertNoRawQuery(); err != nil {
+		return err
+	}
 
 	n := len(tokens)
 	if len(tokens) == 0 {
-		return
+		return nil
 	}
 
 	lastToken := tokens[n-1]
 	_, isWhereToken := lastToken.(*whereToken)
 	_, isCloseSubclauseToken := lastToken.(*closeSubclauseToken)
 	if !isWhereToken && !isCloseSubclauseToken {
-		return
+		return nil
 	}
 
 	var lastWhere *whereToken
@@ -1213,6 +1483,7 @@ func (q *abstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) 
 
 	tokens = append(tokens, token)
 	*tokensRef = tokens
+	return nil
 }
 
 func (q *abstractDocumentQuery) transformCollection(fieldName string, values []interface{}) []interface{} {
@@ -1234,9 +1505,10 @@ func (q *abstractDocumentQuery) transformCollection(fieldName string, values []i
 	return result
 }
 
-func (q *abstractDocumentQuery) negateIfNeeded(tokensRef *[]queryToken, fieldName string) {
+func (q *abstractDocumentQuery) negateIfNeeded(tokensRef *[]queryToken, fieldName string) error {
+	var err error
 	if !q.negate {
-		return
+		return nil
 	}
 
 	q.negate = false
@@ -1250,15 +1522,25 @@ func (q *abstractDocumentQuery) negateIfNeeded(tokensRef *[]queryToken, fieldNam
 	}
 	if n == 0 || isOpenSubclauseToken {
 		if fieldName != "" {
-			q.whereExists(fieldName)
+			err = q.whereExists(fieldName)
+			if err != nil {
+				return err
+			}
 		} else {
-			q.whereTrue()
+			err = q.whereTrue()
+			if err != nil {
+				return err
+			}
 		}
-		q.andAlso()
+		err = q.andAlso()
+		if err != nil {
+			return err
+		}
 	}
 
 	tokens = append(tokens, negateTokenInstance)
 	*tokensRef = tokens
+	return nil
 }
 
 func abstractDocumentQueryUnpackCollection(items []interface{}) []interface{} {
@@ -1276,37 +1558,16 @@ func abstractDocumentQueryUnpackCollection(items []interface{}) []interface{} {
 	return results
 }
 
-func assertValidFieldName(fieldName string) {
-	// TODO: for now all names are valid.
-	// The code below checks
-	if true {
-		return
-	}
-	// in Go only public fields can be serialized so check that first
-	// letter is uppercase
-	if len(fieldName) == 0 {
-		return
-	}
-	for i, c := range fieldName {
-		if i > 0 {
-			return
-		}
-		isUpper := unicode.IsUpper(c)
-		panicIf(!isUpper, "field '%s' is not public (doesn't start with uppercase letter)", fieldName)
-	}
-}
-
-func (q *abstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) string {
-	assertValidFieldName(fieldName)
+func (q *abstractDocumentQuery) ensureValidFieldName(fieldName string, isNestedPath bool) (string, error) {
 	if q.theSession == nil || q.theSession.GetConventions() == nil || isNestedPath || q.isGroupBy {
-		return queryFieldUtilEscapeIfNecessary(fieldName)
+		return queryFieldUtilEscapeIfNecessary(fieldName), nil
 	}
 
 	if fieldName == documentConventionsIdentityPropertyName {
-		return IndexingFieldNameDocumentID
+		return IndexingFieldNameDocumentID, nil
 	}
 
-	return queryFieldUtilEscapeIfNecessary(fieldName)
+	return queryFieldUtilEscapeIfNecessary(fieldName), nil
 }
 
 func (q *abstractDocumentQuery) transformValue(whereParams *whereParams) interface{} {
@@ -1344,50 +1605,42 @@ func (q *abstractDocumentQuery) addQueryParameter(value interface{}) string {
 	return parameterName
 }
 
-func (q *abstractDocumentQuery) getCurrentWhereTokens() []queryToken {
+func (q *abstractDocumentQuery) getCurrentWhereTokens() ([]queryToken, error) {
 	if !q.isInMoreLikeThis {
-		return q.whereTokens
+		return q.whereTokens, nil
 	}
 
 	n := len(q.whereTokens)
 
 	if n == 0 {
-		// throw new IllegalStateError("Cannot get moreLikeThisToken because there are no where token specified.");
-		panicIf(true, "Cannot get moreLikeThisToken because there are no where token specified.")
+		return nil, newIllegalStateError("Cannot get moreLikeThisToken because there are no where token specified.")
 	}
 
 	lastToken := q.whereTokens[n-1]
 
 	if moreLikeThisToken, ok := lastToken.(*moreLikeThisToken); ok {
-		return moreLikeThisToken.whereTokens
-	} else {
-		//throw new IllegalStateError("Last token is not moreLikeThisToken");
-		panicIf(true, "Last token is not moreLikeThisToken")
+		return moreLikeThisToken.whereTokens, nil
 	}
-	return nil
+	return nil, newIllegalStateError("Last token is not moreLikeThisToken")
 }
 
-func (q *abstractDocumentQuery) getCurrentWhereTokensRef() *[]queryToken {
+func (q *abstractDocumentQuery) getCurrentWhereTokensRef() (*[]queryToken, error) {
 	if !q.isInMoreLikeThis {
-		return &q.whereTokens
+		return &q.whereTokens, nil
 	}
 
 	n := len(q.whereTokens)
 
 	if n == 0 {
-		// throw new IllegalStateError("Cannot get moreLikeThisToken because there are no where token specified.");
-		panicIf(true, "Cannot get moreLikeThisToken because there are no where token specified.")
+		return nil, newIllegalStateError("Cannot get moreLikeThisToken because there are no where token specified.")
 	}
 
 	lastToken := q.whereTokens[n-1]
 
 	if moreLikeThisToken, ok := lastToken.(*moreLikeThisToken); ok {
-		return &moreLikeThisToken.whereTokens
-	} else {
-		//throw new IllegalStateError("Last token is not moreLikeThisToken");
-		panicIf(true, "Last token is not moreLikeThisToken")
+		return &moreLikeThisToken.whereTokens, nil
 	}
-	return nil
+	return nil, newIllegalStateError("Last token is not moreLikeThisToken")
 }
 
 func (q *abstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsToFetchToken) {
@@ -1395,19 +1648,20 @@ func (q *abstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 
 	if len(q.selectTokens) == 0 {
 		q.selectTokens = append(q.selectTokens, fieldsToFetch)
-	} else {
-		for _, x := range q.selectTokens {
-			if _, ok := x.(*fieldsToFetchToken); ok {
-				for idx, tok := range q.selectTokens {
-					if tok == x {
-						q.selectTokens[idx] = fieldsToFetch
-					}
-				}
-				return
-			}
-		}
-		q.selectTokens = append(q.selectTokens, fieldsToFetch)
+		return
 	}
+
+	for _, x := range q.selectTokens {
+		if _, ok := x.(*fieldsToFetchToken); ok {
+			for idx, tok := range q.selectTokens {
+				if tok == x {
+					q.selectTokens[idx] = fieldsToFetch
+				}
+			}
+			return
+		}
+	}
+	q.selectTokens = append(q.selectTokens, fieldsToFetch)
 }
 
 func getSourceAliasIfExists(clazz reflect.Type, queryData *queryData, fields []string) string {
@@ -1476,12 +1730,25 @@ func (q *abstractDocumentQuery) noCaching() {
 	q.disableCaching = true
 }
 
-func (q *abstractDocumentQuery) withinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distErrorPercent float64) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) withinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distErrorPercent float64) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	shape := ShapeTokenCircle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
 	opts := newWhereOptionsWithTokenAndDistance(shape, distErrorPercent)
@@ -1490,14 +1757,28 @@ func (q *abstractDocumentQuery) withinRadiusOf(fieldName string, radius float64,
 	tokens := *tokensRef
 	tokens = append(tokens, whereToken)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relation SpatialRelation, distErrorPercent float64) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relation SpatialRelation, distErrorPercent float64) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	wktToken := ShapeTokenWkt(q.addQueryParameter(shapeWkt))
 
@@ -1512,8 +1793,7 @@ func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 	case SpatialRelationIntersects:
 		whereOperator = whereOperatorSpatialIntersects
 	default:
-		//throw new IllegalArgumentError();
-		panicIf(true, "unknown relation %s", relation)
+		return newIllegalArgumentError("unknown relation %s", relation)
 	}
 
 	tokens := *tokensRef
@@ -1521,17 +1801,31 @@ func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 	tok := createWhereTokenWithOptions(whereOperator, fieldName, "", opts)
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) spatial2(dynamicField DynamicSpatialField, criteria SpatialCriteria) {
-	must(q.assertIsDynamicQuery(dynamicField, "spatial"))
+func (q *abstractDocumentQuery) spatial2(dynamicField DynamicSpatialField, criteria SpatialCriteria) error {
+	if err := q.assertIsDynamicQuery(dynamicField, "spatial"); err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, "")
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, "")
+	if err != nil {
+		return err
+	}
 
 	ensure := func(fieldName string, isNestedPath bool) string {
-		return q.ensureValidFieldName(fieldName, isNestedPath)
+		// TODO: propagate error
+		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
+		return s
 	}
 	add := func(value interface{}) string {
 		return q.addQueryParameter(value)
@@ -1540,14 +1834,28 @@ func (q *abstractDocumentQuery) spatial2(dynamicField DynamicSpatialField, crite
 	tokens := *tokensRef
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) spatial3(fieldName string, criteria SpatialCriteria) {
-	fieldName = q.ensureValidFieldName(fieldName, false)
+func (q *abstractDocumentQuery) spatial3(fieldName string, criteria SpatialCriteria) error {
+	var err error
+	fieldName, err = q.ensureValidFieldName(fieldName, false)
+	if err != nil {
+		return err
+	}
 
-	tokensRef := q.getCurrentWhereTokensRef()
-	q.appendOperatorIfNeeded(tokensRef)
-	q.negateIfNeeded(tokensRef, fieldName)
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	err = q.appendOperatorIfNeeded(tokensRef)
+	if err != nil {
+		return err
+	}
+	err = q.negateIfNeeded(tokensRef, fieldName)
+	if err != nil {
+		return err
+	}
 
 	tokens := *tokensRef
 	add := func(value interface{}) string {
@@ -1556,83 +1864,105 @@ func (q *abstractDocumentQuery) spatial3(fieldName string, criteria SpatialCrite
 	tok := criteria.ToQueryToken(fieldName, add)
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) {
+func (q *abstractDocumentQuery) orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) error {
 	if field == nil {
-		//throw new IllegalArgumentError("Field cannot be null");
-		panicIf(true, "Field cannot be null")
+		return newIllegalArgumentError("Field cannot be null")
 	}
-	must(q.assertIsDynamicQuery(field, "orderByDistance"))
+	if err := q.assertIsDynamicQuery(field, "orderByDistance"); err != nil {
+		return err
+	}
 
 	ensure := func(fieldName string, isNestedPath bool) string {
-		return q.ensureValidFieldName(fieldName, isNestedPath)
+		// TODO: propagate error
+		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
+		return s
 	}
 
-	q.orderByDistanceLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
+	return q.orderByDistanceLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
 }
 
-func (q *abstractDocumentQuery) orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) {
+func (q *abstractDocumentQuery) orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) error {
 	tok := orderByTokenCreateDistanceAscending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
 	q.orderByTokens = append(q.orderByTokens, tok)
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistance2(field DynamicSpatialField, shapeWkt string) {
+func (q *abstractDocumentQuery) orderByDistance2(field DynamicSpatialField, shapeWkt string) error {
 	if field == nil {
-		//throw new IllegalArgumentError("Field cannot be null");
-		panicIf(true, "Field cannot be null")
+		return newIllegalArgumentError("Field cannot be null")
 	}
-	must(q.assertIsDynamicQuery(field, "orderByDistance2"))
+	err := q.assertIsDynamicQuery(field, "orderByDistance2")
+	if err != nil {
+		return err
+	}
 
 	ensure := func(fieldName string, isNestedPath bool) string {
-		return q.ensureValidFieldName(fieldName, isNestedPath)
+		// TODO: propagate error
+		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
+		return s
 	}
-	q.orderByDistance3("'"+field.ToField(ensure)+"'", shapeWkt)
+	return q.orderByDistance3("'"+field.ToField(ensure)+"'", shapeWkt)
 }
 
-func (q *abstractDocumentQuery) orderByDistance3(fieldName string, shapeWkt string) {
+func (q *abstractDocumentQuery) orderByDistance3(fieldName string, shapeWkt string) error {
 	tok := orderByTokenCreateDistanceAscending2(fieldName, q.addQueryParameter(shapeWkt))
 	q.orderByTokens = append(q.orderByTokens, tok)
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) {
+func (q *abstractDocumentQuery) orderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) error {
 	if field == nil {
-		//throw new IllegalArgumentError("Field cannot be null");
-		panicIf(true, "Field cannot be null")
+		return newIllegalArgumentError("Field cannot be null")
 	}
-	must(q.assertIsDynamicQuery(field, "orderByDistanceDescending"))
+	err := q.assertIsDynamicQuery(field, "orderByDistanceDescending")
+	if err != nil {
+		return err
+	}
 	ensure := func(fieldName string, isNestedPath bool) string {
-		return q.ensureValidFieldName(fieldName, isNestedPath)
+		// TODO: propagate error
+		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
+		return s
 	}
-	q.orderByDistanceDescendingLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
+	return q.orderByDistanceDescendingLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) {
+func (q *abstractDocumentQuery) orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) error {
 	tok := orderByTokenCreateDistanceDescending(fieldName, q.addQueryParameter(latitude), q.addQueryParameter(longitude))
 	q.orderByTokens = append(q.orderByTokens, tok)
+	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) {
+func (q *abstractDocumentQuery) orderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) error {
 	if field == nil {
-		//throw new IllegalArgumentError("Field cannot be null");
-		panicIf(true, "Field cannot be null")
+		return newIllegalArgumentError("Field cannot be null")
 	}
-	must(q.assertIsDynamicQuery(field, "orderByDistanceDescending2"))
+	err := q.assertIsDynamicQuery(field, "orderByDistanceDescending2")
+	if err != nil {
+		return err
+	}
 	ensure := func(fieldName string, isNestedPath bool) string {
-		return q.ensureValidFieldName(fieldName, isNestedPath)
+		// TODO: propagate error
+		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
+		return s
 	}
-	q.orderByDistanceDescending3("'"+field.ToField(ensure)+"'", shapeWkt)
+	return q.orderByDistanceDescending3("'"+field.ToField(ensure)+"'", shapeWkt)
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescending3(fieldName string, shapeWkt string) {
+func (q *abstractDocumentQuery) orderByDistanceDescending3(fieldName string, shapeWkt string) error {
 	tok := orderByTokenCreateDistanceDescending2(fieldName, q.addQueryParameter(shapeWkt))
 	q.orderByTokens = append(q.orderByTokens, tok)
+	return nil
 }
 
 func (q *abstractDocumentQuery) assertIsDynamicQuery(dynamicField DynamicSpatialField, methodName string) error {
 	if q.fromToken != nil && !q.fromToken.isDynamic {
 		f := func(s string, f bool) string {
-			return q.ensureValidFieldName(s, f)
+			// TODO: propgate error
+			s, _ = q.ensureValidFieldName(s, f)
+			return s
 		}
 		fld := dynamicField.ToField(f)
 		return newIllegalStateError("Cannot execute query method '" + methodName + "'. Field '" + fld + "' cannot be used when static index '" + q.fromToken.indexName + "' is queried. Dynamic spatial fields can only be used with dynamic queries, " + "for static index queries please use valid spatial fields defined in index definition.")
@@ -1665,7 +1995,9 @@ func (q *abstractDocumentQuery) initSync() error {
 func (q *abstractDocumentQuery) executeActualQuery() error {
 	{
 		context := q.queryOperation.enterQueryContext()
-		defer context.Close()
+		defer func() {
+			_ = context.Close()
+		}()
 
 		command, err := q.queryOperation.createRequest()
 		if err != nil {
@@ -1683,7 +2015,7 @@ func (q *abstractDocumentQuery) executeActualQuery() error {
 }
 
 // GetQueryResult returns results of a query
-func (q *abstractDocumentQuery) GetQueryResult() (*QueryResult, error) {
+func (q *abstractDocumentQuery) getQueryResult() (*QueryResult, error) {
 	err := q.initSync()
 	if err != nil {
 		return nil, err
@@ -1698,7 +2030,7 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 	if (rt.Kind() == reflect.Ptr) && (rt.Elem() != nil) && (rt.Elem().Kind() == reflect.Slice) {
 		return rt.Elem().Elem(), nil
 	}
-	return nil, fmt.Errorf("expected value of type *[]<type>, got %T", results)
+	return nil, newIllegalArgumentError("expected value of type *[]<type>, got %T", results)
 }
 
 // check if v is a valid argument to query GetResults().
@@ -1789,7 +2121,7 @@ func (q *abstractDocumentQuery) Count() (int, error) {
 		var tmp = 0
 		q.take(&tmp)
 	}
-	queryResult, err := q.GetQueryResult()
+	queryResult, err := q.getQueryResult()
 	if err != nil {
 		return 0, err
 	}
@@ -1816,7 +2148,7 @@ func (q *abstractDocumentQuery) Any() (bool, error) {
 		var tmp = 0
 		q.take(&tmp)
 	}
-	queryResult, err := q.GetQueryResult()
+	queryResult, err := q.getQueryResult()
 	if err != nil {
 		return false, err
 	}

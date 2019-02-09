@@ -62,8 +62,12 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 }
 
 // onEval: v is map[string]*SuggestionResult
-func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResult, onEval func(v interface{})) *Lazy {
-	q.query = q.getIndexQuery()
+func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResult, onEval func(v interface{})) (*Lazy, error) {
+	var err error
+	q.query, err = q.getIndexQuery()
+	if err != nil {
+		return nil, err
+	}
 	afterFn := func(result *QueryResult) {
 		q.InvokeAfterQueryExecuted(result)
 	}
@@ -81,22 +85,31 @@ func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResu
 	}
 
 	op := NewLazySuggestionQueryOperation(q.session.Conventions, q.query, afterFn, processFn)
-	return q.session.session.addLazyOperation(results, op, onEval)
+	return q.session.session.addLazyOperation(results, op, onEval), nil
 }
 
 func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
 	q.source.invokeAfterQueryExecuted(result)
 }
 
-func (q *SuggestionDocumentQuery) getIndexQuery() *IndexQuery {
+func (q *SuggestionDocumentQuery) getIndexQuery() (*IndexQuery, error) {
 	return q.source.GetIndexQuery()
 }
 func (q *SuggestionDocumentQuery) getCommand() (*QueryCommand, error) {
-	q.query = q.getIndexQuery()
+	var err error
+	q.query, err = q.getIndexQuery()
+	if err != nil {
+		return nil, err
+	}
 
 	return NewQueryCommand(q.session.GetConventions(), q.query, false, false)
 }
 
-func (q *SuggestionDocumentQuery) String() string {
-	return q.getIndexQuery().String()
+func (q *SuggestionDocumentQuery) string() (string, error) {
+	iq, err := q.getIndexQuery()
+	if err != nil {
+		return "", err
+	}
+
+	return iq.String(), nil
 }

@@ -47,7 +47,8 @@ func moreLikeThisCanGetResultsUsingTermVectors(t *testing.T, driver *RavenTestDr
 
 	var id string
 	dataIndex := NewDataIndex2(true, false)
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 	{
 		session := openSessionMust(t, store)
 		list := getDataList()
@@ -58,7 +59,8 @@ func moreLikeThisCanGetResultsUsingTermVectors(t *testing.T, driver *RavenTestDr
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		id = session.Advanced().GetDocumentID(list[0])
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
@@ -74,7 +76,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store, nil, "")
+		err = dataIndex.Execute(store, nil, "")
+		assert.NoError(t, err)
 		list := getDataList()
 		for _, el := range list {
 			err = session.Store(el)
@@ -83,7 +86,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		id = session.Advanced().GetDocumentID(list[0])
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 	{
 		session := openSessionMust(t, store)
@@ -99,7 +103,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 			ops := f.UsingDocumentWithBuilder(builder)
 			ops.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		lazyLst, err := query.Lazily(&list, nil)
 		assert.NoError(t, err)
@@ -117,7 +122,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, dr
 
 	var id string
 	dataIndex := NewDataIndex2(true, false)
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -129,7 +135,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, dr
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		id = session.Advanced().GetDocumentID(list[0])
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 	{
 		session := openSessionMust(t, store)
@@ -144,7 +151,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsWithDocumentQuery(t *testing.T, dr
 			ops := f.UsingDocumentWithBuilder(builder)
 			ops.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -161,7 +169,8 @@ func moreLikeThisCanGetResultsUsingStorage(t *testing.T, driver *RavenTestDriver
 
 	var id string
 	dataIndex := NewDataIndex2(false, true)
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -173,7 +182,8 @@ func moreLikeThisCanGetResultsUsingStorage(t *testing.T, driver *RavenTestDriver
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		id = session.Advanced().GetDocumentID(list[0])
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
@@ -186,7 +196,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *R
 
 	var id string
 	dataIndex := NewDataIndex2(true, true)
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -198,7 +209,8 @@ func moreLikeThisCanGetResultsUsingTermVectorsAndStorage(t *testing.T, driver *R
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		id = session.Advanced().GetDocumentID(list[0])
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, id)
 }
@@ -210,7 +222,8 @@ func moreLikeThisTestWithLotsOfRandomData(t *testing.T, driver *RavenTestDriver)
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -222,8 +235,8 @@ func moreLikeThisTestWithLotsOfRandomData(t *testing.T, driver *RavenTestDriver)
 		}
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
-
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 	moreLikeThisAssertMoreLikeThisHasMatchesFor(t, dataIndex, store, key)
 }
@@ -235,7 +248,8 @@ func moreLikeThisDoNotPassFieldNames(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -249,7 +263,8 @@ func moreLikeThisDoNotPassFieldNames(t *testing.T, driver *RavenTestDriver) {
 		}
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -262,7 +277,8 @@ func moreLikeThisDoNotPassFieldNames(t *testing.T, driver *RavenTestDriver) {
 			}
 			f.UsingDocumentWithBuilder(builder)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -277,7 +293,8 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 
 	key1 := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -290,7 +307,8 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 		}
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -310,7 +328,8 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 			o := f.UsingDocumentWithBuilder(builder)
 			o.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -321,7 +340,8 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 
 	{
 		session := openSessionMust(t, store)
-		dataIndex.Execute(store, nil, "")
+		err = dataIndex.Execute(store, nil, "")
+		assert.NoError(t, err)
 		for i := 0; i < 10; i++ {
 			data := &Data{}
 			data.WhitespaceAnalyzerField = "bob@hotmail.com bob@hotmail.com"
@@ -331,7 +351,8 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 		}
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -345,7 +366,8 @@ func moreLikeThisEachFieldShouldUseCorrectAnalyzer(t *testing.T, driver *RavenTe
 			}
 			f.UsingDocumentWithBuilder(builder)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -360,7 +382,8 @@ func moreLikeThisCanUseMinDocFreqParam(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -378,7 +401,8 @@ func moreLikeThisCanUseMinDocFreqParam(t *testing.T, driver *RavenTestDriver) {
 		}
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -396,7 +420,8 @@ func moreLikeThisCanUseMinDocFreqParam(t *testing.T, driver *RavenTestDriver) {
 			o := f.UsingDocumentWithBuilder(builder)
 			o.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -411,7 +436,8 @@ func moreLikeThisCanUseBoostParam(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -429,7 +455,8 @@ func moreLikeThisCanUseBoostParam(t *testing.T, driver *RavenTestDriver) {
 		}
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -450,7 +477,8 @@ func moreLikeThisCanUseBoostParam(t *testing.T, driver *RavenTestDriver) {
 			o := f.UsingDocumentWithBuilder(builder)
 			o.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -466,7 +494,8 @@ func moreLikeThisCanUseStopWords(t *testing.T, driver *RavenTestDriver) {
 
 	key := "data/1-A" // Note: in Java it's datas/ because of bad pluralization of data
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -497,7 +526,8 @@ func moreLikeThisCanUseStopWords(t *testing.T, driver *RavenTestDriver) {
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -517,7 +547,8 @@ func moreLikeThisCanUseStopWords(t *testing.T, driver *RavenTestDriver) {
 			o := f.UsingDocumentWithBuilder(builder)
 			o.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -531,7 +562,8 @@ func moreLikeThisCanMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDr
 	defer store.Close()
 
 	dataIndex := NewDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -543,7 +575,8 @@ func moreLikeThisCanMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDr
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -559,7 +592,8 @@ func moreLikeThisCanMakeDynamicDocumentQueries(t *testing.T, driver *RavenTestDr
 			o := f.UsingDocument("{ \"body\": \"A test\" }")
 			o.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*Data
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -573,7 +607,8 @@ func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T
 	defer store.Close()
 
 	dataIndex := NewComplexDataIndex()
-	dataIndex.Execute(store, nil, "")
+	err = dataIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -592,7 +627,8 @@ func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		driver.waitForIndexing(store, store.GetDatabase(), 0)
+		err = driver.waitForIndexing(store, store.GetDatabase(), 0)
+		assert.NoError(t, err)
 	}
 
 	{
@@ -607,7 +643,8 @@ func moreLikeThisCanMakeDynamicDocumentQueriesWithComplexProperties(t *testing.T
 			o := f.UsingDocument("{ \"Property\": { \"Body\": \"test\" } }")
 			o.WithOptions(options)
 		}
-		query = query.MoreLikeThisWithBuilder(builder)
+		query, err = query.MoreLikeThisWithBuilder(builder)
+		assert.NoError(t, err)
 		var list []*ComplexData
 		err = query.GetResults(&list)
 		assert.NoError(t, err)
@@ -630,7 +667,8 @@ func moreLikeThisAssertMoreLikeThisHasMatchesFor(t *testing.T, index *ravendb.In
 		f.UsingDocumentWithBuilder(fn1).WithOptions(options)
 	}
 	var data []*Data
-	q = q.MoreLikeThisWithBuilder(fn2)
+	q, err = q.MoreLikeThisWithBuilder(fn2)
+	assert.NoError(t, err)
 	err = q.GetResults(&data)
 	assert.NoError(t, err)
 	assert.True(t, len(data) > 0)

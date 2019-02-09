@@ -869,9 +869,15 @@ func (s *DocumentSession) QueryIndex(indexName string) (*DocumentQuery, error) {
 // If streamQueryStats is provided, it'll be filled with information about query statistics.
 func (s *DocumentSession) StreamQuery(query *DocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
-	q := query.GetIndexQuery()
-	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
+	q, err := query.GetIndexQuery()
+	if err != nil {
+		return nil, err
+	}
+	command, err := streamOperation.createRequestForIndexQuery(q)
+	if err != nil {
+		return nil, err
+	}
+	err = s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -889,9 +895,15 @@ func (s *DocumentSession) StreamQuery(query *DocumentQuery, streamQueryStats *St
 // If streamQueryStats is provided, it'll be filled with information about query statistics.
 func (s *DocumentSession) StreamRawQuery(query *RawDocumentQuery, streamQueryStats *StreamQueryStatistics) (*StreamIterator, error) {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, streamQueryStats)
-	q := query.GetIndexQuery()
-	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
+	q, err := query.GetIndexQuery()
+	if err != nil {
+		return nil, err
+	}
+	command, err := streamOperation.createRequestForIndexQuery(q)
+	if err != nil {
+		return nil, err
+	}
+	err = s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -909,9 +921,15 @@ func (s *DocumentSession) StreamRawQuery(query *RawDocumentQuery, streamQuerySta
 // (in JSON format) to output
 func (s *DocumentSession) StreamRawQueryInto(query *RawDocumentQuery, output io.Writer) error {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
-	q := query.GetIndexQuery()
-	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
+	q, err := query.GetIndexQuery()
+	if err != nil {
+		return err
+	}
+	command, err := streamOperation.createRequestForIndexQuery(q)
+	if err != nil {
+		return err
+	}
+	err = s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}
@@ -924,9 +942,16 @@ func (s *DocumentSession) StreamRawQueryInto(query *RawDocumentQuery, output io.
 // (in JSON format) to output
 func (s *DocumentSession) StreamQueryInto(query *DocumentQuery, output io.Writer) error {
 	streamOperation := NewStreamOperation(s.InMemoryDocumentSessionOperations, nil)
-	q := query.GetIndexQuery()
-	command := streamOperation.createRequestForIndexQuery(q)
-	err := s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
+	q, err := query.GetIndexQuery()
+	if err != nil {
+		return err
+	}
+
+	command, err := streamOperation.createRequestForIndexQuery(q)
+	if err != nil {
+		return err
+	}
+	err = s.GetRequestExecutor().ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return err
 	}

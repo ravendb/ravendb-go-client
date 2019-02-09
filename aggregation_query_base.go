@@ -45,8 +45,12 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 
 // arg to onEval is map[string]*FacetResult
 // results is map[string]*FacetResult
-func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) *Lazy {
-	q.query = q.GetIndexQuery()
+func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) (*Lazy, error) {
+	var err error
+	q.query, err = q.GetIndexQuery()
+	if err != nil {
+		return nil, err
+	}
 
 	afterFn := func(result *QueryResult) {
 		q.invokeAfterQueryExecuted(result)
@@ -65,7 +69,7 @@ func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEv
 		return res, nil
 	}
 	op := NewLazyAggregationQueryOperation(q.session.Conventions, q.query, afterFn, processResultFn)
-	return q.session.session.addLazyOperation(results, op, onEval)
+	return q.session.session.addLazyOperation(results, op, onEval), nil
 }
 
 /*
@@ -100,13 +104,21 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 }
 
 func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
-	q.query = q.GetIndexQuery()
+	var err error
+	q.query, err = q.GetIndexQuery()
+	if err != nil {
+		return nil, err
+	}
 
 	return NewQueryCommand(q.session.GetConventions(), q.query, false, false)
 }
 
-func (q *AggregationQueryBase) String() string {
-	return q.GetIndexQuery().String()
+func (q *AggregationQueryBase) string() (string, error) {
+	iq, err := q.GetIndexQuery()
+	if err != nil {
+		return "", err
+	}
+	return iq.String(), nil
 }
 
 // from AggregationDocumentQuery
@@ -117,7 +129,7 @@ func (q *AggregationDocumentQuery) AndAggregateByFacet(facet FacetBase) (*Aggreg
 	return q, nil
 }
 
-func (q *AggregationDocumentQuery) GetIndexQuery() *IndexQuery {
+func (q *AggregationDocumentQuery) GetIndexQuery() (*IndexQuery, error) {
 	return q.source.GetIndexQuery()
 }
 

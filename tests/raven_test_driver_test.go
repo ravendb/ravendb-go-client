@@ -193,13 +193,17 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 		}
 
 		operation := ravendb.NewDeleteDatabasesOperation(store.GetDatabase(), true)
-		store.Maintenance().Server().Send(operation)
+		err = store.Maintenance().Server().Send(operation)
 	}
 
 	store.AddAfterCloseListener(fn)
 
 	if waitForIndexingTimeout > 0 {
-		d.waitForIndexing(store, name, waitForIndexingTimeout)
+		err = d.waitForIndexing(store, name, waitForIndexingTimeout)
+		if err != nil {
+			store.Close()
+			return nil, err
+		}
 	}
 
 	d.documentStores.Store(store, true)
@@ -476,7 +480,7 @@ func getLogDir() string {
 		dir = cwd
 	}
 	dir = filepath.Join(dir, "logs")
-	os.MkdirAll(dir, 0755)
+	_ = os.MkdirAll(dir, 0755)
 	return dir
 }
 
@@ -489,8 +493,8 @@ func ravenLogsDirFromTestName(t *testing.T) string {
 	name := testNameToFileName(t.Name())
 	path := filepath.Join(getLogDir(), "server", "go", name)
 	// recreate dir for clean logs
-	os.RemoveAll(path)
-	os.MkdirAll(path, 0755)
+	_ = os.RemoveAll(path)
+	_ = os.MkdirAll(path, 0755)
 	return path
 }
 
@@ -599,7 +603,7 @@ func detectServerPath() {
 		path = getRavendbExePath()
 		exists = fileExists(path)
 		panicIf(!exists, "file %s doesn't exist", path)
-		os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
+		_ = os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
 	}
 
@@ -607,7 +611,7 @@ func detectServerPath() {
 		path = filepath.Join("..", "certs", "server.pfx")
 		exists = fileExists(path)
 		panicIf(!exists, "file %s doesn't exist", path)
-		os.Setenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH", path)
+		_ = os.Setenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH", path)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_CERTIFICATE_PATH to '%s'\n", path)
 	}
 
@@ -615,13 +619,13 @@ func detectServerPath() {
 		path = filepath.Join("..", "certs", "cert.pem")
 		exists = fileExists(path)
 		panicIf(!exists, "file %s doesn't exist", path)
-		os.Setenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH", path)
+		_ = os.Setenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH", path)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH to '%s'\n", path)
 	}
 
 	if os.Getenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL") == "" {
 		uri := "https://a.javatest11.development.run:8085"
-		os.Setenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL", uri)
+		_ = os.Setenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL", uri)
 		fmt.Printf("Setting RAVENDB_JAVA_TEST_HTTPS_SERVER_URL to '%s'\n", uri)
 	}
 
@@ -644,7 +648,7 @@ func detectServerPath() {
 				return
 			}
 		}
-		os.Setenv("RAVEN_License_Path", path)
+		_ = os.Setenv("RAVEN_License_Path", path)
 		fmt.Printf("Setting RAVEN_License_Path to '%s'\n", path)
 	}
 }

@@ -71,7 +71,9 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 		user := users[0]
 		assert.Equal(t, *user.Name, "Zeus")
 
-		query := q.GetIndexQuery().GetQuery()
+		iquery, err := q.GetIndexQuery()
+		assert.NoError(t, err)
+		query := iquery.GetQuery()
 		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
 
 		users = nil

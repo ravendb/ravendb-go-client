@@ -23,17 +23,18 @@ func NewStreamOperation(session *InMemoryDocumentSessionOperations, statistics *
 	}
 }
 
-func (o *StreamOperation) createRequestForIndexQuery(query *IndexQuery) *QueryStreamCommand {
+func (o *StreamOperation) createRequestForIndexQuery(query *IndexQuery) (*QueryStreamCommand, error) {
 	o.isQueryStream = true
 
 	if query.waitForNonStaleResults {
-		//throw new UnsupportedOperationError("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported");
-		panic("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported")
+		return nil, newUnsupportedOperationError("Since stream() does not wait for indexing (by design), streaming query with setWaitForNonStaleResults is not supported")
 	}
 
-	o.session.incrementRequestCount()
+	if err := o.session.incrementRequestCount(); err != nil {
+		return nil, err
+	}
 
-	return NewQueryStreamCommand(o.session.Conventions, query)
+	return NewQueryStreamCommand(o.session.Conventions, query), nil
 }
 
 func (o *StreamOperation) createRequest(startsWith string, matches string, start int, pageSize int, exclude string, startAfter string) *StreamCommand {

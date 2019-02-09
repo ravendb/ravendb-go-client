@@ -11,10 +11,10 @@ var (
 type QueryCommand struct {
 	RavenCommandBase
 
-	_conventions      *DocumentConventions
-	_indexQuery       *IndexQuery
-	_metadataOnly     bool
-	_indexEntriesOnly bool
+	conventions      *DocumentConventions
+	indexQuery       *IndexQuery
+	metadataOnly     bool
+	indexEntriesOnly bool
 
 	Result *QueryResult
 }
@@ -26,35 +26,35 @@ func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, m
 	cmd := &QueryCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_conventions:      conventions,
-		_indexQuery:       indexQuery,
-		_metadataOnly:     metadataOnly,
-		_indexEntriesOnly: indexEntriesOnly,
+		conventions:      conventions,
+		indexQuery:       indexQuery,
+		metadataOnly:     metadataOnly,
+		indexEntriesOnly: indexEntriesOnly,
 	}
 	cmd.IsReadRequest = true
 	return cmd, nil
 }
 
 func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
-	c.CanCache = !c._indexQuery.disableCaching
+	c.CanCache = !c.indexQuery.disableCaching
 
 	// we won't allow aggressive caching of queries with WaitForNonStaleResults
-	c.CanCacheAggressively = c.CanCache && !c._indexQuery.waitForNonStaleResults
+	c.CanCacheAggressively = c.CanCache && !c.indexQuery.waitForNonStaleResults
 
 	// we need to add a query hash because we are using POST queries
 	// so we need to unique parameter per query so the query cache will
 	// work properly
-	path := node.URL + "/databases/" + node.Database + "/queries?queryHash=" + c._indexQuery.GetQueryHash()
+	path := node.URL + "/databases/" + node.Database + "/queries?queryHash=" + c.indexQuery.GetQueryHash()
 
-	if c._metadataOnly {
+	if c.metadataOnly {
 		path += "&metadataOnly=true"
 	}
 
-	if c._indexEntriesOnly {
+	if c.indexEntriesOnly {
 		path += "&debug=entries"
 	}
 
-	m := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)
+	m := jsonExtensionsWriteIndexQuery(c.conventions, c.indexQuery)
 	d, err := jsonMarshal(m)
 	if err != nil {
 		return nil, err

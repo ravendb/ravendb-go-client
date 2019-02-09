@@ -65,7 +65,8 @@ func ravendb6292_ifIncludedDocumentIsConflictedItShouldNotThrowConflictException
 		session.Close()
 	}
 
-	driver.setupReplication(store1, store2)
+	err = driver.setupReplication(store1, store2)
+	assert.NoError(t, err)
 
 	var addressTmp *Address
 	err = driver.waitForConflict(store2, &addressTmp, "addresses/1")
@@ -82,7 +83,8 @@ func ravendb6292_ifIncludedDocumentIsConflictedItShouldNotThrowConflictException
 		documentQuery = documentQuery.Include("addressId")
 		assert.NoError(t, err)
 
-		iq := documentQuery.GetIndexQuery()
+		iq, err := documentQuery.GetIndexQuery()
+		assert.NoError(t, err)
 
 		var user *User
 		err = documentQuery.First(&user)

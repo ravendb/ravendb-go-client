@@ -92,7 +92,8 @@ func spatialSearchCanDoSpatialSearchWithClientApi3(t *testing.T, driver *RavenTe
 		}
 		q = q.Spatial3("coordinates", fn)
 		matchingVenues := q.WaitForNonStaleResults(0)
-		iq := matchingVenues.GetIndexQuery()
+		iq, err := matchingVenues.GetIndexQuery()
+		assert.NoError(t, err)
 
 		assert.Equal(t, iq.GetQuery(), "from index 'SpatialIdx' where spatial.within(coordinates, spatial.circle($p0, $p1, $p2))")
 		assert.Equal(t, iq.GetQueryParameters()["p0"], 5.0)

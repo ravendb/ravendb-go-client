@@ -1,35 +1,35 @@
 package ravendb
 
-type MoreLikeThisScope struct {
-	_token             *moreLikeThisToken
-	_addQueryParameter func(interface{}) string
-	_onDispose         func()
+type moreLikeThisScope struct {
+	token             *moreLikeThisToken
+	addQueryParameter func(interface{}) string
+	onDispose         func()
 }
 
-func NewMoreLikeThisScope(token *moreLikeThisToken, addQueryParameter func(interface{}) string, onDispose func()) *MoreLikeThisScope {
-	return &MoreLikeThisScope{
-		_token:             token,
-		_addQueryParameter: addQueryParameter,
-		_onDispose:         onDispose,
+func newMoreLikeThisScope(token *moreLikeThisToken, addQueryParameter func(interface{}) string, onDispose func()) *moreLikeThisScope {
+	return &moreLikeThisScope{
+		token:             token,
+		addQueryParameter: addQueryParameter,
+		onDispose:         onDispose,
 	}
 }
 
-func (s *MoreLikeThisScope) Close() {
-	if s._onDispose != nil {
-		s._onDispose()
+func (s *moreLikeThisScope) Close() {
+	if s.onDispose != nil {
+		s.onDispose()
 	}
 }
 
-func (s *MoreLikeThisScope) WithOptions(options *MoreLikeThisOptions) {
+func (s *moreLikeThisScope) withOptions(options *MoreLikeThisOptions) {
 	if options == nil {
 		return
 	}
 
 	// force using *non* entity serializer here:
 	optionsAsJson := ValueToTree(options)
-	s._token.optionsParameterName = s._addQueryParameter(optionsAsJson)
+	s.token.optionsParameterName = s.addQueryParameter(optionsAsJson)
 }
 
-func (s *MoreLikeThisScope) withDocument(document string) {
-	s._token.documentParameterName = s._addQueryParameter(document)
+func (s *moreLikeThisScope) withDocument(document string) {
+	s.token.documentParameterName = s.addQueryParameter(document)
 }

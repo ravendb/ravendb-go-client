@@ -90,19 +90,16 @@ type whereToken struct {
 	options       *whereOptions
 }
 
-func newWhereToken() *whereToken {
-	return &whereToken{}
-}
-
 func createWhereToken(op whereOperator, fieldName string, parameterName string) *whereToken {
 	return createWhereTokenWithOptions(op, fieldName, parameterName, nil)
 }
 
 func createWhereTokenWithOptions(op whereOperator, fieldName string, parameterName string, options *whereOptions) *whereToken {
-	token := newWhereToken()
-	token.fieldName = fieldName
-	token.parameterName = parameterName
-	token.whereOperator = op
+	token := &whereToken{
+		fieldName:     fieldName,
+		parameterName: parameterName,
+		whereOperator: op,
+	}
 	if options != nil {
 		token.options = options
 	} else {
@@ -118,15 +115,13 @@ func (t *whereToken) addAlias(alias string) {
 	t.fieldName = alias + "." + t.fieldName
 }
 
-func (t *whereToken) writeMethod(writer *strings.Builder) bool {
+func (t *whereToken) writeMethod(writer *strings.Builder) (bool, error) {
 	if t.options.method != nil {
 		switch t.options.method.methodType {
 		case MethodsTypeCmpXChg:
 			writer.WriteString("cmpxchg(")
 		default:
-			panicIf(true, "Unsupported method: %s", t.options.method.methodType)
-			// TODO: return as error?
-			//return newIllegalArgumentError("Unsupported method: %s", options.method.methodType);
+			return false, newIllegalArgumentError("Unsupported method: %s", t.options.method.methodType)
 		}
 
 		first := true
@@ -144,10 +139,10 @@ func (t *whereToken) writeMethod(writer *strings.Builder) bool {
 			writer.WriteString(".")
 			writer.WriteString(t.options.method.property)
 		}
-		return true
+		return true, nil
 	}
 
-	return false
+	return false, nil
 }
 
 func (t *whereToken) writeTo(writer *strings.Builder) {
@@ -191,6 +186,7 @@ func (t *whereToken) writeTo(writer *strings.Builder) {
 		writer.WriteString("regex(")
 	}
 
+	// TODO: propagate error
 	t.writeInnerWhere(writer)
 
 	if options.exact {
@@ -216,7 +212,7 @@ func (t *whereToken) writeTo(writer *strings.Builder) {
 	}
 }
 
-func (t *whereToken) writeInnerWhere(writer *strings.Builder) {
+func (t *whereToken) writeInnerWhere(writer *strings.Builder) error {
 
 	writeQueryTokenField(writer, t.fieldName)
 
@@ -235,13 +231,18 @@ func (t *whereToken) writeInnerWhere(writer *strings.Builder) {
 		writer.WriteString(" <= ")
 	default:
 		t.specialOperator(writer)
-		return
+		return nil
 	}
 
-	if !t.writeMethod(writer) {
+	ok, err := t.writeMethod(writer)
+	if err != nil {
+		return err
+	}
+	if !ok {
 		writer.WriteString("$")
 		writer.WriteString(t.parameterName)
 	}
+	return nil
 }
 
 func (t *whereToken) specialOperator(writer *strings.Builder) {

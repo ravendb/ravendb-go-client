@@ -45,7 +45,8 @@ func regexQueryWueriesWithRegexFromDocumentQuery(t *testing.T, driver *RavenTest
 		assert.NoError(t, err)
 		assert.Equal(t, len(result), 4)
 
-		iq := query.GetIndexQuery()
+		iq, err := query.GetIndexQuery()
+		assert.NoError(t, err)
 		assert.Equal(t, iq.GetQuery(), "from RegexMes where regex(text, $p0)")
 		assert.Equal(t, iq.GetQueryParameters()["p0"], "^[a-z ]{2,4}love")
 
