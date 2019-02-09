@@ -5,7 +5,7 @@ var _ ILazyOperation = &LazyQueryOperation{}
 // LazyQueryOperation describes server operation for lazy queries
 type LazyQueryOperation struct {
 	_conventions        *DocumentConventions
-	_queryOperation     *QueryOperation
+	_queryOperation     *queryOperation
 	_afterQueryExecuted []func(*QueryResult)
 
 	result        interface{}
@@ -14,7 +14,7 @@ type LazyQueryOperation struct {
 }
 
 // NewLazyQueryOperation returns new LazyQueryOperation
-func NewLazyQueryOperation(result interface{}, conventions *DocumentConventions, queryOperation *QueryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
+func NewLazyQueryOperation(result interface{}, conventions *DocumentConventions, queryOperation *queryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
 	return &LazyQueryOperation{
 		result:              result,
 		_conventions:        conventions,

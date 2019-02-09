@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// QueryOperation describes query operation
-type QueryOperation struct {
+// queryOperation describes query operation
+type queryOperation struct {
 	session                 *InMemoryDocumentSessionOperations
 	indexName               string
 	indexQuery              *IndexQuery
@@ -19,12 +19,11 @@ type QueryOperation struct {
 	startTime               time.Time
 	disableEntitiesTracking bool
 
-	// static  Log logger = LogFactory.getLog(QueryOperation.class);
+	// static  Log logger = LogFactory.getLog(queryOperation.class);
 }
 
-// NewQueryOperation returns new QueryOperation
-func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) (*QueryOperation, error) {
-	res := &QueryOperation{
+func newQueryOperation(session *InMemoryDocumentSessionOperations, indexName string, indexQuery *IndexQuery, fieldsToFetch *fieldsToFetchToken, disableEntitiesTracking bool, metadataOnly bool, indexEntriesOnly bool) (*queryOperation, error) {
+	res := &queryOperation{
 		session:                 session,
 		indexName:               indexName,
 		indexQuery:              indexQuery,
@@ -39,7 +38,7 @@ func NewQueryOperation(session *InMemoryDocumentSessionOperations, indexName str
 	return res, nil
 }
 
-func (o *QueryOperation) createRequest() (*QueryCommand, error) {
+func (o *queryOperation) createRequest() (*QueryCommand, error) {
 	if err := o.session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
@@ -49,11 +48,11 @@ func (o *QueryOperation) createRequest() (*QueryCommand, error) {
 	return NewQueryCommand(o.session.GetConventions(), o.indexQuery, o.metadataOnly, o.indexEntriesOnly)
 }
 
-func (o *QueryOperation) setResult(queryResult *QueryResult) error {
+func (o *queryOperation) setResult(queryResult *QueryResult) error {
 	return o.ensureIsAcceptableAndSaveResult(queryResult)
 }
 
-func (o *QueryOperation) assertPageSizeSet() error {
+func (o *queryOperation) assertPageSizeSet() error {
 	if !o.session.GetConventions().IsThrowIfQueryPageSizeIsNotSet() {
 		return nil
 	}
@@ -66,11 +65,11 @@ func (o *QueryOperation) assertPageSizeSet() error {
 		"You can use .take() methods to set maximum number of results. By default the page //size is set to Integer.MAX_VALUE and can cause severe performance degradation.")
 }
 
-func (o *QueryOperation) startTiming() {
+func (o *queryOperation) startTiming() {
 	o.startTime = time.Now()
 }
 
-func (o *QueryOperation) logQuery() {
+func (o *queryOperation) logQuery() {
 	/*
 		if (logger.isInfoEnabled()) {
 			logger.info("Executing query " + _indexQuery.getQuery() + " on index " + _indexName + " in " + _session.storeIdentifier());
@@ -78,7 +77,7 @@ func (o *QueryOperation) logQuery() {
 	*/
 }
 
-func (o *QueryOperation) enterQueryContext() io.Closer {
+func (o *queryOperation) enterQueryContext() io.Closer {
 	o.startTiming()
 
 	if !o.indexQuery.waitForNonStaleResults {
@@ -91,7 +90,7 @@ func (o *QueryOperation) enterQueryContext() io.Closer {
 
 // results is *[]<type> and we'll create the slice and fill it with values
 // of <type> and do the equivalent of: *results = our_slice
-func (o *QueryOperation) complete(results interface{}) error {
+func (o *queryOperation) complete(results interface{}) error {
 	queryResult := o.currentQueryResults.createSnapshot()
 
 	if !o.disableEntitiesTracking {
@@ -222,7 +221,7 @@ func queryOperationDeserialize(result interface{}, id string, document map[strin
 	return nil
 }
 
-func (o *QueryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
+func (o *queryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {
 	if result == nil {
 		return newIndexDoesNotExistError("Could not find index " + o.indexName)
 	}

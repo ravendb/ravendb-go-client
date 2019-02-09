@@ -66,7 +66,7 @@ type abstractDocumentQuery struct {
 	afterQueryExecutedCallback  []func(*QueryResult)
 	afterStreamExecutedCallback []func(map[string]interface{})
 
-	queryOperation *QueryOperation
+	queryOperation *queryOperation
 
 	// SelectFields logic has to be delayed until ToList
 	// because only then we know the type of the result
@@ -176,10 +176,10 @@ func (q *abstractDocumentQuery) waitForNonStaleResults(waitTimeout time.Duration
 	q.timeout = waitTimeout
 }
 
-func (q *abstractDocumentQuery) initializeQueryOperation() (*QueryOperation, error) {
+func (q *abstractDocumentQuery) initializeQueryOperation() (*queryOperation, error) {
 	indexQuery := q.GetIndexQuery()
 
-	return NewQueryOperation(q.theSession, q.indexName, indexQuery, q.fieldsToFetchToken, q.disableEntitiesTracking, false, false)
+	return newQueryOperation(q.theSession, q.indexName, indexQuery, q.fieldsToFetchToken, q.disableEntitiesTracking, false, false)
 }
 
 func (q *abstractDocumentQuery) GetIndexQuery() *IndexQuery {

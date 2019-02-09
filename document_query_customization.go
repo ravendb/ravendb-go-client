@@ -10,7 +10,7 @@ type DocumentQueryCustomization struct {
 }
 
 // GetQueryOperation returns raw query operation that will be sent to the server
-func (d *DocumentQueryCustomization) GetQueryOperation() *QueryOperation {
+func (d *DocumentQueryCustomization) GetQueryOperation() *queryOperation {
 	return d.query.queryOperation
 }
 
