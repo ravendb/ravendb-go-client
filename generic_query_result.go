@@ -2,7 +2,7 @@ package ravendb
 
 // GenericQueryResult represents query results
 type GenericQueryResult struct {
-	QueryResultBase
+	queryResultBase
 	TotalResults   int `json:"TotalResults"`
 	SkippedResults int `json:"SkippedResults"`
 	//TBD 4.1  map[string]map[string]List<String>>> highlightings

@@ -1,11 +1,11 @@
 package ravendb
 
-// QueryResultBase represents results of the query returned by the server
+// queryResultBase represents results of the query returned by the server
 // Note: in Java results and includes are templated but
 // in practice they are only ever set to:
 // TResult = ArrayNode i.e. []map[string]interface{}
 // TInclude = ObjectNode i.e. map[string]interface{}
-type QueryResultBase struct {
+type queryResultBase struct {
 	Results        []map[string]interface{} `json:"Results"`
 	Includes       map[string]interface{}   `json:"Includes"`
 	IncludedPaths  []string                 `json:"IncludedPaths"`
