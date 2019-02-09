@@ -508,7 +508,11 @@ func (c *DatabaseChanges) doWork() error {
 		return err
 	}
 
-	urlString := c.requestExecutor.GetURL() + "/databases/" + c.database + "/changes"
+	urlString, err := c.requestExecutor.GetURL()
+	if err != nil {
+		return err
+	}
+	urlString += "/databases/" + c.database + "/changes"
 	urlString = toWebSocketPath(urlString)
 
 	for {

@@ -119,17 +119,19 @@ func (re *RequestExecutor) GetTopologyNodes() []*ServerNode {
 }
 
 // GetURL returns an URL
-func (re *RequestExecutor) GetURL() string {
+func (re *RequestExecutor) GetURL() (string, error) {
 	if re.getNodeSelector() == nil {
-		return ""
+		return "", nil
 	}
 
-	// TODO: propagate error
-	preferredNode, _ := re.getPreferredNode()
-	if preferredNode != nil {
-		return preferredNode.currentNode.URL
+	preferredNode, err := re.getPreferredNode()
+	if err != nil {
+		return "", err
 	}
-	return ""
+	if preferredNode != nil {
+		return preferredNode.currentNode.URL, nil
+	}
+	return "", nil
 }
 
 func (re *RequestExecutor) GetConventions() *DocumentConventions {

@@ -176,7 +176,9 @@ func requestExecutorTestCanChooseOnlineNode(t *testing.T, driver *RavenTestDrive
 		topologyNodes := executor.GetTopologyNodes()
 		assert.Equal(t, len(topologyNodes), 1)
 		assert.Equal(t, url, topologyNodes[0].URL)
-		assert.Equal(t, url, executor.GetURL())
+		url2, err := executor.GetURL()
+		assert.NoError(t, err)
+		assert.Equal(t, url, url2)
 	}
 	if dbgRequestExecutorTests {
 		fmt.Printf("requestExecutorTest_canChooseOnlineNode end\n")
