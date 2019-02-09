@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/ravendb/ravendb-go-client/examples/northwind"
 	"log"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/ravendb/ravendb-go-client/examples/northwind"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
 )
@@ -398,7 +399,7 @@ func queryCollection() {
 	defer store.Close()
 	defer session.Close()
 
-	session.Query()
+	//session.QueryCollection("employees")
 }
 
 func main() {
