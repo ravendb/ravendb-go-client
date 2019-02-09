@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +36,8 @@ func queryStreamingCanStreamQueryResults(t *testing.T, driver *RavenTestDriver) 
 	count := 0
 	{
 		session := openSessionMust(t, store)
-		query := session.QueryInIndex(index)
+		query, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		stream, err := session.Advanced().StreamQuery(query, nil)
 		assert.NoError(t, err)
 		for {
@@ -80,7 +81,8 @@ func queryStreamingCanStreamQueryResultsWithQueryStatistics(t *testing.T, driver
 
 	{
 		session := openSessionMust(t, store)
-		query := session.QueryInIndex(index)
+		query, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		statsRef := &ravendb.StreamQueryStatistics{}
 
 		stream, err := session.Advanced().StreamQuery(query, statsRef)
@@ -259,7 +261,8 @@ func queryStreamingCanStreamQueryIntoStream(t *testing.T, driver *RavenTestDrive
 	{
 		var buf bytes.Buffer
 		session := openSessionMust(t, store)
-		query := session.QueryInIndex(index)
+		query, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		err = session.Advanced().StreamQueryInto(query, &buf)
 		assert.NoError(t, err)
 

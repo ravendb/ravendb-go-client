@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,7 +36,8 @@ func regexQueryWueriesWithRegexFromDocumentQuery(t *testing.T, driver *RavenTest
 	{
 		session := openSessionMust(t, store)
 
-		query := session.Advanced().DocumentQuery()
+		query, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&RegexMe{}))
+		assert.NoError(t, err)
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
 		var result []*RegexMe

@@ -1,10 +1,11 @@
 package tests
 
 import (
-	"github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 // Note: renamed to Item2 to avoid conflicts
@@ -48,7 +49,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		clazz := reflect.TypeOf(&Item2{})
-		q := session.QueryType(clazz)
+		q, err := session.QueryCollectionForType(clazz)
+		assert.NoError(t, err)
 		fieldName := ravendb.NewPointField("latitude", "longitude")
 		clause := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.WithinRadius(10, 10, 20)
@@ -58,7 +60,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		iq := q.GetIndexQuery()
 		assert.Equal(t, iq.GetQuery(), "from Item2s where spatial.within(spatial.point(latitude, longitude), spatial.circle($p0, $p1, $p2))")
 
-		q = session.QueryType(clazz)
+		q, err = session.QueryCollectionForType(clazz)
+		assert.NoError(t, err)
 		fieldName2 := ravendb.NewWktField("shapeWkt")
 		q = q.Spatial2(fieldName2, clause)
 
@@ -74,7 +77,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		var statsRef *ravendb.QueryStatistics
 
 		var results []*Item2
-		q := session.Query()
+		q, err := session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
+		assert.NoError(t, err)
 		q = q.Statistics(&statsRef)
 		fieldName := ravendb.NewPointField("latitude", "longitude")
 		clause := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
@@ -93,7 +97,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		statsRef = nil
 		results = nil
 
-		q = session.Query()
+		q, err = session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
+		assert.NoError(t, err)
 		q = q.Statistics(&statsRef)
 		fieldName = ravendb.NewPointField("latitude2", "longitude2")
 		q = q.Spatial2(fieldName, clause)
@@ -107,7 +112,8 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		statsRef = nil
 		results = nil
 
-		q = session.Query()
+		q, err = session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
+		assert.NoError(t, err)
 		q = q.Statistics(&statsRef)
 		fieldName2 := ravendb.NewWktField("shapeWkt")
 		q = q.Spatial2(fieldName2, clause)

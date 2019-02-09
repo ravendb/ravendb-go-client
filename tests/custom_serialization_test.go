@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -58,14 +59,15 @@ func customSerializationTestSerialization(t *testing.T, driver *RavenTestDriver)
 		assert.Equal(t, priceNode, "9999 USD")
 	}
 
-	//verify if query properly serialize value
+	// verify if query properly serialize value
 	{
 		session := openSessionMust(t, store)
 
-		var productsForTwoDollars []*Product3
-		q := session.Query()
+		q, err := session.QueryCollectionForType(reflect.TypeOf(&Product3{}))
+		assert.NoError(t, err)
 		q = q.WhereEquals("price", NewMoney(2, Dollar))
-		err := q.GetResults(&productsForTwoDollars)
+		var productsForTwoDollars []*Product3
+		err = q.GetResults(&productsForTwoDollars)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(productsForTwoDollars), 1)

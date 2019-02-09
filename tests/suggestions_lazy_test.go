@@ -50,10 +50,8 @@ func suggestionsLazyUsingLinq(t *testing.T, driver *RavenTestDriver) {
 		s := openSessionMust(t, store)
 		oldRequests := s.Advanced().GetNumberOfRequests()
 
-		queryIndex := &ravendb.Query{
-			IndexName: "test",
-		}
-		q := s.QueryWithQuery(queryIndex)
+		q, err := s.QueryIndex("test")
+		assert.NoError(t, err)
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "Owen")
 		q2, err := q.SuggestUsing(x.GetSuggestion())

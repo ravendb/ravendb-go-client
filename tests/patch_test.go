@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -110,7 +110,9 @@ func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 		var n int
 		var results []*User
 		clazz := reflect.TypeOf(&User{})
-		lazy, err := session.QueryType(clazz).CountLazily(&results, &n)
+		q, err := session.QueryCollectionForType(clazz)
+		assert.NoError(t, err)
+		lazy, err := q.CountLazily(&results, &n)
 		assert.NoError(t, err)
 		lazy.GetValue()
 		assert.Equal(t, n, 1)

@@ -46,7 +46,8 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryType(reflect.TypeOf(&UserWithFavs{}))
+		q, err := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
+		assert.NoError(t, err)
 		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
 		q = q.SelectFields("Name")
 		var pascalOrGoDeveloperNames []string
@@ -62,7 +63,8 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryType(reflect.TypeOf(&UserWithFavs{}))
+		q, err := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
+		assert.NoError(t, err)
 		q = q.ContainsAll("Favourites", []interface{}{"java"})
 		q = q.SelectFields("Name")
 		var javaDevelopers []string

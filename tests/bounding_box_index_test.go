@@ -1,10 +1,11 @@
 package tests
 
 import (
-	"github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
@@ -44,7 +45,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		clazz := reflect.TypeOf(&SpatialDoc{})
-		q := session.QueryType(clazz)
+		q, err := session.QueryCollectionForType(clazz)
+		assert.NoError(t, err)
 		result, err := q.Count()
 		assert.NoError(t, err)
 		assert.Equal(t, result, 1)
@@ -55,7 +57,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(bboxIndex)
+		q, err := session.QueryIndex(bboxIndex.IndexName)
+		assert.NoError(t, err)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle1)
 		}
@@ -70,7 +73,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(bboxIndex)
+		q, err := session.QueryIndex(bboxIndex.IndexName)
+		assert.NoError(t, err)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle2)
 		}
@@ -85,7 +89,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(bboxIndex)
+		q, err := session.QueryIndex(bboxIndex.IndexName)
+		assert.NoError(t, err)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Disjoint(rectangle2)
 		}
@@ -100,7 +105,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(bboxIndex)
+		q, err := session.QueryIndex(bboxIndex.IndexName)
+		assert.NoError(t, err)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Within(rectangle3)
 		}
@@ -115,7 +121,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(quadTreeIndex)
+		q, err := session.QueryIndex(quadTreeIndex.IndexName)
+		assert.NoError(t, err)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle2)
 		}
@@ -130,7 +137,8 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(quadTreeIndex)
+		q, err := session.QueryIndex(quadTreeIndex.IndexName)
+		assert.NoError(t, err)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle1)
 		}

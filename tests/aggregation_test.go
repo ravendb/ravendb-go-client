@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,7 +78,8 @@ func aggregation_canCorrectlyAggregate_Double(t *testing.T, driver *RavenTestDri
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		f := ravendb.NewFacetBuilder()
 		f.ByField("region").MaxOn("total").MinOn("total")
 		q2, err := q.AggregateByFacet(f.GetFacet())
@@ -163,7 +164,8 @@ func aggregationCanCorrectlyAggregateMultipleItems(t *testing.T, driver *RavenTe
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		f := ravendb.NewFacetBuilder()
 		f.ByField("product").SumOn("total")
 		q2, err := q.AggregateByFacet(f.GetFacet())
@@ -248,7 +250,8 @@ func aggregationCanCorrectlyAggregateMultipleAggregations(t *testing.T, driver *
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		f := ravendb.NewFacetBuilder()
 		f.ByField("product").MaxOn("total").MinOn("total")
 		q2, err := q.AggregateByFacet(f.GetFacet())
@@ -320,7 +323,8 @@ func aggregationCanCorrectlyAggregateDisplayName(t *testing.T, driver *RavenTest
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		f := ravendb.NewFacetBuilder()
 		f.ByField("product").WithDisplayName("productMax").MaxOn("total")
 		q2, err := q.AggregateByFacet(f.GetFacet())
@@ -389,7 +393,8 @@ func aggregationCanCorrectlyAggregateRanges(t *testing.T, driver *RavenTestDrive
 		session := openSessionMust(t, store)
 		_range := ravendb.NewRangeBuilder("total")
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		f := ravendb.NewFacetBuilder()
 		f.ByField("product").SumOn("total")
 		q2, err := q.AggregateByFacet(f.GetFacet())
@@ -525,7 +530,8 @@ func aggregationCanCorrectlyAggregateDateTimeDataTypeWithRangeCounts(t *testing.
 
 	{
 		session := openSessionMust(t, store)
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		q = q.WhereGreaterThanOrEqual("at", end0)
 		f := ravendb.NewFacetBuilder()
 		r1 := builder.IsGreaterThanOrEqualTo(minValue)              // all - 4
@@ -590,7 +596,8 @@ func goAggregationIsGreaterThanAndIsLessThanOrEqualTo(t *testing.T, driver *Rave
 	{
 		session := openSessionMust(t, store)
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		b := ravendb.NewFacetBuilder()
 		b.ByField("product").SumOn("total")
 		q2, err := q.AggregateByFacet(b.GetFacet())

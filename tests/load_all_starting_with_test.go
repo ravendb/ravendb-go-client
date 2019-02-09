@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 
 	ravendb "github.com/ravendb/ravendb-go-client"
@@ -51,7 +52,9 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		assert.Equal(t, v["abc/1"].ID, "abc/1")
 
 		var v2 []*Xyz
-		test2Classes, err := session.Query().WaitForNonStaleResults(0).Lazily(&v2, nil)
+		q, err := session.QueryCollectionForType(reflect.TypeOf(&Xyz{}))
+		assert.NoError(t, err)
+		test2Classes, err := q.WaitForNonStaleResults(0).Lazily(&v2, nil)
 		assert.NoError(t, err)
 		err = test2Classes.GetValue()
 		assert.NoError(t, err)

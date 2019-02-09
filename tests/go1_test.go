@@ -1,10 +1,11 @@
 package tests
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -422,8 +423,10 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 	{
 		assert.Equal(t, 0, nBeforeQueryCalledCount)
 		session := openSessionMust(t, store)
+		tp := reflect.TypeOf(&User{})
+		q, err := session.QueryCollectionForType(tp)
+		assert.NoError(t, err)
 		var users []*User
-		q := session.Query()
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))
@@ -446,7 +449,8 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q := session.Query()
+		q, err := session.QueryCollectionForType(userType)
+		assert.NoError(t, err)
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))

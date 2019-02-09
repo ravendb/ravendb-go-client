@@ -1,5 +1,11 @@
 package tests
 
+import "reflect"
+
+var (
+	userType = reflect.TypeOf(&User{})
+)
+
 type User struct {
 	ID        string
 	Name      *string `json:"name"`

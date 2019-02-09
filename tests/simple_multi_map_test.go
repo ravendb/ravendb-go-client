@@ -1,10 +1,11 @@
 package tests
 
 import (
-	"github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 func simpleMultiMap_canCreateMultiMapIndex(t *testing.T, driver *RavenTestDriver) {
@@ -54,7 +55,8 @@ func simpleMultiMap_canQueryUsingMultiMap(t *testing.T, driver *RavenTestDriver)
 		// Note: Go doesn't support interfaces like Java. We can only
 		// query a single type, not an interface
 		var haveNames []*Dog
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		q = q.WaitForNonStaleResults(time.Second * 10)
 		q = q.OrderBy("name")
 		err = q.GetResults(&haveNames)

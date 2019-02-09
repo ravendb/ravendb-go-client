@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,7 +58,8 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().DocumentQuery()
+		q, err := session.Advanced().QueryCollectionForType(userType)
+		assert.NoError(t, err)
 		q = q.WhereEquals("name", ravendb.CmpXchgValue("Hera"))
 		q = q.WhereEquals("lastName", ravendb.CmpXchgValue("Tom"))
 
@@ -74,7 +75,8 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
 
 		users = nil
-		q = session.Advanced().DocumentQuery()
+		q, err = session.Advanced().QueryCollectionForType(userType)
+		assert.NoError(t, err)
 		q = q.WhereNotEquals("name", ravendb.CmpXchgValue("Hera"))
 		err = q.GetResults(&users)
 		assert.NoError(t, err)

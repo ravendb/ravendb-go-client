@@ -728,8 +728,10 @@ func cloneMapStringObject(m map[string]interface{}) map[string]interface{} {
 	return res
 }
 
-// public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
-
+// DocumentQuery* seem redundant with Query* functions
+// I assume in Java it was done to avoid conflicts in IAdvancedSessionOperations
+// and other interfaces
+/*
 func (s *DocumentSession) DocumentQueryIndex(indexName string) *DocumentQuery {
 	opts := &DocumentQueryOptions{
 		IndexName: indexName,
@@ -740,18 +742,17 @@ func (s *DocumentSession) DocumentQueryIndex(indexName string) *DocumentQuery {
 	return q
 }
 
-// DocumentQuery starts a new DocumentQuery
-func (s *DocumentSession) DocumentQuery() *DocumentQuery {
-	return s.DocumentQueryAll("", "", false)
+func (s *DocumentSession) DocumentQueryCollection(collectionName string) *DocumentQuery {
+	opts := &DocumentQueryOptions{
+		CollectionName: collectionName,
+		session:        s.InMemoryDocumentSessionOperations,
+	}
+	// TODO: propagate errors
+	q, _ := newDocumentQuery(opts)
+	return q
 }
 
-// TODO: convert to use result interface{} instead of clazz reflect.Type
-func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
-	return s.DocumentQueryAllOld(clazz, "", "", false)
-}
-
-// TODO: propagate error
-func (s *DocumentSession) DocumentQueryType(clazz reflect.Type) *DocumentQuery {
+func (s *DocumentSession) DocumentQueryCollectionForType(clazz reflect.Type) (*DocumentQuery, error) {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	indexName, collectionName, err := s.processQueryParameters(clazz, "", "", s.GetConventions())
 	panicIfErr(err)
@@ -761,13 +762,25 @@ func (s *DocumentSession) DocumentQueryType(clazz reflect.Type) *DocumentQuery {
 		Type:           clazz,
 		session:        s.InMemoryDocumentSessionOperations,
 	}
-	q, _ := newDocumentQuery(opts)
-	return q
+	return newDocumentQuery(opts)
+}
+
+// DocumentQuery starts a new DocumentQuery
+func (s *DocumentSession) DocumentQuery() *DocumentQuery {
+	return s.DocumentQueryAll("", "", false)
 }
 
 func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
-	return NewDocumentQuery(s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
+	opts := &DocumentQueryOptions{
+		IndexName:      indexName,
+		CollectionName: collectionName,
+		IsMapReduce:    isMapReduce,
+		session:        s.InMemoryDocumentSessionOperations,
+	}
+	q, _ := newDocumentQuery(opts)
+	// TODO: propagate query
+	return q
 }
 
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
@@ -786,6 +799,7 @@ func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName stri
 	q, _ := newDocumentQuery(opts)
 	return q
 }
+*/
 
 // RawQuery returns new DocumentQuery representing a raw query
 func (s *DocumentSession) RawQuery(rawQuery string) (*RawDocumentQuery, error) {
@@ -802,31 +816,52 @@ func (s *DocumentSession) RawQuery(rawQuery string) (*RawDocumentQuery, error) {
 	}, nil
 }
 
+/*
 // Query return a new DocumentQuery
-func (s *DocumentSession) Query() *DocumentQuery {
+func (s *DocumentSession) Query(opts *DocumentQueryOptions) *DocumentQuery {
+	if opts == nil {
+		opts = &DocumentQueryOptions{}
+	}
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
-	// we delay setting clazz, indexName and collectionName until TolList()
-	return NewDocumentQuery(s.InMemoryDocumentSessionOperations, "", "", false)
+	opts.session = s.InMemoryDocumentSessionOperations
+	q, _ := newDocumentQuery(opts)
+	// TODO: propagate errors
+	return q
+}
+*/
+
+func (s *DocumentSession) QueryCollection(collectionName string) (*DocumentQuery, error) {
+	if collectionName == "" {
+		return nil, newIllegalArgumentError("collectionName cannot be empty")
+	}
+	opts := &DocumentQueryOptions{
+		CollectionName: collectionName,
+		session:        s.InMemoryDocumentSessionOperations,
+	}
+	return newDocumentQuery(opts)
 }
 
 // QueryType creates a new query over documents of a given type
-// TODO: accept Foo{} in addition to *Foo{} to make the API more forgiving
-func (s *DocumentSession) QueryType(clazz reflect.Type) *DocumentQuery {
-	panicIf(s == nil, "s shouldn't be nil here")
-	return s.DocumentQueryAllOld(clazz, "", "", false)
+func (s *DocumentSession) QueryCollectionForType(typ reflect.Type) (*DocumentQuery, error) {
+	if typ == nil {
+		return nil, newIllegalArgumentError("typ cannot be nil")
+	}
+	opts := &DocumentQueryOptions{
+		Type:    typ,
+		session: s.InMemoryDocumentSessionOperations,
+	}
+	return newDocumentQuery(opts)
 }
 
-// QueryWithQuery creaates a query with given query arguments
-func (s *DocumentSession) QueryWithQuery(collectionOrIndexName *Query) *DocumentQuery {
-	return s.DocumentQueryAll(collectionOrIndexName.IndexName, collectionOrIndexName.Collection, false)
-}
-
-func (s *DocumentSession) QueryInIndexNamed(indexName string) *DocumentQuery {
-	return s.DocumentQueryAll(indexName, "", false)
-}
-
-func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAll(index.IndexName, "", index.IsMapReduce())
+func (s *DocumentSession) QueryIndex(indexName string) (*DocumentQuery, error) {
+	if indexName == "" {
+		return nil, newIllegalArgumentError("indexName cannot be empty")
+	}
+	opts := &DocumentQueryOptions{
+		IndexName: indexName,
+		session:   s.InMemoryDocumentSessionOperations,
+	}
+	return newDocumentQuery(opts)
 }
 
 // StreamQuery starts a streaming query and returns iterator for results.

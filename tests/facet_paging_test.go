@@ -1,11 +1,12 @@
 package tests
 
 import (
-	"github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
 	"sort"
 	"strings"
 	"testing"
+
+	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -45,7 +46,8 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeNoMaxResults_HitsDes
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q := session.QueryInIndexNamed("CameraCost")
+		q, err := session.QueryIndex("CameraCost")
+		assert.NoError(t, err)
 		ag := q.AggregateUsing("facets/CameraFacets")
 		facetResults, err := ag.Execute()
 		assert.NoError(t, err)
@@ -132,7 +134,8 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeWithMaxResults_HitsD
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q := session.QueryInIndexNamed("CameraCost")
+		q, err := session.QueryIndex("CameraCost")
+		assert.NoError(t, err)
 		ag := q.AggregateUsing("facets/CameraFacets")
 		facetResults, err := ag.Execute()
 		assert.NoError(t, err)

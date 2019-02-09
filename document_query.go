@@ -40,7 +40,6 @@ type DocumentQueryOptions struct {
 }
 
 func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
-	// TODO: move this validation to newAbstractDocumentQuery
 	if opts.session == nil {
 		return nil, newIllegalArgumentError("DocumentQueryOptions.session must be provided")
 	}
@@ -51,34 +50,6 @@ func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
 	return &DocumentQuery{
 		AbstractDocumentQuery: aq,
 	}, nil
-}
-
-// NewDocumentQuery returns new DocumentQuery
-func NewDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
-	opts := &DocumentQueryOptions{
-		session:        session,
-		IndexName:      indexName,
-		CollectionName: collectionName,
-		isGroupBy:      isGroupBy,
-	}
-	// TODO: propaget error
-	q, _ := newDocumentQuery(opts)
-	return q
-}
-
-func NewDocumentQueryType(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
-	opts := &DocumentQueryOptions{
-		Type:           clazz,
-		session:        session,
-		IndexName:      indexName,
-		CollectionName: collectionName,
-		isGroupBy:      isGroupBy,
-	}
-	// TODO: propagate error
-	aq, _ := newAbstractDocumentQuery(opts)
-	return &DocumentQuery{
-		AbstractDocumentQuery: aq,
-	}
 }
 
 // SelectFields limits the returned values to one or more fields of the queried type.

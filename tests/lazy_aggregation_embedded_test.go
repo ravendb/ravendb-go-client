@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,7 +44,8 @@ func lazyAggregationEmbeddedLazyTest(t *testing.T, driver *RavenTestDriver) {
 		index.Execute(store, nil, "")
 		driver.waitForIndexing(store, "", 0)
 
-		q := session.QueryInIndex(index)
+		q, err := session.QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		f := ravendb.NewFacetBuilder()
 		f.ByField("AssigneeID").WithDisplayName("AssigneeID")
 		query, err := q.AggregateByFacet(f.GetFacet())

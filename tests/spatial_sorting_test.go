@@ -97,7 +97,6 @@ func assertResultsOrder(t *testing.T, resultIDs []string, expectedOrder []string
 
 func spatialSortingCanFilterByLocationAndSortByDistanceFromDifferentPointWDocQuery(t *testing.T,
 	driver *RavenTestDriver) {
-	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -107,10 +106,8 @@ func spatialSortingCanFilterByLocationAndSortByDistanceFromDifferentPointWDocQue
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLng",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLng")
+		assert.NoError(t, err)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			res := f.Within(getQueryShapeFromLatLon(FilteredLat, FilteredLng, FilteredRadius))
 			return res
@@ -148,13 +145,11 @@ func spatialSortingCanSortByDistanceWOFilteringWDocQuery(t *testing.T, driver *R
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLng",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLng")
+		assert.NoError(t, err)
 		q = q.OrderByDistanceLatLong("coordinates", SortedLat, SortedLng)
 
-		err := q.GetResults(&shops)
+		err = q.GetResults(&shops)
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
 
@@ -175,12 +170,10 @@ func spatialSortingCanSortByDistanceWOFilteringWDocQueryBySpecifiedField(t *test
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLngWSpecialField",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLngWSpecialField")
+		assert.NoError(t, err)
 		q = q.OrderByDistanceLatLong("mySpacialField", SortedLat, SortedLng)
-		err := q.GetResults(&shops)
+		err = q.GetResults(&shops)
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(sortedExpectedOrder))
 
@@ -201,12 +194,10 @@ func spatialSortingCanSortByDistanceWOFiltering(t *testing.T, driver *RavenTestD
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLng",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLng")
+		assert.NoError(t, err)
 		q = q.OrderByDistanceLatLong("coordinates", FilteredLat, FilteredLng)
-		err := q.GetResults(&shops)
+		err = q.GetResults(&shops)
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
@@ -221,12 +212,10 @@ func spatialSortingCanSortByDistanceWOFiltering(t *testing.T, driver *RavenTestD
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLng",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLng")
+		assert.NoError(t, err)
 		q = q.OrderByDistanceDescendingLatLong("coordinates", FilteredLat, FilteredLng)
-		err := q.GetResults(&shops)
+		err = q.GetResults(&shops)
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
@@ -249,12 +238,10 @@ func spatialSortingCanSortByDistanceWOFilteringBySpecifiedField(t *testing.T, dr
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLngWSpecialField",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLngWSpecialField")
+		assert.NoError(t, err)
 		q = q.OrderByDistanceLatLong("mySpacialField", FilteredLat, FilteredLng)
-		err := q.GetResults(&shops)
+		err = q.GetResults(&shops)
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))
@@ -269,12 +256,10 @@ func spatialSortingCanSortByDistanceWOFilteringBySpecifiedField(t *testing.T, dr
 		session := openSessionMust(t, store)
 
 		var shops []*Shop
-		queryIndex := &ravendb.Query{
-			IndexName: "eventsByLatLngWSpecialField",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("eventsByLatLngWSpecialField")
+		assert.NoError(t, err)
 		q = q.OrderByDistanceDescendingLatLong("mySpacialField", FilteredLat, FilteredLng)
-		err := q.GetResults(&shops)
+		err = q.GetResults(&shops)
 
 		assert.NoError(t, err)
 		assert.Equal(t, len(shops), len(filteredExpectedOrder))

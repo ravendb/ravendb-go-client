@@ -58,10 +58,8 @@ func spatialSearchCanDoSpatialSearchWithClientApi(t *testing.T, driver *RavenTes
 
 		var events []*Event
 		var statsRef *ravendb.QueryStatistics
-		queryIndex := &ravendb.Query{
-			IndexName: "SpatialIdx",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("SpatialIdx")
+		assert.NoError(t, err)
 		q = q.Statistics(&statsRef)
 		q = q.WhereLessThanOrEqual("date", addYears(now, 1))
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
@@ -87,7 +85,8 @@ func spatialSearchCanDoSpatialSearchWithClientApi3(t *testing.T, driver *RavenTe
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().DocumentQueryIndex(index.IndexName)
+		q, err := session.Advanced().QueryIndex(index.IndexName)
+		assert.NoError(t, err)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.WithinRadius(5, 38.9103000, -77.3942)
 		}
@@ -143,10 +142,8 @@ func spatialSearchCanDoSpatialSearchWithClientApiWithinGivenCapacity(t *testing.
 		var queryStats *ravendb.QueryStatistics
 
 		var events []*Event
-		queryIndex := &ravendb.Query{
-			IndexName: "SpatialIdx",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("SpatialIdx")
+		assert.NoError(t, err)
 		q = q.Statistics(&queryStats)
 		q = q.OpenSubclause()
 		q = q.WhereGreaterThanOrEqual("capacity", 0)
@@ -215,14 +212,12 @@ func spatialSearchCanDoSpatialSearchWithClientApiAddOrder(t *testing.T, driver *
 	{
 		session := openSessionMust(t, store)
 
-		var events []*Event
-		queryIndex := &ravendb.Query{
-			IndexName: "spatialIdx",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("spatialIdx")
+		assert.NoError(t, err)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
+		var events []*Event
 		err = q.GetResults(&events)
 		assert.NoError(t, err)
 
@@ -238,14 +233,12 @@ func spatialSearchCanDoSpatialSearchWithClientApiAddOrder(t *testing.T, driver *
 	{
 		session := openSessionMust(t, store)
 
-		var events []*Event
-		queryIndex := &ravendb.Query{
-			IndexName: "spatialIdx",
-		}
-		q := session.QueryWithQuery(queryIndex)
+		q, err := session.QueryIndex("spatialIdx")
+		assert.NoError(t, err)
 		q = q.WithinRadiusOf("coordinates", 6.0, 38.96939, -77.386398)
 		q = q.AddOrder("venue", false)
 		q = q.OrderByDistanceLatLong("coordinates", 38.96939, -77.386398)
+		var events []*Event
 		err = q.GetResults(&events)
 		assert.NoError(t, err)
 

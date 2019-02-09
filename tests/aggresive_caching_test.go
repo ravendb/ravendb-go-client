@@ -82,9 +82,10 @@ func aggressiveCachingCanAggressivelyCacheQueries(t *testing.T, driver *RavenTes
 		{
 			dur := time.Minute * 5
 			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
-			q := session.Query()
+			q, err := session.QueryCollectionForType(userType)
+			assert.NoError(t, err)
 			var u []*User
-			err := q.GetResults(&u)
+			err = q.GetResults(&u)
 			assert.NoError(t, err)
 			context.Close()
 		}
@@ -104,10 +105,11 @@ func aggressiveCachingWaitForNonStaleResultsIgnoresAggressiveCaching(t *testing.
 		{
 			dur := time.Minute * 5
 			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
-			q := session.Query()
+			q, err := session.QueryCollectionForType(userType)
+			assert.NoError(t, err)
 			q = q.WaitForNonStaleResults(0)
 			var u []*User
-			err := q.GetResults(&u)
+			err = q.GetResults(&u)
 			assert.NoError(t, err)
 			context.Close()
 		}
