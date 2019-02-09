@@ -13,7 +13,6 @@ import (
 
 // AbstractDocumentQuery is a base class for describing a query
 type AbstractDocumentQuery struct {
-	clazz                   reflect.Type
 	aliasToGroupByFieldName map[string]string
 	defaultOperator         QueryOperator
 
@@ -102,7 +101,6 @@ func getQueryDefaultTimeout() time.Duration {
 // at this point we assume all
 func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*AbstractDocumentQuery, error) {
 	res := &AbstractDocumentQuery{
-		clazz:                   opts.Type,
 		defaultOperator:         QueryOperatorAnd,
 		isGroupBy:               opts.isGroupBy,
 		indexName:               opts.IndexName,
@@ -117,9 +115,7 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*AbstractDocumentQuer
 	}
 
 	if res.queryRaw == "" {
-		// if those are not provided, we delay creating fromToken
 		// until GetResult()
-		// TODO: don't delay, but either those must be set or rawQuery
 		if opts.IndexName != "" || opts.CollectionName != "" || opts.fromAlias != "" {
 			res.fromToken = createFromToken(opts.IndexName, opts.CollectionName, opts.fromAlias)
 		}
@@ -1706,84 +1702,31 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 	return nil, fmt.Errorf("expected value of type *[]<type>, got %T", results)
 }
 
-// TODO: propagate error
-func (q *AbstractDocumentQuery) setClazzFromResult(result interface{}) {
-	if q.clazz != nil {
-		return
+// check if v is a valid argument to query GetResults().
+// it must be map[string]*<type> where <type> is struct
+func checkValidQueryResults(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
 	}
 
-	var err error
-	// it's possible to search in index without needing to know the type
-	// see moreLikeThisCanGetResultsUsingTermVectorsLazy test
-	if q.fromToken != nil {
-		q.clazz, err = getTypeFromQueryResults(result)
-		panicIfErr(err)
-		return
+	tp := reflect.TypeOf(v)
+	if tp.Kind() != reflect.Ptr {
+		typeGot := fmt.Sprintf("%T", v)
+		return newIllegalArgumentError("%s can't be of type %s, must be *[]<type>", argName, typeGot)
 	}
-
-	// query was created without providing the type to query
-	panicIf(q.indexName != "", "q.clazz is not set but q.indexName is")
-	panicIf(q.collectionName != "", "q.clazz is not set but q.collectionName is")
-	panicIf(q.fromToken != nil, "q.clazz is not set but q.fromToken is")
-	tp := reflect.TypeOf(result)
-	if tp2, ok := isPtrPtrStruct(tp); ok {
-		q.clazz = tp2
-	} else if tp2, ok := isPtrSlicePtrStruct(tp); ok {
-		q.clazz = tp2
-	} else {
-		panicIf(true, "expected result to be **struct or *[]*struct, got: %T", result)
+	if reflect.ValueOf(v).IsNil() {
+		return newIllegalArgumentError("%s can't be a nil slice", argName)
 	}
-	s := q.theSession
-	indexName, collectionName, err := s.processQueryParameters(q.clazz, "", "", s.GetConventions())
-	panicIfErr(err)
-
-	q.fromToken = createFromToken(indexName, collectionName, "")
+	return nil
 }
 
 // GetResults executes the query and sets results to returned values.
 // results should be of type *[]<type>
 func (q *AbstractDocumentQuery) GetResults(results interface{}) error {
 	// Note: in Java it's called ToList
-	if results == nil {
-		return fmt.Errorf("results can't be nil")
+	if err := checkValidQueryResults(results, "results"); err != nil {
+		return err
 	}
-
-	// delayed SelectFields logic
-	if q.selectFieldsArgs != nil {
-		hadClazz := (q.clazz != nil)
-		// query was created without providing the type to query
-		projectionClass, err := getTypeFromQueryResults(results)
-		if err != nil {
-			return err
-		}
-		dq := q.createDocumentQueryInternal(projectionClass, q.selectFieldsArgs)
-		q = dq.AbstractDocumentQuery
-		panicIf(q.clazz != projectionClass, "q.clazz != projectionClass")
-		if !hadClazz {
-			s := q.theSession
-			q.indexName, q.collectionName, err = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
-			if err != nil {
-				return err
-			}
-			q.fromToken = createFromToken(q.indexName, q.collectionName, "")
-		}
-	}
-
-	if q.clazz == nil {
-		// query was created without providing the type to query
-		var err error
-		q.clazz, err = getTypeFromQueryResults(results)
-		if err != nil {
-			return err
-		}
-		s := q.theSession
-		q.indexName, q.collectionName, err = s.processQueryParameters(q.clazz, q.indexName, q.collectionName, s.GetConventions())
-		if err != nil {
-			return err
-		}
-		q.fromToken = createFromToken(q.indexName, q.collectionName, "")
-	}
-
 	return q.executeQueryOperation(results, 0)
 }
 
@@ -1792,7 +1735,6 @@ func (q *AbstractDocumentQuery) First(result interface{}) error {
 	if result == nil {
 		return newIllegalArgumentError("result can't be nil")
 	}
-	q.setClazzFromResult(result)
 
 	tp := reflect.TypeOf(result)
 	// **struct => *struct
@@ -1821,7 +1763,6 @@ func (q *AbstractDocumentQuery) Single(result interface{}) error {
 	if result == nil {
 		return fmt.Errorf("result can't be nil")
 	}
-	q.setClazzFromResult(result)
 
 	tp := reflect.TypeOf(result)
 	// **struct => *struct
@@ -1862,20 +1803,14 @@ func (q *AbstractDocumentQuery) Any() (bool, error) {
 	if q.isDistinct() {
 		// for distinct it is cheaper to do count 1
 
-		tp := q.clazz
-		// **struct => *struct
-		if tp.Kind() == reflect.Ptr && tp.Elem().Kind() == reflect.Ptr {
-			tp = tp.Elem()
-		}
-		// create a pointer to a slice. executeQueryOperation creates the actual slice
-		sliceType := reflect.SliceOf(tp)
-		slicePtr := reflect.New(sliceType)
-		err := q.executeQueryOperation(slicePtr.Interface(), 1)
+		toTake := 1
+		q.take(&toTake)
+
+		err := q.initSync()
 		if err != nil {
 			return false, err
 		}
-		slice := slicePtr.Elem()
-		return slice.Len() > 0, nil
+		return q.queryOperation.currentQueryResults.TotalResults > 0, nil
 	}
 
 	{
@@ -1927,7 +1862,6 @@ func (q *AbstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) {
 }
 
 func (q *AbstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) (*Lazy, error) {
-	q.setClazzFromResult(results)
 	if q.queryOperation == nil {
 		var err error
 		q.queryOperation, err = q.initializeQueryOperation()

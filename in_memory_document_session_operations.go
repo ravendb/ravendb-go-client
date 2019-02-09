@@ -1233,7 +1233,7 @@ func (s *InMemoryDocumentSessionOperations) onBeforeQueryInvoke(beforeQueryEvent
 	}
 }
 
-func (s *InMemoryDocumentSessionOperations) processQueryParameters(clazz reflect.Type, indexName string, collectionName string, conventions *DocumentConventions) (string, string, error) {
+func processQueryParameters(clazz reflect.Type, indexName string, collectionName string, conventions *DocumentConventions) (string, string, error) {
 	isIndex := stringIsNotBlank(indexName)
 	isCollection := stringIsNotEmpty(collectionName)
 

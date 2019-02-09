@@ -816,50 +816,55 @@ func (s *DocumentSession) RawQuery(rawQuery string) (*RawDocumentQuery, error) {
 	}, nil
 }
 
-/*
 // Query return a new DocumentQuery
-func (s *DocumentSession) Query(opts *DocumentQueryOptions) *DocumentQuery {
+func (s *DocumentSession) Query(opts *DocumentQueryOptions) (*DocumentQuery, error) {
 	if opts == nil {
 		opts = &DocumentQueryOptions{}
 	}
-	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	opts.session = s.InMemoryDocumentSessionOperations
-	q, _ := newDocumentQuery(opts)
-	// TODO: propagate errors
-	return q
+	opts.conventions = s.GetConventions()
+	return newDocumentQuery(opts)
 }
-*/
 
+// QueryCollection creates a new query over documents of a given collection
 func (s *DocumentSession) QueryCollection(collectionName string) (*DocumentQuery, error) {
 	if collectionName == "" {
 		return nil, newIllegalArgumentError("collectionName cannot be empty")
 	}
+	if err := throwIfInvalidCollectionName(collectionName); err != nil {
+		return nil, err
+	}
 	opts := &DocumentQueryOptions{
 		CollectionName: collectionName,
 		session:        s.InMemoryDocumentSessionOperations,
+		conventions:    s.GetConventions(),
 	}
 	return newDocumentQuery(opts)
 }
 
-// QueryType creates a new query over documents of a given type
+// QueryCollectionForType creates a new query over documents of a given type
 func (s *DocumentSession) QueryCollectionForType(typ reflect.Type) (*DocumentQuery, error) {
 	if typ == nil {
 		return nil, newIllegalArgumentError("typ cannot be nil")
 	}
 	opts := &DocumentQueryOptions{
-		Type:    typ,
-		session: s.InMemoryDocumentSessionOperations,
+		Type:        typ,
+		session:     s.InMemoryDocumentSessionOperations,
+		conventions: s.GetConventions(),
 	}
 	return newDocumentQuery(opts)
 }
 
+// QueryIndex creates a new query in a index with a given name
 func (s *DocumentSession) QueryIndex(indexName string) (*DocumentQuery, error) {
 	if indexName == "" {
 		return nil, newIllegalArgumentError("indexName cannot be empty")
 	}
+
 	opts := &DocumentQueryOptions{
-		IndexName: indexName,
-		session:   s.InMemoryDocumentSessionOperations,
+		IndexName:   indexName,
+		session:     s.InMemoryDocumentSessionOperations,
+		conventions: s.GetConventions(),
 	}
 	return newDocumentQuery(opts)
 }

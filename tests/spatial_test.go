@@ -165,13 +165,14 @@ func spatialMatchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestSpatial(t *testing.T) {
-	// // t.Parallel()
+	// t.Parallel()
 
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
+
 	spatialWeirdSpatialResults(t, driver)
 	spatialMatchSpatialResults(t, driver)
 }

@@ -36,9 +36,9 @@ func (t *fromToken) writeTo(writer *strings.Builder) {
 
 		hasWhitespace := strings.ContainsAny(t.collectionName, " \t\r\n")
 		if hasWhitespace {
-			if strings.Contains(t.collectionName, "\"") {
-				t.throwInvalidCollectionName()
-			}
+			// TODO: propagate error
+			err := throwIfInvalidCollectionName(t.collectionName)
+			must(err)
 			writer.WriteString(`"`)
 			writer.WriteString(t.collectionName)
 			writer.WriteString(`"`)
@@ -57,7 +57,9 @@ func (t *fromToken) writeTo(writer *strings.Builder) {
 	}
 }
 
-func (t *fromToken) throwInvalidCollectionName() {
-	panicIf(true, "Collection name cannot contain a quote, but was: %s", t.collectionName)
-	// newIllegalArgumentError("Collection name cannot contain a quote, but was: " + collectionName);
+func throwIfInvalidCollectionName(collectionName string) error {
+	if strings.Contains(collectionName, "\"") {
+		return newIllegalArgumentError("Collection name cannot contain a quote, but was: " + collectionName)
+	}
+	return nil
 }

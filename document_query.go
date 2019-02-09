@@ -29,6 +29,7 @@ type DocumentQueryOptions struct {
 
 	IsMapReduce bool
 
+	conventions *DocumentConventions
 	// rawQuery is mutually exclusive with IndexName and CollectionName/Type
 	rawQuery string
 
@@ -40,8 +41,13 @@ type DocumentQueryOptions struct {
 }
 
 func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
+	var err error
 	if opts.session == nil {
-		return nil, newIllegalArgumentError("DocumentQueryOptions.session must be provided")
+		return nil, newIllegalArgumentError("session must be provided")
+	}
+	opts.IndexName, opts.CollectionName, err = processQueryParameters(opts.Type, opts.IndexName, opts.CollectionName, opts.conventions)
+	if err != nil {
+		return nil, err
 	}
 	aq, err := newAbstractDocumentQuery(opts)
 	if err != nil {
@@ -435,8 +441,7 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 */
 
 // Note: had to move it down to AbstractDocumentQuery
-// TODO: propagate error
-func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
+func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) (*DocumentQuery, error) {
 
 	var newFieldsToFetch *fieldsToFetchToken
 
@@ -483,8 +488,10 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 		loadTokens:     loadTokens,
 		fromAlias:      fromAlias,
 	}
-	query, _ := newDocumentQuery(opts)
-	// TODO: propage error
+	query, err := newDocumentQuery(opts)
+	if err != nil {
+		return nil, err
+	}
 
 	query.queryRaw = q.queryRaw
 	query.pageSize = q.pageSize
@@ -513,7 +520,7 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	query.isIntersect = q.isIntersect
 	query.defaultOperator = q.defaultOperator
 
-	return query
+	return query, nil
 }
 
 func (q *DocumentQuery) AggregateByFacet(facet FacetBase) (*AggregationDocumentQuery, error) {
