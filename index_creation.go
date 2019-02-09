@@ -30,7 +30,7 @@ func indexCreationCreateIndexesToAdd(indexCreationTasks []*AbstractIndexCreation
 	for _, x := range indexCreationTasks {
 		x.Conventions = conventions
 		definition := x.CreateIndexDefinition()
-		definition.Name = x.GetIndexName()
+		definition.Name = x.IndexName
 		pri := x.Priority
 		if pri == "" {
 			pri = IndexPriorityNormal

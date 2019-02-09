@@ -16,7 +16,7 @@ type Product2 struct {
 func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery {
-		q := session.Advanced().DocumentQueryInIndex(index)
+		q := session.Advanced().DocumentQueryIndex(index.IndexName)
 		q = q.Search("description", "Hello")
 		q = q.Intersect()
 		q = q.WhereEquals("name", "Bar")
@@ -27,7 +27,7 @@ func ravendb903Test1(t *testing.T, driver *RavenTestDriver) {
 
 func ravendb903Test2(t *testing.T, driver *RavenTestDriver) {
 	fn := func(session *ravendb.DocumentSession, index *ravendb.AbstractIndexCreationTask) *ravendb.DocumentQuery {
-		q := session.Advanced().DocumentQueryInIndex(index)
+		q := session.Advanced().DocumentQueryIndex(index.IndexName)
 		q = q.WhereEquals("name", "Bar")
 		q = q.Intersect()
 		q = q.Search("description", "Hello")

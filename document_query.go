@@ -15,28 +15,69 @@ type DocumentQuery struct {
 	*AbstractDocumentQuery
 }
 
-// NewDocumentQuery returns new DocumentQuery
-func NewDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
-	return &DocumentQuery{
-		AbstractDocumentQuery: NewAbstractDocumentQuery(session, indexName, collectionName, isGroupBy, nil, nil, ""),
-	}
+// DocumentQueryOptions describes options for creating a query
+type DocumentQueryOptions struct {
+	// CollectionName and Type are mutually exclusive
+	// if Collection is empty string we'll derive name of the collection
+	// from Type
+	CollectionName string
+	Type           reflect.Type
+
+	// name of the index used for search query
+	// if set, CollectionName and Type should not be set
+	IndexName string
+
+	IsMapReduce bool
+
+	// rawQuery is mutually exclusive with IndexName and CollectionName/Type
+	rawQuery string
+
+	session      *InMemoryDocumentSessionOperations
+	isGroupBy    bool
+	declareToken *declareToken
+	loadTokens   []*loadToken
+	fromAlias    string
 }
 
-func NewDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
-	return &DocumentQuery{
-		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, nil, nil, ""),
+func newDocumentQuery(opts *DocumentQueryOptions) (*DocumentQuery, error) {
+	// TODO: move this validation to newAbstractDocumentQuery
+	if opts.session == nil {
+		return nil, newIllegalArgumentError("DocumentQueryOptions.session must be provided")
 	}
+	aq, err := newAbstractDocumentQuery(opts)
+	if err != nil {
+		return nil, err
+	}
+	return &DocumentQuery{
+		AbstractDocumentQuery: aq,
+	}, nil
+}
+
+// NewDocumentQuery returns new DocumentQuery
+func NewDocumentQuery(session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
+	opts := &DocumentQueryOptions{
+		session:        session,
+		IndexName:      indexName,
+		CollectionName: collectionName,
+		isGroupBy:      isGroupBy,
+	}
+	// TODO: propaget error
+	q, _ := newDocumentQuery(opts)
+	return q
 }
 
 func NewDocumentQueryType(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool) *DocumentQuery {
-	return &DocumentQuery{
-		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, nil, nil, ""),
+	opts := &DocumentQueryOptions{
+		Type:           clazz,
+		session:        session,
+		IndexName:      indexName,
+		CollectionName: collectionName,
+		isGroupBy:      isGroupBy,
 	}
-}
-
-func NewDocumentQueryWithTokenOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *DocumentQuery {
+	// TODO: propagate error
+	aq, _ := newAbstractDocumentQuery(opts)
 	return &DocumentQuery{
-		AbstractDocumentQuery: NewAbstractDocumentQueryOld(clazz, session, indexName, collectionName, isGroupBy, declareToken, loadTokens, fromAlias),
+		AbstractDocumentQuery: aq,
 	}
 }
 
@@ -423,6 +464,7 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 */
 
 // Note: had to move it down to AbstractDocumentQuery
+// TODO: propagate error
 func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) *DocumentQuery {
 
 	var newFieldsToFetch *fieldsToFetchToken
@@ -459,14 +501,19 @@ func (q *AbstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 		loadTokens = queryData.LoadTokens
 		fromAlias = queryData.FromAlias
 	}
-	query := NewDocumentQueryWithTokenOld(resultClass,
-		q.theSession,
-		q.indexName,
-		q.collectionName,
-		q.isGroupBy,
-		declareToken,
-		loadTokens,
-		fromAlias)
+
+	opts := &DocumentQueryOptions{
+		Type:           resultClass,
+		session:        q.theSession,
+		IndexName:      q.indexName,
+		CollectionName: q.collectionName,
+		isGroupBy:      q.isGroupBy,
+		declareToken:   declareToken,
+		loadTokens:     loadTokens,
+		fromAlias:      fromAlias,
+	}
+	query, _ := newDocumentQuery(opts)
+	// TODO: propage error
 
 	query.queryRaw = q.queryRaw
 	query.pageSize = q.pageSize

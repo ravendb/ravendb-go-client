@@ -87,7 +87,7 @@ func spatialSearchCanDoSpatialSearchWithClientApi3(t *testing.T, driver *RavenTe
 	{
 		session := openSessionMust(t, store)
 
-		q := session.Advanced().DocumentQueryInIndex(index)
+		q := session.Advanced().DocumentQueryIndex(index.IndexName)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.WithinRadius(5, 38.9103000, -77.3942)
 		}

@@ -1,7 +1,5 @@
 package ravendb
 
-import "strings"
-
 type IndexCreator interface {
 }
 
@@ -60,7 +58,7 @@ func (t *AbstractIndexCreationTask) CreateIndexDefinition() *IndexDefinition {
 		t.Conventions = NewDocumentConventions()
 	}
 
-	indexDefinitionBuilder := NewIndexDefinitionBuilder(t.GetIndexName())
+	indexDefinitionBuilder := NewIndexDefinitionBuilder(t.IndexName)
 	indexDefinitionBuilder.indexesStrings = t.IndexesStrings
 	indexDefinitionBuilder.analyzersStrings = t.AnalyzersStrings
 	indexDefinitionBuilder.setMap(t.Map)
@@ -85,12 +83,6 @@ func (t *AbstractIndexCreationTask) IsMapReduce() bool {
 	return t.Reduce != ""
 }
 
-// GetIndexName returns index name
-func (t *AbstractIndexCreationTask) GetIndexName() string {
-	panicIf(t.IndexName == "", "indexName must be set by 'sub-class' to be equivalent of Java's getClass().getSimpleName()")
-	return strings.Replace(t.IndexName, "_", "/", -1)
-}
-
 // Execute executes index in specified document store
 // TODO: remove conventions argument, can set AbstractIndexCreationTask.Conventions
 func (t *AbstractIndexCreationTask) Execute(store *DocumentStore, conventions *DocumentConventions, database string) error {
@@ -111,7 +103,7 @@ func (t *AbstractIndexCreationTask) putIndex(store *DocumentStore, conventions *
 	t.Conventions = conv
 
 	indexDefinition := t.CreateIndexDefinition()
-	indexDefinition.Name = t.GetIndexName()
+	indexDefinition.Name = t.IndexName
 	indexDefinition.LockMode = t.LockMode
 	indexDefinition.Priority = t.Priority
 

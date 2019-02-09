@@ -10,13 +10,6 @@ type RawDocumentQuery struct {
 	*AbstractDocumentQuery
 }
 
-func NewRawDocumentQuery(session *InMemoryDocumentSessionOperations, rawQuery string) *RawDocumentQuery {
-	res := &RawDocumentQuery{}
-	res.AbstractDocumentQuery = NewAbstractDocumentQuery(session, "", "", false, nil, nil, "")
-	res.queryRaw = rawQuery
-	return res
-}
-
 func (q *RawDocumentQuery) Skip(count int) *RawDocumentQuery {
 	q.skip(count)
 	return q

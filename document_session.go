@@ -730,13 +730,14 @@ func cloneMapStringObject(m map[string]interface{}) map[string]interface{} {
 
 // public <T, TIndex extends AbstractIndexCreationTask> IDocumentQuery<T> documentQuery(reflect.Type clazz, Class<TIndex> indexClazz) {
 
-// DocumentQueryInIndex starts a new DocumentQuery in a given index
-func (s *DocumentSession) DocumentQueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
-}
-
-func (s *DocumentSession) DocumentQueryInIndexNamed(indexName string) *DocumentQuery {
-	return s.DocumentQueryAll(indexName, "", false)
+func (s *DocumentSession) DocumentQueryIndex(indexName string) *DocumentQuery {
+	opts := &DocumentQueryOptions{
+		IndexName: indexName,
+		session:   s.InMemoryDocumentSessionOperations,
+	}
+	// TODO: propagate errors
+	q, _ := newDocumentQuery(opts)
+	return q
 }
 
 // DocumentQuery starts a new DocumentQuery
@@ -749,11 +750,19 @@ func (s *DocumentSession) DocumentQueryOld(clazz reflect.Type) *DocumentQuery {
 	return s.DocumentQueryAllOld(clazz, "", "", false)
 }
 
+// TODO: propagate error
 func (s *DocumentSession) DocumentQueryType(clazz reflect.Type) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	indexName, collectionName, err := s.processQueryParameters(clazz, "", "", s.GetConventions())
 	panicIfErr(err)
-	return NewDocumentQueryType(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, false)
+	opts := &DocumentQueryOptions{
+		IndexName:      indexName,
+		CollectionName: collectionName,
+		Type:           clazz,
+		session:        s.InMemoryDocumentSessionOperations,
+	}
+	q, _ := newDocumentQuery(opts)
+	return q
 }
 
 func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
@@ -764,14 +773,31 @@ func (s *DocumentSession) DocumentQueryAll(indexName string, collectionName stri
 func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName string, collectionName string, isMapReduce bool) *DocumentQuery {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	var err error
+	// TODO: propagate error
 	indexName, collectionName, err = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
 	panicIfErr(err)
-	return NewDocumentQueryOld(clazz, s.InMemoryDocumentSessionOperations, indexName, collectionName, isMapReduce)
+	opts := &DocumentQueryOptions{
+		Type:           clazz,
+		session:        s.InMemoryDocumentSessionOperations,
+		IndexName:      indexName,
+		CollectionName: collectionName,
+		IsMapReduce:    isMapReduce,
+	}
+	q, _ := newDocumentQuery(opts)
+	return q
 }
 
 // RawQuery returns new DocumentQuery representing a raw query
-func (s *DocumentSession) RawQuery(query string) *RawDocumentQuery {
-	return NewRawDocumentQuery(s.InMemoryDocumentSessionOperations, query)
+// TODO: propagate error
+func (s *DocumentSession) RawQuery(rawQuery string) *RawDocumentQuery {
+	opts := &DocumentQueryOptions{
+		session:  s.InMemoryDocumentSessionOperations,
+		rawQuery: rawQuery,
+	}
+	aq, _ := newAbstractDocumentQuery(opts)
+	return &RawDocumentQuery{
+		AbstractDocumentQuery: aq,
+	}
 }
 
 // Query return a new DocumentQuery
@@ -798,7 +824,7 @@ func (s *DocumentSession) QueryInIndexNamed(indexName string) *DocumentQuery {
 }
 
 func (s *DocumentSession) QueryInIndex(index *AbstractIndexCreationTask) *DocumentQuery {
-	return s.DocumentQueryAll(index.GetIndexName(), "", index.IsMapReduce())
+	return s.DocumentQueryAll(index.IndexName, "", index.IsMapReduce())
 }
 
 // StreamQuery starts a streaming query and returns iterator for results.

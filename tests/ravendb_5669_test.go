@@ -22,7 +22,7 @@ func ravendb5669WorkingTestWithDifferentSearchTermOrder(t *testing.T, driver *Ra
 		session := openSessionMust(t, store)
 
 		var results []*Animal
-		query := session.Advanced().DocumentQueryInIndex(index)
+		query := session.Advanced().DocumentQueryIndex(index.IndexName)
 
 		query.OpenSubclause()
 
@@ -56,7 +56,7 @@ func ravendb5669workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) 
 	{
 		session := openSessionMust(t, store)
 
-		query := session.Advanced().DocumentQueryInIndex(index)
+		query := session.Advanced().DocumentQueryIndex(index.IndexName)
 
 		query.OpenSubclause()
 

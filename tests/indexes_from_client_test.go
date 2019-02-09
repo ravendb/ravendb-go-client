@@ -74,7 +74,7 @@ func indexesFromClientTestCanReset(t *testing.T, driver *RavenTestDriver) {
 	statistics := command.Result
 	firstIndexingTime := statistics.Indexes[0].GetLastIndexingTime()
 
-	indexName := NewUsersIndex().GetIndexName()
+	indexName := NewUsersIndex().IndexName
 	// now reset index
 	time.Sleep(time.Millisecond * 2)
 	{
@@ -126,7 +126,7 @@ func indexesFromClientTestCanDelete(t *testing.T, driver *RavenTestDriver) {
 	err = store.ExecuteIndex(userIndex, "")
 	assert.NoError(t, err)
 
-	op := ravendb.NewDeleteIndexOperation(NewUsersIndex().GetIndexName())
+	op := ravendb.NewDeleteIndexOperation(NewUsersIndex().IndexName)
 	err = store.Maintenance().Send(op)
 	assert.NoError(t, err)
 

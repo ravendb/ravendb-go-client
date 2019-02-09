@@ -99,31 +99,43 @@ func getQueryDefaultTimeout() time.Duration {
 	return time.Second * 15
 }
 
-func NewAbstractDocumentQueryOld(clazz reflect.Type, session *InMemoryDocumentSessionOperations, indexName string, collectionName string, isGroupBy bool, declareToken *declareToken, loadTokens []*loadToken, fromAlias string) *AbstractDocumentQuery {
+// at this point we assume all
+func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*AbstractDocumentQuery, error) {
 	res := &AbstractDocumentQuery{
-		clazz:                   clazz,
+		clazz:                   opts.Type,
 		defaultOperator:         QueryOperatorAnd,
-		isGroupBy:               isGroupBy,
-		indexName:               indexName,
-		collectionName:          collectionName,
-		declareToken:            declareToken,
-		loadTokens:              loadTokens,
-		theSession:              session,
+		isGroupBy:               opts.isGroupBy,
+		indexName:               opts.IndexName,
+		collectionName:          opts.CollectionName,
+		declareToken:            opts.declareToken,
+		loadTokens:              opts.loadTokens,
+		theSession:              opts.session,
 		aliasToGroupByFieldName: make(map[string]string),
 		queryParameters:         make(map[string]interface{}),
 		queryStats:              NewQueryStatistics(),
+		queryRaw:                opts.rawQuery,
 	}
-	res.fromToken = createFromToken(indexName, collectionName, fromAlias)
+
+	if res.queryRaw == "" {
+		// if those are not provided, we delay creating fromToken
+		// until GetResult()
+		// TODO: don't delay, but either those must be set or rawQuery
+		if opts.IndexName != "" || opts.CollectionName != "" || opts.fromAlias != "" {
+			res.fromToken = createFromToken(opts.IndexName, opts.CollectionName, opts.fromAlias)
+		}
+		// res.fromToken = createFromToken(indexName, collectionName, fromAlias)
+	}
+
 	f := func(queryResult *QueryResult) {
 		res.updateStatsAndHighlightings(queryResult)
 	}
 	res.addAfterQueryExecutedListener(f)
-	if session == nil {
+	if opts.session == nil {
 		res.conventions = NewDocumentConventions()
 	} else {
-		res.conventions = session.GetConventions()
+		res.conventions = opts.session.GetConventions()
 	}
-	return res
+	return res, nil
 }
 
 // NewAbstractDocumentQuery returns new AbstractDocumentQuery
@@ -139,11 +151,6 @@ func NewAbstractDocumentQuery(session *InMemoryDocumentSessionOperations, indexN
 		aliasToGroupByFieldName: make(map[string]string),
 		queryParameters:         make(map[string]interface{}),
 		queryStats:              NewQueryStatistics(),
-	}
-	// if those are not provided, we delay creating fromToken
-	// until ToList()
-	if indexName != "" || collectionName != "" || fromAlias != "" {
-		res.fromToken = createFromToken(indexName, collectionName, fromAlias)
 	}
 	f := func(queryResult *QueryResult) {
 		res.updateStatsAndHighlightings(queryResult)
