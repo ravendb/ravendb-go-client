@@ -253,7 +253,7 @@ func (q *abstractDocumentQuery) groupBy2(field *GroupBy, fields ...*GroupBy) err
 		return err
 	}
 
-	q.groupByTokens = append(q.groupByTokens, createGroupByTokenWithMethod(fieldName, field.Method))
+	q.groupByTokens = append(q.groupByTokens, createGroupByToken(fieldName, field.Method))
 
 	if len(fields) == 0 {
 		return nil
@@ -264,7 +264,7 @@ func (q *abstractDocumentQuery) groupBy2(field *GroupBy, fields ...*GroupBy) err
 		if err != nil {
 			return err
 		}
-		q.groupByTokens = append(q.groupByTokens, createGroupByTokenWithMethod(fieldName, item.Method))
+		q.groupByTokens = append(q.groupByTokens, createGroupByToken(fieldName, item.Method))
 	}
 	return nil
 }
