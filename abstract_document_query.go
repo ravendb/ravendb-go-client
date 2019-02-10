@@ -365,9 +365,8 @@ func (q *abstractDocumentQuery) include(path string) {
 	q.includes = append(q.includes, path)
 }
 
-// TODO: see if count can be int
-func (q *abstractDocumentQuery) take(count *int) {
-	q.pageSize = count
+func (q *abstractDocumentQuery) take(count int) {
+	q.pageSize = &count
 }
 
 func (q *abstractDocumentQuery) skip(count int) {
@@ -2113,7 +2112,7 @@ func (q *abstractDocumentQuery) GetResults(results interface{}) error {
 	if q.err != nil {
 		return q.err
 	}
-	return q.executeQueryOperation(results, 0)
+	return q.executeQueryOperation(results, -1)
 }
 
 // First runs a query and returns a first result.
@@ -2181,10 +2180,7 @@ func (q *abstractDocumentQuery) Count() (int, error) {
 	if q.err != nil {
 		return 0, q.err
 	}
-	{
-		var tmp = 0
-		q.take(&tmp)
-	}
+	q.take(0)
 	queryResult, err := q.getQueryResult()
 	if err != nil {
 		return 0, err
@@ -2201,8 +2197,7 @@ func (q *abstractDocumentQuery) Any() (bool, error) {
 	if q.isDistinct() {
 		// for distinct it is cheaper to do count 1
 
-		toTake := 1
-		q.take(&toTake)
+		q.take(1)
 
 		err := q.initSync()
 		if err != nil {
@@ -2212,8 +2207,7 @@ func (q *abstractDocumentQuery) Any() (bool, error) {
 	}
 
 	{
-		var tmp = 0
-		q.take(&tmp)
+		q.take(0)
 	}
 	queryResult, err := q.getQueryResult()
 	if err != nil {
@@ -2223,8 +2217,8 @@ func (q *abstractDocumentQuery) Any() (bool, error) {
 }
 
 func (q *abstractDocumentQuery) executeQueryOperation(results interface{}, take int) error {
-	if take != 0 && (q.pageSize == nil || *q.pageSize > take) {
-		q.take(&take)
+	if take != -1 && (q.pageSize == nil || *q.pageSize > take) {
+		q.take(take)
 	}
 
 	err := q.initSync()
@@ -2288,8 +2282,7 @@ func (q *abstractDocumentQuery) CountLazily(results interface{}, count *int) (*L
 		return nil, newIllegalArgumentError("count can't be nil")
 	}
 	if q.queryOperation == nil {
-		v := 0
-		q.take(&v)
+		q.take(0)
 		var err error
 		q.queryOperation, err = q.initializeQueryOperation()
 		if err != nil {
