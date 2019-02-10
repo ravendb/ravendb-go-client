@@ -95,9 +95,7 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.Advanced().QueryIndex("TestIndex")
-		assert.NoError(t, err)
-		q = q.WaitForNonStaleResults(0)
+		q := session.Advanced().QueryIndex("TestIndex").WaitForNonStaleResults(0)
 		var notUsed []*CustomType
 		err = q.GetResults(&notUsed)
 		assert.NoError(t, err)
@@ -109,7 +107,8 @@ func advancedPatchingCanCreateDocumentsIfPatchingAppliedByIndex(t *testing.T, dr
 	operation, err := store.Operations().SendAsync(op2, nil)
 	assert.NoError(t, err)
 
-	operation.WaitForCompletion()
+	err = operation.WaitForCompletion()
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)

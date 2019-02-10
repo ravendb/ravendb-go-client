@@ -13,20 +13,26 @@ type AggregationQueryBase struct {
 
 	// from AggregationDocumentQuery
 	source *abstractDocumentQuery
+	err    error
 }
 
-func NewAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
-	return &AggregationQueryBase{
+func newAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
+	res := &AggregationQueryBase{
 		session: source.getSession(),
 		source:  source.abstractDocumentQuery,
 	}
-
+	res.err = source.err
+	return res
 }
-func NewAggregationDocumentQuery(source *DocumentQuery) *AggregationDocumentQuery {
-	return NewAggregationQueryBase(source)
+
+func newAggregationDocumentQuery(source *DocumentQuery) *AggregationDocumentQuery {
+	return newAggregationQueryBase(source)
 }
 
 func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	command, err := q.GetCommand()
 	if err != nil {
 		return nil, err
@@ -46,6 +52,10 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 // arg to onEval is map[string]*FacetResult
 // results is map[string]*FacetResult
 func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) (*Lazy, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
+
 	var err error
 	q.query, err = q.GetIndexQuery()
 	if err != nil {
@@ -104,6 +114,9 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 }
 
 func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	var err error
 	q.query, err = q.GetIndexQuery()
 	if err != nil {
@@ -114,6 +127,9 @@ func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
 }
 
 func (q *AggregationQueryBase) string() (string, error) {
+	if q.err != nil {
+		return "", q.err
+	}
 	iq, err := q.GetIndexQuery()
 	if err != nil {
 		return "", err

@@ -63,8 +63,7 @@ func customSerializationTestSerialization(t *testing.T, driver *RavenTestDriver)
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&Product3{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&Product3{}))
 		q = q.WhereEquals("price", NewMoney(2, Dollar))
 		var productsForTwoDollars []*Product3
 		err = q.GetResults(&productsForTwoDollars)

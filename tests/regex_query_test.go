@@ -36,8 +36,7 @@ func regexQueryWueriesWithRegexFromDocumentQuery(t *testing.T, driver *RavenTest
 	{
 		session := openSessionMust(t, store)
 
-		query, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&RegexMe{}))
-		assert.NoError(t, err)
+		query := session.Advanced().QueryCollectionForType(reflect.TypeOf(&RegexMe{}))
 		query = query.WhereRegex("text", "^[a-z ]{2,4}love")
 
 		var result []*RegexMe

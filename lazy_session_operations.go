@@ -7,8 +7,7 @@ type LazySessionOperations struct {
 	delegate *DocumentSession
 }
 
-// NewLazySessionOperations returns new LazySessionOperations
-func NewLazySessionOperations(delegate *DocumentSession) *LazySessionOperations {
+func newLazySessionOperations(delegate *DocumentSession) *LazySessionOperations {
 	return &LazySessionOperations{
 		delegate: delegate,
 	}
@@ -32,7 +31,7 @@ func (o *LazySessionOperations) Load(result interface{}, id string, onEval func(
 			// TODO: test for this code path
 			return o.delegate.Load(result, id)
 		}
-		return NewLazy(result, fn), nil
+		return newLazy(result, fn, nil), nil
 	}
 
 	session := o.delegate.InMemoryDocumentSessionOperations

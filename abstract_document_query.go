@@ -66,6 +66,10 @@ type abstractDocumentQuery struct {
 	afterStreamExecutedCallback []func(map[string]interface{})
 
 	queryOperation *queryOperation
+
+	// to allow "fluid" API, in many methods instead of returning an error, we
+	// remember it here and retrun in GetResults()
+	err error
 }
 
 func (q *abstractDocumentQuery) isDistinct() bool {
@@ -89,7 +93,7 @@ func getQueryDefaultTimeout() time.Duration {
 }
 
 // at this point we assume all
-func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*abstractDocumentQuery, error) {
+func newAbstractDocumentQuery(opts *DocumentQueryOptions) *abstractDocumentQuery {
 	res := &abstractDocumentQuery{
 		defaultOperator:         QueryOperatorAnd,
 		isGroupBy:               opts.isGroupBy,
@@ -104,9 +108,15 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*abstractDocumentQuer
 		queryRaw:                opts.rawQuery,
 	}
 
+	if opts.session == nil {
+		res.err = newIllegalArgumentError("session must be provided")
+		return res
+	}
+
 	if res.queryRaw == "" {
 		if opts.IndexName == "" && opts.CollectionName == "" {
-			return nil, newIllegalArgumentError("Either indexName or collectionName must be specified")
+			res.err = newIllegalArgumentError("Either indexName or collectionName must be specified")
+			return res
 		}
 		res.fromToken = createFromToken(opts.IndexName, opts.CollectionName, opts.fromAlias)
 	}
@@ -120,7 +130,7 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) (*abstractDocumentQuer
 	} else {
 		res.conventions = opts.session.GetConventions()
 	}
-	return res, nil
+	return res
 }
 
 func (q *abstractDocumentQuery) usingDefaultOperator(operator QueryOperator) error {
@@ -207,14 +217,14 @@ func (q *abstractDocumentQuery) assertNoRawQuery() error {
 	return nil
 }
 
-func (q *abstractDocumentQuery) addParameter(name string, value interface{}) {
+func (q *abstractDocumentQuery) addParameter(name string, value interface{}) error {
 	name = strings.TrimPrefix(name, "$")
 	if _, ok := q.queryParameters[name]; ok {
-		// throw new IllegalStateError("The parameter " + name + " was already added");
-		panicIf(true, "The parameter "+name+" was already added")
+		return newIllegalStateError("The parameter " + name + " was already added")
 	}
 
 	q.queryParameters[name] = value
+	return nil
 }
 
 func (q *abstractDocumentQuery) groupBy(fieldName string, fieldNames ...string) error {
@@ -2054,15 +2064,22 @@ func checkValidQueryResults(v interface{}, argName string) error {
 // GetResults executes the query and sets results to returned values.
 // results should be of type *[]<type>
 func (q *abstractDocumentQuery) GetResults(results interface{}) error {
+	if q.err != nil {
+		return q.err
+	}
 	// Note: in Java it's called ToList
-	if err := checkValidQueryResults(results, "results"); err != nil {
-		return err
+	q.err = checkValidQueryResults(results, "results")
+	if q.err != nil {
+		return q.err
 	}
 	return q.executeQueryOperation(results, 0)
 }
 
 // First runs a query and returns a first result.
 func (q *abstractDocumentQuery) First(result interface{}) error {
+	if q.err != nil {
+		return q.err
+	}
 	if result == nil {
 		return newIllegalArgumentError("result can't be nil")
 	}
@@ -2091,6 +2108,9 @@ func (q *abstractDocumentQuery) First(result interface{}) error {
 // Single runs a query that expects only a single result.
 // If there is more than one result, it retuns IllegalStateError.
 func (q *abstractDocumentQuery) Single(result interface{}) error {
+	if q.err != nil {
+		return q.err
+	}
 	if result == nil {
 		return fmt.Errorf("result can't be nil")
 	}
@@ -2117,6 +2137,9 @@ func (q *abstractDocumentQuery) Single(result interface{}) error {
 }
 
 func (q *abstractDocumentQuery) Count() (int, error) {
+	if q.err != nil {
+		return 0, q.err
+	}
 	{
 		var tmp = 0
 		q.take(&tmp)
@@ -2131,6 +2154,9 @@ func (q *abstractDocumentQuery) Count() (int, error) {
 // Any returns true if query returns at least one result
 // TODO: write tests
 func (q *abstractDocumentQuery) Any() (bool, error) {
+	if q.err != nil {
+		return false, q.err
+	}
 	if q.isDistinct() {
 		// for distinct it is cheaper to do count 1
 
@@ -2193,11 +2219,13 @@ func (q *abstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) {
 }
 
 func (q *abstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) (*Lazy, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	if q.queryOperation == nil {
-		var err error
-		q.queryOperation, err = q.initializeQueryOperation()
-		if err != nil {
-			return nil, err
+		q.queryOperation, q.err = q.initializeQueryOperation()
+		if q.err != nil {
+			return nil, q.err
 		}
 	}
 

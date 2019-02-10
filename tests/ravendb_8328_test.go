@@ -49,8 +49,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		clazz := reflect.TypeOf(&Item2{})
-		q, err := session.QueryCollectionForType(clazz)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(clazz)
 		fieldName := ravendb.NewPointField("latitude", "longitude")
 		clause := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.WithinRadius(10, 10, 20)
@@ -61,8 +60,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, iq.GetQuery(), "from Item2s where spatial.within(spatial.point(latitude, longitude), spatial.circle($p0, $p1, $p2))")
 
-		q, err = session.QueryCollectionForType(clazz)
-		assert.NoError(t, err)
+		q = session.QueryCollectionForType(clazz)
 		fieldName2 := ravendb.NewWktField("shapeWkt")
 		q = q.Spatial2(fieldName2, clause)
 
@@ -79,8 +77,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		var statsRef *ravendb.QueryStatistics
 
 		var results []*Item2
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
 		q = q.Statistics(&statsRef)
 		fieldName := ravendb.NewPointField("latitude", "longitude")
 		clause := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
@@ -99,8 +96,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		statsRef = nil
 		results = nil
 
-		q, err = session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
-		assert.NoError(t, err)
+		q = session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
 		q = q.Statistics(&statsRef)
 		fieldName = ravendb.NewPointField("latitude2", "longitude2")
 		q = q.Spatial2(fieldName, clause)
@@ -114,8 +110,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 		statsRef = nil
 		results = nil
 
-		q, err = session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
-		assert.NoError(t, err)
+		q = session.QueryCollectionForType(reflect.TypeOf(&Item2{}))
 		q = q.Statistics(&statsRef)
 		fieldName2 := ravendb.NewWktField("shapeWkt")
 		q = q.Spatial2(fieldName2, clause)

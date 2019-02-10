@@ -18,16 +18,14 @@ func ravendb8761canGroupByArrayValues(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var productCounts1 []*ProductCount
-		q, err := session.Advanced().RawQuery("from Orders group by lines[].product\n" +
-			"  order by count()\n" +
-			"  select key() as productName, count() as count")
-		assert.NoError(t, err)
+		q := session.Advanced().RawQuery(`from Orders group by lines[].product
+  order by count()
+  select key() as productName, count() as count`)
 		q = q.WaitForNonStaleResults()
-		err = q.GetResults(&productCounts1)
+		err := q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
-		q2, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
-		assert.NoError(t, err)
+		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy("lines[].product")
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "productName")
 		q2 = q3.SelectCount()
@@ -55,16 +53,15 @@ func ravendb8761canGroupByArrayValues(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var productCounts1 []*ProductCount
-		q, err := session.Advanced().RawQuery("from Orders\n" +
+		q := session.Advanced().RawQuery("from Orders\n" +
 			" group by lines[].product, shipTo.country\n" +
 			" order by count() \n" +
 			" select lines[].product as productName, shipTo.country as country, count() as count")
-		assert.NoError(t, err)
-		err = q.GetResults(&productCounts1)
+		err := q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		var productCounts2 []*ProductCount
-		q2, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
+		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		assert.NoError(t, err)
 		q3 := q2.GroupBy("lines[].product", "shipTo.country")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
@@ -95,17 +92,15 @@ func ravendb8761canGroupByArrayValues(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var productCounts1 []*ProductCount
-		q, err := session.Advanced().RawQuery("from Orders\n" +
+		q := session.Advanced().RawQuery("from Orders\n" +
 			" group by lines[].product, lines[].quantity\n" +
 			" order by lines[].quantity\n" +
 			" select lines[].product as productName, lines[].quantity as quantity, count() as count")
-		assert.NoError(t, err)
-		err = q.GetResults(&productCounts1)
+		err := q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
 		var productCounts2 []*ProductCount
-		q2, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
-		assert.NoError(t, err)
+		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy("lines[].product", "lines[].quantity")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "productName")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantity")
@@ -179,16 +174,14 @@ func ravendb8761canGroupByArrayContent(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var productCounts1 []*ProductCount
-		q, err := session.Advanced().RawQuery("from Orders group by array(lines[].product)\n" +
+		q := session.Advanced().RawQuery("from Orders group by array(lines[].product)\n" +
 			" order by count()\n" +
 			" select key() as products, count() as count")
-		assert.NoError(t, err)
 		q = q.WaitForNonStaleResults()
 		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
-		q2, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
-		assert.NoError(t, err)
+		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		q3 := q2.GroupBy2(ravendb.NewGroupByArray("lines[].product"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "products")
 		q2 = q3.SelectCount()
@@ -218,16 +211,15 @@ func ravendb8761canGroupByArrayContent(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var productCounts1 []*ProductCount
-		q, err := session.Advanced().RawQuery("from Orders\n" +
+		q := session.Advanced().RawQuery("from Orders\n" +
 			" group by array(lines[].product), shipTo.country\n" +
 			" order by count()\n" +
 			" select lines[].product as products, shipTo.country as country, count() as count")
-		assert.NoError(t, err)
 		q = q.WaitForNonStaleResults()
 		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
-		q2, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
+		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		assert.NoError(t, err)
 		q3 := q2.GroupBy2(ravendb.NewGroupByArray("lines[].product"), ravendb.NewGroupByField("shipTo.country"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
@@ -258,7 +250,7 @@ func ravendb8761canGroupByArrayContent(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var productCounts1 []*ProductCount
-		q, err := session.Advanced().RawQuery(`from Orders
+		q := session.Advanced().RawQuery(`from Orders
 group by array(lines[].product), array(lines[].quantity)
 order by lines[].quantity
 select lines[].product as products, lines[].quantity as quantities, count() as count`)
@@ -267,7 +259,7 @@ select lines[].product as products, lines[].quantity as quantities, count() as c
 		err = q.GetResults(&productCounts1)
 		assert.NoError(t, err)
 
-		q2, err := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
+		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		assert.NoError(t, err)
 		q3 := q2.GroupBy2(ravendb.NewGroupByArray("lines[].product"), ravendb.NewGroupByArray("lines[].quantity"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")

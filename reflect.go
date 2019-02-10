@@ -349,7 +349,7 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 	default:
 		panicIf(true, "%s", dbglog("converting to %s NYI", clazz.Kind().String()))
 	}
-	return nil, newNotImplementedError("NYI")
+	return nil, newNotImplementedError("convertValue: NYI")
 }
 
 // TODO: include github.com/jinzhu/copier to avoid dependency

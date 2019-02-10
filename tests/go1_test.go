@@ -424,8 +424,7 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, 0, nBeforeQueryCalledCount)
 		session := openSessionMust(t, store)
 		tp := reflect.TypeOf(&User{})
-		q, err := session.QueryCollectionForType(tp)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(tp)
 		var users []*User
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
@@ -449,8 +448,7 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(users))

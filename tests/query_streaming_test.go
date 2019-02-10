@@ -36,8 +36,7 @@ func queryStreamingCanStreamQueryResults(t *testing.T, driver *RavenTestDriver) 
 	count := 0
 	{
 		session := openSessionMust(t, store)
-		query, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		query := session.QueryIndex(index.IndexName)
 		stream, err := session.Advanced().StreamQuery(query, nil)
 		assert.NoError(t, err)
 		for {
@@ -52,7 +51,8 @@ func queryStreamingCanStreamQueryResults(t *testing.T, driver *RavenTestDriver) 
 		if err == io.EOF {
 			err = nil
 		}
-		stream.Close()
+		assert.NoError(t, err)
+		err = stream.Close()
 		assert.NoError(t, err)
 		assert.Equal(t, 200, count)
 	}
@@ -81,8 +81,7 @@ func queryStreamingCanStreamQueryResultsWithQueryStatistics(t *testing.T, driver
 
 	{
 		session := openSessionMust(t, store)
-		query, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		query := session.QueryIndex(index.IndexName)
 		statsRef := &ravendb.StreamQueryStatistics{}
 
 		stream, err := session.Advanced().StreamQuery(query, statsRef)
@@ -98,7 +97,8 @@ func queryStreamingCanStreamQueryResultsWithQueryStatistics(t *testing.T, driver
 		if err == io.EOF {
 			err = nil
 		}
-		stream.Close()
+		assert.NoError(t, err)
+		err = stream.Close()
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.IndexName, index.IndexName)
@@ -132,8 +132,7 @@ func queryStreamingCanStreamRawQueryResults(t *testing.T, driver *RavenTestDrive
 	{
 		session := openSessionMust(t, store)
 		qs := fmt.Sprintf(`from index '%s'`, index.IndexName)
-		query, err := session.Advanced().RawQuery(qs)
-		assert.NoError(t, err)
+		query := session.Advanced().RawQuery(qs)
 		stream, err := session.Advanced().StreamRawQuery(query, nil)
 		assert.NoError(t, err)
 		for {
@@ -148,7 +147,8 @@ func queryStreamingCanStreamRawQueryResults(t *testing.T, driver *RavenTestDrive
 		if err == io.EOF {
 			err = nil
 		}
-		stream.Close()
+		assert.NoError(t, err)
+		err = stream.Close()
 		assert.NoError(t, err)
 		assert.Equal(t, 200, count)
 	}
@@ -179,8 +179,7 @@ func queryStreamingCanStreamRawQueryResultsWithQueryStatistics(t *testing.T, dri
 		session := openSessionMust(t, store)
 		statsRef := &ravendb.StreamQueryStatistics{}
 		qs := fmt.Sprintf(`from index '%s'`, index.IndexName)
-		query, err := session.Advanced().RawQuery(qs)
-		assert.NoError(t, err)
+		query := session.Advanced().RawQuery(qs)
 		stream, err := session.Advanced().StreamRawQuery(query, statsRef)
 		assert.NoError(t, err)
 		for {
@@ -194,7 +193,8 @@ func queryStreamingCanStreamRawQueryResultsWithQueryStatistics(t *testing.T, dri
 		if err == io.EOF {
 			err = nil
 		}
-		stream.Close()
+		assert.NoError(t, err)
+		err = stream.Close()
 		assert.NoError(t, err)
 
 		assert.Equal(t, statsRef.IndexName, index.IndexName)
@@ -226,8 +226,7 @@ func queryStreamingCanStreamRawQueryIntoStream(t *testing.T, driver *RavenTestDr
 		var buf bytes.Buffer
 		session := openSessionMust(t, store)
 		qs := fmt.Sprintf(`from index '%s'`, index.IndexName)
-		query, err := session.Advanced().RawQuery(qs)
-		assert.NoError(t, err)
+		query := session.Advanced().RawQuery(qs)
 		err = session.Advanced().StreamRawQueryInto(query, &buf)
 		assert.NoError(t, err)
 
@@ -261,8 +260,7 @@ func queryStreamingCanStreamQueryIntoStream(t *testing.T, driver *RavenTestDrive
 	{
 		var buf bytes.Buffer
 		session := openSessionMust(t, store)
-		query, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		query := session.QueryIndex(index.IndexName)
 		err = session.Advanced().StreamQueryInto(query, &buf)
 		assert.NoError(t, err)
 

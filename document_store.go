@@ -3,7 +3,6 @@ package ravendb
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -293,7 +292,7 @@ func (s *DocumentStore) Close() {
 	}
 
 	if s.Subscriptions != nil {
-		s.Subscriptions.Close()
+		_ = s.Subscriptions.Close()
 	}
 
 	s.disposed = true
@@ -416,7 +415,7 @@ func (s *DocumentStore) Initialize() error {
 
 func (s *DocumentStore) assertValidConfiguration() error {
 	if len(s.urls) == 0 {
-		return fmt.Errorf("Must provide urls to NewDocumentStore")
+		return newIllegalArgumentError("Must provide urls to NewDocumentStore")
 	}
 	return nil
 }
@@ -552,7 +551,7 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 			return nil
 		}
 		var results *EvictItemsFromCacheBasedOnChanges
-		lazy = NewLazy(&results, valueFactory)
+		lazy = newLazy(&results, valueFactory, nil)
 
 		s.mu.Lock()
 		s.aggressiveCacheChanges[database] = lazy

@@ -46,12 +46,10 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
 		q = q.ContainsAny("Favourites", []interface{}{"pascal", "go"})
 		projType := reflect.TypeOf("")
-		q, err = q.SelectFields(projType, "Name")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "Name")
 		var pascalOrGoDeveloperNames []string
 		err = q.GetResults(&pascalOrGoDeveloperNames)
 		assert.NoError(t, err)
@@ -65,12 +63,10 @@ func containsTestcontainsTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&UserWithFavs{}))
 		q = q.ContainsAll("Favourites", []interface{}{"java"})
 		projType := reflect.TypeOf("")
-		q, err = q.SelectFields(projType, "Name")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "Name")
 		var javaDevelopers []string
 		err = q.GetResults(&javaDevelopers)
 		assert.NoError(t, err)

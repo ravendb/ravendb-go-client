@@ -2,11 +2,11 @@ package ravendb
 
 // MultiGetOperation represents multi-get operation
 type MultiGetOperation struct {
-	_session *InMemoryDocumentSessionOperations
+	session *InMemoryDocumentSessionOperations
 }
 
 func (o *MultiGetOperation) createRequest(requests []*getRequest) *MultiGetCommand {
-	return NewMultiGetCommand(o._session.GetRequestExecutor().Cache, requests)
+	return newMultiGetCommand(o.session.GetRequestExecutor().Cache, requests)
 }
 
 // Note: not used

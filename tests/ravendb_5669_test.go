@@ -22,8 +22,7 @@ func ravendb5669WorkingTestWithDifferentSearchTermOrder(t *testing.T, driver *Ra
 		session := openSessionMust(t, store)
 
 		var results []*Animal
-		query, err := session.Advanced().QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		query := session.Advanced().QueryIndex(index.IndexName)
 
 		query.OpenSubclause()
 
@@ -57,8 +56,7 @@ func ravendb5669workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) 
 	{
 		session := openSessionMust(t, store)
 
-		query, err := session.Advanced().QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		query := session.Advanced().QueryIndex(index.IndexName)
 
 		query.OpenSubclause()
 

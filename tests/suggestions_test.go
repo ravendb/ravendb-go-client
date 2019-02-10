@@ -53,7 +53,8 @@ func suggestionsSetup(t *testing.T, driver *RavenTestDriver, store *ravendb.Docu
 		session.Close()
 	}
 
-	driver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 }
 
 func suggestionsExactMatch(t *testing.T, driver *RavenTestDriver) {
@@ -67,12 +68,10 @@ func suggestionsExactMatch(t *testing.T, driver *RavenTestDriver) {
 		options := ravendb.NewSuggestionOptions()
 		options.PageSize = 10
 
-		q, err := session.QueryIndex("test")
-		assert.NoError(t, err)
+		q := session.QueryIndex("test")
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "Oren").WithOptions(options)
-		q2, err := q.SuggestUsing(x.GetSuggestion())
-		assert.NoError(t, err)
+		q2 := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -90,12 +89,10 @@ func suggestionsUsingLinq(t *testing.T, driver *RavenTestDriver) {
 	{
 		s := openSessionMust(t, store)
 
-		q, err := s.QueryIndex("test")
-		assert.NoError(t, err)
+		q := s.QueryIndex("test")
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "Owen")
-		q2, err := q.SuggestUsing(x.GetSuggestion())
-		assert.NoError(t, err)
+		q2 := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -117,12 +114,10 @@ func suggestionsUsingLinqWithOptions(t *testing.T, driver *RavenTestDriver) {
 
 		options := ravendb.NewSuggestionOptions()
 		options.Accuracy = 0.4
-		q, err := s.QueryIndex("test")
-		assert.NoError(t, err)
+		q := s.QueryIndex("test")
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "Owen").WithOptions(options)
-		q2, err := q.SuggestUsing(x.GetSuggestion())
-		assert.NoError(t, err)
+		q2 := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -146,12 +141,10 @@ func suggestionsUsingLinqMultipleWords(t *testing.T, driver *RavenTestDriver) {
 		options.Accuracy = 0.4
 		options.Distance = ravendb.StringDistanceLevenshtein
 
-		q, err := s.QueryIndex("test")
-		assert.NoError(t, err)
+		q := s.QueryIndex("test")
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "John Steinback").WithOptions(options)
-		q2, err := q.SuggestUsing(x.GetSuggestion())
-		assert.NoError(t, err)
+		q2 := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -176,12 +169,10 @@ func suggestionsWithTypo(t *testing.T, driver *RavenTestDriver) {
 		options.PageSize = 10
 		options.Distance = ravendb.StringDistanceLevenshtein
 
-		q, err := s.QueryIndex("test")
-		assert.NoError(t, err)
+		q := s.QueryIndex("test")
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "Oern").WithOptions(options)
-		q2, err := q.SuggestUsing(x.GetSuggestion())
-		assert.NoError(t, err)
+		q2 := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 
@@ -248,7 +239,8 @@ func suggestionsCanGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 		s.Close()
 	}
 
-	driver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -259,11 +251,10 @@ func suggestionsCanGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 		options.Distance = ravendb.StringDistanceJaroWinkler
 		options.SortMode = ravendb.SuggestionSortModePopularity
 
-		q, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(index.IndexName)
 		x := ravendb.NewSuggestionBuilder()
 		x = x.ByField("name", "johne", "davi").WithOptions(options)
-		q2, err := q.SuggestUsing(x.GetSuggestion())
+		q2 := q.SuggestUsing(x.GetSuggestion())
 		suggestionQueryResult, err := q2.Execute()
 		assert.NoError(t, err)
 

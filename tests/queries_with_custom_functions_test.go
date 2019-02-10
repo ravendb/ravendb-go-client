@@ -58,8 +58,7 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.Advanced().QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.Advanced().QueryCollectionForType(userType)
 		q = q.WhereEquals("name", ravendb.CmpXchgValue("Hera"))
 		q = q.WhereEquals("lastName", ravendb.CmpXchgValue("Tom"))
 
@@ -77,8 +76,7 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 		assert.Equal(t, query, "from Users where name = cmpxchg($p0) and lastName = cmpxchg($p1)")
 
 		users = nil
-		q, err = session.Advanced().QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q = session.Advanced().QueryCollectionForType(userType)
 		q = q.WhereNotEquals("name", ravendb.CmpXchgValue("Hera"))
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
@@ -90,8 +88,7 @@ func queriesWithCustomFunctionsQueryCmpXchgWhere(t *testing.T, driver *RavenTest
 
 		users = nil
 		{
-			q, err := session.Advanced().RawQuery("from Users where name = cmpxchg(\"Hera\")")
-			assert.NoError(t, err)
+			q := session.Advanced().RawQuery("from Users where name = cmpxchg(\"Hera\")")
 			err = q.GetResults(&users)
 			assert.NoError(t, err)
 		}

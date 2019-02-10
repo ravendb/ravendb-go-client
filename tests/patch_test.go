@@ -110,11 +110,11 @@ func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 		var n int
 		var results []*User
 		clazz := reflect.TypeOf(&User{})
-		q, err := session.QueryCollectionForType(clazz)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(clazz)
 		lazy, err := q.CountLazily(&results, &n)
 		assert.NoError(t, err)
-		lazy.GetValue()
+		err = lazy.GetValue()
+		assert.NoError(t, err)
 		assert.Equal(t, n, 1)
 
 		session.Close()

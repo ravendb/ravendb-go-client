@@ -20,8 +20,7 @@ type MultiGetCommand struct {
 	Result []*GetResponse // in Java we inherit from List<GetResponse>
 }
 
-// NewMultiGetCommand returns new MultiGetCommand
-func NewMultiGetCommand(cache *HttpCache, commands []*getRequest) *MultiGetCommand {
+func newMultiGetCommand(cache *HttpCache, commands []*getRequest) *MultiGetCommand {
 
 	cmd := &MultiGetCommand{
 		RavenCommandBase: NewRavenCommandBase(),

@@ -89,14 +89,12 @@ func spatialWeirdSpatialResults(t *testing.T, driver *RavenTestDriver) {
 
 		var statsRef *ravendb.QueryStatistics
 
-		q, err := session.Advanced().QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q := session.Advanced().QueryIndex(index.IndexName)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 12.3456789, 12.3456789)
 		q = q.Statistics(&statsRef)
 		projType := reflect.TypeOf(&MyDocument{})
-		q, err = q.SelectFields(projType, "id", "latitude", "longitude")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "id", "latitude", "longitude")
 		q = q.Take(50)
 
 		var result []*MyDocument
@@ -147,14 +145,12 @@ func spatialMatchSpatialResults(t *testing.T, driver *RavenTestDriver) {
 
 		var statsRef *ravendb.QueryStatistics
 
-		q, err := session.Advanced().QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q := session.Advanced().QueryIndex(index.IndexName)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WithinRadiusOf("coordinates", 0, 10, 10)
 		q = q.Statistics(&statsRef)
 		projType := reflect.TypeOf(&MyDocument{})
-		q, err = q.SelectFields(projType, "id", "latitude", "longitude")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "id", "latitude", "longitude")
 		q = q.Take(50)
 
 		var result []*MyDocument

@@ -78,5 +78,5 @@ func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) (*Lazy,
 		setInterfaceToValue(result, res.Interface())
 		return nil
 	}
-	return NewLazy(result, valueFactory), nil
+	return newLazy(result, valueFactory, nil), nil
 }

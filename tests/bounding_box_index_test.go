@@ -19,9 +19,11 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	rectangle3 := "0 0 6 6"
 
 	bboxIndex := NewBBoxIndex()
-	bboxIndex.Execute(store, nil, "")
+	err = bboxIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 	quadTreeIndex := NewQuadTreeIndex()
-	quadTreeIndex.Execute(store, nil, "")
+	err = quadTreeIndex.Execute(store, nil, "")
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
@@ -45,8 +47,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		clazz := reflect.TypeOf(&SpatialDoc{})
-		q, err := session.QueryCollectionForType(clazz)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(clazz)
 		result, err := q.Count()
 		assert.NoError(t, err)
 		assert.Equal(t, result, 1)
@@ -57,8 +58,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(bboxIndex.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(bboxIndex.IndexName)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle1)
 		}
@@ -73,8 +73,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(bboxIndex.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(bboxIndex.IndexName)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle2)
 		}
@@ -89,8 +88,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(bboxIndex.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(bboxIndex.IndexName)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Disjoint(rectangle2)
 		}
@@ -105,8 +103,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(bboxIndex.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(bboxIndex.IndexName)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Within(rectangle3)
 		}
@@ -121,8 +118,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(quadTreeIndex.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(quadTreeIndex.IndexName)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle2)
 		}
@@ -137,8 +133,7 @@ func boundingBox_boundingBoxTest(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(quadTreeIndex.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(quadTreeIndex.IndexName)
 		clause := func(x *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return x.Intersects(rectangle1)
 		}

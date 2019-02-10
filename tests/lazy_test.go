@@ -108,15 +108,17 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 		var company2Ref *Company
 		query := session.Advanced().Lazily()
 		var c1, c2 *Company
-		query.Load(&c1, "companies/1", func(v interface{}) {
+		_, err = query.Load(&c1, "companies/1", func(v interface{}) {
 			c := v.(*Company)
 			company1Ref = c
 		})
+		assert.NoError(t, err)
 
-		query.Load(&c2, "companies/2", func(v interface{}) {
+		_, err = query.Load(&c2, "companies/2", func(v interface{}) {
 			c := v.(*Company)
 			company2Ref = c
 		})
+		assert.NoError(t, err)
 
 		assert.Nil(t, company1Ref)
 		assert.Nil(t, company2Ref)
@@ -158,9 +160,10 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 		var user *User
 
 		query := session.Advanced().Lazily()
-		query.Load(&user, "users/1", func(v interface{}) {
+		_, err = query.Load(&user, "users/1", func(v interface{}) {
 			userRef = v.(*User)
 		})
+		assert.NoError(t, err)
 
 		assert.Nil(t, userRef)
 
@@ -258,7 +261,8 @@ func lazDontLazyLoadAlreadyLoadedValues(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		users2 := map[string]*User{}
-		session.Advanced().Lazily().LoadMulti(users2, []string{"users/1", "users/3"}, nil)
+		_, err = session.Advanced().Lazily().LoadMulti(users2, []string{"users/1", "users/3"}, nil)
+		assert.NoError(t, err)
 
 		var u1, u2 *User
 		err = session.Load(&u1, "users/2")
@@ -271,7 +275,8 @@ func lazDontLazyLoadAlreadyLoadedValues(t *testing.T, driver *RavenTestDriver) {
 
 		assert.True(t, session.Advanced().IsLoaded("users/1"))
 
-		lazyLoad.GetValue()
+		err = lazyLoad.GetValue()
+		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
 
 		oldRequestCount := session.Advanced().GetNumberOfRequests()

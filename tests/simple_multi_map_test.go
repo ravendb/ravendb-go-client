@@ -55,8 +55,7 @@ func simpleMultiMap_canQueryUsingMultiMap(t *testing.T, driver *RavenTestDriver)
 		// Note: Go doesn't support interfaces like Java. We can only
 		// query a single type, not an interface
 		var haveNames []*Dog
-		q, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(index.IndexName)
 		q = q.WaitForNonStaleResults(time.Second * 10)
 		q = q.OrderBy("name")
 		err = q.GetResults(&haveNames)

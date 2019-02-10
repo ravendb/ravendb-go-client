@@ -16,16 +16,19 @@ type Lazy struct {
 	mu    sync.Mutex
 }
 
-// NewLazy2 returns new Lazy value
-func NewLazy(result interface{}, valueFactory func(interface{}) error) *Lazy {
+func newLazy(result interface{}, valueFactory func(interface{}) error, err error) *Lazy {
 	return &Lazy{
 		Value:        result,
 		valueFactory: valueFactory,
+		err:          err,
 	}
 }
 
 // IsValueCreated returns true if lazy value has been created
 func (l *Lazy) IsValueCreated() bool {
+	if l.err != nil {
+		return false
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -35,6 +38,9 @@ func (l *Lazy) IsValueCreated() bool {
 // GetValue executes lazy operation and ensures the Value is set in result variable
 // provided in NewLazy()
 func (l *Lazy) GetValue() error {
+	if l.err != nil {
+		return l.err
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

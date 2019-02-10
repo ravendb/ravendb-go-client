@@ -43,7 +43,10 @@ func (q *RawDocumentQuery) NoCaching() *RawDocumentQuery {
 }
 
 func (q *RawDocumentQuery) UsingDefaultOperator(queryOperator QueryOperator) *RawDocumentQuery {
-	q.usingDefaultOperator(queryOperator)
+	if q.err != nil {
+		return q
+	}
+	q.err = q.usingDefaultOperator(queryOperator)
 	return q
 }
 
@@ -83,6 +86,9 @@ func (q *RawDocumentQuery) RemoveAfterStreamExecutedListener(idx int) *RawDocume
 }
 
 func (q *RawDocumentQuery) AddParameter(name string, value interface{}) *RawDocumentQuery {
-	q.addParameter(name, value)
+	if q.err != nil {
+		return q
+	}
+	q.err = q.addParameter(name, value)
 	return q
 }

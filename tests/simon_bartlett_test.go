@@ -30,13 +30,13 @@ func simonBartlettLineStringsShouldIntersect(t *testing.T, driver *RavenTestDriv
 		session.Close()
 	}
 
-	driver.waitForIndexing(store, "", 0)
+	err = driver.waitForIndexing(store, "", 0)
+	assert.NoError(t, err)
 
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(index.IndexName)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.RelatesToShape("LINESTRING (1 0, 1 1, 1 2)", ravendb.SpatialRelationIntersects)
 		}
@@ -47,8 +47,7 @@ func simonBartlettLineStringsShouldIntersect(t *testing.T, driver *RavenTestDriv
 
 		assert.Equal(t, count, 1)
 
-		q, err = session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q = session.QueryIndex(index.IndexName)
 		q = q.RelatesToShape("WKT", "LINESTRING (1 0, 1 1, 1 2)", ravendb.SpatialRelationIntersects)
 		q = q.WaitForNonStaleResults(0)
 		count, err = q.Count()
@@ -90,8 +89,7 @@ func simonBartlettCirclesShouldNotIntersect(t *testing.T, driver *RavenTestDrive
 		session := openSessionMust(t, store)
 
 		// Should not intersect, as there is 1 Degree between the two shapes
-		q, err := session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(index.IndexName)
 		fn := func(f *ravendb.SpatialCriteriaFactory) ravendb.SpatialCriteria {
 			return f.RelatesToShape("CIRCLE(0.000000 3.000000 d=110)", ravendb.SpatialRelationIntersects)
 		}
@@ -104,8 +102,7 @@ func simonBartlettCirclesShouldNotIntersect(t *testing.T, driver *RavenTestDrive
 
 		assert.Equal(t, count, 0)
 
-		q, err = session.QueryIndex(index.IndexName)
-		assert.NoError(t, err)
+		q = session.QueryIndex(index.IndexName)
 		q = q.RelatesToShape("WKT", "CIRCLE(0.000000 3.000000 d=110)", ravendb.SpatialRelationIntersects)
 		q = q.WaitForNonStaleResults(0)
 		count, err = q.Count()

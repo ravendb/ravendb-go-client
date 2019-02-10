@@ -38,8 +38,7 @@ func queryQuerySimple(t *testing.T, driver *RavenTestDriver) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q, err := session.Advanced().QueryCollection("users")
-		assert.NoError(t, err)
+		q := session.Advanced().QueryCollection("users")
 		var queryResult []*User
 		err = q.GetResults(&queryResult)
 		assert.NoError(t, err)
@@ -74,8 +73,7 @@ func queryQueryLazily(t *testing.T, driver *RavenTestDriver) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 		var queryResult []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		lazyQuery, err := q.Lazily(&queryResult, nil)
 		assert.NoError(t, err)
 		err = lazyQuery.GetValue()
@@ -147,22 +145,19 @@ func queryQueryWithWhereClause(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		var queryResult []*User
-		q, err := session.QueryCollection("users")
-		assert.NoError(t, err)
+		q := session.QueryCollection("users")
 		q = q.WhereStartsWith("name", "J")
 		err = q.GetResults(&queryResult)
 		assert.NoError(t, err)
 
 		var queryResult2 []*User
-		q2, err := session.QueryCollection("users")
-		assert.NoError(t, err)
+		q2 := session.QueryCollection("users")
 		q2 = q2.WhereEquals("name", "Tarzan")
 		err = q2.GetResults(&queryResult2)
 		assert.NoError(t, err)
 
 		var queryResult3 []*User
-		q3, err := session.QueryCollection("users")
-		assert.NoError(t, err)
+		q3 := session.QueryCollection("users")
 		q3 = q3.WhereEndsWith("name", "n")
 		err = q3.GetResults(&queryResult3)
 		assert.NoError(t, err)
@@ -185,13 +180,12 @@ func queryQueryMapReduceWithCount(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		q = q2.SelectCount()
 		q = q.OrderByDescending("count")
-		err = q.GetResults(&results)
+		err := q.GetResults(&results)
 		assert.NoError(t, err)
 
 		{
@@ -220,8 +214,7 @@ func queryQueryMapReduceWithSum(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		q2 := q.GroupBy("name")
 		q2 = q2.SelectKey()
 		f := &ravendb.GroupByField{
@@ -229,7 +222,7 @@ func queryQueryMapReduceWithSum(t *testing.T, driver *RavenTestDriver) {
 		}
 		q = q2.SelectSum(f)
 		q = q.OrderByDescending("age")
-		err = q.GetResults(&results)
+		err := q.GetResults(&results)
 		assert.NoError(t, err)
 
 		{
@@ -258,10 +251,9 @@ func queryQueryMapReduceIndex(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var results []*ReduceResult
-		q, err := session.QueryIndex("UsersByName")
-		assert.NoError(t, err)
+		q := session.QueryIndex("UsersByName")
 		q = q.OrderByDescending("count")
-		err = q.GetResults(&results)
+		err := q.GetResults(&results)
 		assert.NoError(t, err)
 
 		{
@@ -289,14 +281,12 @@ func queryQuerySingleProperty(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		q = q.AddOrderWithOrdering("age", true, ravendb.OrderingTypeLong)
 		projType := reflect.TypeOf(int(0))
-		q, err = q.SelectFields(projType, "age")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "age")
 		var ages []int
-		err = q.GetResults(&ages)
+		err := q.GetResults(&ages)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(ages), 3)
@@ -318,13 +308,11 @@ func queryQueryWithSelect(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		projType := reflect.TypeOf("")
-		q, err = q.SelectFields(projType, "age")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "age")
 		var usersAge []*User
-		err = q.GetResults(&usersAge)
+		err := q.GetResults(&usersAge)
 		assert.NoError(t, err)
 
 		for _, user := range usersAge {
@@ -346,10 +334,9 @@ func queryQueryWithWhereIn(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereIn("name", []interface{}{"Tarzan", "no_such"})
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -368,10 +355,9 @@ func queryQueryWithWhereBetween(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereBetween("age", 4, 5)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -393,10 +379,9 @@ func queryQueryWithWhereLessThan(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereLessThan("age", 3)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -418,10 +403,9 @@ func queryQueryWithWhereLessThanOrEqual(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereLessThanOrEqual("age", 3)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -440,10 +424,9 @@ func queryQueryWithWhereGreaterThan(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereGreaterThan("age", 3)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -465,10 +448,9 @@ func queryQueryWithWhereGreaterThanOrEqual(t *testing.T, driver *RavenTestDriver
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereGreaterThanOrEqual("age", 3)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 2)
@@ -493,14 +475,12 @@ func queryQueryWithProjection(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		fields := ravendb.FieldsFor(&UserProjection{})
 		projType := reflect.TypeOf(&UserProjection{})
-		q, err = q.SelectFields(projType, fields...)
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, fields...)
 		var projections []*UserProjection
-		err = q.GetResults(&projections)
+		err := q.GetResults(&projections)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -525,13 +505,11 @@ func queryQueryWithProjection2(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		projType := reflect.TypeOf(&UserProjection{})
-		q, err = q.SelectFields(projType, "lastName")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "lastName")
 		var projections []*UserProjection
-		err = q.GetResults(&projections)
+		err := q.GetResults(&projections)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(projections), 3)
@@ -555,15 +533,13 @@ func queryQueryDistinct(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 		projType := reflect.TypeOf("")
-		q, err = q.SelectFields(projType, "name")
-		assert.NoError(t, err)
+		q = q.SelectFields(projType, "name")
 
 		q = q.Distinct()
 		var uniqueNames []string
-		err = q.GetResults(&uniqueNames)
+		err := q.GetResults(&uniqueNames)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 2)
@@ -585,10 +561,9 @@ func queryQuerySearchWithOr(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var uniqueNames []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.SearchWithOperator("name", "Tarzan John", ravendb.SearchOperatorOr)
-		err = q.GetResults(&uniqueNames)
+		err := q.GetResults(&uniqueNames)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(uniqueNames), 3)
@@ -607,10 +582,9 @@ func queryQueryNoTracking(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.NoTracking()
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -634,12 +608,11 @@ func queryQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.OrderBy("name")
 		q = q.Skip(2)
 		q = q.Take(1)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -661,11 +634,10 @@ func queryRawQuerySkipTake(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.RawQuery("from users")
-		assert.NoError(t, err)
+		q := session.RawQuery("from users")
 		q = q.Skip(2)
 		q = q.Take(1)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -686,10 +658,9 @@ func queryParametersInRawQuery(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.RawQuery("from users where age == $p0")
-		assert.NoError(t, err)
+		q := session.RawQuery("from users where age == $p0")
 		q = q.AddParameter("p0", 5)
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -710,10 +681,9 @@ func queryQueryLucene(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereLucene("name", "Tarzan")
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 1)
@@ -737,10 +707,9 @@ func queryQueryWhereExact(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var users []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereEquals("name", "tarzan")
-			err = q.GetResults(&users)
+			err := q.GetResults(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1)
@@ -748,10 +717,9 @@ func queryQueryWhereExact(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var users []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereEquals("name", "tarzan").Exact()
-			err = q.GetResults(&users)
+			err := q.GetResults(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 0) // we queried for tarzan with exact
@@ -759,10 +727,9 @@ func queryQueryWhereExact(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var users []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereEquals("name", "Tarzan").Exact()
-			err = q.GetResults(&users)
+			err := q.GetResults(&users)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(users), 1) // we queried for Tarzan with exact
@@ -783,11 +750,10 @@ func queryQueryWhereNot(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.Not()
 			q = q.WhereEquals("name", "tarzan")
-			err = q.GetResults(&res)
+			err := q.GetResults(&res)
 
 			assert.NoError(t, err)
 
@@ -796,10 +762,9 @@ func queryQueryWhereNot(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereNotEquals("name", "tarzan")
-			err = q.GetResults(&res)
+			err := q.GetResults(&res)
 
 			assert.NoError(t, err)
 
@@ -808,11 +773,9 @@ func queryQueryWhereNot(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereNotEquals("name", "Tarzan").Exact()
-			err = q.GetResults(&res)
-
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 
 			assert.Equal(t, len(res), 2)
@@ -899,10 +862,9 @@ func queryQueryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var orders []*Order
-			q, err := session.QueryIndex(NewOrderTime().IndexName)
-			assert.NoError(t, err)
+			q := session.QueryIndex(NewOrderTime().IndexName)
 			q = q.WhereLessThan("delay", time.Hour*3)
-			err = q.GetResults(&orders)
+			err := q.GetResults(&orders)
 			assert.NoError(t, err)
 
 			var delay []string
@@ -916,10 +878,9 @@ func queryQueryWithDuration(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var orders []*Order
-			q, err := session.QueryIndex(NewOrderTime().IndexName)
-			assert.NoError(t, err)
+			q := session.QueryIndex(NewOrderTime().IndexName)
 			q = q.WhereGreaterThan("delay", time.Hour*3)
-			err = q.GetResults(&orders)
+			err := q.GetResults(&orders)
 			assert.NoError(t, err)
 
 			var delay2 []string
@@ -946,9 +907,8 @@ func queryQueryFirst(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var first *User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
-			err = q.First(&first)
+			q := session.QueryCollectionForType(userType)
+			err := q.First(&first)
 			assert.NoError(t, err)
 			assert.NotNil(t, first)
 			assert.Equal(t, first.ID, "users/1")
@@ -956,11 +916,9 @@ func queryQueryFirst(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var single *User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereEquals("name", "Tarzan")
-			assert.NoError(t, err)
-			err = q.Single(&single)
+			err := q.Single(&single)
 			assert.NoError(t, err)
 			assert.NotNil(t, single)
 			assert.Equal(t, *single.Name, "Tarzan")
@@ -968,9 +926,8 @@ func queryQueryFirst(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var single *User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
-			err = q.Single(&single)
+			q := session.QueryCollectionForType(userType)
+			err := q.Single(&single)
 			assert.Nil(t, single)
 			_ = err.(*ravendb.IllegalStateError)
 		}
@@ -987,8 +944,7 @@ func queryQueryParameters(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		q, err := session.RawQuery("from Users where name = $name")
-		assert.NoError(t, err)
+		q := session.RawQuery("from Users where name = $name")
 		q = q.AddParameter("name", "Tarzan")
 		count, err := q.Count()
 		assert.NoError(t, err)
@@ -1008,20 +964,18 @@ func queryQueryRandomOrder(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.RandomOrdering()
-			err = q.GetResults(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.RandomOrderingWithSeed("123")
-			err = q.GetResults(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -1040,23 +994,21 @@ func queryQueryWhereExists(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereExists("name")
-			err = q.GetResults(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
 
 		{
 			var res []*User
-			q, err := session.QueryCollectionForType(userType)
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(userType)
 			q = q.WhereExists("name")
 			q = q.AndAlso()
 			q = q.Not()
 			q = q.WhereExists("no_such_field")
-			err = q.GetResults(&res)
+			err := q.GetResults(&res)
 			assert.NoError(t, err)
 			assert.Equal(t, len(res), 3)
 		}
@@ -1074,15 +1026,14 @@ func queryQueryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(5)
 		q = q.OrElse()
 		q = q.WhereEquals("name", "John")
 		q = q.Boost(2)
 		q = q.OrderByScore()
-		err = q.GetResults(&users)
+		err := q.GetResults(&users)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(users), 3)
@@ -1094,8 +1045,7 @@ func queryQueryWithBoost(t *testing.T, driver *RavenTestDriver) {
 		assert.True(t, stringArrayContainsSequence(names, []string{"Tarzan", "John", "John"}))
 
 		users = nil
-		q, err = session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q = session.QueryCollectionForType(userType)
 		q = q.WhereEquals("name", "Tarzan")
 		q = q.Boost(2)
 		q = q.OrElse()
@@ -1190,13 +1140,12 @@ func queryQueryWithCustomize(t *testing.T, driver *RavenTestDriver) {
 	{
 		newSession := openSessionMust(t, store)
 
-		q, err := newSession.Advanced().QueryIndex("DogsIndex")
-		assert.NoError(t, err)
+		q := newSession.Advanced().QueryIndex("DogsIndex")
 		q = q.WaitForNonStaleResults(0)
 		q = q.OrderByWithOrdering("name", ravendb.OrderingTypeAlphaNumeric)
 		q = q.WhereGreaterThan("age", 2)
 		var queryResult []*DogsIndex_Result
-		err = q.GetResults(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 4)
@@ -1343,11 +1292,10 @@ func queryQueryLongRequest(t *testing.T, driver *RavenTestDriver) {
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)
 
-		q, err := newSession.Advanced().QueryCollection("Users")
-		assert.NoError(t, err)
+		q := newSession.Advanced().QueryCollection("Users")
 		q = q.WhereEquals("name", longName)
 		var queryResult []*User
-		err = q.GetResults(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 		assert.Equal(t, len(queryResult), 1)
 
@@ -1379,21 +1327,19 @@ func queryQueryByIndex(t *testing.T, driver *RavenTestDriver) {
 	{
 		newSession := openSessionMust(t, store)
 
-		q, err := newSession.Advanced().QueryIndex("DogsIndex")
-		assert.NoError(t, err)
+		q := newSession.Advanced().QueryIndex("DogsIndex")
 		q = q.WhereGreaterThan("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
 		var queryResult []*DogsIndex_Result
-		err = q.GetResults(&queryResult)
+		err := q.GetResults(&queryResult)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(queryResult), 1)
 		r := queryResult[0]
 		assert.Equal(t, r.Name, "Brian")
 
-		q, err = newSession.Advanced().QueryIndex("DogsIndex")
-		assert.NoError(t, err)
+		q = newSession.Advanced().QueryIndex("DogsIndex")
 		q = q.WhereLessThanOrEqual("age", 2)
 		q = q.AndAlso()
 		q = q.WhereEquals("vaccinated", false)
@@ -1446,7 +1392,6 @@ func TestQuery(t *testing.T) {
 	queryQueryNoTracking(t, driver)
 	queryQueryLongRequest(t, driver)
 	queryQueryWithProjection2(t, driver)
-
 	queryQueryWhereNot(t, driver)
 	queryQuerySkipTake(t, driver)
 	queryQueryWithProjection(t, driver)

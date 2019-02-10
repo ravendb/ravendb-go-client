@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -1214,9 +1213,8 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
-	// TODO: is this a no-op?
-	//fmt.Printf("InMemoryDocumentSessionOperations.getOperationResult: trying to set results (%T) to result (%T)\n", results, result)
-	return errors.New("NYI")
+	// this is a no-op
+	return nil
 }
 
 func (s *InMemoryDocumentSessionOperations) onAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {

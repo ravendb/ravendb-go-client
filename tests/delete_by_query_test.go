@@ -47,8 +47,7 @@ func deleteByQueryCanDeleteByQuery(t *testing.T, driver *RavenTestDriver) {
 
 		{
 			session := openSessionMust(t, store)
-			q, err := session.QueryCollectionForType(reflect.TypeOf(&User{}))
-			assert.NoError(t, err)
+			q := session.QueryCollectionForType(reflect.TypeOf(&User{}))
 			count, err := q.Count()
 			assert.NoError(t, err)
 			assert.Equal(t, count, 1)

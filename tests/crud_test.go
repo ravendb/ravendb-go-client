@@ -64,8 +64,7 @@ func crudTestEntitiesAreSavedUsingLowerCase(t *testing.T, driver *RavenTestDrive
 	{
 		newSession := openSessionMust(t, store)
 		var users []*User
-		q, err := newSession.Advanced().RawQuery("from Users where lastName = 'user1'")
-		assert.NoError(t, err)
+		q := newSession.Advanced().RawQuery("from Users where lastName = 'user1'")
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
 
@@ -539,7 +538,7 @@ func crudTestCrudOperationsWithArrayOfArrays(t *testing.T, driver *RavenTestDriv
 		arr := &Arr2{}
 		arr.Arr1 = []*Arr1{a1, a2}
 
-		newSession.StoreWithID(arr, "arr/1")
+		err = newSession.StoreWithID(arr, "arr/1")
 		assert.NoError(t, err)
 		err = newSession.SaveChanges()
 		assert.NoError(t, err)

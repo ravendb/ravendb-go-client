@@ -36,8 +36,7 @@ func indexesFromClientTestCanCreateIndexesUsingIndexCreation(t *testing.T, drive
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryIndex(indexes[0].IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(indexes[0].IndexName)
 		err = q.GetResults(&users)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(users))
@@ -253,8 +252,7 @@ func indexesFromClientTestSetLockModeAndSetPriority(t *testing.T, driver *RavenT
 		session := openSessionMust(t, store)
 
 		var users []*User
-		q, err := session.QueryIndex(usersByName.IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(usersByName.IndexName)
 		q = q.WaitForNonStaleResults(0)
 		q = q.WhereEquals("name", "Arek")
 		err = q.GetResults(&users)
@@ -333,8 +331,7 @@ func indexesFromClientTestGetTerms(t *testing.T, driver *RavenTestDriver) {
 
 		var stats *ravendb.QueryStatistics
 		var notUsed []*User
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
@@ -387,8 +384,7 @@ func indexesFromClientTestGetIndexNames(t *testing.T, driver *RavenTestDriver) {
 
 		var notUsed []*User
 		var stats *ravendb.QueryStatistics
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.WaitForNonStaleResults(0)
 		q = q.Statistics(&stats)
 		q = q.WhereEquals("name", "Arek")
@@ -443,15 +439,13 @@ func indexesFromClientTestCanExplain(t *testing.T, driver *RavenTestDriver) {
 
 		var notUsed []*User
 		var statsRef *ravendb.QueryStatistics
-		q, err := session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q := session.QueryCollectionForType(userType)
 		q = q.Statistics(&statsRef)
 		q = q.WhereEquals("name", "Arek")
 		err = q.GetResults(&notUsed)
 		assert.NoError(t, err)
 
-		q, err = session.QueryCollectionForType(userType)
-		assert.NoError(t, err)
+		q = session.QueryCollectionForType(userType)
 		q = q.Statistics(&statsRef)
 		q = q.WhereGreaterThan("age", 10)
 		err = q.GetResults(&notUsed)
@@ -541,8 +535,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 		options.SetMinimumTermFrequency(0)
 
 		var list []*Post
-		q, err := session.QueryIndex(PostsByTitleAndDesc().IndexName)
-		assert.NoError(t, err)
+		q := session.QueryIndex(PostsByTitleAndDesc().IndexName)
 
 		fn1 := func(x *ravendb.DocumentQuery) {
 			x.WhereEquals("id()", "posts/1")
@@ -552,8 +545,7 @@ func indexesFromClientTestMoreLikeThis(t *testing.T, driver *RavenTestDriver) {
 			f.UsingDocumentWithBuilder(fn1).WithOptions(options)
 		}
 
-		q, err = q.MoreLikeThisWithBuilder(fn2)
-		assert.NoError(t, err)
+		q = q.MoreLikeThisWithBuilder(fn2)
 
 		err = q.GetResults(&list)
 		assert.NoError(t, err)

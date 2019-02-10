@@ -46,8 +46,7 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeNoMaxResults_HitsDes
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q, err := session.QueryIndex("CameraCost")
-		assert.NoError(t, err)
+		q := session.QueryIndex("CameraCost")
 		ag := q.AggregateUsing("facets/CameraFacets")
 		facetResults, err := ag.Execute()
 		assert.NoError(t, err)
@@ -134,8 +133,7 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeWithMaxResults_HitsD
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		q, err := session.QueryIndex("CameraCost")
-		assert.NoError(t, err)
+		q := session.QueryIndex("CameraCost")
 		ag := q.AggregateUsing("facets/CameraFacets")
 		facetResults, err := ag.Execute()
 		assert.NoError(t, err)
@@ -198,7 +196,6 @@ func facetPaging_canPerformFacetedPagingSearchWithNoPageSizeWithMaxResults_HitsD
 		}
 		sort.Ints(counts)
 		assert.Equal(t, counts[0], fr.RemainingHits)
-		// fmt.Printf("Remaining hits: %d, first: %d, last: %d\n", fr.RemainingHits, counts[0], counts[len(counts)-1])
 
 		session.Close()
 	}

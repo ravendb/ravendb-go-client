@@ -79,9 +79,8 @@ func ravendb6292_ifIncludedDocumentIsConflictedItShouldNotThrowConflictException
 		session := openSessionMust(t, store2)
 
 		clazz := reflect.TypeOf(&User{})
-		documentQuery, err := session.Advanced().QueryCollectionForType(clazz)
+		documentQuery := session.Advanced().QueryCollectionForType(clazz)
 		documentQuery = documentQuery.Include("addressId")
-		assert.NoError(t, err)
 
 		iq, err := documentQuery.GetIndexQuery()
 		assert.NoError(t, err)

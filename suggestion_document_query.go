@@ -7,6 +7,7 @@ import (
 
 // Note: ISuggestionDocumentQuery is SuggestionDocumentQuery
 
+// SuggestionDocumentQuery represents "suggestion" query
 type SuggestionDocumentQuery struct {
 	// from SuggestionQueryBase
 	session   *InMemoryDocumentSessionOperations
@@ -14,16 +15,22 @@ type SuggestionDocumentQuery struct {
 	startTime time.Time
 
 	source *DocumentQuery
+	err    error
 }
 
-func NewSuggestionDocumentQuery(source *DocumentQuery) *SuggestionDocumentQuery {
-	return &SuggestionDocumentQuery{
+func newSuggestionDocumentQuery(source *DocumentQuery) *SuggestionDocumentQuery {
+	res := &SuggestionDocumentQuery{
 		source:  source,
 		session: source.getSession(),
 	}
+	res.err = source.err
+	return res
 }
 
 func (q *SuggestionDocumentQuery) Execute() (map[string]*SuggestionResult, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	command, err := q.getCommand()
 	if err != nil {
 		return nil, err
@@ -56,13 +63,19 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 		results[res.Name] = res
 	}
 
-	queryOperationEnsureIsAcceptable(queryResult, q.query.waitForNonStaleResults, q.startTime, q.session)
+	err := queryOperationEnsureIsAcceptable(queryResult, q.query.waitForNonStaleResults, q.startTime, q.session)
+	if err != nil {
+		return nil, err
+	}
 
 	return results, nil
 }
 
 // onEval: v is map[string]*SuggestionResult
 func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResult, onEval func(v interface{})) (*Lazy, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	var err error
 	q.query, err = q.getIndexQuery()
 	if err != nil {
@@ -93,9 +106,16 @@ func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) 
 }
 
 func (q *SuggestionDocumentQuery) getIndexQuery() (*IndexQuery, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	return q.source.GetIndexQuery()
 }
+
 func (q *SuggestionDocumentQuery) getCommand() (*QueryCommand, error) {
+	if q.err != nil {
+		return nil, q.err
+	}
 	var err error
 	q.query, err = q.getIndexQuery()
 	if err != nil {
@@ -106,6 +126,9 @@ func (q *SuggestionDocumentQuery) getCommand() (*QueryCommand, error) {
 }
 
 func (q *SuggestionDocumentQuery) string() (string, error) {
+	if q.err != nil {
+		return "", q.err
+	}
 	iq, err := q.getIndexQuery()
 	if err != nil {
 		return "", err

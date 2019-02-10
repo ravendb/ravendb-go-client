@@ -32,7 +32,7 @@ func (s *DocumentSession) Advanced() *DocumentSession {
 }
 
 func (s *DocumentSession) Lazily() *LazySessionOperations {
-	return NewLazySessionOperations(s)
+	return newLazySessionOperations(s)
 }
 
 // TODO: remove in API cleanup phase
@@ -194,7 +194,7 @@ func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInform
 
 func (s *DocumentSession) executeLazyOperationsSingleStep(responseTimeInformation *ResponseTimeInformation, requests []*getRequest) (bool, error) {
 	multiGetOperation := &MultiGetOperation{
-		_session: s.InMemoryDocumentSessionOperations,
+		session: s.InMemoryDocumentSessionOperations,
 	}
 	multiGetCommand := multiGetOperation.createRequest(requests)
 
@@ -241,7 +241,7 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 		// operation carries the result to be set
 		return err
 	}
-	lazyValue := NewLazy(result, fn)
+	lazyValue := newLazy(result, fn, nil)
 	if onEval != nil {
 		if s.onEvaluateLazy == nil {
 			s.onEvaluateLazy = map[ILazyOperation]func(interface{}) error{}
@@ -274,7 +274,7 @@ func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOpera
 		*count = operation.getQueryResult().TotalResults
 		return nil
 	}
-	return NewLazy(count, fn)
+	return newLazy(count, fn, nil)
 }
 
 func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, includes []string, onEval func(interface{})) *Lazy {
@@ -284,7 +284,7 @@ func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, in
 			err := s.LoadMulti(results, ids)
 			return err
 		}
-		return NewLazy(results, fn)
+		return newLazy(results, fn, nil)
 	}
 
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
@@ -806,22 +806,19 @@ func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName stri
 */
 
 // RawQuery returns new DocumentQuery representing a raw query
-func (s *DocumentSession) RawQuery(rawQuery string) (*RawDocumentQuery, error) {
+func (s *DocumentSession) RawQuery(rawQuery string) *RawDocumentQuery {
 	opts := &DocumentQueryOptions{
 		session:  s.InMemoryDocumentSessionOperations,
 		rawQuery: rawQuery,
 	}
-	aq, err := newAbstractDocumentQuery(opts)
-	if err != nil {
-		return nil, err
-	}
+	aq := newAbstractDocumentQuery(opts)
 	return &RawDocumentQuery{
 		abstractDocumentQuery: aq,
-	}, nil
+	}
 }
 
 // Query return a new DocumentQuery
-func (s *DocumentSession) Query(opts *DocumentQueryOptions) (*DocumentQuery, error) {
+func (s *DocumentSession) Query(opts *DocumentQueryOptions) *DocumentQuery {
 	if opts == nil {
 		opts = &DocumentQueryOptions{}
 	}
@@ -831,46 +828,56 @@ func (s *DocumentSession) Query(opts *DocumentQueryOptions) (*DocumentQuery, err
 }
 
 // QueryCollection creates a new query over documents of a given collection
-func (s *DocumentSession) QueryCollection(collectionName string) (*DocumentQuery, error) {
-	if collectionName == "" {
-		return nil, newIllegalArgumentError("collectionName cannot be empty")
-	}
-	if err := throwIfInvalidCollectionName(collectionName); err != nil {
-		return nil, err
-	}
+func (s *DocumentSession) QueryCollection(collectionName string) *DocumentQuery {
 	opts := &DocumentQueryOptions{
 		CollectionName: collectionName,
 		session:        s.InMemoryDocumentSessionOperations,
 		conventions:    s.GetConventions(),
 	}
-	return newDocumentQuery(opts)
+	res := newDocumentQuery(opts)
+	if res.err != nil {
+		return res
+	}
+
+	if collectionName == "" {
+		res.err = newIllegalArgumentError("collectionName cannot be empty")
+		return res
+	}
+	res.err = throwIfInvalidCollectionName(collectionName)
+	return res
 }
 
 // QueryCollectionForType creates a new query over documents of a given type
-func (s *DocumentSession) QueryCollectionForType(typ reflect.Type) (*DocumentQuery, error) {
-	if typ == nil {
-		return nil, newIllegalArgumentError("typ cannot be nil")
-	}
+func (s *DocumentSession) QueryCollectionForType(typ reflect.Type) *DocumentQuery {
 	opts := &DocumentQueryOptions{
 		Type:        typ,
 		session:     s.InMemoryDocumentSessionOperations,
 		conventions: s.GetConventions(),
 	}
-	return newDocumentQuery(opts)
+	res := newDocumentQuery(opts)
+	if res.err == nil {
+		if typ == nil {
+			res.err = newIllegalArgumentError("typ cannot be nil")
+		}
+	}
+	return res
 }
 
 // QueryIndex creates a new query in a index with a given name
-func (s *DocumentSession) QueryIndex(indexName string) (*DocumentQuery, error) {
-	if indexName == "" {
-		return nil, newIllegalArgumentError("indexName cannot be empty")
-	}
-
+func (s *DocumentSession) QueryIndex(indexName string) *DocumentQuery {
 	opts := &DocumentQueryOptions{
 		IndexName:   indexName,
 		session:     s.InMemoryDocumentSessionOperations,
 		conventions: s.GetConventions(),
 	}
-	return newDocumentQuery(opts)
+	res := newDocumentQuery(opts)
+	if res.err != nil {
+		return res
+	}
+	if indexName == "" {
+		res.err = newIllegalArgumentError("indexName cannot be empty")
+	}
+	return res
 }
 
 // StreamQuery starts a streaming query and returns iterator for results.
