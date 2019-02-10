@@ -646,34 +646,36 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	return query, nil
 }
 
-func (q *DocumentQuery) AggregateByFacet(facet FacetBase) (*AggregationDocumentQuery, error) {
-	if err := q.aggregateBy(facet); err != nil {
-		return nil, err
+func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
+	res := newAggregationDocumentQuery(q)
+	if q.err != nil {
+		return res
 	}
 
-	return newAggregationDocumentQuery(q), nil
+	res.err = q.aggregateBy(facet)
+	return res
 }
 
-func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) (*AggregationDocumentQuery, error) {
-	for _, facet := range facets {
-		if err := q.aggregateBy(facet); err != nil {
-			return nil, err
-		}
+func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *AggregationDocumentQuery {
+	res := newAggregationDocumentQuery(q)
+	if q.err != nil {
+		return res
 	}
 
-	return newAggregationDocumentQuery(q), nil
+	for _, facet := range facets {
+		if res.err = q.aggregateBy(facet); res.err != nil {
+			return res
+		}
+	}
+	return res
 }
 
 func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *AggregationDocumentQuery {
 	res := newAggregationDocumentQuery(q)
 	if q.err != nil {
-		res.err = q.err
 		return res
 	}
-	q.err = q.aggregateUsing(facetSetupDocumentID)
-	if q.err != nil {
-		res.err = q.err
-	}
+	res.err = q.aggregateUsing(facetSetupDocumentID)
 	return res
 }
 
