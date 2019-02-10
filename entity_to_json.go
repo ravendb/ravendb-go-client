@@ -26,7 +26,7 @@ func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) map[str
 	if v, ok := entity.(map[string]interface{}); ok {
 		return v
 	}
-	jsonNode := StructToJSONMap(entity)
+	jsonNode := structToJSONMap(entity)
 
 	entityToJSONWriteMetadata(jsonNode, documentInfo)
 

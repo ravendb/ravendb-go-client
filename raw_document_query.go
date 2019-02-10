@@ -16,7 +16,7 @@ func (q *RawDocumentQuery) Skip(count int) *RawDocumentQuery {
 }
 
 func (q *RawDocumentQuery) Take(count int) *RawDocumentQuery {
-	q.take(&count)
+	q.take(count)
 	return q
 }
 

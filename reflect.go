@@ -17,24 +17,6 @@ func isPtrStruct(t reflect.Type) (reflect.Type, bool) {
 	return nil, false
 }
 
-func isPtrPtrStruct(tp reflect.Type) (reflect.Type, bool) {
-	if tp.Kind() != reflect.Ptr {
-		return nil, false
-	}
-	return isPtrStruct(tp.Elem())
-}
-
-func isPtrSlicePtrStruct(tp reflect.Type) (reflect.Type, bool) {
-	if tp.Kind() != reflect.Ptr {
-		return nil, false
-	}
-	tp = tp.Elem()
-	if tp.Kind() != reflect.Slice {
-		return nil, false
-	}
-	return isPtrStruct(tp.Elem())
-}
-
 func isMapStringToPtrStruct(tp reflect.Type) (reflect.Type, bool) {
 	if tp.Kind() != reflect.Map {
 		return nil, false
@@ -54,7 +36,7 @@ func getDefaultValueForType(clazz reflect.Type) interface{} {
 // GetFullTypeName returns fully qualified (including package) name of the type,
 // after traversing pointers.
 // e.g. for struct Foo in main package, the type of Foo and *Foo is main.Foo
-func GetFullTypeName(v interface{}) string {
+func getFullTypeName(v interface{}) string {
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()

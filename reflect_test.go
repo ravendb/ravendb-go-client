@@ -16,9 +16,9 @@ type FooStruct struct {
 
 func TestTypeName(t *testing.T) {
 	v := FooStruct{}
-	name := GetFullTypeName(v)
+	name := getFullTypeName(v)
 	assert.Equal(t, "ravendb.FooStruct", name)
-	name = GetFullTypeName(&v)
+	name = getFullTypeName(&v)
 	assert.Equal(t, "ravendb.FooStruct", name)
 	name = getShortTypeNameForEntity(v)
 	assert.Equal(t, "FooStruct", name)
@@ -31,7 +31,7 @@ func TestMakeStructFromJSONMap(t *testing.T) {
 		S: "str",
 		N: 5,
 	}
-	jsmap := StructToJSONMap(s)
+	jsmap := structToJSONMap(s)
 	vd, err := jsonMarshal(s)
 	assert.NoError(t, err)
 	typ := reflect.TypeOf(s)

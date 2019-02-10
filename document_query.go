@@ -271,7 +271,7 @@ func (q *DocumentQuery) Not() *DocumentQuery {
 }
 
 func (q *DocumentQuery) Take(count int) *DocumentQuery {
-	q.take(&count)
+	q.take(count)
 	return q
 }
 

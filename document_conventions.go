@@ -88,7 +88,7 @@ func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 	return c._throwIfQueryPageSizeIsNotSet
 }
 
-func GetCollectionNameForTypeOrEntity(entityOrType interface{}) string {
+func getCollectionNameForTypeOrEntity(entityOrType interface{}) string {
 	name := getShortTypeNameForEntityOrType(entityOrType)
 	return inflect.ToPlural(name)
 }
@@ -164,7 +164,7 @@ func (c *DocumentConventions) Clone() *DocumentConventions {
 }
 
 func (c *DocumentConventions) getGoTypeName(entity interface{}) string {
-	return GetFullTypeName(entity)
+	return getFullTypeName(entity)
 }
 
 // returns "" if no identity property

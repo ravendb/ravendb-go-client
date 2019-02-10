@@ -15,8 +15,8 @@ type User struct {
 func TestDefaultGetCollectionName(t *testing.T) {
 	// t.Parallel()
 
-	name := GetCollectionNameForTypeOrEntity(&User{})
+	name := getCollectionNameForTypeOrEntity(&User{})
 	assert.Equal(t, "Users", name)
-	name = GetCollectionNameForTypeOrEntity(reflect.TypeOf(&User{}))
+	name = getCollectionNameForTypeOrEntity(reflect.TypeOf(&User{}))
 	assert.Equal(t, "Users", name)
 }
