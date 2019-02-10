@@ -202,8 +202,7 @@ func (t *facetAggregationToken) writeTo(writer *strings.Builder) error {
 		writer.WriteString(t.fieldName)
 		writer.WriteString(")")
 	default:
-		panicIf(true, "Invalid aggregation mode: %s", t.aggregation)
-		//throw new IllegalArgumentError("Invalid aggregation mode: " + _aggregation);
+		return newIllegalArgumentError("Invalid aggregation mode: " + t.aggregation)
 	}
 	return nil
 }

@@ -21,17 +21,19 @@ func createFromToken(indexName string, collectionName string, alias string) *fro
 }
 
 func (t *fromToken) writeTo(writer *strings.Builder) error {
-	panicIf(t.indexName == "" && t.collectionName == "", "Either indexName or collectionName must be specified")
-	// newIllegalStateError("Either indexName or collectionName must be specified");
+	if t.indexName == "" && t.collectionName == "" {
+		return newIllegalStateError("Either indexName or collectionName must be specified")
+	}
 
 	if t.isDynamic {
 		writer.WriteString("from ")
 
 		hasWhitespace := strings.ContainsAny(t.collectionName, " \t\r\n")
 		if hasWhitespace {
-			// TODO: propagate error
 			err := throwIfInvalidCollectionName(t.collectionName)
-			must(err)
+			if err != nil {
+				return err
+			}
 			writer.WriteString(`"`)
 			writer.WriteString(t.collectionName)
 			writer.WriteString(`"`)
