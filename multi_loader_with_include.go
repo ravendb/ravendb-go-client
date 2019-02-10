@@ -59,7 +59,8 @@ func (l *MultiLoaderWithInclude) Load(result interface{}, id string) error {
 	key := reflect.ValueOf(id)
 	res := m.MapIndex(key)
 	if res.IsNil() {
-		return ErrNotFound
+		//return ErrNotFound
+		return nil
 	}
 	setInterfaceToValue(result, res.Interface())
 	return nil

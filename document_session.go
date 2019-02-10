@@ -14,7 +14,7 @@ import (
 // TODO: decide if we want to return ErrNotFound or nil if the value is not found
 // Java returns nil (which, I guess, is default value for reference (i.e. all) types)
 // var ErrNotFound = errors.New("Not found")
-var ErrNotFound = error(nil)
+// var ErrNotFound = error(nil)
 
 // DocumentSession is a Unit of Work for accessing RavenDB server
 type DocumentSession struct {
@@ -79,7 +79,9 @@ func (s *DocumentSession) SaveChanges() error {
 	if command == nil {
 		return nil
 	}
-	defer command.Close()
+	defer func() {
+		_ = command.Close()
+	}()
 	err = s.requestExecutor.ExecuteCommand(command, s.sessionInfo)
 	if err != nil {
 		return err
@@ -175,9 +177,12 @@ func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInform
 	responseTimeDuration.computeServerTotal()
 
 	for _, pendingLazyOperation := range s.pendingLazyOperations {
-		value := s.onEvaluateLazy[pendingLazyOperation]
-		if value != nil {
-			value(pendingLazyOperation.getResult())
+		fn := s.onEvaluateLazy[pendingLazyOperation]
+		if fn != nil {
+			err := fn(pendingLazyOperation.getResult())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -239,14 +244,17 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 	lazyValue := NewLazy(result, fn)
 	if onEval != nil {
 		if s.onEvaluateLazy == nil {
-			s.onEvaluateLazy = map[ILazyOperation]func(interface{}){}
+			s.onEvaluateLazy = map[ILazyOperation]func(interface{}) error{}
 		}
-		fn := func(theResult interface{}) {
-			// TODO: losing error message
-			s.getOperationResult(result, theResult)
+		fn := func(theResult interface{}) error {
+			err := s.getOperationResult(result, theResult)
+			if err != nil {
+				return err
+			}
 			// result is *<type>, we want <type> in onEval()
 			v := reflect.ValueOf(result).Elem().Interface()
 			onEval(v)
+			return nil
 		}
 		s.onEvaluateLazy[operation] = fn
 	}

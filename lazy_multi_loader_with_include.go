@@ -8,20 +8,20 @@ import (
 
 // LazyMultiLoaderWithInclude is for lazily loading one or more objects with includes
 type LazyMultiLoaderWithInclude struct {
-	_session  *DocumentSession
-	_includes []string
+	session  *DocumentSession
+	includes []string
 }
 
 // NewLazyMultiLoaderWithInclude creates a lazy multi loader with includes
 func NewLazyMultiLoaderWithInclude(session *DocumentSession) *LazyMultiLoaderWithInclude {
 	return &LazyMultiLoaderWithInclude{
-		_session: session,
+		session: session,
 	}
 }
 
 // Include adds ids of objects to add in a request
 func (l *LazyMultiLoaderWithInclude) Include(path string) *LazyMultiLoaderWithInclude {
-	l._includes = append(l._includes, path)
+	l.includes = append(l.includes, path)
 	return l
 }
 
@@ -35,7 +35,7 @@ func (l *LazyMultiLoaderWithInclude) LoadMulti(results interface{}, ids []string
 		return nil, err
 	}
 
-	return l._session.lazyLoadInternal(results, ids, l._includes, nil), nil
+	return l.session.lazyLoadInternal(results, ids, l.includes, nil), nil
 }
 
 // Load lazy loads a value with a given id into result
@@ -55,7 +55,7 @@ func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) (*Lazy,
 	resultType := reflect.MapOf(stringType, tp.Elem())
 	results := reflect.MakeMap(resultType).Interface()
 
-	lazy := l._session.lazyLoadInternal(results, ids, l._includes, nil)
+	lazy := l.session.lazyLoadInternal(results, ids, l.includes, nil)
 	valueFactory := func(result2 interface{}) error {
 		panicIf(reflect.TypeOf(result) != reflect.TypeOf(result2), "LazyMultiLoaderWithInclude.Load(): expected values of same, type, got: result=%T, result2=%T\n", result, result2)
 		err := lazy.GetValue()
@@ -72,7 +72,8 @@ func (l *LazyMultiLoaderWithInclude) Load(result interface{}, id string) (*Lazy,
 		key := reflect.ValueOf(id)
 		res := m.MapIndex(key)
 		if res.IsNil() {
-			return ErrNotFound
+			//return ErrNotFound
+			return nil
 		}
 		setInterfaceToValue(result, res.Interface())
 		return nil

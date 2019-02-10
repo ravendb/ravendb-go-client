@@ -83,12 +83,14 @@ func (o *LoadOperation) getDocument(result interface{}) error {
 func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 	if id == "" {
 		// TODO: should return default value?
-		return ErrNotFound
+		//return ErrNotFound
+		return nil
 	}
 
 	if o._session.IsDeleted(id) {
 		// TODO: return ErrDeleted?
-		return ErrNotFound
+		//return ErrNotFound
+		return nil
 	}
 
 	doc := o._session.documentsByID.getValue(id)
@@ -96,7 +98,8 @@ func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 		doc = o._session.includedDocumentsByID[id]
 	}
 	if doc == nil {
-		return ErrNotFound
+		//return ErrNotFound
+		return nil
 	}
 
 	return o._session.TrackEntityInDocumentInfo(result, doc)

@@ -25,7 +25,7 @@ type InMemoryDocumentSessionOperations struct {
 	requestExecutor             *RequestExecutor
 	operationExecutor           *OperationExecutor
 	pendingLazyOperations       []ILazyOperation
-	onEvaluateLazy              map[ILazyOperation]func(interface{})
+	onEvaluateLazy              map[ILazyOperation]func(interface{}) error
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
 	saveChangesOptions          *BatchOptions
