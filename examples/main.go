@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ravendb/ravendb-go-client/examples/northwind"
@@ -391,7 +392,8 @@ func crudDeleteUsingEntity() {
 	}
 }
 
-func queryCollection() {
+// shows how to query collection of a given name
+func queryCollectionByName() {
 	store, session, err := openSession(dbName)
 	if err != nil {
 		log.Fatalf("openSession() failed with %s\n", err)
@@ -399,15 +401,141 @@ func queryCollection() {
 	defer store.Close()
 	defer session.Close()
 
-	//session.QueryCollection("employees")
+	q := session.QueryCollection("employees")
+
+	var employees []*northwind.Employee
+	err = q.GetResults(&employees)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(employees))
+}
+
+// shows how to query a collection for a given type
+func queryCollectionByType() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+
+	var employees []*northwind.Employee
+	err = q.GetResults(&employees)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(employees))
+}
+
+func queryIndex() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	q := session.QueryIndex("Orders/ByCompany")
+
+	// we're using anonymous struct whose definition matches
+	// the fields of in the index
+	var ordersByCompany []*struct {
+		Company    string
+		Count      int
+		TotalValue float64 `json:"Total"`
+	}
+	err = q.GetResults(&ordersByCompany)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(ordersByCompany))
+	fmt.Print("First result:\n")
+	spew.Fdump(os.Stdout, ordersByCompany[0])
+}
+
+// shows how to use First() to get first result
+func queryFirst() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+
+	var first *northwind.Employee
+	err = q.First(&first)
+	if err != nil {
+		log.Fatalf("q.First() failed with '%s'\n", err)
+	}
+	// if there are no matching results, first will be unchanged (i.e. equal to nil)
+	if first != nil {
+		fmt.Print("First() returned:\n")
+		spew.Fdump(os.Stdout, first)
+	}
+}
+
+func queryComplex() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Product{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WaitForNonStaleResults(0)
+	q = q.WhereEquals("Name", "iPhone X")
+	q = q.OrderBy("PricePerUnit")
+	q = q.Take(2) // limit to 2 results
+
+	var products []*northwind.Product
+	err = q.GetResults(&products)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(products))
+}
+
+func querySelectSingleField() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent: from employees select FirstName
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.SelectFields(reflect.TypeOf(""), "FirstName")
+
+	var names []string
+	err = q.GetResults(&names)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(names))
+	if len(names) > 0 {
+		fmt.Printf("First name: %s\n", names[0])
+	}
 }
 
 func main() {
+	// to test a given function, uncomment it
+
 	//loadUpdateSave()
 
 	//crudStore()
 
-	crudLoad()
+	//crudLoad()
 
 	//crudLoadWithIncludes()
 	// crudUpdate()
@@ -415,4 +543,12 @@ func main() {
 	//crudDeleteUsingID()
 	//crudDeleteUsingEntity()
 
+	//queryCollectionByName()
+	//queryCollectionByType()
+	//queryIndex()
+	// queryFirst()
+
+	//queryComplex()
+
+	querySelectSingleField()
 }

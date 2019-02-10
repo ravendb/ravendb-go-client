@@ -4,11 +4,11 @@ This is information on how to use the library. For docs on working on the librar
 
 This library requires go 1.11 or later.
 
-Godoc: https://godoc.org/github.com/ravendb/ravendb-go-client
+API reference: https://godoc.org/github.com/ravendb/ravendb-go-client
 
 ## Documentation
 
-Please find the official documentation on [RavenDB Documentation](https://ravendb.net/docs/article-page/4.0/nodejs/client-api/what-is-a-document-store) page
+To learn basics of RavenDB, read [RavenDB Documentation](https://ravendb.net/docs/article-page/4.1/csharp).
 
 ## Getting started
 
@@ -20,6 +20,7 @@ import (
 	ravendb "github.com/ravendb/ravendb-go-client"
 )
 ```
+
 2. Initialize document store (you should have one DocumentStore instance per application)
 ```go
 func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
@@ -31,6 +32,7 @@ func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 	return store, nil
 }
 ```
+
 3. Open a session and close it when done
 ```go
 session, err = store.OpenSession()
@@ -40,6 +42,7 @@ if err != nil {
 // ... use session
 session.Close()
 ```
+
 4. Call `SaveChanges()` to persist changes in a session:
 ```go
 var e *northwind.Employee
@@ -202,3 +205,71 @@ See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full examp
 
 ## Querying documents
 
+## Selecting what to query
+
+First you need to decide what you you query.
+
+RavenDB stores documents in collections. By default each type (struct) is stored in its own collection e.g. `Employee` struct is stored in collection `employees`.
+
+You can query a collection given its name:
+```go
+	q := session.QueryCollection("employees")
+
+```
+See `queryCollectionByName()` in [examples/main.go](examples/main.go) for full example.
+
+You can query a collection for a given type:
+```go
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+```
+See `queryCollectionByType()` in [examples/main.go](examples/main.go) for full example.
+
+You can query an index.
+```go
+	q := session.QueryIndex("Orders/ByCompany")
+```
+See `queryIndex()` in [examples/main.go](examples/main.go) for full example.
+
+## Limit what is returned
+
+```go
+	tp := reflect.TypeOf(&northwind.Product{})
+	q := session.QueryCollectionForType(tp)
+
+    q = q.WaitForNonStaleResults(0)
+	q = q.WhereEquals("Name", "iPhone X")
+	q = q.OrderBy("PricePerUnit")
+	q = q.Take(2) // limit to 2 results
+```
+See `queryComplex()` in [examples/main.go](examples/main.go) for full example.
+
+## Obtain the results
+
+You can get all matching results:
+
+```go
+	var products []*northwind.Product
+	err = q.GetResults(&products)
+```
+See `queryComplex()` in [examples/main.go](examples/main.go) for full example.
+
+You can get just first one:
+```
+	var first *northwind.Employee
+	err = q.First(&first)
+```
+See `queryFirst()` in [examples/main.go](examples/main.go) for full example.
+
+## Overview of [DocumentQuery](https://godoc.org/github.com/ravendb/ravendb-go-client#DocumentQuery) methods
+
+### SelectFields() - projections using a single field
+
+```go
+	// RQL equivalent: from employees select FirstName
+	q = q.SelectFields(reflect.TypeOf(""), "FirstName")
+
+	var names []string
+	err = q.GetResults(&names)
+```
+See `querySelectSingleField()` in [examples/main.go](examples/main.go) for full example.
