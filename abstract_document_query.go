@@ -1161,22 +1161,44 @@ func (q *abstractDocumentQuery) string() (string, error) {
 	}
 
 	queryText := &strings.Builder{}
-	q.buildDeclare(queryText)
-	q.buildFrom(queryText)
-	q.buildGroupBy(queryText)
-	q.buildWhere(queryText)
-	q.buildOrderBy(queryText)
 
-	q.buildLoad(queryText)
-	q.buildSelect(queryText)
-	q.buildInclude(queryText)
+	err := q.buildDeclare(queryText)
+	if err != nil {
+		return "", err
+	}
+	err = q.buildFrom(queryText)
+	if err != nil {
+		return "", err
+	}
+	err = q.buildGroupBy(queryText)
+	if err != nil {
+		return "", err
+	}
+	err = q.buildWhere(queryText)
+	if err != nil {
+		return "", err
+	}
+	err = q.buildOrderBy(queryText)
+
+	err = q.buildLoad(queryText)
+	if err != nil {
+		return "", err
+	}
+	err = q.buildSelect(queryText)
+	if err != nil {
+		return "", err
+	}
+	err = q.buildInclude(queryText)
+	if err != nil {
+		return "", err
+	}
 
 	return queryText.String(), nil
 }
 
-func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) {
+func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) error {
 	if len(q.includes) == 0 {
-		return
+		return nil
 	}
 
 	q.includes = stringArrayRemoveDuplicates(q.includes)
@@ -1204,6 +1226,7 @@ func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) {
 			queryText.WriteString(include)
 		}
 	}
+	return nil
 }
 
 func (q *abstractDocumentQuery) intersect() error {
@@ -1336,9 +1359,9 @@ func (q *abstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryRe
 	//TBD 4.1 Highlightings.Update(queryResult);
 }
 
-func (q *abstractDocumentQuery) buildSelect(writer *strings.Builder) {
+func (q *abstractDocumentQuery) buildSelect(writer *strings.Builder) error {
 	if len(q.selectTokens) == 0 {
-		return
+		return nil
 	}
 
 	writer.WriteString(" select ")
@@ -1346,9 +1369,11 @@ func (q *abstractDocumentQuery) buildSelect(writer *strings.Builder) {
 	if len(q.selectTokens) == 1 {
 		tok := q.selectTokens[0]
 		if dtok, ok := tok.(*distinctToken); ok {
-			dtok.writeTo(writer)
+			if err := dtok.writeTo(writer); err != nil {
+				return err
+			}
 			writer.WriteString(" *")
-			return
+			return nil
 		}
 	}
 
@@ -1366,23 +1391,27 @@ func (q *abstractDocumentQuery) buildSelect(writer *strings.Builder) {
 		}
 		documentQueryHelperAddSpaceIfNeeded(prevToken, token, writer)
 
-		token.writeTo(writer)
+		if err := token.writeTo(writer); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (q *abstractDocumentQuery) buildFrom(writer *strings.Builder) {
-	q.fromToken.writeTo(writer)
+func (q *abstractDocumentQuery) buildFrom(writer *strings.Builder) error {
+	return q.fromToken.writeTo(writer)
 }
 
-func (q *abstractDocumentQuery) buildDeclare(writer *strings.Builder) {
+func (q *abstractDocumentQuery) buildDeclare(writer *strings.Builder) error {
 	if q.declareToken != nil {
-		q.declareToken.writeTo(writer)
+		return q.declareToken.writeTo(writer)
 	}
+	return nil
 }
 
-func (q *abstractDocumentQuery) buildLoad(writer *strings.Builder) {
+func (q *abstractDocumentQuery) buildLoad(writer *strings.Builder) error {
 	if len(q.loadTokens) == 0 {
-		return
+		return nil
 	}
 
 	writer.WriteString(" load ")
@@ -1392,13 +1421,16 @@ func (q *abstractDocumentQuery) buildLoad(writer *strings.Builder) {
 			writer.WriteString(", ")
 		}
 
-		tok.writeTo(writer)
+		if err := tok.writeTo(writer); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (q *abstractDocumentQuery) buildWhere(writer *strings.Builder) {
+func (q *abstractDocumentQuery) buildWhere(writer *strings.Builder) error {
 	if len(q.whereTokens) == 0 {
-		return
+		return nil
 	}
 
 	writer.WriteString(" where ")
@@ -1413,17 +1445,20 @@ func (q *abstractDocumentQuery) buildWhere(writer *strings.Builder) {
 			prevToken = q.whereTokens[i-1]
 		}
 		documentQueryHelperAddSpaceIfNeeded(prevToken, tok, writer)
-		tok.writeTo(writer)
+		if err := tok.writeTo(writer); err != nil {
+			return err
+		}
 	}
 
 	if q.isIntersect {
 		writer.WriteString(") ")
 	}
+	return nil
 }
 
-func (q *abstractDocumentQuery) buildGroupBy(writer *strings.Builder) {
+func (q *abstractDocumentQuery) buildGroupBy(writer *strings.Builder) error {
 	if len(q.groupByTokens) == 0 {
-		return
+		return nil
 	}
 
 	writer.WriteString(" group by ")
@@ -1432,13 +1467,16 @@ func (q *abstractDocumentQuery) buildGroupBy(writer *strings.Builder) {
 		if i > 0 {
 			writer.WriteString(", ")
 		}
-		token.writeTo(writer)
+		if err := token.writeTo(writer); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (q *abstractDocumentQuery) buildOrderBy(writer *strings.Builder) {
+func (q *abstractDocumentQuery) buildOrderBy(writer *strings.Builder) error {
 	if len(q.orderByTokens) == 0 {
-		return
+		return nil
 	}
 
 	writer.WriteString(" order by ")
@@ -1448,8 +1486,11 @@ func (q *abstractDocumentQuery) buildOrderBy(writer *strings.Builder) {
 			writer.WriteString(", ")
 		}
 
-		token.writeTo(writer)
+		if err := token.writeTo(writer); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (q *abstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) error {

@@ -172,37 +172,37 @@ func getOptionsParameterName(facet FacetBase, addQueryParameter func(interface{}
 var _ queryToken = &facetAggregationToken{}
 
 type facetAggregationToken struct {
-	_fieldName   string
-	_aggregation FacetAggregation
+	fieldName   string
+	aggregation FacetAggregation
 }
 
 func newFacetAggregationToken(fieldName string, aggregation FacetAggregation) *facetAggregationToken {
 	return &facetAggregationToken{
-		_fieldName:   fieldName,
-		_aggregation: aggregation,
+		fieldName:   fieldName,
+		aggregation: aggregation,
 	}
 }
 
 func (t *facetAggregationToken) writeTo(writer *strings.Builder) error {
-	switch t._aggregation {
+	switch t.aggregation {
 	case FacetAggregationMax:
 		writer.WriteString("max(")
-		writer.WriteString(t._fieldName)
+		writer.WriteString(t.fieldName)
 		writer.WriteString(")")
 	case FacetAggregationMin:
 		writer.WriteString("min(")
-		writer.WriteString(t._fieldName)
+		writer.WriteString(t.fieldName)
 		writer.WriteString(")")
 	case FacetAggregationAverage:
 		writer.WriteString("avg(")
-		writer.WriteString(t._fieldName)
+		writer.WriteString(t.fieldName)
 		writer.WriteString(")")
 	case FacetAggregationSum:
 		writer.WriteString("sum(")
-		writer.WriteString(t._fieldName)
+		writer.WriteString(t.fieldName)
 		writer.WriteString(")")
 	default:
-		panicIf(true, "Invalid aggregation mode: %s", t._aggregation)
+		panicIf(true, "Invalid aggregation mode: %s", t.aggregation)
 		//throw new IllegalArgumentError("Invalid aggregation mode: " + _aggregation);
 	}
 	return nil

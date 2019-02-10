@@ -665,9 +665,16 @@ func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) (*AggregationDocumen
 }
 
 func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *AggregationDocumentQuery {
-	q.aggregateUsing(facetSetupDocumentID)
-
-	return newAggregationDocumentQuery(q)
+	res := newAggregationDocumentQuery(q)
+	if q.err != nil {
+		res.err = q.err
+		return res
+	}
+	q.err = q.aggregateUsing(facetSetupDocumentID)
+	if q.err != nil {
+		res.err = q.err
+	}
+	return res
 }
 
 //TBD 4.1 IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.Highlight(string fieldName, int fragmentLength, int fragmentCount, string fragmentsField)
