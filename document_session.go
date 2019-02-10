@@ -35,11 +35,18 @@ func (s *DocumentSession) Lazily() *LazySessionOperations {
 	return newLazySessionOperations(s)
 }
 
-// TODO: remove in API cleanup phase
-type IEagerSessionOperations = DocumentSession
+type EagerSessionOperations struct {
+	s *DocumentSession
+}
 
-func (s *DocumentSession) Eagerly() *IEagerSessionOperations {
-	return s
+func (s *EagerSessionOperations) ExecuteAllPendingLazyOperations() (*ResponseTimeInformation, error) {
+	return s.s.executeAllPendingLazyOperations()
+}
+
+func (s *DocumentSession) Eagerly() *EagerSessionOperations {
+	return &EagerSessionOperations{
+		s: s,
+	}
 }
 
 func (s *DocumentSession) Attachments() *AttachmentsSessionOperations {
@@ -138,8 +145,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 
 // TODO:    protected string generateID(Object entity) {
 
-// ExecuteAllPendingLazyOperations executes all pending lazy operations
-func (s *DocumentSession) ExecuteAllPendingLazyOperations() (*ResponseTimeInformation, error) {
+func (s *DocumentSession) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
 	var requests []*getRequest
 	var pendingTmp []ILazyOperation
 	for _, op := range s.pendingLazyOperations {
@@ -237,7 +243,7 @@ func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOp
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
 	fn := func(res interface{}) error {
-		_, err := s.ExecuteAllPendingLazyOperations()
+		_, err := s.executeAllPendingLazyOperations()
 		// operation carries the result to be set
 		return err
 	}
@@ -266,7 +272,7 @@ func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOpera
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
 	fn := func(res interface{}) error {
-		_, err := s.ExecuteAllPendingLazyOperations()
+		_, err := s.executeAllPendingLazyOperations()
 		if err != nil {
 			return err
 		}

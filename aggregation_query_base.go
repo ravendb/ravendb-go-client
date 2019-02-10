@@ -78,7 +78,7 @@ func (q *aggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEv
 		}
 		return res, nil
 	}
-	op := NewLazyAggregationQueryOperation(q.session.Conventions, q.query, afterFn, processResultFn)
+	op := newLazyAggregationQueryOperation(q.session.Conventions, q.query, afterFn, processResultFn)
 	return q.session.session.addLazyOperation(results, op, onEval), nil
 }
 
