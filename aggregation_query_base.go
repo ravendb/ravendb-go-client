@@ -6,7 +6,7 @@ import (
 )
 
 // Note: AggregationQueryBase also includes AggregationDocumentQuery
-type AggregationQueryBase struct {
+type aggregationQueryBase struct {
 	session   *InMemoryDocumentSessionOperations
 	query     *IndexQuery
 	startTime time.Time
@@ -16,8 +16,8 @@ type AggregationQueryBase struct {
 	err    error
 }
 
-func newAggregationQueryBase(source *DocumentQuery) *AggregationQueryBase {
-	res := &AggregationQueryBase{
+func newAggregationQueryBase(source *DocumentQuery) *aggregationQueryBase {
+	res := &aggregationQueryBase{
 		session: source.getSession(),
 		source:  source.abstractDocumentQuery,
 	}
@@ -29,7 +29,7 @@ func newAggregationDocumentQuery(source *DocumentQuery) *AggregationDocumentQuer
 	return newAggregationQueryBase(source)
 }
 
-func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
+func (q *aggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
@@ -51,7 +51,7 @@ func (q *AggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 
 // arg to onEval is map[string]*FacetResult
 // results is map[string]*FacetResult
-func (q *AggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) (*Lazy, error) {
+func (q *aggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) (*Lazy, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
@@ -93,7 +93,7 @@ func (q *AggregationQueryBase) invokeAfterQueryExecuted(result *QueryResult) {
 }
 */
 
-func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*FacetResult, error) {
+func (q *aggregationQueryBase) processResults(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*FacetResult, error) {
 	q.invokeAfterQueryExecuted(queryResult)
 
 	results := map[string]*FacetResult{}
@@ -113,7 +113,7 @@ func (q *AggregationQueryBase) processResults(queryResult *QueryResult, conventi
 	return results, nil
 }
 
-func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
+func (q *aggregationQueryBase) GetCommand() (*QueryCommand, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
@@ -126,7 +126,7 @@ func (q *AggregationQueryBase) GetCommand() (*QueryCommand, error) {
 	return NewQueryCommand(q.session.GetConventions(), q.query, false, false)
 }
 
-func (q *AggregationQueryBase) string() (string, error) {
+func (q *aggregationQueryBase) string() (string, error) {
 	if q.err != nil {
 		return "", q.err
 	}
