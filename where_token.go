@@ -186,8 +186,9 @@ func (t *whereToken) writeTo(writer *strings.Builder) error {
 		writer.WriteString("regex(")
 	}
 
-	// TODO: propagate error
-	t.writeInnerWhere(writer)
+	if err := t.writeInnerWhere(writer); err != nil {
+		return err
+	}
 
 	if options.exact {
 		writer.WriteString(")")
@@ -231,8 +232,7 @@ func (t *whereToken) writeInnerWhere(writer *strings.Builder) error {
 	case whereOperatorLessThanOrEqual:
 		writer.WriteString(" <= ")
 	default:
-		t.specialOperator(writer)
-		return nil
+		return t.specialOperator(writer)
 	}
 
 	ok, err := t.writeMethod(writer)
@@ -246,7 +246,7 @@ func (t *whereToken) writeInnerWhere(writer *strings.Builder) error {
 	return nil
 }
 
-func (t *whereToken) specialOperator(writer *strings.Builder) {
+func (t *whereToken) specialOperator(writer *strings.Builder) error {
 	options := t.options
 	parameterName := t.parameterName
 	switch t.whereOperator {
@@ -278,7 +278,9 @@ func (t *whereToken) specialOperator(writer *strings.Builder) {
 		writer.WriteString(")")
 	case whereOperatorSpatialWithin, whereOperatorSpatialContains, whereOperatorSpatialDisjoint, whereOperatorSpatialIntersects:
 		writer.WriteString(", ")
-		options.whereShape.writeTo(writer)
+		if err := options.whereShape.writeTo(writer); err != nil {
+			return err
+		}
 
 		if math.Abs(options.distanceErrorPct-IndexingSpatialDefaultDistnaceErrorPct) > 1e-40 {
 			writer.WriteString(", ")
@@ -286,6 +288,7 @@ func (t *whereToken) specialOperator(writer *strings.Builder) {
 		}
 		writer.WriteString(")")
 	default:
-		panicIf(true, "unsupported operator %d", t.whereOperator)
+		return newIllegalStateError("unsupported operator %d", t.whereOperator)
 	}
+	return nil
 }

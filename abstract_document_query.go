@@ -2214,8 +2214,13 @@ func (q *abstractDocumentQuery) aggregateBy(facet FacetBase) error {
 	return nil
 }
 
-func (q *abstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) {
-	q.selectTokens = append(q.selectTokens, createFacetToken(facetSetupDocumentID))
+func (q *abstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) error {
+	token, err := createFacetToken(facetSetupDocumentID)
+	if err != nil {
+		return err
+	}
+	q.selectTokens = append(q.selectTokens, token)
+	return nil
 }
 
 func (q *abstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) (*Lazy, error) {

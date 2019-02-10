@@ -5,40 +5,40 @@ import "strings"
 var _ queryToken = &facetToken{}
 
 type facetToken struct {
-	_facetSetupDocumentID string
-	_aggregateByFieldName string
-	_alias                string
-	_ranges               []string
-	_optionsParameterName string
+	facetSetupDocumentID string
+	aggregateByFieldName string
+	alias                string
+	ranges               []string
+	optionsParameterName string
 
-	_aggregations []*facetAggregationToken
+	aggregations []*facetAggregationToken
 }
 
 func (t *facetToken) GetName() string {
-	return firstNonEmptyString(t._alias, t._aggregateByFieldName)
+	return firstNonEmptyString(t.alias, t.aggregateByFieldName)
 }
 
-func NewFacetTokenWithID(facetSetupDocumentID string) *facetToken {
+func newFacetTokenWithID(facetSetupDocumentID string) *facetToken {
 	return &facetToken{
-		_facetSetupDocumentID: facetSetupDocumentID,
+		facetSetupDocumentID: facetSetupDocumentID,
 	}
 }
 
-func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string, optionsParameterName string) *facetToken {
+func newFacetTokenAll(aggregateByFieldName string, alias string, ranges []string, optionsParameterName string) *facetToken {
 	return &facetToken{
-		_aggregateByFieldName: aggregateByFieldName,
-		_alias:                alias,
-		_ranges:               ranges,
-		_optionsParameterName: optionsParameterName,
+		aggregateByFieldName: aggregateByFieldName,
+		alias:                alias,
+		ranges:               ranges,
+		optionsParameterName: optionsParameterName,
 	}
 }
 
 func (t *facetToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("facet(")
 
-	if t._facetSetupDocumentID != "" {
+	if t.facetSetupDocumentID != "" {
 		writer.WriteString("id('")
-		writer.WriteString(t._facetSetupDocumentID)
+		writer.WriteString(t.facetSetupDocumentID)
 		writer.WriteString("'))")
 
 		return nil
@@ -46,12 +46,12 @@ func (t *facetToken) writeTo(writer *strings.Builder) error {
 
 	firstArgument := false
 
-	if t._aggregateByFieldName != "" {
-		writer.WriteString(t._aggregateByFieldName)
-	} else if len(t._ranges) != 0 {
+	if t.aggregateByFieldName != "" {
+		writer.WriteString(t.aggregateByFieldName)
+	} else if len(t.ranges) != 0 {
 		firstInRange := true
 
-		for _, rang := range t._ranges {
+		for _, rang := range t.ranges {
 			if !firstInRange {
 				writer.WriteString(", ")
 			}
@@ -63,43 +63,44 @@ func (t *facetToken) writeTo(writer *strings.Builder) error {
 		firstArgument = true
 	}
 
-	for _, aggregation := range t._aggregations {
+	for _, aggregation := range t.aggregations {
 		if !firstArgument {
 			writer.WriteString(", ")
 		}
 		firstArgument = false
-		aggregation.writeTo(writer)
+		if err := aggregation.writeTo(writer); err != nil {
+			return err
+		}
 	}
 
-	if stringIsNotBlank(t._optionsParameterName) {
+	if stringIsNotBlank(t.optionsParameterName) {
 		writer.WriteString(", $")
-		writer.WriteString(t._optionsParameterName)
+		writer.WriteString(t.optionsParameterName)
 	}
 
 	writer.WriteString(")")
 
-	if stringIsBlank(t._alias) || t._alias == t._aggregateByFieldName {
+	if stringIsBlank(t.alias) || t.alias == t.aggregateByFieldName {
 		return nil
 	}
 
 	writer.WriteString(" as ")
-	writer.WriteString(t._alias)
+	writer.WriteString(t.alias)
 
 	return nil
 }
 
-func createFacetToken(facetSetupDocumentID string) *facetToken {
+func createFacetToken(facetSetupDocumentID string) (*facetToken, error) {
 	if stringIsBlank(facetSetupDocumentID) {
-		//throw new IllegalArgumentError("facetSetupDocumentID cannot be null");
-		panicIf(true, "facetSetupDocumentID cannot be null")
+		return nil, newIllegalArgumentError("facetSetupDocumentID cannot be null")
 	}
 
-	return NewFacetTokenWithID(facetSetupDocumentID)
+	return newFacetTokenWithID(facetSetupDocumentID), nil
 }
 
 func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{}) string) *facetToken {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
-	token := NewFacetTokenAll(facet.FieldName, facet.DisplayFieldName, nil, optionsParameterName)
+	token := newFacetTokenAll(facet.FieldName, facet.DisplayFieldName, nil, optionsParameterName)
 
 	applyAggregations(facet, token)
 	return token
@@ -108,7 +109,7 @@ func createFacetTokenWithFacet(facet *Facet, addQueryParameter func(interface{})
 func createFacetTokenWithRangeFacet(facet *RangeFacet, addQueryParameter func(interface{}) string) (*facetToken, error) {
 	optionsParameterName := getOptionsParameterName(facet, addQueryParameter)
 
-	token := NewFacetTokenAll("", facet.DisplayFieldName, facet.Ranges, optionsParameterName)
+	token := newFacetTokenAll("", facet.DisplayFieldName, facet.Ranges, optionsParameterName)
 
 	applyAggregations(facet, token)
 
@@ -127,7 +128,7 @@ func createFacetTokenWithGenericRangeFacet(facet *GenericRangeFacet, addQueryPar
 		ranges = append(ranges, r)
 	}
 
-	token := NewFacetTokenAll("", facet.DisplayFieldName, ranges, optionsParameterName)
+	token := newFacetTokenAll("", facet.DisplayFieldName, ranges, optionsParameterName)
 
 	applyAggregations(facet, token)
 	return token, nil
@@ -157,7 +158,7 @@ func applyAggregations(facet FacetBase, token *facetToken) {
 			//throw new NotImplementedError("Unsupported aggregation method: " + aggregation.getKey());
 		}
 
-		token._aggregations = append(token._aggregations, aggregationToken)
+		token.aggregations = append(token.aggregations, aggregationToken)
 	}
 }
 
