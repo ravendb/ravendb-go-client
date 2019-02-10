@@ -29,6 +29,7 @@ func ShapeTokenWkt(shapeWktParameterName string) *shapeToken {
 	return NewShapeToken("spatial.wkt($" + shapeWktParameterName + ")")
 }
 
-func (t *shapeToken) writeTo(writer *strings.Builder) {
+func (t *shapeToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString(t.shape)
+	return nil
 }

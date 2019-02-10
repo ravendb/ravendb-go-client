@@ -10,7 +10,7 @@ type suggestToken struct {
 	optionsParameterName string
 }
 
-func (t *suggestToken) writeTo(writer *strings.Builder) {
+func (t *suggestToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("suggest(")
 	writer.WriteString(t.fieldName)
 	writer.WriteString(", $")
@@ -22,4 +22,5 @@ func (t *suggestToken) writeTo(writer *strings.Builder) {
 	}
 
 	writer.WriteString(")")
+	return nil
 }

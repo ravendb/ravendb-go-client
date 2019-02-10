@@ -9,6 +9,7 @@ var trueTokenInstance = &trueToken{}
 type trueToken struct {
 }
 
-func (t *trueToken) writeTo(writer *strings.Builder) {
+func (t *trueToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("true")
+	return nil
 }

@@ -20,15 +20,16 @@ func createGroupBySumToken(fieldName string, projectedName string) *groupBySumTo
 	return newGroupBySumToken(fieldName, projectedName)
 }
 
-func (t *groupBySumToken) writeTo(writer *strings.Builder) {
+func (t *groupBySumToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("sum(")
 	writer.WriteString(t.fieldName)
 	writer.WriteString(")")
 
 	if t.projectedName == "" {
-		return
+		return nil
 	}
 
 	writer.WriteString(" as ")
 	writer.WriteString(t.projectedName)
+	return nil
 }

@@ -19,11 +19,12 @@ func NewQueryOperatorToken(queryOperator QueryOperator) *queryOperatorToken {
 	}
 }
 
-func (t *queryOperatorToken) writeTo(writer *strings.Builder) {
+func (t *queryOperatorToken) writeTo(writer *strings.Builder) error {
 	if t.queryOperator == QueryOperatorAnd {
 		writer.WriteString("and")
-		return
+		return nil
 	}
 
 	writer.WriteString("or")
+	return nil
 }

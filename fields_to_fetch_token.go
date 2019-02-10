@@ -34,7 +34,7 @@ func createFieldsToFetchToken(fieldsToFetch []string, projections []string, cust
 	return newFieldsToFetchToken(fieldsToFetch, projections, customFunction, sourceAlias)
 }
 
-func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) {
+func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) error {
 	for i, fieldToFetch := range t.fieldsToFetch {
 
 		if i > 0 {
@@ -63,4 +63,5 @@ func (t *fieldsToFetchToken) writeTo(writer *strings.Builder) {
 		writer.WriteString(" as ")
 		writer.WriteString(projection)
 	}
+	return nil
 }

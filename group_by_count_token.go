@@ -8,13 +8,15 @@ type groupByCountToken struct {
 	fieldName string
 }
 
-func (t *groupByCountToken) writeTo(writer *strings.Builder) {
+func (t *groupByCountToken) writeTo(writer *strings.Builder) error {
+
 	writer.WriteString("count()")
 
 	if t.fieldName == "" {
-		return
+		return nil
 	}
 
 	writer.WriteString(" as ")
 	writer.WriteString(t.fieldName)
+	return nil
 }

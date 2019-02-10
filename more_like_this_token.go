@@ -14,7 +14,7 @@ func newMoreLikeThisToken() *moreLikeThisToken {
 	return &moreLikeThisToken{}
 }
 
-func (t *moreLikeThisToken) writeTo(writer *strings.Builder) {
+func (t *moreLikeThisToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("moreLikeThis(")
 
 	if t.documentParameterName == "" {
@@ -31,11 +31,12 @@ func (t *moreLikeThisToken) writeTo(writer *strings.Builder) {
 
 	if t.optionsParameterName == "" {
 		writer.WriteString(")")
-		return
+		return nil
 	}
 
 	writer.WriteString(", $")
 	writer.WriteString(t.optionsParameterName)
 	writer.WriteString(")")
 
+	return nil
 }

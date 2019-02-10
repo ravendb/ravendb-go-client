@@ -21,7 +21,7 @@ func newDeclareToken(name string, body string, parameters string) *declareToken 
 }
 */
 
-func (t *declareToken) writeTo(writer *strings.Builder) {
+func (t *declareToken) writeTo(writer *strings.Builder) error {
 
 	writer.WriteString("declare ")
 	writer.WriteString("function ")
@@ -35,4 +35,5 @@ func (t *declareToken) writeTo(writer *strings.Builder) {
 	writer.WriteString("\n")
 	writer.WriteString("}")
 	writer.WriteString("\n")
+	return nil
 }

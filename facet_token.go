@@ -33,7 +33,7 @@ func NewFacetTokenAll(aggregateByFieldName string, alias string, ranges []string
 	}
 }
 
-func (t *facetToken) writeTo(writer *strings.Builder) {
+func (t *facetToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("facet(")
 
 	if t._facetSetupDocumentID != "" {
@@ -41,7 +41,7 @@ func (t *facetToken) writeTo(writer *strings.Builder) {
 		writer.WriteString(t._facetSetupDocumentID)
 		writer.WriteString("'))")
 
-		return
+		return nil
 	}
 
 	firstArgument := false
@@ -79,11 +79,13 @@ func (t *facetToken) writeTo(writer *strings.Builder) {
 	writer.WriteString(")")
 
 	if stringIsBlank(t._alias) || t._alias == t._aggregateByFieldName {
-		return
+		return nil
 	}
 
 	writer.WriteString(" as ")
 	writer.WriteString(t._alias)
+
+	return nil
 }
 
 func createFacetToken(facetSetupDocumentID string) *facetToken {
@@ -180,7 +182,7 @@ func newFacetAggregationToken(fieldName string, aggregation FacetAggregation) *f
 	}
 }
 
-func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
+func (t *facetAggregationToken) writeTo(writer *strings.Builder) error {
 	switch t._aggregation {
 	case FacetAggregationMax:
 		writer.WriteString("max(")
@@ -202,6 +204,7 @@ func (t *facetAggregationToken) writeTo(writer *strings.Builder) {
 		panicIf(true, "Invalid aggregation mode: %s", t._aggregation)
 		//throw new IllegalArgumentError("Invalid aggregation mode: " + _aggregation);
 	}
+	return nil
 }
 
 func facetAggregationTokenMax(fieldName string) *facetAggregationToken {

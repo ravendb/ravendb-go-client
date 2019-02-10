@@ -11,6 +11,7 @@ var (
 type closeSubclauseToken struct {
 }
 
-func (t *closeSubclauseToken) writeTo(writer *strings.Builder) {
+func (t *closeSubclauseToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString(")")
+	return nil
 }

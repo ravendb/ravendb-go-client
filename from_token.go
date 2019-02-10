@@ -20,7 +20,7 @@ func createFromToken(indexName string, collectionName string, alias string) *fro
 	}
 }
 
-func (t *fromToken) writeTo(writer *strings.Builder) {
+func (t *fromToken) writeTo(writer *strings.Builder) error {
 	panicIf(t.indexName == "" && t.collectionName == "", "Either indexName or collectionName must be specified")
 	// newIllegalStateError("Either indexName or collectionName must be specified");
 
@@ -48,6 +48,7 @@ func (t *fromToken) writeTo(writer *strings.Builder) {
 		writer.WriteString(" as ")
 		writer.WriteString(t.alias)
 	}
+	return nil
 }
 
 func throwIfInvalidCollectionName(collectionName string) error {

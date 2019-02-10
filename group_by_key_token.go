@@ -20,13 +20,15 @@ func createGroupByKeyToken(fieldName string, projectedName string) *groupByKeyTo
 	return newGroupByKeyToken(fieldName, projectedName)
 }
 
-func (t *groupByKeyToken) writeTo(writer *strings.Builder) {
+func (t *groupByKeyToken) writeTo(writer *strings.Builder) error {
 	writeQueryTokenField(writer, firstNonEmptyString(t.fieldName, "key()"))
 
 	if t.projectedName == "" || t.projectedName == t.fieldName {
-		return
+		return nil
 	}
 
 	writer.WriteString(" as ")
 	writer.WriteString(t.projectedName)
+
+	return nil
 }

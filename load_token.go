@@ -9,8 +9,9 @@ type loadToken struct {
 	alias    string
 }
 
-func (t *loadToken) writeTo(writer *strings.Builder) {
+func (t *loadToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString(t.argument)
 	writer.WriteString(" as ")
 	writer.WriteString(t.alias)
+	return nil
 }

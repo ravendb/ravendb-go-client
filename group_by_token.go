@@ -16,7 +16,7 @@ func createGroupByToken(fieldName string, method GroupByMethod) *groupByToken {
 	}
 }
 
-func (t *groupByToken) writeTo(writer *strings.Builder) {
+func (t *groupByToken) writeTo(writer *strings.Builder) error {
 	_method := t.method
 	if _method != GroupByMethodNone {
 		writer.WriteString("Array(")
@@ -25,4 +25,5 @@ func (t *groupByToken) writeTo(writer *strings.Builder) {
 	if _method != GroupByMethodNone {
 		writer.WriteString(")")
 	}
+	return nil
 }

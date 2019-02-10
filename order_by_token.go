@@ -57,7 +57,7 @@ func orderByTokenCreateDescending(fieldName string, ordering OrderingType) *orde
 	return newOrderByToken(fieldName, true, ordering)
 }
 
-func (t *orderByToken) writeTo(writer *strings.Builder) {
+func (t *orderByToken) writeTo(writer *strings.Builder) error {
 	writeQueryTokenField(writer, t.fieldName)
 
 	switch t.ordering {
@@ -72,4 +72,5 @@ func (t *orderByToken) writeTo(writer *strings.Builder) {
 	if t.descending { // we only add this if we have to, ASC is the default and reads nicer
 		writer.WriteString(" desc")
 	}
+	return nil
 }

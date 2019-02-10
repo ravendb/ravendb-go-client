@@ -11,6 +11,7 @@ var (
 type distinctToken struct {
 }
 
-func (t *distinctToken) writeTo(writer *strings.Builder) {
+func (t *distinctToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString("distinct")
+	return nil
 }

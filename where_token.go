@@ -145,7 +145,7 @@ func (t *whereToken) writeMethod(writer *strings.Builder) (bool, error) {
 	return false, nil
 }
 
-func (t *whereToken) writeTo(writer *strings.Builder) {
+func (t *whereToken) writeTo(writer *strings.Builder) error {
 	options := t.options
 	if options.boost != 0 {
 		writer.WriteString("boost(")
@@ -210,6 +210,7 @@ func (t *whereToken) writeTo(writer *strings.Builder) {
 		builderWriteFloat64(writer, options.boost)
 		writer.WriteString(")")
 	}
+	return nil
 }
 
 func (t *whereToken) writeInnerWhere(writer *strings.Builder) error {

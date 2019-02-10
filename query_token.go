@@ -15,7 +15,7 @@ func isRqlTokenKeyword(s string) bool {
 // writeField. We make writeField a stand-alone helper function and make queryToken
 // an interface
 type queryToken interface {
-	writeTo(*strings.Builder)
+	writeTo(*strings.Builder) error
 }
 
 func writeQueryTokenField(writer *strings.Builder, field string) {
@@ -32,6 +32,7 @@ func writeQueryTokenField(writer *strings.Builder, field string) {
 
 type singleStringToken string
 
-func (t singleStringToken) writeTo(writer *strings.Builder) {
+func (t singleStringToken) writeTo(writer *strings.Builder) error {
 	writer.WriteString(string(t))
+	return nil
 }
