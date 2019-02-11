@@ -121,6 +121,41 @@ func (s *changeSubscribers) hasRegisteredHandlers() bool {
 	return false
 }
 
+type commandConfirmation struct {
+	timeStart    time.Time
+	duration     time.Duration
+	ch           chan bool
+	completed    int32 // atomic
+	wasCancelled bool
+}
+
+func newCommandConfirmation() *commandConfirmation {
+	return &commandConfirmation{
+		timeStart: time.Now(),
+		ch:        make(chan bool, 1), // don't block the sender
+	}
+}
+
+func (c *commandConfirmation) confirm(wasCancelled bool) {
+	new := atomic.AddInt32(&c.completed, 1)
+	if new > 1 {
+		// was already completed
+		return
+	}
+	c.duration = time.Since(c.timeStart)
+	c.wasCancelled = wasCancelled
+	c.ch <- true
+}
+
+func (c *commandConfirmation) waitForConfirmation(timeout time.Duration) bool {
+	select {
+	case <-c.ch:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
+}
+
 type commandToSend struct {
 	command string
 	value   string
@@ -155,7 +190,7 @@ type DatabaseChanges struct {
 
 	mu sync.Mutex
 
-	confirmations sync.Map // int -> *completableFuture
+	confirmations sync.Map // int -> *commandConfirmation
 
 	immediateConnection atomicBool
 
@@ -445,8 +480,8 @@ func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
 
 func (c *DatabaseChanges) cancelOutstandingRequests() {
 	rangeFn := func(key, val interface{}) bool {
-		confirmation := val.(*completableFuture)
-		confirmation.cancel(false)
+		confirmation := val.(*commandConfirmation)
+		confirmation.confirm(true)
 		return true
 	}
 	c.confirmations.Range(rangeFn)
@@ -522,10 +557,7 @@ func (c *DatabaseChanges) connectSubscribers(subscribers *changeSubscribers) err
 }
 
 func (c *DatabaseChanges) send(command, value string) error {
-	taskCompletionSource := newCompletableFuture()
-
 	currentCommandID := c.nextCommandID()
-
 	o := struct {
 		CommandID int    `json:"CommandId"`
 		Command   string `json:"Command"`
@@ -546,10 +578,11 @@ func (c *DatabaseChanges) send(command, value string) error {
 		return err
 	}
 
-	c.confirmations.Store(currentCommandID, taskCompletionSource)
+	confirmation := newCommandConfirmation()
 
-	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
-	return err
+	c.confirmations.Store(currentCommandID, confirmation)
+	confirmation.waitForConfirmation(time.Second * 15)
+	return nil
 }
 
 func toWebSocketPath(path string) string {
@@ -742,8 +775,8 @@ func (c *DatabaseChanges) processMessages(ctx context.Context) {
 				if ok {
 					v, ok := c.confirmations.Load(commandID)
 					if ok {
-						future := v.(*completableFuture)
-						future.complete(nil)
+						confirmation := v.(*commandConfirmation)
+						confirmation.confirm(false)
 					}
 				}
 			default:
