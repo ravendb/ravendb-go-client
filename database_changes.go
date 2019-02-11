@@ -201,7 +201,7 @@ type DatabaseChanges struct {
 }
 
 func (c *DatabaseChanges) isCancelRequested() bool {
-	return c.cancelRequested.isTrue()
+	return atomicBoolIsSet(&c.cancelRequested)
 }
 
 func (c *DatabaseChanges) nextCommandID() int {
@@ -489,7 +489,7 @@ func (c *DatabaseChanges) cancelOutstandingRequests() {
 
 func (c *DatabaseChanges) Close() {
 	c.doWorkCancel()
-	(&c.cancelRequested).set(true)
+	atomicBoolSet(&c.cancelRequested, true)
 
 	c.cancelOutstandingRequests()
 

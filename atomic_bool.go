@@ -4,20 +4,14 @@ import "sync/atomic"
 
 type atomicBool int32
 
-func (b *atomicBool) set(v bool) {
-	val := int32(0)
+func atomicBoolSet(av *atomicBool, v bool) {
+	var n int32
 	if v {
-		val = 1
+		n = 1
 	}
-	atomic.StoreInt32((*int32)(b), val)
+	atomic.StoreInt32((*int32)(av), n)
 }
 
-func (b *atomicBool) get() bool {
-	v := atomic.LoadInt32((*int32)(b))
-	return v == 1
-}
-
-func (b *atomicBool) isTrue() bool {
-	v := atomic.LoadInt32((*int32)(b))
-	return v == 1
+func atomicBoolIsSet(av *atomicBool) bool {
+	return atomic.LoadInt32((*int32)(av)) != 0
 }
