@@ -394,6 +394,9 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
+	closer := disableLogFailedRequests()
+	defer closer()
+
 	changes := store.Changes("no_such_db")
 	err = changes.EnsureConnectedNow()
 	assert.NotNil(t, err)

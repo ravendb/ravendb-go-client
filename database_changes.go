@@ -61,7 +61,8 @@ type DatabaseChanges struct {
 	client   *websocket.Conn
 	muClient sync.Mutex
 
-	isCancelRequested atomicBool
+	doWorkCancel    context.CancelFunc
+	cancelRequested atomicBool
 
 	// will be notified if doWork goroutine finishes
 	chanWorkCompleted chan error
@@ -73,8 +74,7 @@ type DatabaseChanges struct {
 	mu          sync.Mutex // protects subscribers maps
 	subscribers map[string]*changeSubscribers
 
-	muConfirmations sync.Mutex
-	confirmations   map[int]*completableFuture
+	confirmations sync.Map // int -> *completableFuture
 
 	immediateConnection atomicBool
 
@@ -82,6 +82,10 @@ type DatabaseChanges struct {
 	onError                 []func(error)
 
 	lastError error
+}
+
+func (c *DatabaseChanges) isCancelRequested() bool {
+	return c.cancelRequested.isTrue()
 }
 
 func (c *DatabaseChanges) nextCommandID() int {
@@ -96,13 +100,14 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		database:        databaseName,
 		chanIsConnected: make(chan error, 1),
 		onDispose:       onDispose,
-		confirmations:   map[int]*completableFuture{},
 		subscribers:     map[string]*changeSubscribers{},
 	}
 
 	res.chanWorkCompleted = make(chan error, 1)
+	var ctx context.Context
+	ctx, res.doWorkCancel = context.WithCancel(context.Background())
 	go func() {
-		err := res.doWork()
+		err := res.doWork(ctx)
 		res.chanWorkCompleted <- err
 	}()
 
@@ -380,14 +385,20 @@ func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
 	c.onError[handlerIdx] = nil
 }
 
-func (c *DatabaseChanges) Close() {
-	c.muConfirmations.Lock()
-	for _, confirmation := range c.confirmations {
+func (c *DatabaseChanges) cancelOutstandingRequests() {
+	rangeFn := func(key, val interface{}) bool {
+		confirmation := val.(*completableFuture)
 		confirmation.cancel(false)
+		return true
 	}
-	c.muConfirmations.Unlock()
+	c.confirmations.Range(rangeFn)
+}
 
-	(&c.isCancelRequested).set(true)
+func (c *DatabaseChanges) Close() {
+	c.doWorkCancel()
+	(&c.cancelRequested).set(true)
+
+	c.cancelOutstandingRequests()
 
 	client := c.getWsClient()
 	if client != nil {
@@ -485,9 +496,7 @@ func (c *DatabaseChanges) send(command, value string) error {
 		return err
 	}
 
-	c.muConfirmations.Lock()
-	c.confirmations[currentCommandID] = taskCompletionSource
-	c.muConfirmations.Unlock()
+	c.confirmations.Store(currentCommandID, taskCompletionSource)
 
 	_, err = taskCompletionSource.GetWithTimeout(time.Second * 15)
 	return err
@@ -498,7 +507,7 @@ func toWebSocketPath(path string) string {
 	return strings.Replace(path, "https://", "wss://", -1)
 }
 
-func (c *DatabaseChanges) doWork() error {
+func (c *DatabaseChanges) doWork(ctx context.Context) error {
 	_, err := c.requestExecutor.getPreferredNode()
 	if err != nil {
 		c.invokeConnectionStatusChanged()
@@ -517,7 +526,7 @@ func (c *DatabaseChanges) doWork() error {
 
 	for {
 
-		if c.isCancelRequested.isTrue() {
+		if c.isCancelRequested() {
 			return nil
 		}
 
@@ -534,14 +543,14 @@ func (c *DatabaseChanges) doWork() error {
 			}
 		}
 
-		ctxDial, _ := context.WithTimeout(context.Background(), time.Second*5)
+		ctxDial, _ := context.WithTimeout(ctx, time.Second*5)
 		var client *websocket.Conn
 		client, _, err = dialer.DialContext(ctxDial, urlString, nil)
 		c.setWsClient(client)
 
 		// recheck cancellation because it might have been cancelled
 		// since DialContext()
-		if (&c.isCancelRequested).isTrue() {
+		if c.isCancelRequested() {
 			if client != nil {
 				client.Close()
 				c.setWsClient(nil)
@@ -563,19 +572,14 @@ func (c *DatabaseChanges) doWork() error {
 		c.mu.Unlock()
 
 		c.invokeConnectionStatusChanged()
-		c.processMessages()
+		c.processMessages(ctx)
 		c.invokeConnectionStatusChanged()
 		c.setWsClient(nil)
 
-		shouldReconnect := (&c.isCancelRequested).isTrue()
+		shouldReconnect := c.isCancelRequested()
 
-		c.muConfirmations.Lock()
-		for _, confirmation := range c.confirmations {
-			confirmation.cancel(false)
-		}
-
-		c.confirmations = map[int]*completableFuture{}
-		c.muConfirmations.Unlock()
+		c.cancelOutstandingRequests()
+		c.confirmations = sync.Map{}
 
 		if !shouldReconnect {
 			return nil
@@ -673,7 +677,7 @@ func (c *DatabaseChanges) notifyAboutError(err error) {
 	}
 }
 
-func (c *DatabaseChanges) processMessages() {
+func (c *DatabaseChanges) processMessages(ctx context.Context) {
 	var err error
 	for {
 		var msgArray []interface{} // an array of objects
@@ -697,16 +701,15 @@ func (c *DatabaseChanges) processMessages() {
 			switch typ {
 			case "Error":
 				errStr, _ := jsonGetAsString(msgNode, "Error")
-				if !(&c.isCancelRequested).isTrue() {
+				if !c.isCancelRequested() {
 					c.notifyAboutError(newRuntimeError("%s", errStr))
 				}
 			case "Confirm":
 				commandID, ok := jsonGetAsInt(msgNode, "CommandId")
 				if ok {
-					c.muConfirmations.Lock()
-					future := c.confirmations[commandID]
-					c.muConfirmations.Unlock()
-					if future != nil {
+					v, ok := c.confirmations.Load(commandID)
+					if ok {
+						future := v.(*completableFuture)
 						future.complete(nil)
 					}
 				}
@@ -717,7 +720,7 @@ func (c *DatabaseChanges) processMessages() {
 		}
 	}
 
-	if err != nil && !(&c.isCancelRequested).isTrue() {
+	if err != nil && !c.isCancelRequested() {
 		dbg("Not cancelled so calling notifyAboutError(), err = %v\n", err)
 		c.notifyAboutError(err)
 	}
