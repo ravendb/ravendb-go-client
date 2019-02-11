@@ -48,6 +48,11 @@ func (s *changeSubscribers) hasRegisteredHandlers() bool {
 	return false
 }
 
+type commandToSend struct {
+	command string
+	value   string
+}
+
 // DatabaseChanges notifies about changes to a database
 type DatabaseChanges struct {
 	commandID int32 // atomic
@@ -70,6 +75,8 @@ type DatabaseChanges struct {
 	// will be notified if we connect or fail to connect
 	// allows waiting for connection being established
 	chanIsConnected chan error
+
+	chanSend chan (*commandToSend)
 
 	mu          sync.Mutex // protects subscribers maps
 	subscribers map[string]*changeSubscribers
@@ -101,6 +108,7 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		chanIsConnected: make(chan error, 1),
 		onDispose:       onDispose,
 		subscribers:     map[string]*changeSubscribers{},
+		chanSend:        make(chan *commandToSend, 16),
 	}
 
 	res.chanWorkCompleted = make(chan error, 1)
@@ -507,6 +515,54 @@ func toWebSocketPath(path string) string {
 	return strings.Replace(path, "https://", "wss://", -1)
 }
 
+func (c *DatabaseChanges) doWorkInner(ctx context.Context) error {
+	var err error
+	dialer := *websocket.DefaultDialer
+	dialer.HandshakeTimeout = time.Second * 2
+	re := c.requestExecutor
+	if re.Certificate != nil || re.TrustStore != nil {
+		dialer.TLSClientConfig, err = newTLSConfig(re.Certificate, re.TrustStore)
+		if err != nil {
+			return err
+		}
+	}
+
+	urlString, err := c.requestExecutor.GetURL()
+	if err != nil {
+		return err
+	}
+	urlString += "/databases/" + c.database + "/changes"
+	urlString = toWebSocketPath(urlString)
+
+	ctxDial, _ := context.WithTimeout(ctx, time.Second*5)
+	var client *websocket.Conn
+	client, _, err = dialer.DialContext(ctxDial, urlString, nil)
+	c.setWsClient(client)
+
+	// recheck cancellation because it might have been cancelled
+	// since DialContext()
+	if c.isCancelRequested() {
+		if client != nil {
+			client.Close()
+			c.setWsClient(nil)
+		}
+		return err
+	}
+
+	if err != nil {
+		time.Sleep(time.Second)
+	}
+	c.chanIsConnected <- nil
+	close(c.chanIsConnected)
+
+	c.mu.Lock()
+	for _, subscribers := range c.subscribers {
+		c.connectSubscribers(subscribers)
+	}
+	c.mu.Unlock()
+	return nil
+}
+
 func (c *DatabaseChanges) doWork(ctx context.Context) error {
 	_, err := c.requestExecutor.getPreferredNode()
 	if err != nil {
@@ -517,66 +573,21 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 		return err
 	}
 
-	urlString, err := c.requestExecutor.GetURL()
-	if err != nil {
-		return err
-	}
-	urlString += "/databases/" + c.database + "/changes"
-	urlString = toWebSocketPath(urlString)
-
 	for {
 
 		if c.isCancelRequested() {
 			return nil
 		}
 
-		var err error
 		panicIf(c.IsConnected(), "impoosible: cannot be connected")
-
-		dialer := *websocket.DefaultDialer
-		dialer.HandshakeTimeout = time.Second * 2
-		re := c.requestExecutor
-		if re.Certificate != nil || re.TrustStore != nil {
-			dialer.TLSClientConfig, err = newTLSConfig(re.Certificate, re.TrustStore)
-			if err != nil {
-				return err
-			}
-		}
-
-		ctxDial, _ := context.WithTimeout(ctx, time.Second*5)
-		var client *websocket.Conn
-		client, _, err = dialer.DialContext(ctxDial, urlString, nil)
-		c.setWsClient(client)
-
-		// recheck cancellation because it might have been cancelled
-		// since DialContext()
-		if c.isCancelRequested() {
-			if client != nil {
-				client.Close()
-				c.setWsClient(nil)
-			}
-			return err
-		}
-
-		if err != nil {
-			time.Sleep(time.Second)
-			continue
-		}
-		c.chanIsConnected <- nil
-		close(c.chanIsConnected)
-
-		c.mu.Lock()
-		for _, subscribers := range c.subscribers {
-			c.connectSubscribers(subscribers)
-		}
-		c.mu.Unlock()
+		c.doWorkInner(ctx)
 
 		c.invokeConnectionStatusChanged()
 		c.processMessages(ctx)
 		c.invokeConnectionStatusChanged()
 		c.setWsClient(nil)
 
-		shouldReconnect := c.isCancelRequested()
+		shouldReconnect := !c.isCancelRequested()
 
 		c.cancelOutstandingRequests()
 		c.confirmations = sync.Map{}
