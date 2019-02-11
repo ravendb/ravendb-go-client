@@ -26,10 +26,83 @@ type changeSubscribers struct {
 	onDocumentChange        []func(*DocumentChange)
 	onIndexChange           []func(*IndexChange)
 	onOperationStatusChange []func(*OperationStatusChange)
+
+	mu sync.Mutex
+}
+
+func (s *changeSubscribers) registerOnDocumentChange(fn func(*DocumentChange)) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onDocumentChange = append(s.onDocumentChange, fn)
+	return len(s.onDocumentChange) - 1
+}
+
+func (s *changeSubscribers) unregisterOnDocumentChange(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onDocumentChange[idx] = nil
+}
+
+func (s *changeSubscribers) registerOnIndexChange(fn func(*IndexChange)) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onIndexChange = append(s.onIndexChange, fn)
+	return len(s.onIndexChange) - 1
+}
+
+func (s *changeSubscribers) unregisterOnIndexChange(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onIndexChange[idx] = nil
+}
+
+func (s *changeSubscribers) registerOnOperationStatusChange(fn func(*OperationStatusChange)) int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onOperationStatusChange = append(s.onOperationStatusChange, fn)
+	return len(s.onOperationStatusChange) - 1
+}
+
+func (s *changeSubscribers) unregisterOnOperationStatusChange(idx int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.onOperationStatusChange[idx] = nil
+}
+
+func (s *changeSubscribers) sendDocumentChange(change *DocumentChange) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, f := range s.onDocumentChange {
+		if f != nil {
+			f(change)
+		}
+	}
+}
+
+func (s *changeSubscribers) sendIndexChange(change *IndexChange) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, f := range s.onIndexChange {
+		if f != nil {
+			f(change)
+		}
+	}
+}
+
+func (s *changeSubscribers) sendOperationStatusChange(change *OperationStatusChange) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, f := range s.onOperationStatusChange {
+		if f != nil {
+			f(change)
+		}
+	}
 }
 
 func (s *changeSubscribers) hasRegisteredHandlers() bool {
-	// s.mu must be locked here
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	for _, cb := range s.onDocumentChange {
 		if cb != nil {
 			return true
@@ -78,8 +151,9 @@ type DatabaseChanges struct {
 
 	chanSend chan (*commandToSend)
 
-	mu          sync.Mutex // protects subscribers maps
-	subscribers map[string]*changeSubscribers
+	subscribers sync.Map // string => *changeSubscribers
+
+	mu sync.Mutex
 
 	confirmations sync.Map // int -> *completableFuture
 
@@ -107,7 +181,6 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 		database:        databaseName,
 		chanIsConnected: make(chan error, 1),
 		onDispose:       onDispose,
-		subscribers:     map[string]*changeSubscribers{},
 		chanSend:        make(chan *commandToSend, 16),
 	}
 
@@ -174,12 +247,9 @@ func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (Can
 			cb(change)
 		}
 	}
-	idx := len(subscribers.onIndexChange)
-	subscribers.onIndexChange = append(subscribers.onIndexChange, filtered)
+	idx := subscribers.registerOnIndexChange(filtered)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onIndexChange[idx] = nil
+		subscribers.unregisterOnIndexChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 
@@ -204,12 +274,9 @@ func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (C
 		panicIf(change.ID != docID, "v.ID (%s) != docID (%s)", change.ID, docID)
 		cb(change)
 	}
-	idx := len(subscribers.onDocumentChange)
-	subscribers.onDocumentChange = append(subscribers.onDocumentChange, filtered)
+	idx := subscribers.registerOnDocumentChange(filtered)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onDocumentChange[idx] = nil
+		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -222,12 +289,10 @@ func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CancelFunc,
 	if err != nil {
 		return nil, err
 	}
-	idx := len(subscribers.onDocumentChange)
-	subscribers.onDocumentChange = append(subscribers.onDocumentChange, cb)
+
+	idx := subscribers.registerOnDocumentChange(cb)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onDocumentChange[idx] = nil
+		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -247,13 +312,10 @@ func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationSt
 			cb(v)
 		}
 	}
-	idx := len(subscribers.onOperationStatusChange)
-	subscribers.onOperationStatusChange = append(subscribers.onOperationStatusChange, filtered)
 
+	idx := subscribers.registerOnOperationStatusChange(filtered)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onOperationStatusChange[idx] = nil
+		subscribers.unregisterOnOperationStatusChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -266,13 +328,10 @@ func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (Can
 	if err != nil {
 		return nil, err
 	}
-	idx := len(subscribers.onOperationStatusChange)
-	subscribers.onOperationStatusChange = append(subscribers.onOperationStatusChange, cb)
 
+	idx := subscribers.registerOnOperationStatusChange(cb)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onOperationStatusChange[idx] = nil
+		subscribers.unregisterOnOperationStatusChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -289,12 +348,10 @@ func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CancelFunc, erro
 	if err != nil {
 		return nil, err
 	}
-	idx := len(subscribers.onIndexChange)
-	subscribers.onIndexChange = append(subscribers.onIndexChange, cb)
+
+	idx := subscribers.registerOnIndexChange(cb)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onIndexChange[idx] = nil
+		subscribers.unregisterOnIndexChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -317,13 +374,10 @@ func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*
 			cb(change)
 		}
 	}
-	idx := len(subscribers.onDocumentChange)
-	subscribers.onDocumentChange = append(subscribers.onDocumentChange, filtered)
 
+	idx := subscribers.registerOnDocumentChange(filtered)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onDocumentChange[idx] = nil
+		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -347,13 +401,9 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb fun
 		}
 	}
 
-	idx := len(subscribers.onDocumentChange)
-	subscribers.onDocumentChange = append(subscribers.onDocumentChange, filtered)
-
+	idx := subscribers.registerOnDocumentChange(filtered)
 	cancel := func() {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		subscribers.onDocumentChange[idx] = nil
+		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
 	}
 	return cancel, nil
@@ -418,10 +468,6 @@ func (c *DatabaseChanges) Close() {
 		c.setWsClient(nil)
 	}
 
-	c.mu.Lock()
-	c.subscribers = nil
-	c.mu.Unlock()
-
 	<-c.chanWorkCompleted
 
 	c.invokeConnectionStatusChanged()
@@ -432,19 +478,19 @@ func (c *DatabaseChanges) Close() {
 
 func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, unwatchCommand string, value string) (*changeSubscribers, error) {
 	// must be called while holding mu lock
-	subscribers, ok := c.subscribers[name]
+	subscribersI, ok := c.subscribers.Load(name)
 
 	if ok {
-		return subscribers, nil
+		return subscribersI.(*changeSubscribers), nil
 	}
 
-	subscribers = &changeSubscribers{
+	subscribers := &changeSubscribers{
 		name:           name,
 		watchCommand:   watchCommand,
 		unwatchCommand: unwatchCommand,
 		commandValue:   value,
 	}
-	c.subscribers[name] = subscribers
+	c.subscribers.Store(name, subscribers)
 
 	if c.IsConnected() {
 		if err := c.connectSubscribers(subscribers); err != nil {
@@ -462,20 +508,16 @@ func (c *DatabaseChanges) maybeDisconnectSubscribers(subscribers *changeSubscrib
 }
 
 func (c *DatabaseChanges) disconnectSubscribers(subscribers *changeSubscribers) {
-	// called while holding a mu lock
 	name := subscribers.name
 	if c.IsConnected() {
 		go c.send(subscribers.unwatchCommand, subscribers.commandValue)
 		// ignoring error: if we are not connected then we unsubscribed
 		// already because connections drops with all subscriptions
 	}
-	delete(c.subscribers, name)
+	c.subscribers.Delete(name)
 }
 
 func (c *DatabaseChanges) connectSubscribers(subscribers *changeSubscribers) error {
-	// called inside the lock, so unlock while sending blocking call
-	c.mu.Unlock()
-	defer c.mu.Lock()
 	return c.send(subscribers.watchCommand, subscribers.commandValue)
 }
 
@@ -555,11 +597,12 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) error {
 	c.chanIsConnected <- nil
 	close(c.chanIsConnected)
 
-	c.mu.Lock()
-	for _, subscribers := range c.subscribers {
+	connectFn := func(key, value interface{}) bool {
+		subscribers := value.(*changeSubscribers)
 		c.connectSubscribers(subscribers)
+		return true
 	}
-	c.mu.Unlock()
+	c.subscribers.Range(connectFn)
 	return nil
 }
 
@@ -603,30 +646,6 @@ func (c *DatabaseChanges) doWork(ctx context.Context) error {
 	}
 }
 
-func (s *changeSubscribers) sendDocumentChange(documentChange *DocumentChange) {
-	for _, f := range s.onDocumentChange {
-		if f != nil {
-			f(documentChange)
-		}
-	}
-}
-
-func (s *changeSubscribers) sendIndexChange(indexChange *IndexChange) {
-	for _, f := range s.onIndexChange {
-		if f != nil {
-			f(indexChange)
-		}
-	}
-}
-
-func (s *changeSubscribers) sendOperationStatusChange(operationStatusChange *OperationStatusChange) {
-	for _, f := range s.onOperationStatusChange {
-		if f != nil {
-			f(operationStatusChange)
-		}
-	}
-}
-
 func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error {
 	switch typ {
 	case "DocumentChange":
@@ -636,11 +655,12 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		for _, s := range c.subscribers {
+		fn := func(key, value interface{}) bool {
+			s := value.(*changeSubscribers)
 			s.sendDocumentChange(documentChange)
+			return true
 		}
+		c.subscribers.Range(fn)
 	case "IndexChange":
 		var indexChange *IndexChange
 		err := decodeJSONAsStruct(value, &indexChange)
@@ -648,11 +668,12 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		for _, s := range c.subscribers {
+		fn := func(key, value interface{}) bool {
+			s := value.(*changeSubscribers)
 			s.sendIndexChange(indexChange)
+			return true
 		}
+		c.subscribers.Range(fn)
 	case "OperationStatusChange":
 		var operationStatusChange *OperationStatusChange
 		err := decodeJSONAsStruct(value, &operationStatusChange)
@@ -660,11 +681,12 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		for _, s := range c.subscribers {
+		fn := func(key, value interface{}) bool {
+			s := value.(*changeSubscribers)
 			s.sendOperationStatusChange(operationStatusChange)
+			return true
 		}
+		c.subscribers.Range(fn)
 	default:
 		return fmt.Errorf("notifySubscribers: unsupported type '%s'", typ)
 	}
