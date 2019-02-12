@@ -212,35 +212,38 @@ First you need to decide what you you query.
 RavenDB stores documents in collections. By default each type (struct) is stored in its own collection e.g. `Employee` struct is stored in collection `employees`.
 
 You can query a collection given its name:
-```go
-	q := session.QueryCollection("employees")
 
+```go
+q := session.QueryCollection("employees")
 ```
+
 See `queryCollectionByName()` in [examples/main.go](examples/main.go) for full example.
 
 You can query a collection for a given type:
+
 ```go
-	tp := reflect.TypeOf(&northwind.Employee{})
-	q := session.QueryCollectionForType(tp)
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
 ```
 See `queryCollectionByType()` in [examples/main.go](examples/main.go) for full example.
 
 You can query an index.
+
 ```go
-	q := session.QueryIndex("Orders/ByCompany")
+q := session.QueryIndex("Orders/ByCompany")
 ```
 See `queryIndex()` in [examples/main.go](examples/main.go) for full example.
 
 ## Limit what is returned
 
 ```go
-	tp := reflect.TypeOf(&northwind.Product{})
-	q := session.QueryCollectionForType(tp)
+tp := reflect.TypeOf(&northwind.Product{})
+q := session.QueryCollectionForType(tp)
 
-    q = q.WaitForNonStaleResults(0)
-	q = q.WhereEquals("Name", "iPhone X")
-	q = q.OrderBy("PricePerUnit")
-	q = q.Take(2) // limit to 2 results
+q = q.WaitForNonStaleResults(0)
+q = q.WhereEquals("Name", "iPhone X")
+q = q.OrderBy("PricePerUnit")
+q = q.Take(2) // limit to 2 results
 ```
 See `queryComplex()` in [examples/main.go](examples/main.go) for full example.
 
@@ -249,15 +252,15 @@ See `queryComplex()` in [examples/main.go](examples/main.go) for full example.
 You can get all matching results:
 
 ```go
-	var products []*northwind.Product
-	err = q.GetResults(&products)
+var products []*northwind.Product
+err = q.GetResults(&products)
 ```
 See `queryComplex()` in [examples/main.go](examples/main.go) for full example.
 
 You can get just first one:
-```
-	var first *northwind.Employee
-	err = q.First(&first)
+```go
+var first *northwind.Employee
+err = q.First(&first)
 ```
 See `queryFirst()` in [examples/main.go](examples/main.go) for full example.
 
@@ -266,10 +269,56 @@ See `queryFirst()` in [examples/main.go](examples/main.go) for full example.
 ### SelectFields() - projections using a single field
 
 ```go
-	// RQL equivalent: from employees select FirstName
-	q = q.SelectFields(reflect.TypeOf(""), "FirstName")
+// RQL equivalent: from employees select FirstName
+q = q.SelectFields(reflect.TypeOf(""), "FirstName")
 
-	var names []string
-	err = q.GetResults(&names)
+var names []string
+err = q.GetResults(&names)
 ```
 See `querySelectSingleField()` in [examples/main.go](examples/main.go) for full example.
+
+### SelectFields() - projections using multiple fields
+
+```go
+type employeeNameTitle struct {
+	FirstName string
+	Title     string
+}
+
+// RQL equivalent: from employees select FirstName, Title
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.SelectFields(reflect.TypeOf(&employeeNameTitle{}), "FirstName", "Title")
+```
+See `querySelectFields()` in [examples/main.go](examples/main.go) for full example.
+
+### Distinct()
+
+```go
+// RQL equivalent: from employees select distinct Title
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.SelectFields(reflect.TypeOf(""), "Title")
+q = q.Distinct()
+```
+See `queryDistinct()` in [examples/main.go](examples/main.go) for full example.
+
+### WhereEquals() / WhereNotEquals()
+
+```go
+// RQL equivalent: from employees where Title = 'Sales Representative'
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereEquals("Title", "Sales Representative")
+```
+See `queryEquals()` in [examples/main.go](examples/main.go) for full example.
+
+### WhereIn
+
+```go
+// RQL equivalent: from employees where Title in ['Sales Representative', 'Sales Manager']
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereIn("Title", []interface{}{"Sales Representative", "Sales Manager"})
+```
+See `queryIn()` in [examples/main.go](examples/main.go) for full example.

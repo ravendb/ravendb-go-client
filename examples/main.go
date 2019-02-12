@@ -528,6 +528,108 @@ func querySelectSingleField() {
 	}
 }
 
+type employeeNameTitle struct {
+	FirstName string
+	Title     string
+}
+
+func querySelectFields() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent: from employees select FirstName, Title
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.SelectFields(reflect.TypeOf(&employeeNameTitle{}), "FirstName", "Title")
+
+	var results []*employeeNameTitle
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		spew.Fdump(os.Stdout, results[0])
+	}
+}
+
+func queryDistinct() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent: from employees select distinct Title
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.SelectFields(reflect.TypeOf(""), "Title")
+	q = q.Distinct()
+
+	var results []string
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results. Results: %#v\n", len(results), results)
+}
+
+func queryEquals() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent: from employees where Title = 'Sales Representative'
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereEquals("Title", "Sales Representative")
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		spew.Fdump(os.Stdout, results[0])
+	}
+}
+
+func queryIn() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent: from employees where Title in ['Sales Representative', 'Sales Manager']
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereIn("Title", []interface{}{"Sales Representative", "Sales Manager"})
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		spew.Fdump(os.Stdout, results[0])
+	}
+}
+
 func main() {
 	// to test a given function, uncomment it
 
@@ -550,5 +652,10 @@ func main() {
 
 	//queryComplex()
 
-	querySelectSingleField()
+	///querySelectSingleField()
+
+	// querySelectFields()
+	// queryDistinct()
+	// queryEquals()
+	queryIn()
 }

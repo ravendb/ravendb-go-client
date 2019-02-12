@@ -63,7 +63,7 @@ func (s *DocumentSession) Revisions() *RevisionsSessionOperations {
 // NewDocumentSession creates a new DocumentSession
 func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
 	res := &DocumentSession{
-		InMemoryDocumentSessionOperations: NewInMemoryDocumentSessionOperations(dbName, documentStore, re, id),
+		InMemoryDocumentSessionOperations: newInMemoryDocumentSessionOperations(dbName, documentStore, re, id),
 	}
 
 	res.InMemoryDocumentSessionOperations.session = res

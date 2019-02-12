@@ -83,8 +83,7 @@ type InMemoryDocumentSessionOperations struct {
 	session *DocumentSession
 }
 
-// NewInMemoryDocumentSessionOperations creates new InMemoryDocumentSessionOperations
-func NewInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string) *InMemoryDocumentSessionOperations {
+func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
 	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
