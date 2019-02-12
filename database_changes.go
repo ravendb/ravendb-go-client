@@ -572,8 +572,7 @@ func (c *DatabaseChanges) send(command, value string, waitForConfirmation bool) 
 	return nil
 }
 
-func startSendWorker(conn *websocket.Conn) (chan *databaseChangesCommand, chan error) {
-	ch := make(chan *databaseChangesCommand, 16) // buffer
+func startSendWorker(conn *websocket.Conn, ch chan *databaseChangesCommand) chan error {
 	chFailed := make(chan error, 1)
 	go func() {
 		for cmd := range ch {
@@ -601,7 +600,7 @@ func startSendWorker(conn *websocket.Conn) (chan *databaseChangesCommand, chan e
 		}
 		dcdbg("DatabaseChanges: send worker finished\n")
 	}()
-	return ch, chFailed
+	return chFailed
 }
 
 func toWebSocketPath(path string) string {
@@ -650,7 +649,7 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 	c.invokeConnectionStatusChanged()
 
 	var chWriterFailed chan error
-	c.chanSend, chWriterFailed = startSendWorker(client)
+	chWriterFailed = startSendWorker(client, c.chanSend)
 	var chReaderFailed chan error
 	chReaderFailed = c.startProcessMessagesWorker(client, ctx)
 
