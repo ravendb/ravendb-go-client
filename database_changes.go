@@ -17,6 +17,14 @@ import (
 
 // Note: in Java IChangesConnectionState hides changeSubscribers
 
+// for debugging DatabaseChanges code
+func dcdbg(format string, args ...interface{}) {
+	// change to true to enable debug output
+	if false {
+		fmt.Printf(format, args...)
+	}
+}
+
 type changeSubscribers struct {
 	name           string // is key of DatabaseChanges.subscribers
 	watchCommand   string
@@ -121,7 +129,23 @@ func (s *changeSubscribers) hasRegisteredHandlers() bool {
 	return false
 }
 
-type commandConfirmation struct {
+func newDatabaseChangesCommand(id int, command string, value string) *databaseChangesCommand {
+	return &databaseChangesCommand{
+		id:        id,
+		command:   command,
+		value:     value,
+		timeStart: time.Now(),
+		ch:        make(chan bool, 1), // don't block the sender
+	}
+}
+
+type databaseChangesCommand struct {
+	// the data we send
+	id      int
+	command string
+	value   string
+
+	// used to wait for notifications
 	timeStart    time.Time
 	duration     time.Duration
 	ch           chan bool
@@ -129,14 +153,7 @@ type commandConfirmation struct {
 	wasCancelled bool
 }
 
-func newCommandConfirmation() *commandConfirmation {
-	return &commandConfirmation{
-		timeStart: time.Now(),
-		ch:        make(chan bool, 1), // don't block the sender
-	}
-}
-
-func (c *commandConfirmation) confirm(wasCancelled bool) {
+func (c *databaseChangesCommand) confirm(wasCancelled bool) {
 	new := atomic.AddInt32(&c.completed, 1)
 	if new > 1 {
 		// was already completed
@@ -147,7 +164,7 @@ func (c *commandConfirmation) confirm(wasCancelled bool) {
 	c.ch <- true
 }
 
-func (c *commandConfirmation) waitForConfirmation(timeout time.Duration) bool {
+func (c *databaseChangesCommand) waitForConfirmation(timeout time.Duration) bool {
 	select {
 	case <-c.ch:
 		return true
@@ -156,52 +173,50 @@ func (c *commandConfirmation) waitForConfirmation(timeout time.Duration) bool {
 	}
 }
 
-type commandToSend struct {
-	command string
-	value   string
-}
-
 // DatabaseChanges notifies about changes to a database
 type DatabaseChanges struct {
-	commandID int32 // atomic
+	commandID           int32 // atomic
+	connStatusChangedID int32 // atomic
 
 	requestExecutor *RequestExecutor
 	conventions     *DocumentConventions
 	database        string
 
-	onDispose func()
+	onClose func()
 
-	client   *websocket.Conn
-	muClient sync.Mutex
-
-	doWorkCancel    context.CancelFunc
-	cancelRequested atomicBool
-
-	// will be notified if doWork goroutine finishes
-	chanWorkCompleted chan error
+	ctxCancel    context.Context
+	doWorkCancel context.CancelFunc
 
 	// will be notified if we connect or fail to connect
 	// allows waiting for connection being established
 	chanIsConnected chan error
 
-	chanSend chan (*commandToSend)
+	chanSend chan (*databaseChangesCommand)
+
+	chanWorkCompleted chan error
 
 	subscribers sync.Map // string => *changeSubscribers
 
 	mu sync.Mutex
 
-	confirmations sync.Map // int -> *commandConfirmation
+	// commands that have been sent to the server but not confirmed
+	outstandingCommands sync.Map // int -> *commandConfirmation
 
 	immediateConnection atomicBool
 
 	connectionStatusChanged []func()
 	onError                 []func(error)
 
-	lastError error
+	lastError atomic.Value // error
 }
 
-func (c *DatabaseChanges) isCancelRequested() bool {
-	return atomicBoolIsSet(&c.cancelRequested)
+func (c *DatabaseChanges) isClosed() bool {
+	select {
+	case <-c.ctxCancel.Done():
+		return true
+	default:
+		return false
+	}
 }
 
 func (c *DatabaseChanges) nextCommandID() int {
@@ -209,48 +224,52 @@ func (c *DatabaseChanges) nextCommandID() int {
 	return int(v)
 }
 
-func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onDispose func()) *DatabaseChanges {
+func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, onClose func()) *DatabaseChanges {
 	res := &DatabaseChanges{
-		requestExecutor: requestExecutor,
-		conventions:     requestExecutor.GetConventions(),
-		database:        databaseName,
-		chanIsConnected: make(chan error, 1),
-		onDispose:       onDispose,
-		chanSend:        make(chan *commandToSend, 16),
+		requestExecutor:   requestExecutor,
+		conventions:       requestExecutor.GetConventions(),
+		database:          databaseName,
+		chanIsConnected:   make(chan error, 1),
+		onClose:           onClose,
+		chanSend:          make(chan *databaseChangesCommand, 16),
+		chanWorkCompleted: make(chan error, 1),
 	}
 
-	res.chanWorkCompleted = make(chan error, 1)
-	var ctx context.Context
-	ctx, res.doWorkCancel = context.WithCancel(context.Background())
+	res.ctxCancel, res.doWorkCancel = context.WithCancel(context.Background())
+
 	go func() {
-		err := res.doWork(ctx)
+		_, err := requestExecutor.getPreferredNode()
+		if err != nil {
+			dcdbg("newDatabaseChanges: getPreferredNode() failed with %s\n", err)
+			res.notifyAboutError(err)
+			res.chanWorkCompleted <- err
+			close(res.chanWorkCompleted)
+			return
+		}
+
+		err = res.doWork(res.ctxCancel)
 		res.chanWorkCompleted <- err
+		close(res.chanWorkCompleted)
 	}()
 
 	return res
 }
 
-func (c *DatabaseChanges) getWsClient() *websocket.Conn {
-	c.muClient.Lock()
-	res := c.client
-	c.muClient.Unlock()
-	return res
-}
-
-func (c *DatabaseChanges) setWsClient(client *websocket.Conn) {
-	c.muClient.Lock()
-	c.client = client
-	c.muClient.Unlock()
-}
-
-func (c *DatabaseChanges) IsConnected() bool {
-	client := c.getWsClient()
-	return client != nil
-}
-
 func (c *DatabaseChanges) EnsureConnectedNow() error {
-	err := <-c.chanIsConnected
-	return err
+	select {
+	case <-c.ctxCancel.Done():
+		dcdbg("DatabaseChanges(): EnsureConnectedNow(): is closed\n")
+		return errors.New("DatabaseChanges.EnsureConnectedNow(): Close() has been called")
+	case err := <-c.chanWorkCompleted:
+		dcdbg("DatabaseChanges(): EnsureConnectedNow(): chnWorkCompleted notified\n")
+		return err
+	case err := <-c.chanIsConnected:
+		dcdbg("DatabaseChanges(): EnsureConnectedNow(): chanIsConnected notified\n")
+		return err
+	case <-time.After(time.Second * 15):
+		dcdbg("DatabaseChanges(): EnsureConnectedNow(): timed out waiting for connection\n")
+		return errors.New("timed out waiting for connection")
+	}
 }
 
 func (c *DatabaseChanges) AddConnectionStatusChanged(handler func()) int {
@@ -263,15 +282,15 @@ func (c *DatabaseChanges) AddConnectionStatusChanged(handler func()) int {
 
 func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
 	if handlerIdx != -1 {
+		c.mu.Lock()
 		c.connectionStatusChanged[handlerIdx] = nil
+		c.mu.Unlock()
 	}
 }
 
 type CancelFunc func()
 
 func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("indexes/"+indexName, "watch-index", "unwatch-index", indexName)
 	if err != nil {
 		return nil, err
@@ -292,14 +311,14 @@ func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (Can
 }
 
 func (c *DatabaseChanges) getLastConnectionStateError() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.lastError
+	if v := c.lastError.Load(); v == nil {
+		return nil
+	} else {
+		return v.(error)
+	}
 }
 
 func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("docs/"+docID, "watch-doc", "unwatch-doc", docID)
 	if err != nil {
 		return nil, err
@@ -318,8 +337,6 @@ func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (C
 }
 
 func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("all-docs", "watch-docs", "unwatch-docs", "")
 	if err != nil {
 		return nil, err
@@ -334,8 +351,6 @@ func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CancelFunc,
 }
 
 func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationStatusChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	opIDStr := i64toa(operationID)
 	subscribers, err := c.getOrAddSubscribers("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
@@ -357,8 +372,6 @@ func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationSt
 }
 
 func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("all-operations", "watch-operations", "unwatch-operations", "")
 	if err != nil {
 		return nil, err
@@ -372,13 +385,7 @@ func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (Can
 	return cancel, nil
 }
 
-func (c *DatabaseChanges) removeSubscriber(subscribers *changeSubscribers, callbacks []func(), idx int) {
-
-}
-
 func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("all-indexes", "watch-indexes", "unwatch-indexes", "")
 	if err != nil {
 		return nil, err
@@ -393,8 +400,6 @@ func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CancelFunc, erro
 }
 
 func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*DocumentChange)) (CancelFunc, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("prefixes/"+docIDPrefix, "watch-prefix", "unwatch-prefix", docIDPrefix)
 	if err != nil {
 		return nil, err
@@ -423,8 +428,6 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb fun
 		return nil, newIllegalArgumentError("CollectionName cannot be empty")
 	}
 
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	subscribers, err := c.getOrAddSubscribers("collections/"+collectionName, "watch-collection", "unwatch-collection", collectionName)
 	if err != nil {
 		return nil, err
@@ -450,69 +453,69 @@ func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb 
 }
 
 func (c *DatabaseChanges) invokeConnectionStatusChanged() {
-	// call externally registered handlers outside of a lock
-	var dup []func()
+	// make a copy of callers so that we can call outside of a lock
 	c.mu.Lock()
-	for _, fn := range c.connectionStatusChanged {
-		if fn != nil {
-			dup = append(dup, fn)
-		}
-	}
+	dup := append([]func(){}, c.connectionStatusChanged...)
 	c.mu.Unlock()
 
 	for _, fn := range dup {
-		fn()
+		if fn != nil {
+			fn()
+		}
 	}
 }
 
 func (c *DatabaseChanges) AddOnError(handler func(error)) int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-
 	idx := len(c.onError)
 	c.onError = append(c.onError, handler)
 	return idx
 }
 
 func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.onError[handlerIdx] = nil
 }
 
-func (c *DatabaseChanges) cancelOutstandingRequests() {
+// cancel outstanding commands to unblock those waiting for their completion
+func (c *DatabaseChanges) cancelOutstandingCommands() {
 	rangeFn := func(key, val interface{}) bool {
-		confirmation := val.(*commandConfirmation)
-		confirmation.confirm(true)
+		cmd := val.(*databaseChangesCommand)
+		cmd.confirm(true)
+		dcdbg("DatabaseChanges: cancelled outstanding command %d '%s %s'\n", cmd.id, cmd.command, cmd.value)
+		c.outstandingCommands.Delete(key)
 		return true
 	}
-	c.confirmations.Range(rangeFn)
+	c.outstandingCommands.Range(rangeFn)
 }
 
 func (c *DatabaseChanges) Close() {
-	c.doWorkCancel()
-	atomicBoolSet(&c.cancelRequested, true)
-
-	c.cancelOutstandingRequests()
-
-	client := c.getWsClient()
-	if client != nil {
-		//fmt.Printf("DatabaseChanges.Close(): before client.Close()\n")
-		err := client.Close()
-		if err != nil {
-			dbg("DatabaseChanges.Close(): client.Close() failed with %s\n", err)
-		}
-		c.setWsClient(nil)
+	dcdbg("DatabaseChanges: Close()\n")
+	//debug.PrintStack()
+	select {
+	case <-c.chanWorkCompleted:
+		dcdbg("DatabaseChanges.Close(): has already been closed because chanWorkCompleted notified\n")
+	default:
+		// no-op
 	}
 
-	<-c.chanWorkCompleted
+	c.doWorkCancel()
+	c.cancelOutstandingCommands()
 
-	c.invokeConnectionStatusChanged()
-	if c.onDispose != nil {
-		c.onDispose()
+	select {
+	case <-c.chanWorkCompleted:
+	case <-time.After(time.Second * 5):
+		dcdbg("DatabaseChanges.Close(): timed out waiting for chanWorkCompleted\n")
+	}
+
+	if c.onClose != nil {
+		c.onClose()
 	}
 }
 
 func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, unwatchCommand string, value string) (*changeSubscribers, error) {
-	// must be called while holding mu lock
 	subscribersI, ok := c.subscribers.Load(name)
 
 	if ok {
@@ -526,12 +529,8 @@ func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, 
 		commandValue:   value,
 	}
 	c.subscribers.Store(name, subscribers)
-
-	if c.IsConnected() {
-		if err := c.connectSubscribers(subscribers); err != nil {
-			return nil, err
-		}
-
+	if err := c.connectSubscribers(subscribers); err != nil {
+		return nil, err
 	}
 	return subscribers, nil
 }
@@ -543,46 +542,66 @@ func (c *DatabaseChanges) maybeDisconnectSubscribers(subscribers *changeSubscrib
 }
 
 func (c *DatabaseChanges) disconnectSubscribers(subscribers *changeSubscribers) {
-	name := subscribers.name
-	if c.IsConnected() {
-		go c.send(subscribers.unwatchCommand, subscribers.commandValue)
-		// ignoring error: if we are not connected then we unsubscribed
-		// already because connections drops with all subscriptions
-	}
-	c.subscribers.Delete(name)
+	c.send(subscribers.unwatchCommand, subscribers.commandValue, false)
+	// ignoring error: if we are not connected then we unsubscribed
+	// already because connections drops with all subscriptions
+	c.subscribers.Delete(subscribers.name)
 }
 
 func (c *DatabaseChanges) connectSubscribers(subscribers *changeSubscribers) error {
-	return c.send(subscribers.watchCommand, subscribers.commandValue)
+	return c.send(subscribers.watchCommand, subscribers.commandValue, true)
 }
 
-func (c *DatabaseChanges) send(command, value string) error {
-	currentCommandID := c.nextCommandID()
-	o := struct {
-		CommandID int    `json:"CommandId"`
-		Command   string `json:"Command"`
-		Param     string `json:"Param"`
-	}{
-		CommandID: currentCommandID,
-		Command:   command,
-		Param:     value,
+func (c *DatabaseChanges) send(command, value string, waitForConfirmation bool) error {
+	if c.isClosed() {
+		return errors.New("send() called after Close()")
 	}
 
-	client := c.getWsClient()
-	if client == nil {
-		return errors.New("connection is closed")
-	}
-	err := client.WriteJSON(o)
-	if err != nil {
-		dbg("DatabaseChanges.send: WriteJSON() failed with %s\n", err)
-		return err
+	id := c.nextCommandID()
+	cmd := newDatabaseChangesCommand(id, command, value)
+	dcdbg("DatabaseChanges: send(): %d '%s %s, wait: %v\n", id, command, value, waitForConfirmation)
+	if waitForConfirmation {
+		c.outstandingCommands.Store(id, cmd)
 	}
 
-	confirmation := newCommandConfirmation()
+	c.chanSend <- cmd
 
-	c.confirmations.Store(currentCommandID, confirmation)
-	confirmation.waitForConfirmation(time.Second * 15)
+	if waitForConfirmation {
+		cmd.waitForConfirmation(time.Second * 15)
+	}
 	return nil
+}
+
+func startSendWorker(conn *websocket.Conn) (chan *databaseChangesCommand, chan error) {
+	ch := make(chan *databaseChangesCommand, 16) // buffer
+	chFailed := make(chan error, 1)
+	go func() {
+		for cmd := range ch {
+			o := struct {
+				CommandID int    `json:"CommandId"`
+				Command   string `json:"Command"`
+				Param     string `json:"Param"`
+			}{
+				CommandID: cmd.id,
+				Command:   cmd.command,
+				Param:     cmd.value,
+			}
+			err := conn.SetWriteDeadline(time.Now().Add(time.Second * 3))
+			if err != nil {
+				dcdbg("DatabaseChanges: SetWriteDeadline() failed with %s\n", err)
+				chFailed <- err
+				return
+			}
+			err = conn.WriteJSON(o)
+			if err != nil {
+				dcdbg("DatabaseChanges: conn.WriteJSON() failed with %s\n", err)
+				chFailed <- err
+				return
+			}
+		}
+		dcdbg("DatabaseChanges: send worker finished\n")
+	}()
+	return ch, chFailed
 }
 
 func toWebSocketPath(path string) string {
@@ -590,45 +609,36 @@ func toWebSocketPath(path string) string {
 	return strings.Replace(path, "https://", "wss://", -1)
 }
 
-func (c *DatabaseChanges) doWorkInner(ctx context.Context) error {
+// returns true if we should try to reconnect
+func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 	var err error
 	dialer := *websocket.DefaultDialer
 	dialer.HandshakeTimeout = time.Second * 2
+
 	re := c.requestExecutor
 	if re.Certificate != nil || re.TrustStore != nil {
 		dialer.TLSClientConfig, err = newTLSConfig(re.Certificate, re.TrustStore)
 		if err != nil {
-			return err
+			return err, false
 		}
 	}
 
 	urlString, err := c.requestExecutor.GetURL()
 	if err != nil {
-		return err
+		return err, false
 	}
 	urlString += "/databases/" + c.database + "/changes"
 	urlString = toWebSocketPath(urlString)
 
-	ctxDial, _ := context.WithTimeout(ctx, time.Second*5)
+	ctxDial, cancel := context.WithTimeout(ctx, time.Second*2)
 	var client *websocket.Conn
 	client, _, err = dialer.DialContext(ctxDial, urlString, nil)
-	c.setWsClient(client)
-
-	// recheck cancellation because it might have been cancelled
-	// since DialContext()
-	if c.isCancelRequested() {
-		if client != nil {
-			client.Close()
-			c.setWsClient(nil)
-		}
-		return err
-	}
+	cancel()
 
 	if err != nil {
-		time.Sleep(time.Second)
+		dcdbg("DatabaseChanges: dialer.DialContext failed with '%s'\n", err)
+		return err, false
 	}
-	c.chanIsConnected <- nil
-	close(c.chanIsConnected)
 
 	connectFn := func(key, value interface{}) bool {
 		subscribers := value.(*changeSubscribers)
@@ -636,56 +646,65 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) error {
 		return true
 	}
 	c.subscribers.Range(connectFn)
-	return nil
+
+	c.invokeConnectionStatusChanged()
+
+	var chWriterFailed chan error
+	c.chanSend, chWriterFailed = startSendWorker(client)
+	var chReaderFailed chan error
+	chReaderFailed = c.startProcessMessagesWorker(client, ctx)
+
+	c.chanIsConnected <- nil
+	// close so that subsequent channel reads also return immediately
+	close(c.chanIsConnected)
+
+	shouldReconnect := true
+	err = nil
+	select {
+	case err = <-chWriterFailed:
+		dcdbg("DatabaseChanges: writer failed with '%s'\n", err)
+	case err = <-chReaderFailed:
+		if err != nil {
+			dcdbg("DatabaseChanges: reader failed with '%s'\n", err)
+		} else {
+			dcdbg("DatabaseChanges: reader finished cleanly\n")
+		}
+	case <-ctx.Done():
+		dcdbg("cancellation requested\n")
+		shouldReconnect = false
+	}
+
+	close(c.chanSend)
+	c.chanSend = make(chan *databaseChangesCommand, 16)
+	client.Close()
+
+	c.invokeConnectionStatusChanged()
+	return err, shouldReconnect
 }
 
 func (c *DatabaseChanges) doWork(ctx context.Context) error {
-	_, err := c.requestExecutor.getPreferredNode()
-	if err != nil {
-		c.invokeConnectionStatusChanged()
-		c.notifyAboutError(err)
-		c.chanIsConnected <- err
-		close(c.chanIsConnected)
-		return err
-	}
-
 	for {
-
-		if c.isCancelRequested() {
-			return nil
+		err, shouldReconnect := c.doWorkInner(ctx)
+		if err != nil {
+			dcdbg("DatabaseChanges: doWorkInner() failed with '%s'\n", err)
 		}
-
-		panicIf(c.IsConnected(), "impoosible: cannot be connected")
-		c.doWorkInner(ctx)
-
-		c.invokeConnectionStatusChanged()
-		c.processMessages(ctx)
-		c.invokeConnectionStatusChanged()
-		c.setWsClient(nil)
-
-		shouldReconnect := !c.isCancelRequested()
-
-		c.cancelOutstandingRequests()
-		c.confirmations = sync.Map{}
-
+		c.cancelOutstandingCommands()
 		if !shouldReconnect {
-			return nil
+			return err
 		}
-
-		c.chanIsConnected = make(chan error, 1)
-
 		// wait before next retry
 		time.Sleep(time.Second)
 	}
 }
 
 func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error {
+	dcdbg("DatabnaseChanges: notifySubscribers(): %s, %v\n", typ, value)
 	switch typ {
 	case "DocumentChange":
 		var documentChange *DocumentChange
 		err := decodeJSONAsStruct(value, &documentChange)
 		if err != nil {
-			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
+			dcdbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
 		fn := func(key, value interface{}) bool {
@@ -698,7 +717,7 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 		var indexChange *IndexChange
 		err := decodeJSONAsStruct(value, &indexChange)
 		if err != nil {
-			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
+			dcdbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
 		fn := func(key, value interface{}) bool {
@@ -711,7 +730,7 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 		var operationStatusChange *OperationStatusChange
 		err := decodeJSONAsStruct(value, &operationStatusChange)
 		if err != nil {
-			dbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
+			dcdbg("notifySubscribers: '%s' decodeJSONAsStruct failed with %s\n", typ, err)
 			return err
 		}
 		fn := func(key, value interface{}) bool {
@@ -721,19 +740,22 @@ func (c *DatabaseChanges) notifySubscribers(typ string, value interface{}) error
 		}
 		c.subscribers.Range(fn)
 	default:
+		dcdbg("DatabnaseChanges: notifySubscribers(): unsupported type '%s'\n", typ)
 		return fmt.Errorf("notifySubscribers: unsupported type '%s'", typ)
 	}
 	return nil
 }
 
 func (c *DatabaseChanges) notifyAboutError(err error) {
-	// call onError handlers outside of a lock
-	var handlers []func(error)
-	c.mu.Lock()
-	c.lastError = err
-	if len(c.onError) > 0 {
-		handlers = append(handlers, c.onError...)
+	if c.isClosed() {
+		return
 	}
+	panicIf(err == nil, "err is nil")
+	c.lastError.Store(err)
+
+	// make a copy so that we can call outside of a lock
+	c.mu.Lock()
+	handlers := append([]func(error){}, c.onError...)
 	c.mu.Unlock()
 
 	for _, fn := range handlers {
@@ -743,51 +765,51 @@ func (c *DatabaseChanges) notifyAboutError(err error) {
 	}
 }
 
-func (c *DatabaseChanges) processMessages(ctx context.Context) {
-	var err error
-	for {
-		var msgArray []interface{} // an array of objects
-		client := c.getWsClient()
-		if client == nil {
-			break
-		}
-		err = client.ReadJSON(&msgArray)
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				dbg("webSocketChangesProcessor.processMessages() ReadJSON() failed with %s\n", err)
-			} else {
-				err = nil
+func (c *DatabaseChanges) startProcessMessagesWorker(conn *websocket.Conn, ctx context.Context) chan error {
+	chFailed := make(chan error, 1)
+	go func() {
+		var err error
+		for {
+			var msgArray []interface{} // an array of objects
+			err = conn.ReadJSON(&msgArray)
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					dcdbg("DatabaseChanges: ReadJSON() failed with %s\n", err)
+				} else {
+					dcdbg("DatabaseChanges: ReadJSON() failed with %s, turning into no error\n", err)
+					err = nil
+				}
+				break
 			}
-			break
-		}
 
-		for _, msgNodeV := range msgArray {
-			msgNode := msgNodeV.(map[string]interface{})
-			typ, _ := jsonGetAsString(msgNode, "Type")
-			switch typ {
-			case "Error":
-				errStr, _ := jsonGetAsString(msgNode, "Error")
-				if !c.isCancelRequested() {
+			for _, msgNodeV := range msgArray {
+				msgNode := msgNodeV.(map[string]interface{})
+				typ, _ := jsonGetAsString(msgNode, "Type")
+				switch typ {
+				case "Error":
+					errStr, _ := jsonGetAsString(msgNode, "Error")
 					c.notifyAboutError(newRuntimeError("%s", errStr))
-				}
-			case "Confirm":
-				commandID, ok := jsonGetAsInt(msgNode, "CommandId")
-				if ok {
-					v, ok := c.confirmations.Load(commandID)
+				case "Confirm":
+					commandID, ok := jsonGetAsInt(msgNode, "CommandId")
 					if ok {
-						confirmation := v.(*commandConfirmation)
-						confirmation.confirm(false)
+						v, ok := c.outstandingCommands.Load(commandID)
+						if ok {
+							cmd := v.(*databaseChangesCommand)
+							cmd.confirm(false)
+							dcdbg("DatabaseChanges: confirmed command '%d %s %s'\n", cmd.id, cmd.command, cmd.value)
+						}
 					}
+				default:
+					val := msgNode["Value"]
+					c.notifySubscribers(typ, val)
 				}
-			default:
-				val := msgNode["Value"]
-				c.notifySubscribers(typ, val)
 			}
 		}
-	}
-
-	if err != nil && !c.isCancelRequested() {
-		dbg("Not cancelled so calling notifyAboutError(), err = %v\n", err)
-		c.notifyAboutError(err)
-	}
+		if err != nil {
+			dcdbg("Not cancelled so calling notifyAboutError(), err = %v\n", err)
+			c.notifyAboutError(err)
+		}
+		chFailed <- err
+	}()
+	return chFailed
 }

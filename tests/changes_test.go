@@ -107,7 +107,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 			action := func(change *ravendb.DocumentChange) {
 				changesList <- change
 			}
-			cancel, err := changes.ForAllDocuments(action)
+			unregister, err := changes.ForAllDocuments(action)
 			assert.NoError(t, err)
 
 			{
@@ -137,7 +137,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 				assert.True(t, true)
 			}
 
-			cancel()
+			unregister()
 		}
 
 		// at this point we should be unsubscribed from changes on 'users/1'
@@ -161,6 +161,7 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 		}
 
 		changes.Close()
+		changes.Close() // call twice to make sure we're robust
 	}
 }
 
