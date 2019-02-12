@@ -111,8 +111,20 @@ func ravendb6292_ifIncludedDocumentIsConflictedItShouldNotThrowConflictException
 		id := metadata["@id"].(string)
 		assert.Equal(t, id, "addresses/1")
 
-		assert.True(t, ravendb.JSONExtensionsTryGetConflict(metadata))
+		assert.True(t, tryGetConflict(metadata))
 	}
+}
+
+func tryGetConflict(metadata map[string]interface{}) bool {
+	v, ok := metadata[ravendb.MetadataConflict]
+	if !ok {
+		return false
+	}
+	b, ok := v.(bool)
+	if !ok {
+		return false
+	}
+	return b
 }
 
 func (d *RavenTestDriver) waitForConflict(store *ravendb.DocumentStore, result interface{}, id string) error {

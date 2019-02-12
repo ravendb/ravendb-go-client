@@ -19,5 +19,5 @@ func (c *WktCriteria) ToQueryToken(fieldName string, addQueryParameter func(inte
 }
 
 func (c *WktCriteria) GetShapeToken(addQueryParameter func(interface{}) string) *shapeToken {
-	return ShapeTokenWkt(addQueryParameter(c._shapeWkt))
+	return shapeTokenWkt(addQueryParameter(c._shapeWkt))
 }

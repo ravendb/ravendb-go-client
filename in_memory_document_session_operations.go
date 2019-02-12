@@ -1108,7 +1108,7 @@ func (s *InMemoryDocumentSessionOperations) registerIncludes(includes map[string
 		json, ok := fieldValue.(map[string]interface{})
 		panicIf(!ok, "fieldValue of unsupported type %T", fieldValue)
 		newDocumentInfo := getNewDocumentInfo(json)
-		if JSONExtensionsTryGetConflict(newDocumentInfo.metadata) {
+		if tryGetConflict(newDocumentInfo.metadata) {
 			continue
 		}
 

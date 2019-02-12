@@ -95,7 +95,7 @@ func getQueryDefaultTimeout() time.Duration {
 // at this point we assume all
 func newAbstractDocumentQuery(opts *DocumentQueryOptions) *abstractDocumentQuery {
 	res := &abstractDocumentQuery{
-		defaultOperator:         QueryOperatorAnd,
+		defaultOperator:         queryOperatorAnd,
 		isGroupBy:               opts.isGroupBy,
 		indexName:               opts.IndexName,
 		collectionName:          opts.CollectionName,
@@ -1521,7 +1521,7 @@ func (q *abstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) 
 	}
 
 	var token *queryOperatorToken
-	if q.defaultOperator == QueryOperatorAnd {
+	if q.defaultOperator == queryOperatorAnd {
 		token = queryOperatorTokenAnd
 	} else {
 		token = queryOperatorTokenOr
@@ -1800,7 +1800,7 @@ func (q *abstractDocumentQuery) withinRadiusOf(fieldName string, radius float64,
 		return err
 	}
 
-	shape := ShapeTokenCircle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
+	shape := shapeTokenCircle(q.addQueryParameter(radius), q.addQueryParameter(latitude), q.addQueryParameter(longitude), radiusUnits)
 	opts := newWhereOptionsWithTokenAndDistance(shape, distErrorPercent)
 	whereToken := createWhereTokenWithOptions(whereOperatorSpatialWithin, fieldName, "", opts)
 
@@ -1830,7 +1830,7 @@ func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 		return err
 	}
 
-	wktToken := ShapeTokenWkt(q.addQueryParameter(shapeWkt))
+	wktToken := shapeTokenWkt(q.addQueryParameter(shapeWkt))
 
 	var whereOperator whereOperator
 	switch relation {

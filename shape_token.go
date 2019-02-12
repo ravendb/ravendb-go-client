@@ -8,25 +8,23 @@ type shapeToken struct {
 	shape string
 }
 
-func NewShapeToken(shape string) *shapeToken {
-	return &shapeToken{
-		shape: shape,
-	}
-}
-
-func ShapeTokenCircle(radiusParameterName string, latitudeParameterName string, longitudeParameterName string, radiusUnits SpatialUnits) *shapeToken {
+func shapeTokenCircle(radiusParameterName string, latitudeParameterName string, longitudeParameterName string, radiusUnits SpatialUnits) *shapeToken {
 	if radiusUnits == "" {
-		return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ")")
+		shape := "spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ")"
+		return &shapeToken{shape: shape}
 	}
 
 	if radiusUnits == SpatialUnitsKilometers {
-		return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Kilometers')")
+		shape := "spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Kilometers')"
+		return &shapeToken{shape: shape}
 	}
-	return NewShapeToken("spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Miles')")
+	shape := "spatial.circle($" + radiusParameterName + ", $" + latitudeParameterName + ", $" + longitudeParameterName + ", 'Miles')"
+	return &shapeToken{shape: shape}
 }
 
-func ShapeTokenWkt(shapeWktParameterName string) *shapeToken {
-	return NewShapeToken("spatial.wkt($" + shapeWktParameterName + ")")
+func shapeTokenWkt(shapeWktParameterName string) *shapeToken {
+	shape := "spatial.wkt($" + shapeWktParameterName + ")"
+	return &shapeToken{shape: shape}
 }
 
 func (t *shapeToken) writeTo(writer *strings.Builder) error {

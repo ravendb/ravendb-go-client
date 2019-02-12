@@ -30,6 +30,6 @@ func (c *CircleCriteria) ToQueryToken(fieldName string, addQueryParameter func(i
 
 // GetShapeToken returns shapeToken
 func (c *CircleCriteria) GetShapeToken(addQueryParameter func(interface{}) string) *shapeToken {
-	return ShapeTokenCircle(addQueryParameter(c._radius), addQueryParameter(c._latitude),
+	return shapeTokenCircle(addQueryParameter(c._radius), addQueryParameter(c._latitude),
 		addQueryParameter(c._longitude), c._radiusUnits)
 }
