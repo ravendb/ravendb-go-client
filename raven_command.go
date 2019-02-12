@@ -97,7 +97,7 @@ func (c *RavenCommandBase) isFailedWithNode(node *ServerNode) bool {
 
 // Note: in Java Raven.processResponse is virtual.
 // That's impossible in Go, so we replace with stand-alone function that dispatches based on type
-func ravenCommand_processResponse(cmd RavenCommand, cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
+func ravenCommand_processResponse(cmd RavenCommand, cache *httpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	if cmdHead, ok := cmd.(*HeadDocumentCommand); ok {
 		return cmdHead.ProcessResponse(cache, response, url)
 	}
@@ -153,7 +153,7 @@ func ravenCommand_processResponse(cmd RavenCommand, cache *HttpCache, response *
 	return responseDisposeHandlingAutomatic, err
 }
 
-func (c *RavenCommandBase) cacheResponse(cache *HttpCache, url string, response *http.Response, responseJson []byte) {
+func (c *RavenCommandBase) cacheResponse(cache *httpCache, url string, response *http.Response, responseJson []byte) {
 	if !c.CanCache {
 		return
 	}

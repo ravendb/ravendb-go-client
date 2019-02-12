@@ -66,7 +66,7 @@ func NewPatchOperation(id string, changeVector *string, patch *PatchRequest, pat
 	}, nil
 }
 
-func (o *PatchOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *PatchOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewPatchCommand(conventions, o.id, o.changeVector, o.patch, o.patchIfMissing, o.skipPatchIfChangeVectorMismatch, false, false)
 	return o.Command, err

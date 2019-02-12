@@ -57,7 +57,7 @@ type RequestExecutor struct {
 	firstTopologyUpdateFuture *completableFuture
 
 	readBalanceBehavior   ReadBalanceBehavior
-	Cache                 *HttpCache
+	Cache                 *httpCache
 	httpClient            *http.Client
 	topologyTakenFromNode *ServerNode
 
@@ -147,7 +147,7 @@ func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trust
 		updateDatabaseTopologySemaphore:    NewSemaphore(1),
 		updateClientConfigurationSemaphore: NewSemaphore(1),
 
-		Cache:               NewHttpCache(conventions.getMaxHttpCacheSize()),
+		Cache:               newHttpCache(conventions.getMaxHttpCacheSize()),
 		readBalanceBehavior: conventions.ReadBalanceBehavior,
 		databaseName:        databaseName,
 		Certificate:         certificate,
@@ -683,7 +683,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	//fmt.Printf("RequestExecutor.Execute cmd: %T url: %s\n", command, urlRef)
 
 	cachedItem, cachedChangeVector, cachedValue := re.getFromCache(command, urlRef)
-	defer cachedItem.Close()
+	defer cachedItem.close()
 
 	if cachedChangeVector != nil {
 		aggressiveCacheOptions := re.aggressiveCaching
@@ -934,13 +934,13 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 	}
 }
 
-func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*ReleaseCacheItem, *string, []byte) {
+func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*releaseCacheItem, *string, []byte) {
 	cmd := command.getBase()
 	if cmd.CanCache && cmd.IsReadRequest && cmd.ResponseType == RavenCommandResponseTypeObject {
 		return re.Cache.get(url)
 	}
 
-	return NewReleaseCacheItem(nil), nil, nil
+	return newReleaseCacheItem(nil), nil, nil
 }
 
 func (re *RequestExecutor) createRequest(node *ServerNode, command RavenCommand) (*http.Request, error) {
@@ -1162,7 +1162,7 @@ func (re *RequestExecutor) Close() {
 	}
 
 	re.markDisposed()
-	re.Cache.Close()
+	re.Cache.close()
 
 	re.mu.Lock()
 	defer re.mu.Unlock()

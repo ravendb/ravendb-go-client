@@ -27,7 +27,7 @@ func NewGetCompareExchangeValueOperation(clazz reflect.Type, key string) (*GetCo
 	}, nil
 }
 
-func (o *GetCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *GetCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewGetCompareExchangeValueCommand(o._clazz, o._key, conventions)
 	return o.Command, err

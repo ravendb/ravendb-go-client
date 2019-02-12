@@ -12,9 +12,9 @@ import (
 type genericCache struct {
 	softValues    bool
 	maximumWeight int
-	weighter      func(string, *HttpCacheItem) int
+	weighter      func(string, *httpCacheItem) int
 
-	data map[string]*HttpCacheItem
+	data map[string]*httpCacheItem
 }
 
 func (c *genericCache) size() int {
@@ -25,50 +25,50 @@ func (c *genericCache) invalidateAll() {
 	c.data = nil
 }
 
-func (c *genericCache) getIfPresent(uri string) *HttpCacheItem {
+func (c *genericCache) getIfPresent(uri string) *httpCacheItem {
 	return c.data[uri]
 }
 
-func (c *genericCache) put(uri string, i *HttpCacheItem) {
+func (c *genericCache) put(uri string, i *httpCacheItem) {
 	//fmt.Printf("genericCache.put(): url: %s, changeVector: %s, len(result): %d\n", uri, *i.changeVector, len(i.payload))
 
 	// TODO: probably implement cache eviction
 	c.data[uri] = i
 }
 
-type HttpCache struct {
+type httpCache struct {
 	items      *genericCache
 	generation atomicInteger
 }
 
-func NewHttpCache(size int) *HttpCache {
+func newHttpCache(size int) *httpCache {
 	if size == 0 {
 		size = 1 * 1024 * 1024 // TODO: check what is default size of com.google.common.cache.Cache is
 	}
 	cache := &genericCache{
 		softValues:    true,
 		maximumWeight: size,
-		weighter: func(k string, v *HttpCacheItem) int {
+		weighter: func(k string, v *httpCacheItem) int {
 			return len(v.payload) + 20
 		},
-		data: map[string]*HttpCacheItem{},
+		data: map[string]*httpCacheItem{},
 	}
-	return &HttpCache{
+	return &httpCache{
 		items: cache,
 	}
 }
 
-func (c *HttpCache) GetNumberOfItems() int {
+func (c *httpCache) GetNumberOfItems() int {
 	return c.items.size()
 }
 
-func (c *HttpCache) Close() {
+func (c *httpCache) close() {
 	c.items.invalidateAll()
 	c.items = nil
 }
 
-func (c *HttpCache) set(url string, changeVector *string, result []byte) {
-	httpCacheItem := NewHttpCacheItem()
+func (c *httpCache) set(url string, changeVector *string, result []byte) {
+	httpCacheItem := newHttpCacheItem()
 	httpCacheItem.changeVector = changeVector
 	httpCacheItem.payload = result
 	httpCacheItem.cache = c
@@ -77,20 +77,20 @@ func (c *HttpCache) set(url string, changeVector *string, result []byte) {
 }
 
 // returns cacheItem, changeVector and response
-func (c *HttpCache) get(url string) (*ReleaseCacheItem, *string, []byte) {
+func (c *httpCache) get(url string) (*releaseCacheItem, *string, []byte) {
 	item := c.items.getIfPresent(url)
 	if item != nil {
 		//fmt.Printf("HttpCache.get(): found url: %s, changeVector: %s, len(payload): %d\n", url, *item.changeVector, len(item.payload))
-		return NewReleaseCacheItem(item), item.changeVector, item.payload
+		return newReleaseCacheItem(item), item.changeVector, item.payload
 	}
 
 	//fmt.Printf("HttpCache.get(): didn't find url: %s\n", url)
-	return NewReleaseCacheItem(nil), nil, nil
+	return newReleaseCacheItem(nil), nil, nil
 }
 
-func (c *HttpCache) setNotFound(url string) {
+func (c *httpCache) setNotFound(url string) {
 	//fmt.Printf("HttpCache.setNotFound(): url: %s\n", url)
-	httpCacheItem := NewHttpCacheItem()
+	httpCacheItem := newHttpCacheItem()
 	s := "404 response"
 	httpCacheItem.changeVector = &s
 	httpCacheItem.cache = c
@@ -99,34 +99,35 @@ func (c *HttpCache) setNotFound(url string) {
 	c.items.put(url, httpCacheItem)
 }
 
-type ReleaseCacheItem struct {
-	item *HttpCacheItem
+type releaseCacheItem struct {
+	item *httpCacheItem
 }
 
-func NewReleaseCacheItem(item *HttpCacheItem) *ReleaseCacheItem {
-	return &ReleaseCacheItem{
+func newReleaseCacheItem(item *httpCacheItem) *releaseCacheItem {
+	return &releaseCacheItem{
 		item: item,
 	}
 }
 
-func (i *ReleaseCacheItem) notModified() {
+func (i *releaseCacheItem) notModified() {
 	if i.item != nil {
 		i.item.lastServerUpdate = time.Now()
 	}
 }
 
-func (i *ReleaseCacheItem) getAge() time.Duration {
+func (i *releaseCacheItem) getAge() time.Duration {
 	if i.item == nil {
 		return time.Duration(math.MaxInt64)
 	}
 	return time.Since(i.item.lastServerUpdate)
 }
 
-func (i *ReleaseCacheItem) getMightHaveBeenModified() bool {
+func (i *releaseCacheItem) getMightHaveBeenModified() bool {
 	currGen := i.item.generation
 	itemGen := i.item.cache.generation.get()
 	return currGen != itemGen
 }
 
-func (i *ReleaseCacheItem) Close() {
+func (i *releaseCacheItem) close() {
+	// no-op
 }

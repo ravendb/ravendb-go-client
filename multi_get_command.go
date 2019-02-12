@@ -13,14 +13,14 @@ var _ RavenCommand = &MultiGetCommand{}
 type MultiGetCommand struct {
 	RavenCommandBase
 
-	cache    *HttpCache
+	cache    *httpCache
 	commands []*getRequest
 	baseURL  string
 
 	Result []*GetResponse // in Java we inherit from List<GetResponse>
 }
 
-func newMultiGetCommand(cache *HttpCache, commands []*getRequest) *MultiGetCommand {
+func newMultiGetCommand(cache *httpCache, commands []*getRequest) *MultiGetCommand {
 
 	cmd := &MultiGetCommand{
 		RavenCommandBase: NewRavenCommandBase(),
@@ -64,7 +64,7 @@ func (c *MultiGetCommand) createRequest(node *ServerNode) (*http.Request, error)
 				v["Content"] = nil
 			}
 
-			item.Close()
+			item.close()
 		}
 		requests = append(requests, v)
 	}
@@ -132,7 +132,7 @@ func (c *MultiGetCommand) maybeReadFromCache(getResponse *GetResponse, command *
 	{
 		cacheItem, _, cachedResponse := c.cache.get(cacheKey)
 		getResponse.Result = cachedResponse
-		cacheItem.Close()
+		cacheItem.close()
 	}
 }
 

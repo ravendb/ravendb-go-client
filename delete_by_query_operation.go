@@ -27,7 +27,7 @@ func NewDeleteByQueryOperation(queryToDelete *IndexQuery, options *QueryOperatio
 	}, nil
 }
 
-func (o *DeleteByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *DeleteByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewDeleteByIndexCommand(conventions, o._queryToDelete, o._options)
 	return o.Command, err

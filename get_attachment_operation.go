@@ -27,7 +27,7 @@ func NewGetAttachmentOperation(documentID string, name string, typ AttachmentTyp
 	}
 }
 
-func (o *GetAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *GetAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewGetAttachmentCommand(o._documentID, o._name, o._type, o._changeVector)
 	return o.Command, err
@@ -90,7 +90,7 @@ func (c *GetAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 	return newHttpGet(url)
 }
 
-func (c *GetAttachmentCommand) processResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
+func (c *GetAttachmentCommand) processResponse(cache *httpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	contentType := response.Header.Get("Content-Type")
 	changeVector := gttpExtensionsGetEtagHeader(response)
 	hash := response.Header.Get("Attachment-Hash")

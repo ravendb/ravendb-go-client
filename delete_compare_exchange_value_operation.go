@@ -29,7 +29,7 @@ func NewDeleteCompareExchangeValueOperation(clazz reflect.Type, key string, inde
 	}, nil
 }
 
-func (o *DeleteCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *DeleteCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewRemoveCompareExchangeValueCommand(o._clazz, o._key, o._index, conventions)
 	return o.Command, err

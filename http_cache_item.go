@@ -2,17 +2,17 @@ package ravendb
 
 import "time"
 
-type HttpCacheItem struct {
+type httpCacheItem struct {
 	changeVector     *string // TODO: can probably be string
 	payload          []byte
 	lastServerUpdate time.Time
 	generation       int // TODO: should this be atomicInteger?
 
-	cache *HttpCache
+	cache *httpCache
 }
 
-func NewHttpCacheItem() *HttpCacheItem {
-	return &HttpCacheItem{
+func newHttpCacheItem() *httpCacheItem {
+	return &httpCacheItem{
 		lastServerUpdate: time.Now(),
 	}
 }

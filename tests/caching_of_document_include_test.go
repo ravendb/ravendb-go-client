@@ -64,6 +64,9 @@ func cofiCanCacheDocumentWithIncludes(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.NotNil(t, u)
 
+		// TODO: make it GetRequestExecutor().GetNumberOfCacheItems()
+		// and only available with fortests build tag
+		// then hide HttpCache
 		cache := session.Advanced().GetRequestExecutor().Cache
 		cacheSize := cache.GetNumberOfItems()
 		assert.Equal(t, 1, cacheSize)

@@ -24,7 +24,7 @@ func NewDeleteAttachmentOperation(documentID string, name string, changeVector *
 	}
 }
 
-func (o *DeleteAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *DeleteAttachmentOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewDeleteAttachmentCommand(o._documentID, o._name, o._changeVector)
 	return o.Command, err

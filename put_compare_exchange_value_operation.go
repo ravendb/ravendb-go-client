@@ -33,7 +33,7 @@ func NewPutCompareExchangeValueOperation(key string, value interface{}, index in
 	}, nil
 }
 
-func (o *PutCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *HttpCache) (RavenCommand, error) {
+func (o *PutCompareExchangeValueOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewPutCompareExchangeValueCommand(o._key, o._value, o._index, conventions)
 	return o.Command, err

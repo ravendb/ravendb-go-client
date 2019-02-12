@@ -47,7 +47,7 @@ func (c *HeadDocumentCommand) createRequest(node *ServerNode) (*http.Request, er
 }
 
 // ProcessResponse processes HTTP response
-func (c *HeadDocumentCommand) ProcessResponse(cache *HttpCache, response *http.Response, url string) (responseDisposeHandling, error) {
+func (c *HeadDocumentCommand) ProcessResponse(cache *httpCache, response *http.Response, url string) (responseDisposeHandling, error) {
 	statusCode := response.StatusCode
 	if statusCode == http.StatusNotModified {
 		c.Result = c.changeVector
