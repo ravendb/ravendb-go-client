@@ -14,7 +14,7 @@ func indexesFromClientTestCanCreateIndexesUsingIndexCreation(t *testing.T, drive
 	defer store.Close()
 
 	indexes := []*ravendb.IndexCreationTask{NewUsers_ByName()}
-	err = ravendb.IndexCreationCreateIndexes(indexes, store, nil)
+	err = store.ExecuteIndexes(indexes, "")
 	assert.NoError(t, err)
 
 	{

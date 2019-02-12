@@ -1,30 +1,5 @@
 package ravendb
 
-// IndexCreationCreateIndexes creates indexes in store
-// TODO: better name
-func IndexCreationCreateIndexes(indexes []*IndexCreationTask, store *DocumentStore, conventions *DocumentConventions) error {
-
-	if conventions == nil {
-		conventions = store.GetConventions()
-	}
-
-	indexesToAdd := indexCreationCreateIndexesToAdd(indexes, conventions)
-	op := NewPutIndexesOperation(indexesToAdd...)
-	err := store.Maintenance().Send(op)
-	if err == nil {
-		return nil
-	}
-
-	// For old servers that don't have the new endpoint for executing multiple indexes
-	for _, index := range indexes {
-		err = index.Execute(store, conventions, "")
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func indexCreationCreateIndexesToAdd(indexCreationTasks []*IndexCreationTask, conventions *DocumentConventions) []*IndexDefinition {
 	var res []*IndexDefinition
 	for _, x := range indexCreationTasks {
