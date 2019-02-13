@@ -15,7 +15,7 @@ func trackEntityTestDeletingEntityThatIsNotTrackedShouldThrow(t *testing.T, driv
 
 	{
 		session := openSessionMust(t, store)
-		err = session.DeleteEntity(&User{})
+		err = session.Delete(&User{})
 		assert.Error(t, err)
 		_ = err.(*ravendb.IllegalStateError)
 		msg := err.Error()
@@ -51,9 +51,9 @@ func trackEntityTestLoadingDeletedDocumentShouldReturnNull(t *testing.T, driver 
 
 	{
 		session := openSessionMust(t, store)
-		err = session.Delete("users/1")
+		err = session.DeleteByID("users/1", nil)
 		assert.NoError(t, err)
-		err = session.Delete("users/2")
+		err = session.DeleteByID("users/2", nil)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

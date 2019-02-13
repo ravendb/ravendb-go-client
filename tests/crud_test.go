@@ -109,7 +109,7 @@ func crudTestCrudOperations(t *testing.T, driver *RavenTestDriver) {
 		err = newSession.StoreWithID(user4, "users/4")
 		assert.NoError(t, err)
 
-		err = newSession.DeleteEntity(user2)
+		err = newSession.Delete(user2)
 		assert.NoError(t, err)
 		user3.Age = 3
 		err = newSession.SaveChanges()
@@ -133,7 +133,7 @@ func crudTestCrudOperations(t *testing.T, driver *RavenTestDriver) {
 		err = newSession.Load(&user4, "users/4")
 		assert.NoError(t, err)
 
-		err = newSession.DeleteEntity(user4)
+		err = newSession.Delete(user4)
 		assert.NoError(t, err)
 		user1.Age = 10
 		err = newSession.SaveChanges()
@@ -182,7 +182,7 @@ func crudTestCrudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDriver
 			err = newSession.StoreWithID(user4, "users/4")
 			assert.NoError(t, err)
 
-			err = newSession.DeleteEntity(user2)
+			err = newSession.Delete(user2)
 			assert.NoError(t, err)
 			user3.Age = 3
 
@@ -211,7 +211,7 @@ func crudTestCrudOperationsWithWhatChanged(t *testing.T, driver *RavenTestDriver
 			assert.NoError(t, err)
 			assert.NotNil(t, user4)
 
-			err = newSession.DeleteEntity(user4)
+			err = newSession.Delete(user4)
 			assert.NoError(t, err)
 
 			user1.Age = 10

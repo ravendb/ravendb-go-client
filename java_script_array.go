@@ -56,6 +56,6 @@ func (a *JavaScriptArray) getNextArgumentName() string {
 	return s
 }
 
-func (a *JavaScriptArray) getScript() string {
+func (a *JavaScriptArray) GetScript() string {
 	return strings.Join(a.scriptLines, "\r")
 }

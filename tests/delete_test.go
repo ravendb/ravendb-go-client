@@ -28,7 +28,7 @@ func deleteTestDeleteDocumentByEntity(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 
-	err = newSession.DeleteEntity(user)
+	err = newSession.Delete(user)
 	assert.NoError(t, err)
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)
@@ -61,7 +61,7 @@ func deleteTestDeleteDocumentById(t *testing.T, driver *RavenTestDriver) {
 		assert.NotNil(t, user)
 	}
 
-	err = newSession.Delete("users/1")
+	err = newSession.DeleteByID("users/1", nil)
 	assert.NoError(t, err)
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)

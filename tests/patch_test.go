@@ -79,7 +79,7 @@ func patchTestCanWaitForIndexAfterPatch(t *testing.T, driver *RavenTestDriver) {
 		err = session.Load(&user, "users/1")
 		assert.NoError(t, err)
 
-		err = session.Advanced().PatchEntity(user, "name", "New Name")
+		err = session.Advanced().Patch(user, "name", "New Name")
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()

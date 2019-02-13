@@ -552,9 +552,9 @@ func (s *DocumentSession) LoadIntoStream(ids []string, output io.Writer) error {
 	return s.loadInternalWithOperation(ids, op, output)
 }
 
-// IncrementEntity increments member identified by path in an entity by a given
+// Increment increments member identified by path in an entity by a given
 // valueToAdd (can be negative, to subtract)
-func (s *DocumentSession) IncrementEntity(entity interface{}, path string, valueToAdd interface{}) error {
+func (s *DocumentSession) Increment(entity interface{}, path string, valueToAdd interface{}) error {
 	if path == "" {
 		return newIllegalArgumentError("path can't be empty string")
 	}
@@ -604,8 +604,8 @@ func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd inter
 	return nil
 }
 
-// PatchEntity updates entity by changing part identified by path to a given value
-func (s *DocumentSession) PatchEntity(entity interface{}, path string, value interface{}) error {
+// Patch updates entity by changing part identified by path to a given value
+func (s *DocumentSession) Patch(entity interface{}, path string, value interface{}) error {
 	if path == "" {
 		return newIllegalArgumentError("path can't be empty string")
 	}
@@ -648,7 +648,9 @@ func (s *DocumentSession) PatchByID(id string, path string, value interface{}) e
 	return nil
 }
 
-func (s *DocumentSession) PatchArrayInEntity(entity interface{}, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
+// PatchArray updates an array value of document under a given path. Modify
+// the array inside arrayAdder function
+func (s *DocumentSession) PatchArray(entity interface{}, pathToArray string, arrayAdder func(*JavaScriptArray)) error {
 	if pathToArray == "" {
 		return newIllegalArgumentError("pathToArray can't be empty string")
 	}
@@ -682,7 +684,7 @@ func (s *DocumentSession) PatchArrayByID(id string, pathToArray string, arrayAdd
 	arrayAdder(scriptArray)
 
 	patchRequest := &PatchRequest{}
-	patchRequest.Script = scriptArray.getScript()
+	patchRequest.Script = scriptArray.GetScript()
 	patchRequest.Values = scriptArray.Parameters
 
 	if !s.tryMergePatches(id, patchRequest) {

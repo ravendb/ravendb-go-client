@@ -300,7 +300,7 @@ func crudDeleteUsingID() {
 			log.Fatalf("store.OpenSession() failed with %s\n", err)
 		}
 
-		err = session.Delete(productID)
+		err = session.DeleteByID(productID, nil)
 		if err != nil {
 			log.Fatalf("session.Delete() failed with %s\n", err)
 		}
@@ -382,7 +382,7 @@ func crudDeleteUsingEntity() {
 			log.Fatalf("session.Load() failed with %s\n", err)
 		}
 
-		err = session.DeleteEntity(p)
+		err = session.Delete(p)
 		if err != nil {
 			log.Fatalf("session.Delete() failed with %s\n", err)
 		}
@@ -1158,13 +1158,13 @@ func storeAttachments() string {
 	defer fileStream.Close()
 
 	fmt.Printf("new employee id: %s\n", e.ID)
-	err = session.Advanced().Attachments().StoreEntity(e, "photo.png", fileStream, "image/png")
+	err = session.Advanced().Attachments().Store(e, "photo.png", fileStream, "image/png")
 
 	// could also be done using document id
 	// err = session.Advanced().Attachments().Store(e.ID, "photo.png", fileStream, "image/png")
 
 	if err != nil {
-		log.Fatalf("session.Advanced().Attachments().StoreEntity() failed with '%s'\n", err)
+		log.Fatalf("session.Advanced().Attachments().Store() failed with '%s'\n", err)
 	}
 
 	err = session.SaveChanges()
@@ -1184,7 +1184,7 @@ func getAttachments() {
 	defer store.Close()
 	defer session.Close()
 
-	attachment, err := session.Advanced().Attachments().Get(docID, "photo.png")
+	attachment, err := session.Advanced().Attachments().GetByID(docID, "photo.png")
 	if err != nil {
 		log.Fatalf("session.Advanced().Attachments().Get() failed with '%s'\n", err)
 	}
@@ -1539,7 +1539,7 @@ func advancedPatching() {
 		log.Fatalf("session.Advanced().IncrementByID() failed with %s\n", err)
 	}
 
-	err = session.Advanced().PatchEntity(product, "Category", "expensive products")
+	err = session.Advanced().Patch(product, "Category", "expensive products")
 	if err != nil {
 		log.Fatalf("session.Advanced().PatchEntity() failed with %s\n", err)
 	}

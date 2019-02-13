@@ -51,8 +51,7 @@ func (s *DocumentSessionAttachmentsBase) GetNames(entity interface{}) ([]*Attach
 }
 
 // contentType is optional
-// TODO: maybe split into Store() and storeWithContentType()
-func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, stream io.Reader, contentType string) error {
+func (s *DocumentSessionAttachmentsBase) StoreByID(documentID string, name string, stream io.Reader, contentType string) error {
 	if stringIsBlank(documentID) {
 		return newIllegalArgumentError("documentID can't be an empty string")
 	}
@@ -93,29 +92,29 @@ func (s *DocumentSessionAttachmentsBase) Store(documentID string, name string, s
 	return nil
 }
 
-// StoreEntity stores an entity
-func (s *DocumentSessionAttachmentsBase) StoreEntity(entity interface{}, name string, stream io.Reader, contentType string) error {
+// Store stores an entity
+func (s *DocumentSessionAttachmentsBase) Store(entity interface{}, name string, stream io.Reader, contentType string) error {
 	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
 		return throwEntityNotInSession(entity)
 	}
 
-	return s.Store(document.id, name, stream, contentType)
+	return s.StoreByID(document.id, name, stream, contentType)
 }
 
-// DeleteEntity deletes a given entity
+// Delete deletes a given entity
 // TODO: support **struct or return good error message
-func (s *DocumentSessionAttachmentsBase) DeleteEntity(entity interface{}, name string) error {
+func (s *DocumentSessionAttachmentsBase) Delete(entity interface{}, name string) error {
 	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
 		return throwEntityNotInSession(entity)
 	}
 
-	return s.Delete(document.id, name)
+	return s.DeleteByID(document.id, name)
 }
 
 // Delete deletes entity with a given i
-func (s *DocumentSessionAttachmentsBase) Delete(documentID string, name string) error {
+func (s *DocumentSessionAttachmentsBase) DeleteByID(documentID string, name string) error {
 	if stringIsBlank(documentID) {
 		return newIllegalArgumentError("DocumentId cannot be null")
 	}

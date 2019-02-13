@@ -174,7 +174,7 @@ if err != nil {
     log.Fatalf("session.Load() failed with %s\n", err)
 }
 
-err = session.DeleteEntity(p)
+err = session.Delete(p)
 if err != nil {
     log.Fatalf("session.Delete() failed with %s\n", err)
 }
@@ -531,13 +531,13 @@ if err != nil {
 defer fileStream.Close()
 
 fmt.Printf("new employee id: %s\n", e.ID)
-err = session.Advanced().Attachments().StoreEntity(e, "photo.png", fileStream, "image/png")
+err = session.Advanced().Attachments().Store(e, "photo.png", fileStream, "image/png")
 
 // could also be done using document id
 // err = session.Advanced().Attachments().Store(e.ID, "photo.png", fileStream, "image/png")
 
 if err != nil {
-    log.Fatalf("session.Advanced().Attachments().StoreEntity() failed with '%s'\n", err)
+    log.Fatalf("session.Advanced().Attachments().Store() failed with '%s'\n", err)
 }
 
 err = session.SaveChanges()

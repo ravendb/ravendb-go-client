@@ -156,7 +156,7 @@ func attachmentsRevisionsAttachmentRevision(t *testing.T, driver *RavenTestDrive
 		{
 			session := openSessionMust(t, store)
 			bais := bytes.NewBuffer([]byte{5, 4, 3, 2, 1})
-			err = session.Advanced().Attachments().Store("users/1", "profile.png", bais, "")
+			err = session.Advanced().Attachments().StoreByID("users/1", "profile.png", bais, "")
 			assert.NoError(t, err)
 
 			err = session.SaveChanges()

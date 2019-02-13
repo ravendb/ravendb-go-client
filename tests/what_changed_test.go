@@ -385,7 +385,7 @@ func whatChangedWhatChangedShouldBeIdempotentOperation(t *testing.T, driver *Rav
 		assert.NoError(t, err)
 
 		user1.Age = 10
-		err = session.DeleteEntity(user2)
+		err = session.Delete(user2)
 		assert.NoError(t, err)
 
 		changes, _ = session.Advanced().WhatChanged()

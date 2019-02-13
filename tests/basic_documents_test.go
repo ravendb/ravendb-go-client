@@ -28,7 +28,7 @@ func basicDocumentscanChangeDocumentCollectionWithDeleteAndSave(t *testing.T, dr
 
 	{
 		session := openSessionMust(t, store)
-		err = session.Delete(documentID)
+		err = session.DeleteByID(documentID, nil)
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)

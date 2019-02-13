@@ -28,7 +28,7 @@ func (s *DocumentSessionAttachments) Exists(documentID string, name string) (boo
 	return res, nil
 }
 
-func (s *DocumentSessionAttachments) Get(documentID string, name string) (*AttachmentResult, error) {
+func (s *DocumentSessionAttachments) GetByID(documentID string, name string) (*AttachmentResult, error) {
 	operation := NewGetAttachmentOperation(documentID, name, AttachmentDocument, "", nil)
 	err := s.session.GetOperations().Send(operation, s.sessionInfo)
 	if err != nil {
@@ -38,12 +38,12 @@ func (s *DocumentSessionAttachments) Get(documentID string, name string) (*Attac
 	return res, nil
 }
 
-func (s *DocumentSessionAttachments) GetEntity(entity interface{}, name string) (*AttachmentResult, error) {
+func (s *DocumentSessionAttachments) Get(entity interface{}, name string) (*AttachmentResult, error) {
 	document := getDocumentInfoByEntity(s.documents, entity)
 	if document == nil {
 		return nil, throwEntityNotInSession(entity)
 	}
-	return s.Get(document.id, name)
+	return s.GetByID(document.id, name)
 }
 
 func (s *DocumentSessionAttachments) GetRevision(documentID string, name string, changeVector *string) (*AttachmentResult, error) {

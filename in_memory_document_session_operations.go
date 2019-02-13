@@ -476,8 +476,8 @@ func matchValueToType(o interface{}, tp reflect.Type) interface{} {
 	return v.Interface()
 }
 
-// DeleteEntity marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
-func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) error {
+// Delete marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
+func (s *InMemoryDocumentSessionOperations) Delete(entity interface{}) error {
 	err := checkValidEntityIn(entity, "entity")
 	if err != nil {
 		return err
@@ -496,11 +496,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteEntity(entity interface{}) err
 
 // Delete marks the specified entity for deletion. The entity will be deleted when IDocumentSession.SaveChanges is called.
 // WARNING: This method will not call beforeDelete listener!
-func (s *InMemoryDocumentSessionOperations) Delete(id string) error {
-	return s.DeleteWithChangeVector(id, nil)
-}
-
-func (s *InMemoryDocumentSessionOperations) DeleteWithChangeVector(id string, expectedChangeVector *string) error {
+func (s *InMemoryDocumentSessionOperations) DeleteByID(id string, expectedChangeVector *string) error {
 	if id == "" {
 		return newIllegalArgumentError("id cannot be empty")
 	}
