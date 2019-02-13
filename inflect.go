@@ -1,7 +1,10 @@
-package inflect
+package ravendb
+
+// this is inflect.go from https://github.com/kjk/inflect
+// included directly to minimize dependencies
+// under MIT license: https://github.com/kjk/inflect/blob/master/LICENSE
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -253,17 +256,6 @@ func addPluralRule(rule string, replacement string) {
 		replacement: jsReplaceSyntaxToGo(replacement),
 	}
 	pluralRules = append(pluralRules, r)
-}
-
-func panicIf(cond bool, format string, args ...interface{}) {
-	if !cond {
-		return
-	}
-	s := format
-	if len(args) > 0 {
-		s = fmt.Sprintf(format, args...)
-	}
-	panic(s)
 }
 
 var (

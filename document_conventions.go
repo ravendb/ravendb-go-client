@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 	"unicode"
-
-	"github.com/ravendb/ravendb-go-client/inflect"
 )
 
 var (
@@ -81,7 +79,7 @@ func (c *DocumentConventions) Freeze() {
 
 func (c *DocumentConventions) GetCollectionName(entityOrType interface{}) string {
 	name := getShortTypeNameForEntityOrType(entityOrType)
-	return inflect.ToPlural(name)
+	return ToPlural(name)
 }
 
 func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
@@ -90,17 +88,17 @@ func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
 
 func getCollectionNameForTypeOrEntity(entityOrType interface{}) string {
 	name := getShortTypeNameForEntityOrType(entityOrType)
-	return inflect.ToPlural(name)
+	return ToPlural(name)
 }
 
 func GetCollectionNameForEntity(entity interface{}) string {
 	name := getShortTypeNameForEntity(entity)
-	return inflect.ToPlural(name)
+	return ToPlural(name)
 }
 
 func GetCollectionNameForType(typ reflect.Type) string {
 	name := getShortTypeNameForType(typ)
-	return inflect.ToPlural(name)
+	return ToPlural(name)
 }
 
 func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {

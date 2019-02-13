@@ -1200,7 +1200,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 	}
 
 	panicIf(entity != documentInfo.entity, "entity != documentInfo.entity")
-	if err = copyValueProperties(documentInfo.entity, e); err != nil {
+	if err = copyValue(documentInfo.entity, e); err != nil {
 		return newRuntimeError("Unable to refresh entity: %s", err)
 	}
 

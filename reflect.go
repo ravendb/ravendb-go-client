@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/jinzhu/copier"
 )
 
 // functionality related to reflection
@@ -332,11 +330,6 @@ func convertValue(val interface{}, clazz reflect.Type) (interface{}, error) {
 		panicIf(true, "%s", dbglog("converting to %s NYI", clazz.Kind().String()))
 	}
 	return nil, newNotImplementedError("convertValue: NYI")
-}
-
-// TODO: include github.com/jinzhu/copier to avoid dependency
-func copyValueProperties(dest interface{}, src interface{}) error {
-	return copier.Copy(dest, src)
 }
 
 // m is a single-element map[string]*struct
