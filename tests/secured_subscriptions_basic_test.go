@@ -42,13 +42,13 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 		session.Close()
 	}
 
-	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), nil, "")
+	id, err := store.Subscriptions().CreateForType(reflect.TypeOf(&User{}), nil, "")
 	assert.NoError(t, err)
 
 	{
 		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		clazz := reflect.TypeOf(&User{})
-		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
 		keys := make(chan string)
@@ -114,13 +114,13 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 	store := driver.getSecuredDocumentStoreMust(t)
 	defer store.Close()
 
-	id, err := store.Subscriptions.CreateForType(reflect.TypeOf(&User{}), nil, "")
+	id, err := store.Subscriptions().CreateForType(reflect.TypeOf(&User{}), nil, "")
 	assert.NoError(t, err)
 
 	{
 		opts := ravendb.NewSubscriptionWorkerOptions(id)
 		clazz := reflect.TypeOf(map[string]interface{}{})
-		subscription, err := store.Subscriptions.GetSubscriptionWorker(clazz, opts, "")
+		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
 		names := make(chan string, 20)

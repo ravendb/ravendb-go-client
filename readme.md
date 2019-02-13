@@ -869,14 +869,14 @@ opts := ravendb.SubscriptionCreationOptions{
     Query: "from Products where PricePerUnit > 17 and PricePerUnit < 19",
 }
 tp := reflect.TypeOf(&northwind.Product{})
-subscriptionName, err := store.Subscriptions.CreateForType(tp, &opts, "")
+subscriptionName, err := store.Subscriptions().CreateForType(tp, &opts, "")
 if err != nil {
-    log.Fatalf("store.Subscriptions.Create() failed with %s\n", err)
+    log.Fatalf("store.Subscriptions().Create() failed with %s\n", err)
 }
 wopts := ravendb.NewSubscriptionWorkerOptions(subscriptionName)
-worker, err := store.Subscriptions.GetSubscriptionWorker(tp, wopts, "")
+worker, err := store.Subscriptions().GetSubscriptionWorker(tp, wopts, "")
 if err != nil {
-    log.Fatalf("store.Subscriptions.GetSubscriptionWorker() failed with %s\n", err)
+    log.Fatalf("store.Subscriptions().GetSubscriptionWorker() failed with %s\n", err)
 }
 
 chResults := make(chan bool, 64)

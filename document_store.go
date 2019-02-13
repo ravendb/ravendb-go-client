@@ -22,7 +22,7 @@ type DocumentStore struct {
 	onBeforeQuery  []func(*BeforeQueryEventArgs)
 	// TODO: there's no way to register for this event
 	onSessionCreated []func(*SessionCreatedEventArgs)
-	Subscriptions    *DocumentSubscriptions
+	subscriptions    *DocumentSubscriptions
 
 	disposed    bool
 	conventions *DocumentConventions
@@ -71,6 +71,11 @@ func (s *DocumentStore) GetConventions() *DocumentConventions {
 func (s *DocumentStore) SetConventions(conventions *DocumentConventions) {
 	s.assertNotInitialized("conventions")
 	s.conventions = conventions
+}
+
+// Subscriptions returns DocumentSubscriptions which allows subscribing to changes in store
+func (s *DocumentStore) Subscriptions() *DocumentSubscriptions {
+	return s.subscriptions
 }
 
 // GetUrls returns urls of all RavenDB nodes
@@ -223,7 +228,7 @@ func newDocumentStore() *DocumentStore {
 		databaseChanges:        map[string]*DatabaseChanges{},
 		aggressiveCacheChanges: map[string]*Lazy{},
 	}
-	s.Subscriptions = NewDocumentSubscriptions(s)
+	s.subscriptions = newDocumentSubscriptions(s)
 	return s
 }
 
@@ -292,7 +297,7 @@ func (s *DocumentStore) Close() {
 	}
 
 	if s.Subscriptions != nil {
-		_ = s.Subscriptions.Close()
+		_ = s.Subscriptions().Close()
 	}
 
 	s.disposed = true

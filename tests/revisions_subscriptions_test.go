@@ -16,7 +16,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	subscriptionId, err := store.Subscriptions.CreateForRevisions(reflect.TypeOf(&User{}), nil, "")
+	subscriptionId, err := store.Subscriptions().CreateForRevisions(reflect.TypeOf(&User{}), nil, "")
 	assert.NoError(t, err)
 
 	defaultCollection := &ravendb.RevisionsCollectionConfiguration{
@@ -69,7 +69,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 	{
 		opts := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
 		clazz := reflect.TypeOf(&User{})
-		sub, err := store.Subscriptions.GetSubscriptionWorkerForRevisions(clazz, opts, "")
+		sub, err := store.Subscriptions().GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
 
 		mre := make(chan bool)
@@ -115,7 +115,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	subscriptionId, err := store.Subscriptions.CreateForRevisions(reflect.TypeOf(&User{}), nil, "")
+	subscriptionId, err := store.Subscriptions().CreateForRevisions(reflect.TypeOf(&User{}), nil, "")
 	assert.NoError(t, err)
 
 	defaultCollection := &ravendb.RevisionsCollectionConfiguration{
@@ -168,7 +168,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 	{
 		opts := ravendb.NewSubscriptionWorkerOptions(subscriptionId)
 		clazz := reflect.TypeOf(&User{})
-		sub, err := store.Subscriptions.GetSubscriptionWorkerForRevisions(clazz, opts, "")
+		sub, err := store.Subscriptions().GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
 
 		mre := make(chan bool)

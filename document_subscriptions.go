@@ -6,15 +6,14 @@ import (
 	"sync"
 )
 
-// DocumentSubscriptions describes document subscriptions
+// DocumentSubscriptions allows subscribing to changes in the store
 type DocumentSubscriptions struct {
 	store         *DocumentStore
 	subscriptions map[io.Closer]bool
 	mu            sync.Mutex // protects subscriptions
 }
 
-// NewDocumentSubscriptions returns new DocumentSubscriptions
-func NewDocumentSubscriptions(store *DocumentStore) *DocumentSubscriptions {
+func newDocumentSubscriptions(store *DocumentStore) *DocumentSubscriptions {
 	return &DocumentSubscriptions{
 		store:         store,
 		subscriptions: map[io.Closer]bool{},
@@ -44,7 +43,8 @@ func (s *DocumentSubscriptions) Create(options *SubscriptionCreationOptions, dat
 	return command.Result.Name, nil
 }
 
-// CreateForType creates a data subscription in a database. The subscription will expose all documents that match the specified subscription options for a given type.
+// CreateForType creates a data subscription in a database. The subscription will
+// expose all documents that match the specified subscription options for a given type.
 func (s *DocumentSubscriptions) CreateForType(clazz reflect.Type, options *SubscriptionCreationOptions, database string) (string, error) {
 	if options == nil {
 		options = &SubscriptionCreationOptions{}
@@ -59,7 +59,8 @@ func (s *DocumentSubscriptions) CreateForType(clazz reflect.Type, options *Subsc
 	return s.Create(opts, database)
 }
 
-// CreateForRevisions creates a data subscription in a database. The subscription will expose all documents that match the specified subscription options for a given type.
+// CreateForRevisions creates a data subscription in a database. The subscription will
+// expose all documents that match the specified subscription options for a given type.
 func (s *DocumentSubscriptions) CreateForRevisions(clazz reflect.Type, options *SubscriptionCreationOptions, database string) (string, error) {
 	if options == nil {
 		options = &SubscriptionCreationOptions{}
@@ -90,9 +91,12 @@ func (s *DocumentSubscriptions) ensureCriteria(criteria *SubscriptionCreationOpt
 	return criteria
 }
 
-// GetSubscriptionWorker opens a subscription and starts pulling documents since a last processed document for that subscription.
-// The connection options determine client and server cooperation rules like document batch sizes or a timeout in a matter of which a client
-// needs to acknowledge that batch has been processed. The acknowledgment is sent after all documents are processed by subscription's handlers.
+// GetSubscriptionWorker opens a subscription and starts pulling documents since
+// a last processed document for that subscription.
+// The connection options determine client and server cooperation rules like
+// document batch sizes or a timeout in a matter of which a client
+// needs to acknowledge that batch has been processed. The acknowledgment
+// is sent after all documents are processed by subscription's handlers.
 func (s *DocumentSubscriptions) GetSubscriptionWorker(clazz reflect.Type, options *SubscriptionWorkerOptions, database string) (*SubscriptionWorker, error) {
 	if err := s.store.assertInitialized(); err != nil {
 		return nil, err
@@ -119,9 +123,12 @@ func (s *DocumentSubscriptions) GetSubscriptionWorker(clazz reflect.Type, option
 	return subscription, nil
 }
 
-// GetSubscriptionWorkerForRevisions opens a subscription and starts pulling documents since a last processed document for that subscription.
-// The connection options determine client and server cooperation rules like document batch sizes or a timeout in a matter of which a client
-// needs to acknowledge that batch has been processed. The acknowledgment is sent after all documents are processed by subscription's handlers.
+// GetSubscriptionWorkerForRevisions opens a subscription and starts pulling documents
+// since a last processed document for that subscription.
+// The connection options determine client and server cooperation rules like document
+// batch sizes or a timeout in a matter of which a client
+// needs to acknowledge that batch has been processed. The acknowledgment is sent
+// after all documents are processed by subscription's handlers.
 func (s *DocumentSubscriptions) GetSubscriptionWorkerForRevisions(clazz reflect.Type, options *SubscriptionWorkerOptions, database string) (*SubscriptionWorker, error) {
 	subscription, err := NewSubscriptionWorker(clazz, options, true, s.store, database)
 	if err != nil {
