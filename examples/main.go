@@ -113,7 +113,7 @@ func crudStore() {
 	product := &northwind.Product{
 		Name:         "iPhone X",
 		PricePerUnit: 999.99,
-		Category:     "electronis",
+		Category:     "electronics",
 		ReorderLevel: 15,
 	}
 	err = session.Store(product)
@@ -193,7 +193,7 @@ func crudUpdate() {
 		product := &northwind.Product{
 			Name:         "iPhone X",
 			PricePerUnit: 999.99,
-			Category:     "electronis",
+			Category:     "electronics",
 			ReorderLevel: 15,
 		}
 		err = session.Store(product)
@@ -279,7 +279,7 @@ func crudDeleteUsingID() {
 		product := &northwind.Product{
 			Name:         "iPhone X",
 			PricePerUnit: 999.99,
-			Category:     "electronis",
+			Category:     "electronics",
 		}
 		err = session.Store(product)
 		if err != nil {
@@ -354,7 +354,7 @@ func crudDeleteUsingEntity() {
 		product := &northwind.Product{
 			Name:         "iPhone X",
 			PricePerUnit: 999.99,
-			Category:     "electronis",
+			Category:     "electronics",
 		}
 		err = session.Store(product)
 		if err != nil {
@@ -1481,6 +1481,91 @@ func revisions() {
 	pretty.Print(revisions)
 }
 
+func suggestions() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	index := ravendb.NewIndexCreationTask("EmployeeIndex")
+	index.Map = "from doc in docs.Employees select new { doc.FirstName }"
+	index.Suggestion("FirstName")
+
+	err = store.ExecuteIndex(index, "")
+	if err != nil {
+		log.Fatalf("store.ExecuteIndex() failed with '%s'\n", err)
+	}
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	su := ravendb.NewSuggestionWithTerm("FirstName")
+	su.Term = "Micael"
+	suggestionQuery := q.SuggestUsing(su)
+	results, err := suggestionQuery.Execute()
+	if err != nil {
+		log.Fatalf("suggestionQuery.Execute() failed with '%s'\n", err)
+	}
+	pretty.Print(results)
+}
+
+func advancedPatching() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	product := &northwind.Product{
+		Name:         "iPhone X",
+		PricePerUnit: 50,
+		Category:     "electronics",
+		ReorderLevel: 15,
+	}
+	err = session.Store(product)
+	if err != nil {
+		log.Fatalf("session.Store() failed with %s\n", err)
+	}
+	fmt.Printf("Product ID: %s\n", product.ID)
+	err = session.SaveChanges()
+	if err != nil {
+		log.Fatalf("session.SaveChanges() failed with %s\n", err)
+	}
+
+	err = session.Advanced().IncrementByID(product.ID, "PricePerUnit", 15)
+	if err != nil {
+		log.Fatalf("session.Advanced().IncrementByID() failed with %s\n", err)
+	}
+
+	err = session.Advanced().PatchEntity(product, "Category", "expensive products")
+	if err != nil {
+		log.Fatalf("session.Advanced().PatchEntity() failed with %s\n", err)
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		log.Fatalf("session.SaveChanges() failed with %s\n", err)
+	}
+
+	{
+		newSession, err := store.OpenSession("")
+		if err != nil {
+			log.Fatalf("store.OpenSession() failed with %s\n", err)
+		}
+
+		var p *northwind.Product
+		err = newSession.Load(&p, product.ID)
+		if err != nil {
+			log.Fatalf("newSession.Load() failed with %s\n", err)
+		}
+		pretty.Print(p)
+
+		newSession.Close()
+	}
+}
+
 func main() {
 	// to test a given function, uncomment it
 	//loadUpdateSave()
@@ -1524,6 +1609,8 @@ func main() {
 	//changes()
 	//streamWithIDPrefix()
 	//streamQueryResults()
+	//revisions()
+	//suggestions()
 
-	revisions()
+	advancedPatching()
 }

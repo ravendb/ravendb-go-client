@@ -809,3 +809,37 @@ Returns:
   Notes:       [],
   Territories: []}]
 ```
+
+## Suggestions
+
+Suggestions provides similarity queries. Here we're asking for `FirstName` values similar to `Micael` and the database suggests `Michael`.
+
+```go
+index := ravendb.NewIndexCreationTask("EmployeeIndex")
+index.Map = "from doc in docs.Employees select new { doc.FirstName }"
+index.Suggestion("FirstName")
+
+err = store.ExecuteIndex(index, "")
+if err != nil {
+    log.Fatalf("store.ExecuteIndex() failed with '%s'\n", err)
+}
+
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+su := ravendb.NewSuggestionWithTerm("FirstName")
+su.Term = "Micael"
+suggestionQuery := q.SuggestUsing(su)
+results, err := suggestionQuery.Execute()
+```
+See `suggestions()` in [examples/main.go](examples/main.go) for full example.
+
+Returns:
+```
+{FirstName: {Name:        "FirstName",
+             Suggestions: ["michael"]}}
+```
+
+## Advanced patching
+
+To update documents more efficiently than sending the whole document, you can patch just a given field or atomically add/substract values
+of numeric fields.
