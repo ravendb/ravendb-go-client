@@ -4,6 +4,7 @@ import (
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/ravendb/ravendb-go-client/examples/northwind"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -31,13 +32,36 @@ func goNorthwindEmployeeLoad(t *testing.T, driver *RavenTestDriver) {
 	err = session.Load(&e, "employees/7-A")
 	assert.NoError(t, err)
 
-	var all []*northwind.Employee
+	var results []*northwind.Employee
 	args := &ravendb.StartsWithArgs{
 		StartsWith: "employees/",
 	}
-	err = session.LoadStartingWith(&all, args)
+	err = session.LoadStartingWith(&results, args)
 	assert.NoError(t, err)
-	assert.True(t, len(all) > 5) // it's 9 currently
+	assert.True(t, len(results) > 5) // it's 9 currently
+}
+
+func goNorthwindWhereBetween(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	createNorthwindDatabase(t, driver, store)
+
+	session, err := store.OpenSession("")
+	assert.NoError(t, err)
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Order{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereBetween("Freight", 11, 13)
+
+	var results []*northwind.Order
+	err = q.GetResults(&results)
+	assert.NoError(t, err)
+
+	assert.True(t, len(results) > 5) // it's 35 currently
+
 }
 
 func TestGoNorthwind(t *testing.T) {
@@ -48,4 +72,5 @@ func TestGoNorthwind(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	goNorthwindEmployeeLoad(t, driver)
+	goNorthwindWhereBetween(t, driver)
 }
