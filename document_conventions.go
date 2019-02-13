@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/kjk/inflect"
+	"github.com/ravendb/ravendb-go-client/inflect"
 )
 
 var (
