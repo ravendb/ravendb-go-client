@@ -322,3 +322,198 @@ q := session.QueryCollectionForType(tp)
 q = q.WhereIn("Title", []interface{}{"Sales Representative", "Sales Manager"})
 ```
 See `queryIn()` in [examples/main.go](examples/main.go) for full example.
+
+## WhereStartsWith() / WhereEndsWith()
+
+```go
+// RQL equivalent:
+// from employees where startsWith('Ro')
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereStartsWith("FirstName", "Ro")
+```
+See `queryStartsWith()` and `queryEndsWith` in [examples/main.go](examples/main.go) for full example.
+
+## WhereBetween()
+```go
+// RQL equivalent:
+// from orders where Freight between 11 and 13
+tp := reflect.TypeOf(&northwind.Order{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereBetween("Freight", 11, 13)
+```
+See `queryBetween()` in [examples/main.go](examples/main.go) for full example.
+
+## WhereGreaterThan() / WhereGreaterThanOrEqual() / WhereLessThan() / WhereLessThanOrEqual()
+
+```go
+// RQL equivalent:
+// from orders where Freight Freight > 11
+tp := reflect.TypeOf(&northwind.Order{})
+q := session.QueryCollectionForType(tp)
+// can also be WhereGreaterThanOrEqual(), WhereLessThan(), WhereLessThanOrEqual()
+q = q.WhereGreaterThan("Freight", 11)
+```
+See `queryGreater()` in [examples/main.go](examples/main.go) for full example.
+
+## WhereExists()
+
+Checks if the field exists.
+
+```go
+// RQL equivalent:
+// from employees where exists ("ReportsTo")
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereExists("ReportsTo")
+```
+See `queryExists()` in [examples/main.go](examples/main.go) for full example.
+
+## ContainsAny() / ContainsAll()
+
+```go
+// RQL equivalent:
+// from employees where FirstName in ("Anne", "Nancy")
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.ContainsAny("FirstName", []interface{}{"Anne", "Nancy"})
+```
+See `queryContainsAny()` in [examples/main.go](examples/main.go) for full example.
+
+## Search()
+
+Performs full-text search.
+
+```go
+// RQL equivalent:
+// from employees where search(FirstName, 'Anne Nancy')
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.Search("FirstName", "Anne Nancy")
+```
+See `querySearch()` in [examples/main.go](examples/main.go) for full example.
+
+## OpenSubclause() / CloseSubclause()
+
+```go
+// RQL equivalent:
+// from employees where (FirstName = 'Steven') or (Title = 'Sales Representative' and LastName = 'Davolio')
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereEquals("FirstName", "Steven")
+q = q.OrElse()
+q = q.OpenSubclause()
+q = q.WhereEquals("Title", "Sales Representative")
+q = q.WhereEquals("LastName", "Davolio")
+q = q.CloseSubclause()
+```
+See `querySubclause()` in [examples/main.go](examples/main.go) for full example.
+
+## Not()
+
+```go
+// RQL equivalent:
+// from employees where not FirstName = 'Steven'
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.Not()
+q = q.WhereEquals("FirstName", "Steven")
+```
+See `queryNot()` in [examples/main.go](examples/main.go) for full example.
+
+# AndAlso() / OrElse()
+
+```go
+// RQL equivalent:
+// from employees where FirstName = 'Steven' or FirstName  = 'Nancy'
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereEquals("FirstName", "Steven")
+// can also be AndElse()
+q = q.OrElse()
+q = q.WhereEquals("FirstName", "Nancy")
+```
+See `queryOrElse()` in [examples/main.go](examples/main.go) for full example.
+
+## UsingDefaultOperator()
+Sets default operator (which will be used if no `AndAlso()` / `OrElse()` was called. Just after query instantiation, OR is used as default operator. Default operator can be changed only adding any conditions.
+
+## OrderBy() / RandomOrdering()
+
+```go
+// RQL equivalent:
+// from employees order by FirstName
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+// can also be RandomOrdering()
+q = q.OrderBy("FirstName")
+```
+See `queryOrderBy()` in [examples/main.go](examples/main.go) for full example.
+
+## Take()
+
+```go
+// RQL equivalent:
+// from employees order by FirstName desc
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.OrderByDescending("FirstName")
+q = q.Take(2)
+```
+See `queryTake()` in [examples/main.go](examples/main.go) for full example.
+
+
+## Skip()
+
+```go
+// RQL equivalent:
+// from employees order by FirstName desc
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.OrderByDescending("FirstName")
+q = q.Take(2)
+q = q.Skip(1)
+```
+See `querySkip()` in [examples/main.go](examples/main.go) for full example.
+
+## Getting query statistics
+
+To obtain query statistics use `Statistics()` method.
+
+```go
+var stats *ravendb.QueryStatistics
+tp := reflect.TypeOf(&northwind.Employee{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereGreaterThan("FirstName", "Bernard")
+q = q.OrderByDescending("FirstName")
+q.Statistics(&stats)
+```
+Statistics:
+```
+Statistics:
+{IsStale:           false,
+ DurationInMs:      0,
+ TotalResults:      7,
+ SkippedResults:    0,
+ Timestamp:         2019-02-13 02:57:31.5226409 +0000 UTC,
+ IndexName:         "Auto/employees/ByLastNameAndReportsToAndSearch(FirstName)AndTitle",
+ IndexTimestamp:    2019-02-13 02:57:31.5226409 +0000 UTC,
+ LastQueryTime:     2019-02-13 03:50:25.7602429 +0000 UTC,
+ TimingsInMs:       {},
+ ResultEtag:        7591488513381790088,
+ ResultSize:        0,
+ ScoreExplanations: {}}
+ ```
+See `queryStatistics()` in [examples/main.go](examples/main.go) for full example.
+
+## GetResults() / First() / Single() / Count()
+
+`GetResults()` - returns all results
+
+`First()` - first result
+
+`Single()` - first result, returns error if there's more entries
+
+`Count()` - returns the number of the results (not affected by take())
+
+See `queryFirst()`, `querySingle()` and `queryCount()` in [examples/main.go](examples/main.go) for full example.

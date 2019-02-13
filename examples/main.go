@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/ravendb/ravendb-go-client/examples/northwind"
 	"log"
 	"reflect"
-
-	"github.com/ravendb/ravendb-go-client/examples/northwind"
+	"sort"
 
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/ravendb/ravendb-go-client"
@@ -17,6 +17,28 @@ import (
 var (
 	dbName = "Demo"
 )
+
+func printRQL(q *ravendb.DocumentQuery) {
+	iq, err := q.GetIndexQuery()
+	if err != nil {
+		log.Fatalf("q.GetIndexQuery() returned '%s'\n", err)
+	}
+	fmt.Printf("RQL: %s\n", iq.GetQuery())
+	params := iq.GetQueryParameters()
+	if len(params) == 0 {
+		return
+	}
+	fmt.Printf("Parameters:\n")
+	var keys []string
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		fmt.Printf("  $%s: %#v\n", key, params[key])
+	}
+	fmt.Print("\n")
+}
 
 func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 	serverNodes := []string{"http://live-test.ravendb.net"}
@@ -401,6 +423,7 @@ func queryCollectionByName() {
 	defer session.Close()
 
 	q := session.QueryCollection("employees")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -424,6 +447,7 @@ func queryCollectionByType() {
 
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -446,6 +470,7 @@ func queryIndex() {
 	defer session.Close()
 
 	q := session.QueryIndex("Orders/ByCompany")
+	printRQL(q)
 
 	// we're using anonymous struct whose definition matches
 	// the fields of in the index
@@ -476,6 +501,7 @@ func queryFirst() {
 
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
+	printRQL(q)
 
 	var first *northwind.Employee
 	err = q.First(&first)
@@ -503,6 +529,7 @@ func queryComplex() {
 	q = q.WhereEquals("Name", "iPhone X")
 	q = q.OrderBy("PricePerUnit")
 	q = q.Take(2) // limit to 2 results
+	printRQL(q)
 
 	var results []*northwind.Product
 	err = q.GetResults(&results)
@@ -529,6 +556,7 @@ func querySelectSingleField() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.SelectFields(reflect.TypeOf(""), "FirstName")
+	printRQL(q)
 
 	var names []string
 	err = q.GetResults(&names)
@@ -559,6 +587,7 @@ func querySelectFields() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.SelectFields(reflect.TypeOf(&employeeNameTitle{}), "FirstName", "Title")
+	printRQL(q)
 
 	var results []*employeeNameTitle
 	err = q.GetResults(&results)
@@ -586,6 +615,7 @@ func queryDistinct() {
 	q := session.QueryCollectionForType(tp)
 	q = q.SelectFields(reflect.TypeOf(""), "Title")
 	q = q.Distinct()
+	printRQL(q)
 
 	var results []string
 	err = q.GetResults(&results)
@@ -608,6 +638,7 @@ func queryEquals() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.WhereEquals("Title", "Sales Representative")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -634,6 +665,7 @@ func queryIn() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.WhereIn("Title", []interface{}{"Sales Representative", "Sales Manager"})
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -660,6 +692,7 @@ func queryStartsWith() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.WhereStartsWith("FirstName", "Ro")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -686,6 +719,7 @@ func queryEndsWith() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.WhereEndsWith("FirstName", "rt")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -708,10 +742,11 @@ func queryBetween() {
 	defer session.Close()
 
 	// RQL equivalent:
-	// from orders where Freight between 1 and 1.3
+	// from orders where Freight between 11 and 13
 	tp := reflect.TypeOf(&northwind.Order{})
 	q := session.QueryCollectionForType(tp)
 	q = q.WhereBetween("Freight", 11, 13)
+	printRQL(q)
 
 	var results []*northwind.Order
 	err = q.GetResults(&results)
@@ -739,6 +774,7 @@ func queryGreater() {
 	q := session.QueryCollectionForType(tp)
 	// can also be WhereGreaterThanOrEqual(), WhereLessThan(), WhereLessThanOrEqual()
 	q = q.WhereGreaterThan("Freight", 11)
+	printRQL(q)
 
 	var results []*northwind.Order
 	err = q.GetResults(&results)
@@ -765,6 +801,7 @@ func queryExists() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.WhereExists("ReportsTo")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -792,6 +829,7 @@ func queryContainsAny() {
 	q := session.QueryCollectionForType(tp)
 	// can also be ContainsAll()
 	q = q.ContainsAny("FirstName", []interface{}{"Anne", "Nancy"})
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -818,6 +856,7 @@ func querySearch() {
 	tp := reflect.TypeOf(&northwind.Employee{})
 	q := session.QueryCollectionForType(tp)
 	q = q.Search("FirstName", "Anne Nancy")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -849,6 +888,7 @@ func querySubclause() {
 	q = q.WhereEquals("Title", "Sales Representative")
 	q = q.WhereEquals("LastName", "Davolio")
 	q = q.CloseSubclause()
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -876,6 +916,7 @@ func queryNot() {
 	q := session.QueryCollectionForType(tp)
 	q = q.Not()
 	q = q.WhereEquals("FirstName", "Steven")
+	printRQL(q)
 
 	var results []*northwind.Employee
 	err = q.GetResults(&results)
@@ -887,6 +928,189 @@ func queryNot() {
 		fmt.Print("First result:\n")
 		pretty.Print(results[0])
 	}
+}
+
+func queryOrElse() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent:
+	// from employees where FirstName = 'Steven' or FirstName  = 'Nancy'
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereEquals("FirstName", "Steven")
+	// can also be AndElse()
+	q = q.OrElse()
+	q = q.WhereEquals("FirstName", "Nancy")
+	printRQL(q)
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		pretty.Print(results[0])
+	}
+}
+
+func queryOrderBy() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent:
+	// from employees order by FirstName
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	// can also be RandomOrdering()
+	q = q.OrderBy("FirstName")
+	printRQL(q)
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		pretty.Print(results[0])
+	}
+}
+
+func queryTake() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent:
+	// from employees order by FirstName desc
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.OrderByDescending("FirstName")
+	q = q.Take(2)
+	printRQL(q)
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		pretty.Print(results[0])
+	}
+}
+
+func querySkip() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// RQL equivalent:
+	// from employees order by FirstName desc
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.OrderByDescending("FirstName")
+	q = q.Take(2)
+	q = q.Skip(1)
+	printRQL(q)
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	if len(results) > 0 {
+		fmt.Print("First result:\n")
+		pretty.Print(results[0])
+	}
+}
+
+func queryStatistics() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	var stats *ravendb.QueryStatistics
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereGreaterThan("FirstName", "Bernard")
+	q = q.OrderByDescending("FirstName")
+	q.Statistics(&stats)
+	printRQL(q)
+
+	var results []*northwind.Employee
+	err = q.GetResults(&results)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", len(results))
+	fmt.Printf("Statistics:\n")
+	pretty.Print(stats)
+}
+
+func querySingle() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereEquals("LastName", "Davolio")
+	printRQL(q)
+
+	var result *northwind.Employee
+	err = q.Single(&result)
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned:\n")
+	pretty.Print(result)
+}
+
+func queryCount() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereGreaterThan("LastName", "Davolio")
+	printRQL(q)
+
+	n, err := q.Count()
+	if err != nil {
+		log.Fatalf("q.GetResults() failed with '%s'\n", err)
+	}
+	fmt.Printf("Query returned %d results\n", n)
 }
 
 func main() {
@@ -903,11 +1127,11 @@ func main() {
 	//queryIndex()
 	//queryFirst()
 	//queryComplex()
-	///querySelectSingleField()
-	// querySelectFields()
-	// queryDistinct()
-	// queryEquals()
-	// queryIn()
+	//querySelectSingleField()
+	//querySelectFields()
+	//queryDistinct()
+	//queryEquals()
+	//queryIn()
 
 	//queryStartsWith()
 	//queryEndsWith()
@@ -917,5 +1141,12 @@ func main() {
 	//queryContainsAny()
 	//querySearch()
 	//querySubclause()
-	queryNot()
+	//queryNot()
+	//queryOrElse()
+	//queryOrderBy()
+	//queryTake()
+	//querySkip()
+	//queryStatistics()
+	//querySingle()
+	queryCount()
 }
