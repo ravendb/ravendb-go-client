@@ -1342,6 +1342,145 @@ func changes() {
 	fmt.Printf("Took %s to receive change notifications\n", time.Since(timeStart))
 }
 
+func streamWithIDPrefix() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	args := &ravendb.StartsWithArgs{
+		StartsWith: "products/",
+	}
+	iterator, err := session.Advanced().Stream(args)
+	if err != nil {
+		log.Fatalf("session.Advanced().Stream() failed with '%s'\n", err)
+	}
+	n := 0
+	for {
+		var p *northwind.Product
+		streamResult, err := iterator.Next(&p)
+		if err != nil {
+			// io.EOF means there are no more results
+			if err == io.EOF {
+				err = nil
+			} else {
+				log.Fatalf("iterator.Next() failed with '%s'\n", err)
+			}
+			break
+		}
+		if n < 1 {
+			fmt.Print("streamResult:\n")
+			pretty.Print(streamResult)
+			fmt.Print("product:\n")
+			pretty.Print(p)
+			fmt.Print("\n")
+		}
+		n++
+	}
+	fmt.Printf("Got %d results\n", n)
+}
+
+func streamQueryResults() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Product{})
+	q := session.QueryCollectionForType(tp)
+	q = q.WhereGreaterThan("PricePerUnit", 15)
+	q = q.OrderByDescending("PricePerUnit")
+
+	iterator, err := session.Advanced().StreamQuery(q, nil)
+	if err != nil {
+		log.Fatalf("session.Advanced().StreamQuery() failed with '%s'\n", err)
+	}
+	n := 0
+	for {
+		var p *northwind.Product
+		streamResult, err := iterator.Next(&p)
+		if err != nil {
+			// io.EOF means there are no more results
+			if err == io.EOF {
+				err = nil
+			} else {
+				log.Fatalf("iterator.Next() failed with '%s'\n", err)
+			}
+			break
+		}
+		if n < 1 {
+			fmt.Print("streamResult:\n")
+			pretty.Print(streamResult)
+			fmt.Print("product:\n")
+			pretty.Print(p)
+			fmt.Print("\n")
+		}
+		n++
+	}
+	fmt.Printf("Got %d results\n", n)
+}
+
+func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int64) (*ravendb.ConfigureRevisionsOperationResult, error) {
+
+	revisionsConfiguration := &ravendb.RevisionsConfiguration{}
+	defaultCollection := &ravendb.RevisionsCollectionConfiguration{}
+	defaultCollection.PurgeOnDelete = purgeOnDelete
+	defaultCollection.MinimumRevisionsToKeep = minimumRevisionsToKeep
+
+	revisionsConfiguration.DefaultConfig = defaultCollection
+	operation := ravendb.NewConfigureRevisionsOperation(revisionsConfiguration)
+
+	err := store.Maintenance().Send(operation)
+	if err != nil {
+		return nil, err
+	}
+
+	return operation.Command.Result, nil
+}
+
+func revisions() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	// first must configure the store to enable revisions
+	_, err = setupRevisions(store, true, 5)
+	if err != nil {
+		log.Fatalf("setupRevisions() failed with '%s'\n", err)
+	}
+
+	e := &northwind.Employee{
+		FirstName: "Jon",
+		LastName:  "Snow",
+	}
+	err = session.Store(e)
+	if err != nil {
+		log.Fatalf("session.Store() failed with '%s'\n", err)
+	}
+	err = session.SaveChanges()
+	if err != nil {
+		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
+	}
+
+	// modify document to create a new revision
+	e.FirstName = "Jhonny"
+	err = session.SaveChanges()
+	if err != nil {
+		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
+	}
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	revisions, err := session.Advanced().Revisions().GetFor(tp, e.ID)
+	pretty.Print(revisions)
+}
+
 func main() {
 	// to test a given function, uncomment it
 	//loadUpdateSave()
@@ -1381,7 +1520,10 @@ func main() {
 	//getAttachments()
 	//checkAttachmentExists()
 	//getAttachmentNames()
-
 	//bulkInsert()
-	changes()
+	//changes()
+	//streamWithIDPrefix()
+	//streamQueryResults()
+
+	revisions()
 }

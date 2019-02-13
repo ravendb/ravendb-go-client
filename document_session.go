@@ -1017,9 +1017,9 @@ func (s *DocumentSession) createStreamResult(v interface{}, document map[string]
 	entity := reflect.ValueOf(v).Elem().Interface()
 	streamResult := &StreamResult{
 		ID:           id,
-		changeVector: changeVector,
-		document:     entity,
-		metadata:     meta,
+		ChangeVector: changeVector,
+		Document:     entity,
+		Metadata:     meta,
 	}
 	return streamResult, nil
 }
