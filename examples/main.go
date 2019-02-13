@@ -1566,6 +1566,48 @@ func advancedPatching() {
 	}
 }
 
+func subscriptions() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	opts := ravendb.SubscriptionCreationOptions{
+		Query: "from Products where PricePerUnit > 17 and PricePerUnit < 19",
+	}
+	tp := reflect.TypeOf(&northwind.Product{})
+	subscriptionName, err := store.Subscriptions.CreateForType(tp, &opts, "")
+	if err != nil {
+		log.Fatalf("store.Subscriptions.Create() failed with %s\n", err)
+	}
+	wopts := ravendb.NewSubscriptionWorkerOptions(subscriptionName)
+	worker, err := store.Subscriptions.GetSubscriptionWorker(tp, wopts, "")
+	if err != nil {
+		log.Fatalf("store.Subscriptions.GetSubscriptionWorker() failed with %s\n", err)
+	}
+
+	chResults := make(chan bool, 64)
+	processItems := func(batch *ravendb.SubscriptionBatch) error {
+		fmt.Print("Batch of subscription results:\n")
+		pretty.Print(batch)
+		chResults <- true
+		return nil
+	}
+	_, err = worker.Run(processItems)
+
+	// wait for at least one batch result
+	select {
+	case <-chResults:
+	// no-op
+	case <-time.After(time.Second * 5):
+		fmt.Printf("Timed out waiting for first subscription batch\n")
+	}
+
+	_ = worker.Close()
+}
+
 func main() {
 	// to test a given function, uncomment it
 	//loadUpdateSave()
@@ -1611,6 +1653,7 @@ func main() {
 	//streamQueryResults()
 	//revisions()
 	//suggestions()
+	//advancedPatching()
 
-	advancedPatching()
+	subscriptions()
 }

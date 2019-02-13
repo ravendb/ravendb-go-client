@@ -7,33 +7,33 @@ import (
 
 // SubscriptionBatchItem describes a single result from subscription
 type SubscriptionBatchItem struct {
-	result           interface{}
-	exceptionMessage string
-	ID               string
-	changeVector     string
+	Result       interface{}
+	ErrorMessage string
+	ID           string
+	ChangeVector string
 
-	rawResult   map[string]interface{}
-	rawMetadata map[string]interface{}
-	metadata    *MetadataAsDictionary
+	RawResult   map[string]interface{}
+	RawMetadata map[string]interface{}
+	Metadata    *MetadataAsDictionary
 }
 
 func (i *SubscriptionBatchItem) throwItemProcessException() error {
-	return newIllegalStateError("Failed to process document " + i.ID + " with Change Vector " + i.changeVector + " because: \n" + i.exceptionMessage)
+	return newIllegalStateError("Failed to process document " + i.ID + " with Change Vector " + i.ChangeVector + " because: \n" + i.ErrorMessage)
 }
 
 func (i *SubscriptionBatchItem) GetResult() (interface{}, error) {
-	if i.exceptionMessage != "" {
+	if i.ErrorMessage != "" {
 		return nil, i.throwItemProcessException()
 	}
-	return i.result, nil
+	return i.Result, nil
 }
 
 func (i *SubscriptionBatchItem) GetMetadata() *MetadataAsDictionary {
-	if i.metadata == nil {
-		i.metadata = NewMetadataAsDictionary(i.rawMetadata, nil, "")
+	if i.Metadata == nil {
+		i.Metadata = NewMetadataAsDictionary(i.RawMetadata, nil, "")
 	}
 
-	return i.metadata
+	return i.Metadata
 }
 
 // SubscriptionBatch describes a bunch of results for subscription
@@ -147,12 +147,12 @@ func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 			}
 		}
 		itemToAdd := &SubscriptionBatchItem{
-			changeVector:     changeVector,
-			ID:               id,
-			rawResult:        curDoc,
-			rawMetadata:      metadata,
-			result:           instance,
-			exceptionMessage: item.Exception,
+			ChangeVector: changeVector,
+			ID:           id,
+			RawResult:    curDoc,
+			RawMetadata:  metadata,
+			Result:       instance,
+			ErrorMessage: item.Exception,
 		}
 		b.Items = append(b.Items, itemToAdd)
 	}

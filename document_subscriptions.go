@@ -28,7 +28,7 @@ func (s *DocumentSubscriptions) Create(options *SubscriptionCreationOptions, dat
 	}
 
 	if options.Query == "" {
-		return "", newIllegalArgumentError("Cannot create a subscription if the script is empty string")
+		return "", newIllegalArgumentError("Cannot create a subscription if Query is empty string")
 	}
 
 	if database == "" {
