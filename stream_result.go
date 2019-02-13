@@ -1,8 +1,9 @@
 package ravendb
 
+// StreamResult represents result of stream iterator
 type StreamResult struct {
 	ID           string
-	changeVector *string
-	metadata     *MetadataAsDictionary
-	document     interface{}
+	ChangeVector *string
+	Metadata     *MetadataAsDictionary
+	Document     interface{}
 }
