@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"sync"
+	"time"
 
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/ravendb/ravendb-go-client"
@@ -1258,6 +1260,88 @@ func getAttachmentNames() {
 	pretty.Print(names)
 }
 
+func bulkInsert() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	bulkInsert := store.BulkInsert("")
+
+	names := []string{"Anna", "Maria", "Miguel", "Emanuel", "Dayanara", "Aleida"}
+	var ids []string
+	for _, name := range names {
+		e := &northwind.Employee{
+			FirstName: name,
+		}
+		id, err := bulkInsert.Store(e, nil)
+		if err != nil {
+			log.Fatalf("bulkInsert.Store() failed with '%s'\n", err)
+		}
+		ids = append(ids, id)
+	}
+	// flush data and finish
+	err = bulkInsert.Close()
+	if err != nil {
+		log.Fatalf("bulkInsert.Close() failed with '%s'\n", err)
+	}
+
+	fmt.Printf("Finished %d documents with ids: %v\n", len(names), ids)
+}
+
+func changes() {
+	//ravendb.EnableDatabaseChangesDebugOutput = true
+
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	changes := store.Changes("")
+
+	err = changes.EnsureConnectedNow()
+	if err != nil {
+		log.Fatalf("changes.EnsureConnectedNow() failed with '%s'\n", err)
+	}
+
+	var wg sync.WaitGroup
+	onDocChange := func(change *ravendb.DocumentChange) {
+		fmt.Print("change:\n")
+		pretty.Print(change)
+		wg.Done()
+	}
+	docChangesCancel, err := changes.ForAllDocuments(onDocChange)
+	if err != nil {
+		log.Fatalf("changes.ForAllDocuments() failed with '%s'\n", err)
+	}
+	defer docChangesCancel()
+
+	wg.Add(1)
+	e := &northwind.Employee{
+		FirstName: "Jon",
+		LastName:  "Snow",
+	}
+	err = session.Store(e)
+	if err != nil {
+		log.Fatalf("session.Store() failed with '%s'\n", err)
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
+	}
+
+	timeStart := time.Now()
+	fmt.Print("Waiting for the change\n")
+	// wait for the change to be received
+	wg.Wait()
+	fmt.Printf("Took %s to receive change notifications\n", time.Since(timeStart))
+}
+
 func main() {
 	// to test a given function, uncomment it
 	//loadUpdateSave()
@@ -1297,4 +1381,7 @@ func main() {
 	//getAttachments()
 	//checkAttachmentExists()
 	//getAttachmentNames()
+
+	//bulkInsert()
+	changes()
 }

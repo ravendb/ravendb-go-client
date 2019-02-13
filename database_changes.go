@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -17,10 +18,13 @@ import (
 
 // Note: in Java IChangesConnectionState hides changeSubscribers
 
+// for debugging only
+var EnableDatabaseChangesDebugOutput bool
+
 // for debugging DatabaseChanges code
 func dcdbg(format string, args ...interface{}) {
 	// change to true to enable debug output
-	if false {
+	if EnableDatabaseChangesDebugOutput {
 		fmt.Printf(format, args...)
 	}
 }
@@ -515,6 +519,13 @@ func (c *DatabaseChanges) Close() {
 	}
 }
 
+func fmtDCCommand(cmd, value string) string {
+	if value == "" {
+		return cmd
+	}
+	return cmd + " " + value
+}
+
 func (c *DatabaseChanges) getOrAddSubscribers(name string, watchCommand string, unwatchCommand string, value string) (*changeSubscribers, error) {
 	subscribersI, ok := c.subscribers.Load(name)
 
@@ -559,7 +570,7 @@ func (c *DatabaseChanges) send(command, value string, waitForConfirmation bool) 
 
 	id := c.nextCommandID()
 	cmd := newDatabaseChangesCommand(id, command, value)
-	dcdbg("DatabaseChanges: send(): %d '%s %s, wait: %v\n", id, command, value, waitForConfirmation)
+	dcdbg("DatabaseChanges: send(): command id: %d, command: '%s', wait: %v\n", id, fmtDCCommand(command, value), waitForConfirmation)
 	if waitForConfirmation {
 		c.outstandingCommands.Store(id, cmd)
 	}
@@ -780,6 +791,14 @@ func (c *DatabaseChanges) startProcessMessagesWorker(conn *websocket.Conn, ctx c
 				}
 				break
 			}
+			if len(msgArray) == 0 {
+				continue
+			}
+
+			if EnableDatabaseChangesDebugOutput {
+				s, _ := json.Marshal(msgArray)
+				fmt.Printf("DatatabaseChange: received messages:\n%s\n", s)
+			}
 
 			for _, msgNodeV := range msgArray {
 				msgNode := msgNodeV.(map[string]interface{})
@@ -795,12 +814,14 @@ func (c *DatabaseChanges) startProcessMessagesWorker(conn *websocket.Conn, ctx c
 						if ok {
 							cmd := v.(*databaseChangesCommand)
 							cmd.confirm(false)
-							dcdbg("DatabaseChanges: confirmed command '%d %s %s'\n", cmd.id, cmd.command, cmd.value)
+							dcdbg("DatabaseChanges: confirmed command id %d, command '%s'\n", cmd.id, fmtDCCommand(cmd.command, cmd.value))
 						}
 					}
 				default:
-					val := msgNode["Value"]
-					c.notifySubscribers(typ, val)
+					if val, ok := msgNode["Value"]; ok {
+						// sometimes a message is {"TopologyChange":true}
+						c.notifySubscribers(typ, val)
+					}
 				}
 			}
 		}
