@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/ravendb/ravendb-go-client/examples/northwind"
+	"io"
 	"log"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 
@@ -1113,6 +1117,147 @@ func queryCount() {
 	fmt.Printf("Query returned %d results\n", n)
 }
 
+// auto-detect path to "examples" directory
+func dataDir() string {
+	dir := "."
+	_, err := os.Stat("examples")
+	if err == nil {
+		dir = "examples"
+	}
+	path, err := filepath.Abs(dir)
+	if err != nil {
+		log.Fatalf("filepath.Abs() failed with '%s'\n", err)
+	}
+	return path
+}
+
+func storeAttachments() string {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	e := &northwind.Employee{
+		FirstName: "Jon",
+		LastName:  "Snow",
+	}
+	err = session.Store(e)
+	if err != nil {
+		log.Fatalf("session.Store() failed with '%s'\n", err)
+	}
+
+	path := filepath.Join(dataDir(), "pic.png")
+	fileStream, err := os.Open(path)
+	if err != nil {
+		log.Fatalf("os.Open() failed with '%s'\n", err)
+	}
+	defer fileStream.Close()
+
+	fmt.Printf("new employee id: %s\n", e.ID)
+	err = session.Advanced().Attachments().StoreEntity(e, "photo.png", fileStream, "image/png")
+
+	// could also be done using document id
+	// err = session.Advanced().Attachments().Store(e.ID, "photo.png", fileStream, "image/png")
+
+	if err != nil {
+		log.Fatalf("session.Advanced().Attachments().StoreEntity() failed with '%s'\n", err)
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
+	}
+
+	return e.ID
+}
+
+func getAttachments() {
+	docID := storeAttachments()
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	attachment, err := session.Advanced().Attachments().Get(docID, "photo.png")
+	if err != nil {
+		log.Fatalf("session.Advanced().Attachments().Get() failed with '%s'\n", err)
+	}
+	defer attachment.Close()
+	fmt.Print("Attachment details:\n")
+	pretty.Print(attachment.Details)
+	// read attachment data
+	// attachment.Data is io.Reader
+	var attachmentData bytes.Buffer
+	n, err := io.Copy(&attachmentData, attachment.Data)
+	if err != nil {
+		log.Fatalf("io.Copy() failed with '%s'\n", err)
+	}
+	fmt.Printf("Attachment size: %d bytes\n", n)
+}
+
+func checkAttachmentExists() {
+	docID := storeAttachments()
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	{
+		name := "photo.png"
+		exists, err := session.Advanced().Attachments().Exists(docID, name)
+		if err != nil {
+			log.Fatalf("session.Advanced().Attachments().Exists() failed with '%s'\n", err)
+		}
+		if exists {
+			fmt.Printf("attachment '%s' exists\n", name)
+		} else {
+			fmt.Printf("attachment '%s' doesn't exists\n", name)
+		}
+	}
+
+	{
+		name := "non-existent.png"
+		exists, err := session.Advanced().Attachments().Exists(docID, name)
+		if err != nil {
+			log.Fatalf("session.Advanced().Attachments().Exists() failed with '%s'\n", err)
+		}
+		if exists {
+			fmt.Printf("attachment '%s' exists\n", name)
+		} else {
+			fmt.Printf("attachment '%s' doesn't exists\n", name)
+		}
+	}
+}
+
+func getAttachmentNames() {
+	docID := storeAttachments()
+	store, session, err := openSession(dbName)
+	if err != nil {
+		log.Fatalf("openSession() failed with %s\n", err)
+	}
+	defer store.Close()
+	defer session.Close()
+
+	var doc *northwind.Employee
+	err = session.Load(&doc, docID)
+	if err != nil {
+		log.Fatalf("session.Load() failed with '%s'\n", err)
+	}
+
+	names, err := session.Advanced().Attachments().GetNames(doc)
+	if err != nil {
+		log.Fatalf("session.Advanced().Attachments().GetNames() failed with '%s'\n", err)
+	}
+	fmt.Print("Attachment names:\n")
+	pretty.Print(names)
+}
+
 func main() {
 	// to test a given function, uncomment it
 	//loadUpdateSave()
@@ -1132,7 +1277,6 @@ func main() {
 	//queryDistinct()
 	//queryEquals()
 	//queryIn()
-
 	//queryStartsWith()
 	//queryEndsWith()
 	//queryBetween()
@@ -1148,5 +1292,9 @@ func main() {
 	//querySkip()
 	//queryStatistics()
 	//querySingle()
-	queryCount()
+	//queryCount()
+	//storeAttachments()
+	//getAttachments()
+	//checkAttachmentExists()
+	//getAttachmentNames()
 }

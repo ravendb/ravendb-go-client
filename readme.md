@@ -205,7 +205,7 @@ See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full examp
 
 ## Querying documents
 
-## Selecting what to query
+### Selecting what to query
 
 First you need to decide what you you query.
 
@@ -234,7 +234,7 @@ q := session.QueryIndex("Orders/ByCompany")
 ```
 See `queryIndex()` in [examples/main.go](examples/main.go) for full example.
 
-## Limit what is returned
+### Limit what is returned
 
 ```go
 tp := reflect.TypeOf(&northwind.Product{})
@@ -247,7 +247,7 @@ q = q.Take(2) // limit to 2 results
 ```
 See `queryComplex()` in [examples/main.go](examples/main.go) for full example.
 
-## Obtain the results
+### Obtain the results
 
 You can get all matching results:
 
@@ -323,7 +323,7 @@ q = q.WhereIn("Title", []interface{}{"Sales Representative", "Sales Manager"})
 ```
 See `queryIn()` in [examples/main.go](examples/main.go) for full example.
 
-## WhereStartsWith() / WhereEndsWith()
+### WhereStartsWith() / WhereEndsWith()
 
 ```go
 // RQL equivalent:
@@ -334,7 +334,8 @@ q = q.WhereStartsWith("FirstName", "Ro")
 ```
 See `queryStartsWith()` and `queryEndsWith` in [examples/main.go](examples/main.go) for full example.
 
-## WhereBetween()
+### WhereBetween()
+
 ```go
 // RQL equivalent:
 // from orders where Freight between 11 and 13
@@ -344,7 +345,7 @@ q = q.WhereBetween("Freight", 11, 13)
 ```
 See `queryBetween()` in [examples/main.go](examples/main.go) for full example.
 
-## WhereGreaterThan() / WhereGreaterThanOrEqual() / WhereLessThan() / WhereLessThanOrEqual()
+### WhereGreaterThan() / WhereGreaterThanOrEqual() / WhereLessThan() / WhereLessThanOrEqual()
 
 ```go
 // RQL equivalent:
@@ -356,7 +357,7 @@ q = q.WhereGreaterThan("Freight", 11)
 ```
 See `queryGreater()` in [examples/main.go](examples/main.go) for full example.
 
-## WhereExists()
+### WhereExists()
 
 Checks if the field exists.
 
@@ -369,7 +370,7 @@ q = q.WhereExists("ReportsTo")
 ```
 See `queryExists()` in [examples/main.go](examples/main.go) for full example.
 
-## ContainsAny() / ContainsAll()
+### ContainsAny() / ContainsAll()
 
 ```go
 // RQL equivalent:
@@ -380,7 +381,7 @@ q = q.ContainsAny("FirstName", []interface{}{"Anne", "Nancy"})
 ```
 See `queryContainsAny()` in [examples/main.go](examples/main.go) for full example.
 
-## Search()
+### Search()
 
 Performs full-text search.
 
@@ -393,7 +394,7 @@ q = q.Search("FirstName", "Anne Nancy")
 ```
 See `querySearch()` in [examples/main.go](examples/main.go) for full example.
 
-## OpenSubclause() / CloseSubclause()
+### OpenSubclause() / CloseSubclause()
 
 ```go
 // RQL equivalent:
@@ -409,7 +410,7 @@ q = q.CloseSubclause()
 ```
 See `querySubclause()` in [examples/main.go](examples/main.go) for full example.
 
-## Not()
+### Not()
 
 ```go
 // RQL equivalent:
@@ -421,7 +422,7 @@ q = q.WhereEquals("FirstName", "Steven")
 ```
 See `queryNot()` in [examples/main.go](examples/main.go) for full example.
 
-# AndAlso() / OrElse()
+### AndAlso() / OrElse()
 
 ```go
 // RQL equivalent:
@@ -435,10 +436,11 @@ q = q.WhereEquals("FirstName", "Nancy")
 ```
 See `queryOrElse()` in [examples/main.go](examples/main.go) for full example.
 
-## UsingDefaultOperator()
+### UsingDefaultOperator()
+
 Sets default operator (which will be used if no `AndAlso()` / `OrElse()` was called. Just after query instantiation, OR is used as default operator. Default operator can be changed only adding any conditions.
 
-## OrderBy() / RandomOrdering()
+### OrderBy() / RandomOrdering()
 
 ```go
 // RQL equivalent:
@@ -450,7 +452,7 @@ q = q.OrderBy("FirstName")
 ```
 See `queryOrderBy()` in [examples/main.go](examples/main.go) for full example.
 
-## Take()
+### Take()
 
 ```go
 // RQL equivalent:
@@ -462,8 +464,7 @@ q = q.Take(2)
 ```
 See `queryTake()` in [examples/main.go](examples/main.go) for full example.
 
-
-## Skip()
+### Skip()
 
 ```go
 // RQL equivalent:
@@ -476,7 +477,7 @@ q = q.Skip(1)
 ```
 See `querySkip()` in [examples/main.go](examples/main.go) for full example.
 
-## Getting query statistics
+### Getting query statistics
 
 To obtain query statistics use `Statistics()` method.
 
@@ -506,7 +507,7 @@ Statistics:
  ```
 See `queryStatistics()` in [examples/main.go](examples/main.go) for full example.
 
-## GetResults() / First() / Single() / Count()
+### GetResults() / First() / Single() / Count()
 
 `GetResults()` - returns all results
 
@@ -517,3 +518,85 @@ See `queryStatistics()` in [examples/main.go](examples/main.go) for full example
 `Count()` - returns the number of the results (not affected by take())
 
 See `queryFirst()`, `querySingle()` and `queryCount()` in [examples/main.go](examples/main.go) for full example.
+
+## Attachments
+
+### Store attachments
+
+```go
+fileStream, err := os.Open(path)
+if err != nil {
+    log.Fatalf("os.Open() failed with '%s'\n", err)
+}
+defer fileStream.Close()
+
+fmt.Printf("new employee id: %s\n", e.ID)
+err = session.Advanced().Attachments().StoreEntity(e, "photo.png", fileStream, "image/png")
+
+// could also be done using document id
+// err = session.Advanced().Attachments().Store(e.ID, "photo.png", fileStream, "image/png")
+
+if err != nil {
+    log.Fatalf("session.Advanced().Attachments().StoreEntity() failed with '%s'\n", err)
+}
+
+err = session.SaveChanges()
+```
+
+### Get attachments
+
+```go
+attachment, err := session.Advanced().Attachments().Get(docID, "photo.png")
+if err != nil {
+    log.Fatalf("session.Advanced().Attachments().Get() failed with '%s'\n", err)
+}
+defer attachment.Close()
+fmt.Print("Attachment details:\n")
+pretty.Print(attachment.Details)
+// read attachment data
+// attachment.Data is io.Reader
+var attachmentData bytes.Buffer
+n, err := io.Copy(&attachmentData, attachment.Data)
+if err != nil {
+    log.Fatalf("io.Copy() failed with '%s'\n", err)
+}
+fmt.Printf("Attachment size: %d bytes\n", n)
+```
+
+Attachment details:
+```
+{AttachmentName: {Name:        "photo.png",
+                  Hash:        "MvUEcrFHSVDts5ZQv2bQ3r9RwtynqnyJzIbNYzu1ZXk=",
+                  ContentType: "image/png",
+                  Size:        4579},
+ ChangeVector:   "A:4905-dMAeI9ANZ06DOxCRLnSmNw",
+ DocumentID:     "employees/44-A"}
+Attachment size: 4579 bytes
+```
+
+### Check if attachment exists
+
+```go
+name := "photo.png"
+exists, err := session.Advanced().Attachments().Exists(docID, name)
+if err != nil {
+    log.Fatalf("session.Advanced().Attachments().Exists() failed with '%s'\n", err)
+}
+```
+
+### Get attachment names
+
+```go
+names, err := session.Advanced().Attachments().GetNames(doc)
+if err != nil {
+    log.Fatalf("session.Advanced().Attachments().GetNames() failed with '%s'\n", err)
+}
+```
+
+Attachment names:
+```
+[{Name:        "photo.png",
+  Hash:        "MvUEcrFHSVDts5ZQv2bQ3r9RwtynqnyJzIbNYzu1ZXk=",
+  ContentType: "image/png",
+  Size:        4579}]
+```
