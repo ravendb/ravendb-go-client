@@ -284,10 +284,10 @@ func (c *DatabaseChanges) AddConnectionStatusChanged(handler func()) int {
 	return idx
 }
 
-func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerIdx int) {
-	if handlerIdx != -1 {
+func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerID int) {
+	if handlerID != -1 {
 		c.mu.Lock()
-		c.connectionStatusChanged[handlerIdx] = nil
+		c.connectionStatusChanged[handlerID] = nil
 		c.mu.Unlock()
 	}
 }
@@ -477,10 +477,10 @@ func (c *DatabaseChanges) AddOnError(handler func(error)) int {
 	return idx
 }
 
-func (c *DatabaseChanges) RemoveOnError(handlerIdx int) {
+func (c *DatabaseChanges) RemoveOnError(handlerID int) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.onError[handlerIdx] = nil
+	c.onError[handlerID] = nil
 }
 
 // cancel outstanding commands to unblock those waiting for their completion

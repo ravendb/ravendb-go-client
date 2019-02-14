@@ -26,9 +26,10 @@ type DocumentSession struct {
 	customCount int
 }
 
-// TODO: consider exposing it as IAdvancedSessionOperations interface, like in Java
-func (s *DocumentSession) Advanced() *DocumentSession {
-	return s
+func (s *DocumentSession) Advanced() *AdvancedSessionOperations {
+	return &AdvancedSessionOperations{
+		s: s,
+	}
 }
 
 func (s *DocumentSession) Lazily() *LazySessionOperations {

@@ -43,7 +43,6 @@ type InMemoryDocumentSessionOperations struct {
 	knownMissingIds []string // case insensitive
 
 	// Note: skipping unused externalState
-	// Note: skipping unused getCurrentSessionNode
 
 	documentsByID *documentsByID
 
@@ -110,6 +109,26 @@ func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 	return res
 }
 
+func (s *InMemoryDocumentSessionOperations) GetCurrentSessionNode() (*ServerNode, error) {
+	var result *CurrentIndexAndNode
+	readBalance := s.documentStore.GetConventions().ReadBalanceBehavior
+	var err error
+	switch readBalance {
+	case ReadBalanceBehaviorNone:
+		result, err = s.requestExecutor.getPreferredNode()
+	case ReadBalanceBehaviorRoundRobin:
+		result, err = s.requestExecutor.getNodeBySessionID(s.clientSessionID)
+	case ReadBalanceBehaviorFastestNode:
+		result, err = s.requestExecutor.getFastestNode()
+	default:
+		return nil, newIllegalArgumentError("unknown readBalance value %s", readBalance)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return result.currentNode, nil
+}
+
 // GetDeferredCommandsCount returns number of deferred commands
 func (s *InMemoryDocumentSessionOperations) GetDeferredCommandsCount() int {
 	return len(s.deferredCommands)
@@ -124,8 +143,8 @@ func (s *InMemoryDocumentSessionOperations) AddBeforeStoreListener(handler func(
 }
 
 // RemoveBeforeStoreListener removes a listener given id returned by AddBeforeStoreListener
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handlerId int) {
-	s.onBeforeStore[handlerId] = nil
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeStoreListener(handlerID int) {
+	s.onBeforeStore[handlerID] = nil
 }
 
 // AddAfterSaveChangesListener registers a function that will be called before saving changes.
@@ -137,8 +156,8 @@ func (s *InMemoryDocumentSessionOperations) AddAfterSaveChangesListener(handler 
 }
 
 // RemoveAfterSaveChangesListener removes a listener given id returned by AddAfterSaveChangesListener
-func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handlerId int) {
-	s.onAfterSaveChanges[handlerId] = nil
+func (s *InMemoryDocumentSessionOperations) RemoveAfterSaveChangesListener(handlerID int) {
+	s.onAfterSaveChanges[handlerID] = nil
 }
 
 // AddBeforeDeleteListener registers a function that will be called before deleting an entity.
@@ -150,8 +169,8 @@ func (s *InMemoryDocumentSessionOperations) AddBeforeDeleteListener(handler func
 }
 
 // RemoveBeforeDeleteListener removes a listener given id returned by AddBeforeDeleteListener
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handlerId int) {
-	s.onBeforeDelete[handlerId] = nil
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeDeleteListener(handlerID int) {
+	s.onBeforeDelete[handlerID] = nil
 }
 
 // AddBeforeQueryListener registers a function that will be called before running a query.
@@ -164,8 +183,8 @@ func (s *InMemoryDocumentSessionOperations) AddBeforeQueryListener(handler func(
 }
 
 // RemoveBeforeQueryListener removes a listener given id returned by AddBeforeQueryListener
-func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerId int) {
-	s.onBeforeQuery[handlerId] = nil
+func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerID int) {
+	s.onBeforeQuery[handlerID] = nil
 }
 
 func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *entityToJSON {
@@ -202,6 +221,7 @@ func (s *InMemoryDocumentSessionOperations) GetOperations() *OperationExecutor {
 	return s.operationExecutor
 }
 
+// GetNumberOfRequests returns number of requests sent to the server
 func (s *InMemoryDocumentSessionOperations) GetNumberOfRequests() int {
 	return s.numberOfRequests
 }
@@ -1038,14 +1058,8 @@ func (s *InMemoryDocumentSessionOperations) Clear() {
 	s.includedDocumentsByID = nil
 }
 
-// Defer defers a command to be executed on saveChanges()
-func (s *InMemoryDocumentSessionOperations) Defer(command ICommandData) {
-	a := []ICommandData{command}
-	s.DeferMany(a)
-}
-
-// DeferMany defers commands to be executed on saveChanges()
-func (s *InMemoryDocumentSessionOperations) DeferMany(commands []ICommandData) {
+// Defer defers commands to be executed on SaveChanges()
+func (s *InMemoryDocumentSessionOperations) Defer(commands ...ICommandData) {
 	for _, cmd := range commands {
 		s.deferredCommands = append(s.deferredCommands, cmd)
 		s.deferInternal(cmd)

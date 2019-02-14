@@ -88,7 +88,7 @@ func (s *DocumentSessionAttachmentsBase) StoreByID(documentID string, name strin
 	if err != nil {
 		return err
 	}
-	s.DeferMany([]ICommandData{cmdData})
+	s.Defer(cmdData)
 	return nil
 }
 
@@ -149,7 +149,7 @@ func (s *DocumentSessionAttachmentsBase) DeleteByID(documentID string, name stri
 	if err != nil {
 		return err
 	}
-	s.DeferMany([]ICommandData{cmdData})
+	s.Defer(cmdData)
 	return nil
 }
 

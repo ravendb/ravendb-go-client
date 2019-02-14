@@ -26,7 +26,7 @@ func newAdvancedSessionExtensionBase(session *InMemoryDocumentSessionOperations)
 	}
 }
 
-// DeferMany defers multiple commands
-func (e *AdvancedSessionExtensionBase) DeferMany(commands []ICommandData) {
-	e.session.DeferMany(commands)
+// Defer defers multiple commands to be executed on SaveChnages
+func (e *AdvancedSessionExtensionBase) Defer(commands ...ICommandData) {
+	e.session.Defer(commands...)
 }

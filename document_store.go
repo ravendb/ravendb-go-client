@@ -112,8 +112,8 @@ func (s *DocumentStore) AddBeforeStoreListener(handler func(*BeforeStoreEventArg
 }
 
 // RemoveBeforeStoreListener removes a listener given id returned by AddBeforeStoreListener
-func (s *DocumentStore) RemoveBeforeStoreListener(handlerId int) {
-	s.onBeforeStore[handlerId] = nil
+func (s *DocumentStore) RemoveBeforeStoreListener(handlerID int) {
+	s.onBeforeStore[handlerID] = nil
 }
 
 // AddAfterSaveChangesListener registers a function that will be called before saving changes.
@@ -126,8 +126,8 @@ func (s *DocumentStore) AddAfterSaveChangesListener(handler func(*AfterSaveChang
 }
 
 // RemoveAfterSaveChangesListener removes a listener given id returned by AddAfterSaveChangesListener
-func (s *DocumentStore) RemoveAfterSaveChangesListener(handlerId int) {
-	s.onAfterSaveChanges[handlerId] = nil
+func (s *DocumentStore) RemoveAfterSaveChangesListener(handlerID int) {
+	s.onAfterSaveChanges[handlerID] = nil
 }
 
 // AddBeforeDeleteListener registers a function that will be called before deleting an entity.
@@ -140,8 +140,8 @@ func (s *DocumentStore) AddBeforeDeleteListener(handler func(*BeforeDeleteEventA
 }
 
 // RemoveBeforeDeleteListener removes a listener given id returned by AddBeforeDeleteListener
-func (s *DocumentStore) RemoveBeforeDeleteListener(handlerId int) {
-	s.onBeforeDelete[handlerId] = nil
+func (s *DocumentStore) RemoveBeforeDeleteListener(handlerID int) {
+	s.onBeforeDelete[handlerID] = nil
 }
 
 // AddBeforeQueryListener registers a function that will be called before running a query.
@@ -155,8 +155,8 @@ func (s *DocumentStore) AddBeforeQueryListener(handler func(*BeforeQueryEventArg
 }
 
 // RemoveBeforeQueryListener removes a listener given id returned by AddBeforeQueryListener
-func (s *DocumentStore) RemoveBeforeQueryListener(handlerId int) {
-	s.onBeforeQuery[handlerId] = nil
+func (s *DocumentStore) RemoveBeforeQueryListener(handlerID int) {
+	s.onBeforeQuery[handlerID] = nil
 }
 
 func (s *DocumentStore) registerEvents(session *InMemoryDocumentSessionOperations) {
