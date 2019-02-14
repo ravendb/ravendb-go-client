@@ -296,7 +296,7 @@ func (s *DocumentStore) Close() {
 		s.multiDbHiLo.ReturnUnusedRange()
 	}
 
-	if s.Subscriptions != nil {
+	if s.Subscriptions() != nil {
 		_ = s.Subscriptions().Close()
 	}
 
