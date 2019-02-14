@@ -1027,9 +1027,13 @@ func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[st
 
 // IgnoreChangesFor marks the entity as one that should be ignore for change tracking purposes,
 // it still takes part in the session, but is ignored for SaveChanges.
-func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity interface{}) {
-	docInfo, _ := s.getDocumentInfo(entity)
-	docInfo.ignoreChanges = true
+func (s *InMemoryDocumentSessionOperations) IgnoreChangesFor(entity interface{}) error {
+	if docInfo, err := s.getDocumentInfo(entity); err != nil {
+		return err
+	} else {
+		docInfo.ignoreChanges = true
+		return nil
+	}
 }
 
 // Evict evicts the specified entity from the session.

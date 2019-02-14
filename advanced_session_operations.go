@@ -159,8 +159,8 @@ func (o *AdvancedSessionOperations) IsLoaded(id string) bool {
 	return o.s.IsLoaded(id)
 }
 
-func (o *AdvancedSessionOperations) IgnoreChangesFor(entity interface{}) {
-	o.s.IgnoreChangesFor(entity)
+func (o *AdvancedSessionOperations) IgnoreChangesFor(entity interface{}) error {
+	return o.s.IgnoreChangesFor(entity)
 }
 
 func (o *AdvancedSessionOperations) Stream(args *StartsWithArgs) (*StreamIterator, error) {
