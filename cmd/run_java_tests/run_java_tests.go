@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ravendb/ravendb-go-client/pkg/proxy"
+	"github.com/kjk/httplogproxy"
 )
 
 const (
@@ -44,8 +44,8 @@ func testNameToFileName(s string) string {
 func runSingleJavaTest(className string) {
 	logFileName := "trace_" + testNameToFileName(className) + "_java.txt"
 	logFilePath := filepath.Join("logs", logFileName)
-	go proxy.Run(logFilePath)
-	defer proxy.CloseLogFile()
+	go httplogproxy.Run(logFilePath)
+	defer httplogproxy.CloseLogFile()
 
 	// Running just one maven test: https://stackoverflow.com/a/18136440/2898
 	// mvn -Dtest=HiLoTest test
