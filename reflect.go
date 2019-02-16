@@ -15,6 +15,20 @@ func isPtrStruct(t reflect.Type) (reflect.Type, bool) {
 	return nil, false
 }
 
+func isPtrMapStringToPtrStruct(tp reflect.Type) (reflect.Type, bool) {
+	if tp.Kind() != reflect.Ptr {
+		return nil, false
+	}
+	tp = tp.Elem()
+	if tp.Kind() != reflect.Map {
+		return nil, false
+	}
+	if tp.Key().Kind() != reflect.String {
+		return nil, false
+	}
+	return isPtrStruct(tp.Elem())
+}
+
 func isMapStringToPtrStruct(tp reflect.Type) (reflect.Type, bool) {
 	if tp.Kind() != reflect.Map {
 		return nil, false

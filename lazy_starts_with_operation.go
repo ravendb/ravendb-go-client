@@ -21,7 +21,7 @@ type LazyStartsWithOperation struct {
 	// results is map[string]*Struct
 	queryResult   *QueryResult
 	requiresRetry bool
-	rawResult *GetDocumentsResult
+	rawResult     *GetDocumentsResult
 }
 
 // NewLazyStartsWithOperation returns new LazyStartsWithOperation
@@ -61,11 +61,16 @@ func (o *LazyStartsWithOperation) createRequest() *getRequest {
 }
 
 // needed for ILazyOperation
+// results should be map[string]*<type>
 func (o *LazyStartsWithOperation) getResult(results interface{}) error {
-	// TODO: validate that results is map[string]*Struct
-	// results is map[string]*Struct
+	var tp reflect.Type
+	var ok bool
+	if tp, ok = isMapStringToPtrStruct(reflect.TypeOf(results)); !ok {
+		return fmt.Errorf("expected o.results to be of type map[string]*struct, got %T", results)
+	}
 
-	var err error
+	finalResult := reflect.ValueOf(results)
+
 	for _, document := range o.rawResult.Results {
 		newDocumentInfo := getNewDocumentInfo(document)
 		o.sessionOperations.documentsByID.add(newDocumentInfo)
@@ -76,12 +81,6 @@ func (o *LazyStartsWithOperation) getResult(results interface{}) error {
 
 		id := strings.ToLower(newDocumentInfo.id)
 
-		var tp reflect.Type
-		var ok bool
-		if tp, ok = isMapStringToPtrStruct(reflect.TypeOf(results)); !ok {
-			return fmt.Errorf("expected o.results to be of type map[string]*struct, got %T", results)
-		}
-		finalResult := reflect.ValueOf(results)
 		key := reflect.ValueOf(id)
 		if o.sessionOperations.IsDeleted(newDocumentInfo.id) {
 			nilPtr := reflect.New(tp)
@@ -91,8 +90,7 @@ func (o *LazyStartsWithOperation) getResult(results interface{}) error {
 		doc := o.sessionOperations.documentsByID.getValue(newDocumentInfo.id)
 		if doc != nil {
 			v := reflect.New(tp).Interface()
-			err = o.sessionOperations.TrackEntityInDocumentInfo(v, doc)
-			if err != nil {
+			if err := o.sessionOperations.TrackEntityInDocumentInfo(v, doc); err != nil {
 				return err
 			}
 			finalResult.SetMapIndex(key, reflect.ValueOf(v).Elem())
