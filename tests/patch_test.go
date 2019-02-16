@@ -104,16 +104,14 @@ func patchTestcanPatchManyDocuments(t *testing.T, driver *RavenTestDriver) {
 		err = session.SaveChanges()
 		assert.NoError(t, err)
 
-		// TODO: CountLazily doesn't need results
-		// and we crash if it's Query() and not QueryType()
+		// TODO: we crash if it's Query() and not QueryType()
 		// (need to validate and not crash)
-		var n int
-		var results []*User
 		clazz := reflect.TypeOf(&User{})
 		q := session.QueryCollectionForType(clazz)
-		lazy, err := q.CountLazily(&results, &n)
+		lazy, err := q.CountLazily()
 		assert.NoError(t, err)
-		err = lazy.GetValue()
+		var n int
+		err = lazy.GetValue(&n)
 		assert.NoError(t, err)
 		assert.Equal(t, n, 1)
 

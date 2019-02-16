@@ -110,7 +110,7 @@ func cofiCanvAoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheAsync(
 
 		err = session.Load(&user, user.PartnerID)
 		assert.NoError(t, err)
-		old := session.Advanced().GetNumberOfRequests()
+		oldCount := session.Advanced().GetNumberOfRequests()
 		assert.NotNil(t, user)
 
 		var newUser *User5
@@ -118,8 +118,8 @@ func cofiCanvAoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheAsync(
 		assert.NoError(t, err)
 		assert.NotNil(t, newUser)
 
-		new := session.Advanced().GetNumberOfRequests()
-		assert.Equal(t, new, old)
+		newCount := session.Advanced().GetNumberOfRequests()
+		assert.Equal(t, newCount, oldCount)
 
 		session.Close()
 	}
@@ -155,26 +155,27 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 	{
 		session := openSessionMust(t, store)
 
-		var user1, user2 *User5
 		advanced := session.Advanced()
-		advanced.Lazily().Load(&user2, "user5s/2-A", nil)
-		advanced.Lazily().Load(&user1, "user5s/1-A", nil)
+		_, err = advanced.Lazily().Load( "user5s/2-A")
+		assert.NoError(t, err)
+		_, err = advanced.Lazily().Load( "user5s/1-A")
+		assert.NoError(t, err)
 
 		_, err = advanced.Eagerly().ExecuteAllPendingLazyOperations()
 		assert.NoError(t, err)
 
-		old := advanced.GetNumberOfRequests()
+		oldCount := advanced.GetNumberOfRequests()
 
-		var user3 *User5
-		resultLazy, err := advanced.Lazily().Include("PartnerId").Load(&user3, "user5s/2-A")
+		resultLazy, err := advanced.Lazily().Include("PartnerId").Load( "user5s/2-A")
 		assert.NoError(t, err)
-		err = resultLazy.GetValue()
+		var user *User
+		err = resultLazy.GetValue(&user)
 		assert.NoError(t, err)
-		assert.NotNil(t, user3)
-		assert.Equal(t, user3.ID, "user5s/2-A")
+		assert.NotNil(t, user)
+		assert.Equal(t, user.ID, "user5s/2-A")
 
-		new := advanced.GetNumberOfRequests()
-		assert.Equal(t, new, old)
+		newCount := advanced.GetNumberOfRequests()
+		assert.Equal(t, newCount, oldCount)
 
 		session.Close()
 	}
@@ -217,14 +218,14 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCache(t *te
 		err = session.Load(&partner, user.PartnerID)
 		assert.NoError(t, err)
 
-		old := session.Advanced().GetNumberOfRequests()
+		oldCount := session.Advanced().GetNumberOfRequests()
 
 		var res *User5
 		err = session.Include("PartnerID").Load(&res, "user5s/2-A")
 		assert.NoError(t, err)
 
-		new := session.Advanced().GetNumberOfRequests()
-		assert.Equal(t, old, new)
+		newCount := session.Advanced().GetNumberOfRequests()
+		assert.Equal(t, oldCount, newCount)
 
 		session.Close()
 	}
@@ -277,15 +278,15 @@ func cofiCanAvoidUsingServerForMultiloadWithIncludeIfEverythingIsInSessionCache(
 		err = session.Load(&u, u6.PartnerID)
 		assert.NoError(t, err)
 
-		old := session.Advanced().GetNumberOfRequests()
+		oldCount := session.Advanced().GetNumberOfRequests()
 
 		res := make(map[string]*User5)
 		ids := []string{"user5s/2-A", "user5s/3-A", "user5s/6-A"}
 		err = session.Include("PartnerID").LoadMulti(res, ids)
 		assert.NoError(t, err)
 
-		new := session.Advanced().GetNumberOfRequests()
-		assert.Equal(t, old, new)
+		newCount := session.Advanced().GetNumberOfRequests()
+		assert.Equal(t, oldCount, newCount)
 
 		session.Close()
 	}

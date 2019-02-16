@@ -13,7 +13,7 @@ type LazySuggestionQueryOperation struct {
 	_processResults           func(*QueryResult, *DocumentConventions) (map[string]*SuggestionResult, error)
 }
 
-func NewLazySuggestionQueryOperation(conventions *DocumentConventions, indexQuery *IndexQuery, invokeAfterQueryExecuted func(*QueryResult),
+func newLazySuggestionQueryOperation(conventions *DocumentConventions, indexQuery *IndexQuery, invokeAfterQueryExecuted func(*QueryResult),
 	processResults func(*QueryResult, *DocumentConventions) (map[string]*SuggestionResult, error)) *LazySuggestionQueryOperation {
 	return &LazySuggestionQueryOperation{
 		_conventions:              conventions,
@@ -23,6 +23,7 @@ func NewLazySuggestionQueryOperation(conventions *DocumentConventions, indexQuer
 	}
 }
 
+// needed for ILazyOperation
 func (o *LazySuggestionQueryOperation) createRequest() *getRequest {
 	return &getRequest{
 		url:     "/queries",
@@ -32,18 +33,21 @@ func (o *LazySuggestionQueryOperation) createRequest() *getRequest {
 	}
 }
 
-func (o *LazySuggestionQueryOperation) getResult() interface{} {
-	return o.result
+// needed for ILazyOperation
+func (o *LazySuggestionQueryOperation) getResult(result interface{}) error {
+	return setInterfaceToValue(result, o.result)
 }
 
 func (o *LazySuggestionQueryOperation) getQueryResult() *QueryResult {
 	return o.queryResult
 }
 
+// needed for ILazyOperation
 func (o *LazySuggestionQueryOperation) isRequiresRetry() bool {
 	return o.requiresRetry
 }
 
+// needed for ILazyOperation
 func (o *LazySuggestionQueryOperation) handleResponse(response *GetResponse) error {
 	if response.IsForceRetry {
 		o.result = nil

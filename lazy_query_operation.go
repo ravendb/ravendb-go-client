@@ -8,21 +8,20 @@ type LazyQueryOperation struct {
 	_queryOperation     *queryOperation
 	_afterQueryExecuted []func(*QueryResult)
 
-	result        interface{}
 	queryResult   *QueryResult
 	requiresRetry bool
 }
 
-// NewLazyQueryOperation returns new LazyQueryOperation
-func NewLazyQueryOperation(result interface{}, conventions *DocumentConventions, queryOperation *queryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
+// newLazyQueryOperation returns new LazyQueryOperation
+func newLazyQueryOperation(conventions *DocumentConventions, queryOperation *queryOperation, afterQueryExecuted []func(*QueryResult)) *LazyQueryOperation {
 	return &LazyQueryOperation{
-		result:              result,
 		_conventions:        conventions,
 		_queryOperation:     queryOperation,
 		_afterQueryExecuted: afterQueryExecuted,
 	}
 }
 
+// needed for ILazyOperation
 func (o *LazyQueryOperation) createRequest() *getRequest {
 	return &getRequest{
 		url:     "/queries",
@@ -33,8 +32,8 @@ func (o *LazyQueryOperation) createRequest() *getRequest {
 }
 
 // needed for ILazyOperation
-func (o *LazyQueryOperation) getResult() interface{} {
-	return o.result
+func (o *LazyQueryOperation) getResult(result interface{}) error {
+	return o._queryOperation.complete(result)
 }
 
 // needed for ILazyOperation
@@ -47,9 +46,9 @@ func (o *LazyQueryOperation) isRequiresRetry() bool {
 	return o.requiresRetry
 }
 
+// needed for ILazyOperation
 func (o *LazyQueryOperation) handleResponse(response *GetResponse) error {
 	if response.IsForceRetry {
-		o.result = nil
 		o.requiresRetry = true
 		return nil
 	}
@@ -63,12 +62,14 @@ func (o *LazyQueryOperation) handleResponse(response *GetResponse) error {
 }
 
 func (o *LazyQueryOperation) handleResponse2(queryResult *QueryResult) error {
-	o._queryOperation.ensureIsAcceptableAndSaveResult(queryResult)
+	err := o._queryOperation.ensureIsAcceptableAndSaveResult(queryResult)
+	if err != nil {
+		return err
+	}
 
 	for _, e := range o._afterQueryExecuted {
 		e(queryResult)
 	}
 	o.queryResult = queryResult
-	err := o._queryOperation.complete(o.result)
-	return err
+	return nil
 }

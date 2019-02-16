@@ -72,7 +72,7 @@ func (q *SuggestionDocumentQuery) processResults(queryResult *QueryResult, conve
 }
 
 // onEval: v is map[string]*SuggestionResult
-func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResult, onEval func(v interface{})) (*Lazy, error) {
+func (q *SuggestionDocumentQuery) ExecuteLazy() (*Lazy, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
@@ -89,16 +89,11 @@ func (q *SuggestionDocumentQuery) ExecuteLazy(results map[string]*SuggestionResu
 		if err != nil {
 			return nil, err
 		}
-		// processResult returns its own map, have to copy it to map provided by
-		// caller as a result
-		for k, v := range res {
-			results[k] = v
-		}
-		return res, err
+		return res, nil
 	}
 
-	op := NewLazySuggestionQueryOperation(q.session.Conventions, q.query, afterFn, processFn)
-	return q.session.session.addLazyOperation(results, op, onEval), nil
+	op := newLazySuggestionQueryOperation(q.session.Conventions, q.query, afterFn, processFn)
+	return q.session.session.addLazyOperation(op, nil, nil), nil
 }
 
 func (q *SuggestionDocumentQuery) InvokeAfterQueryExecuted(result *QueryResult) {
