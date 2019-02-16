@@ -613,20 +613,20 @@ See `getAttachmentNames()` in [examples/main.go](examples/main.go) for full exam
 When storing multiple documents, use bulk insertion.
 
 ```go
-	bulkInsert := store.BulkInsert("")
+bulkInsert := store.BulkInsert("")
 
-	names := []string{"Anna", "Maria", "Miguel", "Emanuel", "Dayanara", "Aleida"}
-	for _, name := range names {
-		e := &northwind.Employee{
-			FirstName: name,
-		}
-		id, err := bulkInsert.Store(e, nil)
-		if err != nil {
-			log.Fatalf("bulkInsert.Store() failed with '%s'\n", err)
-		}
-	}
-	// flush data and finish
-	err = bulkInsert.Close()
+names := []string{"Anna", "Maria", "Miguel", "Emanuel", "Dayanara", "Aleida"}
+for _, name := range names {
+    e := &northwind.Employee{
+        FirstName: name,
+    }
+    id, err := bulkInsert.Store(e, nil)
+    if err != nil {
+        log.Fatalf("bulkInsert.Store() failed with '%s'\n", err)
+    }
+}
+// flush data and finish
+err = bulkInsert.Close()
 ```
 
 See `bulkInsert()` in [examples/main.go](examples/main.go) for full example.
@@ -636,36 +636,36 @@ See `bulkInsert()` in [examples/main.go](examples/main.go) for full example.
 Listen for database changes e.g. document changes.
 
 ```go
-	changes := store.Changes("")
+changes := store.Changes("")
 
-	err = changes.EnsureConnectedNow()
-	if err != nil {
-		log.Fatalf("changes.EnsureConnectedNow() failed with '%s'\n", err)
-	}
+err = changes.EnsureConnectedNow()
+if err != nil {
+    log.Fatalf("changes.EnsureConnectedNow() failed with '%s'\n", err)
+}
 
-	onDocChange := func(change *ravendb.DocumentChange) {
-		fmt.Print("change:\n")
-		pretty.Print(change)
-	}
-	docChangesCancel, err := changes.ForAllDocuments(onDocChange)
-	if err != nil {
-		log.Fatalf("changes.ForAllDocuments() failed with '%s'\n", err)
-	}
-	defer docChangesCancel()
+onDocChange := func(change *ravendb.DocumentChange) {
+    fmt.Print("change:\n")
+    pretty.Print(change)
+}
+docChangesCancel, err := changes.ForAllDocuments(onDocChange)
+if err != nil {
+    log.Fatalf("changes.ForAllDocuments() failed with '%s'\n", err)
+}
+defer docChangesCancel()
 
-	e := &northwind.Employee{
-		FirstName: "Jon",
-		LastName:  "Snow",
-	}
-	err = session.Store(e)
-	if err != nil {
-		log.Fatalf("session.Store() failed with '%s'\n", err)
-	}
+e := &northwind.Employee{
+    FirstName: "Jon",
+    LastName:  "Snow",
+}
+err = session.Store(e)
+if err != nil {
+    log.Fatalf("session.Store() failed with '%s'\n", err)
+}
 
-	err = session.SaveChanges()
-	if err != nil {
-		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
-	}
+err = session.SaveChanges()
+if err != nil {
+    log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
+}
 ```
 
 Example change:
@@ -690,27 +690,27 @@ use by reading documents in batches (as opposed to all at once).
 Here we iterate over all documents in `products` collection:
 
 ```go
-	args := &ravendb.StartsWithArgs{
-		StartsWith: "products/",
-	}
-	iterator, err := session.Advanced().Stream(args)
-	if err != nil {
-		log.Fatalf("session.Advanced().Stream() failed with '%s'\n", err)
-	}
-	for {
-		var p *northwind.Product
-		streamResult, err := iterator.Next(&p)
-		if err != nil {
-			// io.EOF means there are no more results
-			if err == io.EOF {
-				err = nil
-			} else {
-				log.Fatalf("iterator.Next() failed with '%s'\n", err)
-			}
-			break
+args := &ravendb.StartsWithArgs{
+    StartsWith: "products/",
+}
+iterator, err := session.Advanced().Stream(args)
+if err != nil {
+    log.Fatalf("session.Advanced().Stream() failed with '%s'\n", err)
+}
+for {
+    var p *northwind.Product
+    streamResult, err := iterator.Next(&p)
+    if err != nil {
+        // io.EOF means there are no more results
+        if err == io.EOF {
+            err = nil
+        } else {
+            log.Fatalf("iterator.Next() failed with '%s'\n", err)
         }
-        // handle p
-	}
+        break
+    }
+    // handle p
+}
 ```
 See `streamWithIDPrefix()` in [examples/main.go](examples/main.go) for full example.
 
@@ -738,16 +738,16 @@ product:
 ### Stream query results
 
 ```go
-	tp := reflect.TypeOf(&northwind.Product{})
-	q := session.QueryCollectionForType(tp)
-	q = q.WhereGreaterThan("PricePerUnit", 15)
-	q = q.OrderByDescending("PricePerUnit")
+tp := reflect.TypeOf(&northwind.Product{})
+q := session.QueryCollectionForType(tp)
+q = q.WhereGreaterThan("PricePerUnit", 15)
+q = q.OrderByDescending("PricePerUnit")
 
-	iterator, err := session.Advanced().StreamQuery(q, nil)
-	if err != nil {
-		log.Fatalf("session.Advanced().StreamQuery() failed with '%s'\n", err)
-    }
-    // rest of processing as above
+iterator, err := session.Advanced().StreamQuery(q, nil)
+if err != nil {
+    log.Fatalf("session.Advanced().StreamQuery() failed with '%s'\n", err)
+}
+// rest of processing as above
 ```
 
 See `streamQueryResults()` in [examples/main.go](examples/main.go) for full example.
