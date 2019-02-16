@@ -31,7 +31,7 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 		query := session.Advanced().Lazily()
-		lazyOrder, err := query.Load( "companies/1")
+		lazyOrder, err := query.Load("companies/1")
 		assert.NoError(t, err)
 
 		assert.False(t, lazyOrder.IsValueCreated())
@@ -40,11 +40,11 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/1")
 
-		lazyOrders, err := session.Advanced().Lazily().LoadMulti( []string{"companies/1", "companies/2"})
+		lazyOrders, err := session.Advanced().Lazily().LoadMulti([]string{"companies/1", "companies/2"})
 		assert.NoError(t, err)
 		assert.False(t, lazyOrders.IsValueCreated())
 
-		var orders  map[string]*Company
+		var orders map[string]*Company
 		err = lazyOrders.GetValue(&orders)
 		assert.NoError(t, err)
 		assert.Equal(t, len(orders), 2)
@@ -61,7 +61,7 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 
 		assert.Equal(t, company2.ID, "companies/2")
 
-		lazyOrder, err = session.Advanced().Lazily().Load( "companies/3")
+		lazyOrder, err = session.Advanced().Lazily().Load("companies/3")
 		assert.NoError(t, err)
 		assert.False(t, lazyOrder.IsValueCreated())
 
@@ -69,7 +69,7 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.Equal(t, order.ID, "companies/3")
 
-		load, err := session.Advanced().Lazily().LoadMulti( []string{"no_such_1", "no_such_2"})
+		load, err := session.Advanced().Lazily().LoadMulti([]string{"no_such_1", "no_such_2"})
 		assert.NoError(t, err)
 		var missingItems map[string]*Company
 		err = load.GetValue(&missingItems)
@@ -109,17 +109,16 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 		var company1Ref *Company
 		var company2Ref *Company
 		query := session.Advanced().Lazily()
-		var c1, c2 *Company
 		fn1 := func() {
 			assert.NotNil(t, company1Ref)
 		}
-		_, err := query.LoadWithEval( "companies/1", fn1, &company1Ref)
+		lazy1, err := query.LoadWithEval("companies/1", fn1, &company1Ref)
 		assert.NoError(t, err)
 
 		fn2 := func() {
 			assert.NotNil(t, company2Ref)
 		}
-		_, err = query.LoadWithEval( "companies/2", fn2, &company2Ref)
+		lazy2, err := query.LoadWithEval("companies/2", fn2, &company2Ref)
 		assert.NoError(t, err)
 
 		assert.Nil(t, company1Ref)
@@ -130,6 +129,11 @@ func lazyCanExecuteAllPendingLazyOperations(t *testing.T, driver *RavenTestDrive
 		assert.Equal(t, company1Ref.ID, "companies/1")
 		assert.Equal(t, company2Ref.ID, "companies/2")
 
+		var c1, c2 *Company
+		err = lazy1.GetValue(&c1)
+		assert.NoError(t, err)
+		err = lazy2.GetValue(&c2)
+		assert.NoError(t, err)
 		assert.Equal(t, c1, company1Ref)
 		assert.Equal(t, c2, company2Ref)
 
@@ -164,7 +168,7 @@ func lazyWithQueuedActionsLoad(t *testing.T, driver *RavenTestDriver) {
 		fn := func() {
 			assert.NotNil(t, userRef)
 		}
-		lazy, err := query.LoadWithEval( "users/1", fn, &userRef)
+		lazy, err := query.LoadWithEval("users/1", fn, &userRef)
 		assert.NoError(t, err)
 		lazy.Value = &userRef
 
@@ -213,7 +217,7 @@ func lazyCanUseCacheWhenLazyLoading(t *testing.T, driver *RavenTestDriver) {
 
 	{
 		session := openSessionMust(t, store)
-		lazyUser, err := session.Advanced().Lazily().Load( "users/1")
+		lazyUser, err := session.Advanced().Lazily().Load("users/1")
 		assert.NoError(t, err)
 		assert.False(t, lazyUser.IsValueCreated())
 
@@ -283,7 +287,7 @@ func lazDontLazyLoadAlreadyLoadedValues(t *testing.T, driver *RavenTestDriver) {
 
 		oldRequestCount := session.Advanced().GetNumberOfRequests()
 
-		lazyLoad, err = session.Advanced().Lazily().LoadMulti( []string{"users/3"})
+		lazyLoad, err = session.Advanced().Lazily().LoadMulti([]string{"users/3"})
 		assert.NoError(t, err)
 		_, err = session.Advanced().Eagerly().ExecuteAllPendingLazyOperations()
 		assert.NoError(t, err)
@@ -302,9 +306,7 @@ func TestLazy(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	if enableFailingTests {
-		lazyCanExecuteAllPendingLazyOperations(t, driver)
-	}
+	lazyCanExecuteAllPendingLazyOperations(t, driver)
 
 	if enableFailingTests {
 		lazyCanLazilyLoadEntity(t, driver)
