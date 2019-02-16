@@ -103,10 +103,10 @@ func moreLikeThisCanGetResultsUsingTermVectorsLazy(t *testing.T, driver *RavenTe
 			ops.WithOptions(options)
 		}
 		query = query.MoreLikeThisWithBuilder(builder)
-		var list []*Data
-		lazyLst, err := query.Lazily(&list, nil)
+		lazyLst, err := query.Lazily()
 		assert.NoError(t, err)
-		err = lazyLst.GetValue()
+		var list []*Data
+		err = lazyLst.GetValue(&list)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, list)
 		// TODO: more precise check that returned the right values

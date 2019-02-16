@@ -16,6 +16,12 @@ func newClientSessionID() int {
 	return int(newID)
 }
 
+
+type onLazyEval struct {
+	fn func()
+	result interface{}
+}
+
 // InMemoryDocumentSessionOperations represents database operations queued
 // in memory
 type InMemoryDocumentSessionOperations struct {
@@ -24,7 +30,7 @@ type InMemoryDocumentSessionOperations struct {
 	requestExecutor             *RequestExecutor
 	operationExecutor           *OperationExecutor
 	pendingLazyOperations       []ILazyOperation
-	onEvaluateLazy              map[ILazyOperation]func(interface{}) error
+	onEvaluateLazy              map[ILazyOperation]*onLazyEval
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
 	saveChangesOptions          *BatchOptions
@@ -1226,7 +1232,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
-	// this is a no-op
+	setInterfaceToValue(results, result)
 	return nil
 }
 

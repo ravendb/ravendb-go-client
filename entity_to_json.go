@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -43,7 +44,8 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 }
 
 // assumes v is ptr-to-struct and result is ptr-to-ptr-to-struct
-func setInterfaceToValue(result interface{}, v interface{}) {
+// TODO: return an error and propagate
+func setInterfaceToValue(result interface{}, v interface{}) error {
 	out := reflect.ValueOf(result)
 	outt := out.Type()
 	outk := out.Kind()
@@ -59,7 +61,14 @@ func setInterfaceToValue(result interface{}, v interface{}) {
 	//fmt.Printf("outt: %s, outk: %s\n", outt, outk)
 	vin := reflect.ValueOf(v)
 	//fmt.Printf("int: %s, ink: %s\n", vin.Type(), vin.Kind())
+	if !out.CanSet() {
+		return fmt.Errorf("cannot set out %s\n", out.String())
+	}
+	// TODO: it can still fail. Need to lift implemention of
+	// func directlyAssignable(T, V *rtype) bool {
+	// from reflect package
 	out.Set(vin)
+	return nil
 }
 
 // makes a copy of a map and returns a pointer to it

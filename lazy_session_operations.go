@@ -18,47 +18,50 @@ func (o *LazySessionOperations) Include(path string) *LazyMultiLoaderWithInclude
 	return NewLazyMultiLoaderWithInclude(o.delegate).Include(path)
 }
 
-func (o *LazySessionOperations) Load(result interface{}, id string, onEval func(interface{})) (*Lazy, error) {
+func (o *LazySessionOperations) LoadWithEval(id string, onEval func(), onEvalResult interface{}) (*Lazy, error) {
 	if id == "" {
 		return nil, newIllegalArgumentError("id cannot be empty string")
-	}
-	// TODO: should allow map[string]interface{} as argument? (and therefore use checkValidLoadArg)
-	if err := checkIsPtrPtrStruct(result, "result"); err != nil {
-		return nil, err
 	}
 	if o.delegate.IsLoaded(id) {
 		fn := func(result interface{}) error {
 			// TODO: test for this code path
 			return o.delegate.Load(result, id)
 		}
-		return newLazy(result, fn, nil), nil
+		return newLazy(fn), nil
 	}
 
 	session := o.delegate.InMemoryDocumentSessionOperations
 	op := NewLoadOperation(session).byID(id)
-	lazyLoadOperation := NewLazyLoadOperation(result, session, op).byID(id)
-	return o.delegate.addLazyOperation(result, lazyLoadOperation, onEval), nil
+	lazyLoadOperation := newLazyLoadOperation(session, op).byID(id)
+	return o.delegate.addLazyOperation(lazyLoadOperation, onEval, onEvalResult), nil
+}
+
+func (o *LazySessionOperations) Load(id string) (*Lazy, error) {
+	return o.LoadWithEval(id, nil, nil)
 }
 
 // LoadStartingWith returns Lazy object for lazily loading multiple value
 // of a given type and matching args
 // results should be map[string]*Struct
-func (o *LazySessionOperations) LoadStartingWith(results interface{}, args *StartsWithArgs) *Lazy {
+func (o *LazySessionOperations) LoadStartingWith(args *StartsWithArgs) *Lazy {
 	session := o.delegate.InMemoryDocumentSessionOperations
-	operation := NewLazyStartsWithOperation(results, args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
+	operation := NewLazyStartsWithOperation(args.StartsWith, args.Matches, args.Exclude, args.Start, args.PageSize, session, args.StartAfter)
 
-	return o.delegate.addLazyOperation(results, operation, nil)
+	return o.delegate.addLazyOperation(operation, nil, nil)
 }
 
 // LoadMulti returns Lazy object for lazily loading multiple values
 // of a given type and with given ids
-func (o *LazySessionOperations) LoadMulti(results interface{}, ids []string, onEval func(interface{})) (*Lazy, error) {
+func (o *LazySessionOperations) LoadMulti(ids []string) (*Lazy, error) {
 	if len(ids) == 0 {
 		return nil, newIllegalArgumentError("ids cannot be empty array")
 	}
-	if err := checkValidLoadMultiArg(results, "results"); err != nil {
-		return nil, err
-	}
+	return o.delegate.lazyLoadInternal(ids, nil, nil, nil), nil
+}
 
-	return o.delegate.lazyLoadInternal(results, ids, nil, onEval), nil
+func (o *LazySessionOperations) LoadMultiWithEval(ids []string, onEval func(), onEvalResult interface{}) (*Lazy, error) {
+	if len(ids) == 0 {
+		return nil, newIllegalArgumentError("ids cannot be empty array")
+	}
+	return o.delegate.lazyLoadInternal(ids, nil, onEval, onEvalResult), nil
 }

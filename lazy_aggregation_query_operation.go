@@ -9,7 +9,7 @@ type LazyAggregationQueryOperation struct {
 	invokeAfterQueryExecuted func(*QueryResult)
 	processResults           func(*QueryResult, *DocumentConventions) (map[string]*FacetResult, error)
 
-	result        interface{}
+	result        map[string]*FacetResult
 	queryResult   *QueryResult
 	requiresRetry bool
 }
@@ -24,6 +24,7 @@ func newLazyAggregationQueryOperation(conventions *DocumentConventions, indexQue
 	}
 }
 
+// needed for ILazyOperation
 func (o *LazyAggregationQueryOperation) createRequest() *getRequest {
 	request := &getRequest{
 		url:     "/queries",
@@ -35,8 +36,8 @@ func (o *LazyAggregationQueryOperation) createRequest() *getRequest {
 }
 
 // needed for ILazyOperation
-func (o *LazyAggregationQueryOperation) getResult() interface{} {
-	return o.result
+func (o *LazyAggregationQueryOperation) getResult(results interface{}) error {
+	return setInterfaceToValue(results, o.result)
 }
 
 // needed for ILazyOperation
@@ -49,6 +50,7 @@ func (o *LazyAggregationQueryOperation) isRequiresRetry() bool {
 	return o.requiresRetry
 }
 
+// needed for ILazyOperation
 func (o *LazyAggregationQueryOperation) handleResponse(response *GetResponse) error {
 	if response.IsForceRetry {
 		o.result = nil

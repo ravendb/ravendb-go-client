@@ -146,6 +146,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 
 // TODO:    protected string generateID(Object entity) {
 
+
 func (s *DocumentSession) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
 	var requests []*getRequest
 	var pendingTmp []ILazyOperation
@@ -184,12 +185,13 @@ func (s *DocumentSession) executeAllPendingLazyOperations() (*ResponseTimeInform
 	responseTimeDuration.computeServerTotal()
 
 	for _, pendingLazyOperation := range s.pendingLazyOperations {
-		fn := s.onEvaluateLazy[pendingLazyOperation]
-		if fn != nil {
-			err := fn(pendingLazyOperation.getResult())
+		onLazyEval := s.onEvaluateLazy[pendingLazyOperation]
+		if onLazyEval != nil {
+			err := pendingLazyOperation.getResult(onLazyEval.result)
 			if err != nil {
 				return nil, err
 			}
+			onLazyEval.fn()
 		}
 	}
 
@@ -239,70 +241,67 @@ func (s *DocumentSession) Include(path string) *MultiLoaderWithInclude {
 	return NewMultiLoaderWithInclude(s).Include(path)
 }
 
-// TODO: probably doesn't need result for lazy operations it's already embedded in the operation
-func (s *DocumentSession) addLazyOperation(result interface{}, operation ILazyOperation, onEval func(interface{})) *Lazy {
+func (s *DocumentSession) addLazyOperation(operation ILazyOperation, onEval func(), onEvalResult interface{}) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	fn := func(res interface{}) error {
+	fn := func(result interface{}) error {
 		_, err := s.executeAllPendingLazyOperations()
-		// operation carries the result to be set
+		if err != nil {
+			return err
+		}
+		err = operation.getResult(result)
 		return err
 	}
-	lazyValue := newLazy(result, fn, nil)
+	lazyValue := newLazy(fn)
+
 	if onEval != nil {
 		if s.onEvaluateLazy == nil {
-			s.onEvaluateLazy = map[ILazyOperation]func(interface{}) error{}
+			s.onEvaluateLazy = map[ILazyOperation]*onLazyEval{}
 		}
-		fn := func(theResult interface{}) error {
-			err := s.getOperationResult(result, theResult)
-			if err != nil {
-				return err
-			}
-			// result is *<type>, we want <type> in onEval()
-			v := reflect.ValueOf(result).Elem().Interface()
-			onEval(v)
-			return nil
+		// TODO: make sure this is tested
+		s.onEvaluateLazy[operation] = &onLazyEval{
+			fn: onEval,
+			result: onEvalResult,
 		}
-		s.onEvaluateLazy[operation] = fn
 	}
 
 	return lazyValue
 }
 
-func (s *DocumentSession) addLazyCountOperation(count *int, operation ILazyOperation) *Lazy {
+func (s *DocumentSession) addLazyCountOperation(operation ILazyOperation) *Lazy {
 	s.pendingLazyOperations = append(s.pendingLazyOperations, operation)
 
-	fn := func(res interface{}) error {
+	fn := func(result interface{}) error {
 		_, err := s.executeAllPendingLazyOperations()
 		if err != nil {
 			return err
 		}
-		panicIf(count != res.(*int), "expected res to be the same as count, res type is %T", res)
+		count := result.(*int)
 		*count = operation.getQueryResult().TotalResults
 		return nil
 	}
-	return newLazy(count, fn, nil)
+	return newLazy(fn)
 }
 
-func (s *DocumentSession) lazyLoadInternal(results interface{}, ids []string, includes []string, onEval func(interface{})) *Lazy {
+func (s *DocumentSession) lazyLoadInternal(ids []string, includes []string, onEval func(), onEvalResult interface{}) *Lazy {
 	if s.checkIfIdAlreadyIncluded(ids, includes) {
-		fn := func(res interface{}) error {
+		fn := func(results interface{}) error {
 			// res should be the same as results
 			err := s.LoadMulti(results, ids)
 			return err
 		}
-		return newLazy(results, fn, nil)
+		return newLazy(fn)
 	}
 
 	loadOperation := NewLoadOperation(s.InMemoryDocumentSessionOperations)
 	loadOperation = loadOperation.byIds(ids)
 	loadOperation = loadOperation.withIncludes(includes)
 
-	lazyOp := NewLazyLoadOperation(results, s.InMemoryDocumentSessionOperations, loadOperation)
+	lazyOp := newLazyLoadOperation(s.InMemoryDocumentSessionOperations, loadOperation)
 	lazyOp = lazyOp.byIds(ids)
 	lazyOp = lazyOp.withIncludes(includes)
 
-	return s.addLazyOperation(results, lazyOp, onEval)
+	return s.addLazyOperation(lazyOp, onEval, onEvalResult)
 }
 
 func checkIsPtrPtrStruct(v interface{}, argName string) error {

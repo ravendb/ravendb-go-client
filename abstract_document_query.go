@@ -2258,7 +2258,7 @@ func (q *abstractDocumentQuery) aggregateUsing(facetSetupDocumentID string) erro
 	return nil
 }
 
-func (q *abstractDocumentQuery) Lazily(results interface{}, onEval func(interface{})) (*Lazy, error) {
+func (q *abstractDocumentQuery) Lazily() (*Lazy, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
@@ -2269,18 +2269,15 @@ func (q *abstractDocumentQuery) Lazily(results interface{}, onEval func(interfac
 		}
 	}
 
-	lazyQueryOperation := NewLazyQueryOperation(results, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
-	return q.theSession.session.addLazyOperation(results, lazyQueryOperation, onEval), nil
+	lazyQueryOperation := newLazyQueryOperation(q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
+	return q.theSession.session.addLazyOperation(lazyQueryOperation, nil, nil), nil
 }
 
 // CountLazily returns a lazy operation that returns number of results in a query. It'll set *count to
 // number of results after Lazy.GetResult() is called.
 // results should be of type []<type> and is only provided so that we know this is a query for <type>
 // TODO: figure out better API.
-func (q *abstractDocumentQuery) CountLazily(results interface{}, count *int) (*Lazy, error) {
-	if count == nil {
-		return nil, newIllegalArgumentError("count can't be nil")
-	}
+func (q *abstractDocumentQuery) CountLazily() (*Lazy, error) {
 	if q.queryOperation == nil {
 		q.take(0)
 		var err error
@@ -2290,8 +2287,8 @@ func (q *abstractDocumentQuery) CountLazily(results interface{}, count *int) (*L
 		}
 	}
 
-	lazyQueryOperation := NewLazyQueryOperation(results, q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
-	return q.theSession.session.addLazyCountOperation(count, lazyQueryOperation), nil
+	lazyQueryOperation := newLazyQueryOperation(q.theSession.GetConventions(), q.queryOperation, q.afterQueryExecutedCallback)
+	return q.theSession.session.addLazyCountOperation(lazyQueryOperation), nil
 }
 
 // suggestUsing adds a query part for suggestions

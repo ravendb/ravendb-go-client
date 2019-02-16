@@ -56,12 +56,12 @@ func suggestionsLazyUsingLinq(t *testing.T, driver *RavenTestDriver) {
 		x = x.ByField("name", "Owen")
 		q2 := q.SuggestUsing(x.GetSuggestion())
 
-		result := map[string]*ravendb.SuggestionResult{}
-		suggestionQueryResult, err := q2.ExecuteLazy(result, nil)
+		suggestionQueryResult, err := q2.ExecuteLazy()
 		assert.NoError(t, err)
 		assert.Equal(t, oldRequests, s.Advanced().GetNumberOfRequests())
 
-		err = suggestionQueryResult.GetValue()
+		result := map[string]*ravendb.SuggestionResult{}
+		err = suggestionQueryResult.GetValue(&result)
 		assert.NoError(t, err)
 		suggestions := result["name"].Suggestions
 		assert.Equal(t, len(suggestions), 1)

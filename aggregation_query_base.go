@@ -51,7 +51,7 @@ func (q *aggregationQueryBase) Execute() (map[string]*FacetResult, error) {
 
 // arg to onEval is map[string]*FacetResult
 // results is map[string]*FacetResult
-func (q *aggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEval func(interface{})) (*Lazy, error) {
+func (q *aggregationQueryBase) ExecuteLazy() (*Lazy, error) {
 	if q.err != nil {
 		return nil, q.err
 	}
@@ -66,7 +66,9 @@ func (q *aggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEv
 		q.invokeAfterQueryExecuted(result)
 	}
 
+
 	processResultFn := func(queryResult *QueryResult, conventions *DocumentConventions) (map[string]*FacetResult, error) {
+		results := map[string]*FacetResult{}
 		res, err := q.processResults(queryResult, conventions)
 		if err != nil {
 			return nil, err
@@ -79,7 +81,7 @@ func (q *aggregationQueryBase) ExecuteLazy(results map[string]*FacetResult, onEv
 		return res, nil
 	}
 	op := newLazyAggregationQueryOperation(q.session.Conventions, q.query, afterFn, processResultFn)
-	return q.session.session.addLazyOperation(results, op, onEval), nil
+	return q.session.session.addLazyOperation(op, nil, nil), nil
 }
 
 /*

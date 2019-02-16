@@ -279,11 +279,11 @@ func (s *DocumentStore) Close() {
 			continue
 		}
 
-		err := value.GetValue()
+		var evict *EvictItemsFromCacheBasedOnChanges
+		err := value.GetValue(&evict)
 		if err != nil {
-			v := value.Value.(**EvictItemsFromCacheBasedOnChanges)
-			if v != nil {
-				(*v).Close()
+			if evict != nil {
+				evict.Close()
 			}
 		}
 	}
@@ -555,15 +555,15 @@ func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
 			*resultPtr = res
 			return nil
 		}
-		var results *EvictItemsFromCacheBasedOnChanges
-		lazy = newLazy(&results, valueFactory, nil)
+		lazy = newLazy(valueFactory)
 
 		s.mu.Lock()
 		s.aggressiveCacheChanges[database] = lazy
 		s.mu.Unlock()
 	}
 
-	lazy.GetValue() // force evaluation
+	var results *EvictItemsFromCacheBasedOnChanges
+	lazy.GetValue(&results) // force evaluation
 }
 
 func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) int {
