@@ -156,9 +156,9 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 		session := openSessionMust(t, store)
 
 		advanced := session.Advanced()
-		_, err = advanced.Lazily().Load( "user5s/2-A")
+		_, err = advanced.Lazily().Load("user5s/2-A")
 		assert.NoError(t, err)
-		_, err = advanced.Lazily().Load( "user5s/1-A")
+		_, err = advanced.Lazily().Load("user5s/1-A")
 		assert.NoError(t, err)
 
 		_, err = advanced.Eagerly().ExecuteAllPendingLazyOperations()
@@ -166,7 +166,7 @@ func cofiCanAvoidUsingServerForLoadWithIncludeIfEverythingIsInSessionCacheLazy(t
 
 		oldCount := advanced.GetNumberOfRequests()
 
-		resultLazy, err := advanced.Lazily().Include("PartnerId").Load( "user5s/2-A")
+		resultLazy, err := advanced.Lazily().Include("PartnerId").Load("user5s/2-A")
 		assert.NoError(t, err)
 		var user *User
 		err = resultLazy.GetValue(&user)

@@ -34,7 +34,9 @@ go clean -testcache
 
 #go test -v -race -timeout 60s ./tests -run ^TestGo1$
 
-if (1) {
+go test -v -race -timeout 950s ./tests -run ^TestCachingOfDocumentInclude$
+
+if (0) {
     # tests for lazy
     go test -v -race -timeout 950s ./tests -run ^TestLazyAggregationEmbeddedLazy$
     go test -v -race -timeout 50s ./tests -run ^TestLazy$

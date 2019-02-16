@@ -9,8 +9,8 @@ type LazyLoadOperation struct {
 	_ids           []string
 	_includes      []string
 
-	hasItems bool
-	queryResult   *QueryResult
+	hasItems    bool
+	queryResult *QueryResult
 	//result interface{}
 	requiresRetry bool
 }
@@ -85,7 +85,11 @@ func (o *LazyLoadOperation) withIncludes(includes []string) *LazyLoadOperation {
 // needed for ILazyOperation
 func (o *LazyLoadOperation) getResult(result interface{}) error {
 	if o.hasItems {
-		return o._loadOperation.getDocuments(result)
+		err := o._loadOperation.getDocuments(result)
+		if err != nil && len(o._ids) == 1 {
+			err = o._loadOperation.getDocument(result)
+		}
+		return err
 	}
 
 	if o.requiresRetry {
