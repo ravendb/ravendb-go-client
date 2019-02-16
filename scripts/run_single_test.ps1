@@ -34,7 +34,7 @@ go clean -testcache
 
 #go test -v -race -timeout 60s ./tests -run ^TestGo1$
 
-go test -v -race -timeout 950s ./tests -run ^TestLoadAllStartingWith$
+go test -v -race -timeout 950s ./tests -run ^TestLazy$
 
 if (0) {
     # tests for lazy
