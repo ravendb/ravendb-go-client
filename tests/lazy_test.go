@@ -44,8 +44,8 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 		assert.False(t, lazyOrders.IsValueCreated())
 
-		var orders map[string]*Company
-		err = lazyOrders.GetValue(&orders)
+		orders := map[string]*Company{}
+		err = lazyOrders.GetValue(orders)
 		assert.NoError(t, err)
 		assert.Equal(t, len(orders), 2)
 
@@ -71,8 +71,8 @@ func lazyCanLazilyLoadEntity(t *testing.T, driver *RavenTestDriver) {
 
 		load, err := session.Advanced().Lazily().LoadMulti([]string{"no_such_1", "no_such_2"})
 		assert.NoError(t, err)
-		var missingItems map[string]*Company
-		err = load.GetValue(&missingItems)
+		missingItems := map[string]*Company{}
+		err = load.GetValue(missingItems)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(missingItems))
 
@@ -281,7 +281,7 @@ func lazDontLazyLoadAlreadyLoadedValues(t *testing.T, driver *RavenTestDriver) {
 		assert.True(t, session.Advanced().IsLoaded("users/1"))
 
 		users := map[string]*User{}
-		err = lazyLoad.GetValue(&users)
+		err = lazyLoad.GetValue(users)
 		assert.NoError(t, err)
 		assert.Equal(t, len(users), 2)
 
@@ -307,16 +307,10 @@ func TestLazy(t *testing.T) {
 
 	// matches order of Java tests
 	lazyCanExecuteAllPendingLazyOperations(t, driver)
-
-	if enableFailingTests {
-		lazyCanLazilyLoadEntity(t, driver)
-	}
-
+	lazyCanLazilyLoadEntity(t, driver)
 	lazyCanUseCacheWhenLazyLoading(t, driver)
 	lazyWithQueuedActionsLoad(t, driver)
 
 	// TODO: order not same as Java
-	if enableFailingTests {
-		lazDontLazyLoadAlreadyLoadedValues(t, driver)
-	}
+	lazDontLazyLoadAlreadyLoadedValues(t, driver)
 }
