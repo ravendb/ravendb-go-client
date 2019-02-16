@@ -45,8 +45,8 @@ func loadAllStartingWithLoadAllStartingWith(t *testing.T, driver *RavenTestDrive
 		}
 		testClasses := session.Advanced().Lazily().LoadStartingWith(args)
 
-		var v map[string]*Abc
-		err = testClasses.GetValue(&v)
+		v := map[string]*Abc{}
+		err = testClasses.GetValue(v)
 		assert.NoError(t, err)
 		assert.Equal(t, len(v), 1)
 		assert.Equal(t, v["abc/1"].ID, "abc/1")
@@ -71,7 +71,5 @@ func TestLoadAllStartingWith(t *testing.T) {
 	defer recoverTest(t, destroy)
 
 	// matches order of Java tests
-	if enableFailingTests {
-		loadAllStartingWithLoadAllStartingWith(t, driver)
-	}
+	loadAllStartingWithLoadAllStartingWith(t, driver)
 }

@@ -48,12 +48,11 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 func setInterfaceToValue(result interface{}, v interface{}) error {
 	out := reflect.ValueOf(result)
 	outt := out.Type()
-	outk := out.Kind()
 	//fmt.Printf("outt: %s, outk: %s\n", outt, outk)
-	if outk == reflect.Ptr && out.IsNil() {
+	if outt.Kind() == reflect.Ptr && out.IsNil() {
 		out.Set(reflect.New(outt.Elem()))
 	}
-	if outk == reflect.Ptr {
+	if outt.Kind() == reflect.Ptr {
 		out = out.Elem()
 		//outt = out.Type()
 		//outk = out.Kind()
