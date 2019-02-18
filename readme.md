@@ -6,6 +6,10 @@ This library requires go 1.11 or later.
 
 API reference: https://godoc.org/github.com/ravendb/ravendb-go-client
 
+This library is in beta state. All the basic functionality works and passes extensive [test suite](/tests), but the API for more esoteric features might change.
+
+If you encounter bugs or have suggestions, please [open an issue](https://github.com/ravendb/ravendb-go-client/issues).
+
 ## Documentation
 
 To learn basics of RavenDB, read [RavenDB Documentation](https://ravendb.net/docs/article-page/4.1/csharp) or [Dive into RavenDB](https://demo.ravendb.net/).
