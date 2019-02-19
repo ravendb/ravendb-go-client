@@ -781,8 +781,8 @@ if err != nil {
     log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
 }
 
-tp := reflect.TypeOf(&northwind.Employee{})
-revisions, err := session.Advanced().Revisions().GetFor(tp, e.ID)
+var revisions []*northwind.Employee
+err = session.Advanced().Revisions().GetFor(&revisions, e.ID)
 ```
 See `revisions()` in [examples/main.go](examples/main.go) for full example.
 
