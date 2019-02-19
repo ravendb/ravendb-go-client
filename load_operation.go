@@ -6,34 +6,35 @@ import (
 	"strings"
 )
 
+// LoadOperation represents a load operation
 type LoadOperation struct {
-	_session *InMemoryDocumentSessionOperations
+	session *InMemoryDocumentSessionOperations
 
-	_ids                []string
-	_includes           []string
-	_idsToCheckOnServer []string
+	ids                []string
+	includes           []string
+	idsToCheckOnServer []string
 }
 
-func NewLoadOperation(_session *InMemoryDocumentSessionOperations) *LoadOperation {
+func NewLoadOperation(session *InMemoryDocumentSessionOperations) *LoadOperation {
 	return &LoadOperation{
-		_session: _session,
+		session: session,
 	}
 }
 
 func (o *LoadOperation) createRequest() (*GetDocumentsCommand, error) {
-	if len(o._idsToCheckOnServer) == 0 {
+	if len(o.idsToCheckOnServer) == 0 {
 		return nil, nil
 	}
 
-	if o._session.checkIfIdAlreadyIncluded(o._ids, o._includes) {
+	if o.session.checkIfIdAlreadyIncluded(o.ids, o.includes) {
 		return nil, nil
 	}
 
-	if err := o._session.incrementRequestCount(); err != nil {
+	if err := o.session.incrementRequestCount(); err != nil {
 		return nil, err
 	}
 
-	return NewGetDocumentsCommand(o._idsToCheckOnServer, o._includes, false)
+	return NewGetDocumentsCommand(o.idsToCheckOnServer, o.includes, false)
 }
 
 func (o *LoadOperation) byID(id string) *LoadOperation {
@@ -41,25 +42,25 @@ func (o *LoadOperation) byID(id string) *LoadOperation {
 		return o
 	}
 
-	if o._ids == nil {
-		o._ids = []string{id}
+	if o.ids == nil {
+		o.ids = []string{id}
 	}
 
-	if o._session.IsLoadedOrDeleted(id) {
+	if o.session.IsLoadedOrDeleted(id) {
 		return o
 	}
 
-	o._idsToCheckOnServer = append(o._idsToCheckOnServer, id)
+	o.idsToCheckOnServer = append(o.idsToCheckOnServer, id)
 	return o
 }
 
 func (o *LoadOperation) withIncludes(includes []string) *LoadOperation {
-	o._includes = includes
+	o.includes = includes
 	return o
 }
 
 func (o *LoadOperation) byIds(ids []string) *LoadOperation {
-	o._ids = stringArrayCopy(ids)
+	o.ids = stringArrayCopy(ids)
 
 	seen := map[string]struct{}{}
 	for _, id := range ids {
@@ -77,7 +78,7 @@ func (o *LoadOperation) byIds(ids []string) *LoadOperation {
 }
 
 func (o *LoadOperation) getDocument(result interface{}) error {
-	return o.getDocumentWithID(result, o._ids[0])
+	return o.getDocumentWithID(result, o.ids[0])
 }
 
 func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
@@ -87,22 +88,22 @@ func (o *LoadOperation) getDocumentWithID(result interface{}, id string) error {
 		return nil
 	}
 
-	if o._session.IsDeleted(id) {
+	if o.session.IsDeleted(id) {
 		// TODO: return ErrDeleted?
 		//return ErrNotFound
 		return nil
 	}
 
-	doc := o._session.documentsByID.getValue(id)
+	doc := o.session.documentsByID.getValue(id)
 	if doc == nil {
-		doc = o._session.includedDocumentsByID[id]
+		doc = o.session.includedDocumentsByID[id]
 	}
 	if doc == nil {
 		//return ErrNotFound
 		return nil
 	}
 
-	return o._session.TrackEntityInDocumentInfo(result, doc)
+	return o.session.TrackEntityInDocumentInfo(result, doc)
 }
 
 var stringType = reflect.TypeOf("")
@@ -128,7 +129,7 @@ func (o *LoadOperation) getDocuments(results interface{}) error {
 		return fmt.Errorf("results should be a map[string]*struct, is %s. tp: %s", m.Type().String(), m.Type().String())
 	}
 
-	uniqueIds := stringArrayCopy(o._ids)
+	uniqueIds := stringArrayCopy(o.ids)
 	stringArrayRemove(&uniqueIds, "")
 	uniqueIds = stringArrayRemoveDuplicatesNoCase(uniqueIds)
 	for _, id := range uniqueIds {
@@ -150,7 +151,7 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 		return
 	}
 
-	o._session.registerIncludes(result.Includes)
+	o.session.registerIncludes(result.Includes)
 
 	results := result.Results
 	for _, document := range results {
@@ -159,8 +160,8 @@ func (o *LoadOperation) setResult(result *GetDocumentsResult) {
 			continue
 		}
 		newDocumentInfo := getNewDocumentInfo(document)
-		o._session.documentsByID.add(newDocumentInfo)
+		o.session.documentsByID.add(newDocumentInfo)
 	}
 
-	o._session.registerMissingIncludes(result.Results, result.Includes, o._includes)
+	o.session.registerMissingIncludes(result.Results, result.Includes, o.includes)
 }

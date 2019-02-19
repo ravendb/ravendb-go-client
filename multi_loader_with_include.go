@@ -7,18 +7,18 @@ import (
 // ILoaderWithInclude is NewMultiLoaderWithInclude
 
 type MultiLoaderWithInclude struct {
-	_session  *DocumentSession
-	_includes []string
+	session  *DocumentSession
+	includes []string
 }
 
 func NewMultiLoaderWithInclude(session *DocumentSession) *MultiLoaderWithInclude {
 	return &MultiLoaderWithInclude{
-		_session: session,
+		session: session,
 	}
 }
 
 func (l *MultiLoaderWithInclude) Include(path string) *MultiLoaderWithInclude {
-	l._includes = append(l._includes, path)
+	l.includes = append(l.includes, path)
 	return l
 }
 
@@ -31,7 +31,7 @@ func (l *MultiLoaderWithInclude) LoadMulti(results interface{}, ids []string) er
 		return err
 	}
 
-	return l._session.loadInternalMulti(results, ids, l._includes)
+	return l.session.loadInternalMulti(results, ids, l.includes)
 }
 
 // TODO: needs a test
@@ -52,7 +52,7 @@ func (l *MultiLoaderWithInclude) Load(result interface{}, id string) error {
 	mapType := reflect.MapOf(stringType, rt)
 	m := reflect.MakeMap(mapType)
 	ids := []string{id}
-	err := l._session.loadInternalMulti(m.Interface(), ids, l._includes)
+	err := l.session.loadInternalMulti(m.Interface(), ids, l.includes)
 	if err != nil {
 		return err
 	}
