@@ -19,6 +19,19 @@ func collectUserNamesSorted(a []*User) []string {
 	return names
 }
 
+func createRevisions(t *testing.T, store *ravendb.DocumentStore) {
+	for i := 0; i < 4; i++ {
+		session := openSessionMust(t, store)
+		user := &User{}
+		user.setName("user" + strconv.Itoa(i+1))
+		err := session.StoreWithID(user, "users/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+	}
+}
+
 func revisionsTestRevisions(t *testing.T, driver *RavenTestDriver) {
 
 	var err error
@@ -28,16 +41,7 @@ func revisionsTestRevisions(t *testing.T, driver *RavenTestDriver) {
 	_, err = setupRevisions(store, false, 4)
 	assert.NoError(t, err)
 
-	for i := 0; i < 4; i++ {
-		session := openSessionMust(t, store)
-		user := &User{}
-		user.setName("user" + strconv.Itoa(i+1))
-		err = session.StoreWithID(user, "users/1")
-		assert.NoError(t, err)
-		err = session.SaveChanges()
-		assert.NoError(t, err)
-		session.Close()
-	}
+	createRevisions(t, store)
 
 	{
 		session := openSessionMust(t, store)
@@ -99,6 +103,8 @@ func revisionsTestCanListRevisionsBin(t *testing.T, driver *RavenTestDriver) {
 	_, err = setupRevisions(store, false, 4)
 	assert.NoError(t, err)
 
+	createRevisions(t, store)
+
 	{
 		session := openSessionMust(t, store)
 
@@ -133,6 +139,44 @@ func revisionsTestCanListRevisionsBin(t *testing.T, driver *RavenTestDriver) {
 	assert.Equal(t, id, "users/1")
 }
 
+// for better code coverage
+func goRevisionsTest(t *testing.T, driver *RavenTestDriver) {
+
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	_, err = setupRevisions(store, false, 4)
+	assert.NoError(t, err)
+
+	createRevisions(t, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		allMetadata, err := session.Advanced().Revisions().GetMetadataFor("users/1")
+		assert.NoError(t, err)
+		assert.Equal(t, len(allMetadata), 4)
+
+		var changeVectors []string
+		for _, dict := range allMetadata {
+			var changeVector string
+			chvi, ok := dict.Get(ravendb.MetadataChangeVector)
+			if ok {
+				changeVector = chvi.(string)
+				changeVectors = append(changeVectors, changeVector)
+			}
+		}
+		assert.Equal(t, len(changeVectors), 4)
+
+		revisions := map[string]*User{}
+		err = session.Advanced().Revisions().GetRevisions(revisions, changeVectors)
+		assert.NoError(t, err)
+		assert.Equal(t, len(revisions), 4)
+		session.Close()
+	}
+}
+
 func TestRevisions(t *testing.T) {
 	// t.Parallel()
 
@@ -143,4 +187,7 @@ func TestRevisions(t *testing.T) {
 	revisionsTestRevisions(t, driver)
 	// TODO: order might be different than Java
 	revisionsTestCanListRevisionsBin(t, driver)
+
+	goRevisionsTest(t, driver)
 }
+

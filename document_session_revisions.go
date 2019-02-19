@@ -81,7 +81,6 @@ func (r *DocumentSessionRevisions) Get(result interface{}, changeVector string) 
 	return operation.GetRevision(result)
 }
 
-// TODO: needs tests
 func (r *DocumentSessionRevisions) GetRevisions(results interface{}, changeVectors []string) error {
 	operation := NewGetRevisionOperationWithChangeVectors(r.session, changeVectors);
 
