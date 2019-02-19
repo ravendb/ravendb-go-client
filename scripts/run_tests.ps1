@@ -46,11 +46,11 @@ if ($IsMacOS) {
     $Env:RAVENDB_JAVA_TEST_SERVER_PATH = "$ravdir\Raven.Server.exe"
 }
 
-# go test -covermode=atomic -coverprofile=coverage.txt
+# go test -tags for_tests -covermode=atomic -coverprofile=coverage.txt
 
 $sw = [Diagnostics.Stopwatch]::StartNew()
 # -parallel 1 to disable parallel execution of tests
-go test -parallel 1 -race -timeout 20m -v ./tests
+go test -tags for_tests -parallel 1 -race -timeout 20m -v ./tests
 Start-Sleep -s 3
 $sw.Stop()
 FormatElapsedTime $sw.Elapsed

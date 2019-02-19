@@ -53,7 +53,7 @@ func (o *queryOperation) setResult(queryResult *QueryResult) error {
 }
 
 func (o *queryOperation) assertPageSizeSet() error {
-	if !o.session.GetConventions().IsThrowIfQueryPageSizeIsNotSet() {
+	if !o.session.GetConventions().ErrorIfQueryPageSizeIsNotSet {
 		return nil
 	}
 

@@ -102,7 +102,7 @@ func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		documents:                     []*documentInfo{},
 		documentStore:                 store,
 		DatabaseName:                  dbName,
-		maxNumberOfRequestsPerSession: re.conventions._maxNumberOfRequestsPerSession,
+		maxNumberOfRequestsPerSession: re.conventions.MaxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
 		deferredCommandsMap:           map[idTypeAndName]ICommandData{},
 	}
@@ -704,7 +704,7 @@ func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, ch
 		return err
 	}
 
-	collectionName := s.requestExecutor.GetConventions().GetCollectionName(entity)
+	collectionName := s.requestExecutor.GetConventions().getCollectionName(entity)
 	metadata := map[string]interface{}{}
 	if collectionName != "" {
 		metadata[MetadataCollection] = collectionName
@@ -1261,7 +1261,7 @@ func processQueryParameters(clazz reflect.Type, indexName string, collectionName
 	}
 
 	if !isIndex && !isCollection {
-		collectionName = conventions.GetCollectionName(clazz)
+		collectionName = conventions.getCollectionName(clazz)
 		if collectionName == "" {
 			// TODO: what test would exercise this code path?
 			collectionName = MetadataAllDocumentsCollection

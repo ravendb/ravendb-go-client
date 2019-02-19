@@ -79,7 +79,7 @@ func (s *DocumentSubscriptions) ensureCriteria(criteria *SubscriptionCreationOpt
 		criteria = &SubscriptionCreationOptions{}
 	}
 
-	collectionName := s.store.GetConventions().GetCollectionName(clazz)
+	collectionName := s.store.GetConventions().getCollectionName(clazz)
 	if criteria.Query == "" {
 		if revisions {
 			criteria.Query = "from " + collectionName + " (Revisions = true) as doc"

@@ -452,7 +452,7 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb fun
 }
 
 func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb func(*DocumentChange)) (CancelFunc, error) {
-	collectionName := c.conventions.GetCollectionName(clazz)
+	collectionName := c.conventions.getCollectionName(clazz)
 	return c.ForDocumentsInCollection(collectionName, cb)
 }
 

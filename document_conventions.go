@@ -18,29 +18,33 @@ type DocumentIDGeneratorFunc func(dbName string, entity interface{}) (string, er
 
 // DocumentConventions describes document conventions
 type DocumentConventions struct {
-	_frozen                bool
-	_originalConfiguration *ClientConfiguration
+	frozen                bool
+	originalConfiguration *ClientConfiguration
 
-	_maxNumberOfRequestsPerSession int
+	MaxNumberOfRequestsPerSession int
 	// timeout for wait to server
 	Timeout                  time.Duration
 	UseOptimisticConcurrency bool
 	// JsonDefaultMethod = DocumentConventions.json_default
 	MaxLengthOfQueryUsingGetURL int
 	IdentityPartsSeparator      string
-	_disableTopologyUpdates     bool
+	disableTopologyUpdates      bool
 	// If set to 'true' then it will return an error when any query is performed (in session)
 	// without explicit page size set
 	RaiseIfQueryPageSizeIsNotSet bool // TODO: rename to ErrorIfQueryPageSizeIsNotSet
 
-	_documentIDGenerator DocumentIDGeneratorFunc
+	documentIDGenerator DocumentIDGeneratorFunc
 
-	ReadBalanceBehavior                             ReadBalanceBehavior
-	_transformClassCollectionNameToDocumentIDPrefix func(string) string
+	// allows overriding entity -> collection name logic
+	FindCollectionName func(interface{}) string
 
-	_throwIfQueryPageSizeIsNotSet bool
+	ReadBalanceBehavior                            ReadBalanceBehavior
+	transformClassCollectionNameToDocumentIDPrefix func(string) string
 
-	_maxHttpCacheSize int
+	// if true, will return error if page size is not set
+	ErrorIfQueryPageSizeIsNotSet bool
+
+	maxHttpCacheSize int
 
 	// a pointer to silence go vet when copying DocumentConventions wholesale
 	mu *sync.Mutex
@@ -57,47 +61,41 @@ func getDefaultConventions() *DocumentConventions {
 // NewDocumentConventions creates DocumentConventions with default values
 func NewDocumentConventions() *DocumentConventions {
 	return &DocumentConventions{
-		ReadBalanceBehavior:                             ReadBalanceBehaviorNone,
-		MaxLengthOfQueryUsingGetURL:                     1024 + 512,
-		IdentityPartsSeparator:                          "/",
-		_disableTopologyUpdates:                         false,
-		RaiseIfQueryPageSizeIsNotSet:                    false,
-		_transformClassCollectionNameToDocumentIDPrefix: getDefaultTransformCollectionNameToDocumentIdPrefix,
-		_maxNumberOfRequestsPerSession:                  32,
-		_maxHttpCacheSize:                               128 * 1024 * 1024,
-		mu:                                              &sync.Mutex{},
+		ReadBalanceBehavior:                            ReadBalanceBehaviorNone,
+		MaxLengthOfQueryUsingGetURL:                    1024 + 512,
+		IdentityPartsSeparator:                         "/",
+		disableTopologyUpdates:                         false,
+		RaiseIfQueryPageSizeIsNotSet:                   false,
+		transformClassCollectionNameToDocumentIDPrefix: getDefaultTransformCollectionNameToDocumentIdPrefix,
+		MaxNumberOfRequestsPerSession:                  32,
+		maxHttpCacheSize:                               128 * 1024 * 1024,
+		mu:                                             &sync.Mutex{},
 	}
 }
 
 func (c *DocumentConventions) getMaxHttpCacheSize() int {
-	return c._maxHttpCacheSize
+	return c.maxHttpCacheSize
 }
 
 func (c *DocumentConventions) Freeze() {
-	c._frozen = true
+	c.frozen = true
 }
 
-func (c *DocumentConventions) GetCollectionName(entityOrType interface{}) string {
+// GetCollectionNameDefault is a default way of
+func GetCollectionNameDefault(entityOrType interface{}) string {
 	name := getShortTypeNameForEntityOrType(entityOrType)
 	return ToPlural(name)
 }
 
-func (c *DocumentConventions) IsThrowIfQueryPageSizeIsNotSet() bool {
-	return c._throwIfQueryPageSizeIsNotSet
+func (c *DocumentConventions) getCollectionName(entityOrType interface{}) string {
+	if c.FindCollectionName != nil {
+		return c.FindCollectionName(entityOrType)
+	}
+	return GetCollectionNameDefault(entityOrType)
 }
 
 func getCollectionNameForTypeOrEntity(entityOrType interface{}) string {
 	name := getShortTypeNameForEntityOrType(entityOrType)
-	return ToPlural(name)
-}
-
-func GetCollectionNameForEntity(entity interface{}) string {
-	name := getShortTypeNameForEntity(entity)
-	return ToPlural(name)
-}
-
-func GetCollectionNameForType(typ reflect.Type) string {
-	name := getShortTypeNameForType(typ)
 	return ToPlural(name)
 }
 
@@ -109,30 +107,30 @@ func (c *DocumentConventions) UpdateFrom(configuration *ClientConfiguration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if configuration.IsDisabled && c._originalConfiguration == nil {
+	if configuration.IsDisabled && c.originalConfiguration == nil {
 		// nothing to do
 		return
 	}
 
-	if configuration.IsDisabled && c._originalConfiguration != nil {
+	if configuration.IsDisabled && c.originalConfiguration != nil {
 		// need to revert to original values
-		c._maxNumberOfRequestsPerSession = c._originalConfiguration.MaxNumberOfRequestsPerSession
-		c.ReadBalanceBehavior = c._originalConfiguration.ReadBalanceBehavior
+		c.MaxNumberOfRequestsPerSession = c.originalConfiguration.MaxNumberOfRequestsPerSession
+		c.ReadBalanceBehavior = c.originalConfiguration.ReadBalanceBehavior
 
-		c._originalConfiguration = nil
+		c.originalConfiguration = nil
 		return
 	}
 
-	if c._originalConfiguration == nil {
-		c._originalConfiguration = &ClientConfiguration{}
-		c._originalConfiguration.Etag = -1
-		c._originalConfiguration.MaxNumberOfRequestsPerSession = c._maxNumberOfRequestsPerSession
-		c._originalConfiguration.ReadBalanceBehavior = c.ReadBalanceBehavior
+	if c.originalConfiguration == nil {
+		c.originalConfiguration = &ClientConfiguration{}
+		c.originalConfiguration.Etag = -1
+		c.originalConfiguration.MaxNumberOfRequestsPerSession = c.MaxNumberOfRequestsPerSession
+		c.originalConfiguration.ReadBalanceBehavior = c.ReadBalanceBehavior
 	}
 
-	c._maxNumberOfRequestsPerSession = firstNonZero(configuration.MaxNumberOfRequestsPerSession, c._originalConfiguration.MaxNumberOfRequestsPerSession)
+	c.MaxNumberOfRequestsPerSession = firstNonZero(configuration.MaxNumberOfRequestsPerSession, c.originalConfiguration.MaxNumberOfRequestsPerSession)
 
-	c.ReadBalanceBehavior = firstNonEmptyString(configuration.ReadBalanceBehavior, c._originalConfiguration.ReadBalanceBehavior)
+	c.ReadBalanceBehavior = firstNonEmptyString(configuration.ReadBalanceBehavior, c.originalConfiguration.ReadBalanceBehavior)
 }
 
 func getDefaultTransformCollectionNameToDocumentIdPrefix(collectionName string) string {
@@ -171,24 +169,24 @@ func (c *DocumentConventions) GetIdentityProperty(clazz reflect.Type) string {
 }
 
 func (c *DocumentConventions) GetDocumentIDGenerator() DocumentIDGeneratorFunc {
-	return c._documentIDGenerator
+	return c.documentIDGenerator
 }
 
 func (c *DocumentConventions) SetDocumentIDGenerator(documentIDGenerator DocumentIDGeneratorFunc) {
-	c._documentIDGenerator = documentIDGenerator
+	c.documentIDGenerator = documentIDGenerator
 }
 
 // Generates the document id.
 func (c *DocumentConventions) GenerateDocumentID(databaseName string, entity interface{}) (string, error) {
-	return c._documentIDGenerator(databaseName, entity)
+	return c.documentIDGenerator(databaseName, entity)
 }
 
 func (c *DocumentConventions) IsDisableTopologyUpdates() bool {
-	return c._disableTopologyUpdates
+	return c.disableTopologyUpdates
 }
 
 func (c *DocumentConventions) SetDisableTopologyUpdates(disable bool) {
-	c._disableTopologyUpdates = disable
+	c.disableTopologyUpdates = disable
 }
 
 func (c *DocumentConventions) GetIdentityPartsSeparator() string {
@@ -196,7 +194,7 @@ func (c *DocumentConventions) GetIdentityPartsSeparator() string {
 }
 
 func (c *DocumentConventions) GetTransformClassCollectionNameToDocumentIdPrefix() func(string) string {
-	return c._transformClassCollectionNameToDocumentIDPrefix
+	return c.transformClassCollectionNameToDocumentIDPrefix
 }
 
 func (c *DocumentConventions) TryConvertValueForQuery(fieldName string, value interface{}, forRange bool, stringValue *string) bool {

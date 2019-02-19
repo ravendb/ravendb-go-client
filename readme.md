@@ -8,7 +8,7 @@ API reference: https://godoc.org/github.com/ravendb/ravendb-go-client
 
 This library is in beta state. All the basic functionality works and passes extensive [test suite](/tests), but the API for more esoteric features might change.
 
-If you encounter bugs or have suggestions, please [open an issue](https://github.com/ravendb/ravendb-go-client/issues).
+If you encounter bugs, have suggestions or feature requests, please [open an issue](https://github.com/ravendb/ravendb-go-client/issues).
 
 ## Documentation
 

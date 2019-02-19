@@ -612,6 +612,22 @@ func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func goTestFindCollectionName(t *testing.T, driver *RavenTestDriver) {
+	findCollectionName := func(entity interface{}) string {
+		if _, ok := entity.(*User); ok {
+			return "my users"
+		}
+		return ravendb.GetCollectionNameDefault(entity)
+	}
+	c := ravendb.NewDocumentConventions()
+	c.FindCollectionName = findCollectionName
+	name := c.GetCollectionName(&Employee{})
+	assert.Equal(t, name, "Employees")
+
+	name = c.GetCollectionName(&User{})
+	assert.Equal(t, name, "my users")
+}
+
 func TestGo1(t *testing.T) {
 	// t.Parallel()
 
@@ -623,4 +639,5 @@ func TestGo1(t *testing.T) {
 	go1Test(t, driver)
 	goTestGetLastModifiedForAndChanges(t, driver)
 	goTestListeners(t, driver)
+	goTestFindCollectionName(t, driver)
 }

@@ -190,7 +190,7 @@ func (o *BulkInsertOperation) StoreWithID(entity interface{}, id string, metadat
 	}
 
 	if !metadata.ContainsKey(MetadataCollection) {
-		collection := o.requestExecutor.GetConventions().GetCollectionName(entity)
+		collection := o.requestExecutor.GetConventions().getCollectionName(entity)
 		if collection != "" {
 			metadata.Put(MetadataCollection, collection)
 		}
