@@ -1,7 +1,5 @@
 package ravendb
 
-import "reflect"
-
 // Note: Java's IRevisionsSessionOperations is DocumentSessionRevisions
 
 // TODO: write a unique wrapper type
@@ -18,28 +16,30 @@ func newDocumentSessionRevisions(session *InMemoryDocumentSessionOperations) *Do
 	}
 }
 
-func (r *DocumentSessionRevisions) GetFor(clazz reflect.Type, id string) ([]interface{}, error) {
-	return r.GetForPaged(clazz, id, 0, 25)
+func (r *DocumentSessionRevisions) GetFor(results interface{}, id string) error {
+	return r.GetForPaged(results, id, 0, 25)
 }
 
-func (r *DocumentSessionRevisions) GetForStartAt(clazz reflect.Type, id string, start int) ([]interface{}, error) {
-	return r.GetForPaged(clazz, id, start, 25)
+func (r *DocumentSessionRevisions) GetForStartAt(results interface{}, id string, start int) error {
+	return r.GetForPaged(results, id, start, 25)
 }
 
-// use -1 for start and pageSize to mean: "not given"
-func (r *DocumentSessionRevisions) GetForPaged(clazz reflect.Type, id string, start int, pageSize int) ([]interface{}, error) {
-	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
+func (r *DocumentSessionRevisions) GetForPaged(results interface{}, id string, start int, pageSize int) error {
+	operation, err := NewGetRevisionOperationRange(r.session, id, start, pageSize, false)
+	if err != nil {
+		return err
+	}
 
 	command, err := operation.createRequest()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = r.requestExecutor.ExecuteCommand(command, r.sessionInfo)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	operation.setResult(command.Result)
-	return operation.GetRevisionsFor(clazz)
+	return operation.GetRevisionsFor(results)
 }
 
 func (r *DocumentSessionRevisions) GetMetadataFor(id string) ([]*MetadataAsDictionary, error) {
@@ -51,7 +51,10 @@ func (r *DocumentSessionRevisions) GetMetadataForStartAt(id string, start int) (
 }
 
 func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pageSize int) ([]*MetadataAsDictionary, error) {
-	operation := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
+	operation, err := NewGetRevisionOperationRange(r.session, id, start, pageSize, true)
+	if err != nil {
+		return nil, err
+	}
 	command, err := operation.createRequest()
 	if err != nil {
 		return nil, err
@@ -64,30 +67,32 @@ func (r *DocumentSessionRevisions) GetMetadataForPaged(id string, start int, pag
 	return operation.GetRevisionsMetadataFor(), nil
 }
 
-// TODO: change to take interface{} to return as an argument?
-// TODO: change changeVector to *string?
-func (r *DocumentSessionRevisions) Get(clazz reflect.Type, changeVector string) (interface{}, error) {
-	operation := NewGetRevisionOperationWithChangeVector(r.session, changeVector)
+func (r *DocumentSessionRevisions) Get(result interface{}, changeVector string) error {
+	operation := NewGetRevisionOperationWithChangeVectors(r.session, []string{changeVector})
 	command, err := operation.createRequest()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = r.requestExecutor.ExecuteCommand(command, r.sessionInfo)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	operation.setResult(command.Result)
-	return operation.GetRevision(clazz)
+	return operation.GetRevision(result)
 }
 
-/*
-TODO: port me
-   public <T> Map<String, T> get(Class<T> clazz, String[] changeVectors) {
-       GetRevisionOperation operation = new GetRevisionOperation(session, changeVectors);
+// TODO: needs tests
+func (r *DocumentSessionRevisions) GetRevisions(results interface{}, changeVectors []string) error {
+	operation := NewGetRevisionOperationWithChangeVectors(r.session, changeVectors);
 
-       GetRevisionsCommand command = operation.createRequest();
-       requestExecutor.execute(command, sessionInfo);
-       operation.setResult(command.getResult());
-       return operation.GetRevisions(clazz);
-   }
-*/
+	command, err := operation.createRequest();
+	if err != nil {
+		return err
+	}
+	err = r.requestExecutor.ExecuteCommand(command, r.sessionInfo);
+	if err != nil {
+		return err
+	}
+	operation.setResult(command.Result);
+	return operation.GetRevisions(results);
+}

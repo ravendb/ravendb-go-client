@@ -1,42 +1,49 @@
 package ravendb
 
-import "reflect"
+import (
+	"reflect"
+)
 
+// GetRevisionOperation represents "get revisions" operation
 type GetRevisionOperation struct {
-	_session *InMemoryDocumentSessionOperations
+	session *InMemoryDocumentSessionOperations
 
-	_result  *JSONArrayResult
-	_command *GetRevisionsCommand
+	result  *JSONArrayResult
+	command *GetRevisionsCommand
 }
 
-func NewGetRevisionOperationWithChangeVector(session *InMemoryDocumentSessionOperations, changeVector string) *GetRevisionOperation {
+func NewGetRevisionOperationWithChangeVectors(session *InMemoryDocumentSessionOperations, changeVectors []string) *GetRevisionOperation {
 	return &GetRevisionOperation{
-		_session: session,
-		_command: NewGetRevisionsCommand([]string{changeVector}, false),
+		session: session,
+		command: NewGetRevisionsCommand(changeVectors, false),
 	}
 }
 
-func NewGetRevisionOperationRange(session *InMemoryDocumentSessionOperations, id string, start int, pageSize int, metadataOnly bool) *GetRevisionOperation {
-	panicIf(session == nil, "session cannot be null")
-	panicIf(id == "", "Id cannot be null")
-	return &GetRevisionOperation{
-		_session: session,
-		_command: NewGetRevisionsCommandRange(id, start, pageSize, metadataOnly),
+func NewGetRevisionOperationRange(session *InMemoryDocumentSessionOperations, id string, start int, pageSize int, metadataOnly bool) (*GetRevisionOperation, error) {
+	if session == nil {
+		return nil, newIllegalArgumentError("session cannot be null")
 	}
+	if id == "" {
+		return nil, newIllegalArgumentError("Id cannot be null")
+	}
+	return &GetRevisionOperation{
+		session: session,
+		command: NewGetRevisionsCommandRange(id, start, pageSize, metadataOnly),
+	}, nil
 }
 
 func (o *GetRevisionOperation) createRequest() (*GetRevisionsCommand, error) {
-	return o._command, nil
+	return o.command, nil
 }
 
 func (o *GetRevisionOperation) setResult(result *JSONArrayResult) {
-	o._result = result
+	o.result = result
 }
 
 // Note: in Java it's getRevision
-func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, document map[string]interface{}) (interface{}, error) {
+func (o *GetRevisionOperation) GetRevisionWithDocument(result interface{}, document map[string]interface{}) error {
 	if document == nil {
-		return getDefaultValueForType(clazz), nil
+		return nil
 	}
 
 	var metadata map[string]interface{}
@@ -50,40 +57,57 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(clazz reflect.Type, docum
 	if metadata != nil {
 		changeVector = jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	}
-	entity, err := o._session.GetEntityToJSON().ConvertToEntity(clazz, id, document)
+	err := o.session.GetEntityToJSON().ConvertToEntity2(result, id, document)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	documentInfo := &documentInfo{}
 	documentInfo.id = id
 	documentInfo.changeVector = changeVector
 	documentInfo.document = document
 	documentInfo.metadata = metadata
-	documentInfo.setEntity(entity)
-	setDocumentInfo(&o._session.documents, documentInfo)
-	return entity, nil
+	documentInfo.setEntity(result)
+	setDocumentInfo(&o.session.documents, documentInfo)
+	return nil
 }
 
-func (o *GetRevisionOperation) GetRevisionsFor(clazz reflect.Type) ([]interface{}, error) {
-	resultsCount := len(o._result.getResults())
-	results := make([]interface{}, resultsCount)
-	var err error
-	for i := 0; i < resultsCount; i++ {
-		document := o._result.getResults()[i]
-		results[i], err = o.GetRevisionWithDocument(clazz, document)
+// results should be *[]*<type>
+func (o *GetRevisionOperation) GetRevisionsFor(results interface{}) error {
+
+	a := o.result.getResults()
+	if len(a) == 0 {
+		return nil
+	}
+	// TODO: optimize by creating pre-allocated slice of size len(a)
+	slice, err := makeSliceForResults(results)
+	if err != nil {
+		return err
+	}
+	sliceElemType := reflect.TypeOf(results).Elem().Elem()
+
+	tmpSlice := slice
+	for _, document := range a {
+		// creates a pointer to value e.g. **Foo
+		resultV := reflect.New(sliceElemType)
+		err = o.GetRevisionWithDocument(resultV.Interface(), document)
 		if err != nil {
-			return nil, err
+			return err
 		}
+		// append *Foo to the slice
+		tmpSlice = reflect.Append(tmpSlice, resultV.Elem())
 	}
 
-	return results, nil
+	if slice != tmpSlice {
+		slice.Set(tmpSlice)
+	}
+	return nil
 }
 
 func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary {
-	resultsCount := len(o._result.getResults())
+	resultsCount := len(o.result.getResults())
 	results := make([]*MetadataAsDictionary, resultsCount)
 	for i := 0; i < resultsCount; i++ {
-		document := o._result.getResults()[i]
+		document := o.result.getResults()[i]
 
 		var metadata map[string]interface{}
 		if v, ok := document[MetadataKey]; ok {
@@ -94,33 +118,42 @@ func (o *GetRevisionOperation) GetRevisionsMetadataFor() []*MetadataAsDictionary
 	return results
 }
 
-func (o *GetRevisionOperation) GetRevision(clazz reflect.Type) (interface{}, error) {
-	if o._result == nil {
-		return getDefaultValueForType(clazz), nil
+func (o *GetRevisionOperation) GetRevision(result interface{}) error {
+	if o.result == nil {
+		return nil
 	}
 
-	document := o._result.getResults()[0]
-	return o.GetRevisionWithDocument(clazz, document)
+	document := o.result.getResults()[0]
+	return o.GetRevisionWithDocument(result, document)
 }
 
-func (o *GetRevisionOperation) GetRevisions(clazz reflect.Type) (map[string]interface{}, error) {
+// result should be map[string]<type>
+func (o *GetRevisionOperation) GetRevisions(results interface{}) error {
 	// Maybe: Java uses case-insensitive keys, but keys are change vectors
 	// so that shouldn't matter
-	results := map[string]interface{}{}
 
-	for i := 0; i < len(o._command.GetChangeVectors()); i++ {
-		changeVector := o._command.GetChangeVectors()[i]
+	rv := reflect.ValueOf(results)
+	elemType, ok := isMapStringToPtrStruct(rv.Type())
+	if !ok {
+		return newIllegalArgumentError("results should be of type map[string]*<struct>, is %T", results)
+	}
+
+	for i := 0; i < len(o.command.GetChangeVectors()); i++ {
+		changeVector := o.command.GetChangeVectors()[i]
 		if changeVector == "" {
 			continue
 		}
 
-		v := o._result.getResults()[i]
-		rev, err := o.GetRevisionWithDocument(clazz, v)
+		v := o.result.getResults()[i]
+		// resultV is **Foo
+		resultV := reflect.New(elemType)
+		err := o.GetRevisionWithDocument(resultV.Interface(), v)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		results[changeVector] = rev
+		key := reflect.ValueOf(changeVector)
+		rv.SetMapIndex(key, resultV.Elem())
 	}
 
-	return results, nil
+	return nil
 }

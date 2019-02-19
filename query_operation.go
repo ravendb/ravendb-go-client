@@ -88,6 +88,29 @@ func (o *queryOperation) enterQueryContext() io.Closer {
 	return o.session.GetDocumentStore().DisableAggressiveCaching(o.session.DatabaseName)
 }
 
+// results must be *[]<type>. If results is a nil pointer to slice,
+// we create a slice and set pointer.
+// we return reflect.Value that represents the slice
+func makeSliceForResults(results interface{}) (reflect.Value, error) {
+	slicePtr := reflect.ValueOf(results)
+	rt := slicePtr.Type()
+
+	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Slice {
+		return reflect.Value{}, fmt.Errorf("results should *[]<type>, is %T. rt: %s", results, rt)
+	}
+	slice := slicePtr.Elem()
+	// if this is a pointer to nil slice, create a new slice
+	// otherwise we use the slice that was provided by the caller
+	// TODO: should this always be a new slice? (in which case we should error
+	// if provided non-nil slice, since that implies user error
+	// r at least we should reset the slice to empty. Appending to existing
+	// slice might be confusing/unexpected to callers
+	if slice.IsNil() {
+		slice.Set(reflect.MakeSlice(slice.Type(), 0, 0))
+	}
+	return slice, nil
+}
+
 // results is *[]<type> and we'll create the slice and fill it with values
 // of <type> and do the equivalent of: *results = our_slice
 func (o *queryOperation) complete(results interface{}) error {
@@ -96,29 +119,20 @@ func (o *queryOperation) complete(results interface{}) error {
 	if !o.disableEntitiesTracking {
 		o.session.registerIncludes(queryResult.Includes)
 	}
-	rt := reflect.TypeOf(results)
 
-	if rt.Kind() != reflect.Ptr || rt.Elem().Kind() != reflect.Slice {
-		return fmt.Errorf("results should *[]<type>, is %T. rt: %s", results, rt)
-	}
-	rv := reflect.ValueOf(results)
-	sliceV := rv.Elem()
-	// if this is a pointer to nil slice, create a new slice
-	// otherwise we use the slice that was provided by the caller
-	// TODO: should this always be a new slice? (in which case we should error
-	// if provided non-nil slice, since that implies user error
-	// r at least we should reset the slice to empty. Appending to existing
-	// slice might be confusing/unexpected to callers
-	if sliceV.IsNil() {
-		sliceV.Set(reflect.MakeSlice(sliceV.Type(), 0, 0))
+	slice, err := makeSliceForResults(results)
+	if err != nil {
+		return err
 	}
 
-	sliceV2 := sliceV
+	tmpSlice := slice
 
-	clazz := sliceV.Type().Elem()
+	clazz := slice.Type().Elem()
 	for _, document := range queryResult.Results {
 		metadataI, ok := document[MetadataKey]
-		panicIf(!ok, "missing metadata")
+		if !ok {
+			return newIllegalStateError("missing metadata")
+		}
 		metadata := metadataI.(map[string]interface{})
 		id, _ := jsonGetAsText(metadata, MetadataID)
 		result := reflect.New(clazz) // this is a pointer to desired value
@@ -127,15 +141,15 @@ func (o *queryOperation) complete(results interface{}) error {
 			return newRuntimeError("Unable to read json: %s", err)
 		}
 		// de-reference pointer value
-		v2 := result.Elem()
-		sliceV2 = reflect.Append(sliceV2, v2)
+		tmpSlice = reflect.Append(tmpSlice, result.Elem())
 	}
 
 	if !o.disableEntitiesTracking {
 		o.session.registerMissingIncludes(queryResult.Results, queryResult.Includes, queryResult.IncludedPaths)
 	}
-	if sliceV2 != sliceV {
-		sliceV.Set(sliceV2)
+	// appending to slice might re-allocate slice value
+	if tmpSlice != slice {
+		slice.Set(tmpSlice)
 	}
 	return nil
 }

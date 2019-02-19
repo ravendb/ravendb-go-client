@@ -3,13 +3,12 @@ package tests
 import (
 	"bytes"
 	"io/ioutil"
-	"reflect"
 	"runtime"
 	"sort"
 	"strings"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -166,15 +165,9 @@ func attachmentsRevisionsAttachmentRevision(t *testing.T, driver *RavenTestDrive
 
 		{
 			session := openSessionMust(t, store)
-			revisionsI, err := session.Advanced().Revisions().GetFor(reflect.TypeOf(&User{}), "users/1")
+			var revisions []*User
+			err = session.Advanced().Revisions().GetFor(&revisions, "users/1")
 			assert.NoError(t, err)
-
-			// TODO: could be done with reflection
-			n := len(revisionsI)
-			revisions := make([]*User, n, n)
-			for i, revI := range revisionsI {
-				revisions[i] = revI.(*User)
-			}
 
 			rev := revisions[1]
 			changeVector, err := session.Advanced().GetChangeVectorFor(rev)
@@ -280,14 +273,9 @@ func assertRevisions2(t *testing.T, store *ravendb.DocumentStore, names []string
 
 	{
 		session := openSessionMust(t, store)
-		revisionsI, err := session.Advanced().Revisions().GetFor(reflect.TypeOf(&User{}), "users/1")
+		var revisions []*User
+		err = session.Advanced().Revisions().GetFor(&revisions, "users/1")
 		assert.NoError(t, err)
-		n := len(revisionsI)
-		assert.Equal(t, n, 4)
-		revisions := make([]*User, n, n)
-		for i, v := range revisionsI {
-			revisions[i] = v.(*User)
-		}
 		assertAction(t, session, revisions)
 
 		session.Close()

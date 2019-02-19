@@ -2,7 +2,6 @@ package tests
 
 import (
 	"math"
-	"reflect"
 	"sort"
 	"strconv"
 	"testing"
@@ -11,10 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func collectUserNamesSorted(a []interface{}) []string {
+func collectUserNamesSorted(a []*User) []string {
 	var names []string
-	for _, v := range a {
-		user := v.(*User)
+	for _, user := range a {
 		names = append(names, *user.Name)
 	}
 	sort.Strings(names)
@@ -44,20 +42,23 @@ func revisionsTestRevisions(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		allRevisions, err := session.Advanced().Revisions().GetFor(reflect.TypeOf(&User{}), "users/1")
+		var allRevisions []*User
+		err = session.Advanced().Revisions().GetFor(&allRevisions, "users/1")
 		assert.NoError(t, err)
 		assert.Equal(t, len(allRevisions), 4)
 
 		names := collectUserNamesSorted(allRevisions)
 		assert.Equal(t, names, []string{"user1", "user2", "user3", "user4"})
 
-		revisionsSkipFirst, err := session.Advanced().Revisions().GetForStartAt(reflect.TypeOf(&User{}), "users/1", 1)
+		var revisionsSkipFirst []*User
+		err = session.Advanced().Revisions().GetForStartAt(&revisionsSkipFirst, "users/1", 1)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirst), 3)
 		names = collectUserNamesSorted(revisionsSkipFirst)
 		assert.Equal(t, names, []string{"user1", "user2", "user3"})
 
-		revisionsSkipFirstTakeTwo, err := session.Advanced().Revisions().GetForPaged(reflect.TypeOf(&User{}), "users/1", 1, 2)
+		var revisionsSkipFirstTakeTwo []*User
+		err = session.Advanced().Revisions().GetForPaged(&revisionsSkipFirstTakeTwo, "users/1", 1, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, len(revisionsSkipFirstTakeTwo), 2)
 		names = collectUserNamesSorted(revisionsSkipFirstTakeTwo)
@@ -81,9 +82,9 @@ func revisionsTestRevisions(t *testing.T, driver *RavenTestDriver) {
 		if ok {
 			changeVector = chvi.(string)
 		}
-		userI, err := session.Advanced().Revisions().Get(reflect.TypeOf(&User{}), changeVector)
+		var user *User
+		err = session.Advanced().Revisions().Get(&user, changeVector)
 		assert.NoError(t, err)
-		user := userI.(*User)
 		assert.Equal(t, *user.Name, "user3")
 		session.Close()
 	}
