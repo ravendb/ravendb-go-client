@@ -34,6 +34,7 @@ go clean -testcache
 
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestAttachmentsRevisions$
+#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestAttachmentsRevisions$
+#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRevisions$
+go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestAttachmentsSession$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRevisions$

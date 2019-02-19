@@ -182,6 +182,7 @@ func attachmentsRevisionsAttachmentRevision(t *testing.T, driver *RavenTestDrive
 				assert.Equal(t, len(bytes), 3)
 				assert.Equal(t, bytes, []byte{1, 2, 3})
 			}
+
 			session.Close()
 		}
 	}

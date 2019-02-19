@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -493,6 +493,21 @@ func attachmentsSessionGetAttachmentNames(t *testing.T, driver *RavenTestDriver)
 		assert.Equal(t, attachment.ContentType, "image/png")
 		assert.Equal(t, attachment.Name, names[0])
 		assert.Equal(t, attachment.Size, int64(3))
+
+		session.Close()
+	}
+
+	// go: coverage for DocumentSessionAttachments.Get()
+	{
+		session := openSessionMust(t, store)
+
+		var user *User
+		err = session.Load(&user, "users/1")
+		assert.NoError(t, err)
+
+		attachment, err := session.Advanced().Attachments().Get(user, names[0])
+		assert.NoError(t, err)
+		assert.Equal(t, attachment.Details.Name, names[0])
 
 		session.Close()
 	}

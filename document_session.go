@@ -53,6 +53,10 @@ func (s *DocumentSession) Eagerly() *EagerSessionOperations {
 func (s *DocumentSession) Attachments() *AttachmentsSessionOperations {
 	if s.attachments == nil {
 		s.attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
+	} else {
+		if (s.InMemoryDocumentSessionOperations != s.attachments.session) {
+			s.attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
+		}
 	}
 	return s.attachments
 }
