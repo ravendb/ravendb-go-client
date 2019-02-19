@@ -1476,8 +1476,11 @@ func revisions() {
 		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
 	}
 
-	tp := reflect.TypeOf(&northwind.Employee{})
-	revisions, err := session.Advanced().Revisions().GetFor(tp, e.ID)
+	var revisions []*northwind.Employee
+	err = session.Advanced().Revisions().GetFor(&revisions, e.ID)
+	if err != nil {
+		log.Fatalf(" session.Advanced().Revisions().GetFor() failed with '%s'\n", err)
+	}
 	pretty.Print(revisions)
 }
 
