@@ -2,9 +2,6 @@ package tests
 
 import (
 	"bufio"
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
@@ -47,7 +44,6 @@ type RavenTestDriver struct {
 	securedStore         *ravendb.DocumentStore
 	securedServerProcess *Process
 
-	logsDir  string
 	disposed bool
 
 	customize func(*ravendb.DatabaseRecord)
@@ -57,55 +53,6 @@ func NewRavenTestDriver() *RavenTestDriver {
 	return &RavenTestDriver{}
 }
 
-func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
-	if key, err := x509.ParsePKCS1PrivateKey(der); err == nil {
-		return key, nil
-	}
-	if key, err := x509.ParsePKCS8PrivateKey(der); err == nil {
-		switch key := key.(type) {
-		case *rsa.PrivateKey, *ecdsa.PrivateKey:
-			return key, nil
-		default:
-			return nil, fmt.Errorf("Found unknown private key type in PKCS#8 wrapping")
-		}
-	}
-	if key, err := x509.ParseECPrivateKey(der); err == nil {
-		return key, nil
-	}
-	return nil, fmt.Errorf("Failed to parse private key")
-}
-
-func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
-	raw, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var cert tls.Certificate
-	for {
-		block, rest := pem.Decode(raw)
-		if block == nil {
-			break
-		}
-		if block.Type == "CERTIFICATE" {
-			cert.Certificate = append(cert.Certificate, block.Bytes)
-		} else {
-			cert.PrivateKey, err = parsePrivateKey(block.Bytes)
-			if err != nil {
-				return nil, fmt.Errorf("Failure reading private key from \"%s\": %s", path, err)
-			}
-		}
-		raw = rest
-	}
-
-	if len(cert.Certificate) == 0 {
-		return nil, fmt.Errorf("No certificate found in \"%s\"", path)
-	} else if cert.PrivateKey == nil {
-		return nil, fmt.Errorf("No private key found in \"%s\"", path)
-	}
-
-	return &cert, nil
-}
 
 func getTestClientCertificate() *tls.Certificate {
 	path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
@@ -116,7 +63,7 @@ func getTestClientCertificate() *tls.Certificate {
 
 func getTestCaCertificate() *x509.Certificate {
 	path := os.Getenv("RAVENDB_JAVA_TEST_CA_PATH")
-	// TODO: should I make it mandator?
+	// TODO: should I make it mandatory?
 	if len(path) == 0 {
 		return nil
 	}
@@ -233,7 +180,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	if err != nil {
 		return err
 	}
-	proc, err := RavenServerRunner_run(locator, d.logsDir)
+	proc, err := RavenServerRunner_run(locator)
 	if err != nil {
 		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
 		return err
@@ -489,15 +436,6 @@ func httpLogPathFromTestName(t *testing.T) string {
 	return filepath.Join(getLogDir(), name)
 }
 
-func ravenLogsDirFromTestName(t *testing.T) string {
-	name := testNameToFileName(t.Name())
-	path := filepath.Join(getLogDir(), "server", "go", name)
-	// recreate dir for clean logs
-	_ = os.RemoveAll(path)
-	_ = os.MkdirAll(path, 0755)
-	return path
-}
-
 func deleteTestDriver(driver *RavenTestDriver) {
 	if driver == nil {
 		return
@@ -588,11 +526,6 @@ func downloadServerIfNeeded() {
 // where env variables are not set
 func detectServerPath() {
 	var exists bool
-	// explicitly setting RAVEN_GO_NO_DB_TESTS=true disables database tests
-	// so no need for the server
-	if isEnvVarTrue("RAVEN_GO_NO_DB_TESTS") {
-		return
-	}
 
 	// auto-detect env variables if not explicitly set
 	path := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
@@ -699,7 +632,6 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 	setupLogging(t)
 
 	driver := NewRavenTestDriver()
-	driver.logsDir = ravenLogsDirFromTestName(t)
 	return driver
 }
 

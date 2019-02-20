@@ -13,8 +13,8 @@ type Process struct {
 	stdoutReader io.ReadCloser
 }
 
-func RavenServerRunner_run(locator *RavenServerLocator, logsDir string) (*Process, error) {
-	processStartInfo, err := getProcessStartInfo(locator, logsDir)
+func RavenServerRunner_run(locator *RavenServerLocator) (*Process, error) {
+	processStartInfo, err := getProcessStartInfo(locator)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func RavenServerRunner_run(locator *RavenServerLocator, logsDir string) (*Proces
 	}, nil
 }
 
-func getProcessStartInfo(locator *RavenServerLocator, logsDir string) (*ProcessStartInfo, error) {
+func getProcessStartInfo(locator *RavenServerLocator) (*ProcessStartInfo, error) {
 	path := locator.serverPath
 	if !fileExists(path) {
 		return nil, fmt.Errorf("Server file was not found: %s", path)
@@ -55,24 +55,6 @@ func getProcessStartInfo(locator *RavenServerLocator, logsDir string) (*ProcessS
 		"--Setup.Mode=None",
 		"--Testing.ParentProcessId=" + getProcessId(),
 		// "--non-interactive",
-	}
-	if logsDir != "" {
-		{
-			arg := "--Logs.Path=" + logsDir
-			commandArguments = append(commandArguments, arg)
-		}
-		{
-			// modes: None, Operations, Information
-			arg := "--Logs.Mode=Information"
-			commandArguments = append(commandArguments, arg)
-		}
-	}
-	if ravenServerVerbose {
-		if logsDir == "" {
-			arg := "--Logs.Mode=Information"
-			commandArguments = append(commandArguments, arg)
-		}
-		commandArguments = append(commandArguments, "--log-to-console")
 	}
 	commandArguments = append(locator.commandArguments, commandArguments...)
 	res := &ProcessStartInfo{
