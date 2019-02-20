@@ -323,11 +323,11 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 }
 
 func (d *RavenTestDriver) runServer() error {
-	nProcesses := 1
+	nServers := 3
 	if d.isSecure {
-		nProcesses = 1
+		nServers = 1
 	}
-	for i := 0; i < nProcesses; i++ {
+	for i := 0; i < nServers; i++ {
 		proc, err := startRavenServer(d.isSecure)
 		if err != nil {
 			fmt.Printf("startRavenServer failed with %s\n", err)
