@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
@@ -21,11 +23,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type Process struct {
+	cmd          *exec.Cmd
+	stdoutReader io.ReadCloser
+}
+
+func getServerArgs(secure bool) []string {
+	args := []string{
+		"--ServerUrl=http://127.0.0.1:0",
+		"--RunInMemory=true",
+		"--License.Eula.Accepted=true",
+		"--Setup.Mode=None",
+		"--Testing.ParentProcessId=" + getProcessId(),
+		// "--non-interactive",
+	}
+	if secure {
+		parsed, err := url.Parse(httpsServerURL)
+		must(err)
+		host := parsed.Host
+		// host can be name:port, extract "name" part
+		host = strings.Split(host, ":")[0]
+		tcpServerURL := "tcp://" + host + ":38882"
+
+		secureArgs := []string{"--Security.Certificate.Path=" + certificatePath,
+			"--Security.Certificate.Password=pwd1234",
+			"--ServerUrl=" + httpsServerURL,
+			"--ServerUrl.Tcp=" + tcpServerURL,
+		}
+		args = append(args, secureArgs...)
+	} else {
+		args = append(args, "--ServerUrl.Tcp=tcp://127.0.0.1:38881")
+	}
+	return args
+}
+
+
 // Note: Java's RemoteTestBase is folded into RavenTestDriver
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
-	index                int32
+	dbNameCounter int32 // atomic
 
 	store         *ravendb.DocumentStore
 	serverProcess *Process
@@ -73,6 +110,52 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
+func startRavenServer(secure bool) (*Process, error) {
+	args := getServerArgs(secure)
+	cmd := exec.Command(ravendbServerExePath, args...)
+	stdoutReader, err := cmd.StdoutPipe()
+
+	if false && ravenServerVerbose {
+		cmd.Stderr = os.Stderr
+		// cmd.StdoutPipe() sets cmd.Stdout to a pipe writer
+		// we multi-plex it into os.Stdout
+		// TODO: this doesn't seem to work. It makes reading from stdoutReader
+		// immediately fail. Maybe it's becuse writer returned by
+		// os.Pipe() (cmd.Stdout) blocks and MultiWriter() doesn't
+		cmd.Stdout = io.MultiWriter(cmd.Stdout, os.Stdout)
+	}
+	if err != nil {
+		return nil, err
+	}
+	err = cmd.Start()
+	if err != nil {
+		fmt.Printf("exec.Command(%s, %v) failed with %s\n", ravendbServerExePath, args, err)
+		return nil, err
+	}
+	return &Process{
+		cmd:          cmd,
+		stdoutReader: stdoutReader,
+	}, nil
+}
+
+func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int64) (*ravendb.ConfigureRevisionsOperationResult, error) {
+
+	revisionsConfiguration := &ravendb.RevisionsConfiguration{}
+	defaultCollection := &ravendb.RevisionsCollectionConfiguration{}
+	defaultCollection.PurgeOnDelete = purgeOnDelete
+	defaultCollection.MinimumRevisionsToKeep = minimumRevisionsToKeep
+
+	revisionsConfiguration.DefaultConfig = defaultCollection
+	operation := ravendb.NewConfigureRevisionsOperation(revisionsConfiguration)
+
+	err := store.Maintenance().Send(operation)
+	if err != nil {
+		return nil, err
+	}
+
+	return operation.Command.Result, nil
+}
+
 func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
 	d.isSecure = false
 	return d.getDocumentStore2("test_db",  0)
@@ -90,7 +173,7 @@ func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
 }
 func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
 
-	n := int(atomic.AddInt32(&d.index, 1))
+	n := int(atomic.AddInt32(&d.dbNameCounter, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
 	documentStore := d.store
 	if documentStore == nil {
@@ -169,19 +252,9 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 }
 
 func (d *RavenTestDriver) runServer() error {
-	var locator *RavenServerLocator
-	var err error
-	if d.isSecure {
-		locator, err = NewSecuredServiceLocator()
-	} else {
-		locator, err = NewTestServiceLocator()
-	}
+	proc, err := startRavenServer(d.isSecure)
 	if err != nil {
-		return err
-	}
-	proc, err := RavenServerRunner_run(locator)
-	if err != nil {
-		fmt.Printf("RavenServerRunner_run failed with %s\n", err)
+		fmt.Printf("startRavenServer failed with %s\n", err)
 		return err
 	} else {
 		args := strings.Join(proc.cmd.Args, " ")
@@ -475,7 +548,7 @@ func downloadServerIfNeededWindows() {
 	if !exists {
 		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
 		startTime := time.Now()
-		err = HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
+		err = httpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
 		must(err)
 		fmt.Printf(" took %s\n", time.Since(startTime))
 	}

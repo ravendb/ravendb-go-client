@@ -15,6 +15,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -232,12 +233,17 @@ func downloadURL(url string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func HttpDl(url string, destPath string) error {
+func httpDl(url string, destPath string) error {
 	d, err := downloadURL(url)
 	if err != nil {
 		return err
 	}
 	return ioutil.WriteFile(destPath, d, 0755)
+}
+
+func getProcessId() string {
+	pid := os.Getpid()
+	return strconv.Itoa(pid)
 }
 
 func parsePrivateKey(der []byte) (crypto.PrivateKey, error) {
