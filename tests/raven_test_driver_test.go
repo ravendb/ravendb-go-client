@@ -26,11 +26,11 @@ type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
 
 	index                int32
-	server               *ravendb.DocumentStore
-	serverProcess        *Process
 
-	securedStore         *ravendb.DocumentStore
-	securedServerProcess *Process
+	store         *ravendb.DocumentStore
+	serverProcess *Process
+
+	isSecure bool
 
 	disposed bool
 
@@ -73,17 +73,14 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
-func NewRavenTestDriver() *RavenTestDriver {
-	return &RavenTestDriver{}
-}
-
-
 func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
-	return d.getDocumentStore2("test_db", false, 0)
+	d.isSecure = false
+	return d.getDocumentStore2("test_db",  0)
 }
 
 func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, error) {
-	return d.getDocumentStore2("test_db", true, 0)
+	d.isSecure = false
+	return d.getDocumentStore2("test_db",  0)
 }
 
 func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
@@ -91,20 +88,20 @@ func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
 		d.customize(dbRecord)
 	}
 }
-func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
+func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
 
 	n := int(atomic.AddInt32(&d.index, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
-	documentStore := d.getGlobalServer(secured)
+	documentStore := d.store
 	if documentStore == nil {
-		err := d.runServer(secured)
+		err := d.runServer()
 		if err != nil {
 			fmt.Printf("runServer failed with %s\n", err)
 			return nil, err
 		}
 	}
 
-	documentStore = d.getGlobalServer(secured)
+	documentStore = d.store
 	databaseRecord := ravendb.NewDatabaseRecord()
 	databaseRecord.DatabaseName = name
 
@@ -119,7 +116,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	urls := documentStore.GetUrls()
 	store := ravendb.NewDocumentStore(urls, name)
 
-	if secured {
+	if d.isSecure {
 		store.Certificate = clientCertificate
 		store.TrustStore = caCertificate
 	}
@@ -171,10 +168,10 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 	// empty by design
 }
 
-func (d *RavenTestDriver) runServer(secured bool) error {
+func (d *RavenTestDriver) runServer() error {
 	var locator *RavenServerLocator
 	var err error
-	if secured {
+	if d.isSecure {
 		locator, err = NewSecuredServiceLocator()
 	} else {
 		locator, err = NewTestServiceLocator()
@@ -190,7 +187,7 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 		args := strings.Join(proc.cmd.Args, " ")
 		fmt.Printf("Started raven server '%s'\n", args)
 	}
-	d.setGlobalServerProcess(secured, proc)
+	d.serverProcess = proc
 
 	// parse stdout of the server to extract server listening port from line:
 	// Server available on: http://127.0.0.1:50386
@@ -238,12 +235,11 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 	store.SetDatabase("test.manager")
 	store.GetConventions().SetDisableTopologyUpdates(true)
 
-	if secured {
-		d.securedStore = store
+	d.store = store
+
+	if d.isSecure {
 		store.Certificate = clientCertificate
 		store.TrustStore = caCertificate
-	} else {
-		d.server = store
 	}
 	err = store.Initialize()
 	return err
@@ -327,26 +323,9 @@ func killServer(procPtr **Process) {
 	*procPtr = nil
 }
 
-func (d *RavenTestDriver) killGlobalServerProcesses() {
-	killServer(&d.securedServerProcess)
+func (d *RavenTestDriver) killServerProcesses() {
 	killServer(&d.serverProcess)
-	d.securedStore = nil
-	d.server = nil
-}
-
-func (d *RavenTestDriver) getGlobalServer(secured bool) *ravendb.DocumentStore {
-	if secured {
-		return d.securedStore
-	}
-	return d.server
-}
-
-func (d *RavenTestDriver) setGlobalServerProcess(secured bool, p *Process) {
-	if secured {
-		d.securedServerProcess = p
-	} else {
-		d.serverProcess = p
-	}
+	d.store = nil
 }
 
 func (d *RavenTestDriver) getDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
@@ -438,14 +417,6 @@ func httpLogPathFromTestName(t *testing.T) string {
 	return filepath.Join(getLogDir(), name)
 }
 
-func deleteTestDriver(driver *RavenTestDriver) {
-	if driver == nil {
-		return
-	}
-	driver.Close()
-	driver.killGlobalServerProcesses()
-}
-
 var (
 	defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
 	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
@@ -454,17 +425,11 @@ var (
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
 
-// In Java, RavenTestDriver is created/destroyed for each test
-// In Go we have to do it manually
-// returns a shutdown function that must be called to cleanly shutdown test
+// called for every Test* function
 func createTestDriver(t *testing.T) *RavenTestDriver {
-	// don't download server etc. in parallel
-
 	fmt.Printf("\nStarting test %s\n", t.Name())
-
 	setupLogging(t)
-
-	driver := NewRavenTestDriver()
+	driver := &RavenTestDriver{}
 	return driver
 }
 
@@ -472,7 +437,10 @@ func destroyDriver(t *testing.T, driver *RavenTestDriver) {
 	if t.Failed() {
 		maybePrintFailedRequestsLog()
 	}
-	deleteTestDriver(driver)
+	if driver != nil {
+		driver.Close()
+		driver.killServerProcesses()
+	}
 
 	finishLogging()
 }
