@@ -164,6 +164,15 @@ func asHex(d []byte) ([]byte, bool) {
 	return res, true
 }
 
+func isEnvVarTrue(name string) bool {
+	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
+	switch v {
+	case "yes", "true":
+		return true
+	}
+	return false
+}
+
 // if d is a valid json, pretty-print it
 // only used for debugging
 func maybePrettyPrintJSON(d []byte) []byte {
