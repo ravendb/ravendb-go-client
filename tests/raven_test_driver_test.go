@@ -23,9 +23,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type Process struct {
+type ravenProcess struct {
 	cmd          *exec.Cmd
 	stdoutReader io.ReadCloser
+
+	// auto-detected url on which to contact the server
+	uri string
 }
 
 // Note: Java's RemoteTestBase is folded into RavenTestDriver
@@ -35,7 +38,7 @@ type RavenTestDriver struct {
 	dbNameCounter int32 // atomic
 
 	store         *ravendb.DocumentStore
-	serverProcesses []*Process
+	serverProcesses []*ravenProcess
 
 	isSecure bool
 
@@ -65,6 +68,8 @@ var (
 	clientCertificate *tls.Certificate
 
 	httpsServerURL string
+
+	tcpServerPort int32 = 38880// atomic
 )
 
 func must(err error) {
@@ -80,16 +85,38 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
-func startRavenServer(secure bool) (*Process, error) {
+func killServer(proc *ravenProcess) {
+	if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
+		fmt.Printf("RavenDB process has already exited with '%s'\n", proc.cmd.ProcessState)
+	}
+	err := proc.cmd.Process.Kill()
+	if err != nil {
+		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
+	} else {
+		s := strings.Join(proc.cmd.Args, " ")
+		fmt.Printf("Killed RavenDB process %d '%s'\n", proc.cmd.Process.Pid, s)
+	}
+}
+
+func getNextTcpPort() int {
+	n := atomic.AddInt32(&tcpServerPort, 1)
+	return int(n)
+}
+
+func startRavenServer(secure bool) (*ravenProcess, error) {
 	serverURL := "http://127.0.0.1:0"
-	tcpServerURL := "tcp://127.0.0.1:38881"
+	// we run potentially multiple server so need to make the port unique
+	tcpServerURL := fmt.Sprintf("tcp://127.0.0.1:%d", getNextTcpPort())
+
 	if secure {
 		serverURL = httpsServerURL
 		parsed, err := url.Parse(httpsServerURL)
 		must(err)
 		host := parsed.Host
+		parts := strings.Split(host, ":")
+		panicIf(len(parts) > 2, "invalid https URL '%s'", httpsServerURL)
 		// host can be name:port, extract "name" part
-		host = strings.Split(host, ":")[0]
+		host = parts[0]
 		tcpServerURL = "tcp://" + host + ":38882"
 	}
 
@@ -131,10 +158,55 @@ func startRavenServer(secure bool) (*Process, error) {
 		fmt.Printf("exec.Command(%s, %v) failed with %s\n", ravendbServerExePath, args, err)
 		return nil, err
 	}
-	return &Process{
+
+	proc := &ravenProcess{
 		cmd:          cmd,
 		stdoutReader: stdoutReader,
-	}, nil
+	}
+
+	// parse stdout of the server to extract server listening port from line:
+	// Server available on: http://127.0.0.1:50386
+	wantedPrefix := "Server available on: "
+	scanner := bufio.NewScanner(stdoutReader)
+	startTime := time.Now()
+	for scanner.Scan() {
+		dur := time.Since(startTime)
+		if dur > time.Minute {
+			break
+		}
+		s := scanner.Text()
+		if ravenServerVerbose {
+			fmt.Printf("%s\n", s)
+		}
+		if !strings.HasPrefix(s, wantedPrefix) {
+			continue
+		}
+		s = strings.TrimPrefix(s, wantedPrefix)
+		proc.uri = strings.TrimSpace(s)
+		break
+	}
+	if scanner.Err() != nil {
+		killServer(proc)
+		return nil, scanner.Err()
+	}
+	if proc.uri == "" {
+		killServer(proc)
+		return nil, fmt.Errorf("Unable to start server")
+	}
+	fmt.Printf("Server started on: '%s'\n", proc.uri)
+
+	if ravenServerVerbose {
+		go func() {
+			_, err = io.Copy(os.Stdout, stdoutReader)
+			if !(err == nil || err == io.EOF) {
+				fmt.Printf("io.Copy() failed with %s\n", err)
+			}
+		}()
+	}
+
+	time.Sleep(time.Second) // TODO: probably not necessary
+
+	return proc, nil
 }
 
 func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int64) (*ravendb.ConfigureRevisionsOperationResult, error) {
@@ -251,69 +323,38 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 }
 
 func (d *RavenTestDriver) runServer() error {
-	proc, err := startRavenServer(d.isSecure)
-	if err != nil {
-		fmt.Printf("startRavenServer failed with %s\n", err)
-		return err
-	} else {
-		args := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Started raven server '%s'\n", args)
+	nProcesses := 1
+	if d.isSecure {
+		nProcesses = 1
 	}
-	d.serverProcesses = append(d.serverProcesses, proc)
-
-	// parse stdout of the server to extract server listening port from line:
-	// Server available on: http://127.0.0.1:50386
-	wantedPrefix := "Server available on: "
-	scanner := bufio.NewScanner(proc.stdoutReader)
-	startTime := time.Now()
-	url := ""
-	for scanner.Scan() {
-		dur := time.Since(startTime)
-		if dur > time.Minute {
-			break
+	for i := 0; i < nProcesses; i++ {
+		proc, err := startRavenServer(d.isSecure)
+		if err != nil {
+			fmt.Printf("startRavenServer failed with %s\n", err)
+			return err
+		} else {
+			args := strings.Join(proc.cmd.Args, " ")
+			fmt.Printf("Started raven server '%s'\n", args)
 		}
-		s := scanner.Text()
-		if ravenServerVerbose {
-			fmt.Printf("%s\n", s)
-		}
-		if !strings.HasPrefix(s, wantedPrefix) {
-			continue
-		}
-		s = strings.TrimPrefix(s, wantedPrefix)
-		url = strings.TrimSpace(s)
-		break
-	}
-	if scanner.Err() != nil {
-		return scanner.Err()
-	}
-	if url == "" {
-		return fmt.Errorf("Unable to start server")
-	}
-	fmt.Printf("Server started on: '%s'\n", url)
-
-	if ravenServerVerbose {
-		go func() {
-			_, err = io.Copy(os.Stdout, proc.stdoutReader)
-			if !(err == nil || err == io.EOF) {
-				fmt.Printf("io.Copy() failed with %s\n", err)
-			}
-		}()
+		d.serverProcesses = append(d.serverProcesses, proc)
 	}
 
-	time.Sleep(time.Second) // TODO: probably not necessary
+	var uris []string
+	for _, proc := range d.serverProcesses {
+		uris = append(uris, proc.uri)
+	}
 
 	store := ravendb.NewDocumentStore(nil, "")
-	store.SetUrls([]string{url})
 	store.SetDatabase("test.manager")
+	store.SetUrls(uris)
 	store.GetConventions().SetDisableTopologyUpdates(true)
-
 	d.store = store
 
 	if d.isSecure {
 		store.Certificate = clientCertificate
 		store.TrustStore = caCertificate
 	}
-	err = store.Initialize()
+	err := store.Initialize()
 	return err
 }
 
@@ -379,16 +420,7 @@ func waitForIndexing(store *ravendb.DocumentStore, database string, timeout time
 
 func (d *RavenTestDriver) killServerProcesses() {
 	for _, proc := range d.serverProcesses {
-		if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
-			fmt.Printf("RavenDB process has already exited with '%s'\n", proc.cmd.ProcessState)
-		}
-		err := proc.cmd.Process.Kill()
-		if err != nil {
-			fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
-		} else {
-			s := strings.Join(proc.cmd.Args, " ")
-			fmt.Printf("Killed RavenDB process %d '%s'\n", proc.cmd.Process.Pid, s)
-		}
+		killServer(proc)
 	}
 	d.serverProcesses = nil
 	d.store = nil
@@ -625,8 +657,6 @@ func isRunningOn41Server() bool {
 }
 
 func initializeTests() {
-	fmt.Printf("initializeTests\n")
-
 	muInitializeTests.Lock()
 	defer muInitializeTests.Unlock()
 	if testsWereInitialized {
