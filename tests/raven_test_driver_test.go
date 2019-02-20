@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/url"
 	"os"
 	"os/exec"
@@ -21,6 +22,15 @@ import (
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	NUM_SERVERS = 3
+	// if true, we randomly kill one of the raven servers
+	// during execution of tests
+	randomlyKillServers = false
+	// TODO: not sure if this should be true or false for cluster tests
+	testDisableTopologyUpdates = true
 )
 
 type ravenProcess struct {
@@ -227,48 +237,47 @@ func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRev
 	return operation.Command.Result, nil
 }
 
-func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
-	d.isSecure = false
-	return d.getDocumentStore2("test_db",  0)
-}
-
-func (d *RavenTestDriver) getSecuredDocumentStore() (*ravendb.DocumentStore, error) {
-	d.isSecure = false
-	return d.getDocumentStore2("test_db",  0)
-}
-
 func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
 	if d.customize != nil {
 		d.customize(dbRecord)
 	}
 }
+
+func (d *RavenTestDriver) maybeKillServer() {
+	if len(d.serverProcesses) < NUM_SERVERS || len(d.serverProcesses) < 2 {
+		return
+	}
+	if randomlyKillServers {
+		// randomly kill a server
+		n := rand.Intn(100)
+		if n < 5 {
+			// 5% chance of kill a server
+			proc := d.serverProcesses[0]
+			d.serverProcesses = d.serverProcesses[1:]
+			fmt.Print("Randomly killing a server\n")
+			killServer(proc)
+		}
+	}
+}
+
 func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
+
+	d.createStoreMust()
 
 	n := int(atomic.AddInt32(&d.dbNameCounter, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
-	documentStore := d.store
-	if documentStore == nil {
-		err := d.runServer()
-		if err != nil {
-			fmt.Printf("runServer failed with %s\n", err)
-			return nil, err
-		}
-	}
-
-	documentStore = d.store
 	databaseRecord := ravendb.NewDatabaseRecord()
 	databaseRecord.DatabaseName = name
-
 	d.customizeDbRecord(databaseRecord)
 
 	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord)
-	err := documentStore.Maintenance().Server().Send(createDatabaseOperation)
+	err := d.store.Maintenance().Server().Send(createDatabaseOperation)
 	if err != nil {
 		return nil, err
 	}
 
-	urls := documentStore.GetUrls()
-	store := ravendb.NewDocumentStore(urls, name)
+	uris := d.store.GetUrls()
+	store := ravendb.NewDocumentStore(uris, name)
 
 	if d.isSecure {
 		store.Certificate = clientCertificate
@@ -322,32 +331,38 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 	// empty by design
 }
 
-func (d *RavenTestDriver) runServer() error {
-	nServers := 3
-	if d.isSecure {
-		nServers = 1
+func runServersMust(n int, secure bool) []*ravenProcess {
+	if secure {
+		n = 1
 	}
-	for i := 0; i < nServers; i++ {
-		proc, err := startRavenServer(d.isSecure)
-		if err != nil {
-			fmt.Printf("startRavenServer failed with %s\n", err)
-			return err
-		} else {
-			args := strings.Join(proc.cmd.Args, " ")
-			fmt.Printf("Started raven server '%s'\n", args)
-		}
-		d.serverProcesses = append(d.serverProcesses, proc)
+	var procs []*ravenProcess
+	for i := 0; i < n; i++ {
+		proc, err := startRavenServer(secure)
+		must(err)
+		args := strings.Join(proc.cmd.Args, " ")
+		fmt.Printf("Started raven server '%s'\n", args)
+		procs = append(procs, proc)
 	}
+	return procs
+}
+
+func (d *RavenTestDriver) createStoreMust() {
+	if d.store != nil {
+		d.maybeKillServer()
+		return
+	}
+	panicIf(len(d.serverProcesses) > 0, "len(d.serverProcesses): %d", len(d.serverProcesses))
+
+	d.serverProcesses = runServersMust(NUM_SERVERS, d.isSecure)
 
 	var uris []string
 	for _, proc := range d.serverProcesses {
 		uris = append(uris, proc.uri)
 	}
+	store := ravendb.NewDocumentStore(uris, "test.manager")
 
-	store := ravendb.NewDocumentStore(nil, "")
-	store.SetDatabase("test.manager")
-	store.SetUrls(uris)
-	store.GetConventions().SetDisableTopologyUpdates(true)
+	store.GetConventions().SetDisableTopologyUpdates(testDisableTopologyUpdates)
+
 	d.store = store
 
 	if d.isSecure {
@@ -355,7 +370,7 @@ func (d *RavenTestDriver) runServer() error {
 		store.TrustStore = caCertificate
 	}
 	err := store.Initialize()
-	return err
+	must(err)
 }
 
 func (d *RavenTestDriver) waitForIndexing(store *ravendb.DocumentStore, database string, timeout time.Duration) error {
@@ -427,14 +442,16 @@ func (d *RavenTestDriver) killServerProcesses() {
 }
 
 func (d *RavenTestDriver) getDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
-	store, err := d.getDocumentStore()
+	d.isSecure = false
+	store, err := d.getDocumentStore2("test_db",  0)
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
 }
 
 func (d *RavenTestDriver) getSecuredDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
-	store, err := d.getSecuredDocumentStore()
+	d.isSecure = true
+	store, err := d.getDocumentStore2("test_db",  0)
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
@@ -455,6 +472,7 @@ func (d *RavenTestDriver) Close() {
 }
 
 func shutdownTests() {
+	// no-op
 }
 
 func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.DocumentSession {
