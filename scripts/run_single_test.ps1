@@ -11,7 +11,11 @@ $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
 $Env:ENABLE_NORTHWIND_TESTS = "true"
 
-$Env:NODES_IN_CLUSTER = "1"
+# for running tests in a cluster, set to NODES_IN_CLUSTER to 3
+# and KILL_SERVER_CHANCE to e.g. 10 (10%) and "SHUFFLE_CLUSTER_NODES" to true
+$Env:NODES_IN_CLUSTER = "3"
+$Env:KILL_SERVER_CHANCE = "0"
+$Env:SHUFFLE_CLUSTER_NODES = "true"
 
 go clean -testcache
 

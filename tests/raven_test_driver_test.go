@@ -28,16 +28,21 @@ import (
 )
 
 var (
-	// can be changed via NODES_IN_CLUSTER env variable
 	// if 1 - no cluster
 	// should be 3, 5, 7 etc.
+	// can be changed via NODES_IN_CLUSTER env variable
 	numClusterNodes = 1
+
 	// a value in range 0..100
 	// it's a percentage chance that we'll kill the server
 	// when getting a store for a sub-test
 	// 0 means killing is disabled, 5 means it's a 5% chance
 	// 100 or more means it's certain
+	// can be changed via KILL_SERVER_CHANCE env variable
 	randomlyKillServersChance = 0
+
+	// can be changed via SHUFFLE_CLUSTER_NODES=true env variable
+	shuffleClusterNodes = false
 
 	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
 	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=4.1"
@@ -332,18 +337,17 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 
 	uris := d.store.GetUrls()
 	var store *ravendb.DocumentStore
-	if false {
-		store = ravendb.NewDocumentStore(uris, name)
-	} else {
+	if shuffleClusterNodes {
 		// randomly shuffle urls so that if we kill a server, there's a higher
 		// chance we'll hit it
-		// TODO: disabled because despite having a cluster setup, we get "db not found"
 		var shuffledURIs []string
 		r := rand.New(rand.NewSource(time.Now().Unix()))
 		for _, i := range r.Perm(len(uris)) {
 			shuffledURIs = append(shuffledURIs, uris[i])
 		}
 		store = ravendb.NewDocumentStore(shuffledURIs, name)
+	} else {
+		store = ravendb.NewDocumentStore(uris, name)
 	}
 	conventions := store.GetConventions()
 	conventions.ReadBalanceBehavior = pickRandomBalanceBehavior()
@@ -809,9 +813,23 @@ func initializeTests() {
 		s := os.Getenv("NODES_IN_CLUSTER")
 		n, err := strconv.Atoi(s)
 		if err == nil && n > 1 {
-			fmt.Printf("Setting numClusterNodes=%d from NODES_IN_CLUSTER env variable\n", n)
 			numClusterNodes = n
+			fmt.Printf("Setting numClusterNodes=%d from NODES_IN_CLUSTER env variable\n", n)
 		}
+	}
+
+	{
+		s := os.Getenv("KILL_SERVER_CHANCE")
+		n, err := strconv.Atoi(s)
+		if err == nil {
+			randomlyKillServersChance = n
+			fmt.Printf("Setting randomlyKillServersChance=%d from KILL_SERVER_CHANCE env variable\n", n)
+		}
+	}
+
+	if !shuffleClusterNodes && isEnvVarTrue("SHUFFLE_CLUSTER_NODES") {
+		shuffleClusterNodes = true
+		fmt.Printf("Setting shuffleClusterNodes to true because SHUFFLE_CLUSTER_NODES env variable is %s\n", os.Getenv("SHUFFLE_CLUSTER_NODES"))
 	}
 
 	setLoggingStateFromEnv()
