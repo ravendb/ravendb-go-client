@@ -98,6 +98,20 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
+var (
+	balanceBehaviors = []ravendb.ReadBalanceBehavior{
+		ravendb.ReadBalanceBehaviorNone,
+		ravendb.ReadBalanceBehaviorRoundRobin,
+		ravendb.ReadBalanceBehaviorFastestNode,
+	}
+)
+
+func pickRandomBalanceBehavior() ravendb.ReadBalanceBehavior {
+	n := rand.Intn(len(balanceBehaviors))
+	return balanceBehaviors[n]
+}
+
+
 func killServer(proc *ravenProcess) {
 	if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
 		fmt.Printf("RavenDB process has already exited with '%s'\n", proc.cmd.ProcessState)
@@ -364,7 +378,9 @@ func (d *RavenTestDriver) createStoreMust() {
 	}
 	store := ravendb.NewDocumentStore(uris, "test.manager")
 
-	store.GetConventions().SetDisableTopologyUpdates(testDisableTopologyUpdates)
+	conventions := store.GetConventions()
+	conventions.SetDisableTopologyUpdates(testDisableTopologyUpdates)
+	conventions.ReadBalanceBehavior = pickRandomBalanceBehavior()
 
 	d.store = store
 
