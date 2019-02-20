@@ -11,10 +11,10 @@ export LOG_FAILED_HTTP_REQUESTS_DELAYED=true
 # must use full absolute path because working directory is direrectory of
 # ravendb server executable
 wd=`pwd`
-export RAVENDB_JAVA_TEST_CERTIFICATE_PATH="${wd}/certs/server.pfx"
-export RAVENDB_JAVA_TEST_CA_PATH="${wd}/certs/ca.crt"
-export RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
-export RAVENDB_JAVA_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
+export RAVENDB_TEST_CERTIFICATE_PATH="${wd}/certs/server.pfx"
+export RAVENDB_TEST_CA_PATH="${wd}/certs/ca.crt"
+export RAVENDB_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
+export RAVENDB_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
 export RAVENDB_SERVER_VERSION="4.1.3" # see appveyor.yml
 
 echo "pwd:              ${wd}"
