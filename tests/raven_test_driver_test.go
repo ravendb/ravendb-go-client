@@ -28,7 +28,7 @@ var (
 	NUM_SERVERS = 3
 	// if true, we randomly kill one of the raven servers
 	// during execution of tests
-	randomlyKillServers = false
+	randomlyKillServers = true
 	// TODO: not sure if this should be true or false for cluster tests
 	testDisableTopologyUpdates = true
 
@@ -56,8 +56,6 @@ type RavenTestDriver struct {
 	serverProcesses []*ravenProcess
 
 	isSecure bool
-
-	disposed bool
 
 	customize func(*ravendb.DatabaseRecord)
 }
@@ -463,17 +461,13 @@ func (d *RavenTestDriver) getSecuredDocumentStoreMust(t *testing.T) *ravendb.Doc
 }
 
 func (d *RavenTestDriver) Close() {
-	if d.disposed {
-		return
-	}
-
 	fn := func(key, value interface{}) bool {
 		documentStore := key.(*ravendb.DocumentStore)
 		documentStore.Close()
+		d.documentStores.Delete(key)
 		return true
 	}
 	d.documentStores.Range(fn)
-	d.disposed = true
 }
 
 func shutdownTests() {
