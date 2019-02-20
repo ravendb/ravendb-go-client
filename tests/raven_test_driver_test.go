@@ -28,36 +28,6 @@ type Process struct {
 	stdoutReader io.ReadCloser
 }
 
-func getServerArgs(secure bool) []string {
-	args := []string{
-		"--ServerUrl=http://127.0.0.1:0",
-		"--RunInMemory=true",
-		"--License.Eula.Accepted=true",
-		"--Setup.Mode=None",
-		"--Testing.ParentProcessId=" + getProcessId(),
-		// "--non-interactive",
-	}
-	if secure {
-		parsed, err := url.Parse(httpsServerURL)
-		must(err)
-		host := parsed.Host
-		// host can be name:port, extract "name" part
-		host = strings.Split(host, ":")[0]
-		tcpServerURL := "tcp://" + host + ":38882"
-
-		secureArgs := []string{"--Security.Certificate.Path=" + certificatePath,
-			"--Security.Certificate.Password=pwd1234",
-			"--ServerUrl=" + httpsServerURL,
-			"--ServerUrl.Tcp=" + tcpServerURL,
-		}
-		args = append(args, secureArgs...)
-	} else {
-		args = append(args, "--ServerUrl.Tcp=tcp://127.0.0.1:38881")
-	}
-	return args
-}
-
-
 // Note: Java's RemoteTestBase is folded into RavenTestDriver
 type RavenTestDriver struct {
 	documentStores sync.Map // *DocumentStore => bool
@@ -65,7 +35,7 @@ type RavenTestDriver struct {
 	dbNameCounter int32 // atomic
 
 	store         *ravendb.DocumentStore
-	serverProcess *Process
+	serverProcesses []*Process
 
 	isSecure bool
 
@@ -111,7 +81,36 @@ func panicIf(cond bool, format string, args ...interface{}) {
 }
 
 func startRavenServer(secure bool) (*Process, error) {
-	args := getServerArgs(secure)
+	serverURL := "http://127.0.0.1:0"
+	tcpServerURL := "tcp://127.0.0.1:38881"
+	if secure {
+		serverURL = httpsServerURL
+		parsed, err := url.Parse(httpsServerURL)
+		must(err)
+		host := parsed.Host
+		// host can be name:port, extract "name" part
+		host = strings.Split(host, ":")[0]
+		tcpServerURL = "tcp://" + host + ":38882"
+	}
+
+	args := []string{
+		"--ServerUrl=" + serverURL,
+		"--ServerUrl.Tcp=" + tcpServerURL,
+		"--RunInMemory=true",
+		"--License.Eula.Accepted=true",
+		"--Setup.Mode=None",
+		"--Testing.ParentProcessId=" + getProcessId(),
+		// "--non-interactive",
+	}
+
+	if secure {
+		secureArgs := []string{
+			"--Security.Certificate.Path=" + certificatePath,
+			"--Security.Certificate.Password=pwd1234",
+		}
+		args = append(args, secureArgs...)
+	}
+
 	cmd := exec.Command(ravendbServerExePath, args...)
 	stdoutReader, err := cmd.StdoutPipe()
 
@@ -260,7 +259,7 @@ func (d *RavenTestDriver) runServer() error {
 		args := strings.Join(proc.cmd.Args, " ")
 		fmt.Printf("Started raven server '%s'\n", args)
 	}
-	d.serverProcess = proc
+	d.serverProcesses = append(d.serverProcesses, proc)
 
 	// parse stdout of the server to extract server listening port from line:
 	// Server available on: http://127.0.0.1:50386
@@ -378,26 +377,20 @@ func waitForIndexing(store *ravendb.DocumentStore, database string, timeout time
 	return ravendb.NewTimeoutError("The indexes stayed stale for more than %s.%s", timeout, allIndexErrorsText)
 }
 
-func killServer(procPtr **Process) {
-	proc := *procPtr
-	if proc == nil {
-		return
-	}
-	if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
-		fmt.Printf("RavenDB process has already exited with '%s'\n", proc.cmd.ProcessState)
-	}
-	err := proc.cmd.Process.Kill()
-	if err != nil {
-		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
-	} else {
-		s := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Killed RavenDB process %d '%s'\n", proc.cmd.Process.Pid, s)
-	}
-	*procPtr = nil
-}
-
 func (d *RavenTestDriver) killServerProcesses() {
-	killServer(&d.serverProcess)
+	for _, proc := range d.serverProcesses {
+		if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
+			fmt.Printf("RavenDB process has already exited with '%s'\n", proc.cmd.ProcessState)
+		}
+		err := proc.cmd.Process.Kill()
+		if err != nil {
+			fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
+		} else {
+			s := strings.Join(proc.cmd.Args, " ")
+			fmt.Printf("Killed RavenDB process %d '%s'\n", proc.cmd.Process.Pid, s)
+		}
+	}
+	d.serverProcesses = nil
 	d.store = nil
 }
 
@@ -430,19 +423,6 @@ func (d *RavenTestDriver) Close() {
 }
 
 func shutdownTests() {
-	// TODO: remember all RavenTestDriver instances and kill processes here
-	// maybe it's not even needed (in that RavenTestDriver.killProces()
-	// is called anyway)
-	// killGlobalServerProcesses()
-}
-
-func isEnvVarTrue(name string) bool {
-	v := strings.TrimSpace(strings.ToLower(os.Getenv(name)))
-	switch v {
-	case "yes", "true":
-		return true
-	}
-	return false
 }
 
 func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.DocumentSession {
