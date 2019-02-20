@@ -42,36 +42,10 @@ func NewTestServiceLocator() (*RavenServerLocator, error) {
 	return locator, nil
 }
 
-const (
-	envHTTPSServerURL = "RAVENDB_JAVA_TEST_HTTPS_SERVER_URL"
-)
-
-// note: in Java for tests marked as @DisabledOn41Server
-func isRunningOn41Server() bool {
-	v := os.Getenv("RAVENDB_SERVER_VERSION")
-	return strings.HasPrefix(v, "4.1")
-}
-
 func NewSecuredServiceLocator() (*RavenServerLocator, error) {
 	locator, err := NewRavenServerLocator()
 	if err != nil {
 		return nil, err
-	}
-	httpsServerURL := os.Getenv(envHTTPSServerURL)
-	if httpsServerURL == "" {
-		return nil, fmt.Errorf("Unable to find RavenDB https server url. Please make sure %s environment variable is set and is valid", envHTTPSServerURL)
-	}
-
-	evnPath := "RAVENDB_JAVA_TEST_CERTIFICATE_PATH"
-	certificatePath := os.Getenv(evnPath)
-	if certificatePath == "" {
-		return nil, fmt.Errorf("Unable to find RavenDB server certificate path. Please make sure %s environment variable is set and is valid", evnPath)
-	}
-
-	evnPath = "RAVENDB_JAVA_TEST_CA_PATH"
-	serverCaPath := os.Getenv(evnPath)
-	if serverCaPath == "" {
-		return nil, fmt.Errorf("Unable to find RavenDB server ca path. Please make sure %s environment variable is set and is valid", evnPath)
 	}
 
 	parsed, err := url.Parse(httpsServerURL)
