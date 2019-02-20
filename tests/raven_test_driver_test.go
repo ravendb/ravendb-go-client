@@ -31,6 +31,11 @@ var (
 	randomlyKillServers = false
 	// TODO: not sure if this should be true or false for cluster tests
 	testDisableTopologyUpdates = true
+
+	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
+	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=4.1"
+
+	ravenWindowsZipPath = "ravendb-latest.zip"
 )
 
 type ravenProcess struct {
@@ -520,14 +525,6 @@ func httpLogPathFromTestName(t *testing.T) string {
 	return filepath.Join(getLogDir(), name)
 }
 
-var (
-	defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
-	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
-	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=4.1"
-
-	ravenWindowsZipPath = "ravendb-latest.zip"
-)
-
 // called for every Test* function
 func createTestDriver(t *testing.T) *RavenTestDriver {
 	fmt.Printf("\nStarting test %s\n", t.Name())
@@ -698,6 +695,7 @@ func initializeTests() {
 	if ravendbServerExePath == "" {
 		if isWindows() {
 			downloadServerIfNeededWindows()
+			ravendbServerExePath = detectRavendbExePath()
 		}
 	}
 
