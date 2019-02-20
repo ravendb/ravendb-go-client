@@ -26,9 +26,13 @@ import (
 
 var (
 	NUM_SERVERS = 3
-	// if true, we randomly kill one of the raven servers
-	// during execution of tests
-	randomlyKillServers = true
+	// a value in range 0..100
+	// it's a percentage chance that we'll kill the server
+	// when getting a store for each sub-test
+	// 0 means killing is disabled, 5 means it's a 5% chance
+	// 100+ means it's certain
+	randomlyKillServersChance = 0
+
 	// TODO: not sure if this should be true or false for cluster tests
 	testDisableTopologyUpdates = true
 
@@ -40,6 +44,7 @@ var (
 
 type ravenProcess struct {
 	cmd          *exec.Cmd
+	pid int
 	stdoutReader io.ReadCloser
 
 	// auto-detected url on which to contact the server
@@ -68,7 +73,6 @@ var (
 	// if true, enable failing tests
 	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
 	enableFailingTests = false
-
 	testsWereInitialized bool
 	muInitializeTests sync.Mutex
 
@@ -121,7 +125,7 @@ func killServer(proc *ravenProcess) {
 		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
 	} else {
 		s := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Killed RavenDB process %d '%s'\n", proc.cmd.Process.Pid, s)
+		fmt.Printf("Killed RavenDB process %d '%s' on '%s'\n", proc.pid, s, proc.uri)
 	}
 }
 
@@ -189,6 +193,7 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	proc := &ravenProcess{
 		cmd:          cmd,
 		stdoutReader: stdoutReader,
+		pid: cmd.Process.Pid,
 	}
 
 	// parse stdout of the server to extract server listening port from line:
@@ -220,8 +225,6 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 		killServer(proc)
 		return nil, fmt.Errorf("Unable to start server")
 	}
-	fmt.Printf("Server started on: '%s'\n", proc.uri)
-
 	if ravenServerVerbose {
 		go func() {
 			_, err = io.Copy(os.Stdout, stdoutReader)
@@ -234,6 +237,21 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	time.Sleep(time.Millisecond * 100) // TODO: probably not necessary
 
 	return proc, nil
+}
+
+func runServersMust(n int, secure bool) []*ravenProcess {
+	if secure {
+		n = 1
+	}
+	var procs []*ravenProcess
+	for i := 0; i < n; i++ {
+		proc, err := startRavenServer(secure)
+		must(err)
+		args := strings.Join(proc.cmd.Args, " ")
+		fmt.Printf("Started server '%s' on port '%s' pid: %d\n", args, proc.uri, proc.pid)
+		procs = append(procs, proc)
+	}
+	return procs
 }
 
 func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int64) (*ravendb.ConfigureRevisionsOperationResult, error) {
@@ -264,22 +282,32 @@ func (d *RavenTestDriver) maybeKillServer() {
 	if len(d.serverProcesses) < NUM_SERVERS || len(d.serverProcesses) < 2 {
 		return
 	}
-	if randomlyKillServers {
-		// randomly kill a server
-		n := rand.Intn(100)
-		if n < 5 {
-			// 5% chance of kill a server
-			proc := d.serverProcesses[0]
-			d.serverProcesses = d.serverProcesses[1:]
-			fmt.Print("Randomly killing a server\n")
-			killServer(proc)
-		}
+	// randomly kill a server
+	n := rand.Intn(100)
+	if n < randomlyKillServersChance {
+		// 5% chance of kill a server
+		proc := d.serverProcesses[0]
+		d.serverProcesses = d.serverProcesses[1:]
+		fmt.Printf("Randomly killing a server with pid %d\n", proc.pid)
+		killServer(proc)
 	}
 }
 
 func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
 
-	d.createStoreMust()
+	var err error
+
+	// we're called for each sub-test
+	if d.store == nil {
+		d.store, err = d.createMainStore()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// try to randomly kill server
+		d.maybeKillServer()
+	}
+
 
 	n := int(atomic.AddInt32(&d.dbNameCounter, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
@@ -288,7 +316,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 	d.customizeDbRecord(databaseRecord)
 
 	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord)
-	err := d.store.Maintenance().Server().Send(createDatabaseOperation)
+	err = d.store.Maintenance().Server().Send(createDatabaseOperation)
 	if err != nil {
 		return nil, err
 	}
@@ -308,6 +336,7 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 	d.setupDatabase(store)
 	err = store.Initialize()
 	if err != nil {
+		fmt.Printf("getDocumentStore2: store.Initialize() failed with '%s'\n", err)
 		return nil, err
 	}
 
@@ -327,13 +356,13 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 	if waitForIndexingTimeout > 0 {
 		err = d.waitForIndexing(store, name, waitForIndexingTimeout)
 		if err != nil {
+			fmt.Printf("getDocumentStore2:  d.waitForIndexing() failed with '%s'\n", err)
 			store.Close()
 			return nil, err
 		}
 	}
 
 	d.documentStores.Store(store, true)
-
 	return store, nil
 }
 
@@ -348,26 +377,7 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 	// empty by design
 }
 
-func runServersMust(n int, secure bool) []*ravenProcess {
-	if secure {
-		n = 1
-	}
-	var procs []*ravenProcess
-	for i := 0; i < n; i++ {
-		proc, err := startRavenServer(secure)
-		must(err)
-		args := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Started raven server '%s'\n", args)
-		procs = append(procs, proc)
-	}
-	return procs
-}
-
-func (d *RavenTestDriver) createStoreMust() {
-	if d.store != nil {
-		d.maybeKillServer()
-		return
-	}
+func (d *RavenTestDriver) createMainStore() (*ravendb.DocumentStore, error) {
 	panicIf(len(d.serverProcesses) > 0, "len(d.serverProcesses): %d", len(d.serverProcesses))
 
 	d.serverProcesses = runServersMust(NUM_SERVERS, d.isSecure)
@@ -382,14 +392,16 @@ func (d *RavenTestDriver) createStoreMust() {
 	conventions.SetDisableTopologyUpdates(testDisableTopologyUpdates)
 	conventions.ReadBalanceBehavior = pickRandomBalanceBehavior()
 
-	d.store = store
-
 	if d.isSecure {
 		store.Certificate = clientCertificate
 		store.TrustStore = caCertificate
 	}
 	err := store.Initialize()
-	must(err)
+	if err != nil {
+		fmt.Printf("createMainStore: store.Initialize() failed with '%s'\n", err)
+		return nil, err
+	}
+	return store, nil
 }
 
 func (d *RavenTestDriver) waitForIndexing(store *ravendb.DocumentStore, database string, timeout time.Duration) error {
@@ -457,6 +469,7 @@ func (d *RavenTestDriver) killServerProcesses() {
 		killServer(proc)
 	}
 	d.serverProcesses = nil
+
 	d.store = nil
 }
 
@@ -477,6 +490,9 @@ func (d *RavenTestDriver) getSecuredDocumentStoreMust(t *testing.T) *ravendb.Doc
 }
 
 func (d *RavenTestDriver) Close() {
+	// fmt.Print("RavenTestDriver.Close()\n")
+	// debug.PrintStack()
+
 	fn := func(key, value interface{}) bool {
 		documentStore := key.(*ravendb.DocumentStore)
 		documentStore.Close()
@@ -484,6 +500,8 @@ func (d *RavenTestDriver) Close() {
 		return true
 	}
 	d.documentStores.Range(fn)
+	d.store.Close()
+	d.killServerProcesses()
 }
 
 func shutdownTests() {
@@ -549,7 +567,6 @@ func destroyDriver(t *testing.T, driver *RavenTestDriver) {
 	}
 	if driver != nil {
 		driver.Close()
-		driver.killServerProcesses()
 	}
 
 	finishLogging()
