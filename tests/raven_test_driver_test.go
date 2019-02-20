@@ -204,7 +204,7 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 		}()
 	}
 
-	time.Sleep(time.Second) // TODO: probably not necessary
+	time.Sleep(time.Millisecond * 100) // TODO: probably not necessary
 
 	return proc, nil
 }
