@@ -16,6 +16,7 @@ export RAVENDB_TEST_CA_PATH="${wd}/certs/ca.crt"
 export RAVENDB_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
 export RAVENDB_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
 export RAVENDB_SERVER_VERSION="4.1.3" # see .travis.yml
+export NODES_IN_CLUSTER="3"
 
 echo "pwd:              ${wd}"
 echo "GOPATH:           ${GOPATH}"
