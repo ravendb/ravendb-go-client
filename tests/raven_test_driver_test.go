@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
@@ -9,11 +10,13 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -25,16 +28,16 @@ import (
 )
 
 var (
-	NUM_SERVERS = 3
+	// can be changed via NODES_IN_CLUSTER env variable
+	// if 1 - no cluster
+	// should be 3, 5, 7 etc.
+	numClusterNodes = 1
 	// a value in range 0..100
 	// it's a percentage chance that we'll kill the server
-	// when getting a store for each sub-test
+	// when getting a store for a sub-test
 	// 0 means killing is disabled, 5 means it's a 5% chance
-	// 100+ means it's certain
+	// 100 or more means it's certain
 	randomlyKillServersChance = 0
-
-	// TODO: not sure if this should be true or false for cluster tests
-	testDisableTopologyUpdates = true
 
 	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
 	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=4.1"
@@ -104,7 +107,7 @@ func panicIf(cond bool, format string, args ...interface{}) {
 
 var (
 	balanceBehaviors = []ravendb.ReadBalanceBehavior{
-		ravendb.ReadBalanceBehaviorNone,
+		// ravendb.ReadBalanceBehaviorNone,
 		ravendb.ReadBalanceBehaviorRoundRobin,
 		ravendb.ReadBalanceBehaviorFastestNode,
 	}
@@ -278,19 +281,23 @@ func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
 	}
 }
 
-func (d *RavenTestDriver) maybeKillServer() {
-	if len(d.serverProcesses) < NUM_SERVERS || len(d.serverProcesses) < 2 {
-		return
+func (d *RavenTestDriver) maybeKillServer() bool {
+	if len(d.serverProcesses) < numClusterNodes || len(d.serverProcesses) < 2 {
+		return false
 	}
 	// randomly kill a server
 	n := rand.Intn(100)
-	if n < randomlyKillServersChance {
-		// 5% chance of kill a server
-		proc := d.serverProcesses[0]
-		d.serverProcesses = d.serverProcesses[1:]
-		fmt.Printf("Randomly killing a server with pid %d\n", proc.pid)
-		killServer(proc)
+	if n >= randomlyKillServersChance {
+		return false
 	}
+	// don't kill the first server as it's used by main store to create
+	// databases / store for other commands
+	idx := 1
+	proc := d.serverProcesses[idx]
+	d.serverProcesses = append(d.serverProcesses[:idx], d.serverProcesses[idx+1:]...)
+	fmt.Printf("Randomly killing a server with pid %d\n", proc.pid)
+	killServer(proc)
+	return true
 }
 
 func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeout time.Duration) (*ravendb.DocumentStore, error) {
@@ -304,10 +311,8 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 			return nil, err
 		}
 	} else {
-		// try to randomly kill server
 		d.maybeKillServer()
 	}
-
 
 	n := int(atomic.AddInt32(&d.dbNameCounter, 1))
 	name := fmt.Sprintf("%s_%d", dbName, n)
@@ -315,14 +320,34 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 	databaseRecord.DatabaseName = name
 	d.customizeDbRecord(databaseRecord)
 
-	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord)
+	// replicationFactor seems to be a minimum number of nodes with the data
+	// so it must be less than 3 (we have 3 nodes and might kill one, leaving
+	// only 2)
+	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord, 1)
 	err = d.store.Maintenance().Server().Send(createDatabaseOperation)
 	if err != nil {
+		fmt.Printf("d.store.Maintenance().Server().Send(createDatabaseOperation) failed with %s\n", err)
 		return nil, err
 	}
 
 	uris := d.store.GetUrls()
-	store := ravendb.NewDocumentStore(uris, name)
+	var store *ravendb.DocumentStore
+	if false {
+		store = ravendb.NewDocumentStore(uris, name)
+	} else {
+		// randomly shuffle urls so that if we kill a server, there's a higher
+		// chance we'll hit it
+		// TODO: disabled because despite having a cluster setup, we get "db not found"
+		var shuffledURIs []string
+		r := rand.New(rand.NewSource(time.Now().Unix()))
+		for _, i := range r.Perm(len(uris)) {
+			shuffledURIs = append(shuffledURIs, uris[i])
+		}
+		store = ravendb.NewDocumentStore(shuffledURIs, name)
+	}
+	conventions := store.GetConventions()
+	conventions.ReadBalanceBehavior = pickRandomBalanceBehavior()
+	store.SetConventions(conventions)
 
 	if d.isSecure {
 		store.Certificate = clientCertificate
@@ -377,19 +402,77 @@ func (d *RavenTestDriver) setupDatabase(documentStore *ravendb.DocumentStore) {
 	// empty by design
 }
 
+func setupCluster(store *ravendb.DocumentStore) error {
+	uris := store.GetUrls()
+	if len(uris) < 2 {
+		return nil
+	}
+
+	re := store.GetRequestExecutor(store.GetDatabase())
+	httpClient, err := re.GetHTTPClient()
+	if err != nil {
+		fmt.Printf("setupCluster: re.GetHTTPClient() failed with '%s'\n", err)
+		return err
+	}
+	firstServerURL := uris[0]
+	for _, uri := range uris[1:] {
+		// https://ravendb.net/docs/article-page/4.1/csharp/server/clustering/cluster-api#delete-node-from-the-cluster
+		cmdURI := firstServerURL + "/admin/cluster/node?url=" + url.QueryEscape(uri)
+		req, err := newHttpPut(cmdURI, nil)
+		if err != nil {
+			fmt.Printf("setupCluster: newHttpPutt() failed with '%s'\n", err)
+		}
+		rsp, err := httpClient.Do(req)
+		if err != nil {
+			fmt.Printf("setupCluster: httpClient.Do() failed with '%s' for url '%s'\n", err, cmdURI)
+		}
+		defer rsp.Body.Close()
+		if rsp.StatusCode >= 400 {
+			fmt.Printf("setupCluster: httpClient.Do() returned status code '%s' for url '%s'\n", rsp.Status, cmdURI)
+			return fmt.Errorf("setupCluster: httpClient.Do() returned status code '%s' for url '%s'\n", rsp.Status, cmdURI)
+		}
+
+		fmt.Printf("Added node to cluster with '%s', status code: %d\n", cmdURI, rsp.StatusCode)
+	}
+	return nil
+}
+
+func newHttpPut(uri string, data []byte) (*http.Request, error) {
+	var body io.Reader
+	if len(data) > 0 {
+		body = bytes.NewReader(data)
+	}
+	req, err := http.NewRequest(http.MethodPut, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("User-Agent", "ravendb-go-client/4.0.0")
+	if len(data) > 0 {
+		req.Header.Add("Content-Type", "application/json; charset=UTF-8")
+	}
+	return req, nil
+}
+
 func (d *RavenTestDriver) createMainStore() (*ravendb.DocumentStore, error) {
 	panicIf(len(d.serverProcesses) > 0, "len(d.serverProcesses): %d", len(d.serverProcesses))
 
-	d.serverProcesses = runServersMust(NUM_SERVERS, d.isSecure)
+	d.serverProcesses = runServersMust(numClusterNodes, d.isSecure)
 
 	var uris []string
 	for _, proc := range d.serverProcesses {
 		uris = append(uris, proc.uri)
 	}
+
+	mainStoreURLS := uris
+	if len(mainStoreURLS) > 1 {
+		mainStoreURLS = mainStoreURLS[1:]
+	}
 	store := ravendb.NewDocumentStore(uris, "test.manager")
 
 	conventions := store.GetConventions()
-	conventions.SetDisableTopologyUpdates(testDisableTopologyUpdates)
+	// main store is only used to create databases / other stores
+	// so we don't want cluster behavior
+	conventions.SetDisableTopologyUpdates(true)
 	conventions.ReadBalanceBehavior = pickRandomBalanceBehavior()
 
 	if d.isSecure {
@@ -399,6 +482,12 @@ func (d *RavenTestDriver) createMainStore() (*ravendb.DocumentStore, error) {
 	err := store.Initialize()
 	if err != nil {
 		fmt.Printf("createMainStore: store.Initialize() failed with '%s'\n", err)
+		store.Close()
+		return nil, err
+	}
+	err = setupCluster(store)
+	if err != nil {
+		store.Close()
 		return nil, err
 	}
 	return store, nil
@@ -666,6 +755,7 @@ func loadTestCaCertificate(path string) *x509.Certificate {
 	must(err)
 	return cert
 }
+
 // for CI we set RAVEN_License env variable to dev license, so that
 // we can run replication tests. On local machines I have dev license
 // as a file raven_license.json
@@ -713,6 +803,15 @@ func initializeTests() {
 	if !enableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
 		enableFailingTests = true
 		fmt.Printf("Setting enableFailingTests to true\n")
+	}
+
+	{
+		s := os.Getenv("NODES_IN_CLUSTER")
+		n, err := strconv.Atoi(s)
+		if err == nil && n > 1 {
+			fmt.Printf("Setting numClusterNodes=%d from NODES_IN_CLUSTER env variable\n", n)
+			numClusterNodes = n
+		}
 	}
 
 	setLoggingStateFromEnv()

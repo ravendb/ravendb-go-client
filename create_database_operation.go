@@ -14,12 +14,10 @@ type CreateDatabaseOperation struct {
 }
 
 // NewCreateDatabaseOperation returns CreateDatabaseOperation
-func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord) *CreateDatabaseOperation {
-	return NewCreateDatabaseOperationWithReplicationFactor(databaseRecord, 1)
-}
-
-// NewCreateDatabaseOperationWithReplicationFactor returns CreateDatabaseOperation
-func NewCreateDatabaseOperationWithReplicationFactor(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseOperation {
+func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseOperation {
+	if replicationFactor < 1 {
+		replicationFactor = 1
+	}
 	return &CreateDatabaseOperation{
 		databaseRecord:    databaseRecord,
 		replicationFactor: replicationFactor,

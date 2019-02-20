@@ -58,10 +58,10 @@ func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
 			return NewCurrentIndexAndNode(i, serverNodes[i]), nil
 		}
 	}
-	return NodeSelector_unlikelyEveryoneFaultedChoice(state)
+	return s.unlikelyEveryoneFaultedChoice(state)
 }
 
-func NodeSelector_unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*CurrentIndexAndNode, error) {
+func (s *NodeSelector) unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (*CurrentIndexAndNode, error) {
 	// if there are all marked as failed, we'll chose the first
 	// one so the user will get an error (or recover :-) );
 	if len(state.nodes) == 0 {

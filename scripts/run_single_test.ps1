@@ -11,6 +11,8 @@ $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
 $Env:ENABLE_NORTHWIND_TESTS = "true"
 
+$Env:NODES_IN_CLUSTER = "1"
+
 go clean -testcache
 
 #go test -tags for_tests -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$

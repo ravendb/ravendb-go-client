@@ -21,11 +21,20 @@ var (
 	// this allows replacing Transport with a custom transport that does logging,
 	// proxying or tweaks each http request
 	HTTPClientPostProcessor func(*http.Client)
+
+	// if true, adds lots of logging to track bugs in request executor
+	DebugLogRequestExecutor bool = false
 )
 
 const (
 	goClientVersion = "4.0.0"
 )
+
+func redbg(format string, args ...interface{}) {
+	if DebugLogRequestExecutor {
+		fmt.Printf(format, args...)
+	}
+}
 
 // Note: for simplicity ClusterRequestExecutor logic is implemented in RequestExecutor
 // because Go doesn't support inheritance
@@ -143,6 +152,7 @@ func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trust
 	if conventions == nil {
 		conventions = NewDocumentConventions()
 	}
+	redbg("NewRequestExecutor: db: %s, urls: %v, read balance: %s\n", databaseName, initialUrls, conventions.ReadBalanceBehavior)
 	res := &RequestExecutor{
 		updateDatabaseTopologySemaphore:    NewSemaphore(1),
 		updateClientConfigurationSemaphore: NewSemaphore(1),
@@ -163,6 +173,18 @@ func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trust
 	return res
 }
 
+// GetHTTPClient returns http client for sending the requests
+func (r *RequestExecutor ) GetHTTPClient() (*http.Client, error) {
+	if r.httpClient != nil {
+		return r.httpClient, nil
+	}
+	c, err := r.createClient()
+	if err != nil {
+		return nil, err
+	}
+	r.httpClient = c
+	return r.httpClient, nil
+}
 func NewClusterRequestExecutor(certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	res := NewRequestExecutor("", certificate, trustStore, conventions, initialUrls)
 	res.MakeCluster()
@@ -455,6 +477,7 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 
 // sessionInfo can be nil
 func (re *RequestExecutor) ExecuteCommand(command RavenCommand, sessionInfo *SessionInfo) error {
+	redbg("RequestExector.ExecuteCommand: %T\n", command)
 	topologyUpdate := re.firstTopologyUpdateFuture
 	isDone := topologyUpdate != nil && topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
 	if isDone || re.disableTopologyUpdates {

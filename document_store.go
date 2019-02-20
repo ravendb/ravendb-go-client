@@ -266,8 +266,10 @@ func (s *DocumentStore) SetIdentifier(identifier string) {
 // Close closes the Store
 func (s *DocumentStore) Close() {
 	if s.disposed {
+		redbg("DocumentStore.Close: already disposed\n")
 		return
 	}
+	redbg("DocumentStore.Close\n")
 
 	for _, fn := range s.beforeClose {
 		fn(s)
