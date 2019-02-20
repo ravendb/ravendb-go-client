@@ -574,7 +574,7 @@ func downloadServerIfNeededWindows() {
 
 func detectRavendbExePath() string {
 	// auto-detect env variables if not explicitly set
-	path := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
+	path := os.Getenv("RAVENDB_SERVER_PATH")
 
 	defer func() {
 		if path != "" {
@@ -684,7 +684,7 @@ func initializeTests() {
 	}
 
 	if ravendbServerExePath == "" {
-		fmt.Printf("Didn't find ravendb server exe. Set RAVENDB_JAVA_TEST_SERVER_PATH env variable\n")
+		fmt.Printf("Didn't find ravendb server exe. Set RAVENDB_SERVER_PATH env variable\n")
 		os.Exit(1)
 	}
 
@@ -693,12 +693,12 @@ func initializeTests() {
 	// or try to auto-detect (helps running tests from within
 	// Visual Studio Code or GoLand where env variables are not set)
 	{
-		path := os.Getenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH")
+		path := os.Getenv("RAVENDB_TEST_CERTIFICATE_PATH")
 		if !fileExists(path) {
 			path = filepath.Join("..", "certs", "server.pfx")
 		}
 		if !fileExists(path) {
-			fmt.Printf("Didn't find server.pfx file at '%s'. Set RAVENDB_JAVA_TEST_CERTIFICATE_PATH env variable\n", path)
+			fmt.Printf("Didn't find server.pfx file at '%s'. Set RAVENDB_TEST_CERTIFICATE_PATH env variable\n", path)
 			os.Exit(1)
 		}
 		certificatePath = path
@@ -706,12 +706,12 @@ func initializeTests() {
 	}
 
 	{
-		path := os.Getenv("RAVENDB_JAVA_TEST_CA_PATH")
+		path := os.Getenv("RAVENDB_TEST_CA_PATH")
 		if !fileExists(path) {
 			path = filepath.Join("..", "certs", "ca.crt")
 		}
 		if !fileExists(path) {
-			fmt.Printf("Didn't find ca.cert file at '%s'. Set RAVENDB_JAVA_TEST_CA_PATH env variable\n", path)
+			fmt.Printf("Didn't find ca.cert file at '%s'. Set RAVENDB_TEST_CA_PATH env variable\n", path)
 			os.Exit(1)
 		}
 		caCertificate = loadTestCaCertificate(path)
@@ -719,12 +719,12 @@ func initializeTests() {
 	}
 
 	{
-		path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
+		path := os.Getenv("RAVENDB_TEST_CLIENT_CERTIFICATE_PATH")
 		if !fileExists(path) {
 			path = filepath.Join("..", "certs", "cert.pem")
 		}
 		if !fileExists(path) {
-			fmt.Printf("Didn't find cert.pem file at '%s'. Set RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH env variable\n", path)
+			fmt.Printf("Didn't find cert.pem file at '%s'. Set RAVENDB_TEST_CLIENT_CERTIFICATE_PATH env variable\n", path)
 			os.Exit(1)
 		}
 		clientCertificate = loadTestClientCertificate(path)
@@ -732,7 +732,7 @@ func initializeTests() {
 	}
 
 	{
-		uri := os.Getenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL")
+		uri := os.Getenv("RAVENDB_TEST_HTTPS_SERVER_URL")
 		if uri == "" {
 			uri = "https://a.javatest11.development.run:8085"
 		}
