@@ -21,6 +21,45 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Note: Java's RemoteTestBase is folded into RavenTestDriver
+type RavenTestDriver struct {
+	documentStores sync.Map // *DocumentStore => bool
+
+	index                int32
+	server               *ravendb.DocumentStore
+	serverProcess        *Process
+
+	securedStore         *ravendb.DocumentStore
+	securedServerProcess *Process
+
+	disposed bool
+
+	customize func(*ravendb.DatabaseRecord)
+}
+
+var (
+	// if true, enables flaky tests
+	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
+	enableFlakyTests = false
+
+	// if true, enable failing tests
+	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
+	enableFailingTests = false
+
+	testsWereInitialized bool
+	muInitializeTests sync.Mutex
+
+	ravendbServerExePath string
+
+	// passed to the server as --Security.Certificate.Path
+	certificatePath string
+
+	caCertificate *x509.Certificate
+	clientCertificate *tls.Certificate
+
+	httpsServerURL string
+)
+
 func must(err error) {
 	if err != nil {
 		panic(err.Error())
@@ -34,47 +73,10 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	}
 }
 
-// Note: Java's RemoteTestBase is folded into RavenTestDriver
-type RavenTestDriver struct {
-	documentStores sync.Map // *DocumentStore => bool
-
-	index                int32
-	server               *ravendb.DocumentStore
-	serverProcess        *Process
-	securedStore         *ravendb.DocumentStore
-	securedServerProcess *Process
-
-	disposed bool
-
-	customize func(*ravendb.DatabaseRecord)
-}
-
 func NewRavenTestDriver() *RavenTestDriver {
 	return &RavenTestDriver{}
 }
 
-
-func getTestClientCertificate() *tls.Certificate {
-	path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
-	cert, err := loadCertficateAndKeyFromFile(path)
-	must(err)
-	return cert
-}
-
-func getTestCaCertificate() *x509.Certificate {
-	path := os.Getenv("RAVENDB_JAVA_TEST_CA_PATH")
-	// TODO: should I make it mandatory?
-	if len(path) == 0 {
-		return nil
-	}
-	certPEM, err := ioutil.ReadFile(path)
-	must(err)
-	block, _ := pem.Decode([]byte(certPEM))
-	panicIf(block == nil, "failed to decode cert PEM from %s", path)
-	cert, err := x509.ParseCertificate(block.Bytes)
-	must(err)
-	return cert
-}
 
 func (d *RavenTestDriver) getDocumentStore() (*ravendb.DocumentStore, error) {
 	return d.getDocumentStore2("test_db", false, 0)
@@ -118,8 +120,8 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, secured bool, waitFor
 	store := ravendb.NewDocumentStore(urls, name)
 
 	if secured {
-		store.Certificate = getTestClientCertificate()
-		store.TrustStore = getTestCaCertificate()
+		store.Certificate = clientCertificate
+		store.TrustStore = caCertificate
 	}
 
 	// TODO: is over-written by CustomSerializationTest
@@ -238,8 +240,8 @@ func (d *RavenTestDriver) runServer(secured bool) error {
 
 	if secured {
 		d.securedStore = store
-		store.Certificate = getTestClientCertificate()
-		store.TrustStore = getTestCaCertificate()
+		store.Certificate = clientCertificate
+		store.TrustStore = caCertificate
 	} else {
 		d.server = store
 	}
@@ -452,180 +454,11 @@ var (
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
 
-func getRavendbExePath() string {
-	cwd, err := os.Getwd()
-	must(err)
-
-	path := filepath.Join(cwd, "..", "RavenDB", "Server", "Raven.Server")
-	if isWindows() {
-		path += ".exe"
-	}
-	path = filepath.Clean(path)
-	if fileExists(path) {
-		return path
-	}
-
-	path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
-	if isWindows() {
-		path += ".exe"
-	}
-	path = filepath.Clean(path)
-	if fileExists(path) {
-		return path
-	}
-	return ""
-}
-
-func downloadServerIfNeededWindows() {
-	// hacky: if we're in tests directory, cd .. for duration of this function
-	cwd, err := os.Getwd()
-	must(err)
-	if strings.HasSuffix(cwd, "tests") {
-		path := filepath.Clean(filepath.Join(cwd, ".."))
-		err = os.Chdir(path)
-		must(err)
-		defer func() {
-			err := os.Chdir(cwd)
-			must(err)
-		}()
-	}
-
-	path := getRavendbExePath()
-	if path != "" {
-		fmt.Printf("Server already present in %s\n", path)
-		return
-	}
-	exists := fileExists(ravenWindowsZipPath)
-	if !exists {
-		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
-		startTime := time.Now()
-		err = HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
-		must(err)
-		fmt.Printf(" took %s\n", time.Since(startTime))
-	}
-	destDir := "RavenDB"
-	fmt.Printf("Unzipping %s to %s...", ravenWindowsZipPath, destDir)
-	startTime := time.Now()
-	err = unzip(ravenWindowsZipPath, destDir)
-	must(err)
-	fmt.Printf(" took %s\n", time.Since(startTime))
-}
-
-var muServerDownload sync.Mutex
-
-func downloadServerIfNeeded() {
-	muServerDownload.Lock()
-	defer muServerDownload.Unlock()
-	if isWindows() {
-		downloadServerIfNeededWindows()
-		return
-	}
-}
-
-// this helps running tests from within Visual Studio Code,
-// where env variables are not set
-func detectServerPath() {
-	var exists bool
-
-	// auto-detect env variables if not explicitly set
-	path := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
-	if path != "" {
-		exists = fileExists(path)
-	}
-	if !exists {
-		path = getRavendbExePath()
-		exists = fileExists(path)
-		panicIf(!exists, "file %s doesn't exist", path)
-		_ = os.Setenv("RAVENDB_JAVA_TEST_SERVER_PATH", path)
-		fmt.Printf("Setting RAVENDB_JAVA_TEST_SERVER_PATH to '%s'\n", path)
-	}
-
-	if os.Getenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH") == "" {
-		path = filepath.Join("..", "certs", "server.pfx")
-		exists = fileExists(path)
-		panicIf(!exists, "file %s doesn't exist", path)
-		_ = os.Setenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH", path)
-		fmt.Printf("Setting RAVENDB_JAVA_TEST_CERTIFICATE_PATH to '%s'\n", path)
-	}
-
-	if os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH") == "" {
-		path = filepath.Join("..", "certs", "cert.pem")
-		exists = fileExists(path)
-		panicIf(!exists, "file %s doesn't exist", path)
-		_ = os.Setenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH", path)
-		fmt.Printf("Setting RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH to '%s'\n", path)
-	}
-
-	if os.Getenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL") == "" {
-		uri := "https://a.javatest11.development.run:8085"
-		_ = os.Setenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL", uri)
-		fmt.Printf("Setting RAVENDB_JAVA_TEST_HTTPS_SERVER_URL to '%s'\n", uri)
-	}
-
-	// for CI we set RAVEN_License env variable to dev license, so that
-	// we can run replication tests
-	if len(os.Getenv("RAVEN_License")) > 0 {
-		return
-	}
-
-	//
-	path = os.Getenv("RAVEN_License_Path")
-	cwd, err := os.Getwd()
-	must(err)
-	if !fileExists(path) {
-		path = filepath.Clean(filepath.Join(cwd, "..", "raven_license.json"))
-		if !fileExists(path) {
-			path = filepath.Clean(filepath.Join(cwd, "..", "..", "raven_license.json"))
-			if !fileExists(path) {
-				fmt.Printf("Replication tests are disabled because RAVEN_License_Path not set and file %s doesn't exist.\n", path)
-				return
-			}
-		}
-		_ = os.Setenv("RAVEN_License_Path", path)
-		fmt.Printf("Setting RAVEN_License_Path to '%s'\n", path)
-	}
-}
-
-var (
-	// if true, enables flaky tests
-	// can be enabled by setting ENABLE_FLAKY_TESTS env variable to "true"
-	enableFlakyTests = false
-
-	// if true, enable failing tests
-	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
-	enableFailingTests = false
-)
-
-func setStateFromEnv() {
-	if !enableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
-		enableFlakyTests = true
-		fmt.Printf("Setting enableFlakyTests to true\n")
-	}
-
-	if !enableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
-		enableFailingTests = true
-		fmt.Printf("Setting enableFailingTests to true\n")
-	}
-
-	setLoggingStateFromEnv()
-}
-
-var (
-	muCreateTestDriver sync.Mutex
-)
-
 // In Java, RavenTestDriver is created/destroyed for each test
 // In Go we have to do it manually
 // returns a shutdown function that must be called to cleanly shutdown test
 func createTestDriver(t *testing.T) *RavenTestDriver {
 	// don't download server etc. in parallel
-	muCreateTestDriver.Lock()
-	defer muCreateTestDriver.Unlock()
-
-	downloadServerIfNeeded()
-
-	setStateFromEnv()
-	detectServerPath()
 
 	fmt.Printf("\nStarting test %s\n", t.Name())
 
@@ -654,6 +487,211 @@ func recoverTest(t *testing.T, destroyDriver func()) {
 	}
 }
 
+func downloadServerIfNeededWindows() {
+	// hacky: if we're in tests directory, cd .. for duration of this function
+	panicIf(ravendbServerExePath != "", "ravendb exe already found in %s", ravendbServerExePath)
+
+	cwd, err := os.Getwd()
+	must(err)
+	if strings.HasSuffix(cwd, "tests") {
+		path := filepath.Clean(filepath.Join(cwd, ".."))
+		err = os.Chdir(path)
+		must(err)
+		defer func() {
+			err := os.Chdir(cwd)
+			must(err)
+		}()
+	}
+
+	exists := fileExists(ravenWindowsZipPath)
+	if !exists {
+		fmt.Printf("Downloading %s...", ravendbWindowsDownloadURL)
+		startTime := time.Now()
+		err = HttpDl(ravendbWindowsDownloadURL, ravenWindowsZipPath)
+		must(err)
+		fmt.Printf(" took %s\n", time.Since(startTime))
+	}
+	destDir := "RavenDB"
+	fmt.Printf("Unzipping %s to %s...", ravenWindowsZipPath, destDir)
+	startTime := time.Now()
+	err = unzip(ravenWindowsZipPath, destDir)
+	must(err)
+	fmt.Printf(" took %s\n", time.Since(startTime))
+}
+
+func detectRavendbExePath() string {
+	// auto-detect env variables if not explicitly set
+	path := os.Getenv("RAVENDB_JAVA_TEST_SERVER_PATH")
+
+	defer func() {
+		if path != "" {
+			fmt.Printf("Server exe: %s\n", path)
+		}
+	}()
+
+	if fileExists(path) {
+		return path
+	}
+
+	cwd, err := os.Getwd()
+	must(err)
+
+	path = filepath.Join(cwd, "..", "RavenDB", "Server", "Raven.Server")
+	if isWindows() {
+		path += ".exe"
+	}
+	path = filepath.Clean(path)
+	if fileExists(path) {
+		return path
+	}
+
+	path = filepath.Join(cwd, "RavenDB", "Server", "Raven.Server")
+	if isWindows() {
+		path += ".exe"
+	}
+	path = filepath.Clean(path)
+	if fileExists(path) {
+		return path
+	}
+	return ""
+}
+
+func loadTestClientCertificate(path string) *tls.Certificate {
+	cert, err := loadCertficateAndKeyFromFile(path)
+	must(err)
+	return cert
+}
+
+func loadTestCaCertificate(path string) *x509.Certificate {
+	certPEM, err := ioutil.ReadFile(path)
+	must(err)
+	block, _ := pem.Decode([]byte(certPEM))
+	panicIf(block == nil, "failed to decode cert PEM from %s", path)
+	cert, err := x509.ParseCertificate(block.Bytes)
+	must(err)
+	return cert
+}
+// for CI we set RAVEN_License env variable to dev license, so that
+// we can run replication tests. On local machines I have dev license
+// as a file raven_license.json
+func detectRavenDevLicense() {
+	if len(os.Getenv("RAVEN_License")) > 0 {
+		fmt.Print("RAVEN_License env variable is set\n")
+		return
+	}
+
+	path := os.Getenv("RAVEN_License_Path")
+	cwd, err := os.Getwd()
+	must(err)
+	if !fileExists(path) {
+		path = filepath.Clean(filepath.Join(cwd, "..", "raven_license.json"))
+		if !fileExists(path) {
+			path = filepath.Clean(filepath.Join(cwd, "..", "..", "raven_license.json"))
+			if !fileExists(path) {
+				fmt.Printf("Replication tests are disabled because RAVEN_License_Path not set and file %s doesn't exist.\n", path)
+				return
+			}
+		}
+		_ = os.Setenv("RAVEN_License_Path", path)
+		fmt.Printf("Setting RAVEN_License_Path to '%s'\n", path)
+	}
+}
+
+// note: in Java for tests marked as @DisabledOn41Server
+func isRunningOn41Server() bool {
+	v := os.Getenv("RAVENDB_SERVER_VERSION")
+	return strings.HasPrefix(v, "4.1")
+}
+
+func initializeTests() {
+	fmt.Printf("initializeTests\n")
+
+	muInitializeTests.Lock()
+	defer muInitializeTests.Unlock()
+	if testsWereInitialized {
+		return
+	}
+
+	if !enableFlakyTests && isEnvVarTrue("ENABLE_FLAKY_TESTS") {
+		enableFlakyTests = true
+		fmt.Printf("Setting enableFlakyTests to true\n")
+	}
+
+	if !enableFailingTests && isEnvVarTrue("ENABLE_FAILING_TESTS") {
+		enableFailingTests = true
+		fmt.Printf("Setting enableFailingTests to true\n")
+	}
+
+	setLoggingStateFromEnv()
+	detectRavenDevLicense()
+
+	ravendbServerExePath = detectRavendbExePath()
+	if ravendbServerExePath == "" {
+		if isWindows() {
+			downloadServerIfNeededWindows()
+		}
+	}
+
+	if ravendbServerExePath == "" {
+		fmt.Printf("Didn't find ravendb server exe. Set RAVENDB_JAVA_TEST_SERVER_PATH env variable\n")
+		os.Exit(1)
+	}
+
+	// detect paths of files needed to run the tests
+	// either get them from env variables (set by test scripts)
+	// or try to auto-detect (helps running tests from within
+	// Visual Studio Code or GoLand where env variables are not set)
+	{
+		path := os.Getenv("RAVENDB_JAVA_TEST_CERTIFICATE_PATH")
+		if !fileExists(path) {
+			path = filepath.Join("..", "certs", "server.pfx")
+		}
+		if !fileExists(path) {
+			fmt.Printf("Didn't find server.pfx file at '%s'. Set RAVENDB_JAVA_TEST_CERTIFICATE_PATH env variable\n", path)
+			os.Exit(1)
+		}
+		certificatePath = path
+		fmt.Printf("Server ertificate file found at '%s'\n", certificatePath)
+	}
+
+	{
+		path := os.Getenv("RAVENDB_JAVA_TEST_CA_PATH")
+		if !fileExists(path) {
+			path = filepath.Join("..", "certs", "ca.crt")
+		}
+		if !fileExists(path) {
+			fmt.Printf("Didn't find ca.cert file at '%s'. Set RAVENDB_JAVA_TEST_CA_PATH env variable\n", path)
+			os.Exit(1)
+		}
+		caCertificate = loadTestCaCertificate(path)
+		fmt.Printf("Loaded ca certificate from '%s'\n", path)
+	}
+
+	{
+		path := os.Getenv("RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH")
+		if !fileExists(path) {
+			path = filepath.Join("..", "certs", "cert.pem")
+		}
+		if !fileExists(path) {
+			fmt.Printf("Didn't find cert.pem file at '%s'. Set RAVENDB_JAVA_TEST_CLIENT_CERTIFICATE_PATH env variable\n", path)
+			os.Exit(1)
+		}
+		clientCertificate = loadTestClientCertificate(path)
+		fmt.Printf("Loaded client certificate from '%s'\n", path)
+	}
+
+	{
+		uri := os.Getenv("RAVENDB_JAVA_TEST_HTTPS_SERVER_URL")
+		if uri == "" {
+			uri = "https://a.javatest11.development.run:8085"
+		}
+		httpsServerURL = uri
+		fmt.Printf("HTTPS url: '%s'\n", httpsServerURL)
+	}
+
+	testsWereInitialized = true
+}
+
 func TestMain(m *testing.M) {
 
 	//ravenServerVerbose = true
@@ -667,6 +705,8 @@ func TestMain(m *testing.M) {
 		//logGoroutines()
 		os.Exit(code)
 	}()
+
+	initializeTests()
 
 	code = m.Run()
 }
