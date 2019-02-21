@@ -211,17 +211,20 @@ See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full examp
 
 ### Selecting what to query
 
-First you need to decide what you you query.
+First you need to decide what to query.
 
-RavenDB stores documents in collections. By default each type (struct) is stored in its own collection e.g. `Employee` struct is stored in collection `employees`.
+RavenDB stores documents in collections. By default each type (struct) is stored in its own collection e.g. `Employee` structs are stored in collection `employees`.
 
-You can query a collection given its name:
+You can query by collection name:
 
 ```go
 q := session.QueryCollection("employees")
 ```
 
 See `queryCollectionByName()` in [examples/main.go](examples/main.go) for full example.
+
+To get a collection name for a given type use `ravendb.GetCollectionNameDefault(&MyStruct{})`.
+
 
 You can query a collection for a given type:
 

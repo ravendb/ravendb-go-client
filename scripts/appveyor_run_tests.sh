@@ -17,7 +17,7 @@ export RAVENDB_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
 export RAVENDB_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
 export RAVENDB_SERVER_VERSION="4.1.3" # see appveyor.yml
 
-export NODES_IN_CLUSTER="3"
+#export NODES_IN_CLUSTER="3"
 #export KILL_SERVER_CHANCE="10"
 #export SHUFFLE_CLUSTER_NODES=true
 
