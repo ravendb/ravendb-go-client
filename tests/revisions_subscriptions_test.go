@@ -99,7 +99,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 			}
 			return nil
 		}
-		_, err = sub.Run(fn)
+		err = sub.Run(fn)
 		assert.NoError(t, err)
 
 		timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
@@ -215,7 +215,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 			}
 			return nil
 		}
-		_, err = sub.Run(fn)
+		err = sub.Run(fn)
 		assert.NoError(t, err)
 
 		timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)

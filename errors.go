@@ -396,3 +396,7 @@ func newCertificateNameMismatchError(format string, args ...interface{}) *Certif
 	res.errorBase.setErrorf(format, args...)
 	return res
 }
+
+func throwCancellationRequested() error {
+	return newOperationCancelledError("")
+}

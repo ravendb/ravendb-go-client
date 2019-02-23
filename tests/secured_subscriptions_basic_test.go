@@ -68,7 +68,7 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 			}
 			return nil
 		}
-		_, err = subscription.Run(fn)
+		err = subscription.Run(fn)
 		assert.NoError(t, err)
 
 		getNextKey := func() string {
@@ -150,7 +150,7 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 			session.Close()
 		}
 
-		_, err = subscription.Run(processBatch)
+		err = subscription.Run(processBatch)
 		assert.NoError(t, err)
 
 		getNextName := func() string {

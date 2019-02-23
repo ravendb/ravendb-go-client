@@ -893,7 +893,7 @@ processItems := func(batch *ravendb.SubscriptionBatch) error {
     chResults <- true
     return nil
 }
-_, err = worker.Run(processItems)
+err = worker.Run(processItems)
 
 // wait for at least one batch result
 select {

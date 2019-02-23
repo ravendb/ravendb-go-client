@@ -23,7 +23,13 @@ go clean -testcache
 
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestLoad$
+#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestLoad$
+
+if (1) {
+    # subscription worker tests
+    go test -tags for_tests -v -race -timeout 30s ./tests -run ^TestSubscriptionsBasic$
+    # go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRevisionsSubscriptions$
+}
 
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestAttachmentsRevisions$
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRevisions$
