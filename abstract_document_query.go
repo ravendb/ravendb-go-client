@@ -1871,15 +1871,17 @@ func (q *abstractDocumentQuery) spatial2(dynamicField DynamicSpatialField, crite
 		return err
 	}
 
-	ensure := func(fieldName string, isNestedPath bool) string {
-		// TODO: propagate error
-		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
-		return s
+	ensure := func(fieldName string, isNestedPath bool) (string, error) {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
+	}
+	fieldName, err := dynamicField.ToField(ensure)
+	if err != nil {
+		return err
 	}
 	add := func(value interface{}) string {
 		return q.addQueryParameter(value)
 	}
-	tok := criteria.ToQueryToken(dynamicField.ToField(ensure), add)
+	tok := criteria.ToQueryToken(fieldName, add)
 	tokens := *tokensRef
 	tokens = append(tokens, tok)
 	*tokensRef = tokens
@@ -1924,13 +1926,14 @@ func (q *abstractDocumentQuery) orderByDistanceLatLongDynamic(field DynamicSpati
 		return err
 	}
 
-	ensure := func(fieldName string, isNestedPath bool) string {
-		// TODO: propagate error
-		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
-		return s
+	ensure := func(fieldName string, isNestedPath bool) (string, error) {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-
-	return q.orderByDistanceLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
+	fieldName, err := field.ToField(ensure)
+	if err != nil {
+		return err
+	}
+	return q.orderByDistanceLatLong("'"+fieldName+"'", latitude, longitude)
 }
 
 func (q *abstractDocumentQuery) orderByDistanceLatLong(fieldName string, latitude float64, longitude float64) error {
@@ -1948,12 +1951,14 @@ func (q *abstractDocumentQuery) orderByDistanceWktDynamic(field DynamicSpatialFi
 		return err
 	}
 
-	ensure := func(fieldName string, isNestedPath bool) string {
-		// TODO: propagate error
-		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
-		return s
+	ensure := func(fieldName string, isNestedPath bool) (string, error) {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-	return q.orderByDistance3("'"+field.ToField(ensure)+"'", shapeWkt)
+	fieldName, err := field.ToField(ensure)
+	if err != nil {
+		return err
+	}
+	return q.orderByDistance3("'"+fieldName+"'", shapeWkt)
 }
 
 func (q *abstractDocumentQuery) orderByDistance3(fieldName string, shapeWkt string) error {
@@ -1970,12 +1975,14 @@ func (q *abstractDocumentQuery) orderByDistanceDescendingLatLongDynamic(field Dy
 	if err != nil {
 		return err
 	}
-	ensure := func(fieldName string, isNestedPath bool) string {
-		// TODO: propagate error
-		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
-		return s
+	ensure := func(fieldName string, isNestedPath bool) (string, error) {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-	return q.orderByDistanceDescendingLatLong("'"+field.ToField(ensure)+"'", latitude, longitude)
+	fieldName, err := field.ToField(ensure)
+	if err != nil {
+		return err
+	}
+	return q.orderByDistanceDescendingLatLong("'"+fieldName+"'", latitude, longitude)
 }
 
 func (q *abstractDocumentQuery) orderByDistanceDescendingLatLong(fieldName string, latitude float64, longitude float64) error {
@@ -1992,12 +1999,14 @@ func (q *abstractDocumentQuery) orderByDistanceDescendingWktDynamic(field Dynami
 	if err != nil {
 		return err
 	}
-	ensure := func(fieldName string, isNestedPath bool) string {
-		// TODO: propagate error
-		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
-		return s
+	ensure := func(fieldName string, isNestedPath bool) (string, error) {
+		return q.ensureValidFieldName(fieldName, isNestedPath)
 	}
-	return q.orderByDistanceDescendingWkt("'"+field.ToField(ensure)+"'", shapeWkt)
+	fieldName, err := field.ToField(ensure)
+	if err != nil {
+		return err
+	}
+	return q.orderByDistanceDescendingWkt("'"+fieldName+"'", shapeWkt)
 }
 
 func (q *abstractDocumentQuery) orderByDistanceDescendingWkt(fieldName string, shapeWkt string) error {
@@ -2008,12 +2017,13 @@ func (q *abstractDocumentQuery) orderByDistanceDescendingWkt(fieldName string, s
 
 func (q *abstractDocumentQuery) assertIsDynamicQuery(dynamicField DynamicSpatialField, methodName string) error {
 	if q.fromToken != nil && !q.fromToken.isDynamic {
-		f := func(s string, f bool) string {
-			// TODO: propgate error
-			s, _ = q.ensureValidFieldName(s, f)
-			return s
+		f := func(s string, f bool) (string, error) {
+			return  q.ensureValidFieldName(s, f)
 		}
-		fld := dynamicField.ToField(f)
+		fld, err := dynamicField.ToField(f)
+		if err != nil {
+			return err
+		}
 		return newIllegalStateError("Cannot execute query method '" + methodName + "'. Field '" + fld + "' cannot be used when static index '" + q.fromToken.indexName + "' is queried. Dynamic spatial fields can only be used with dynamic queries, " + "for static index queries please use valid spatial fields defined in index definition.")
 	}
 	return nil

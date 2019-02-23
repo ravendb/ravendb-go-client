@@ -521,7 +521,7 @@ func (q *DocumentQuery) GroupBy(fieldName string, fieldNames ...string) *GroupBy
 func (q *DocumentQuery) GroupByFieldWithMethod(field *GroupBy, fields ...*GroupBy) *GroupByDocumentQuery {
 	res := newGroupByDocumentQuery(q)
 	if q.err == nil {
-		q.err = q.q2.GroupByFieldWithMethod(ravendb.NewGroupByArray("lines[].product"))(field, fields...)
+		q.err = q.groupByFieldWithMethod(field, fields...)
 	}
 	res.err = q.err
 	return res

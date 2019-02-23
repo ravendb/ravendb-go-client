@@ -4,5 +4,5 @@ package ravendb
 // be queried
 type DynamicSpatialField interface {
 	// ToField returns a name of the field used in queries
-	ToField(ensureValidFieldName func(string, bool) string) string
+	ToField(ensureValidFieldName func(string, bool) (string, error)) (string, error)
 }
