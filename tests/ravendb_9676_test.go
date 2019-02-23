@@ -52,7 +52,7 @@ func ravendb9676canOrderByDistanceOnDynamicSpatialField(t *testing.T, driver *Ra
 		}
 
 		q = q.Spatial2(f, fn)
-		q2 := q.OrderByDistance(ravendb.NewPointField("latitude", "longitude"), 10, 10)
+		q2 := q.OrderByDistanceLatLongDynamic(ravendb.NewPointField("latitude", "longitude"), 10, 10)
 		err = q2.GetResults(&items)
 		assert.NoError(t, err)
 
@@ -70,7 +70,7 @@ func ravendb9676canOrderByDistanceOnDynamicSpatialField(t *testing.T, driver *Ra
 		q = q.WaitForNonStaleResults(0)
 		f = ravendb.NewPointField("latitude", "longitude")
 		q = q.Spatial2(f, fn)
-		q2 = q.OrderByDistanceDescending(ravendb.NewPointField("latitude", "longitude"), 10, 10)
+		q2 = q.OrderByDistanceDescendingLatLongDynamic(ravendb.NewPointField("latitude", "longitude"), 10, 10)
 		err = q2.GetResults(&items)
 
 		assert.NoError(t, err)

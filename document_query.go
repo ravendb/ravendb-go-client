@@ -750,21 +750,22 @@ func (q *DocumentQuery) RelatesToShapeWithError(fieldName string, shapeWkt strin
 	return q
 }
 
-func (q *DocumentQuery) OrderByDistance(field DynamicSpatialField, latitude float64, longitude float64) *DocumentQuery {
+// OrderByDistanceLatLongDynamic orders a given field by lat / long
+func (q *DocumentQuery) OrderByDistanceLatLongDynamic(field DynamicSpatialField, latitude float64, longitude float64) *DocumentQuery {
 	if q.err != nil {
 		return q
 	}
-	q.err = q.orderByDistance(field, latitude, longitude)
+	q.err = q.orderByDistanceLatLongDynamic(field, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) OrderByDistance2(field DynamicSpatialField, shapeWkt string) *DocumentQuery {
+func (q *DocumentQuery) OrderByDistanceWktDynamic(field DynamicSpatialField, shapeWkt string) *DocumentQuery {
 	if q.err != nil {
 		return q
 	}
-	q.err = q.orderByDistance2(field, shapeWkt)
+	q.err = q.orderByDistanceWktDynamic(field, shapeWkt)
 	return q
 }
 
@@ -782,7 +783,7 @@ func (q *DocumentQuery) OrderByDistanceLatLong(fieldName string, latitude float6
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistance<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
-func (q *DocumentQuery) OrderByDistance3(fieldName string, shapeWkt string) *DocumentQuery {
+func (q *DocumentQuery) OrderByDistanceWkt(fieldName string, shapeWkt string) *DocumentQuery {
 	if q.err != nil {
 		return q
 	}
@@ -790,21 +791,21 @@ func (q *DocumentQuery) OrderByDistance3(fieldName string, shapeWkt string) *Doc
 	return q
 }
 
-func (q *DocumentQuery) OrderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) *DocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescendingLatLongDynamic(field DynamicSpatialField, latitude float64, longitude float64) *DocumentQuery {
 	if q.err != nil {
 		return q
 	}
-	q.err = q.orderByDistanceDescending(field, latitude, longitude)
+	q.err = q.orderByDistanceDescendingLatLongDynamic(field, latitude, longitude)
 	return q
 }
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending(Func<DynamicSpatialFieldFactory<T>, DynamicSpatialField> field, float64 latitude, float64 longitude)
 
-func (q *DocumentQuery) OrderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) *DocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescendingWktDynamic(field DynamicSpatialField, shapeWkt string) *DocumentQuery {
 	if q.err != nil {
 		return q
 	}
-	q.err = q.orderByDistanceDescending2(field, shapeWkt)
+	q.err = q.orderByDistanceDescendingWktDynamic(field, shapeWkt)
 	return q
 }
 
@@ -822,11 +823,11 @@ func (q *DocumentQuery) OrderByDistanceDescendingLatLong(fieldName string, latit
 
 //TBD expr IDocumentQuery<T> IDocumentQueryBase<T, IDocumentQuery<T>>.OrderByDistanceDescending<TValue>(Expression<Func<T, TValue>> propertySelector, string shapeWkt)
 
-func (q *DocumentQuery) OrderByDistanceDescending3(fieldName string, shapeWkt string) *DocumentQuery {
+func (q *DocumentQuery) OrderByDistanceDescendingWkt(fieldName string, shapeWkt string) *DocumentQuery {
 	if q.err != nil {
 		return q
 	}
-	q.err = q.orderByDistanceDescending3(fieldName, shapeWkt)
+	q.err = q.orderByDistanceDescendingWkt(fieldName, shapeWkt)
 	return q
 }
 

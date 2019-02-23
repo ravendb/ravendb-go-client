@@ -1916,7 +1916,7 @@ func (q *abstractDocumentQuery) spatial3(fieldName string, criteria SpatialCrite
 	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistance(field DynamicSpatialField, latitude float64, longitude float64) error {
+func (q *abstractDocumentQuery) orderByDistanceLatLongDynamic(field DynamicSpatialField, latitude float64, longitude float64) error {
 	if field == nil {
 		return newIllegalArgumentError("Field cannot be null")
 	}
@@ -1939,7 +1939,7 @@ func (q *abstractDocumentQuery) orderByDistanceLatLong(fieldName string, latitud
 	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistance2(field DynamicSpatialField, shapeWkt string) error {
+func (q *abstractDocumentQuery) orderByDistanceWktDynamic(field DynamicSpatialField, shapeWkt string) error {
 	if field == nil {
 		return newIllegalArgumentError("Field cannot be null")
 	}
@@ -1962,7 +1962,7 @@ func (q *abstractDocumentQuery) orderByDistance3(fieldName string, shapeWkt stri
 	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescending(field DynamicSpatialField, latitude float64, longitude float64) error {
+func (q *abstractDocumentQuery) orderByDistanceDescendingLatLongDynamic(field DynamicSpatialField, latitude float64, longitude float64) error {
 	if field == nil {
 		return newIllegalArgumentError("Field cannot be null")
 	}
@@ -1984,7 +1984,7 @@ func (q *abstractDocumentQuery) orderByDistanceDescendingLatLong(fieldName strin
 	return nil
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescending2(field DynamicSpatialField, shapeWkt string) error {
+func (q *abstractDocumentQuery) orderByDistanceDescendingWktDynamic(field DynamicSpatialField, shapeWkt string) error {
 	if field == nil {
 		return newIllegalArgumentError("Field cannot be null")
 	}
@@ -1997,10 +1997,10 @@ func (q *abstractDocumentQuery) orderByDistanceDescending2(field DynamicSpatialF
 		s, _ := q.ensureValidFieldName(fieldName, isNestedPath)
 		return s
 	}
-	return q.orderByDistanceDescending3("'"+field.ToField(ensure)+"'", shapeWkt)
+	return q.orderByDistanceDescendingWkt("'"+field.ToField(ensure)+"'", shapeWkt)
 }
 
-func (q *abstractDocumentQuery) orderByDistanceDescending3(fieldName string, shapeWkt string) error {
+func (q *abstractDocumentQuery) orderByDistanceDescendingWkt(fieldName string, shapeWkt string) error {
 	tok := orderByTokenCreateDistanceDescending2(fieldName, q.addQueryParameter(shapeWkt))
 	q.orderByTokens = append(q.orderByTokens, tok)
 	return nil
