@@ -98,7 +98,7 @@ func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document 
 		// fmt.Printf("makeStructFromJSONMap() failed with %s\n. Wanted type: %s, document: %v\n", err, entityType, document)
 		return err
 	}
-	TrySetIDOnEntity(entity, id)
+	trySetIDOnEntity(entity, id)
 	//fmt.Printf("result is: %T, entity is: %T\n", result, entity)
 	if entity == nil {
 		return newIllegalStateError("decoded entity is nil")
@@ -118,7 +118,7 @@ func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, docum
 	if err != nil {
 		return nil, err
 	}
-	TrySetIDOnEntity(entity, id)
+	trySetIDOnEntity(entity, id)
 	return entity, nil
 }
 
@@ -131,7 +131,7 @@ func entityToJSONConvertToEntity(entityType reflect.Type, id string, document ma
 	if err != nil {
 		return nil, err
 	}
-	TrySetIDOnEntity(entity, id)
+	trySetIDOnEntity(entity, id)
 	return entity, nil
 }
 

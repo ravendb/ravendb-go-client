@@ -16,7 +16,9 @@ func putDocumentCommandCanPutDocumentUsingCommand(t *testing.T, driver *RavenTes
 	user.setName("Marcin")
 	user.Age = 30
 
-	node := ravendb.ValueToTree(user)
+	node, err := entityToDocument(user)
+	assert.NoError(t, err)
+
 	command := ravendb.NewPutDocumentCommand("users/1", nil, node)
 	err = store.GetRequestExecutor("").ExecuteCommand(command, nil)
 	assert.NoError(t, err)

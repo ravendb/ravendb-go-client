@@ -40,22 +40,22 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify can get/set field name ID of type string
 		exp := "hello"
 		s := WithID{ID: exp}
-		got, ok := TryGetIDFromInstance(s)
+		got, ok := tryGetIDFromInstance(s)
 		assert.True(t, ok)
 		assert.Equal(t, exp, got)
 
-		got, ok = TryGetIDFromInstance(&s)
+		got, ok = tryGetIDFromInstance(&s)
 		assert.True(t, ok)
 		assert.Equal(t, exp, got)
 
 		exp = "new"
-		ok = TrySetIDOnEntity(s, exp)
+		ok = trySetIDOnEntity(s, exp)
 
 		// can't set on structs, only on pointer to structs
 		assert.False(t, ok)
 		assert.NotEqual(t, exp, s.ID)
 
-		ok = TrySetIDOnEntity(&s, exp)
+		ok = trySetIDOnEntity(&s, exp)
 		assert.True(t, ok)
 		assert.Equal(t, exp, s.ID)
 	}
@@ -63,12 +63,12 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 	{
 		// id that is empty string is not valid
 		s := WithID{}
-		got, ok := TryGetIDFromInstance(s)
+		got, ok := tryGetIDFromInstance(s)
 		assert.False(t, ok)
 		assert.Equal(t, "", got)
 
 		exp := "new"
-		ok = TrySetIDOnEntity(&s, exp)
+		ok = trySetIDOnEntity(&s, exp)
 		assert.True(t, ok)
 		assert.Equal(t, exp, s.ID)
 	}
@@ -77,21 +77,21 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// "Id" is not valid name for id field, must be "ID"
 		exp := "hello"
 		s := WithId{Id: exp}
-		got, ok := TryGetIDFromInstance(s)
+		got, ok := tryGetIDFromInstance(s)
 		assert.False(t, ok)
 		assert.Equal(t, "", got)
 
-		got, ok = TryGetIDFromInstance(&s)
+		got, ok = tryGetIDFromInstance(&s)
 		assert.False(t, ok)
 		assert.Equal(t, "", got)
 
 		exp = "new"
-		ok = TrySetIDOnEntity(s, exp)
+		ok = trySetIDOnEntity(s, exp)
 		// can't set on structs, only on pointer to structs
 		assert.False(t, ok)
 		assert.NotEqual(t, exp, s.Id)
 
-		ok = TrySetIDOnEntity(&s, exp)
+		ok = trySetIDOnEntity(&s, exp)
 		assert.False(t, ok)
 	}
 
@@ -99,12 +99,12 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify doesn't get/set unexported field
 		exp := "hello"
 		s := Withid{id: exp}
-		got, ok := TryGetIDFromInstance(s)
+		got, ok := tryGetIDFromInstance(s)
 		assert.False(t, ok)
 		assert.Equal(t, "", got)
 
 		exp = "new"
-		ok = TrySetIDOnEntity(s, exp)
+		ok = trySetIDOnEntity(s, exp)
 		assert.False(t, ok)
 		assert.Equal(t, "hello", s.id)
 	}
@@ -113,10 +113,10 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify doesn't get/set if there's no ID field
 		exp := "new"
 		s := NoID{}
-		got, ok := TryGetIDFromInstance(s)
+		got, ok := tryGetIDFromInstance(s)
 		assert.False(t, ok)
 		assert.Equal(t, "", got)
-		ok = TrySetIDOnEntity(s, exp)
+		ok = trySetIDOnEntity(s, exp)
 		assert.False(t, ok)
 	}
 
@@ -124,11 +124,11 @@ func TestTryGetSetIDFromInstance(t *testing.T) {
 		// verify doesn't get/set if ID is not string
 		exp := "new"
 		s := WithIntID{ID: 5}
-		got, ok := TryGetIDFromInstance(s)
+		got, ok := tryGetIDFromInstance(s)
 		assert.False(t, ok)
 		assert.Equal(t, "", got)
 
-		ok = TrySetIDOnEntity(s, exp)
+		ok = trySetIDOnEntity(s, exp)
 		assert.False(t, ok)
 	}
 }

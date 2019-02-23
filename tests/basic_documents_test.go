@@ -61,7 +61,8 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	dummy := ravendb.ValueToTree(&User{})
+	dummy, err := entityToDocument(&User{})
+	assert.NoError(t, err)
 	delete(dummy, "ID")
 
 	{

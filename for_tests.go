@@ -9,3 +9,4 @@ package ravendb
 func (c *DocumentConventions) GetCollectionName(entityOrType interface{}) string {
 	return c.getCollectionName(entityOrType)
 }
+

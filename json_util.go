@@ -146,7 +146,7 @@ func structFromJSONMap(js map[string]interface{}, v interface{}) error {
 }
 
 // matches a Java naming from EnityMapper
-func ValueToTree(v interface{}) map[string]interface{} {
+func valueToTree(v interface{}) map[string]interface{} {
 	return structToJSONMap(v)
 }
 

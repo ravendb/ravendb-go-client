@@ -26,7 +26,7 @@ func (s *moreLikeThisScope) withOptions(options *MoreLikeThisOptions) {
 	}
 
 	// force using *non* entity serializer here:
-	optionsAsJson := ValueToTree(options)
+	optionsAsJson := valueToTree(options)
 	s.token.optionsParameterName = s.addQueryParameter(optionsAsJson)
 }
 

@@ -309,3 +309,16 @@ func loadCertficateAndKeyFromFile(path string) (*tls.Certificate, error) {
 
 	return &cert, nil
 }
+
+func entityToDocument(e interface{}) (map[string]interface{}, error) {
+	js, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+	var doc map[string]interface{}
+	err = json.Unmarshal(js, &doc)
+	if err != nil {
+		return nil, err
+	}
+	return doc, nil
+}

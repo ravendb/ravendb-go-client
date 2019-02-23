@@ -50,5 +50,5 @@ func (g *generateEntityIDOnTheClient) generateDocumentKeyForStorage(entity inter
 
 // Tries to set the identity property
 func (g *generateEntityIDOnTheClient) trySetIdentity(entity interface{}, id string) {
-	TrySetIDOnEntity(entity, id)
+	trySetIDOnEntity(entity, id)
 }
