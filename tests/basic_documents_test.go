@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
@@ -102,6 +101,8 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 	assert.True(t, stringArrayContains(doc2Properties, "@metadata"))
 	assert.Equal(t, len(doc2Properties), len(dummy)+1) // +1 for @metadata
 
+	// Note: we don't expose EntityToJSON in Go
+	/*
 	{
 		session := openSessionMust(t, store)
 		etojs := session.GetEntityToJSON()
@@ -116,6 +117,8 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, *user2.Name, "Arek")
 		session.Close()
 	}
+	*/
+
 	getDocumentsCommand, err = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)
 	assert.NoError(t, err)
 	err = requestExecutor.ExecuteCommand(getDocumentsCommand, nil)

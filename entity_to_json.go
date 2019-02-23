@@ -5,21 +5,23 @@ import (
 	"reflect"
 )
 
+// TODO: cleanup, possibly rethink entityToJSON
+
 type entityToJSON struct {
-	_session           *InMemoryDocumentSessionOperations
-	_missingDictionary map[interface{}]map[string]interface{}
+	session           *InMemoryDocumentSessionOperations
+	missingDictionary map[interface{}]map[string]interface{}
 	//private final Map<Object, Map<string, Object>> _missingDictionary = new TreeMap<>((o1, o2) -> o1 == o2 ? 0 : 1);
 }
 
 // All the listeners for this session
 func newEntityToJSON(session *InMemoryDocumentSessionOperations) *entityToJSON {
 	return &entityToJSON{
-		_session: session,
+		session: session,
 	}
 }
 
 func (e *entityToJSON) getMissingDictionary() map[interface{}]map[string]interface{} {
-	return e._missingDictionary
+	return e.missingDictionary
 }
 
 func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) map[string]interface{} {
@@ -80,7 +82,7 @@ func mapDup(m map[string]interface{}) *map[string]interface{} {
 }
 
 // ConvertToEntity2 converts document to a value result, matching type of result
-func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document map[string]interface{}) error {
+func (e *entityToJSON) convertToEntity2(result interface{}, id string, document map[string]interface{}) error {
 	if _, ok := result.(**map[string]interface{}); ok {
 		setInterfaceToValue(result, mapDup(document))
 		return nil
@@ -109,7 +111,7 @@ func (e *entityToJSON) ConvertToEntity2(result interface{}, id string, document 
 
 // Converts a json object to an entity.
 // TODO: remove in favor of entityToJSONConvertToEntity
-func (e *entityToJSON) ConvertToEntity(entityType reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
+func (e *entityToJSON) convertToEntity(entityType reflect.Type, id string, document map[string]interface{}) (interface{}, error) {
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}

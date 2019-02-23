@@ -366,6 +366,8 @@ func checkValidLoadArg(v interface{}, argName string) error {
 	return checkIsPtrPtrStruct(v, argName)
 }
 
+// Load loads an entity with a given id and sets result to it.
+// result should be of type **<struct> or *map[string]interface{}
 func (s *DocumentSession) Load(result interface{}, id string) error {
 	if id == "" {
 		return newIllegalArgumentError("id cannot be empty string")

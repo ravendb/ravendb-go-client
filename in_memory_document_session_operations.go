@@ -193,7 +193,7 @@ func (s *InMemoryDocumentSessionOperations) RemoveBeforeQueryListener(handlerID 
 	s.onBeforeQuery[handlerID] = nil
 }
 
-func (s *InMemoryDocumentSessionOperations) GetEntityToJSON() *entityToJSON {
+func (s *InMemoryDocumentSessionOperations) getEntityToJSON() *entityToJSON {
 	return s.entityToJSON
 }
 
@@ -420,7 +420,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		// instance, and return that, ignoring anything new.
 
 		if docInfo.entity == nil {
-			err := s.entityToJSON.ConvertToEntity2(result, id, document)
+			err := s.entityToJSON.convertToEntity2(result, id, document)
 			if err != nil {
 				return err
 			}
@@ -441,7 +441,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		// TODO: figure out a test case that fails if I invert setResultToDocEntity
 		setResultToDocEntity := true
 		if docInfo.entity == nil {
-			err := s.entityToJSON.ConvertToEntity2(result, id, document)
+			err := s.entityToJSON.convertToEntity2(result, id, document)
 			if err != nil {
 				return err
 			}
@@ -461,7 +461,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		return nil
 	}
 
-	err := s.entityToJSON.ConvertToEntity2(result, id, document)
+	err := s.entityToJSON.convertToEntity2(result, id, document)
 	if err != nil {
 		return err
 	}
@@ -1153,7 +1153,7 @@ func (s *InMemoryDocumentSessionOperations) registerMissingIncludes(results []ma
 }
 
 func (s *InMemoryDocumentSessionOperations) deserializeFromTransformer(result interface{}, id string, document map[string]interface{}) error {
-	return s.entityToJSON.ConvertToEntity2(result, id, document)
+	return s.entityToJSON.convertToEntity2(result, id, document)
 }
 
 /*
@@ -1218,7 +1218,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 		documentInfo.changeVector = changeVector
 	}
 	documentInfo.document = document
-	e, err := s.entityToJSON.ConvertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
+	e, err := s.entityToJSON.convertToEntity(reflect.TypeOf(entity), documentInfo.id, document)
 	if err != nil {
 		return err
 	}

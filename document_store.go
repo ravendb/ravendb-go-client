@@ -243,6 +243,7 @@ func NewDocumentStore(urls []string, database string) *DocumentStore {
 	return res
 }
 
+// Get an identifier of the store. For debugging / testing.
 func (s *DocumentStore) GetIdentifier() string {
 	if s.identifier != "" {
 		return s.identifier

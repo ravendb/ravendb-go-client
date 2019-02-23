@@ -57,7 +57,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(result interface{}, docum
 	if metadata != nil {
 		changeVector = jsonGetAsTextPointer(metadata, MetadataChangeVector)
 	}
-	err := o.session.GetEntityToJSON().ConvertToEntity2(result, id, document)
+	err := o.session.getEntityToJSON().convertToEntity2(result, id, document)
 	if err != nil {
 		return err
 	}
