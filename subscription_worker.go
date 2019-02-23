@@ -14,27 +14,27 @@ import (
 
 // SubscriptionWorker describes subscription worker
 type SubscriptionWorker struct {
-	_clazz            reflect.Type
-	_revisions        bool
-	_logger           *log.Logger
-	_store            *DocumentStore
-	_dbName           string
-	_processingCts    *cancellationTokenSource
-	_options          *SubscriptionWorkerOptions
-	_subscriber       func(*SubscriptionBatch) error
-	_tcpClient        net.Conn
-	_parser           *json.Decoder
-	_disposed         int32 // atomic
-	_subscriptionTask *completableFuture
+	clazz            reflect.Type
+	revisions        bool
+	logger           *log.Logger
+	store            *DocumentStore
+	dbName           string
+	processingCts    *cancellationTokenSource
+	options          *SubscriptionWorkerOptions
+	subscriber       func(*SubscriptionBatch) error
+	tcpClient        net.Conn
+	parser           *json.Decoder
+	disposed         int32 // atomic
+	subscriptionTask *completableFuture
 
 	afterAcknowledgment           []func(*SubscriptionBatch)
 	onSubscriptionConnectionRetry []func(error)
 
-	_redirectNode                     *ServerNode
-	_subscriptionLocalRequestExecutor *RequestExecutor
+	redirectNode                     *ServerNode
+	subscriptionLocalRequestExecutor *RequestExecutor
 
 	lastConnectionFailure time.Time
-	_supportedFeatures    *supportedFeatures
+	supportedFeatures     *supportedFeatures
 	onClosed              func(*SubscriptionWorker)
 
 	mu sync.Mutex
@@ -42,24 +42,24 @@ type SubscriptionWorker struct {
 
 func (w *SubscriptionWorker) getTcpClient() net.Conn {
 	w.mu.Lock()
-	res := w._tcpClient
+	res := w.tcpClient
 	w.mu.Unlock()
 	return res
 }
 
 func (w *SubscriptionWorker) setTcpClient(c net.Conn) {
 	w.mu.Lock()
-	w._tcpClient = c
+	w.tcpClient = c
 	w.mu.Unlock()
 }
 
 func (w *SubscriptionWorker) isDisposed() bool {
-	v := atomic.LoadInt32(&w._disposed)
+	v := atomic.LoadInt32(&w.disposed)
 	return v != 0
 }
 
 func (w *SubscriptionWorker) markDisposed() {
-	atomic.StoreInt32(&w._disposed, 1)
+	atomic.StoreInt32(&w.disposed, 1)
 }
 
 // AddAfterAcknowledgmentListener adds callback function that will be called after
@@ -100,12 +100,12 @@ func NewSubscriptionWorker(clazz reflect.Type, options *SubscriptionWorkerOption
 	}
 
 	res := &SubscriptionWorker{
-		_clazz:         clazz,
-		_options:       options,
-		_revisions:     withRevisions,
-		_store:         documentStore,
-		_dbName:        dbName,
-		_processingCts: &cancellationTokenSource{},
+		clazz:         clazz,
+		options:       options,
+		revisions:     withRevisions,
+		store:         documentStore,
+		dbName:        dbName,
+		processingCts: &cancellationTokenSource{},
 	}
 
 	return res, nil
@@ -126,55 +126,57 @@ func (w *SubscriptionWorker) close(waitForSubscriptionTask bool) error {
 		}
 	}()
 	w.markDisposed()
-	w._processingCts.cancel()
+	w.processingCts.cancel()
 	w.closeTcpClient() // we disconnect immediately
 
-	if w._subscriptionTask != nil && waitForSubscriptionTask {
+	if w.subscriptionTask != nil && waitForSubscriptionTask {
 		// just need to wait for it to end
-		w._subscriptionTask.Get()
+		w.subscriptionTask.Get()
 	}
 
-	if w._subscriptionLocalRequestExecutor != nil {
-		w._subscriptionLocalRequestExecutor.Close()
-		w._subscriptionLocalRequestExecutor = nil
+	if w.subscriptionLocalRequestExecutor != nil {
+		w.subscriptionLocalRequestExecutor.Close()
+		w.subscriptionLocalRequestExecutor = nil
 	}
 	return nil
 }
 
+// TODO: should not return completableFuture but something more go-ish
+// like a channel
 func (w *SubscriptionWorker) Run(processDocuments func(*SubscriptionBatch) error) (*completableFuture, error) {
-	if w._subscriptionTask != nil {
+	if w.subscriptionTask != nil {
 		return nil, newIllegalStateError("The subscription is already running")
 	}
 
-	w._subscriber = processDocuments
+	w.subscriber = processDocuments
 
-	w._subscriptionTask = w.runSubscriptionAsync()
-	return w._subscriptionTask, nil
+	w.subscriptionTask = w.runSubscriptionAsync()
+	return w.subscriptionTask, nil
 }
 
 func (w *SubscriptionWorker) getCurrentNodeTag() string {
-	if w._redirectNode != nil {
-		return w._redirectNode.ClusterTag
+	if w.redirectNode != nil {
+		return w.redirectNode.ClusterTag
 	}
 	return ""
 }
 
 func (w *SubscriptionWorker) getSubscriptionName() string {
-	if w._options != nil {
-		return w._options.SubscriptionName
+	if w.options != nil {
+		return w.options.SubscriptionName
 	}
 	return ""
 }
 
 func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
-	command := NewGetTcpInfoCommand("Subscription/"+w._dbName, w._dbName)
-	requestExecutor := w._store.GetRequestExecutor(w._dbName)
+	command := NewGetTcpInfoCommand("Subscription/"+w.dbName, w.dbName)
+	requestExecutor := w.store.GetRequestExecutor(w.dbName)
 
 	var err error
-	if w._redirectNode != nil {
-		err = requestExecutor.Execute(w._redirectNode, -1, command, false, nil)
+	if w.redirectNode != nil {
+		err = requestExecutor.Execute(w.redirectNode, -1, command, false, nil)
 		if err != nil {
-			w._redirectNode = nil
+			w.redirectNode = nil
 			// if we failed to talk to a node, we'll forget about it and let the topology to
 			// redirect us to the current node
 			return nil, newRuntimeError(err.Error())
@@ -190,15 +192,15 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	if command.Result.Certificate != nil {
 		serverCert = []byte(*command.Result.Certificate)
 	}
-	cert := w._store.Certificate
+	cert := w.store.Certificate
 	tcpClient, err := tcpConnect(uri, serverCert, cert)
 	if err != nil {
 		return nil, err
 	}
 	w.setTcpClient(tcpClient)
-	databaseName := w._dbName
+	databaseName := w.dbName
 	if databaseName == "" {
-		databaseName = w._store.GetDatabase()
+		databaseName = w.store.GetDatabase()
 	}
 
 	parameters := &tcpNegotiateParameters{}
@@ -213,16 +215,16 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	parameters.destinationNodeTag = w.getCurrentNodeTag()
 	parameters.destinationUrl = command.Result.URL
 
-	w._supportedFeatures, err = negotiateProtocolVersion(tcpClient, parameters)
+	w.supportedFeatures, err = negotiateProtocolVersion(tcpClient, parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	if w._supportedFeatures.protocolVersion <= 0 {
-		return nil, newIllegalStateError(w._options.SubscriptionName + " : TCP negotiation resulted with an invalid protocol version: " + strconv.Itoa(w._supportedFeatures.protocolVersion))
+	if w.supportedFeatures.protocolVersion <= 0 {
+		return nil, newIllegalStateError(w.options.SubscriptionName + " : TCP negotiation resulted with an invalid protocol version: " + strconv.Itoa(w.supportedFeatures.protocolVersion))
 	}
 
-	options, err := jsonMarshal(w._options)
+	options, err := jsonMarshal(w.options)
 	if err != nil {
 		return nil, err
 	}
@@ -231,20 +233,20 @@ func (w *SubscriptionWorker) connectToServer() (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	if w._subscriptionLocalRequestExecutor != nil {
-		w._subscriptionLocalRequestExecutor.Close()
+	if w.subscriptionLocalRequestExecutor != nil {
+		w.subscriptionLocalRequestExecutor.Close()
 	}
-	conv := w._store.GetConventions()
+	conv := w.store.GetConventions()
 	cert = requestExecutor.Certificate
 	trustStore := requestExecutor.TrustStore
 	uri = command.requestedNode.URL
-	w._subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w._dbName, cert, trustStore, conv)
+	w.subscriptionLocalRequestExecutor = RequestExecutorCreateForSingleNodeWithoutConfigurationUpdates(uri, w.dbName, cert, trustStore, conv)
 	return tcpClient, nil
 }
 
 func (w *SubscriptionWorker) ensureParser() {
-	if w._parser == nil {
-		w._parser = json.NewDecoder(w._tcpClient)
+	if w.parser == nil {
+		w.parser = json.NewDecoder(w.tcpClient)
 	}
 }
 
@@ -252,7 +254,7 @@ func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, e
 	//Reading reply from server
 	w.ensureParser()
 	var reply *tcpConnectionHeaderResponse
-	err := w._parser.Decode(&reply)
+	err := w.parser.Decode(&reply)
 	if err != nil {
 		return 0, err
 	}
@@ -261,14 +263,14 @@ func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, e
 	case tcpConnectionStatusOk:
 		return reply.Version, nil
 	case tcpConnectionStatusAuthorizationFailed:
-		return 0, newAuthorizationError("Cannot access database " + w._dbName + " because " + reply.Message)
+		return 0, newAuthorizationError("Cannot access database " + w.dbName + " because " + reply.Message)
 	case tcpConnectionStatusTcpVersionMismatch:
 		if reply.Version != outOfRangeStatus {
 			return reply.Version, nil
 		}
 		//Kindly request the server to drop the connection
 		w.sendDropMessage(reply)
-		return 0, newIllegalStateError("Can't connect to database " + w._dbName + " because: " + reply.Message)
+		return 0, newIllegalStateError("Can't connect to database " + w.dbName + " because: " + reply.Message)
 	}
 
 	return 0, newIllegalStateError("Unknown status '%s'", reply.Status)
@@ -277,14 +279,14 @@ func (w *SubscriptionWorker) readServerResponseAndGetVersion(url string) (int, e
 func (w *SubscriptionWorker) sendDropMessage(reply *tcpConnectionHeaderResponse) error {
 	dropMsg := &tcpConnectionHeaderMessage{}
 	dropMsg.Operation = operationDrop
-	dropMsg.DatabaseName = w._dbName
+	dropMsg.DatabaseName = w.dbName
 	dropMsg.OperationVersion = subscriptionTCPVersion
 	dropMsg.Info = "Couldn't agree on subscription tcp version ours: " + strconv.Itoa(subscriptionTCPVersion) + " theirs: " + strconv.Itoa(reply.Version)
 	header, err := jsonMarshal(dropMsg)
 	if err != nil {
 		return err
 	}
-	if _, err = w._tcpClient.Write(header); err != nil {
+	if _, err = w.tcpClient.Write(header); err != nil {
 		return err
 	}
 	return nil
@@ -293,7 +295,7 @@ func (w *SubscriptionWorker) sendDropMessage(reply *tcpConnectionHeaderResponse)
 func (w *SubscriptionWorker) assertConnectionState(connectionStatus *SubscriptionConnectionServerMessage) error {
 	if connectionStatus.Type == SubscriptionServerMessageError {
 		if strings.Contains(connectionStatus.Exception, "DatabaseDoesNotExistException") {
-			return newDatabaseDoesNotExistError(w._dbName + " does not exists. " + connectionStatus.Message)
+			return newDatabaseDoesNotExistError(w.dbName + " does not exists. " + connectionStatus.Message)
 		}
 	}
 
@@ -304,29 +306,29 @@ func (w *SubscriptionWorker) assertConnectionState(connectionStatus *Subscriptio
 	switch connectionStatus.Status {
 	case SubscriptionConnectionStatusAccepted:
 	case SubscriptionConnectionStatusInUse:
-		return newSubscriptionInUseError("Subscription with id " + w._options.SubscriptionName + " cannot be opened, because it's in use and the connection strategy is " + w._options.Strategy)
+		return newSubscriptionInUseError("Subscription with id " + w.options.SubscriptionName + " cannot be opened, because it's in use and the connection strategy is " + w.options.Strategy)
 	case SubscriptionConnectionStatusClosed:
-		return newSubscriptionClosedError("Subscription with id " + w._options.SubscriptionName + " was closed. " + connectionStatus.Exception)
+		return newSubscriptionClosedError("Subscription with id " + w.options.SubscriptionName + " was closed. " + connectionStatus.Exception)
 	case SubscriptionConnectionStatusInvalid:
-		return newSubscriptionInvalidStateError("Subscription with id " + w._options.SubscriptionName + " cannot be opened, because it is in invalid state. " + connectionStatus.Exception)
+		return newSubscriptionInvalidStateError("Subscription with id " + w.options.SubscriptionName + " cannot be opened, because it is in invalid state. " + connectionStatus.Exception)
 	case SubscriptionConnectionStatusNotFound:
-		return newSubscriptionDoesNotExistError("Subscription with id " + w._options.SubscriptionName + " cannot be opened, because it does not exist. " + connectionStatus.Exception)
+		return newSubscriptionDoesNotExistError("Subscription with id " + w.options.SubscriptionName + " cannot be opened, because it does not exist. " + connectionStatus.Exception)
 	case SubscriptionConnectionStatusRedirect:
 		data := connectionStatus.Data
 		appropriateNode, _ := jsonGetAsText(data, "RedirectedTag")
-		err := newSubscriptionDoesNotBelongToNodeError("Subscription With id %s cannot be processed by current node, it will be redirected to %s", w._options.SubscriptionName, appropriateNode)
+		err := newSubscriptionDoesNotBelongToNodeError("Subscription With id %s cannot be processed by current node, it will be redirected to %s", w.options.SubscriptionName, appropriateNode)
 		err.appropriateNode = appropriateNode
 		return err
 	case SubscriptionConnectionStatusConcurrencyReconnect:
 		return newSubscriptionChangeVectorUpdateConcurrencyError(connectionStatus.Message)
 	default:
-		return newIllegalStateError("Subscription " + w._options.SubscriptionName + " could not be opened, reason: " + connectionStatus.Status)
+		return newIllegalStateError("Subscription " + w.options.SubscriptionName + " could not be opened, reason: " + connectionStatus.Status)
 	}
 	return nil
 }
 
 func (w *SubscriptionWorker) processSubscriptionInner() error {
-	if err := w._processingCts.getToken().throwIfCancellationRequested(); err != nil {
+	if err := w.processingCts.getToken().throwIfCancellationRequested(); err != nil {
 		return err
 	}
 
@@ -336,7 +338,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 	}
 
 	defer socket.Close()
-	if err := w._processingCts.getToken().throwIfCancellationRequested(); err != nil {
+	if err := w.processingCts.getToken().throwIfCancellationRequested(); err != nil {
 		return err
 	}
 
@@ -347,7 +349,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 		return err
 	}
 
-	if w._processingCts.getToken().isCancellationRequested() {
+	if w.processingCts.getToken().isCancellationRequested() {
 		return nil
 	}
 
@@ -358,14 +360,14 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 	}
 
 	w.lastConnectionFailure = time.Time{}
-	if w._processingCts.getToken().isCancellationRequested() {
+	if w.processingCts.getToken().isCancellationRequested() {
 		return nil
 	}
 
 	notifiedSubscriber := newCompletableFutureAlreadyCompleted(nil)
-	batch := newSubscriptionBatch(w._clazz, w._revisions, w._subscriptionLocalRequestExecutor, w._store, w._dbName, w._logger)
+	batch := newSubscriptionBatch(w.clazz, w.revisions, w.subscriptionLocalRequestExecutor, w.store, w.dbName, w.logger)
 
-	for !w._processingCts.getToken().isCancellationRequested() {
+	for !w.processingCts.getToken().isCancellationRequested() {
 		// start the read from the server
 
 		readFromServer := newCompletableFuture()
@@ -391,7 +393,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 			return err
 		}
 		incomingBatch := incomingBatchI.([]*SubscriptionConnectionServerMessage)
-		if err = w._processingCts.getToken().throwIfCancellationRequested(); err != nil {
+		if err = w.processingCts.getToken().throwIfCancellationRequested(); err != nil {
 			return err
 		}
 		lastReceivedChangeVector, err := batch.initialize(incomingBatch)
@@ -401,15 +403,15 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 
 		notifiedSubscriber = newCompletableFuture()
 		go func() {
-			err := w._subscriber(batch)
+			err := w.subscriber(batch)
 			if err != nil {
-				if !w._options.IgnoreSubscriberErrors {
+				if !w.options.IgnoreSubscriberErrors {
 					/*TODO:
 					if (_logger.isDebugEnabled()) {
 						_logger.debug("Subscription " + _options.getSubscriptionName() + ". Subscriber threw an exception on document batch", ex);
 					}*/
 					// TODO: wrap original error
-					err = newSubscriberErrorError("Subscriber threw an exception in subscription " + w._options.SubscriptionName)
+					err = newSubscriberErrorError("Subscriber threw an exception in subscription " + w.options.SubscriptionName)
 					notifiedSubscriber.completeWithError(err)
 					return
 				}
@@ -450,13 +452,13 @@ func (w *SubscriptionWorker) readSingleSubscriptionBatchFromServer(socket net.Co
 	var incomingBatch []*SubscriptionConnectionServerMessage
 	endOfBatch := false
 
-	for !endOfBatch && !w._processingCts.getToken().isCancellationRequested() {
+	for !endOfBatch && !w.processingCts.getToken().isCancellationRequested() {
 		receivedMessage, err := w.readNextObject(socket)
 		if err != nil {
 			return nil, err
 		}
 
-		if receivedMessage == nil || w._processingCts.getToken().isCancellationRequested() {
+		if receivedMessage == nil || w.processingCts.getToken().isCancellationRequested() {
 			break
 		}
 
@@ -499,7 +501,7 @@ func throwSubscriptionError(receivedMessage *SubscriptionConnectionServerMessage
 
 // TODO: no need to pass socket
 func (w *SubscriptionWorker) readNextObject(socket net.Conn) (*SubscriptionConnectionServerMessage, error) {
-	if w._processingCts.getToken().isCancellationRequested() {
+	if w.processingCts.getToken().isCancellationRequested() {
 		return nil, nil
 	}
 
@@ -508,7 +510,7 @@ func (w *SubscriptionWorker) readNextObject(socket net.Conn) (*SubscriptionConne
 	}
 
 	var res *SubscriptionConnectionServerMessage
-	err := w._parser.Decode(&res)
+	err := w.parser.Decode(&res)
 	return res, err
 }
 
@@ -528,10 +530,10 @@ func (w *SubscriptionWorker) sendAck(lastReceivedChangeVector string, networkStr
 func (w *SubscriptionWorker) runSubscriptionAsync() *completableFuture {
 	future := newCompletableFuture()
 	go func() {
-		for !w._processingCts.getToken().isCancellationRequested() {
+		for !w.processingCts.getToken().isCancellationRequested() {
 			w.closeTcpClient()
-			if w._logger != nil {
-				w._logger.Print("Subscription " + w._options.SubscriptionName + ". Connecting to server...")
+			if w.logger != nil {
+				w.logger.Print("Subscription " + w.options.SubscriptionName + ". Connecting to server...")
 			}
 
 			ex := w.processSubscription()
@@ -539,7 +541,7 @@ func (w *SubscriptionWorker) runSubscriptionAsync() *completableFuture {
 				continue
 			}
 
-			if w._processingCts.getToken().isCancellationRequested() {
+			if w.processingCts.getToken().isCancellationRequested() {
 				if !w.isDisposed() {
 					future.completeWithError(ex)
 					return
@@ -560,7 +562,7 @@ func (w *SubscriptionWorker) runSubscriptionAsync() *completableFuture {
 				future.completeWithError(ex)
 				return
 			}
-			time.Sleep(time.Duration(w._options.TimeToWaitBeforeConnectionRetry))
+			time.Sleep(time.Duration(w.options.TimeToWaitBeforeConnectionRetry))
 			for _, cb := range w.onSubscriptionConnectionRetry {
 				cb(ex)
 			}
@@ -578,8 +580,8 @@ func (w *SubscriptionWorker) assertLastConnectionFailure() error {
 
 	dur := time.Since(w.lastConnectionFailure)
 
-	if dur > time.Duration(w._options.MaxErroneousPeriod) {
-		return newSubscriptionInvalidStateError("Subscription connection was in invalid state for more than %s and therefore will be terminated", time.Duration(w._options.MaxErroneousPeriod))
+	if dur > time.Duration(w.options.MaxErroneousPeriod) {
+		return newSubscriptionInvalidStateError("Subscription connection was in invalid state for more than %s and therefore will be terminated", time.Duration(w.options.MaxErroneousPeriod))
 	}
 	return nil
 }
@@ -591,7 +593,7 @@ func (w *SubscriptionWorker) shouldTryToReconnect(ex error) (bool, error) {
 			return false, err
 		}
 
-		requestExecutor := w._store.GetRequestExecutor(w._dbName)
+		requestExecutor := w.store.GetRequestExecutor(w.dbName)
 		if se.appropriateNode == "" {
 			return true, nil
 		}
@@ -608,7 +610,7 @@ func (w *SubscriptionWorker) shouldTryToReconnect(ex error) (bool, error) {
 			return false, newIllegalStateError("Could not redirect to " + se.appropriateNode + ", because it was not found in local topology, even after retrying")
 		}
 
-		w._redirectNode = nodeToRedirectTo
+		w.redirectNode = nodeToRedirectTo
 		return true, nil
 	}
 
@@ -625,7 +627,7 @@ func (w *SubscriptionWorker) shouldTryToReconnect(ex error) (bool, error) {
 	_, ok7 := ex.(*AllTopologyNodesDownError)
 	_, ok8 := ex.(*SubscriberErrorError)
 	if ok1 || ok2 || ok3 || ok4 || ok5 || ok6 || ok7 || ok8 {
-		w._processingCts.cancel()
+		w.processingCts.cancel()
 		return false, nil
 	}
 
