@@ -233,11 +233,10 @@ func (q *abstractDocumentQuery) groupBy(fieldName string, fieldNames ...string) 
 		el := NewGroupByField(x)
 		mapping = append(mapping, el)
 	}
-	return q.groupBy2(NewGroupByField(fieldName), mapping...)
+	return q.groupByFieldWithMethod(NewGroupByField(fieldName), mapping...)
 }
 
-// TODO: better name
-func (q *abstractDocumentQuery) groupBy2(field *GroupBy, fields ...*GroupBy) error {
+func (q *abstractDocumentQuery) groupByFieldWithMethod(field *GroupBy, fields ...*GroupBy) error {
 	// TODO: if q.fromToken is nil, needs to do this check in ToList()
 	if q.fromToken != nil && !q.fromToken.isDynamic {
 		return newIllegalStateError("groupBy only works with dynamic queries")

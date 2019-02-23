@@ -182,7 +182,7 @@ func ravendb8761canGroupByArrayContent(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
-		q3 := q2.GroupBy2(ravendb.NewGroupByArray("lines[].product"))
+		q3 := q2.GroupByFieldWithMethod(ravendb.NewGroupByArray("lines[].product"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
@@ -221,7 +221,7 @@ func ravendb8761canGroupByArrayContent(t *testing.T, driver *RavenTestDriver) {
 
 		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		assert.NoError(t, err)
-		q3 := q2.GroupBy2(ravendb.NewGroupByArray("lines[].product"), ravendb.NewGroupByField("shipTo.country"))
+		q3 := q2.GroupByFieldWithMethod(ravendb.NewGroupByArray("lines[].product"), ravendb.NewGroupByField("shipTo.country"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q2 = q3.SelectCount()
 		q2 = q2.OrderBy("count")
@@ -261,7 +261,7 @@ select lines[].product as products, lines[].quantity as quantities, count() as c
 
 		q2 := session.Advanced().QueryCollectionForType(reflect.TypeOf(&Order{}))
 		assert.NoError(t, err)
-		q3 := q2.GroupBy2(ravendb.NewGroupByArray("lines[].product"), ravendb.NewGroupByArray("lines[].quantity"))
+		q3 := q2.GroupByFieldWithMethod(ravendb.NewGroupByArray("lines[].product"), ravendb.NewGroupByArray("lines[].quantity"))
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].product", "products")
 		q3 = q3.SelectKeyWithNameAndProjectedName("lines[].quantity", "quantities")
 		q2 = q3.SelectCount()
