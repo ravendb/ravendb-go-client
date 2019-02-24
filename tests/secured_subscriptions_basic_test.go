@@ -91,20 +91,8 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		names := make(chan string, 20)
-
 		results, err := subscription.Run()
 		assert.NoError(t, err)
-
-		processBatch := func(batch *ravendb.SubscriptionBatch) {
-			for _, item := range batch.Items {
-				var m map[string]interface{}
-				err := item.GetResult(&m)
-				assert.NoError(t, err)
-				name := m["name"].(string)
-				names <- name
-			}
-		}
 
 		{
 			session := openSessionMust(t, store)
@@ -120,25 +108,21 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 			session.Close()
 		}
 
-		select {
-		case batch := <-results:
-			processBatch((batch))
-			case <- time.After(_reasonableWaitTime):
-				assert.Fail(t, "failed waiting for batch")
-		}
+		assertNextNameIs := func(results chan *ravendb.SubscriptionBatch, nameExp string) {			select {
+				case batch := <-results:
+					assert.Equal(t, len(batch.Items), 1)
+					item := batch.Items[0]
 
-		getNextName := func() string {
-			select {
-			case v := <-names:
-				return v
-			case <-time.After(_reasonableWaitTime):
-				// no-op
+						var m map[string]interface{}
+						err := item.GetResult(&m)
+						assert.NoError(t, err)
+						name := m["name"].(string)
+						assert.Equal(t, nameExp, name)
+				case <- time.After(_reasonableWaitTime):
+					assert.Fail(t, "timed out waiting for batch")
 			}
-			return ""
 		}
-
-		name := getNextName()
-		assert.Equal(t, name, "James")
+		assertNextNameIs(results, "James")
 
 		{
 			session := openSessionMust(t, store)
@@ -153,9 +137,7 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 
 			session.Close()
 		}
-
-		name = getNextName()
-		assert.Equal(t, name, "Adam")
+		assertNextNameIs(results, "Adam")
 
 		//Thread.sleep(15000); // test with sleep - let few heartbeats come to us - commented out for CI
 
@@ -172,9 +154,7 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 
 			session.Close()
 		}
-
-		name = getNextName()
-		assert.Equal(t, name, "David")
+		assertNextNameIs(results, "David")
 
 		err = subscription.Close()
 		assert.NoError(t, err)
@@ -184,7 +164,8 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 func TestSecuredSubscriptionsBasic(t *testing.T) {
 	// t.Parallel()
 
-	// self-signing cert on windows is not added as root ca
+	// self-signing cert on windows is not added as root ca so
+	// we can't run https tests
 	if isWindows() {
 		fmt.Printf("Skipping TestHttps on windows\n")
 		t.Skip("Skipping on windows")
