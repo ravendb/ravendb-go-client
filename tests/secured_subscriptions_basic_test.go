@@ -58,8 +58,8 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 		results, err := subscription.Run()
 		assert.NoError(t, err)
 		select {
-			case items := <- results:
-				for i, item := range items {
+			case batch := <- results:
+				for i, item := range batch.Items {
 					userExp := users[i]
 					assert.Equal(t, item.ID, userExp.ID)
 					v, err := item.GetResult()
@@ -96,15 +96,14 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 		results, err := subscription.Run()
 		assert.NoError(t, err)
 
-		processBatch := func(items []*ravendb.SubscriptionBatchItem) error {
-			for _, item := range items {
+		processBatch := func(batch *ravendb.SubscriptionBatch) {
+			for _, item := range batch.Items {
 				v, err := item.GetResult()
 				assert.NoError(t, err)
 				m := v.(map[string]interface{})
 				name := m["name"].(string)
 				names <- name
 			}
-			return nil
 		}
 
 		{
