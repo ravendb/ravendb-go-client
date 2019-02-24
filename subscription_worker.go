@@ -42,6 +42,8 @@ type SubscriptionWorker struct {
 
 	err atomic.Value // error
 	mu  sync.Mutex
+
+	stopResultSends int32 // atomic
 }
 
 // Err returns a potential error, available after worker finished
@@ -461,6 +463,11 @@ func (w *SubscriptionWorker) processSubscriptionInner(chResults chan *Subscripti
 				recover()
 			}()
 
+			v := atomic.LoadInt32(&w.stopResultSends)
+			if v > 0 {
+				// we're shutting down and should not send more results
+				return
+			}
 			chResults <- batch
 
 			if tcpClient != nil {
@@ -565,12 +572,37 @@ func (w *SubscriptionWorker) sendAck(lastReceivedChangeVector string, networkStr
 	return err
 }
 
+func drainResults(chResults chan *SubscriptionBatch) int {
+	nRemoved := 0
+	for {
+		select {
+		case <-chResults:
+			// got a result, continue to the next one
+			nRemoved++
+		default:
+			// channel empty
+			return nRemoved
+		}
+	}
+}
+
 func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan *SubscriptionBatch) {
 	//fmt.Printf("runSubscription(): %p started\n", w)
 	defer func() {
 		//fmt.Printf("runSubscriptionLoop() %p finished\n", w)
 
-		// TODO: this reports data race on chResult but shouldn't
+		// drain a channel to remove pending sends to free the sending goroutines
+		// this shouldn't be necessary but currently Go's race detector
+		// might report a data race on this close()
+		// see: https://github.com/golang/go/issues/30372
+		// this is not 100% safe as there might be a send issues after we drained
+		// the channel and do close()
+
+		// tell the worker to stop sending results. After we drain the channel
+		// there should be no more items sent on the channel
+		atomic.StoreInt32(&w.stopResultSends, 1)
+		drainResults(chResults)
+
 		close(chResults)
 		close(w.chDone)
 	}()
