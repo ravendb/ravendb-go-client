@@ -79,8 +79,8 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 		results, err := sub.Run()
 		assert.NoError(t, err)
 		select {
-			case items := <- results:
-				for _, item := range items {
+			case batch := <- results:
+				for _, item := range batch.Items {
 					// result is ravendb.Revision of type User
 					v, err := item.GetResult()
 					assert.NoError(t, err)
@@ -180,8 +180,8 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 		results, err := sub.Run()
 		assert.NoError(t, err)
 		select {
-		case items := <- results:
-			for _, item := range items {
+		case batch := <- results:
+			for _, item := range batch.Items {
 				// result is ravendb.Revision of type User
 				v, err := item.GetResult()
 				assert.NoError(t, err)

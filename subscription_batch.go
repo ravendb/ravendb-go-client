@@ -37,23 +37,20 @@ func (i *SubscriptionBatchItem) GetMetadata() *MetadataAsDictionary {
 }
 
 // SubscriptionBatch describes a bunch of results for subscription
-type subscriptionBatch struct {
-	clazz                       reflect.Type
-	revisions                   bool
-	requestExecutor             *RequestExecutor
-	store                       *DocumentStore
-	dbName                      string
+type SubscriptionBatch struct {
+	clazz           reflect.Type
+	revisions       bool
+	requestExecutor *RequestExecutor
+	store           *DocumentStore
+	dbName          string
+
 	logger                      *log.Logger
 	generateEntityIdOnTheClient *generateEntityIDOnTheClient
 
-	items []*SubscriptionBatchItem
+	Items []*SubscriptionBatchItem
 }
 
-func (b *subscriptionBatch) getNumberOfItemsInBatch() int {
-	return len(b.items)
-}
-
-func (b *subscriptionBatch) openSession() (*DocumentSession, error) {
+func (b *SubscriptionBatch) OpenSession() (*DocumentSession, error) {
 	sessionOptions := &SessionOptions{
 		Database:        b.dbName,
 		RequestExecutor: b.requestExecutor,
@@ -61,8 +58,8 @@ func (b *subscriptionBatch) openSession() (*DocumentSession, error) {
 	return b.store.OpenSessionWithOptions(sessionOptions)
 }
 
-func newSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *RequestExecutor, store *DocumentStore, dbName string, logger *log.Logger) *subscriptionBatch {
-	res := &subscriptionBatch{
+func newSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *RequestExecutor, store *DocumentStore, dbName string, logger *log.Logger) *SubscriptionBatch {
+	res := &SubscriptionBatch{
 		clazz:           clazz,
 		revisions:       revisions,
 		requestExecutor: requestExecutor,
@@ -79,8 +76,8 @@ func newSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *R
 	return res
 }
 
-func (b *subscriptionBatch) initialize(batch []*SubscriptionConnectionServerMessage) (string, error) {
-	b.items = nil
+func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMessage) (string, error) {
+	b.Items = nil
 
 	lastReceivedChangeVector := ""
 
@@ -154,7 +151,7 @@ func (b *subscriptionBatch) initialize(batch []*SubscriptionConnectionServerMess
 			Result:       instance,
 			ErrorMessage: item.Exception,
 		}
-		b.items = append(b.items, itemToAdd)
+		b.Items = append(b.Items, itemToAdd)
 	}
 	return lastReceivedChangeVector, nil
 }
