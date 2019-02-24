@@ -455,14 +455,6 @@ func (w *SubscriptionWorker) processSubscriptionInner(chResults chan *Subscripti
 		// send on a goroutine so that we can continue reading from
 		// the server
 		go func(batch *SubscriptionBatch, lastChangeVector string, tcpClient net.Conn) {
-			// protect against panics because a client might never
-			// read the results and when we close chResults
-			// channel and we have pending sends, chResults <- batch
-			// will panic
-			defer func() {
-				recover()
-			}()
-
 			v := atomic.LoadInt32(&w.stopResultSends)
 			if v > 0 {
 				// we're shutting down and should not send more results
@@ -473,7 +465,6 @@ func (w *SubscriptionWorker) processSubscriptionInner(chResults chan *Subscripti
 			if tcpClient != nil {
 				// TODO: what to do in case of an error?
 				_ = w.sendAck(lastChangeVector, tcpClient)
-				// if !w.options.IgnoreSubscriberErrors {
 			}
 		}(batchCopy, lastReceivedChangeVector, tcpClientCopy)
 	}
@@ -572,11 +563,13 @@ func (w *SubscriptionWorker) sendAck(lastReceivedChangeVector string, networkStr
 	return err
 }
 
-func drainResults(chResults chan *SubscriptionBatch) int {
+func drainAndCloseSubscriptionBatchChannel(stopSends *int32, c chan *SubscriptionBatch) int {
+	atomic.StoreInt32(stopSends, 1)
 	nRemoved := 0
+	defer close(c)
 	for {
 		select {
-		case <-chResults:
+		case <-c:
 			// got a result, continue to the next one
 			nRemoved++
 		default:
@@ -595,15 +588,10 @@ func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan *SubscriptionBa
 		// this shouldn't be necessary but currently Go's race detector
 		// might report a data race on this close()
 		// see: https://github.com/golang/go/issues/30372
-		// this is not 100% safe as there might be a send issues after we drained
-		// the channel and do close()
 
-		// tell the worker to stop sending results. After we drain the channel
+		// tell the worker to stop sending reults. After we drain the channel
 		// there should be no more items sent on the channel
-		atomic.StoreInt32(&w.stopResultSends, 1)
-		drainResults(chResults)
-
-		close(chResults)
+		drainAndCloseSubscriptionBatchChannel(&w.stopResultSends, chResults)
 		close(w.chDone)
 	}()
 
@@ -626,19 +614,9 @@ func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan *SubscriptionBa
 				return
 			}
 		}
-		/* TODO:
-		if (_logger.isInfoEnabled()) {
-			_logger.info("Subscription " + _options.getSubscriptionName() + ". Pulling task threw the following exception", ex);
-		}
-		*/
 		shouldReconnect, err := w.shouldTryToReconnect(ex)
 		//fmt.Printf("shouldTryReconnect() returned err='%s'\n", err)
 		if err != nil || !shouldReconnect {
-			/*
-				if (_logger.isErrorEnabled()) {
-					_logger.error("Connection to subscription " + _options.getSubscriptionName() + " have been shut down because of an error", ex);
-				}
-			*/
 			if err != nil {
 				w.err.Store(err)
 			}

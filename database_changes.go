@@ -18,13 +18,14 @@ import (
 
 // Note: in Java IChangesConnectionState hides changeSubscribers
 
-// for debugging only
-var EnableDatabaseChangesDebugOutput bool
+// enableDatabaseChangesDebugOutput enables debug logging of
+// database_changes.go code
+var enableDatabaseChangesDebugOutput bool
 
 // for debugging DatabaseChanges code
 func dcdbg(format string, args ...interface{}) {
 	// change to true to enable debug output
-	if EnableDatabaseChangesDebugOutput {
+	if enableDatabaseChangesDebugOutput {
 		fmt.Printf(format, args...)
 	}
 }
@@ -158,8 +159,8 @@ type databaseChangesCommand struct {
 }
 
 func (c *databaseChangesCommand) confirm(wasCancelled bool) {
-	new := atomic.AddInt32(&c.completed, 1)
-	if new > 1 {
+	v := atomic.AddInt32(&c.completed, 1)
+	if v > 1 {
 		// was already completed
 		return
 	}
@@ -195,7 +196,7 @@ type DatabaseChanges struct {
 	// allows waiting for connection being established
 	chanIsConnected chan error
 
-	chanSend chan (*databaseChangesCommand)
+	chanSend chan *databaseChangesCommand
 
 	chanWorkCompleted chan error
 
@@ -259,6 +260,51 @@ func newDatabaseChanges(requestExecutor *RequestExecutor, databaseName string, o
 	return res
 }
 
+func drainAndCloseDocumentChangeChannel(stopSends *int32, c chan *DocumentChange) {
+	atomic.StoreInt32(stopSends, 1)
+	defer close(c)
+
+	for {
+		select {
+		case <-c:
+			// got a value from channel, continue to next one
+		default:
+			// channel is drained
+			return
+		}
+	}
+}
+
+func drainAndCloseIndexChangeChannel(stopSends *int32, c chan *IndexChange) {
+	atomic.StoreInt32(stopSends, 1)
+	defer close(c)
+
+	for {
+		select {
+		case <-c:
+			// got a value from channel, continue to next one
+		default:
+			// channel is drained
+			return
+		}
+	}
+}
+
+func drainAndCloseOperationStatusChangeChannel(stopSends *int32, c chan *OperationStatusChange) {
+	atomic.StoreInt32(stopSends, 1)
+	defer close(c)
+
+	for {
+		select {
+		case <-c:
+			// got a value from channel, continue to next one
+		default:
+			// channel is drained
+			return
+		}
+	}
+}
+
 func (c *DatabaseChanges) EnsureConnectedNow() error {
 	select {
 	case <-c.ctxCancel.Done():
@@ -294,24 +340,34 @@ func (c *DatabaseChanges) RemoveConnectionStatusChanged(handlerID int) {
 
 type CancelFunc func()
 
-func (c *DatabaseChanges) ForIndex(indexName string, cb func(*IndexChange)) (CancelFunc, error) {
+// ForIndex returns a channel with IndexChange for an index with
+// a given name  and a function to call to indicate you want to
+// stop receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForIndex(indexName string) (chan *IndexChange, CancelFunc, error) {
 	subscribers, err := c.getOrAddSubscribers("indexes/"+indexName, "watch-index", "unwatch-index", indexName)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	filtered := func(change *IndexChange) {
+	chResults := make(chan *IndexChange)
+	var stopSends int32 // atomic
+	cb := func(change *IndexChange) {
 		if strings.EqualFold(change.Name, indexName) {
-			cb(change)
+			if atomic.LoadInt32(&stopSends) > 0 {
+				return
+			}
+			chResults <- change
 		}
 	}
-	idx := subscribers.registerOnIndexChange(filtered)
+	idx := subscribers.registerOnIndexChange(cb)
 	cancel := func() {
 		subscribers.unregisterOnIndexChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseIndexChangeChannel(&stopSends, chResults)
 	}
 
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
 func (c *DatabaseChanges) getLastConnectionStateError() error {
@@ -322,48 +378,81 @@ func (c *DatabaseChanges) getLastConnectionStateError() error {
 	}
 }
 
-func (c *DatabaseChanges) ForDocument(docID string, cb func(*DocumentChange)) (CancelFunc, error) {
+// ForDocument returns a channel with DocumentChange for a document
+// with a given id and a function to call to indicate you want
+// to stop receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForDocument(docID string) (chan *DocumentChange, CancelFunc, error) {
 	subscribers, err := c.getOrAddSubscribers("docs/"+docID, "watch-doc", "unwatch-doc", docID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	chResults := make(chan *DocumentChange)
+	var stopSends int32 // atomic
 	filtered := func(change *DocumentChange) {
 		panicIf(change.ID != docID, "v.ID (%s) != docID (%s)", change.ID, docID)
-		cb(change)
+		if atomic.LoadInt32(&stopSends) > 0 {
+			return
+		}
+		chResults <- change
 	}
 	idx := subscribers.registerOnDocumentChange(filtered)
 	cancel := func() {
 		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseDocumentChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllDocuments(cb func(*DocumentChange)) (CancelFunc, error) {
+// ForAllDocuments returns a channel with DocumentChange for all documents
+// and a function to call to indicate you want to stop receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForAllDocuments() (chan *DocumentChange, CancelFunc, error) {
 	subscribers, err := c.getOrAddSubscribers("all-docs", "watch-docs", "unwatch-docs", "")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	chResults := make(chan *DocumentChange)
+	var stopSends int32 // atomic
+	cb := func(change *DocumentChange) {
+		go func() {
+			if atomic.LoadInt32(&stopSends) > 0 {
+				return
+			}
+			chResults <- change
+		}()
+	}
 	idx := subscribers.registerOnDocumentChange(cb)
 	cancel := func() {
 		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseDocumentChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationStatusChange)) (CancelFunc, error) {
+// ForOperationID returns a channel with OperationStatusChange for operation
+// with a given id and a function to call to indicate you want to stop
+// receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForOperationID(operationID int64) (chan *OperationStatusChange, CancelFunc, error) {
 	opIDStr := i64toa(operationID)
 	subscribers, err := c.getOrAddSubscribers("operations/"+opIDStr, "watch-operation", "unwatch-operation", opIDStr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	filtered := func(v *OperationStatusChange) {
-		if v.OperationID == operationID {
-			cb(v)
+	chResults := make(chan *OperationStatusChange)
+	var stopSends int32 // atomic
+	filtered := func(change *OperationStatusChange) {
+		if change.OperationID == operationID {
+			if atomic.LoadInt32(&stopSends) > 0 {
+				return
+			}
+			chResults <- change
 		}
 	}
 
@@ -371,51 +460,89 @@ func (c *DatabaseChanges) ForOperationID(operationID int64, cb func(*OperationSt
 	cancel := func() {
 		subscribers.unregisterOnOperationStatusChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseOperationStatusChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllOperations(cb func(*OperationStatusChange)) (CancelFunc, error) {
+// ForAllOperations returns a channel with OperationStatusChange for
+// all operations and a function to call to indicate you want to stop
+// receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForAllOperations() (chan *OperationStatusChange, CancelFunc, error) {
 	subscribers, err := c.getOrAddSubscribers("all-operations", "watch-operations", "unwatch-operations", "")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
+	chResults := make(chan *OperationStatusChange)
+	var stopSends int32 // atomic
+	cb := func(change *OperationStatusChange) {
+		if atomic.LoadInt32(&stopSends) > 0 {
+			return
+		}
+		chResults <- change
+	}
 	idx := subscribers.registerOnOperationStatusChange(cb)
 	cancel := func() {
 		subscribers.unregisterOnOperationStatusChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseOperationStatusChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForAllIndexes(cb func(*IndexChange)) (CancelFunc, error) {
+// ForAllIndexes returns a channel with IndexChange for all indexes
+// and a function to call to indicate you want to
+// stop receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForAllIndexes() (chan *IndexChange, CancelFunc, error) {
 	subscribers, err := c.getOrAddSubscribers("all-indexes", "watch-indexes", "unwatch-indexes", "")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	chResults := make(chan *IndexChange)
+	var stopSends int32 // atomic
+	cb := func(change *IndexChange) {
+		if atomic.LoadInt32(&stopSends) > 0 {
+			return
+		}
+		chResults <- change
 	}
 
 	idx := subscribers.registerOnIndexChange(cb)
 	cancel := func() {
 		subscribers.unregisterOnIndexChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseIndexChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*DocumentChange)) (CancelFunc, error) {
+// ForDocumentsStartingWith returns a channel with DocumentChange for
+// documents strting with a given prefix and a function to call to
+// indicate you want to stop receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string) (chan *DocumentChange, CancelFunc, error) {
 	subscribers, err := c.getOrAddSubscribers("prefixes/"+docIDPrefix, "watch-prefix", "unwatch-prefix", docIDPrefix)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	chResults := make(chan *DocumentChange)
+	var stopSends int32 // atomic
 	filtered := func(change *DocumentChange) {
+		if atomic.LoadInt32(&stopSends) > 0 {
+			return
+		}
 		n := len(docIDPrefix)
 		if n > len(change.ID) {
 			return
 		}
 		prefix := change.ID[:n]
 		if strings.EqualFold(prefix, docIDPrefix) {
-			cb(change)
+			chResults <- change
 		}
 	}
 
@@ -423,23 +550,33 @@ func (c *DatabaseChanges) ForDocumentsStartingWith(docIDPrefix string, cb func(*
 	cancel := func() {
 		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseDocumentChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb func(*DocumentChange)) (CancelFunc, error) {
+// ForDocumentsInCollection returns a channel with DocumentChange for documents
+// in a given collection and a function to call to indicate you want to stop
+// receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string) (chan *DocumentChange, CancelFunc, error) {
 	if collectionName == "" {
-		return nil, newIllegalArgumentError("CollectionName cannot be empty")
+		return nil, nil, newIllegalArgumentError("CollectionName cannot be empty")
 	}
 
 	subscribers, err := c.getOrAddSubscribers("collections/"+collectionName, "watch-collection", "unwatch-collection", collectionName)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	filtered := func(v *DocumentChange) {
-		if strings.EqualFold(collectionName, v.CollectionName) {
-			cb(v)
+	chResults := make(chan *DocumentChange)
+	var stopSends int32 // atomic
+	filtered := func(change *DocumentChange) {
+		if atomic.LoadInt32(&stopSends) > 0 {
+			return
+		}
+		if strings.EqualFold(collectionName, change.CollectionName) {
+			chResults <- change
 		}
 	}
 
@@ -447,13 +584,18 @@ func (c *DatabaseChanges) ForDocumentsInCollection(collectionName string, cb fun
 	cancel := func() {
 		subscribers.unregisterOnDocumentChange(idx)
 		c.maybeDisconnectSubscribers(subscribers)
+		drainAndCloseDocumentChangeChannel(&stopSends, chResults)
 	}
-	return cancel, nil
+	return chResults, cancel, nil
 }
 
-func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type, cb func(*DocumentChange)) (CancelFunc, error) {
+// ForDocumentsInCollectionOfType returns a channel with DocumentChange for documents
+// in a collection for a givne type and a function to call to indicate you
+// want to stop receiving change notifications.
+// Note: don't close the channel yourself
+func (c *DatabaseChanges) ForDocumentsInCollectionOfType(clazz reflect.Type) (chan *DocumentChange, CancelFunc, error) {
 	collectionName := c.conventions.getCollectionName(clazz)
-	return c.ForDocumentsInCollection(collectionName, cb)
+	return c.ForDocumentsInCollection(collectionName)
 }
 
 func (c *DatabaseChanges) invokeConnectionStatusChanged() {
@@ -495,6 +637,7 @@ func (c *DatabaseChanges) cancelOutstandingCommands() {
 	c.outstandingCommands.Range(rangeFn)
 }
 
+// Close closes DatabaseChanges and release its resources
 func (c *DatabaseChanges) Close() {
 	dcdbg("DatabaseChanges: Close()\n")
 	//debug.PrintStack()
@@ -553,7 +696,7 @@ func (c *DatabaseChanges) maybeDisconnectSubscribers(subscribers *changeSubscrib
 }
 
 func (c *DatabaseChanges) disconnectSubscribers(subscribers *changeSubscribers) {
-	c.send(subscribers.unwatchCommand, subscribers.commandValue, false)
+	_ = c.send(subscribers.unwatchCommand, subscribers.commandValue, false)
 	// ignoring error: if we are not connected then we unsubscribed
 	// already because connections drops with all subscriptions
 	c.subscribers.Delete(subscribers.name)
@@ -652,7 +795,7 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 
 	connectFn := func(key, value interface{}) bool {
 		subscribers := value.(*changeSubscribers)
-		c.connectSubscribers(subscribers)
+		_ = c.connectSubscribers(subscribers)
 		return true
 	}
 	c.subscribers.Range(connectFn)
@@ -662,7 +805,7 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 	var chWriterFailed chan error
 	chWriterFailed = startSendWorker(client, c.chanSend)
 	var chReaderFailed chan error
-	chReaderFailed = c.startProcessMessagesWorker(client, ctx)
+	chReaderFailed = c.startProcessMessagesWorker(ctx, client)
 
 	c.chanIsConnected <- nil
 	// close so that subsequent channel reads also return immediately
@@ -686,7 +829,7 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 
 	close(c.chanSend)
 	c.chanSend = make(chan *databaseChangesCommand, 16)
-	client.Close()
+	_ = client.Close()
 
 	c.invokeConnectionStatusChanged()
 	return err, shouldReconnect
@@ -775,7 +918,7 @@ func (c *DatabaseChanges) notifyAboutError(err error) {
 	}
 }
 
-func (c *DatabaseChanges) startProcessMessagesWorker(conn *websocket.Conn, ctx context.Context) chan error {
+func (c *DatabaseChanges) startProcessMessagesWorker(ctx context.Context, conn *websocket.Conn) chan error {
 	chFailed := make(chan error, 1)
 	go func() {
 		var err error
@@ -795,7 +938,7 @@ func (c *DatabaseChanges) startProcessMessagesWorker(conn *websocket.Conn, ctx c
 				continue
 			}
 
-			if EnableDatabaseChangesDebugOutput {
+			if enableDatabaseChangesDebugOutput {
 				s, _ := json.Marshal(msgArray)
 				fmt.Printf("DatatabaseChange: received messages:\n%s\n", s)
 			}
@@ -820,7 +963,7 @@ func (c *DatabaseChanges) startProcessMessagesWorker(conn *websocket.Conn, ctx c
 				default:
 					if val, ok := msgNode["Value"]; ok {
 						// sometimes a message is {"TopologyChange":true}
-						c.notifySubscribers(typ, val)
+						_ = c.notifySubscribers(typ, val)
 					}
 				}
 			}

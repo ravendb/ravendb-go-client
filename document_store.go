@@ -3,7 +3,6 @@ package ravendb
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io"
 	"strings"
 	"sync"
 	"time"
@@ -37,7 +36,7 @@ type DocumentStore struct {
 
 	// Note: access must be protected with mu
 	// Lazy.Value is **EvictItemsFromCacheBasedOnChanges
-	aggressiveCacheChanges map[string]*Lazy
+	aggressiveCacheChanges map[string]*evictItemsFromCacheBasedOnChanges
 
 	// maps database name to its RequestsExecutor
 	// access must be protected with mu
@@ -217,8 +216,8 @@ func (s *DocumentStore) SetDatabase(database string) {
 	s.database = database
 }
 
-func (s *DocumentStore) AggressivelyCache(database string) {
-	s.AggressivelyCacheForDatabase(time.Hour*24, database)
+func (s *DocumentStore) AggressivelyCache(database string) (CancelFunc, error) {
+	return s.AggressivelyCacheForDatabase(time.Hour*24, database)
 }
 
 func newDocumentStore() *DocumentStore {
@@ -226,7 +225,7 @@ func newDocumentStore() *DocumentStore {
 		requestsExecutors:      map[string]*RequestExecutor{},
 		conventions:            NewDocumentConventions(),
 		databaseChanges:        map[string]*DatabaseChanges{},
-		aggressiveCacheChanges: map[string]*Lazy{},
+		aggressiveCacheChanges: map[string]*evictItemsFromCacheBasedOnChanges{},
 	}
 	s.subscriptions = newDocumentSubscriptions(s)
 	return s
@@ -277,18 +276,8 @@ func (s *DocumentStore) Close() {
 	}
 	s.beforeClose = nil
 
-	for _, value := range s.aggressiveCacheChanges {
-		if !value.IsValueCreated() {
-			continue
-		}
-
-		var evict *EvictItemsFromCacheBasedOnChanges
-		err := value.GetValue(&evict)
-		if err != nil {
-			if evict != nil {
-				evict.Close()
-			}
-		}
+	for _, evict := range s.aggressiveCacheChanges {
+		evict.Close()
 	}
 
 	for _, changes := range s.databaseChanges {
@@ -502,71 +491,59 @@ func (s *DocumentStore) GetLastDatabaseChangesStateError(database string) error 
 	return ch.getLastConnectionStateError()
 }
 
-func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) io.Closer {
+func (s *DocumentStore) AggressivelyCacheFor(cacheDuration time.Duration) (CancelFunc, error) {
 	return s.AggressivelyCacheForDatabase(cacheDuration, "")
 }
 
-type aggressiveCachingRestorer struct {
-	re  *RequestExecutor
-	old *AggressiveCacheOptions
-}
-
-func (r *aggressiveCachingRestorer) Close() error {
-	r.re.aggressiveCaching = r.old
-	return nil
-}
-
-func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration, database string) io.Closer {
+func (s *DocumentStore) AggressivelyCacheForDatabase(cacheDuration time.Duration, database string) (CancelFunc, error) {
 	if database == "" {
 		database = s.GetDatabase()
 	}
-	panicIf(database == "", "must have database") // TODO: maybe return error
-	if !s.aggressiveCachingUsed {
-		s.listenToChangesAndUpdateTheCache(database)
+	if database == "" {
+		return nil, newIllegalArgumentError("must have database")
+	}
+	s.mu.Lock()
+	cachingUsed := s.aggressiveCachingUsed
+	s.mu.Unlock()
+	if !cachingUsed {
+		err := s.listenToChangesAndUpdateTheCache(database)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	re := s.GetRequestExecutor(database)
-	old := re.aggressiveCaching
-
+	// TODO: protect access to aggressiveCaching
 	opts := &AggressiveCacheOptions{
 		Duration: cacheDuration,
 	}
+	re := s.GetRequestExecutor(database)
+	oldOpts := re.aggressiveCaching
 	re.aggressiveCaching = opts
-	restorer := &aggressiveCachingRestorer{
-		re:  re,
-		old: old,
+
+	restorer := func() {
+		re.aggressiveCaching = oldOpts
 	}
-	return restorer
+	return restorer, nil
 }
 
-func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) {
-	// this is intentionally racy, most cases, we'll already
-	// have this set once, so we won't need to do it again
-	s.aggressiveCachingUsed = true
-
+func (s *DocumentStore) listenToChangesAndUpdateTheCache(database string) error {
 	s.mu.Lock()
-	lazy := s.aggressiveCacheChanges[database]
+	s.aggressiveCachingUsed = true
+	evict := s.aggressiveCacheChanges[database]
 	s.mu.Unlock()
 
-	if lazy == nil {
-		valueFactory := func(result interface{}) error {
-			res, err := NewEvictItemsFromCacheBasedOnChanges(s, database)
-			if err != nil {
-				return err
-			}
-			resultPtr := result.(**EvictItemsFromCacheBasedOnChanges)
-			*resultPtr = res
-			return nil
-		}
-		lazy = newLazy(valueFactory)
-
-		s.mu.Lock()
-		s.aggressiveCacheChanges[database] = lazy
-		s.mu.Unlock()
+	if evict != nil {
+		return nil
 	}
 
-	var results *EvictItemsFromCacheBasedOnChanges
-	lazy.GetValue(&results) // force evaluation
+	evict, err := newEvictItemsFromCacheBasedOnChanges(s, database)
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	s.aggressiveCacheChanges[database] = evict
+	s.mu.Unlock()
+	return nil
 }
 
 func (s *DocumentStore) AddBeforeCloseListener(fn func(*DocumentStore)) int {
