@@ -21,11 +21,19 @@ func (i *SubscriptionBatchItem) throwItemProcessException() error {
 	return newIllegalStateError("Failed to process document " + i.ID + " with Change Vector " + i.ChangeVector + " because: \n" + i.ErrorMessage)
 }
 
-func (i *SubscriptionBatchItem) GetResult() (interface{}, error) {
+// GetResult sets result to to the value of that batch item
+func (i *SubscriptionBatchItem) GetResult(result interface{}) error {
 	if i.ErrorMessage != "" {
-		return nil, i.throwItemProcessException()
+		return i.throwItemProcessException()
 	}
-	return i.Result, nil
+	if v, ok := result.(*map[string]interface{}); ok {
+		*v = i.RawResult
+		return nil
+	}
+	if err := checkValidLoadArg(result, "result"); err != nil {
+		return err
+	}
+	return setInterfaceToValue(result, i.Result)
 }
 
 func (i *SubscriptionBatchItem) GetMetadata() *MetadataAsDictionary {

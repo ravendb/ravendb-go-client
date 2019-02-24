@@ -62,9 +62,9 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 				for i, item := range batch.Items {
 					userExp := users[i]
 					assert.Equal(t, item.ID, userExp.ID)
-					v, err := item.GetResult()
+					var u *User
+					err := item.GetResult(&u)
 					assert.NoError(t, err)
-					u := v.(*User)
 					assert.Equal(t, u.Age, userExp.Age)
 				}
 
@@ -98,9 +98,9 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 
 		processBatch := func(batch *ravendb.SubscriptionBatch) {
 			for _, item := range batch.Items {
-				v, err := item.GetResult()
+				var m map[string]interface{}
+				err := item.GetResult(&m)
 				assert.NoError(t, err)
-				m := v.(map[string]interface{})
 				name := m["name"].(string)
 				names <- name
 			}

@@ -199,9 +199,9 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 				for i, item := range batch.Items {
 					expUser := users[i]
 					assert.Equal(t, item.ID, expUser.ID)
-					v, err := item.GetResult()
+					var u *User
+					err := item.GetResult(&u)
 					assert.NoError(t, err)
-					u := v.(*User)
 					assert.Equal(t, u.Age, expUser.Age)
 				}
 				chDone <- true
@@ -254,9 +254,9 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 			var n int
 			for batch := range results {
 				for _, item := range batch.Items {
-					v, err := item.GetResult()
+					var m map[string]interface{}
+					err := item.GetResult(&m)
 					assert.NoError(t, err)
-					m := v.(map[string]interface{})
 					name := m["name"].(string)
 					assert.Equal(t, name, expNames[n])
 					n++
@@ -600,9 +600,9 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 			select {
 			case batch := <- results:
 				for _, item := range batch.Items {
-					v, err := item.GetResult()
+					var u *User
+					err := item.GetResult(&u)
 					assert.NoError(t, err)
-					u := v.(*User)
 					assert.NotNil(t, u)
 					nUsers++
 					if nUsers >= 2 {
@@ -756,9 +756,9 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 			select {
 			case batch := <-results:
 				for _, item := range batch.Items {
-					v, err := item.GetResult()
+					var u *User
+					err := item.GetResult(&u)
 					assert.NoError(t, err)
-					u := v.(*User)
 					assert.NotNil(t, u)
 					nUsers++
 					if nUsers >= 2 {
@@ -860,9 +860,9 @@ func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterType
 			select {
 			case batch := <- results:
 				for _, item := range batch.Items {
-					v, err := item.GetResult()
+					var u *User
+					err := item.GetResult(&u)
 					assert.NoError(t, err)
-					u := v.(*User)
 					expU := users[n]
 					assert.Equal(t, u.ID, expU.ID)
 					assert.Equal(t, u.Age, expU.Age)
@@ -932,9 +932,9 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 	go func() {
 		for batch := range results {
 			for _, item := range batch.Items {
-			v, err := item.GetResult()
+			var u *User
+			err := item.GetResult(&u)
 			assert.NoError(t, err)
-			u := v.(*User)
 			items1 <- u
 		}
 		}
@@ -950,9 +950,9 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 	go func() {
 		for batch := range results2 {
 			for _, item := range batch.Items {
-				v, err := item.GetResult()
+				var u  *User
+				err := item.GetResult(&u)
 				assert.NoError(t, err)
-				u := v.(*User)
 				items2 <- u
 			}
 		}

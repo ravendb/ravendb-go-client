@@ -82,9 +82,9 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 			case batch := <- results:
 				for _, item := range batch.Items {
 					// result is ravendb.Revision of type User
-					v, err := item.GetResult()
+					var result *ravendb.Revision
+					err := item.GetResult(&result)
 					assert.NoError(t, err)
-					result := v.(*ravendb.Revision)
 					var currName string
 					var prevName string
 					if result.Current != nil {
@@ -183,9 +183,9 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 		case batch := <- results:
 			for _, item := range batch.Items {
 				// result is ravendb.Revision of type User
-				v, err := item.GetResult()
+				var result *ravendb.Revision
+				err := item.GetResult(&result)
 				assert.NoError(t, err)
-				result := v.(*ravendb.Revision)
 
 				var currName, prevName string
 				currAge := -1
