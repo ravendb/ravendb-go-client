@@ -79,17 +79,16 @@ func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTe
 		assert.NoError(t, err)
 		session.Close()
 	}
-	semaphore := make(chan bool)
+
+	var changesList chan *ravendb.OperationStatusChange
+	var cancel ravendb.CancelFunc
 
 	{
 		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		require.NoError(t, err)
 
-		action := func(v *ravendb.OperationStatusChange) {
-			semaphore <- true
-		}
-		closer, err := changes.ForAllOperations(action)
+		changesList, cancel, err = changes.ForAllOperations()
 		require.NoError(t, err)
 
 		indexQuery := ravendb.NewIndexQuery("from users where age == 5")
@@ -98,10 +97,16 @@ func deleteByQueryCanDeleteByQueryWaitUsingChanges(t *testing.T, driver *RavenTe
 		_, err = store.Operations().SendAsync(operation, nil)
 		assert.NoError(t, err)
 
-		timedOut := chanWaitTimedOut(semaphore, 15*time.Second)
-		assert.False(t, timedOut)
+		select {
+		case change := <-changesList:
+			// ok, got a change
+			expID := operation.Command.Result.OperationID
+			assert.Equal(t, change.OperationID, expID)
+			case <- time.After(15*time.Second):
+				assert.Fail(t,"timed out waiting for operation change notification")
+		}
 
-		closer()
+		cancel()
 		changes.Close()
 	}
 }

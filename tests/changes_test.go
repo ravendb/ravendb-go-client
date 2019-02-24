@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,17 +10,15 @@ import (
 )
 
 func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.DocumentStore) {
-	changesList := make(chan *ravendb.DocumentChange, 8)
 
 	changes := store.Changes("")
 	err := changes.EnsureConnectedNow()
 	assert.NoError(t, err)
 
+	var changesList chan *ravendb.DocumentChange
+	var cancel ravendb.CancelFunc
 	{
-		action := func(change *ravendb.DocumentChange) {
-			changesList <- change
-		}
-		cancel, err := changes.ForDocument("users/1", action)
+		changesList, cancel, err = changes.ForDocument("users/1")
 		assert.NoError(t, err)
 
 		{
@@ -31,25 +30,29 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 			assert.NoError(t, err)
 		}
 
-		select {
-		case documentChange := <-changesList:
-			assert.NotNil(t, documentChange)
-			assert.Equal(t, documentChange.ID, "users/1")
-			assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
-
-		case <-time.After(time.Second * 2):
-			assert.True(t, false, "timed out waiting for changes")
-		}
-
-		select {
-		case <-changesList:
-			assert.True(t, false, "got too many changes")
-		case <-time.After(time.Second * 1):
-			// ok, no changes
-			assert.True(t, true)
-		}
-
+		chDone := make(chan struct{})
+		go func() {
+			n := 0
+			for documentChange := range changesList {
+				if n == 0 {
+					assert.NotNil(t, documentChange)
+					assert.Equal(t, documentChange.ID, "users/1")
+					assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
+				} else {
+					assert.Fail(t, "got too many (%d) changes")
+				}
+				n++
+			}
+			chDone <- struct{}{}
+		}()
 		cancel()
+
+		select {
+			case <-chDone:
+				// cancel() closed changesList channel
+			case <-time.After(_reasonableWaitTime):
+				assert.Fail(t, "timed out waiting for changesList to close")
+		}
 	}
 
 	// at this point we should be unsubscribed from changes on 'users/1'
@@ -63,8 +66,8 @@ func changesTestSingleDocumentChangesCommon(t *testing.T, store *ravendb.Documen
 		assert.NoError(t, err)
 
 		select {
-		case <-changesList:
-			assert.True(t, false, "got too many changes")
+		case v := <-changesList:
+			assert.Nil(t, v, "got too many changes")
 		case <-time.After(time.Second * 1):
 			// ok, no changes
 			assert.True(t, true)
@@ -82,7 +85,7 @@ func changesTestSingleDocumentChanges(t *testing.T, driver *RavenTestDriver) {
 
 func changesTestChangesWithHttps(t *testing.T, driver *RavenTestDriver) {
 	if isWindows() {
-		t.Skip("skipping https test on windows")
+		fmt.Printf("skipping changesTestChangesWithHttps() on windows")
 		return
 	}
 	store := driver.getSecuredDocumentStoreMust(t)
@@ -97,17 +100,14 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	{
-		changesList := make(chan *ravendb.DocumentChange, 8)
-
 		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
+		var changesList chan *ravendb.DocumentChange
 		{
-			action := func(change *ravendb.DocumentChange) {
-				changesList <- change
-			}
-			unregister, err := changes.ForAllDocuments(action)
+			var unregister ravendb.CancelFunc
+			changesList, unregister, err = changes.ForAllDocuments()
 			assert.NoError(t, err)
 
 			{
@@ -152,8 +152,8 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 			assert.NoError(t, err)
 
 			select {
-			case <-changesList:
-				assert.True(t, false, "got too many changes")
+			case v := <-changesList:
+				assert.Nil(t, v, "got too many changes")
 			case <-time.After(time.Second * 1):
 				// ok, no changes
 				assert.True(t, true)
@@ -176,7 +176,8 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
-	changesList := make(chan *ravendb.IndexChange, 8)
+	var changesList chan *ravendb.IndexChange
+	var cancel ravendb.CancelFunc
 
 	{
 		changes := store.Changes("")
@@ -184,10 +185,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		{
-			action := func(change *ravendb.IndexChange) {
-				changesList <- change
-			}
-			cancel, err := changes.ForIndex(index.IndexName, action)
+			changesList, cancel, err = changes.ForIndex(index.IndexName)
 			assert.NoError(t, err)
 
 			time.Sleep(500 * time.Millisecond)
@@ -219,7 +217,8 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 	err = store.ExecuteIndex(index, "")
 	assert.NoError(t, err)
 
-	changesList := make(chan *ravendb.IndexChange, 8)
+	var changesList chan *ravendb.IndexChange
+	var cancel ravendb.CancelFunc
 
 	{
 		changes := store.Changes("")
@@ -227,10 +226,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 
 		{
-			action := func(change *ravendb.IndexChange) {
-				changesList <- change
-			}
-			cancel, err := changes.ForAllIndexes(action)
+			changesList, cancel, err = changes.ForAllIndexes()
 			assert.NoError(t, err)
 
 			time.Sleep(500 * time.Millisecond)
@@ -257,18 +253,17 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	changesList := make(chan *ravendb.DocumentChange)
 
+	var changesList  chan *ravendb.DocumentChange
+	var cancel ravendb.CancelFunc
 	{
 		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
 		{
-			action := func(change *ravendb.DocumentChange) {
-				changesList <- change
-			}
-			cancel, err := changes.ForDocumentsStartingWith("users/", action)
+
+			changesList, cancel, err = changes.ForDocumentsStartingWith("users/")
 			assert.NoError(t, err)
 
 			{
@@ -327,18 +322,15 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
-	changesList := make(chan *ravendb.DocumentChange)
-
+	var changesList chan *ravendb.DocumentChange
+	var cancel ravendb.CancelFunc
 	{
 		changes := store.Changes("")
 		err = changes.EnsureConnectedNow()
 		assert.NoError(t, err)
 
 		{
-			action := func(change *ravendb.DocumentChange) {
-				changesList <- change
-			}
-			cancel, err := changes.ForDocumentsInCollection("users", action)
+			changesList, cancel, err = changes.ForDocumentsInCollection("users")
 			assert.NoError(t, err)
 
 			{

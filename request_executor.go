@@ -65,7 +65,8 @@ type RequestExecutor struct {
 
 	firstTopologyUpdateFuture *completableFuture
 
-	readBalanceBehavior   ReadBalanceBehavior
+	readBalanceBehavior ReadBalanceBehavior
+	// TODO: mulit-threaded access, protect
 	Cache                 *httpCache
 	httpClient            *http.Client
 	topologyTakenFromNode *ServerNode
@@ -174,7 +175,7 @@ func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trust
 }
 
 // GetHTTPClient returns http client for sending the requests
-func (r *RequestExecutor ) GetHTTPClient() (*http.Client, error) {
+func (r *RequestExecutor) GetHTTPClient() (*http.Client, error) {
 	if r.httpClient != nil {
 		return r.httpClient, nil
 	}

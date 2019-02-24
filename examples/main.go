@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/kylelemons/godebug/pretty"
@@ -58,12 +57,12 @@ func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 func openSession(databaseName string) (*ravendb.DocumentStore, *ravendb.DocumentSession, error) {
 	store, err := getDocumentStore(dbName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("getDocumentStore() failed with %s\n", err)
+		return nil, nil, fmt.Errorf("getDocumentStore() failed with %s", err)
 	}
 
 	session, err := store.OpenSession("")
 	if err != nil {
-		return nil, nil, fmt.Errorf("store.OpenSession() failed with %s\n", err)
+		return nil, nil, fmt.Errorf("store.OpenSession() failed with %s", err)
 	}
 	return store, session, nil
 }
@@ -1292,35 +1291,27 @@ func bulkInsert() {
 }
 
 func changes() {
-	//ravendb.EnableDatabaseChangesDebugOutput = true
-
 	store, session, err := openSession(dbName)
 	if err != nil {
 		log.Fatalf("openSession() failed with %s\n", err)
 	}
-	defer store.Close()
 	defer session.Close()
+	defer store.Close()
 
 	changes := store.Changes("")
 
 	err = changes.EnsureConnectedNow()
 	if err != nil {
-		log.Fatalf("changes.EnsureConnectedNow() failed with '%s'\n", err)
+		log.Fatalf("changes.EnsureConnectedNow() failed with '%s' of type %T\n", err, err)
 	}
 
-	var wg sync.WaitGroup
-	onDocChange := func(change *ravendb.DocumentChange) {
-		fmt.Print("change:\n")
-		pretty.Print(change)
-		wg.Done()
-	}
-	docChangesCancel, err := changes.ForAllDocuments(onDocChange)
+	chDocChanges, docChangesCancel, err := changes.ForAllDocuments()
 	if err != nil {
 		log.Fatalf("changes.ForAllDocuments() failed with '%s'\n", err)
 	}
+
 	defer docChangesCancel()
 
-	wg.Add(1)
 	e := &northwind.Employee{
 		FirstName: "Jon",
 		LastName:  "Snow",
@@ -1335,10 +1326,15 @@ func changes() {
 		log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
 	}
 
-	timeStart := time.Now()
 	fmt.Print("Waiting for the change\n")
-	// wait for the change to be received
-	wg.Wait()
+	timeStart := time.Now()
+	// note: in a real program you would likely read the channel
+	// in a goroutine
+	for change := range chDocChanges {
+		fmt.Print("change:\n")
+		pretty.Print(change)
+		break
+	}
 	fmt.Printf("Took %s to receive change notifications\n", time.Since(timeStart))
 }
 
@@ -1609,10 +1605,71 @@ func subscriptions() {
 	_ = worker.Close()
 }
 
+var nameToFunc = map[string]func(){
+	"loadUpdateSave": loadUpdateSave,
+	"crudStore": crudStore,
+	"crudLoad": crudLoad,
+	"crudLoadWithIncludes": crudLoadWithIncludes,
+	"crudUpdate": crudUpdate,
+	"crudDeleteUsingID": crudDeleteUsingID,
+	"crudDeleteUsingEntity": crudDeleteUsingEntity,
+	"queryCollectionByName": queryCollectionByName,
+	"queryCollectionByType": queryCollectionByType,
+	"queryIndex": queryIndex,
+	"queryFirst": queryFirst,
+	"queryComplex": queryComplex,
+	"querySelectSingleField": querySelectSingleField,
+	"querySelectFields": querySelectFields,
+	"queryDistinct": queryDistinct,
+	"queryEquals": queryEquals,
+	"queryIn": queryIn,
+	"queryStartsWith": queryStartsWith,
+	"queryEndsWith": queryEndsWith,
+	"queryBetween": queryBetween,
+	"queryGreater": queryGreater,
+	"queryExists": queryExists,
+	"queryContainsAny": queryContainsAny,
+	"querySearch": querySearch,
+	"querySubclause": querySubclause,
+	"queryNot": queryNot,
+	"queryOrElse": queryOrElse,
+	"queryOrderBy": queryOrderBy,
+	"queryTake": queryTake,
+	"querySkip": querySkip,
+	"queryStatistics": queryStatistics,
+	"querySingle": querySingle,
+	"queryCount": queryCount,
+	"getAttachments": getAttachments,
+	"checkAttachmentExists": checkAttachmentExists,
+	"getAttachmentNames" : getAttachmentNames,
+	"bulkInsert" :bulkInsert,
+	"changes" :changes,
+	"streamWithIDPrefix" :streamWithIDPrefix,
+	"streamQueryResults" :streamQueryResults,
+	"revisions" :revisions,
+	"suggestions":suggestions,
+	"advancedPatching":advancedPatching,
+	"subscriptions":subscriptions,
+}
+
+func dispatchByName(name string) {
+	fn, ok := nameToFunc[name]
+	if ok {
+		fn()
+		return
+	}
+	fmt.Printf("didn't find function named '%s'\n", name)
+}
+
 func main() {
 	// to test a given function, uncomment it
+	if len(os.Args) == 2 {
+		dispatchByName(os.Args[1])
+		return
+	}
 	//loadUpdateSave()
 	//crudStore()
+
 	//crudLoad()
 	//crudLoadWithIncludes()
 	//crudUpdate()
@@ -1649,12 +1706,11 @@ func main() {
 	//checkAttachmentExists()
 	//getAttachmentNames()
 	//bulkInsert()
-	//changes()
+	changes()
 	//streamWithIDPrefix()
 	//streamQueryResults()
 	//revisions()
 	//suggestions()
 	//advancedPatching()
-
-	subscriptions()
+	//subscriptions()
 }

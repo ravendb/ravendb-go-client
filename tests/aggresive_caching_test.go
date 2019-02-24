@@ -37,12 +37,12 @@ func aggressiveCachingCanAggressivelyCacheLoads404(t *testing.T, driver *RavenTe
 		session := openSessionMust(t, store)
 		{
 			dur := time.Minute * 5
-			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
+			cancel, err := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
+			assert.NoError(t, err)
 			var u *User
-			err := session.Load(&u, "users/not-there")
+			err = session.Load(&u, "users/not-there")
 			assert.NoError(t, err)
-			err = context.Close()
-			assert.NoError(t, err)
+			cancel()
 		}
 		session.Close()
 	}
@@ -62,11 +62,12 @@ func aggressiveCachingCanAggressivelyCacheLoads(t *testing.T, driver *RavenTestD
 		session := openSessionMust(t, store)
 		{
 			dur := time.Minute * 5
-			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
-			var u *User
-			err := session.Load(&u, "users/1-A")
+			cancel, err := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
 			assert.NoError(t, err)
-			_ = context.Close()
+			var u *User
+			err = session.Load(&u, "users/1-A")
+			assert.NoError(t, err)
+			cancel()
 		}
 		session.Close()
 	}
@@ -83,14 +84,14 @@ func aggressiveCachingCanAggressivelyCacheQueries(t *testing.T, driver *RavenTes
 		session := openSessionMust(t, store)
 		{
 			dur := time.Minute * 5
-			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
+			cancel, err := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
+			assert.NoError(t, err)
 			q := session.QueryCollectionForType(userType)
 			var u []*User
-			err := q.GetResults(&u)
+			err = q.GetResults(&u)
 			assert.NoError(t, err)
 
-			err = context.Close()
-			assert.NoError(t, err)
+			cancel()
 		}
 		session.Close()
 	}
@@ -107,14 +108,14 @@ func aggressiveCachingWaitForNonStaleResultsIgnoresAggressiveCaching(t *testing.
 		session := openSessionMust(t, store)
 		{
 			dur := time.Minute * 5
-			context := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
+			cancel, err := session.Advanced().GetDocumentStore().AggressivelyCacheFor(dur)
+			assert.NoError(t, err)
 			q := session.QueryCollectionForType(userType)
 			q = q.WaitForNonStaleResults(0)
 			var u []*User
-			err := q.GetResults(&u)
+			err = q.GetResults(&u)
 			assert.NoError(t, err)
-			err = context.Close()
-			assert.NoError(t, err)
+			cancel()
 		}
 		session.Close()
 	}

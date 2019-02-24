@@ -13,8 +13,8 @@ var (
 type DeleteByQueryOperation struct {
 	Command *DeleteByIndexCommand
 
-	_queryToDelete *IndexQuery
-	_options       *QueryOperationOptions
+	queryToDelete *IndexQuery
+	options       *QueryOperationOptions
 }
 
 func NewDeleteByQueryOperation(queryToDelete *IndexQuery, options *QueryOperationOptions) (*DeleteByQueryOperation, error) {
@@ -22,14 +22,14 @@ func NewDeleteByQueryOperation(queryToDelete *IndexQuery, options *QueryOperatio
 		return nil, newIllegalArgumentError("QueryToDelete cannot be null")
 	}
 	return &DeleteByQueryOperation{
-		_queryToDelete: queryToDelete,
-		_options:       options,
+		queryToDelete: queryToDelete,
+		options:       options,
 	}, nil
 }
 
 func (o *DeleteByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
-	o.Command, err = NewDeleteByIndexCommand(conventions, o._queryToDelete, o._options)
+	o.Command, err = NewDeleteByIndexCommand(conventions, o.queryToDelete, o.options)
 	return o.Command, err
 }
 
@@ -38,9 +38,9 @@ var _ RavenCommand = &DeleteByIndexCommand{}
 type DeleteByIndexCommand struct {
 	RavenCommandBase
 
-	_conventions   *DocumentConventions
-	_queryToDelete *IndexQuery
-	_options       *QueryOperationOptions
+	conventions   *DocumentConventions
+	queryToDelete *IndexQuery
+	options       *QueryOperationOptions
 
 	Result *OperationIDResult
 }
@@ -52,29 +52,29 @@ func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *In
 	cmd := &DeleteByIndexCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		_conventions:   conventions,
-		_queryToDelete: queryToDelete,
-		_options:       options,
+		conventions:   conventions,
+		queryToDelete: queryToDelete,
+		options:       options,
 	}
 	return cmd, nil
 }
 
 func (c *DeleteByIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
-	_options := c._options
+	options := c.options
 
-	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", _options.allowStale)
+	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", options.allowStale)
 
-	if _options.maxOpsPerSecond != 0 {
-		url += "&maxOpsPerSec=" + strconv.Itoa(_options.maxOpsPerSecond)
+	if options.maxOpsPerSecond != 0 {
+		url += "&maxOpsPerSec=" + strconv.Itoa(options.maxOpsPerSecond)
 	}
 
-	url += fmt.Sprintf("&details=%v", _options.retrieveDetails)
+	url += fmt.Sprintf("&details=%v", options.retrieveDetails)
 
-	if _options.staleTimeout != 0 {
-		url += "&staleTimeout=" + durationToTimeSpan(_options.staleTimeout)
+	if options.staleTimeout != 0 {
+		url += "&staleTimeout=" + durationToTimeSpan(options.staleTimeout)
 	}
 
-	m := jsonExtensionsWriteIndexQuery(c._conventions, c._queryToDelete)
+	m := jsonExtensionsWriteIndexQuery(c.conventions, c.queryToDelete)
 	d, err := jsonMarshal(m)
 	// TODO: return error instead?
 	panicIf(err != nil, "jsonMarshal failed with %s", err)
