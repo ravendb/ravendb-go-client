@@ -620,6 +620,9 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 	}
 }
 
+// Note: not applicable in Go because there's no way for client
+// processing batch to cause error inside subscription worker
+/*
 func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -653,7 +656,7 @@ func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErr
 		assert.NoError(t, err)
 	}
 }
-
+*/
 
 // Note: not applicable in Go becaues batch processing cannot affect
 // subscription worker
@@ -1009,14 +1012,16 @@ func TestSubscriptionsBasic(t *testing.T) {
 	subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
 	subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 	subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
-	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+
+	// subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+
 	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
 	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
 	//subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
 	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	subscriptionsBasic_canDeleteSubscription(t, driver)
 
-subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
+	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
 
 	subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t, driver)
 	subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)

@@ -562,7 +562,6 @@ func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan []*Subscription
 		//fmt.Printf("runSubscriptionLoop() %p finished\n", w)
 
 		// TODO: this reports data race on chResult but shouldn't
-		// this lock shouldn't be needed
 		close(chResults)
 		close(w.chDone)
 	}()

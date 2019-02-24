@@ -73,7 +73,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 		sub, err := store.Subscriptions().GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
 
-		mre := make(chan bool)
+		mre := make(chan bool, 1)
 		names := map[string]struct{}{}
 
 		results, err := sub.Run()
@@ -171,7 +171,7 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 		sub, err := store.Subscriptions().GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
 
-		mre := make(chan bool)
+		mre := make(chan bool, 1)
 		names := map[string]struct{}{}
 
 		var mu sync.Mutex
