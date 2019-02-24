@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
@@ -72,38 +73,37 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 		sub, err := store.Subscriptions().GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
 
-		mre := make(chan bool)
+		mre := make(chan bool, 1)
 		names := map[string]struct{}{}
 
-		fn := func(x *ravendb.SubscriptionBatch) error {
-			for _, item := range x.Items {
-				// result is ravendb.Revision of type User
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				result := v.(*ravendb.Revision)
-				var currName string
-				var prevName string
-				if result.Current != nil {
+		results, err := sub.Run()
+		assert.NoError(t, err)
+		select {
+			case items := <- results:
+				for _, item := range items {
+					// result is ravendb.Revision of type User
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					result := v.(*ravendb.Revision)
+					var currName string
+					var prevName string
+					if result.Current != nil {
 					u := result.Current.(*User)
 					currName = *u.Name
 				}
-				if result.Previous != nil {
+					if result.Previous != nil {
 					u := result.Previous.(*User)
 					prevName = *u.Name
 				}
-				name := currName + prevName
-				names[name] = struct{}{}
-				if len(names) == 100 {
-					mre <- true
+					name := currName + prevName
+					names[name] = struct{}{}
+					if len(names) == 100 {
+						mre <- true
 				}
 			}
-			return nil
+			case <-time.After(_reasonableWaitTime):
+				assert.Fail(t, "timed out waiting for batch")
 		}
-		err = sub.Run(fn)
-		assert.NoError(t, err)
-
-		timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
-		assert.False(t, timedOut)
 
 		err = sub.Close()
 		assert.NoError(t, err)
@@ -171,14 +171,17 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 		sub, err := store.Subscriptions().GetSubscriptionWorkerForRevisions(clazz, opts, "")
 		assert.NoError(t, err)
 
-		mre := make(chan bool)
+		mre := make(chan bool, 1)
 		names := map[string]struct{}{}
 
 		var mu sync.Mutex
 		maxAge := -1
 
-		fn := func(a *ravendb.SubscriptionBatch) error {
-			for _, item := range a.Items {
+		results, err := sub.Run()
+		assert.NoError(t, err)
+		select {
+		case items := <- results:
+			for _, item := range items {
 				// result is ravendb.Revision of type User
 				v, err := item.GetResult()
 				assert.NoError(t, err)
@@ -213,10 +216,10 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 					mre <- true
 				}
 			}
-			return nil
+
+			case <- time.After(_reasonableWaitTime):
+				assert.Fail(t, "timed out waiting for batch")
 		}
-		err = sub.Run(fn)
-		assert.NoError(t, err)
 
 		timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
 		assert.False(t, timedOut)

@@ -1,13 +1,12 @@
 package tests
 
 import (
-	"errors"
 	"reflect"
 	"sync/atomic"
 	"testing"
 	"time"
 
-	ravendb "github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,12 +76,8 @@ func subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t *testing.
 
 	subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
-	fn := func(x *ravendb.SubscriptionBatch) error {
-		// no-op
-		return nil
-	}
 
-	err = subscription.Run(fn)
+	_, err = subscription.Run()
 	assert.NoError(t, err)
 	err = subscription.WaitUntilFinished(0)
 	assert.NotNil(t, err)
@@ -118,15 +113,15 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 			session.Close()
 		}
 
-		semaphore := make(chan bool)
-		fn := func(x *ravendb.SubscriptionBatch) error {
-			semaphore <- true
-			return nil
-		}
-		err = subscription.Run(fn)
+		results, err := subscription.Run()
 		assert.NoError(t, err)
 
-		chanWaitTimedOut(semaphore, _reasonableWaitTime)
+		select {
+			case <-results:
+				// no-op, got the result
+				case <-time.After(_reasonableWaitTime):
+					// no-op, timeout waiting for the result
+		}
 
 		options2 := ravendb.NewSubscriptionWorkerOptions(id)
 		options2.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
@@ -134,11 +129,7 @@ func subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t *t
 		{
 			secondSubscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, options2, "")
 			assert.NoError(t, err)
-			fn := func(x *ravendb.SubscriptionBatch) error {
-				// no-op
-				return nil
-			}
-			err = secondSubscription.Run(fn)
+			_, err = secondSubscription.Run()
 			assert.NoError(t, err)
 			err = secondSubscription.WaitUntilFinished(0)
 			_, ok := err.(*ravendb.SubscriptionInUseError)
@@ -159,6 +150,7 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
+	var users []*User
 	{
 		session := openSessionMust(t, store)
 
@@ -167,18 +159,21 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 		}
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
+		users = append(users, user1)
 
 		user2 := &User{
 			Age: 27,
 		}
 		err = session.StoreWithID(user2, "users/12")
 		assert.NoError(t, err)
+		users = append(users, user2)
 
 		user3 := &User{
 			Age: 25,
 		}
 		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
+		users = append(users, user3)
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -195,57 +190,29 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		keys := make(chan string)
-		ages := make(chan int)
-
-		fn := func(batch *ravendb.SubscriptionBatch) error {
-			// Note: important that done in two separate passes
-			for _, item := range batch.Items {
-				keys <- item.ID
-			}
-
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				u := v.(*User)
-				ages <- u.Age
-			}
-			return nil
-		}
-		err = subscription.Run(fn)
+		results, err := subscription.Run()
 		assert.NoError(t, err)
 
-		getNextKey := func() string {
-			select {
-			case v := <-keys:
-				return v
-			case <-time.After(_reasonableWaitTime):
-				// no-op
+		chDone := make(chan bool, 1)
+		go func() {
+			for items := range results {
+				for i, item := range items {
+					expUser := users[i]
+					assert.Equal(t, item.ID, expUser.ID)
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					u := v.(*User)
+					assert.Equal(t, u.Age, expUser.Age)
+				}
+				chDone <- true
 			}
-			return ""
-		}
-		key := getNextKey()
-		assert.Equal(t, key, "users/1")
-		key = getNextKey()
-		assert.Equal(t, key, "users/12")
-		key = getNextKey()
-		assert.Equal(t, key, "users/3")
-
-		getNextAge := func() int {
-			select {
-			case v := <-ages:
-				return v
+		}()
+		select {
+		case <-chDone:
+			// no-op, got the first batch
 			case <-time.After(_reasonableWaitTime):
-				// no-op
-			}
-			return 0
+				assert.False(t, true, "timed out waiting for batch")
 		}
-		age := getNextAge()
-		assert.Equal(t, age, 31)
-		age = getNextAge()
-		assert.Equal(t, age, 27)
-		age = getNextAge()
-		assert.Equal(t, age, 25)
 
 		err = subscription.Close()
 		assert.NoError(t, err)
@@ -266,19 +233,6 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		names := make(chan string, 20)
-
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				m := v.(map[string]interface{})
-				name := m["name"].(string)
-				names <- name
-			}
-			return nil
-		}
-
 		{
 			session := openSessionMust(t, store)
 
@@ -293,21 +247,22 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 			session.Close()
 		}
 
-		err = subscription.Run(processBatch)
+		results, err := subscription.Run()
 		assert.NoError(t, err)
-
-		getNextName := func() string {
-			select {
-			case v := <-names:
-				return v
-			case <-time.After(_reasonableWaitTime):
-				// no-op
+		go func() {
+			expNames := []string{"James", "Adam", "David"}
+			var n int
+			for items := range results {
+				for _, item := range items {
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					m := v.(map[string]interface{})
+					name := m["name"].(string)
+					assert.Equal(t, name, expNames[n])
+					n++
+				}
 			}
-			return ""
-		}
-
-		name := getNextName()
-		assert.Equal(t, name, "James")
+		}()
 
 		{
 			session := openSessionMust(t, store)
@@ -322,9 +277,6 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 
 			session.Close()
 		}
-
-		name = getNextName()
-		assert.Equal(t, name, "Adam")
 
 		//Thread.sleep(15000); // test with sleep - let few heartbeats come to us - commented out for CI
 
@@ -341,9 +293,6 @@ func subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, driver *Ra
 
 			session.Close()
 		}
-
-		name = getNextName()
-		assert.Equal(t, name, "David")
 
 		err = subscription.Close()
 		assert.NoError(t, err)
@@ -381,23 +330,21 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 		subscriptionWorker, err := store.Subscriptions().GetSubscriptionWorker(clazz, options, "")
 		assert.NoError(t, err)
 
-		var totalItems int32
-		semaphore := make(chan bool)
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			n := len(batch.Items)
-			assert.True(t, n <= 25)
-			total := atomic.AddInt32(&totalItems, int32(n))
-			if total == 100 {
-				semaphore <- true
-			}
-			return nil
-		}
-		err = subscriptionWorker.Run(processBatch)
+		results, err := subscriptionWorker.Run()
 		assert.NoError(t, err)
 
-		timedOut := chanWaitTimedOut(semaphore, _reasonableWaitTime)
-		assert.False(t, timedOut)
-
+		var totalItems int
+		for totalItems < 100 {
+			select {
+			case  items := <-results:
+				n := len(items)
+				assert.True(t, n <= 25)
+				totalItems += n
+			case <-time.After(_reasonableWaitTime):
+				assert.False(t, true, "timed out waiting for a batch")
+				totalItems = 100
+			}
+		}
 		_ = subscriptionWorker.Close()
 	}
 }
@@ -435,22 +382,22 @@ func subscriptionsBasic_shouldRespectCollectionCriteria(t *testing.T, driver *Ra
 		subscriptionWorker, err := store.Subscriptions().GetSubscriptionWorker(clazz, options, "")
 		assert.NoError(t, err)
 
-		var totalItems int32
-		semaphore := make(chan bool)
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			n := len(batch.Items)
-			assert.True(t, n <= 31)
-			total := atomic.AddInt32(&totalItems, int32(n))
-			if total == 100 {
-				semaphore <- true
-			}
-			return nil
-		}
-		err = subscriptionWorker.Run(processBatch)
+		results, err := subscriptionWorker.Run()
 		assert.NoError(t, err)
 
-		timedOut := chanWaitTimedOut(semaphore, _reasonableWaitTime)
-		assert.False(t, timedOut)
+		var totalItems int
+		for totalItems < 100 {
+			select {
+			case items := <-results:
+				n := len(items)
+				assert.True(t, n <= 31)
+				totalItems += n
+				case <-time.After(_reasonableWaitTime):
+					assert.Fail(t, "timed out waiting for batch")
+					totalItems = 100
+			}
+
+		}
 
 		_ = subscriptionWorker.Close()
 	}
@@ -507,23 +454,28 @@ func subscriptionsBasic_willAcknowledgeEmptyBatches(t *testing.T, driver *RavenT
 				session.Close()
 			}
 
-			processBatch := func(batch *ravendb.SubscriptionBatch) error {
-				n := len(batch.Items)
-				total := atomic.AddInt32(&allCounter, int32(n))
-				if total >= 100 {
-					allSemaphore <- true
-				}
-				return nil
-			}
-			err = allSubscription.Run(processBatch)
+			results, err := allSubscription.Run()
 			assert.NoError(t, err)
 
-			processBatch2 := func(batch *ravendb.SubscriptionBatch) error {
-				usersDocsSemaphore <- true
-				return nil
-			}
-			err = filteredUsersSubscription.Run(processBatch2)
+			go func() {
+				for items := range results {
+					n := len(items)
+					total := atomic.AddInt32(&allCounter, int32(n))
+					if total >= 100 {
+						allSemaphore <- true
+					}
+				}
+			}()
+
+			results2, err := filteredUsersSubscription.Run()
 			assert.NoError(t, err)
+
+			// TODO: more go-ish waiting using select on 2 channels
+			go func() {
+				for range results2 {
+					usersDocsSemaphore <- true
+				}
+			}()
 
 			timedOut := chanWaitTimedOut(allSemaphore, _reasonableWaitTime)
 			assert.False(t, timedOut)
@@ -567,28 +519,23 @@ func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDr
 	subscriptionWorker, err = store.Subscriptions().GetSubscriptionWorker(clazz, options1, "")
 	assert.NoError(t, err)
 
-	mre := make(chan bool)
 	putUserDoc(t, store)
 
-	processBatch := func(batch *ravendb.SubscriptionBatch) error {
-		mre <- true
-		return nil
-	}
-	err = subscriptionWorker.Run(processBatch)
+	results, err := subscriptionWorker.Run()
 	assert.NoError(t, err)
-	timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
-	assert.False(t, timedOut)
+	select {
+		case <-results:
+			// no-op, got a result
+			case <-time.After(_reasonableWaitTime):
+				assert.Fail(t, "timed out waiting for batch")
+	}
 
 	options2 := ravendb.NewSubscriptionWorkerOptions(id)
 	options2.Strategy = ravendb.SubscriptionOpeningStrategyOpenIfFree
 	throwingSubscriptionWorker, err = store.Subscriptions().GetSubscriptionWorker(clazz, options2, "")
 	assert.NoError(t, err)
 
-	processBatchNoOp := func(batch *ravendb.SubscriptionBatch) error {
-		return nil
-	}
-
-	err = throwingSubscriptionWorker.Run(processBatchNoOp)
+	_, err = throwingSubscriptionWorker.Run()
 	err = throwingSubscriptionWorker.WaitUntilFinished(0)
 	_, ok := err.(*ravendb.SubscriptionInUseError)
 	assert.True(t, ok)
@@ -598,11 +545,16 @@ func subscriptionsBasic_canReleaseSubscription(t *testing.T, driver *RavenTestDr
 
 	wopts := ravendb.NewSubscriptionWorkerOptions(id)
 	notThrowingSubscriptionWorker, err = store.Subscriptions().GetSubscriptionWorker(clazz, wopts, "")
-	_ = notThrowingSubscriptionWorker.Run(processBatch)
+	results, err = notThrowingSubscriptionWorker.Run()
+	assert.NoError(t, err)
 	putUserDoc(t, store)
 
-	timedOut = chanWaitTimedOut(mre, _reasonableWaitTime)
-	assert.False(t, timedOut)
+	select {
+	case <-results:
+	// no-op, got a result
+	case <-time.After(_reasonableWaitTime):
+		assert.Fail(t, "timed out waiting for batch")
+	}
 }
 
 func putUserDoc(t *testing.T, store *ravendb.DocumentStore) {
@@ -629,8 +581,6 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 		clazz := reflect.TypeOf(&User{})
 		wopts := ravendb.NewSubscriptionWorkerOptions(id)
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, wopts, "")
-		docs := make(chan *User, 10)
-
 		{
 			bulk := store.BulkInsert("")
 			_, err = bulk.Store(&User{}, nil)
@@ -643,29 +593,36 @@ func subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t *testing.T, driver 
 			assert.NoError(t, err)
 		}
 
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				u := v.(*User)
-				docs <- u
+		results, err := subscription.Run()
+		done := false
+		nUsers := 0
+		for !done {
+			select {
+			case items := <- results:
+				for _, item := range items {
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					u := v.(*User)
+					assert.NotNil(t, u)
+					nUsers++
+					if nUsers >= 2 {
+						done = true
+					}
+				}
+				case <-time.After(_reasonableWaitTime):
+					done = true
+					assert.Fail(t, "timed out waiting for batch")
 			}
-			return nil
 		}
-		err = subscription.Run(processBatch)
-
-		u, ok := getNextUser(docs, 0)
-		assert.NotNil(t, u)
-		assert.True(t, ok)
-		u, ok = getNextUser(docs, 0)
-		assert.NotNil(t, u)
-		assert.True(t, ok)
 
 		err = subscription.Close()
 		assert.NoError(t, err)
 	}
 }
 
+// Note: not applicable in Go because there's no way for client
+// processing batch to cause error inside subscription worker
+/*
 func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -682,10 +639,7 @@ func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErr
 
 		putUserDoc(t, store)
 
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			return errors.New("Fake error")
-		}
-		err = subscription.Run(processBatch)
+		_, err = subscription.Run()
 		assert.NoError(t, err)
 
 		err = subscription.WaitUntilFinished(_reasonableWaitTime)
@@ -702,7 +656,11 @@ func subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErr
 		assert.NoError(t, err)
 	}
 }
+*/
 
+// Note: not applicable in Go becaues batch processing cannot affect
+// subscription worker
+/*
 func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -720,29 +678,35 @@ func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *Rav
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, options1, "")
 		assert.NoError(t, err)
 
-		docs := make(chan *User, 20)
-
 		putUserDoc(t, store)
 		putUserDoc(t, store)
 
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				u := v.(*User)
-				docs <- u
-			}
-			return errors.New("Fake error")
-		}
-		err = subscription.Run(processBatch)
+		results, err := subscription.Run()
 		assert.NoError(t, err)
 
-		u, ok := getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.NotNil(t, u)
-		u, ok = getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.NotNil(t, u)
+		done := false
+		nUsers := 0
+		for !done {
+			select {
+			case batch := <- results:
+				for _, item := range batch.Items {
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					u := v.(*User)
+					assert.NotNil(t, u)
+					nUsers++
+					if nUsers >= 2 {
+						done = true
+					}
+				}
+				case <- time.After(_reasonableWaitTime):
+					assert.Fail(t, "timed out waiting for batch")
+					done = true
+			}
+		}
+		_ = subscription.Close()
+		err = subscription.WaitUntilFinished(0)
+		assert.NoError(t, err)
 
 		// nno error because we asked to ignore errors
 		assert.NoError(t, subscription.Err())
@@ -751,6 +715,7 @@ func subscriptionsBasic_canSetToIgnoreSubscriberErrors(t *testing.T, driver *Rav
 		assert.NoError(t, err)
 	}
 }
+*/
 
 func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.T, driver *RavenTestDriver) {
 	var err error
@@ -782,26 +747,29 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 			session.Close()
 		}
 
-		docs := make(chan *User, 20)
-
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				u := v.(*User)
-				docs <- u
-			}
-			return nil
-		}
-		err = subscription.Run(processBatch)
+		results, err := subscription.Run()
 		assert.NoError(t, err)
 
-		u, ok := getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.NotNil(t, u)
-		u, ok = getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.NotNil(t, u)
+		done := false
+		nUsers := 0
+		for !done {
+			select {
+			case items := <-results:
+				for _, item := range items {
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					u := v.(*User)
+					assert.NotNil(t, u)
+					nUsers++
+					if nUsers >= 2 {
+						done = true
+					}
+				}
+				case <- time.After(_reasonableWaitTime):
+					assert.Fail(t, "timed out waiting for batch")
+					done = true
+			}
+		}
 
 		err = store.Subscriptions().DropConnection(id, "")
 		assert.NoError(t, err)
@@ -810,7 +778,7 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 		// depending on exactly where the drop happens
 		err = subscription.WaitUntilFinished(_reasonableWaitTime)
 		if err != nil {
-			_, ok = err.(*ravendb.SubscriptionClosedError)
+			_, ok := err.(*ravendb.SubscriptionClosedError)
 			assert.True(t, ok)
 		}
 
@@ -827,10 +795,16 @@ func subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t *testing.
 			session.Close()
 		}
 
-		// should time out since we dropped the connection
-		u, ok = getNextUser(docs, 50*time.Millisecond)
-		assert.False(t, ok)
-		assert.Nil(t, u)
+		// should get no results since we dropped the connection
+
+		select {
+		case batch := <-results:
+			// if we get it, it should be nil because we receive
+			// from closed channel
+			assert.Nil(t, batch)
+			case <-time.After(50*time.Millisecond):
+				// no-op, timeing out is also valid
+		}
 
 		assert.True(t, subscription.IsDone())
 
@@ -855,14 +829,21 @@ func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterType
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, wopts, "")
 		assert.NoError(t, err)
 
+		var users []*User
 		{
 			session, err := store.OpenSession("")
 			assert.NoError(t, err)
-			err = session.StoreWithID(&User{Age: 31}, "users/1")
+			u := &User{Age: 31}
+			err = session.StoreWithID(u, "users/1")
+			users = append(users, u)
 			assert.NoError(t, err)
-			err = session.StoreWithID(&User{Age: 27}, "users/12")
+			u = &User{Age: 27}
+			err = session.StoreWithID(u, "users/12")
+			users = append(users, u)
 			assert.NoError(t, err)
-			err = session.StoreWithID(&User{Age: 25}, "users/3")
+			u = &User{Age: 25}
+			err = session.StoreWithID(u, "users/3")
+			users = append(users, u)
 			assert.NoError(t, err)
 			err = session.SaveChanges()
 			assert.NoError(t, err)
@@ -870,36 +851,35 @@ func subscriptionsBasic_ravenDB_3453_ShouldDeserializeTheWholeDocumentsAfterType
 			session.Close()
 		}
 
-		docs := make(chan *User, 20)
+		results, err := subscription.Run()
+		assert.NoError(t, err)
 
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
+		n := 0
+		done := false
+		for !done {
+			select {
+			case items := <- results:
+				for _, item := range items {
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					u := v.(*User)
+					expU := users[n]
+					assert.Equal(t, u.ID, expU.ID)
+					assert.Equal(t, u.Age, expU.Age)
+					n++
+					if n >= len(users) {
+						done = true
+					}
+				}
+
+				case <-time.After(_reasonableWaitTime):
+					done = true
+					assert.Fail(t, "timed out waiting for batch")
+				}
+
+				err = subscription.Close()
 				assert.NoError(t, err)
-				u := v.(*User)
-				docs <- u
 			}
-			return nil
-		}
-		err = subscription.Run(processBatch)
-		assert.NoError(t, err)
-		u, ok := getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.Equal(t, u.ID, "users/1")
-		assert.Equal(t, u.Age, 31)
-
-		u, ok = getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.Equal(t, u.ID, "users/12")
-		assert.Equal(t, u.Age, 27)
-
-		u, ok = getNextUser(docs, 0)
-		assert.True(t, ok)
-		assert.Equal(t, u.ID, "users/3")
-		assert.Equal(t, u.Age, 25)
-
-		err = subscription.Close()
-		assert.NoError(t, err)
 	}
 }
 
@@ -942,36 +922,41 @@ func subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOf
 
 	subscription1, err = store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
+
 	items1 := make(chan *User, 10)
 
-	processBatch := func(batch *ravendb.SubscriptionBatch) error {
-		for _, item := range batch.Items {
+	results, err := subscription1.Run()
+	assert.NoError(t, err)
+
+	// TODO: rewrite in a more go-ish way
+	go func() {
+		for items := range results {
+			for _, item := range items {
 			v, err := item.GetResult()
 			assert.NoError(t, err)
 			u := v.(*User)
 			items1 <- u
 		}
-		return nil
-	}
-	err = subscription1.Run(processBatch)
-	assert.NoError(t, err)
+		}
+	}()
 
 	opts = ravendb.NewSubscriptionWorkerOptions(id2)
 	subscription2, err = store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 	assert.NoError(t, err)
 	items2 := make(chan *User, 10)
 
-	processBatch2 := func(batch *ravendb.SubscriptionBatch) error {
-		for _, item := range batch.Items {
-			v, err := item.GetResult()
-			assert.NoError(t, err)
-			u := v.(*User)
-			items2 <- u
-		}
-		return nil
-	}
-	err = subscription2.Run(processBatch2)
+	results2, err := subscription2.Run()
 	assert.NoError(t, err)
+	go func() {
+		for items := range results2 {
+			for _, item := range items {
+				v, err := item.GetResult()
+				assert.NoError(t, err)
+				u := v.(*User)
+				items2 <- u
+			}
+		}
+	}()
 
 	u, ok := getNextUser(items1, 0)
 	assert.True(t, ok)
@@ -1027,14 +1012,16 @@ func TestSubscriptionsBasic(t *testing.T) {
 	subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t, driver)
 	subscriptionsBasic_shouldRespectCollectionCriteria(t, driver)
 	subscriptionsBasic_willAcknowledgeEmptyBatches(t, driver)
-	subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+
+	// subscriptionsBasic_shouldStopPullingDocsAndCloseSubscriptionOnSubscriberErrorByDefault(t, driver)
+
 	subscriptionsBasic_disposingOneSubscriptionShouldNotAffectOnNotificationsOfOthers(t, driver)
 	subscriptionsBasic_shouldPullDocumentsAfterBulkInsert(t, driver)
-	subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
+	//subscriptionsBasic_canSetToIgnoreSubscriberErrors(t, driver)
 	subscriptionsBasic_ravenDB_3452_ShouldStopPullingDocsIfReleased(t, driver)
 	subscriptionsBasic_canDeleteSubscription(t, driver)
 
-subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
+	subscriptionsBasic_shouldThrowOnAttemptToOpenAlreadyOpenedSubscription(t, driver)
 
 	subscriptionsBasic_shouldThrowWhenOpeningNoExistingSubscription(t, driver)
 	subscriptionsBasic_shouldSendAllNewAndModifiedDocs(t, driver)

@@ -1591,21 +1591,19 @@ func subscriptions() {
 		log.Fatalf("store.Subscriptions().GetSubscriptionWorker() failed with %s\n", err)
 	}
 
-	chResults := make(chan bool, 64)
-	processItems := func(batch *ravendb.SubscriptionBatch) error {
+	results, err := worker.Run()
+	if err != nil {
+		log.Fatalf("worker.Run() failed with %s\n", err)
+	}
+
+	// wait for first batch result
+	select {
+	case batch := <- results:
 		fmt.Print("Batch of subscription results:\n")
 		pretty.Print(batch)
-		chResults <- true
-		return nil
-	}
-	err = worker.Run(processItems)
+		case <-time.After(time.Second *5):
+			fmt.Printf("Timed out waiting for first subscription batch\n")
 
-	// wait for at least one batch result
-	select {
-	case <-chResults:
-	// no-op
-	case <-time.After(time.Second * 5):
-		fmt.Printf("Timed out waiting for first subscription batch\n")
 	}
 
 	_ = worker.Close()
