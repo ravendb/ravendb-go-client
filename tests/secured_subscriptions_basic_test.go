@@ -15,6 +15,7 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 	store := driver.getSecuredDocumentStoreMust(t)
 	defer store.Close()
 
+	var users []*User
 	{
 		session := openSessionMust(t, store)
 
@@ -23,18 +24,21 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 		}
 		err = session.StoreWithID(user1, "users/1")
 		assert.NoError(t, err)
+		users = append(users, user1)
 
 		user2 := &User{
 			Age: 27,
 		}
 		err = session.StoreWithID(user2, "users/12")
 		assert.NoError(t, err)
+		users = append(users, user2)
 
 		user3 := &User{
 			Age: 25,
 		}
 		err = session.StoreWithID(user3, "users/3")
 		assert.NoError(t, err)
+		users = append(users, user3)
 
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -51,58 +55,22 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		keys := make(chan string)
-		ages := make(chan int)
-
-		fn := func(batch *ravendb.SubscriptionBatch) error {
-			// Note: important that done in two separate passes
-			for _, item := range batch.Items {
-				keys <- item.ID
-			}
-
-			for _, item := range batch.Items {
-				v, err := item.GetResult()
-				assert.NoError(t, err)
-				u := v.(*User)
-				ages <- u.Age
-			}
-			return nil
-		}
-		err = subscription.Run(fn)
+		results, err := subscription.Run()
 		assert.NoError(t, err)
+		select {
+			case items := <- results:
+				for i, item := range items {
+					userExp := users[i]
+					assert.Equal(t, item.ID, userExp.ID)
+					v, err := item.GetResult()
+					assert.NoError(t, err)
+					u := v.(*User)
+					assert.Equal(t, u.Age, userExp.Age)
+				}
 
-		getNextKey := func() string {
-			select {
-			case v := <-keys:
-				return v
-			case <-time.After(_reasonableWaitTime):
-				// no-op
-			}
-			return ""
+				case <- time.After(_reasonableWaitTime):
+					assert.Fail(t, "timed out waiting for batch")
 		}
-		key := getNextKey()
-		assert.Equal(t, key, "users/1")
-		key = getNextKey()
-		assert.Equal(t, key, "users/12")
-		key = getNextKey()
-		assert.Equal(t, key, "users/3")
-
-		getNextAge := func() int {
-			select {
-			case v := <-ages:
-				return v
-			case <-time.After(_reasonableWaitTime):
-				// no-op
-			}
-			return 0
-		}
-		age := getNextAge()
-		assert.Equal(t, age, 31)
-		age = getNextAge()
-		assert.Equal(t, age, 27)
-		age = getNextAge()
-		assert.Equal(t, age, 25)
-
 		err = subscription.Close()
 		assert.NoError(t, err)
 	}
@@ -125,8 +93,11 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 
 		names := make(chan string, 20)
 
-		processBatch := func(batch *ravendb.SubscriptionBatch) error {
-			for _, item := range batch.Items {
+		results, err := subscription.Run()
+		assert.NoError(t, err)
+
+		processBatch := func(items []*ravendb.SubscriptionBatchItem) error {
+			for _, item := range items {
 				v, err := item.GetResult()
 				assert.NoError(t, err)
 				m := v.(map[string]interface{})
@@ -150,8 +121,12 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 			session.Close()
 		}
 
-		err = subscription.Run(processBatch)
-		assert.NoError(t, err)
+		select {
+		case batch := <-results:
+			processBatch((batch))
+			case <- time.After(_reasonableWaitTime):
+				assert.Fail(t, "failed waiting for batch")
+		}
 
 		getNextName := func() string {
 			select {

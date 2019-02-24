@@ -22,14 +22,15 @@ type SubscriptionWorker struct {
 
 	cancellationRequested int32 // atomic, > 0 means cancellation was requested
 	options               *SubscriptionWorkerOptions
-	subscriber            func(*SubscriptionBatch) error
+	chResults 			chan []*SubscriptionBatchItem
 	tcpClient             atomic.Value // net.Conn
 	parser                *json.Decoder
 	disposed              int32 // atomic
 	// this channel is closed when worker
 	chDone chan struct{}
 
-	afterAcknowledgment           []func(*SubscriptionBatch)
+
+	afterAcknowledgment           []func(*subscriptionBatch)
 	onSubscriptionConnectionRetry []func(error)
 
 	redirectNode                     *ServerNode
@@ -99,7 +100,7 @@ func (w *SubscriptionWorker) WaitUntilFinished(timeout time.Duration) error {
 	case <-w.chDone:
 	// no-op, we're here if already finished (channel closed)
 	case <-time.After(timeout):
-		// no-op, we're here if not finished but after timeout
+		return  NewTimeoutError("timed out waiting for subscription worker to finish")
 	}
 	return w.Err()
 }
@@ -124,7 +125,7 @@ func (w *SubscriptionWorker) markDisposed() {
 // AddAfterAcknowledgmentListener adds callback function that will be called after
 // listener has been acknowledged.
 // Returns id that can be used in RemoveAfterAcknowledgmentListener
-func (w *SubscriptionWorker) AddAfterAcknowledgmentListener(handler func(*SubscriptionBatch)) int {
+func (w *SubscriptionWorker) AddAfterAcknowledgmentListener(handler func(*subscriptionBatch)) int {
 	w.afterAcknowledgment = append(w.afterAcknowledgment, handler)
 	return len(w.afterAcknowledgment) - 1
 }
@@ -196,18 +197,19 @@ func (w *SubscriptionWorker) close(waitForSubscriptionTask bool) error {
 	return nil
 }
 
-func (w *SubscriptionWorker) Run(processDocuments func(*SubscriptionBatch) error) error {
+func (w *SubscriptionWorker) Run() (chan []*SubscriptionBatchItem, error) {
 	if w.chDone != nil {
-		return newIllegalStateError("The subscription is already running")
+		return nil, newIllegalStateError("The subscription is already running")
 	}
 
-	w.subscriber = processDocuments
-
+	// unbuffered so that we can ack to the server that the user processed
+	// a batch
+	w.chResults = make(chan []*SubscriptionBatchItem)
 	w.chDone = make(chan struct{})
 	go func() {
-		w.runSubscriptionLoop()
+		w.runSubscriptionAsync(w.chResults)
 	}()
-	return nil
+	return w.chResults, nil
 }
 
 func (w *SubscriptionWorker) getCurrentNodeTag() string {
@@ -385,7 +387,7 @@ func (w *SubscriptionWorker) assertConnectionState(connectionStatus *Subscriptio
 	return nil
 }
 
-func (w *SubscriptionWorker) processSubscriptionInner() error {
+func (w *SubscriptionWorker) processSubscriptionInner(chResults chan []*SubscriptionBatchItem) error {
 	if w.isCancellationRequested() {
 		return throwCancellationRequested()
 	}
@@ -404,7 +406,7 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 
 	tcpClientCopy := w.getTcpClient()
 
-	connectionStatus, err := w.readNextObject(tcpClientCopy)
+	connectionStatus, err := w.readNextObject()
 	if err != nil {
 		return err
 	}
@@ -424,35 +426,13 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 		return nil
 	}
 
-	notifiedSubscriber := newCompletableFutureAlreadyCompleted(nil)
 	batch := newSubscriptionBatch(w.clazz, w.revisions, w.subscriptionLocalRequestExecutor, w.store, w.dbName, w.logger)
 
 	for !w.isCancellationRequested() {
-		// start the read from the server
-
-		readFromServer := newCompletableFuture()
-		go func() {
-			res, err := w.readSingleSubscriptionBatchFromServer(tcpClientCopy, batch)
-			// TODO: wrap IOException errors in RuntimError
-			if err != nil {
-				readFromServer.completeWithError(err)
-			} else {
-				readFromServer.complete(res)
-			}
-		}()
-
-		_, err := notifiedSubscriber.Get()
-		if err != nil {
-			// if the subscriber errored, we shut down
-			w.closeTcpClient()
-			return err
-		}
-
-		incomingBatchI, err := readFromServer.Get()
+		incomingBatch, err := w.readSingleSubscriptionBatchFromServer(batch)
 		if err != nil {
 			return err
 		}
-		incomingBatch := incomingBatchI.([]*SubscriptionConnectionServerMessage)
 		if w.isCancellationRequested() {
 			return throwCancellationRequested()
 		}
@@ -461,37 +441,31 @@ func (w *SubscriptionWorker) processSubscriptionInner() error {
 			return err
 		}
 
-		notifiedSubscriber = newCompletableFuture()
-		go func() {
-			err := w.subscriber(batch)
-			if err != nil {
-				if !w.options.IgnoreSubscriberErrors {
-					/*TODO:
-					if (_logger.isDebugEnabled()) {
-						_logger.debug("Subscription " + _options.getSubscriptionName() + ". Subscriber threw an exception on document batch", ex);
-					}*/
-					// TODO: wrap original error
-					err = newSubscriberErrorError("Subscriber threw an exception in subscription " + w.options.SubscriptionName)
-					notifiedSubscriber.completeWithError(err)
-					return
-				}
+		// send on a goroutine so that we can continue reading from
+		// the server
+		go func(items []*SubscriptionBatchItem, lastChangeVector string, tcpClient net.Conn) {
+			// protect against panics because a client might never
+			// read the results and when we close chResults
+			// channel and we have pending sends, chResults <- batch
+			// will panic
+			defer func() {
+				recover()
+			}()
+
+			chResults <- items
+
+			if tcpClient != nil {
+				// TODO: what to do in case of an error?
+				_ = w.sendAck(lastChangeVector, tcpClient)
+				// if !w.options.IgnoreSubscriberErrors {
 			}
-			if tcpClientCopy != nil {
-				err = w.sendAck(lastReceivedChangeVector, tcpClientCopy)
-				if err != nil {
-					// TODO: wrap in RuntimeError
-					notifiedSubscriber.completeWithError(err)
-					return
-				}
-			}
-			notifiedSubscriber.complete(nil)
-		}()
+		}(batch.items, lastReceivedChangeVector, tcpClientCopy)
 	}
 	return nil
 }
 
-func (w *SubscriptionWorker) processSubscription() error {
-	err := w.processSubscriptionInner()
+func (w *SubscriptionWorker) processSubscription(chResults chan []*SubscriptionBatchItem) error {
+	err := w.processSubscriptionInner(chResults)
 	if err == nil {
 		return nil
 	}
@@ -508,12 +482,12 @@ func (w *SubscriptionWorker) processSubscription() error {
 	return err
 }
 
-func (w *SubscriptionWorker) readSingleSubscriptionBatchFromServer(socket net.Conn, batch *SubscriptionBatch) ([]*SubscriptionConnectionServerMessage, error) {
+func (w *SubscriptionWorker) readSingleSubscriptionBatchFromServer(batch *subscriptionBatch) ([]*SubscriptionConnectionServerMessage, error) {
 	var incomingBatch []*SubscriptionConnectionServerMessage
 	endOfBatch := false
 
 	for !endOfBatch && !w.isCancellationRequested() {
-		receivedMessage, err := w.readNextObject(socket)
+		receivedMessage, err := w.readNextObject()
 		if err != nil {
 			return nil, err
 		}
@@ -532,7 +506,7 @@ func (w *SubscriptionWorker) readSingleSubscriptionBatchFromServer(socket net.Co
 				cb(batch)
 			}
 			incomingBatch = nil
-			batch.Items = nil
+			//batch.Items = nil
 		case SubscriptionServerMessageConnectionStatus:
 			if err = w.assertConnectionState(receivedMessage); err != nil {
 				return nil, err
@@ -559,13 +533,8 @@ func throwSubscriptionError(receivedMessage *SubscriptionConnectionServerMessage
 	return newIllegalStateError("Connected terminated by server. Exception: " + exc)
 }
 
-// TODO: no need to pass socket
-func (w *SubscriptionWorker) readNextObject(socket net.Conn) (*SubscriptionConnectionServerMessage, error) {
-	if w.isCancellationRequested() {
-		return nil, nil
-	}
-
-	if w.isDisposed() { //if we are disposed, nothing to do...
+func (w *SubscriptionWorker) readNextObject() (*SubscriptionConnectionServerMessage, error) {
+	if w.isCancellationRequested() || w.isDisposed() {
 		return nil, nil
 	}
 
@@ -587,10 +556,14 @@ func (w *SubscriptionWorker) sendAck(lastReceivedChangeVector string, networkStr
 	return err
 }
 
-func (w *SubscriptionWorker) runSubscriptionLoop() {
+func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan []*SubscriptionBatchItem) {
 	//fmt.Printf("runSubscription(): %p started\n", w)
 	defer func() {
 		//fmt.Printf("runSubscriptionLoop() %p finished\n", w)
+
+		// TODO: this reports data race on chResult but shouldn't
+		// this lock shouldn't be needed
+		close(chResults)
 		close(w.chDone)
 	}()
 
@@ -601,7 +574,7 @@ func (w *SubscriptionWorker) runSubscriptionLoop() {
 		}
 
 		//fmt.Printf("before w.processSubscription\n")
-		ex := w.processSubscription()
+		ex := w.processSubscription(chResults)
 		//fmt.Printf("after w.processSubscription, ex: %v\n", ex)
 		if ex == nil {
 			continue
