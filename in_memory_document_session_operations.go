@@ -426,7 +426,10 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 			}
 			docInfo.setEntity(result)
 		} else {
-			setInterfaceToValue(result, docInfo.entity)
+			err := setInterfaceToValue(result, docInfo.entity)
+			if err != nil {
+				return err
+			}
 		}
 
 		if !noTracking {
@@ -456,7 +459,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		}
 
 		if setResultToDocEntity {
-			setInterfaceToValue(result, docInfo.entity)
+			return setInterfaceToValue(result, docInfo.entity)
 		}
 		return nil
 	}
@@ -1232,8 +1235,7 @@ func (s *InMemoryDocumentSessionOperations) refreshInternal(entity interface{}, 
 }
 
 func (s *InMemoryDocumentSessionOperations) getOperationResult(results interface{}, result interface{}) error {
-	setInterfaceToValue(results, result)
-	return nil
+	return setInterfaceToValue(results, result)
 }
 
 func (s *InMemoryDocumentSessionOperations) onAfterSaveChangesInvoke(afterSaveChangesEventArgs *AfterSaveChangesEventArgs) {

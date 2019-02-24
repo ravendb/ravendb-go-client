@@ -193,8 +193,7 @@ func queryOperationDeserialize(result interface{}, id string, document map[strin
 					return err
 				}
 				if res != nil {
-					setInterfaceToValue(result, res)
-					return nil
+					return setInterfaceToValue(result, res)
 				}
 				return nil
 			}
@@ -231,8 +230,7 @@ func queryOperationDeserialize(result interface{}, id string, document map[strin
 		}
 	}
 
-	setInterfaceToValue(result, res)
-	return nil
+	return setInterfaceToValue(result, res)
 }
 
 func (o *queryOperation) ensureIsAcceptableAndSaveResult(result *QueryResult) error {

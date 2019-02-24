@@ -46,7 +46,7 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 }
 
 // assumes v is ptr-to-struct and result is ptr-to-ptr-to-struct
-// TODO: return an error and propagate
+// TODO: ensure it doesn't panic
 func setInterfaceToValue(result interface{}, v interface{}) error {
 	out := reflect.ValueOf(result)
 	outt := out.Type()
@@ -65,7 +65,7 @@ func setInterfaceToValue(result interface{}, v interface{}) error {
 	if !out.CanSet() {
 		return fmt.Errorf("cannot set out %s\n", out.String())
 	}
-	// TODO: it can still fail. Need to lift implemention of
+	// TODO: it can still panic. Need to lift implementaion of
 	// func directlyAssignable(T, V *rtype) bool {
 	// from reflect package
 	out.Set(vin)
@@ -84,14 +84,12 @@ func mapDup(m map[string]interface{}) *map[string]interface{} {
 // ConvertToEntity2 converts document to a value result, matching type of result
 func (e *entityToJSON) convertToEntity2(result interface{}, id string, document map[string]interface{}) error {
 	if _, ok := result.(**map[string]interface{}); ok {
-		setInterfaceToValue(result, mapDup(document))
-		return nil
+		return setInterfaceToValue(result, mapDup(document))
 	}
 
 	if _, ok := result.(map[string]interface{}); ok {
 		// TODO: is this code path ever executed?
-		setInterfaceToValue(result, document)
-		return nil
+		return setInterfaceToValue(result, document)
 	}
 	// TODO: deal with default values
 	entityType := reflect.TypeOf(result)
@@ -105,8 +103,7 @@ func (e *entityToJSON) convertToEntity2(result interface{}, id string, document 
 	if entity == nil {
 		return newIllegalStateError("decoded entity is nil")
 	}
-	setInterfaceToValue(result, entity)
-	return nil
+	return setInterfaceToValue(result, entity)
 }
 
 // Converts a json object to an entity.

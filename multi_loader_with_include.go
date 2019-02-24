@@ -62,6 +62,5 @@ func (l *MultiLoaderWithInclude) Load(result interface{}, id string) error {
 		//return ErrNotFound
 		return nil
 	}
-	setInterfaceToValue(result, res.Interface())
-	return nil
+	return setInterfaceToValue(result, res.Interface())
 }

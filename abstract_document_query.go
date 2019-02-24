@@ -2150,8 +2150,7 @@ func (q *abstractDocumentQuery) First(result interface{}) error {
 		return newIllegalStateError("Expectecd at least one result")
 	}
 	el := slice.Index(0)
-	setInterfaceToValue(result, el.Interface())
-	return nil
+	return setInterfaceToValue(result, el.Interface())
 }
 
 // Single runs a query that expects only a single result.
@@ -2181,8 +2180,7 @@ func (q *abstractDocumentQuery) Single(result interface{}) error {
 		return newIllegalStateError("Expected single result, got: %d", slice.Len())
 	}
 	el := slice.Index(0)
-	setInterfaceToValue(result, el.Interface())
-	return nil
+	return setInterfaceToValue(result, el.Interface())
 }
 
 func (q *abstractDocumentQuery) Count() (int, error) {

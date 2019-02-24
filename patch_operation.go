@@ -29,8 +29,7 @@ func (r *PatchOperationResult) GetResult(result interface{}) error {
 	if err != nil {
 		return err
 	}
-	setInterfaceToValue(result, entity)
-	return nil
+	return setInterfaceToValue(result, entity)
 }
 
 // PatchOperation represents patch operation
