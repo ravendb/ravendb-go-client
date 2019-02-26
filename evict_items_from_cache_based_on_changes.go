@@ -18,40 +18,34 @@ func newEvictItemsFromCacheBasedOnChanges(store *DocumentStore, databaseName str
 		requestExecutor: store.GetRequestExecutor(databaseName),
 	}
 
-	var chDocChanges chan *DocumentChange
+	cbDocChange := func(documentChange *DocumentChange) {
+		tp := documentChange.Type
+		if tp == DocumentChangePut || tp == DocumentChangeDelete {
+			cache := res.requestExecutor.Cache
+			cache.incGeneration()
+		}
+	}
+
 	var err error
-	chDocChanges, res.documentsSubscriptionCloser, err = res.changes.ForAllDocuments()
+	res.documentsSubscriptionCloser, err = res.changes.ForAllDocuments(cbDocChange)
 	if err != nil {
 		return nil, err
 	}
 
-	go func() {
-		for documentChange := range chDocChanges {
-			tp := documentChange.Type
-			if tp == DocumentChangePut || tp == DocumentChangeDelete {
-				cache := res.requestExecutor.Cache
-				cache.generation.incrementAndGet()
-			}
+	cbIndexChange := func(indexChange *IndexChange) {
+		tp := indexChange.Type
+		if tp == IndexChangeBatchCompleted || tp == IndexChangeIndexRemoved {
+			cache := res.requestExecutor.Cache
+			cache.incGeneration()
 		}
-	}()
+	}
 
-	var chIdxChanges chan *IndexChange
-	chIdxChanges, res.indexesSubscriptionCloser, err = res.changes.ForAllIndexes()
+	res.indexesSubscriptionCloser, err = res.changes.ForAllIndexes(cbIndexChange)
 	if err != nil {
 		res.Close()
 		return nil, err
 	}
 
-	// TODO: maybe combine the 2 goroutines?
-	go func() {
-		for indexChange := range chIdxChanges {
-			tp := indexChange.Type
-			if tp == IndexChangeBatchCompleted || tp == IndexChangeIndexRemoved {
-				cache := res.requestExecutor.Cache
-				cache.generation.incrementAndGet()
-			}
-		}
-	}()
 	return res, nil
 }
 

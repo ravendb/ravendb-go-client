@@ -650,7 +650,11 @@ if err != nil {
     log.Fatalf("changes.EnsureConnectedNow() failed with '%s'\n", err)
 }
 
-chDocChanges, docChangesCancel, err := changes.ForAllDocuments()
+cb := func(change *ravendb.DocumentChange) {
+    fmt.Print("change:\n")
+    pretty.Print(change)
+}
+docChangesCancel, err := changes.ForAllDocuments(cb)
 if err != nil {
     log.Fatalf("changes.ForAllDocuments() failed with '%s'\n", err)
 }
@@ -670,16 +674,7 @@ err = session.SaveChanges()
 if err != nil {
     log.Fatalf("session.SaveChanges() failed with '%s'\n", err)
 }
-
-fmt.Print("Waiting for the change\n")
-timeStart := time.Now()
-// note: in a real program you would likely read the channel
-// in a goroutine
-for change := range chDocChanges {
-    fmt.Print("change:\n")
-    pretty.Print(change)
-    break
-}
+// cb should now be called notifying there's a new document
 ```
 
 Example change:

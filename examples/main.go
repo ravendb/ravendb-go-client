@@ -3,17 +3,19 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/ravendb/ravendb-go-client/examples/northwind"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
+	"sync"
 	"time"
 
+	"github.com/ravendb/ravendb-go-client/examples/northwind"
+
 	"github.com/kylelemons/godebug/pretty"
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 // "Demo" is a Northwind sample database
@@ -1305,7 +1307,16 @@ func changes() {
 		log.Fatalf("changes.EnsureConnectedNow() failed with '%s' of type %T\n", err, err)
 	}
 
-	chDocChanges, docChangesCancel, err := changes.ForAllDocuments()
+	// wg is to signal main goroutine a change was received
+	// in a real program you would not do that
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cb := func(change *ravendb.DocumentChange) {
+		fmt.Print("change:\n")
+		pretty.Print(change)
+		wg.Done()
+	}
+	docChangesCancel, err := changes.ForAllDocuments(cb)
 	if err != nil {
 		log.Fatalf("changes.ForAllDocuments() failed with '%s'\n", err)
 	}
@@ -1328,13 +1339,8 @@ func changes() {
 
 	fmt.Print("Waiting for the change\n")
 	timeStart := time.Now()
-	// note: in a real program you would likely read the channel
-	// in a goroutine
-	for change := range chDocChanges {
-		fmt.Print("change:\n")
-		pretty.Print(change)
-		break
-	}
+	// wait to receive a change notification
+	wg.Wait()
 	fmt.Printf("Took %s to receive change notifications\n", time.Since(timeStart))
 }
 
@@ -1594,11 +1600,11 @@ func subscriptions() {
 
 	// wait for first batch result
 	select {
-	case batch := <- results:
+	case batch := <-results:
 		fmt.Print("Batch of subscription results:\n")
 		pretty.Print(batch)
-		case <-time.After(time.Second *5):
-			fmt.Printf("Timed out waiting for first subscription batch\n")
+	case <-time.After(time.Second * 5):
+		fmt.Printf("Timed out waiting for first subscription batch\n")
 
 	}
 
@@ -1606,50 +1612,50 @@ func subscriptions() {
 }
 
 var nameToFunc = map[string]func(){
-	"loadUpdateSave": loadUpdateSave,
-	"crudStore": crudStore,
-	"crudLoad": crudLoad,
-	"crudLoadWithIncludes": crudLoadWithIncludes,
-	"crudUpdate": crudUpdate,
-	"crudDeleteUsingID": crudDeleteUsingID,
-	"crudDeleteUsingEntity": crudDeleteUsingEntity,
-	"queryCollectionByName": queryCollectionByName,
-	"queryCollectionByType": queryCollectionByType,
-	"queryIndex": queryIndex,
-	"queryFirst": queryFirst,
-	"queryComplex": queryComplex,
+	"loadUpdateSave":         loadUpdateSave,
+	"crudStore":              crudStore,
+	"crudLoad":               crudLoad,
+	"crudLoadWithIncludes":   crudLoadWithIncludes,
+	"crudUpdate":             crudUpdate,
+	"crudDeleteUsingID":      crudDeleteUsingID,
+	"crudDeleteUsingEntity":  crudDeleteUsingEntity,
+	"queryCollectionByName":  queryCollectionByName,
+	"queryCollectionByType":  queryCollectionByType,
+	"queryIndex":             queryIndex,
+	"queryFirst":             queryFirst,
+	"queryComplex":           queryComplex,
 	"querySelectSingleField": querySelectSingleField,
-	"querySelectFields": querySelectFields,
-	"queryDistinct": queryDistinct,
-	"queryEquals": queryEquals,
-	"queryIn": queryIn,
-	"queryStartsWith": queryStartsWith,
-	"queryEndsWith": queryEndsWith,
-	"queryBetween": queryBetween,
-	"queryGreater": queryGreater,
-	"queryExists": queryExists,
-	"queryContainsAny": queryContainsAny,
-	"querySearch": querySearch,
-	"querySubclause": querySubclause,
-	"queryNot": queryNot,
-	"queryOrElse": queryOrElse,
-	"queryOrderBy": queryOrderBy,
-	"queryTake": queryTake,
-	"querySkip": querySkip,
-	"queryStatistics": queryStatistics,
-	"querySingle": querySingle,
-	"queryCount": queryCount,
-	"getAttachments": getAttachments,
-	"checkAttachmentExists": checkAttachmentExists,
-	"getAttachmentNames" : getAttachmentNames,
-	"bulkInsert" :bulkInsert,
-	"changes" :changes,
-	"streamWithIDPrefix" :streamWithIDPrefix,
-	"streamQueryResults" :streamQueryResults,
-	"revisions" :revisions,
-	"suggestions":suggestions,
-	"advancedPatching":advancedPatching,
-	"subscriptions":subscriptions,
+	"querySelectFields":      querySelectFields,
+	"queryDistinct":          queryDistinct,
+	"queryEquals":            queryEquals,
+	"queryIn":                queryIn,
+	"queryStartsWith":        queryStartsWith,
+	"queryEndsWith":          queryEndsWith,
+	"queryBetween":           queryBetween,
+	"queryGreater":           queryGreater,
+	"queryExists":            queryExists,
+	"queryContainsAny":       queryContainsAny,
+	"querySearch":            querySearch,
+	"querySubclause":         querySubclause,
+	"queryNot":               queryNot,
+	"queryOrElse":            queryOrElse,
+	"queryOrderBy":           queryOrderBy,
+	"queryTake":              queryTake,
+	"querySkip":              querySkip,
+	"queryStatistics":        queryStatistics,
+	"querySingle":            querySingle,
+	"queryCount":             queryCount,
+	"getAttachments":         getAttachments,
+	"checkAttachmentExists":  checkAttachmentExists,
+	"getAttachmentNames":     getAttachmentNames,
+	"bulkInsert":             bulkInsert,
+	"changes":                changes,
+	"streamWithIDPrefix":     streamWithIDPrefix,
+	"streamQueryResults":     streamQueryResults,
+	"revisions":              revisions,
+	"suggestions":            suggestions,
+	"advancedPatching":       advancedPatching,
+	"subscriptions":          subscriptions,
 }
 
 func dispatchByName(name string) {

@@ -4,6 +4,7 @@ import (
 	//"fmt"
 
 	"math"
+	"sync/atomic"
 	"time"
 )
 
@@ -38,7 +39,16 @@ func (c *genericCache) put(uri string, i *httpCacheItem) {
 
 type httpCache struct {
 	items      *genericCache
-	generation atomicInteger
+	generation int32 // atomic
+}
+
+func (c *httpCache) incGeneration() {
+	atomic.AddInt32(&c.generation, 1)
+}
+
+func (c *httpCache) getGeneration() int {
+	v := atomic.LoadInt32(&c.generation)
+	return int(v)
 }
 
 func newHttpCache(size int) *httpCache {
@@ -72,7 +82,7 @@ func (c *httpCache) set(url string, changeVector *string, result []byte) {
 	httpCacheItem.changeVector = changeVector
 	httpCacheItem.payload = result
 	httpCacheItem.cache = c
-	httpCacheItem.generation = c.generation.get()
+	httpCacheItem.generation = c.getGeneration()
 	c.items.put(url, httpCacheItem)
 }
 
@@ -94,7 +104,7 @@ func (c *httpCache) setNotFound(url string) {
 	s := "404 response"
 	httpCacheItem.changeVector = &s
 	httpCacheItem.cache = c
-	httpCacheItem.generation = c.generation.get()
+	httpCacheItem.generation = c.getGeneration()
 
 	c.items.put(url, httpCacheItem)
 }
@@ -124,7 +134,7 @@ func (i *releaseCacheItem) getAge() time.Duration {
 
 func (i *releaseCacheItem) getMightHaveBeenModified() bool {
 	currGen := i.item.generation
-	itemGen := i.item.cache.generation.get()
+	itemGen := i.item.cache.getGeneration()
 	return currGen != itemGen
 }
 
