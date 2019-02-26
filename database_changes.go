@@ -36,11 +36,9 @@ type changeSubscribers struct {
 	unwatchCommand string
 	commandValue   string
 
-	onDocumentChange        []func(*DocumentChange)
-	onIndexChange           []func(*IndexChange)
-	onOperationStatusChange []func(*OperationStatusChange)
-
-	mu sync.Mutex
+	onDocumentChange        sync.Map // int -> func(*DocumentChange)
+	onIndexChange           sync.Map // int -> func(*IndexChange)
+	onOperationStatusChange sync.Map // int -> func(*OperationStatusChange)
 
 	nextID int32 // atomic
 }
@@ -51,94 +49,72 @@ func (s *changeSubscribers) getNextID() int {
 }
 
 func (s *changeSubscribers) registerOnDocumentChange(fn func(*DocumentChange)) int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onDocumentChange = append(s.onDocumentChange, fn)
-	return len(s.onDocumentChange) - 1
+	id := s.getNextID()
+	s.onDocumentChange.Store(id, fn)
+	return id
 }
 
-func (s *changeSubscribers) unregisterOnDocumentChange(idx int) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onDocumentChange[idx] = nil
+func (s *changeSubscribers) unregisterOnDocumentChange(id int) {
+	s.onDocumentChange.Delete(id)
 }
 
 func (s *changeSubscribers) registerOnIndexChange(fn func(*IndexChange)) int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onIndexChange = append(s.onIndexChange, fn)
-	return len(s.onIndexChange) - 1
+	id := s.getNextID()
+	s.onIndexChange.Store(id, fn)
+	return id
 }
 
-func (s *changeSubscribers) unregisterOnIndexChange(idx int) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onIndexChange[idx] = nil
+func (s *changeSubscribers) unregisterOnIndexChange(id int) {
+	s.onIndexChange.Delete(id)
 }
 
 func (s *changeSubscribers) registerOnOperationStatusChange(fn func(*OperationStatusChange)) int {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onOperationStatusChange = append(s.onOperationStatusChange, fn)
-	return len(s.onOperationStatusChange) - 1
+	id := s.getNextID()
+	s.onOperationStatusChange.Store(id, fn)
+	return id
 }
 
-func (s *changeSubscribers) unregisterOnOperationStatusChange(idx int) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.onOperationStatusChange[idx] = nil
+func (s *changeSubscribers) unregisterOnOperationStatusChange(id int) {
+	s.onOperationStatusChange.Delete(id)
 }
 
 func (s *changeSubscribers) sendDocumentChange(change *DocumentChange) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, f := range s.onDocumentChange {
-		if f != nil {
-			f(change)
-		}
-	}
+	s.onDocumentChange.Range(func(k, v interface{}) bool {
+		f := v.(func(documentChange *DocumentChange))
+		f(change)
+		return true
+	})
 }
 
 func (s *changeSubscribers) sendIndexChange(change *IndexChange) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, f := range s.onIndexChange {
-		if f != nil {
-			f(change)
-		}
-	}
+	s.onIndexChange.Range(func(k, v interface{}) bool {
+		f := v.(func(documentChange *IndexChange))
+		f(change)
+		return true
+	})
 }
 
 func (s *changeSubscribers) sendOperationStatusChange(change *OperationStatusChange) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for _, f := range s.onOperationStatusChange {
-		if f != nil {
-			f(change)
-		}
-	}
+	s.onOperationStatusChange.Range(func(k, v interface{}) bool {
+		f := v.(func(documentChange *OperationStatusChange))
+		f(change)
+		return true
+	})
 }
 
 func (s *changeSubscribers) hasRegisteredHandlers() bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	for _, cb := range s.onDocumentChange {
-		if cb != nil {
-			return true
-		}
+	// there is no sync.Map.Count() so we have to enumerate to see
+	// if there are any registered handlers
+	hasHandlers := false
+	fn := func(k, v interface{}) bool {
+		hasHandlers = true
+		// only care about the first one
+		return false
 	}
-	for _, cb := range s.onIndexChange {
-		if cb != nil {
-			return true
-		}
-	}
-	for _, cb := range s.onOperationStatusChange {
-		if cb != nil {
-			return true
-		}
-	}
-	return false
+	s.onDocumentChange.Range(fn)
+	s.onIndexChange.Range(fn)
+	s.onOperationStatusChange.Range(fn)
+	return hasHandlers
 }
 
 func newDatabaseChangesCommand(id int, command string, value string) *databaseChangesCommand {
