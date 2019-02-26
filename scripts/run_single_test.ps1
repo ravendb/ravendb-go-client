@@ -23,14 +23,15 @@ go clean -testcache
 
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestDeleteByQuery$
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestChanges$
 # TODO: TestAggressiveCaching is suspiciously long
 go test -tags for_tests -v -race -timeout 80s ./tests -run ^TestAggressiveCaching$
+go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestDeleteByQuery$
+go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestChanges$
 
 if (0) {
     # subscription worker tests
     go test -tags for_tests -v -race -timeout 30s ./tests -run ^TestSubscriptionsBasic$
+    go test -tags for_tests -v -race -timeout 30s ./tests -run ^TestSecuredSubscriptionsBasic$
     go test -tags for_tests -v -race -timeout 30s ./tests -run ^TestRevisionsSubscriptions$
 }
 
