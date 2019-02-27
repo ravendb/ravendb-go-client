@@ -1311,9 +1311,14 @@ func changes() {
 	// in a real program you would not do that
 	var wg sync.WaitGroup
 	wg.Add(1)
+	seenChange := false
 	cb := func(change *ravendb.DocumentChange) {
 		fmt.Print("change:\n")
 		pretty.Print(change)
+		if seenChange {
+			return
+		}
+		seenChange = true
 		wg.Done()
 	}
 	docChangesCancel, err := changes.ForAllDocuments(cb)
