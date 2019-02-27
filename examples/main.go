@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/ravendb/ravendb-go-client/examples/northwind"
@@ -1309,17 +1308,11 @@ func changes() {
 
 	// wg is to signal main goroutine a change was received
 	// in a real program you would not do that
-	var wg sync.WaitGroup
-	wg.Add(1)
-	seenChange := false
+	chChanges := make(chan *ravendb.DocumentChange, 16)
 	cb := func(change *ravendb.DocumentChange) {
 		fmt.Print("change:\n")
 		pretty.Print(change)
-		if seenChange {
-			return
-		}
-		seenChange = true
-		wg.Done()
+		chChanges <- change
 	}
 	docChangesCancel, err := changes.ForAllDocuments(cb)
 	if err != nil {
@@ -1344,8 +1337,14 @@ func changes() {
 
 	fmt.Print("Waiting for the change\n")
 	timeStart := time.Now()
-	// wait to receive a change notification
-	wg.Wait()
+	// wait to receive at least one notofication
+	select {
+	case <-chChanges:
+	// no-op
+	case <-time.After(time.Second):
+		// timed out
+		fmt.Printf("Timed out waiting for a notificaiton\n")
+	}
 	fmt.Printf("Took %s to receive change notifications\n", time.Since(timeStart))
 }
 
