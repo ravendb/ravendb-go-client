@@ -400,6 +400,8 @@ func (d *RavenTestDriver) getDocumentStore2(dbName string, waitForIndexingTimeou
 	}
 
 	d.documentStores.Store(store, true)
+	d.maybeStartProfiling()
+
 	return store, nil
 }
 
@@ -688,19 +690,17 @@ func createTestDriver(t *testing.T) *RavenTestDriver {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	setupLogging(t)
 	driver := &RavenTestDriver{}
-	driver.maybeStartProfiling()
 	return driver
 }
 
-func destroyDriver(t *testing.T, driver *RavenTestDriver) {
-	driver.maybeStopProfiling()
+func destroyDriver(t *testing.T, d *RavenTestDriver) {
 	if t.Failed() {
 		maybePrintFailedRequestsLog()
 	}
-	if driver != nil {
-		driver.Close()
+	if d != nil {
+		d.Close()
 	}
-
+	d.maybeStopProfiling()
 	finishLogging()
 }
 
