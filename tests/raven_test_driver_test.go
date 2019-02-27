@@ -212,6 +212,7 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	wantedPrefix := "Server available on: "
 	scanner := bufio.NewScanner(stdoutReader)
 	startTime := time.Now()
+	var outputCopy bytes.Buffer
 	for scanner.Scan() {
 		dur := time.Since(startTime)
 		if dur > time.Minute {
@@ -219,8 +220,9 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 		}
 		s := scanner.Text()
 		if ravenServerVerbose {
-			fmt.Printf("%s\n", s)
+			fmt.Printf("server: %s\n", s)
 		}
+		outputCopy.WriteString(s + "\n")
 		if !strings.HasPrefix(s, wantedPrefix) {
 			continue
 		}
@@ -229,10 +231,13 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 		break
 	}
 	if scanner.Err() != nil {
+		fmt.Printf("startRavenServer: scanner.Err() returned '%s'\n", err)
 		killServer(proc)
 		return nil, scanner.Err()
 	}
 	if proc.uri == "" {
+		s := string(outputCopy.Bytes())
+		fmt.Printf("startRavenServer: couldn't detect start url. Server output: %s\n", s)
 		killServer(proc)
 		return nil, fmt.Errorf("Unable to start server")
 	}
@@ -596,7 +601,9 @@ func (d *RavenTestDriver) Close() {
 		return true
 	}
 	d.documentStores.Range(fn)
-	d.store.Close()
+	if d.store != nil {
+		d.store.Close()
+	}
 	d.killServerProcesses()
 }
 
@@ -880,14 +887,25 @@ func initializeTests() {
 		os.Exit(1)
 	}
 
+	// find top-level directory
+	// wd should be "tests" sub-directory
+	wd, _ := os.Getwd()
+	rootDir := filepath.Clean(filepath.Join(wd, ".."))
+	path := filepath.Join(rootDir, "certs", "server.pfx")
+	if !fileExists(path) {
+		fmt.Printf("rootDir '%s' doesn't seem correct because can't find file '%s'\n", rootDir, path)
+		os.Exit(1)
+	}
+
 	// detect paths of files needed to run the tests
 	// either get them from env variables (set by test scripts)
 	// or try to auto-detect (helps running tests from within
 	// Visual Studio Code or GoLand where env variables are not set)
 	{
 		path := os.Getenv("RAVENDB_TEST_CERTIFICATE_PATH")
+		// wd should be
 		if !fileExists(path) {
-			path = filepath.Join("..", "certs", "server.pfx")
+			path = filepath.Join(rootDir, "certs", "server.pfx")
 		}
 		if !fileExists(path) {
 			fmt.Printf("Didn't find server.pfx file at '%s'. Set RAVENDB_TEST_CERTIFICATE_PATH env variable\n", path)
@@ -900,7 +918,7 @@ func initializeTests() {
 	{
 		path := os.Getenv("RAVENDB_TEST_CA_PATH")
 		if !fileExists(path) {
-			path = filepath.Join("..", "certs", "ca.crt")
+			path = filepath.Join(rootDir, "certs", "ca.crt")
 		}
 		if !fileExists(path) {
 			fmt.Printf("Didn't find ca.cert file at '%s'. Set RAVENDB_TEST_CA_PATH env variable\n", path)
@@ -913,7 +931,7 @@ func initializeTests() {
 	{
 		path := os.Getenv("RAVENDB_TEST_CLIENT_CERTIFICATE_PATH")
 		if !fileExists(path) {
-			path = filepath.Join("..", "certs", "cert.pem")
+			path = filepath.Join(rootDir, "certs", "cert.pem")
 		}
 		if !fileExists(path) {
 			fmt.Printf("Didn't find cert.pem file at '%s'. Set RAVENDB_TEST_CLIENT_CERTIFICATE_PATH env variable\n", path)

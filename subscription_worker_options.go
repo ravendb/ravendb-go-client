@@ -6,7 +6,7 @@ import "time"
 type SubscriptionWorkerOptions struct {
 	SubscriptionName                string                      `json:"SubscriptionName"`
 	TimeToWaitBeforeConnectionRetry Duration                    `json:"TimeToWaitBeforeConnectionRetry"`
-	ignoreSubscriberErrors          bool                        `json:"IgnoreSubscriberErrors"`
+	IgnoreSubscriberErrors          bool                        `json:"IgnoreSubscriberErrors"`
 	Strategy                        SubscriptionOpeningStrategy `json:"Strategy"`
 	MaxDocsPerBatch                 int                         `json:"MaxDocsPerBatch"`
 	MaxErroneousPeriod              Duration                    `json:"MaxErroneousPeriod"`

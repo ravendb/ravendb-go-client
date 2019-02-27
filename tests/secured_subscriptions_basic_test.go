@@ -55,21 +55,26 @@ func securedSubscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		results, err := subscription.Run()
+		results := make(chan *ravendb.SubscriptionBatch, 16)
+		cb := func(batch *ravendb.SubscriptionBatch) error {
+			results <- batch
+			return nil
+		}
+		err = subscription.Run(cb)
 		assert.NoError(t, err)
 		select {
-			case batch := <- results:
-				for i, item := range batch.Items {
-					userExp := users[i]
-					assert.Equal(t, item.ID, userExp.ID)
-					var u *User
-					err := item.GetResult(&u)
-					assert.NoError(t, err)
-					assert.Equal(t, u.Age, userExp.Age)
-				}
+		case batch := <-results:
+			for i, item := range batch.Items {
+				userExp := users[i]
+				assert.Equal(t, item.ID, userExp.ID)
+				var u *User
+				err := item.GetResult(&u)
+				assert.NoError(t, err)
+				assert.Equal(t, u.Age, userExp.Age)
+			}
 
-				case <- time.After(_reasonableWaitTime):
-					assert.Fail(t, "timed out waiting for batch")
+		case <-time.After(_reasonableWaitTime):
+			assert.Fail(t, "timed out waiting for batch")
 		}
 		err = subscription.Close()
 		assert.NoError(t, err)
@@ -91,7 +96,12 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 		subscription, err := store.Subscriptions().GetSubscriptionWorker(clazz, opts, "")
 		assert.NoError(t, err)
 
-		results, err := subscription.Run()
+		results := make(chan *ravendb.SubscriptionBatch, 16)
+		cb := func(batch *ravendb.SubscriptionBatch) error {
+			results <- batch
+			return nil
+		}
+		err = subscription.Run(cb)
 		assert.NoError(t, err)
 
 		{
@@ -108,18 +118,19 @@ func securedSubscriptionsBasic_shouldSendAllNewAndModifiedDocs(t *testing.T, dri
 			session.Close()
 		}
 
-		assertNextNameIs := func(results chan *ravendb.SubscriptionBatch, nameExp string) {			select {
-				case batch := <-results:
-					assert.Equal(t, len(batch.Items), 1)
-					item := batch.Items[0]
+		assertNextNameIs := func(results chan *ravendb.SubscriptionBatch, nameExp string) {
+			select {
+			case batch := <-results:
+				assert.Equal(t, len(batch.Items), 1)
+				item := batch.Items[0]
 
-						var m map[string]interface{}
-						err := item.GetResult(&m)
-						assert.NoError(t, err)
-						name := m["name"].(string)
-						assert.Equal(t, nameExp, name)
-				case <- time.After(_reasonableWaitTime):
-					assert.Fail(t, "timed out waiting for batch")
+				var m map[string]interface{}
+				err := item.GetResult(&m)
+				assert.NoError(t, err)
+				name := m["name"].(string)
+				assert.Equal(t, nameExp, name)
+			case <-time.After(_reasonableWaitTime):
+				assert.Fail(t, "timed out waiting for batch")
 			}
 		}
 		assertNextNameIs(results, "James")
@@ -167,8 +178,8 @@ func TestSecuredSubscriptionsBasic(t *testing.T) {
 	// self-signing cert on windows is not added as root ca so
 	// we can't run https tests
 	if isWindows() {
-		fmt.Printf("Skipping TestHttps on windows\n")
-		t.Skip("Skipping on windows")
+		fmt.Printf("Skipping TestSecuredSubscriptionsBasic on windows\n")
+		t.Skip("Skipping TestSecuredSubscriptionsBasic on windows")
 		return
 	}
 

@@ -22,13 +22,11 @@ type SubscriptionWorker struct {
 
 	cancellationRequested int32 // atomic, > 0 means cancellation was requested
 	options               *SubscriptionWorkerOptions
-	chResults 			chan *SubscriptionBatch
 	tcpClient             atomic.Value // net.Conn
 	parser                *json.Decoder
 	disposed              int32 // atomic
 	// this channel is closed when worker
 	chDone chan struct{}
-
 
 	afterAcknowledgment           []func(*SubscriptionBatch)
 	onSubscriptionConnectionRetry []func(error)
@@ -42,8 +40,6 @@ type SubscriptionWorker struct {
 
 	err atomic.Value // error
 	mu  sync.Mutex
-
-	stopResultSends int32 // atomic
 }
 
 // Err returns a potential error, available after worker finished
@@ -102,7 +98,7 @@ func (w *SubscriptionWorker) WaitUntilFinished(timeout time.Duration) error {
 	case <-w.chDone:
 	// no-op, we're here if already finished (channel closed)
 	case <-time.After(timeout):
-		return  NewTimeoutError("timed out waiting for subscription worker to finish")
+		return NewTimeoutError("timed out waiting for subscription worker to finish")
 	}
 	return w.Err()
 }
@@ -199,19 +195,19 @@ func (w *SubscriptionWorker) close(waitForSubscriptionTask bool) error {
 	return nil
 }
 
-func (w *SubscriptionWorker) Run() (chan *SubscriptionBatch, error) {
+func (w *SubscriptionWorker) Run(cb func(*SubscriptionBatch) error) error {
 	if w.chDone != nil {
-		return nil, newIllegalStateError("The subscription is already running")
+		return newIllegalStateError("The subscription is already running")
 	}
 
 	// unbuffered so that we can ack to the server that the user processed
 	// a batch
-	w.chResults = make(chan *SubscriptionBatch)
 	w.chDone = make(chan struct{})
+
 	go func() {
-		w.runSubscriptionAsync(w.chResults)
+		w.runSubscriptionAsync(cb)
 	}()
-	return w.chResults, nil
+	return nil
 }
 
 func (w *SubscriptionWorker) getCurrentNodeTag() string {
@@ -389,7 +385,7 @@ func (w *SubscriptionWorker) assertConnectionState(connectionStatus *Subscriptio
 	return nil
 }
 
-func (w *SubscriptionWorker) processSubscriptionInner(chResults chan *SubscriptionBatch) error {
+func (w *SubscriptionWorker) processSubscriptionInner(cb func(batch *SubscriptionBatch) error) error {
 	if w.isCancellationRequested() {
 		return throwCancellationRequested()
 	}
@@ -446,33 +442,29 @@ func (w *SubscriptionWorker) processSubscriptionInner(chResults chan *Subscripti
 		// send a copy so that the client can safely access it
 		// only copy the fields needed in OpenSession
 		batchCopy := &SubscriptionBatch{
-			Items: batch.Items,
-			store: batch.store,
+			Items:           batch.Items,
+			store:           batch.store,
 			requestExecutor: batch.requestExecutor,
-			dbName: batch.dbName,
+			dbName:          batch.dbName,
 		}
 
-		// send on a goroutine so that we can continue reading from
-		// the server
-		go func(batch *SubscriptionBatch, lastChangeVector string, tcpClient net.Conn) {
-			v := atomic.LoadInt32(&w.stopResultSends)
-			if v > 0 {
-				// we're shutting down and should not send more results
-				return
-			}
-			chResults <- batch
+		err = cb(batchCopy)
+		if err != nil {
+			return err
+		}
 
-			if tcpClient != nil {
-				// TODO: what to do in case of an error?
-				_ = w.sendAck(lastChangeVector, tcpClient)
+		if tcpClientCopy != nil {
+			err = w.sendAck(lastReceivedChangeVector, tcpClientCopy)
+			if err != nil && !w.options.IgnoreSubscriberErrors {
+				return err
 			}
-		}(batchCopy, lastReceivedChangeVector, tcpClientCopy)
+		}
 	}
 	return nil
 }
 
-func (w *SubscriptionWorker) processSubscription(chResults chan *SubscriptionBatch) error {
-	err := w.processSubscriptionInner(chResults)
+func (w *SubscriptionWorker) processSubscription(cb func(batch *SubscriptionBatch) error) error {
+	err := w.processSubscriptionInner(cb)
 	if err == nil {
 		return nil
 	}
@@ -563,35 +555,11 @@ func (w *SubscriptionWorker) sendAck(lastReceivedChangeVector string, networkStr
 	return err
 }
 
-func drainAndCloseSubscriptionBatchChannel(stopSends *int32, c chan *SubscriptionBatch) int {
-	atomic.StoreInt32(stopSends, 1)
-	nRemoved := 0
-	defer close(c)
-	for {
-		select {
-		case <-c:
-			// got a result, continue to the next one
-			nRemoved++
-		default:
-			// channel empty
-			return nRemoved
-		}
-	}
-}
+func (w *SubscriptionWorker) runSubscriptionAsync(cb func(*SubscriptionBatch) error) {
 
-func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan *SubscriptionBatch) {
 	//fmt.Printf("runSubscription(): %p started\n", w)
 	defer func() {
 		//fmt.Printf("runSubscriptionLoop() %p finished\n", w)
-
-		// drain a channel to remove pending sends to free the sending goroutines
-		// this shouldn't be necessary but currently Go's race detector
-		// might report a data race on this close()
-		// see: https://github.com/golang/go/issues/30372
-
-		// tell the worker to stop sending reults. After we drain the channel
-		// there should be no more items sent on the channel
-		drainAndCloseSubscriptionBatchChannel(&w.stopResultSends, chResults)
 		close(w.chDone)
 	}()
 
@@ -602,7 +570,7 @@ func (w *SubscriptionWorker) runSubscriptionAsync(chResults chan *SubscriptionBa
 		}
 
 		//fmt.Printf("before w.processSubscription\n")
-		ex := w.processSubscription(chResults)
+		ex := w.processSubscription(cb)
 		//fmt.Printf("after w.processSubscription, ex: %v\n", ex)
 		if ex == nil {
 			continue

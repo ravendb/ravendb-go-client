@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,33 +76,38 @@ func revisionsSubscriptions_plainRevisionsSubscriptions(t *testing.T, driver *Ra
 		mre := make(chan bool, 1)
 		names := map[string]struct{}{}
 
-		results, err := sub.Run()
+		results := make(chan *ravendb.SubscriptionBatch, 16)
+		cb := func(batch *ravendb.SubscriptionBatch) error {
+			results <- batch
+			return nil
+		}
+		err = sub.Run(cb)
 		assert.NoError(t, err)
 		select {
-			case batch := <- results:
-				for _, item := range batch.Items {
-					// result is ravendb.Revision of type User
-					var result *ravendb.Revision
-					err := item.GetResult(&result)
-					assert.NoError(t, err)
-					var currName string
-					var prevName string
-					if result.Current != nil {
+		case batch := <-results:
+			for _, item := range batch.Items {
+				// result is ravendb.Revision of type User
+				var result *ravendb.Revision
+				err := item.GetResult(&result)
+				assert.NoError(t, err)
+				var currName string
+				var prevName string
+				if result.Current != nil {
 					u := result.Current.(*User)
 					currName = *u.Name
 				}
-					if result.Previous != nil {
+				if result.Previous != nil {
 					u := result.Previous.(*User)
 					prevName = *u.Name
 				}
-					name := currName + prevName
-					names[name] = struct{}{}
-					if len(names) == 100 {
-						mre <- true
+				name := currName + prevName
+				names[name] = struct{}{}
+				if len(names) == 100 {
+					mre <- true
 				}
 			}
-			case <-time.After(_reasonableWaitTime):
-				assert.Fail(t, "timed out waiting for batch")
+		case <-time.After(_reasonableWaitTime):
+			assert.Fail(t, "timed out waiting for batch")
 		}
 
 		err = sub.Close()
@@ -177,10 +182,16 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 		var mu sync.Mutex
 		maxAge := -1
 
-		results, err := sub.Run()
+		results := make(chan *ravendb.SubscriptionBatch, 16)
+		cb := func(batch *ravendb.SubscriptionBatch) error {
+			results <- batch
+			return nil
+		}
+		err = sub.Run(cb)
+
 		assert.NoError(t, err)
 		select {
-		case batch := <- results:
+		case batch := <-results:
 			for _, item := range batch.Items {
 				// result is ravendb.Revision of type User
 				var result *ravendb.Revision
@@ -217,8 +228,8 @@ func revisionsSubscriptions_plainRevisionsSubscriptionsCompareDocs(t *testing.T,
 				}
 			}
 
-			case <- time.After(_reasonableWaitTime):
-				assert.Fail(t, "timed out waiting for batch")
+		case <-time.After(_reasonableWaitTime):
+			assert.Fail(t, "timed out waiting for batch")
 		}
 
 		timedOut := chanWaitTimedOut(mre, _reasonableWaitTime)
