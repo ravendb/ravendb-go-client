@@ -659,7 +659,7 @@ func httpLogPathFromTestName(t *testing.T) string {
 }
 
 func (d *RavenTestDriver) maybeStartProfiling() {
-	if !isEnvVarTrue("ENABLE_PROFILING") {
+	if !isEnvVarTrue("ENABLE_PROFILING") || d.isProfiling {
 		return
 	}
 	if err := pprof.StartCPUProfile(&d.profData); err != nil {

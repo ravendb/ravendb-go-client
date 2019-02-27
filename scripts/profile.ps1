@@ -19,5 +19,7 @@ $Env:SHUFFLE_CLUSTER_NODES = "false"
 
 $Env:ENABLE_PROFILING = "true"
 
+rm ./tests/cpu.prof
 go clean -testcache
 go test -tags for_tests -v -timeout 80s ./tests -run ^TestAggressiveCaching$
+ls -l ./tests/cpu.prof
