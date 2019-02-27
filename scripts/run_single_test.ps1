@@ -25,8 +25,8 @@ go clean -testcache
 
 # TODO: TestAggressiveCaching is suspiciously long
 go test -tags for_tests -v -race -timeout 80s ./tests -run ^TestAggressiveCaching$
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestDeleteByQuery$
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestChanges$
+#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestDeleteByQuery$
+#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestChanges$
 
 if (0) {
     # subscription worker tests

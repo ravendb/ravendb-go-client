@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime/debug"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,7 +53,7 @@ var (
 
 type ravenProcess struct {
 	cmd          *exec.Cmd
-	pid int
+	pid          int
 	stdoutReader io.ReadCloser
 
 	// auto-detected url on which to contact the server
@@ -65,12 +66,15 @@ type RavenTestDriver struct {
 
 	dbNameCounter int32 // atomic
 
-	store         *ravendb.DocumentStore
+	store           *ravendb.DocumentStore
 	serverProcesses []*ravenProcess
 
 	isSecure bool
 
 	customize func(*ravendb.DatabaseRecord)
+
+	profData    bytes.Buffer
+	isProfiling bool
 }
 
 var (
@@ -80,21 +84,21 @@ var (
 
 	// if true, enable failing tests
 	// can be enabled by setting ENABLE_FAILING_TESTS env variable to "true"
-	enableFailingTests = false
+	enableFailingTests   = false
 	testsWereInitialized bool
-	muInitializeTests sync.Mutex
+	muInitializeTests    sync.Mutex
 
 	ravendbServerExePath string
 
 	// passed to the server as --Security.Certificate.Path
 	certificatePath string
 
-	caCertificate *x509.Certificate
+	caCertificate     *x509.Certificate
 	clientCertificate *tls.Certificate
 
 	httpsServerURL string
 
-	tcpServerPort int32 = 38880// atomic
+	tcpServerPort int32 = 38880 // atomic
 )
 
 func must(err error) {
@@ -122,7 +126,6 @@ func pickRandomBalanceBehavior() ravendb.ReadBalanceBehavior {
 	n := rand.Intn(len(balanceBehaviors))
 	return balanceBehaviors[n]
 }
-
 
 func killServer(proc *ravenProcess) {
 	if proc.cmd.ProcessState != nil && proc.cmd.ProcessState.Exited() {
@@ -201,7 +204,7 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	proc := &ravenProcess{
 		cmd:          cmd,
 		stdoutReader: stdoutReader,
-		pid: cmd.Process.Pid,
+		pid:          cmd.Process.Pid,
 	}
 
 	// parse stdout of the server to extract server listening port from line:
@@ -568,7 +571,7 @@ func (d *RavenTestDriver) killServerProcesses() {
 
 func (d *RavenTestDriver) getDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
 	d.isSecure = false
-	store, err := d.getDocumentStore2("test_db",  0)
+	store, err := d.getDocumentStore2("test_db", 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
@@ -576,7 +579,7 @@ func (d *RavenTestDriver) getDocumentStoreMust(t *testing.T) *ravendb.DocumentSt
 
 func (d *RavenTestDriver) getSecuredDocumentStoreMust(t *testing.T) *ravendb.DocumentStore {
 	d.isSecure = true
-	store, err := d.getDocumentStore2("test_db",  0)
+	store, err := d.getDocumentStore2("test_db", 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 	return store
@@ -646,15 +649,44 @@ func httpLogPathFromTestName(t *testing.T) string {
 	return filepath.Join(getLogDir(), name)
 }
 
+func (d *RavenTestDriver) maybeStartProfiling() {
+	if !isEnvVarTrue("ENABLE_PROFILING") {
+		return
+	}
+	if err := pprof.StartCPUProfile(&d.profData); err != nil {
+		fmt.Printf("pprof.StartCPUProfile() failed with '%s'\n", err)
+	} else {
+		d.isProfiling = true
+		fmt.Printf("started cpu profiling\n")
+	}
+}
+
+func (d *RavenTestDriver) maybeStopProfiling() {
+	if !d.isProfiling {
+		return
+	}
+	pprof.StopCPUProfile()
+	path := "cpu.prof"
+	pd := d.profData.Bytes()
+	err := ioutil.WriteFile(path, pd, 0644)
+	if err != nil {
+		fmt.Printf("failed to write cpu profile data to '%s'. Error: '%s'\n", path, err)
+	} else {
+		fmt.Printf("wrote cpu profile data to '%s'\n", path)
+	}
+}
+
 // called for every Test* function
 func createTestDriver(t *testing.T) *RavenTestDriver {
 	fmt.Printf("\nStarting test %s\n", t.Name())
 	setupLogging(t)
 	driver := &RavenTestDriver{}
+	driver.maybeStartProfiling()
 	return driver
 }
 
 func destroyDriver(t *testing.T, driver *RavenTestDriver) {
+	driver.maybeStopProfiling()
 	if t.Failed() {
 		maybePrintFailedRequestsLog()
 	}

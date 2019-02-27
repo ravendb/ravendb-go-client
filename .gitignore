@@ -26,3 +26,4 @@ RavenDB.tar.bz2
 netgraph
 *.zip
 .DS_Store
+cpu.prof
