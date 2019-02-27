@@ -1593,7 +1593,12 @@ func subscriptions() {
 		log.Fatalf("store.Subscriptions().GetSubscriptionWorker() failed with %s\n", err)
 	}
 
-	results, err := worker.Run()
+	results := make(chan *ravendb.SubscriptionBatch, 16)
+	cb := func(batch *ravendb.SubscriptionBatch) error {
+		results <- batch
+		return nil
+	}
+	err = worker.Run(cb)
 	if err != nil {
 		log.Fatalf("worker.Run() failed with %s\n", err)
 	}
