@@ -82,7 +82,7 @@ func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, 
 
 // SaveChanges saves changes queued in memory to the database
 func (s *DocumentSession) SaveChanges() error {
-	saveChangeOperation := NewBatchOperation(s.InMemoryDocumentSessionOperations)
+	saveChangeOperation := newBatchOperation(s.InMemoryDocumentSessionOperations)
 
 	command, err := saveChangeOperation.createRequest()
 	if err != nil {

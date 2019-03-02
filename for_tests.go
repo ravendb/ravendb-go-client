@@ -9,3 +9,12 @@ package ravendb
 func (c *DocumentConventions) GetCollectionName(entityOrType interface{}) string {
 	return c.getCollectionName(entityOrType)
 }
+
+func (s *DocumentSession) ForTestsSaveChangesGetCommands() ([]ICommandData, error) {
+	result, err := s.prepareForSaveChanges()
+	if err != nil {
+		return nil, err
+	}
+	res := append(result.sessionCommands, result.deferredCommands...)
+	return res, nil
+}
