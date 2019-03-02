@@ -126,12 +126,12 @@ func changesTestAllDocumentsChanges(t *testing.T, driver *RavenTestDriver) {
 				assert.Equal(t, documentChange.Type, ravendb.DocumentChangePut)
 
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t,  "timed out waiting for changes")
 			}
 
 			select {
 			case <-changesList:
-				assert.True(t, false, "got too many changes")
+				assert.Fail(t,  "got too many changes")
 			case <-time.After(time.Second * 1):
 				// ok, no changes
 				assert.True(t, true)
@@ -202,7 +202,7 @@ func changesTestSingleIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			case indexChange := <-changesList:
 				assert.Equal(t, indexChange.Name, index.IndexName)
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t, "timed out waiting for changes")
 			}
 
 			cancel()
@@ -246,7 +246,7 @@ func changesTestAllIndexChanges(t *testing.T, driver *RavenTestDriver) {
 			case indexChange := <-changesList:
 				assert.Equal(t, indexChange.Name, index.IndexName)
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t,  "timed out waiting for changes")
 			}
 			cancel()
 		}
@@ -308,14 +308,14 @@ func changesTestCanCanNotificationAboutDocumentsStartingWiths(t *testing.T, driv
 			case documentChange := <-changesList:
 				assert.Equal(t, documentChange.ID, "users/1")
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t,  "timed out waiting for changes")
 			}
 
 			select {
 			case documentChange := <-changesList:
 				assert.Equal(t, documentChange.ID, "users/2")
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t,  "timed out waiting for changes")
 			}
 
 			cancel()
@@ -378,14 +378,14 @@ func changesTestCanCanNotificationAboutDocumentsFromCollection(t *testing.T, dri
 			case documentChange := <-changesList:
 				assert.Equal(t, documentChange.ID, "users/1")
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t,  "timed out waiting for changes")
 			}
 
 			select {
 			case documentChange := <-changesList:
 				assert.Equal(t, documentChange.ID, "users/2")
 			case <-time.After(time.Second * 2):
-				assert.True(t, false, "timed out waiting for changes")
+				assert.Fail(t,  "timed out waiting for changes")
 			}
 
 			cancel()
