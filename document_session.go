@@ -130,7 +130,7 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 	if err := checkValidEntityIn(entity, "entity"); err != nil {
 		return err
 	}
-	documentInfo := getDocumentInfoByEntity(s.documents, entity)
+	documentInfo := getDocumentInfoByEntity(s.documentsByEntity, entity)
 	if documentInfo == nil {
 		return newIllegalStateError("Cannot refresh a transient instance")
 	}

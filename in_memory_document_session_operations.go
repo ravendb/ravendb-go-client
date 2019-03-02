@@ -57,11 +57,10 @@ type InMemoryDocumentSessionOperations struct {
 	includedDocumentsByID map[string]*documentInfo
 
 	// hold the data required to manage the data for RavenDB's Unit of Work
-	// TODO: this uses value semantics, so it works as expected for
-	// pointers to structs, but 2 different structs with the same content
-	// will match the same object. Should I disallow storing non-pointer structs?
-	// convert non-pointer structs to structs?
-	documents []*documentInfo
+	// Note: in Java it's LinkedHashMap where iteration order is same
+	// as insertion order. In Go map has random iteration order so we must
+	// use an array
+	documentsByEntity []*documentInfo
 
 	documentStore *DocumentStore
 
@@ -99,7 +98,7 @@ func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
 		documentsByID:                 newDocumentsByID(),
 		includedDocumentsByID:         map[string]*documentInfo{},
-		documents:                     []*documentInfo{},
+		documentsByEntity:             []*documentInfo{},
 		documentStore:                 store,
 		DatabaseName:                  dbName,
 		maxNumberOfRequestsPerSession: re.conventions.MaxNumberOfRequestsPerSession,
@@ -199,7 +198,7 @@ func (s *InMemoryDocumentSessionOperations) getEntityToJSON() *entityToJSON {
 
 // GetNumberOfEntitiesInUnitOfWork returns number of entities
 func (s *InMemoryDocumentSessionOperations) GetNumberOfEntitiesInUnitOfWork() int {
-	return len(s.documents)
+	return len(s.documentsByEntity)
 }
 
 // GetConventions returns DocumentConventions
@@ -323,12 +322,8 @@ func deleteDocumentInfoByEntity(docsRef *[]*documentInfo, entity interface{}) *d
 	docs := *docsRef
 	for i, doc := range docs {
 		if doc.entity == entity {
-			// optimized deletion: replace deleted element with last element
-			// and shrink slice by 1
-			n := len(docs)
-			docs[i] = docs[n-1]
-			docs[n-1] = nil // to help garbage collector
-			*docsRef = docs[:n-1]
+			docs = append(docs[:i], docs[i+1:]...)
+			*docsRef = docs
 			return doc
 		}
 	}
@@ -338,7 +333,7 @@ func deleteDocumentInfoByEntity(docsRef *[]*documentInfo, entity interface{}) *d
 // getDocumentInfo returns documentInfo for a given instance
 // Returns nil if not found
 func (s *InMemoryDocumentSessionOperations) getDocumentInfo(instance interface{}) (*documentInfo, error) {
-	documentInfo := getDocumentInfoByEntity(s.documents, instance)
+	documentInfo := getDocumentInfoByEntity(s.documentsByEntity, instance)
 	if documentInfo != nil {
 		return documentInfo, nil
 	}
@@ -385,7 +380,7 @@ func (s *InMemoryDocumentSessionOperations) GetDocumentID(instance interface{}) 
 	if instance == nil {
 		return ""
 	}
-	value := getDocumentInfoByEntity(s.documents, instance)
+	value := getDocumentInfoByEntity(s.documentsByEntity, instance)
 	if value == nil {
 		return ""
 	}
@@ -434,7 +429,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 
 		if !noTracking {
 			delete(s.includedDocumentsByID, id)
-			setDocumentInfo(&s.documents, docInfo)
+			setDocumentInfo(&s.documentsByEntity, docInfo)
 		}
 		return nil
 	}
@@ -455,7 +450,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		if !noTracking {
 			delete(s.includedDocumentsByID, id)
 			s.documentsByID.add(docInfo)
-			setDocumentInfo(&s.documents, docInfo)
+			setDocumentInfo(&s.documentsByEntity, docInfo)
 		}
 
 		if setResultToDocEntity {
@@ -483,7 +478,7 @@ func (s *InMemoryDocumentSessionOperations) TrackEntity(result interface{}, id s
 		newDocumentInfo.changeVector = changeVector
 
 		s.documentsByID.add(newDocumentInfo)
-		setDocumentInfo(&s.documents, newDocumentInfo)
+		setDocumentInfo(&s.documentsByEntity, newDocumentInfo)
 	}
 
 	return nil
@@ -512,7 +507,7 @@ func (s *InMemoryDocumentSessionOperations) Delete(entity interface{}) error {
 		return err
 	}
 
-	value := getDocumentInfoByEntity(s.documents, entity)
+	value := getDocumentInfoByEntity(s.documentsByEntity, entity)
 	if value == nil {
 		return newIllegalStateError("%#v is not associated with the session, cannot delete unknown entity instance", entity)
 	}
@@ -539,7 +534,7 @@ func (s *InMemoryDocumentSessionOperations) DeleteByID(id string, expectedChange
 		}
 
 		if documentInfo.entity != nil {
-			deleteDocumentInfoByEntity(&s.documents, documentInfo.entity)
+			deleteDocumentInfoByEntity(&s.documentsByEntity, documentInfo.entity)
 		}
 
 		s.documentsByID.remove(id)
@@ -665,7 +660,7 @@ func (s *InMemoryDocumentSessionOperations) rememberEntityForDocumentIdGeneratio
 }
 
 func (s *InMemoryDocumentSessionOperations) storeInternal(entity interface{}, changeVector string, id string, forceConcurrencyCheck ConcurrencyCheckMode) error {
-	value := getDocumentInfoByEntity(s.documents, entity)
+	value := getDocumentInfoByEntity(s.documentsByEntity, entity)
 	if value != nil {
 		if changeVector != "" {
 			value.changeVector = &changeVector
@@ -741,7 +736,7 @@ func (s *InMemoryDocumentSessionOperations) storeEntityInUnitOfWork(id string, e
 	documentInfo.newDocument = true
 	documentInfo.document = nil
 
-	setDocumentInfo(&s.documents, documentInfo)
+	setDocumentInfo(&s.documentsByEntity, documentInfo)
 	if id != "" {
 		s.documentsByID.add(documentInfo)
 	}
@@ -816,7 +811,7 @@ func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(document
 
 func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *saveChangesData, changes map[string][]*DocumentsChanges) error {
 	for deletedEntity := range s.deletedEntities.items {
-		documentInfo := getDocumentInfoByEntity(s.documents, deletedEntity)
+		documentInfo := getDocumentInfoByEntity(s.documentsByEntity, deletedEntity)
 		if documentInfo == nil {
 			continue
 		}
@@ -847,7 +842,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *s
 				changeVector = documentInfo.changeVector
 
 				if documentInfo.entity != nil {
-					deleteDocumentInfoByEntity(&s.documents, documentInfo.entity)
+					deleteDocumentInfoByEntity(&s.documentsByEntity, documentInfo.entity)
 					result.addEntity(documentInfo.entity)
 				}
 
@@ -877,7 +872,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *s
 }
 
 func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveChangesData) error {
-	for _, entityValue := range s.documents {
+	for _, entityValue := range s.documentsByEntity {
 		if entityValue.ignoreChanges {
 			continue
 		}
@@ -974,7 +969,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanges() bool {
 		return true
 	}
 
-	for _, documentInfo := range s.documents {
+	for _, documentInfo := range s.documentsByEntity {
 		entity := documentInfo.entity
 		document := convertEntityToJSON(entity, documentInfo)
 		changed := s.entityChanged(document, documentInfo, nil)
@@ -991,7 +986,7 @@ func (s *InMemoryDocumentSessionOperations) HasChanged(entity interface{}) (bool
 	if err != nil {
 		return false, err
 	}
-	documentInfo := getDocumentInfoByEntity(s.documents, entity)
+	documentInfo := getDocumentInfoByEntity(s.documentsByEntity, entity)
 
 	if documentInfo == nil {
 		return false, nil
@@ -1053,7 +1048,7 @@ func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) error {
 		return err
 	}
 
-	deleted := deleteDocumentInfoByEntity(&s.documents, entity)
+	deleted := deleteDocumentInfoByEntity(&s.documentsByEntity, entity)
 	if deleted != nil {
 		s.documentsByID.remove(deleted.id)
 	}
@@ -1064,7 +1059,7 @@ func (s *InMemoryDocumentSessionOperations) Evict(entity interface{}) error {
 
 // Clear clears the session
 func (s *InMemoryDocumentSessionOperations) Clear() {
-	s.documents = nil
+	s.documentsByEntity = nil
 	s.deletedEntities.clear()
 	s.documentsByID = nil
 	s.knownMissingIds = nil
