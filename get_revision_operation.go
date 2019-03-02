@@ -67,7 +67,7 @@ func (o *GetRevisionOperation) GetRevisionWithDocument(result interface{}, docum
 	documentInfo.document = document
 	documentInfo.metadata = metadata
 	documentInfo.setEntity(result)
-	setDocumentInfo(&o.session.documents, documentInfo)
+	setDocumentInfo(&o.session.documentsByEntity, documentInfo)
 	return nil
 }
 

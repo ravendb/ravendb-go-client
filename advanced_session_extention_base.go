@@ -16,7 +16,7 @@ type AdvancedSessionExtensionBase struct {
 func newAdvancedSessionExtensionBase(session *InMemoryDocumentSessionOperations) *AdvancedSessionExtensionBase {
 	return &AdvancedSessionExtensionBase{
 		session:             session,
-		documents:           session.documents,
+		documents:           session.documentsByEntity,
 		requestExecutor:     session.GetRequestExecutor(),
 		sessionInfo:         session.sessionInfo,
 		documentStore:       session.GetDocumentStore(),

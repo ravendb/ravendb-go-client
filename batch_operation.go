@@ -48,7 +48,7 @@ func (b *BatchOperation) setResult(result []map[string]interface{}) error {
 			continue
 		}
 		entity := b.entities[i]
-		documentInfo := getDocumentInfoByEntity(b.session.documents, entity)
+		documentInfo := getDocumentInfoByEntity(b.session.documentsByEntity, entity)
 		if documentInfo == nil {
 			continue
 		}

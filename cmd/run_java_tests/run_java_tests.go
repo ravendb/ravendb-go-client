@@ -73,7 +73,7 @@ func runJava() {
 	//runSingleJavaTest("ClientConfigurationTest")
 	//runSingleJavaTest("CompactTest")
 	//runSingleJavaTest("ContainsTest")
-	//runSingleJavaTest("CrudTest")
+	runSingleJavaTest("CrudTest")
 	//runSingleJavaTest("DeleteTest")
 	//runSingleJavaTest("DeleteDocumentCommandTest")
 	//runSingleJavaTest("DocumentsLoadTest")
@@ -128,7 +128,7 @@ func runJava() {
 	//runSingleJavaTest("RevisionsSubscriptionsTest")
 	//runSingleJavaTest("SubscriptionsBasicTest")
 	//runSingleJavaTest("SecuredSubscriptionsBasicTest")
-	runSingleJavaTest("FacetPagingTest")
+	//runSingleJavaTest("FacetPagingTest")
 }
 
 func main() {
