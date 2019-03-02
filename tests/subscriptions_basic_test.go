@@ -231,7 +231,7 @@ func subscriptionsBasic_shouldStreamAllDocumentsAfterSubscriptionCreation(t *tes
 		case <-chDone:
 		// no-op, got the first batch
 		case <-time.After(_reasonableWaitTime):
-			assert.False(t, true, "timed out waiting for batch")
+			assert.Fail(t, "timed out waiting for batch")
 		}
 
 		err = subscription.Close()
@@ -371,7 +371,7 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 				assert.True(t, n <= 25)
 				totalItems += n
 			case <-time.After(_reasonableWaitTime):
-				assert.False(t, true, "timed out waiting for a batch")
+				assert.Fail(t,  "timed out waiting for a batch")
 				totalItems = 100
 			}
 		}
