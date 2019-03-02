@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -627,6 +628,66 @@ func goTestFindCollectionName(t *testing.T, driver *RavenTestDriver) {
 	name = c.GetCollectionName(&User{})
 	assert.Equal(t, name, "my users")
 }
+func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
+	// test that insertion order of bulk_docs (BatchOperation / BatchCommand)
+	fmt.Printf("goTestBatchCommandOrder\n")
+
+	var err error
+
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	nUsers := 10
+	{
+		session := openSessionMust(t, store)
+		for i := 0; i < nUsers; i++ {
+			u := &User{
+				Age: i,
+			}
+			u.setName(fmt.Sprintf("Name %d", i + 1))
+			id := fmt.Sprintf("users/%d", i + 1)
+			err = session.StoreWithID(u, id)
+			assert.NoError(t, err)
+		}
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+	}
+
+	// delete to trigger a code path that uses deferred commands
+	{
+		session := openSessionMust(t, store)
+		for i := 0; i < nUsers; i++ {
+			var u *User
+			id := fmt.Sprintf("users/%d", i+1)
+			err = session.Load(&u, id)
+			assert.NoError(t, err)
+			u.Age += 5
+			if i % 3 == 0 {
+				err = session.Delete(u)
+				assert.NoError(t, err)
+			}
+		}
+
+		commandsData, err := session.ForTestsSaveChangesGetCommands()
+		assert.NoError(t, err)
+		assert.Equal(t, len(commandsData), nUsers)
+		for i, cmdData := range commandsData {
+			var id string
+			switch d := cmdData.(type){
+			case *ravendb.PutCommandDataWithJSON:
+				id = d.ID
+			case *ravendb.DeleteCommandData:
+				id = d.ID
+			}
+			expID := fmt.Sprintf("users/%d", i + 1)
+			assert.Equal(t, expID, id)
+			assert.Equal(t, expID, id)
+		}
+
+		session.Close()
+	}
+}
 
 func TestGo1(t *testing.T) {
 	// t.Parallel()
@@ -635,9 +696,13 @@ func TestGo1(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	goTestStoreMap(t, driver)
-	go1Test(t, driver)
-	goTestGetLastModifiedForAndChanges(t, driver)
-	goTestListeners(t, driver)
-	goTestFindCollectionName(t, driver)
+	if true {
+		goTestStoreMap(t, driver)
+		go1Test(t, driver)
+		goTestGetLastModifiedForAndChanges(t, driver)
+		goTestListeners(t, driver)
+		goTestFindCollectionName(t, driver)
+	}
+
+	goTestBatchCommandOrder(t, driver)
 }

@@ -7,15 +7,14 @@ type BatchOperation struct {
 	sessionCommandsCount int
 }
 
-// NewBatchOperation
-func NewBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperation {
+func newBatchOperation(session *InMemoryDocumentSessionOperations) *BatchOperation {
 	return &BatchOperation{
 		session: session,
 	}
 }
 
 func (b *BatchOperation) createRequest() (*BatchCommand, error) {
-	result, err := b.session.PrepareForSaveChanges()
+	result, err := b.session.prepareForSaveChanges()
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +31,7 @@ func (b *BatchOperation) createRequest() (*BatchCommand, error) {
 
 	b.entities = result.entities
 
-	return NewBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options)
+	return newBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options)
 }
 
 func (b *BatchOperation) setResult(result []map[string]interface{}) error {

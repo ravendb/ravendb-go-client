@@ -27,10 +27,14 @@ type BatchCommand struct {
 	Result *JSONArrayResult
 }
 
-// NewBatchCommand returns new BatchCommand
-func NewBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) (*BatchCommand, error) {
-	panicIf(conventions == nil, "conventions cannot be nil")
-	panicIf(len(commands) == 0, "commands cannot be empty")
+// newBatchCommand returns new BatchCommand
+func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) (*BatchCommand, error) {
+	if conventions == nil {
+		return nil, newIllegalStateError("conventions cannot be nil")
+	}
+	if len(commands) == 0 {
+		return nil, newIllegalStateError("commands cannot be empty")
+	}
 
 	cmd := &BatchCommand{
 		RavenCommandBase: NewRavenCommandBase(),

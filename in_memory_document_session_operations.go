@@ -760,7 +760,7 @@ func (s *InMemoryDocumentSessionOperations) assertNoNonUniqueInstance(entity int
 	return newNonUniqueObjectError("Attempted to associate a different object with id '" + id + "'.")
 }
 
-func (s *InMemoryDocumentSessionOperations) PrepareForSaveChanges() (*saveChangesData, error) {
+func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() (*saveChangesData, error) {
 	result := newSaveChangesData(s)
 
 	s.deferredCommands = nil
@@ -938,7 +938,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveC
 		} else {
 			changeVector = nil // TODO: redundant
 		}
-		cmdData := NewPutCommandDataWithJSON(entityValue.id, changeVector, document)
+		cmdData := newPutCommandDataWithJSON(entityValue.id, changeVector, document)
 		result.addSessionCommandData(cmdData)
 	}
 	return nil
