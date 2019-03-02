@@ -8,8 +8,6 @@ import (
 )
 
 func TestCanSerializeDuration(t *testing.T) {
-	// t.Parallel()
-
 	tests := []struct {
 		d   time.Duration
 		exp string

@@ -132,8 +132,6 @@ func NewAnimalIndex() *ravendb.IndexCreationTask {
 }
 
 func TestRavenDB5669(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

@@ -18,8 +18,6 @@ func getDatabaseRecordCanGetDatabaseRecord(t *testing.T, driver *RavenTestDriver
 }
 
 func TestGetDatabaseRecord(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

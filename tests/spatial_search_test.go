@@ -284,8 +284,6 @@ func NewEventWithDateAndCapacity(venue string, latitude float64, longitude float
 }
 
 func TestSpatialSearch(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

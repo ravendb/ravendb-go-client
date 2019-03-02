@@ -162,8 +162,6 @@ func (d *RavenTestDriver) waitForConflict(store *ravendb.DocumentStore, result i
 }
 
 func TestRavenDB6292(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

@@ -413,8 +413,6 @@ func changesTestNotificationOnWrongDatabaseShouldNotCrashServer(t *testing.T, dr
 }
 
 func TestChanges(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

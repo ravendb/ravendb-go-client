@@ -196,8 +196,6 @@ func NewDummyGeoDoc(latitude float64, longitude float64) *DummyGeoDoc {
 }
 
 func TestSpatialQueries(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

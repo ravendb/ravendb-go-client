@@ -88,8 +88,6 @@ type Cat struct {
 // Note: re-using a Dog structure from other test, which also has Name field
 
 func TestSimpleMultiMap(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

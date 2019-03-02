@@ -47,8 +47,6 @@ func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *
 }
 
 func TestClientConfiguration(t *testing.T) {
-	// // t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

@@ -237,8 +237,6 @@ func facetPaging_setup(t *testing.T, store *ravendb.DocumentStore) {
 }
 
 func TestFacetPaging(t *testing.T) {
-	// t.Parallel()
-
 	_data = facetTestBaseGetCameras(numCameras)
 
 	driver := createTestDriver(t)

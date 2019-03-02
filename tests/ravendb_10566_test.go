@@ -51,8 +51,6 @@ func ravendb10566_shouldBeAvailable(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestRavenDB10566(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
