@@ -5,12 +5,12 @@ package ravendb
 
 // MetadataAsDictionary describes metadata for a document
 type MetadataAsDictionary struct {
-	_parent    *MetadataAsDictionary
-	_parentKey string
+	parent    *MetadataAsDictionary
+	parentKey string
 
 	// the actual metadata
-	_metadata map[string]interface{}
-	_source   map[string]interface{}
+	metadata map[string]interface{}
+	source   map[string]interface{}
 
 	dirty bool
 }
@@ -18,14 +18,14 @@ type MetadataAsDictionary struct {
 // NewMetadataAsDictionaryWithSource returns MetadataAsDictionary based on a given source
 func NewMetadataAsDictionaryWithSource(metadata map[string]interface{}) *MetadataAsDictionary {
 	return &MetadataAsDictionary{
-		_source: metadata,
+		source: metadata,
 	}
 }
 
 // NewMetadataAsDictionaryWithMetadata returns MetadataAsDictionary based on a given metadata
 func NewMetadataAsDictionaryWithMetadata(metadata map[string]interface{}) *MetadataAsDictionary {
 	return &MetadataAsDictionary{
-		_metadata: metadata,
+		metadata: metadata,
 	}
 }
 
@@ -34,9 +34,9 @@ func NewMetadataAsDictionary(metadata map[string]interface{}, parent *MetadataAs
 	panicIf(parent == nil, "Parent cannot be null")
 	panicIf(parentKey == "", "ParentKey cannot be empty")
 	return &MetadataAsDictionary{
-		_source:    metadata,
-		_parent:    parent,
-		_parentKey: parentKey,
+		source:    metadata,
+		parent:    parent,
+		parentKey: parentKey,
 	}
 }
 
@@ -52,12 +52,12 @@ func (d *MetadataAsDictionary) IsDirty() bool {
 
 // KeySet returns all keys
 func (d *MetadataAsDictionary) KeySet() []string {
-	if d._metadata == nil {
+	if d.metadata == nil {
 		d.Init()
 	}
 	// TODO: pre-allocate res
 	var res []string
-	for k := range d._metadata {
+	for k := range d.metadata {
 		res = append(res, k)
 	}
 	return res
@@ -66,26 +66,26 @@ func (d *MetadataAsDictionary) KeySet() []string {
 // Init initializes metadata
 func (d *MetadataAsDictionary) Init() {
 	d.dirty = true
-	d._metadata = map[string]interface{}{}
+	d.metadata = map[string]interface{}{}
 
-	for k, v := range d._source {
+	for k, v := range d.source {
 		val := d.ConvertValue(k, v)
-		d._metadata[k] = val
+		d.metadata[k] = val
 	}
 
-	if d._parent != nil {
-		d._parent.Put(d._parentKey, d)
+	if d.parent != nil {
+		d.parent.Put(d.parentKey, d)
 	}
 }
 
 // Put inserts a given value with a given key
 func (d *MetadataAsDictionary) Put(key string, value interface{}) interface{} {
-	if d._metadata == nil {
+	if d.metadata == nil {
 		d.Init()
 	}
 	d.dirty = true
 
-	d._metadata[key] = value
+	d.metadata[key] = value
 	return value
 }
 
@@ -119,22 +119,22 @@ func (d *MetadataAsDictionary) ConvertValue(key string, value interface{}) inter
 
 // Clear removes all metadata
 func (d *MetadataAsDictionary) Clear() {
-	if d._metadata == nil {
+	if d.metadata == nil {
 		d.Init()
 	}
 	d.dirty = true
 
-	d._metadata = map[string]interface{}{} // TODO: can it be nil?
+	d.metadata = map[string]interface{}{} // TODO: can it be nil?
 }
 
 // Get returns metadata value with a given key
 func (d *MetadataAsDictionary) Get(key string) (interface{}, bool) {
-	if d._metadata != nil {
-		v, ok := d._metadata[key]
+	if d.metadata != nil {
+		v, ok := d.metadata[key]
 		return v, ok
 	}
 
-	v, ok := d._source[key]
+	v, ok := d.source[key]
 	if !ok {
 		return v, ok
 	}
@@ -143,21 +143,21 @@ func (d *MetadataAsDictionary) Get(key string) (interface{}, bool) {
 
 // EntrySet returns metadata as map[string]interface{}
 func (d *MetadataAsDictionary) EntrySet() map[string]interface{} {
-	if d._metadata == nil {
+	if d.metadata == nil {
 		d.Init()
 	}
 
-	return d._metadata
+	return d.metadata
 }
 
 // ContainsKey returns true if we have metadata value with a given key
 func (d *MetadataAsDictionary) ContainsKey(key string) bool {
-	if d._metadata != nil {
-		_, ok := d._metadata[key]
+	if d.metadata != nil {
+		_, ok := d.metadata[key]
 		return ok
 	}
 
-	_, ok := d._source[key]
+	_, ok := d.source[key]
 	return ok
 }
 
@@ -187,11 +187,11 @@ func (d *MetadataAsDictionary) GetObjects(key string) []*MetadataAsDictionary {
 
 // Size returns number of metadata items
 func (d *MetadataAsDictionary) Size() int {
-	if d._metadata != nil {
-		return len(d._metadata)
+	if d.metadata != nil {
+		return len(d.metadata)
 	}
 
-	return len(d._source)
+	return len(d.source)
 }
 
 func (d *MetadataAsDictionary) IsEmpty() bool {
@@ -199,12 +199,12 @@ func (d *MetadataAsDictionary) IsEmpty() bool {
 }
 
 func (d *MetadataAsDictionary) Remove(key string) {
-	if d._metadata == nil {
+	if d.metadata == nil {
 		return
 	}
 	d.dirty = true
 
-	delete(d._metadata, key)
+	delete(d.metadata, key)
 }
 
 /*
