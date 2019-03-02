@@ -21,7 +21,8 @@ import (
 // You can browse its content via web interface at
 // http://live-test.ravendb.net/studio/index.html#databases/documents?&database=Demo
 var (
-	dbName = "Demo"
+	dbName        = "Demo"
+	serverNodeURL = "http://live-test.ravendb.net"
 )
 
 func printRQL(q *ravendb.DocumentQuery) {
@@ -47,7 +48,7 @@ func printRQL(q *ravendb.DocumentQuery) {
 }
 
 func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
-	serverNodes := []string{"http://live-test.ravendb.net"}
+	serverNodes := []string{serverNodeURL}
 	store := ravendb.NewDocumentStore(serverNodes, databaseName)
 	if err := store.Initialize(); err != nil {
 		return nil, err
