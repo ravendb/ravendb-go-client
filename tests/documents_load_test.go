@@ -76,8 +76,6 @@ func documentsLoadTestLoadWithIncludesAndMissingDocument(t *testing.T, driver *R
 }
 
 func TestDocumentsLoad(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

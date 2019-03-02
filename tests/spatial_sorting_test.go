@@ -270,8 +270,6 @@ func getQueryShapeFromLatLon(lat float64, lng float64, radius float64) string {
 }
 
 func TestSpatialSorting(t *testing.T) {
-	// // t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

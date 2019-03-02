@@ -82,8 +82,6 @@ type Task struct {
 }
 
 func TestLazyAggregationEmbeddedLazy(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

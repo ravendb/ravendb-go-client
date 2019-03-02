@@ -178,8 +178,6 @@ func goRevisionsTest(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestRevisions(t *testing.T) {
-	// t.Parallel()
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
