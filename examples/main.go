@@ -1380,6 +1380,8 @@ func streamWithIDPrefix() {
 		if n < 1 {
 			fmt.Print("streamResult:\n")
 			pretty.Print(streamResult)
+			fmt.Print("metadata:\n")
+			pretty.Print(streamResult.Metadata.EntrySet())
 			fmt.Print("product:\n")
 			pretty.Print(p)
 			fmt.Print("\n")
