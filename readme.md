@@ -880,8 +880,7 @@ See `advancedPatching()` in [examples/main.go](examples/main.go) for full exampl
 opts := ravendb.SubscriptionCreationOptions{
     Query: "from Products where PricePerUnit > 17 and PricePerUnit < 19",
 }
-tp := reflect.TypeOf(&northwind.Product{})
-subscriptionName, err := store.Subscriptions().CreateForType(tp, &opts, "")
+subscriptionName, err := store.Subscriptions().Create(&opts, "")
 if err != nil {
     log.Fatalf("store.Subscriptions().Create() failed with %s\n", err)
 }

@@ -117,7 +117,7 @@ func runJava() {
 	//runSingleJavaTest("SuggestionsTest")
 	//runSingleJavaTest("MoreLikeThisTest")
 	//runSingleJavaTest("ChangesTest")
-	runSingleJavaTest("DocumentStreaming")
+	//runSingleJavaTest("DocumentStreaming")
 	//runSingleJavaTest("QueryStreaming")
 	//runSingleJavaTest("LoadAllStartingWith")
 	//runSingleJavaTest("SuggestionsLazyTest")
@@ -126,7 +126,7 @@ func runJava() {
 	//runSingleJavaTest("AggressiveCaching")
 	//runSingleJavaTest("CachingOfDocumentInclude")
 	//runSingleJavaTest("RevisionsSubscriptionsTest")
-	//runSingleJavaTest("SubscriptionsBasicTest")
+	runSingleJavaTest("SubscriptionsBasicTest")
 	//runSingleJavaTest("SecuredSubscriptionsBasicTest")
 	//runSingleJavaTest("FacetPagingTest")
 }

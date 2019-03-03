@@ -26,9 +26,16 @@ var (
 
 	// if true, we'll show summary of HTTP requests made to the server
 	// and dump full info about failed HTTP requests
-	// set logAllRequests in log.go to also log full info about all
-	// HTTP requests to a file
 	verboseLogging = true
+
+	// if true, logs all http requests/responses to a file for further inspection
+	// this is for use in tests so the file has a fixed location:
+	// logs/trace_${test_name}_go.txt
+	logAllRequests = false
+
+	// if logAllRequests is true, this is a path of a file where we log
+	// info about all HTTP requests
+	logAllRequestsPath = "http_requests_log.txt"
 )
 
 func printRQL(q *ravendb.DocumentQuery) {
@@ -1596,7 +1603,7 @@ func subscriptions() {
 		Query: "from Products where PricePerUnit > 17 and PricePerUnit < 19",
 	}
 	tp := reflect.TypeOf(&northwind.Product{})
-	subscriptionName, err := store.Subscriptions().CreateForType(tp, &opts, "")
+	subscriptionName, err := store.Subscriptions().Create(&opts, "")
 	if err != nil {
 		log.Fatalf("store.Subscriptions().Create() failed with %s\n", err)
 	}

@@ -27,3 +27,4 @@ netgraph
 *.zip
 .DS_Store
 cpu.prof
+http_requests_log.txt

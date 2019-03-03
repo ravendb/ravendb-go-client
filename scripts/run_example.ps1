@@ -1,3 +1,5 @@
 #!/usr/bin/env pwsh
 
-go run .\examples\main.go .\examples\log.go $args
+Set-Location .\examples
+go run main.go log.go $args
+Set-Location ..

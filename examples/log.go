@@ -23,15 +23,6 @@ var (
 	// can be enabled by setting LOG_FAILED_HTTP_REQUESTS_DELAYED env variable to "true"
 	logFailedRequestsDelayed = false
 
-	// if true, logs all http requests/responses to a file for further inspection
-	// this is for use in tests so the file has a fixed location:
-	// logs/trace_${test_name}_go.txt
-	logAllRequests = false
-
-	// if logAllRequests is true, this is a path of a file where we log
-	// info about all HTTP requests
-	logAllRequestsPath = "http_requests_log.txt"
-
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
 	ravenServerVerbose = false
