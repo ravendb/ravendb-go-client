@@ -653,11 +653,6 @@ func getLogDir() string {
 	return dir
 }
 
-func httpLogPathFromTestName(t *testing.T) string {
-	name := "trace_" + testNameToFileName(t.Name()) + "_go.txt"
-	return filepath.Join(getLogDir(), name)
-}
-
 func (d *RavenTestDriver) maybeStartProfiling() {
 	if !isEnvVarTrue("ENABLE_PROFILING") || d.isProfiling {
 		return

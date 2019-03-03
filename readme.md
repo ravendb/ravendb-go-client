@@ -18,6 +18,10 @@ To learn basics of RavenDB, read [RavenDB Documentation](https://ravendb.net/doc
 
 Full source code of those examples is in `examples` directory.
 
+To run a a specific example, e.g. `crudStore`, you can run:
+* `.\scripts\run_example.ps1 crudStore` : works on mac / linux if you have powershell installed
+* `go run examples\log.go examples\main.go crudStore` : on mac / linux change paths to `examples/log.go` etc.
+
 1. Import the package
 ```go
 import (
@@ -167,7 +171,7 @@ See `crudUpdate()` in [examples/main.go](examples/main.go) for full example.
 
 ### Deleting documents
 
-Deleting using entity
+Delete using entity:
 
 ```go
 // store a product and remember its id in productID
@@ -190,7 +194,7 @@ if err != nil {
 
 ```
 
-Deleting using id
+Delete using id:
 
 ```go
 // store a product and remember its id in productID
@@ -213,7 +217,7 @@ See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full examp
 
 First you need to decide what to query.
 
-RavenDB stores documents in collections. By default each type (struct) is stored in its own collection e.g. `Employee` structs are stored in collection `employees`.
+RavenDB stores documents in collections. By default each type (struct) is stored in its own collection e.g. all `Employee` structs are stored in `employees` collection.
 
 You can query by collection name:
 
@@ -225,7 +229,6 @@ See `queryCollectionByName()` in [examples/main.go](examples/main.go) for full e
 
 To get a collection name for a given type use `ravendb.GetCollectionNameDefault(&MyStruct{})`.
 
-
 You can query a collection for a given type:
 
 ```go
@@ -234,7 +237,7 @@ q := session.QueryCollectionForType(tp)
 ```
 See `queryCollectionByType()` in [examples/main.go](examples/main.go) for full example.
 
-You can query an index.
+You can query an index:
 
 ```go
 q := session.QueryIndex("Orders/ByCompany")
@@ -390,7 +393,7 @@ See `queryContainsAny()` in [examples/main.go](examples/main.go) for full exampl
 
 ### Search()
 
-Performs full-text search.
+Performs full-text search:
 
 ```go
 // RQL equivalent:

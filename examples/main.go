@@ -23,6 +23,12 @@ import (
 var (
 	dbName        = "Demo"
 	serverNodeURL = "http://live-test.ravendb.net"
+
+	// if true, we'll show summary of HTTP requests made to the server
+	// and dump full info about failed HTTP requests
+	// set logAllRequests in log.go to also log full info about all
+	// HTTP requests to a file
+	verboseLogging = true
 )
 
 func printRQL(q *ravendb.DocumentQuery) {
@@ -1680,11 +1686,18 @@ func dispatchByName(name string) {
 }
 
 func main() {
-	// to test a given function, uncomment it
+	// setup optional logging
+	setupLogging()
+	defer finishLogging()
+
+	// you can either provide a name of example to run on command line e.g.
+	// go run examples\main.go examples\log.go crudStore
+	// or you can uncomment wanted function below
 	if len(os.Args) == 2 {
 		dispatchByName(os.Args[1])
 		return
 	}
+
 	//loadUpdateSave()
 	//crudStore()
 

@@ -851,9 +851,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 }
 
 func (re *RequestExecutor) throwFailedToContactAllNodes(command RavenCommand, request *http.Request, e error, timeoutException error) error {
-	// TODO: after transition to RavenCommand as interface, this will
-	// be command name via type
-	commandName := "command"
+	commandName := fmt.Sprintf("%T", command)
 	message := "Tried to send " + commandName + " request via " + request.Method + " " + request.URL.String() + " to all configured nodes in the topology, " +
 		"all of them seem to be down or not responding. I've tried to access the following nodes: "
 

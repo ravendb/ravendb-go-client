@@ -1,7 +1,8 @@
-package tests
+package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,7 +13,6 @@ import (
 	"runtime/pprof"
 	"sync"
 	"sync/atomic"
-	"testing"
 
 	"github.com/ravendb/ravendb-go-client"
 )
@@ -27,6 +27,10 @@ var (
 	// this is for use in tests so the file has a fixed location:
 	// logs/trace_${test_name}_go.txt
 	logAllRequests = false
+
+	// if logAllRequests is true, this is a path of a file where we log
+	// info about all HTTP requests
+	logAllRequestsPath = "http_requests_log.txt"
 
 	// if true, we log RavenDB's output to stdout
 	// can be enabled by setting LOG_RAVEN_SERVER env variable to "true"
@@ -61,38 +65,6 @@ func logsUnlock() {
 	muLog.Unlock()
 }
 
-func setLoggingStateFromEnv() {
-	if !ravenServerVerbose && isEnvVarTrue("LOG_RAVEN_SERVER") {
-		ravenServerVerbose = true
-		fmt.Printf("Setting ravenServerVerbose to true\n")
-	}
-
-	if !logFailedRequestsDelayed && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS_DELAYED") {
-		logFailedRequestsDelayed = true
-		fmt.Printf("Setting logFailedRequestsDelayed to true\n")
-	}
-
-	if !ravendb.LogVerbose && isEnvVarTrue("VERBOSE_LOG") {
-		ravendb.LogVerbose = true
-		fmt.Printf("Setting LogVerbose to true\n")
-	}
-
-	if !logRequestSummary && isEnvVarTrue("LOG_HTTP_REQUEST_SUMMARY") {
-		logRequestSummary = true
-		fmt.Printf("Setting LogRequestSummary to true\n")
-	}
-
-	if !logFailedRequests && isEnvVarTrue("LOG_FAILED_HTTP_REQUESTS") {
-		logFailedRequests = true
-		fmt.Printf("Setting LogFailedRequests to true\n")
-	}
-
-	if !logAllRequests && isEnvVarTrue("LOG_ALL_REQUESTS") {
-		logAllRequests = true
-		fmt.Printf("Setting logAllRequests to true\n")
-	}
-}
-
 type loggingTransport struct {
 	originalTransport http.RoundTripper
 }
@@ -115,21 +87,24 @@ func httpClientProcessor(c *http.Client) {
 	}
 }
 
-func httpLogPathFromTestName(t *testing.T) string {
-	name := "trace_" + testNameToFileName(t.Name()) + "_go.txt"
-	return filepath.Join(getLogDir(), name)
-}
-
-func setupLogging(t *testing.T) {
+func setupLogging() {
 	logsLock()
 	defer logsUnlock()
+
+	if verboseLogging {
+		logFailedRequestsDelayed = true
+		logRequestSummary = true
+		logFailedRequests = true
+		// logallRequests has to be set explicitly
+		// logAllRequests = true
+	}
 
 	ravendb.HTTPClientPostProcessor = httpClientProcessor
 
 	httpLoggerWriter = nil
 	if logAllRequests {
 		var err error
-		path := httpLogPathFromTestName(t)
+		path := logAllRequestsPath
 		f, err := os.Create(path)
 		if err != nil {
 			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
@@ -323,4 +298,95 @@ func logGoroutines(file string) {
 	}
 	defer f.Close()
 	profile.WriteTo(f, 2)
+}
+
+// CapturingReadCloser is a reader that captures data that was read from
+// underlying reader
+type CapturingReadCloser struct {
+	tee          io.Reader
+	orig         io.ReadCloser
+	capturedData bytes.Buffer
+	wasClosed    bool
+}
+
+// Read reads data from reader
+func (rc *CapturingReadCloser) Read(p []byte) (int, error) {
+	if rc.wasClosed {
+		panic("reading after being closed")
+	}
+	return rc.tee.Read(p)
+}
+
+// Close closes a reader
+func (rc *CapturingReadCloser) Close() error {
+	rc.wasClosed = true
+	return rc.orig.Close()
+}
+
+// NewCapturingReadCloser returns a new capturing reader
+func NewCapturingReadCloser(orig io.ReadCloser) *CapturingReadCloser {
+	res := &CapturingReadCloser{
+		orig: orig,
+	}
+	res.tee = io.TeeReader(orig, &res.capturedData)
+	return res
+}
+
+func isUnprintable(c byte) bool {
+	if c < 32 {
+		// 9 - tab, 10 - LF, 13 - CR
+		if c == 9 || c == 10 || c == 13 {
+			return false
+		}
+		return true
+	}
+	return c >= 127
+}
+
+func isBinaryData(d []byte) bool {
+	for _, b := range d {
+		if isUnprintable(b) {
+			return true
+		}
+	}
+	return false
+}
+
+func asHex(d []byte) ([]byte, bool) {
+	if !isBinaryData(d) {
+		return d, false
+	}
+
+	// convert unprintable characters to hex
+	var res []byte
+	for i, c := range d {
+		if i > 2048 {
+			break
+		}
+		if isUnprintable(c) {
+			s := fmt.Sprintf("x%02x ", c)
+			res = append(res, s...)
+		} else {
+			res = append(res, c)
+		}
+	}
+	return res, true
+}
+
+// if d is a valid json, pretty-print it
+// only used for debugging
+func maybePrettyPrintJSON(d []byte) []byte {
+	if d2, ok := asHex(d); ok {
+		return d2
+	}
+	var m map[string]interface{}
+	err := json.Unmarshal(d, &m)
+	if err != nil {
+		return d
+	}
+	d2, err := json.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return d
+	}
+	return d2
 }
