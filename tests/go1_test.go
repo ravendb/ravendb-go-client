@@ -458,7 +458,7 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 		u := &User{}
 		err = session.Store(u)
 		assert.NoError(t, err)
-		err = session.DeleteByID("users/2-A", nil)
+		err = session.DeleteByID("users/2-A", "")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -665,7 +665,7 @@ func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 		assert.Equal(t, len(commandsData), nUsers)
 		for i, cmdData := range commandsData {
 			var id string
-			switch d := cmdData.(type){
+			switch d := cmdData.(type) {
 			case *ravendb.PutCommandDataWithJSON:
 				id = d.ID
 			case *ravendb.DeleteCommandData:

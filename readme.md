@@ -174,7 +174,7 @@ See `crudUpdate()` in [examples/main.go](examples/main.go) for full example.
 Delete using entity:
 
 ```go
-// store a product and remember its id in productID
+// ... store a product and remember its id in productID
 
 var p *northwind.Product
 err = session.Load(&p, productID)
@@ -193,13 +193,17 @@ if err != nil {
 }
 
 ```
+See `crudDeleteUsingEntity()` in [examples/main.go](examples/main.go) for full example.
+
+Entity must be a value that we either stored in the database in the current session via `Store()`
+or loaded from database using `Load()`, `LoadMulti()`, query etc.
 
 Delete using id:
 
 ```go
-// store a product and remember its id in productID
+// ... store a product and remember its id in productID
 
-err = session.Delete(productID)
+err = session.DeleteByID(productID, "")
 if err != nil {
     log.Fatalf("session.Delete() failed with %s\n", err)
 }
@@ -209,6 +213,8 @@ if err != nil {
     log.Fatalf("session.SaveChanges() failed with %s\n", err)
 }
 ```
+Second argument to `DeleteByID` is optional `changeVector`, for fine-grain concurrency control.
+
 See `crudDeleteUsingID()` in [examples/main.go](examples/main.go) for full example.
 
 ## Querying documents

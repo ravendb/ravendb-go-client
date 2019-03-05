@@ -121,7 +121,7 @@ func revisionsTestCanListRevisionsBin(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
-		err = session.DeleteByID("users/1", nil)
+		err = session.DeleteByID("users/1", "")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -188,4 +188,3 @@ func TestRevisions(t *testing.T) {
 
 	goRevisionsTest(t, driver)
 }
-

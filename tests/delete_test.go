@@ -61,7 +61,7 @@ func deleteTestDeleteDocumentById(t *testing.T, driver *RavenTestDriver) {
 		assert.NotNil(t, user)
 	}
 
-	err = newSession.DeleteByID("users/1", nil)
+	err = newSession.DeleteByID("users/1", "")
 	assert.NoError(t, err)
 	err = newSession.SaveChanges()
 	assert.NoError(t, err)

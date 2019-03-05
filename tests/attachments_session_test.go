@@ -437,7 +437,7 @@ func attachmentsSessionDeleteDocumentByCommandAndThanItsAttachmentsThisIsNoOpBut
 	{
 		session := openSessionMust(t, store)
 
-		cd := ravendb.NewDeleteCommandData("users/1", nil)
+		cd := ravendb.NewDeleteCommandData("users/1", "")
 		session.Advanced().Defer(cd)
 		err = session.Advanced().Attachments().DeleteByID("users/1", "file")
 		assert.NoError(t, err)

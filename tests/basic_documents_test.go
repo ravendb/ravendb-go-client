@@ -27,7 +27,7 @@ func basicDocumentscanChangeDocumentCollectionWithDeleteAndSave(t *testing.T, dr
 
 	{
 		session := openSessionMust(t, store)
-		err = session.DeleteByID(documentID, nil)
+		err = session.DeleteByID(documentID, "")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
@@ -103,20 +103,20 @@ func basicDocumentsGet(t *testing.T, driver *RavenTestDriver) {
 
 	// Note: we don't expose EntityToJSON in Go
 	/*
-	{
-		session := openSessionMust(t, store)
-		etojs := session.GetEntityToJSON()
-		user1I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/1", doc1)
-		assert.NoError(t, err)
-		user1 := user1I.(*User)
+		{
+			session := openSessionMust(t, store)
+			etojs := session.GetEntityToJSON()
+			user1I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/1", doc1)
+			assert.NoError(t, err)
+			user1 := user1I.(*User)
 
-		user2I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/2", doc2)
-		assert.NoError(t, err)
-		user2 := user2I.(*User)
-		assert.Equal(t, *user1.Name, "Fitzchak")
-		assert.Equal(t, *user2.Name, "Arek")
-		session.Close()
-	}
+			user2I, err := etojs.ConvertToEntity(reflect.TypeOf(&User{}), "users/2", doc2)
+			assert.NoError(t, err)
+			user2 := user2I.(*User)
+			assert.Equal(t, *user1.Name, "Fitzchak")
+			assert.Equal(t, *user2.Name, "Arek")
+			session.Close()
+		}
 	*/
 
 	getDocumentsCommand, err = ravendb.NewGetDocumentsCommand([]string{"users/1", "users/2"}, nil, true)

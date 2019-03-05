@@ -314,9 +314,9 @@ func crudDeleteUsingID() {
 			log.Fatalf("store.OpenSession() failed with %s\n", err)
 		}
 
-		err = session.DeleteByID(productID, nil)
+		err = session.DeleteByID(productID, "")
 		if err != nil {
-			log.Fatalf("session.Delete() failed with %s\n", err)
+			log.Fatalf("session.DeleteByID() failed with %s\n", err)
 		}
 
 		err = session.SaveChanges()

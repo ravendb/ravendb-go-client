@@ -16,9 +16,8 @@ func newClientSessionID() int {
 	return int(newID)
 }
 
-
 type onLazyEval struct {
-	fn func()
+	fn     func()
 	result interface{}
 }
 
@@ -518,14 +517,14 @@ func (s *InMemoryDocumentSessionOperations) Delete(entity interface{}) error {
 	return nil
 }
 
-// Delete marks the specified entity for deletion. The entity will be deleted when IDocumentSession.SaveChanges is called.
+// DeleteByID marks the specified entity for deletion. The entity will be deleted when SaveChanges is called.
 // WARNING: This method will not call beforeDelete listener!
-func (s *InMemoryDocumentSessionOperations) DeleteByID(id string, expectedChangeVector *string) error {
+func (s *InMemoryDocumentSessionOperations) DeleteByID(id string, expectedChangeVector string) error {
 	if id == "" {
 		return newIllegalArgumentError("id cannot be empty")
 	}
 
-	var changeVector *string
+	var changeVector string
 	documentInfo := s.documentsByID.getValue(id)
 	if documentInfo != nil {
 		newObj := convertEntityToJSON(documentInfo.entity, documentInfo)
@@ -538,14 +537,16 @@ func (s *InMemoryDocumentSessionOperations) DeleteByID(id string, expectedChange
 		}
 
 		s.documentsByID.remove(id)
-		changeVector = documentInfo.changeVector
+		if documentInfo.changeVector != nil {
+			changeVector = *documentInfo.changeVector
+		}
 	}
 
 	s.knownMissingIds = append(s.knownMissingIds, id)
 	if !s.useOptimisticConcurrency {
-		changeVector = nil
+		changeVector = ""
 	}
-	cmdData := NewDeleteCommandData(id, firstNonNilString(expectedChangeVector, changeVector))
+	cmdData := NewDeleteCommandData(id, firstNonEmptyString(expectedChangeVector, changeVector))
 	s.Defer(cmdData)
 	return nil
 }
@@ -860,7 +861,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *s
 				}
 			}
 
-			cmdData := NewDeleteCommandData(documentInfo.id, changeVector)
+			cmdData := NewDeleteCommandData(documentInfo.id, *changeVector)
 			result.addSessionCommandData(cmdData)
 		}
 

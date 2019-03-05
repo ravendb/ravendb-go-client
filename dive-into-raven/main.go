@@ -116,14 +116,14 @@ func editDocumentChapter(companyName string) error {
 	return nil
 }
 
-func deleteDocumentChapter(documentId string) error {
+func deleteDocumentChapter(documentID string) error {
 	session, err := globalDocumentStore.OpenSession("")
 	if err != nil {
 		return err
 	}
 	defer session.Close()
 
-	err = session.DeleteByID(documentId, nil)
+	err = session.DeleteByID(documentID, "")
 	if err != nil {
 		return err
 	}

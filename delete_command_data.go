@@ -6,12 +6,16 @@ type DeleteCommandData struct {
 }
 
 // NewDeleteCommandData creates ICommandData for Delete command
-func NewDeleteCommandData(id string, changeVector *string) ICommandData {
+func NewDeleteCommandData(id string, changeVector string) ICommandData {
+	var changeVectorPtr *string
+	if changeVector != "" {
+		changeVectorPtr = &changeVector
+	}
 	res := &DeleteCommandData{
 		CommandData{
 			Type:         CommandDelete,
 			ID:           id,
-			ChangeVector: changeVector,
+			ChangeVector: changeVectorPtr,
 		},
 	}
 	return res

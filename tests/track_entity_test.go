@@ -51,9 +51,9 @@ func trackEntityTestLoadingDeletedDocumentShouldReturnNull(t *testing.T, driver 
 
 	{
 		session := openSessionMust(t, store)
-		err = session.DeleteByID("users/1", nil)
+		err = session.DeleteByID("users/1", "")
 		assert.NoError(t, err)
-		err = session.DeleteByID("users/2", nil)
+		err = session.DeleteByID("users/2", "")
 		assert.NoError(t, err)
 		err = session.SaveChanges()
 		assert.NoError(t, err)
