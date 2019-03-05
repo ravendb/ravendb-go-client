@@ -236,3 +236,10 @@ func maybePrettyPrintJSON(d []byte) []byte {
 	}
 	return d2
 }
+
+func stringPtrToString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}

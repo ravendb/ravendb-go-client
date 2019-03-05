@@ -861,7 +861,7 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesDeletion(result *s
 				}
 			}
 
-			cmdData := NewDeleteCommandData(documentInfo.id, *changeVector)
+			cmdData := NewDeleteCommandData(documentInfo.id, stringPtrToString(changeVector))
 			result.addSessionCommandData(cmdData)
 		}
 
