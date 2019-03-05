@@ -6,17 +6,20 @@ import "github.com/ravendb/ravendb-go-client"
 // in database "Demo"
 // see https://ravendb.net/docs/article-page/4.1/csharp/start/about-examples
 
+// Category describes a product category
 type Category struct {
 	ID          string
 	Name        string `json:"Name"`
 	Description string `json:"Description"`
 }
 
+// Contact describes a contact
 type Contact struct {
 	Name  string
 	Title string
 }
 
+// Company describes a company
 type Company struct {
 	ID         string
 	Name       string   `json:"Name"`
@@ -27,6 +30,7 @@ type Company struct {
 	Address    *Address `json:"Address"`
 }
 
+// Employee describes an employee
 type Employee struct {
 	ID          string
 	LastName    string       `json:"LastName"`
@@ -42,6 +46,7 @@ type Employee struct {
 	Territories []string     `json:"Territories"`
 }
 
+// Order describes an order
 type Order struct {
 	ID        string
 	Company   string        `json:"Company"`  // id of Company struct
@@ -55,6 +60,7 @@ type Order struct {
 	Lines     []*OrderLine  `json:"Lines"`
 }
 
+// Product describes a product
 type Product struct {
 	ID              string
 	Name            string  `json:"Name"`
@@ -63,28 +69,32 @@ type Product struct {
 	QuantityPerUnit string  `json:"QuantityPerUnit"`
 	PricePerUnit    float64 `json:"PricePerUnit"`
 	UnitsInStock    int     `json:"UnitsInStock"`
-	UnistsOnOrder   int     `json:"UnistsOnOrder"`
+	UnitsOnOrder    int     `json:"UnitsOnOrder"`
 	Discontinued    bool    `json:"Discontinued"`
 	ReorderLevel    int     `json:"ReorderLevel"`
 }
 
+// Region describes a region
 type Region struct {
 	ID          string
 	Name        string      `json:"Name"`
 	Territories []Territory `json:"Territories,omitempty"`
 }
 
+// Territory describes a territory
 type Territory struct {
 	Code string `json:"Code"`
 	Name string `json:"Name"`
 }
 
+// Shipper describes a shipper
 type Shipper struct {
 	ID     string
 	Name   string `json:"Name"`
 	Phoene string `json:"Phone"`
 }
 
+// Supplier describes a supplier
 type Supplier struct {
 	ID       string
 	Name     string   `json:"Name"`
@@ -95,6 +105,7 @@ type Supplier struct {
 	Address  *Address `json:"Address"`
 }
 
+// Address describes an address
 type Address struct {
 	Line1      string    `json:"Line1"`
 	Line2      string    `json:"Line2,omitempty"`
@@ -105,11 +116,13 @@ type Address struct {
 	Location   *Location `json:"Location"`
 }
 
+// Location describes a location
 type Location struct {
 	Latitude  float64
 	Longitude float64
 }
 
+// OrderLine describes an order line
 type OrderLine struct {
 	Product      string  `json:"Product"` // id of Product string
 	ProductName  string  `json:"ProductName"`

@@ -5,8 +5,10 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/ravendb/ravendb-go-client"
+	"github.com/ravendb/ravendb-go-client/examples/northwind"
 )
 
 var (
@@ -32,31 +34,11 @@ func createDocumentStore() (*ravendb.DocumentStore, error) {
 	return globalDocumentStore, nil
 }
 
-// Contact describes a contact
-type Contact struct {
-	Name  string `json:"name,omitempty"`
-	Title string `json:"title,omitempty"`
-}
-
-// Company describes a company
-type Company struct {
-	ID      string
-	Name    string   `json:"name,omitempty"`
-	Phone   string   `json:"phone,omitempty"`
-	Contact *Contact `json:"contact"`
-}
-
-type Supplier struct {
-	ID    string
-	Name  string `json:"name,omitempty"`
-	Phone string `json:"phone,omitempty"`
-}
-
 func createDocument(companyName, companyPhone, contactName, contactTitle string) error {
-	newCompany := &Company{
+	newCompany := &northwind.Company{
 		Name:  companyName,
 		Phone: companyPhone,
-		Contact: &Contact{
+		Contact: &northwind.Contact{
 			Name:  contactName,
 			Title: contactTitle,
 		},
@@ -115,7 +97,7 @@ func editDocumentChapter(companyName string) error {
 	}
 	defer session.Close()
 
-	var company *Company
+	var company *northwind.Company
 	err = session.Load(&company, "companies/5-A")
 	if err != nil {
 		return err
@@ -154,32 +136,18 @@ func deleteDocumentChapter(documentId string) error {
 	return nil
 }
 
-type Category struct {
-	ID          string
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-type Product struct {
-	ID           string
-	Name         string  `json:"name"`
-	Supplier     string  `json:"supplier"`
-	Category     string  `json:"category"`
-	PricePerUnit float64 `json:"pricePerUnit"`
-}
-
 func createRelatedDocuments(productName, supplierName, supplierPhone string) error {
-	supplier := &Supplier{
+	supplier := &northwind.Supplier{
 		Name:  supplierName,
 		Phone: supplierPhone,
 	}
 
-	category := &Category{
+	category := &northwind.Category{
 		Name:        "NoSQL Databases",
 		Description: "Non-relational databases",
 	}
 
-	product := &Product{
+	product := &northwind.Product{
 		Name: productName,
 	}
 
@@ -221,7 +189,7 @@ func loadRelatedDocuments(pricePerUnit float64, phone string) error {
 	}
 	defer session.Close()
 
-	var product *Product
+	var product *northwind.Product
 	err = session.Include("supplier").Load(&product, "products/34-A")
 	if err != nil {
 		return err
@@ -231,7 +199,7 @@ func loadRelatedDocuments(pricePerUnit float64, phone string) error {
 		return nil
 	}
 
-	var supplier *Supplier
+	var supplier *northwind.Supplier
 	err = session.Load(&supplier, product.Supplier)
 	if err != nil || supplier == nil {
 		return err
@@ -245,6 +213,66 @@ func loadRelatedDocuments(pricePerUnit float64, phone string) error {
 		return err
 	}
 
+	return nil
+}
+
+func queryRelatedDocuments() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Order{})
+	q := session.QueryCollectionForType(tp)
+	// TODO: will this work?
+	q = q.Include("Lines.Product")
+	q = q.WhereNotEquals("ShippedAt", nil)
+	var shippedOrders []*northwind.Order
+	err = q.GetResults(&shippedOrders)
+	if err != nil {
+		return err
+	}
+	for _, shippedOrder := range shippedOrders {
+		for i, line := range shippedOrder.Lines {
+			productID := line.Product
+			var product *northwind.Product
+			err = session.Load(&product, productID)
+			if err != nil {
+				return err
+			}
+			product.UnitsOnOrder += shippedOrder.Lines[i].Quantity
+		}
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func indexRelatedDocuments(categoryName string) error {
+	index := ravendb.NewIndexCreationTask("Products/ByCategoryName")
+	// TODO: verify this is correct
+	index.Map = `docs.Products.Select(product => new {
+		CategoryName = (this.LoadDocument(product.Category, "Categories")).Name
+	})
+`
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	var productsWithCategoryName []*northwind.Product
+	q := session.QueryIndex(index.IndexName)
+	q = q.WhereEquals("CategoryName", categoryName)
+	err = q.GetResults(&productsWithCategoryName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

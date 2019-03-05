@@ -1,6 +1,6 @@
 package ravendb
 
-type FieldIndexing = string
+type FieldIndexing string
 
 const (
 	FieldIndexingNo      = "No"
