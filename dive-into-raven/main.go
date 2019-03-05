@@ -1,5 +1,8 @@
 package main
 
+// Note: this file is just to make sure that the code for the book examples
+// compile. This code is not supposed to be run
+
 import (
 	"fmt"
 
@@ -41,6 +44,12 @@ type Company struct {
 	Name    string   `json:"name,omitempty"`
 	Phone   string   `json:"phone,omitempty"`
 	Contact *Contact `json:"contact"`
+}
+
+type Supplier struct {
+	ID    string
+	Name  string `json:"name,omitempty"`
+	Phone string `json:"phone,omitempty"`
 }
 
 func createDocument(companyName, companyPhone, contactName, contactTitle string) error {
@@ -98,6 +107,147 @@ func sessionChapter() error {
 
 	return nil
 }
+
+func editDocumentChapter(companyName string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	var company *Company
+	err = session.Load(&company, "companies/5-A")
+	if err != nil {
+		return err
+	}
+	// if not found, company is not changed and will remain nil
+	if company == nil {
+		return nil
+	}
+	company.Name = companyName
+
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteDocumentChapter(documentId string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	err = session.DeleteByID(documentId, nil)
+	if err != nil {
+		return err
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type Category struct {
+	ID          string
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type Product struct {
+	ID           string
+	Name         string  `json:"name"`
+	Supplier     string  `json:"supplier"`
+	Category     string  `json:"category"`
+	PricePerUnit float64 `json:"pricePerUnit"`
+}
+
+func createRelatedDocuments(productName, supplierName, supplierPhone string) error {
+	supplier := &Supplier{
+		Name:  supplierName,
+		Phone: supplierPhone,
+	}
+
+	category := &Category{
+		Name:        "NoSQL Databases",
+		Description: "Non-relational databases",
+	}
+
+	product := &Product{
+		Name: productName,
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	err = session.Store(supplier)
+	if err != nil {
+		return err
+	}
+	err = session.Store(category)
+	if err != nil {
+		return err
+	}
+
+	product.Supplier = supplier.ID
+	product.Category = category.ID
+
+	err = session.Store(product)
+	if err != nil {
+		return err
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func loadRelatedDocuments(pricePerUnit float64, phone string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	var product *Product
+	err = session.Include("supplier").Load(&product, "products/34-A")
+	if err != nil {
+		return err
+	}
+	if product == nil {
+		// not found
+		return nil
+	}
+
+	var supplier *Supplier
+	err = session.Load(&supplier, product.Supplier)
+	if err != nil || supplier == nil {
+		return err
+	}
+
+	product.PricePerUnit = pricePerUnit
+	supplier.Phone = phone
+
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 
 }
