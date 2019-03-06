@@ -219,9 +219,15 @@ func (o *AdvancedSessionOperations) LoadIntoStream(ids []string, output io.Write
 	return o.s.LoadIntoStream(ids, output)
 }
 
+func (o *AdvancedSessionOperations) GetMaxNumberOfRequestsPerSession() int {
+	return o.s.maxNumberOfRequestsPerSession
+}
+
+func (o *AdvancedSessionOperations) SetMaxNumberOfRequestsPerSession(n int) {
+	o.s.maxNumberOfRequestsPerSession = n
+}
+
 /*
-int getMaxNumberOfRequestsPerSession();
-void setMaxNumberOfRequestsPerSession(int maxRequests);
 String storeIdentifier();
 boolean isUseOptimisticConcurrency();
 void setUseOptimisticConcurrency(boolean useOptimisticConcurrency);

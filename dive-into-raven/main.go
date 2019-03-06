@@ -4,11 +4,32 @@ package main
 // compile. This code is not supposed to be run
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"os"
 	"reflect"
+	"strings"
+	"time"
 
+	"github.com/kylelemons/godebug/pretty"
 	"github.com/ravendb/ravendb-go-client"
 	"github.com/ravendb/ravendb-go-client/examples/northwind"
+)
+
+var (
+	// change to false to run the examples against a
+	// local server running on  port 8080
+	usePublicTestServer = false
+
+	// if running RavenDB locally on port 8080
+	serverLocalURL = "http://localhost:8080"
+
+	// if using public RavenDB test instance
+	serverPublicTestURL = "http://live-test.ravendb.net"
+
+	testDatabaseName string
 )
 
 var (
@@ -32,6 +53,142 @@ func createDocumentStore() (*ravendb.DocumentStore, error) {
 	}
 	globalDocumentStore = store
 	return globalDocumentStore, nil
+}
+
+func genUID() string {
+	var u [16]byte
+	io.ReadFull(rand.Reader, u[:])
+	return hex.EncodeToString(u[:])
+}
+
+func genRandomDatabaseName() string {
+	return "demo-" + genUID()
+}
+
+func waitForIndexing(store *ravendb.DocumentStore, database string, timeout time.Duration) error {
+	admin := store.Maintenance().ForDatabase(database)
+	if timeout == 0 {
+		timeout = time.Minute
+	}
+
+	sp := time.Now()
+	for time.Since(sp) < timeout {
+		op := ravendb.NewGetStatisticsOperation("")
+		err := admin.Send(op)
+		if err != nil {
+			return err
+		}
+		databaseStatistics := op.Command.Result
+		isDone := true
+		hasError := false
+		for _, index := range databaseStatistics.Indexes {
+			if index.State == ravendb.IndexStateDisabled {
+				continue
+			}
+			if index.IsStale || strings.HasPrefix(index.Name, ravendb.IndexingSideBySideIndexNamePrefix) {
+				isDone = false
+			}
+			if index.State == ravendb.IndexStateError {
+				hasError = true
+			}
+		}
+		if isDone {
+			return nil
+		}
+		if hasError {
+			break
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
+
+	op := ravendb.NewGetIndexErrorsOperation(nil)
+	err := admin.Send(op)
+	if err != nil {
+		return err
+	}
+	return ravendb.NewTimeoutError("The indexes stayed stale for more than %s", timeout)
+}
+
+func createSampleNorthwindDatabase(store *ravendb.DocumentStore) error {
+	sampleData := ravendb.NewCreateSampleDataOperation()
+	err := store.Maintenance().Send(sampleData)
+	if err != nil {
+		fmt.Printf("createSampleNorthwindDatabase: store.Maintance().Send() failed with '%s'\n", err)
+		return err
+	}
+	err = waitForIndexing(store, store.GetDatabase(), 0)
+	if err != nil {
+		fmt.Printf("watiForIndexing() failed with '%s'\n", err)
+		return err
+	}
+	return nil
+}
+
+// create a new, randomly named database for just tests and populate with
+// sample Northwind data.
+// if usePublicTestServer we'll use public RavenDB instance. Otherwise
+// we'll talk to local server on port 8080
+func createTestDocumentStore() (*ravendb.DocumentStore, error) {
+	if globalDocumentStore != nil {
+		return globalDocumentStore, nil
+	}
+	urls := []string{serverLocalURL}
+	if usePublicTestServer {
+		urls[0] = serverPublicTestURL
+	}
+
+	testDatabaseName = genRandomDatabaseName()
+	databaseName = testDatabaseName
+
+	// "test.manager" is a dummy database
+	// we need a store, even if it points to a dummy database,
+	// to create a new database and then create a store out of thtat
+	storeManager := ravendb.NewDocumentStore(urls, "test.manager")
+
+	err := storeManager.Initialize()
+	if err != nil {
+		fmt.Printf("createTestDocumentStore: storeManager.Initialize() failed with '%s'\n", err)
+		return nil, err
+	}
+
+	databaseRecord := ravendb.NewDatabaseRecord()
+	databaseRecord.DatabaseName = testDatabaseName
+
+	// replicationFactor seems to be a minimum number of nodes with the data
+	// so it must be less than 3 (we have 3 nodes and might kill one, leaving
+	// only 2)
+	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord, 1)
+	err = storeManager.Maintenance().Server().Send(createDatabaseOperation)
+	if err != nil {
+		fmt.Printf("d.store.Maintenance().Server().Send(createDatabaseOperation) failed with %s\n", err)
+		return nil, err
+	}
+
+	store := ravendb.NewDocumentStore(urls, testDatabaseName)
+	err = store.Initialize()
+	if err != nil {
+		fmt.Printf("createTestDocumentStore: store.Initialize() failed with '%s'\n", err)
+		return nil, err
+	}
+
+	fmt.Printf("Created a test database '%s'\n", testDatabaseName)
+	globalDocumentStore = store
+	err = createSampleNorthwindDatabase(store)
+	if err != nil {
+		fmt.Printf("createTestDocumentStore: createSampleNorthwindDatabase() failed with '%s'\n", err)
+		return nil, err
+	}
+
+	return globalDocumentStore, nil
+}
+
+func deleteTestDatabase() error {
+	if globalDocumentStore == nil || testDatabaseName == "" {
+		return nil
+	}
+	fmt.Printf("Deleting test database '%s'\n", testDatabaseName)
+	op := ravendb.NewDeleteDatabasesOperation(testDatabaseName, true)
+	return globalDocumentStore.Maintenance().Server().Send(op)
 }
 
 func createDocument(companyName, companyPhone, contactName, contactTitle string) error {
@@ -223,9 +380,10 @@ func queryRelatedDocuments() error {
 	}
 	defer session.Close()
 
+	session.Advanced().SetMaxNumberOfRequestsPerSession(128)
+
 	tp := reflect.TypeOf(&northwind.Order{})
 	q := session.QueryCollectionForType(tp)
-	// TODO: will this work?
 	q = q.Include("Lines.Product")
 	q = q.WhereNotEquals("ShippedAt", nil)
 	var shippedOrders []*northwind.Order
@@ -233,9 +391,16 @@ func queryRelatedDocuments() error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("got %d shipped orders\n", len(shippedOrders))
+
 	for _, shippedOrder := range shippedOrders {
-		for i, line := range shippedOrder.Lines {
-			productID := line.Product
+		var productIDs []string
+		for _, line := range shippedOrder.Lines {
+			productIDs = append(productIDs, line.Product)
+		}
+
+		for i, productID := range productIDs {
 			var product *northwind.Product
 			err = session.Load(&product, productID)
 			if err != nil {
@@ -255,11 +420,19 @@ func queryRelatedDocuments() error {
 
 func indexRelatedDocuments(categoryName string) error {
 	index := ravendb.NewIndexCreationTask("Products/ByCategoryName")
-	// TODO: verify this is correct
 	index.Map = `docs.Products.Select(product => new {
 		CategoryName = (this.LoadDocument(product.Category, "Categories")).Name
 	})
 `
+	err := globalDocumentStore.ExecuteIndex(index, "")
+	if err != nil {
+		return err
+	}
+	err = waitForIndexing(globalDocumentStore, "", 0)
+	if err != nil {
+		return err
+	}
+
 	session, err := globalDocumentStore.OpenSession("")
 	if err != nil {
 		return err
@@ -273,9 +446,62 @@ func indexRelatedDocuments(categoryName string) error {
 	if err != nil {
 		return err
 	}
+	pretty.Print(productsWithCategoryName)
 	return nil
 }
 
-func main() {
+func indexRelatedDocumentsTest() {
+	err := indexRelatedDocuments("Produce")
+	if err != nil {
+		fmt.Printf("indexRelatedDocuments() failed with '%s'\n", err)
+	}
+}
 
+func queryRelatedDocumentsTest() {
+	err := queryRelatedDocuments()
+	if err != nil {
+		fmt.Printf("queryRelatedDocuments() failed with '%s'\n", err)
+	}
+}
+
+var (
+	testFunctions = map[string]func(){
+		"indexRelatedDocuments": indexRelatedDocumentsTest,
+		"queryRelatedDocuments": queryRelatedDocumentsTest,
+	}
+)
+
+func usageAndExit() {
+	fmt.Print(`To run:
+go run dive-into-raven/main.go <testName>
+e.g.
+go run dive-into-raven/main.go indexRelatedDocuments
+	`)
+	os.Exit(1)
+}
+
+func must(err error, format string, args ...interface{}) {
+	if err != nil {
+		fmt.Printf(format, args...)
+		panic(err)
+	}
+}
+
+func main() {
+	if len(os.Args) != 2 {
+		usageAndExit()
+	}
+	testNameArg := os.Args[1]
+	testName := strings.TrimSuffix(testNameArg, "Test")
+	testFn, ok := testFunctions[testName]
+	if !ok {
+		fmt.Printf("'%s' is not a known test function\n", testNameArg)
+		usageAndExit()
+	}
+
+	_, err := createTestDocumentStore()
+	defer deleteTestDatabase()
+	must(err, "createTestDocumentStore() failed with %s\n", err)
+	fmt.Printf("Running %s\n", testNameArg)
+	testFn()
 }
