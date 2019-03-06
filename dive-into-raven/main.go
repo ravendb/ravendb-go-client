@@ -8,7 +8,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"mime"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -450,6 +452,117 @@ func indexRelatedDocuments(categoryName string) error {
 	return nil
 }
 
+func storeAttachement(documentID string, attachmentPath string) error {
+	stream, err := os.Open(attachmentPath)
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+
+	contentType := mime.TypeByExtension(filepath.Ext(attachmentPath))
+	attachmentName := filepath.Base(attachmentPath)
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	err = session.Advanced().Attachments().Store(documentID, attachmentName, stream, contentType)
+	if err != nil {
+		return err
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func enableRevisions(collection1, collection2 string) error {
+	dur := ravendb.Duration(time.Hour * 24 * 14)
+	defaultConfig := &ravendb.RevisionsCollectionConfiguration{
+		Disabled:                 false,
+		PurgeOnDelete:            false,
+		MinimumRevisionsToKeep:   5,
+		MinimumRevisionAgeToKeep: &dur,
+	}
+	revisiionConfiguration1 := &ravendb.RevisionsCollectionConfiguration{
+		Disabled: true,
+	}
+	revisiionConfiguration2 := &ravendb.RevisionsCollectionConfiguration{
+		PurgeOnDelete: true,
+	}
+	collections := map[string]*ravendb.RevisionsCollectionConfiguration{
+		collection1: revisiionConfiguration1,
+		collection2: revisiionConfiguration2,
+	}
+
+	myRevisionsConfiguration := &ravendb.RevisionsConfiguration{
+		DefaultConfig: defaultConfig,
+		Collections:   collections,
+	}
+
+	revisionsConfigurationOperation := ravendb.NewConfigureRevisionsOperation(myRevisionsConfiguration)
+	return globalDocumentStore.Maintenance().Send(revisionsConfigurationOperation)
+}
+
+func getRevisions() error {
+	myRevisionsConfiguration := &ravendb.RevisionsConfiguration{
+		DefaultConfig: &ravendb.RevisionsCollectionConfiguration{
+			Disabled: false,
+		},
+	}
+
+	revisionsConfigurationOperation := ravendb.NewConfigureRevisionsOperation(myRevisionsConfiguration)
+	err := globalDocumentStore.Maintenance().Send(revisionsConfigurationOperation)
+	if err != nil {
+		return nil
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	var company *northwind.Company
+	err = session.Load(&company, "companies/7-A")
+	if err != nil {
+		return err
+	}
+	company.Name = "Name 1"
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	company.Name = "Name 2"
+	company.Phone = "052-1234-567"
+	err = session.SaveChanges()
+	if err != nil {
+		return err
+	}
+
+	var revisions []*northwind.Company
+	err = session.Advanced().Revisions().GetFor(&revisions, "companies/7-A")
+	if err != nil {
+		return err
+	}
+	pretty.Print(revisions)
+
+	return nil
+}
+
+func getRevisionsTest() {
+	err := getRevisions()
+	if err != nil {
+		fmt.Printf("getRevisionsTest() failed with '%s'\n", err)
+	}
+}
+
 func indexRelatedDocumentsTest() {
 	err := indexRelatedDocuments("Produce")
 	if err != nil {
@@ -468,6 +581,7 @@ var (
 	testFunctions = map[string]func(){
 		"indexRelatedDocuments": indexRelatedDocumentsTest,
 		"queryRelatedDocuments": queryRelatedDocumentsTest,
+		"getRevisions":          getRevisionsTest,
 	}
 )
 
