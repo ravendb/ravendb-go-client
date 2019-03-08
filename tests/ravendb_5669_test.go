@@ -59,17 +59,17 @@ func ravendb5669workingTestWithSubclause(t *testing.T, driver *RavenTestDriver) 
 		query := session.Advanced().QueryIndex(index.IndexName)
 
 		query.OpenSubclause()
-
-		query = query.WhereEquals("type", "Cat")
-		query = query.OrElse()
-
-		query.OpenSubclause()
-
-		query = query.Search("name", "Pan*")
-		query = query.AndAlso()
-		query = query.Search("name", "Peter*")
-		query = query.CloseSubclause()
-
+		{
+			query = query.WhereEquals("type", "Cat")
+			query = query.OrElse()
+			query.OpenSubclause()
+			{
+				query = query.Search("name", "Pan*")
+				query = query.AndAlso()
+				query = query.Search("name", "Peter*")
+			}
+			query = query.CloseSubclause()
+		}
 		query.CloseSubclause()
 
 		var results []*Animal

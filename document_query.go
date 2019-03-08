@@ -280,6 +280,14 @@ func (q *DocumentQuery) Skip(count int) *DocumentQuery {
 	return q
 }
 
+func (q *DocumentQuery) Where(fieldName string, op string, value interface{}) *DocumentQuery {
+	if q.err != nil {
+		return q
+	}
+	q.err = q.where(fieldName, op, value)
+	return q
+}
+
 func (q *DocumentQuery) WhereLucene(fieldName string, whereClause string) *DocumentQuery {
 	if q.err != nil {
 		return q

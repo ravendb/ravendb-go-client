@@ -433,6 +433,26 @@ func (q *abstractDocumentQuery) closeSubclause() error {
 	return nil
 }
 
+func (q *abstractDocumentQuery) where(fieldName string, op string, value interface{}) error {
+	op = strings.TrimSpace(op)
+	switch op {
+	case "=", "==":
+		return q.whereEquals(fieldName, value)
+	case "!=":
+		return q.whereNotEquals(fieldName, value)
+	case "<":
+		return q.whereLessThan(fieldName, value)
+	case "<=":
+		return q.whereLessThanOrEqual(fieldName, value)
+	case ">":
+		return q.whereGreaterThan(fieldName, value)
+	case ">=":
+		return q.whereGreaterThanOrEqual(fieldName, value)
+	default:
+		return newIllegalArgumentError("'%s' is not a valid op", op)
+	}
+}
+
 func (q *abstractDocumentQuery) whereEquals(fieldName string, value interface{}) error {
 	params := &whereParams{
 		fieldName: fieldName,
@@ -2018,7 +2038,7 @@ func (q *abstractDocumentQuery) orderByDistanceDescendingWkt(fieldName string, s
 func (q *abstractDocumentQuery) assertIsDynamicQuery(dynamicField DynamicSpatialField, methodName string) error {
 	if q.fromToken != nil && !q.fromToken.isDynamic {
 		f := func(s string, f bool) (string, error) {
-			return  q.ensureValidFieldName(s, f)
+			return q.ensureValidFieldName(s, f)
 		}
 		fld, err := dynamicField.ToField(f)
 		if err != nil {
@@ -2147,14 +2167,14 @@ func (q *abstractDocumentQuery) First(result interface{}) error {
 	}
 	slice := slicePtr.Elem()
 	if slice.Len() == 0 {
-		return newIllegalStateError("Expectecd at least one result")
+		return newIllegalStateError("Expected at least one result")
 	}
 	el := slice.Index(0)
 	return setInterfaceToValue(result, el.Interface())
 }
 
 // Single runs a query that expects only a single result.
-// If there is more than one result, it retuns IllegalStateError.
+// If there is more than one result, it returns IllegalStateError.
 func (q *abstractDocumentQuery) Single(result interface{}) error {
 	if q.err != nil {
 		return q.err

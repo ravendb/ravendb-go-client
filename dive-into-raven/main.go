@@ -556,10 +556,234 @@ func getRevisions() error {
 	return nil
 }
 
+func queryOverview() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	queryDefinition := session.QueryCollectionForType(tp)
+
+	// Define actions such as:
+	// Filter documents by documents fields
+	// Filter documents by text criteria
+	// Include related documents
+	// Get the query stats
+	// Sort results
+	// Customise the returned entity fields (Projections)
+	// Control results paging
+
+	var queryResults []*northwind.Employee
+	err = queryDefinition.GetResults(&queryResults)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(queryResults))
+	return nil
+}
+
+type EmployeeDetails struct {
+	FirstName string
+	Title     string
+	HiredAt   ravendb.Time
+}
+
+func queryExample() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	var queryResults []*EmployeeDetails
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	query := session.QueryCollectionForType(tp)
+	{
+		query = query.OpenSubclause()
+		query = query.WhereEquals("FirstName", "Steven")
+		query = query.OrElse()
+		query = query.WhereEquals("Title", "Sales Representative")
+		query = query.CloseSubclause()
+	}
+	query = query.Include("ReportsTo")
+
+	var statistics *ravendb.QueryStatistics
+	query = query.Statistics(&statistics)
+
+	query = query.OrderByDescending("HiredAt")
+	projectionType := reflect.TypeOf(&EmployeeDetails{})
+	query = query.SelectFields(projectionType, "FirstName", "Title", "HiredAt")
+	// TODO: more complex projections like this below:
+	/*
+	   .Select(x => new EmployeeDetails
+	   {
+	       EmployeeName = $"{x.FirstName} {x.LastName}",
+	       Title = x.Title,
+	       HiredAt = x.HiredAt,
+	       ManagerName = RavenQuery.Load<Employee>(x.ReportsTo).FirstName + " " +
+	                     RavenQuery.Load<Employee>(x.ReportsTo).LastName,
+	   })
+	*/
+	query = query.Take(5)
+	err = query.GetResults(&queryResults)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(queryResults))
+	if len(queryResults) > 0 {
+		pretty.Print(queryResults[0])
+	}
+	return nil
+}
+
+func fullCollectionQuery() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Company{})
+	fullCollectionQuery := session.QueryCollectionForType(tp)
+
+	var queryResults []*northwind.Company
+	err = fullCollectionQuery.GetResults(&queryResults)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(queryResults))
+
+	return nil
+}
+
+func queryByDocumentID(employeeDocumentID string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	queryByDocumentId := session.QueryCollectionForType(tp)
+	queryByDocumentId = queryByDocumentId.Where("ID", "==", employeeDocumentID)
+
+	var employee *northwind.Employee
+	err = queryByDocumentId.Single(&employee)
+	if err != nil {
+		return err
+	}
+	pretty.Print(employee)
+
+	return nil
+}
+
+func queryFilterResultsBasic() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	filteredQuery := session.QueryCollectionForType(tp)
+	filteredQuery = filteredQuery.Where("FirstName", "==", "Anne")
+
+	var filteredEmployees []*northwind.Employee
+	err = filteredQuery.GetResults(&filteredEmployees)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(filteredEmployees))
+	if len(filteredEmployees) > 0 {
+		pretty.Print(filteredEmployees[0])
+
+	}
+
+	return nil
+}
+
+func queryFilterResultsMultipleConditions(country string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	tp := reflect.TypeOf(&northwind.Employee{})
+	filteredQuery := session.QueryCollectionForType(tp)
+	filteredQuery = filteredQuery.Where("FirstName", "==", "Anne")
+	filteredQuery = filteredQuery.OrElse()
+	{
+		filteredQuery = filteredQuery.OpenSubclause()
+		filteredQuery = filteredQuery.WhereEquals("Address.Country", country)
+		filteredQuery = filteredQuery.Where("Territories.Count", ">", 2)
+		filteredQuery = filteredQuery.WhereStartsWith("Title", "Sales")
+		filteredQuery = filteredQuery.CloseSubclause()
+	}
+
+	var filteredEmployees []*northwind.Employee
+	err = filteredQuery.GetResults(&filteredEmployees)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(filteredEmployees))
+	if len(filteredEmployees) > 0 {
+		pretty.Print(filteredEmployees[0])
+
+	}
+
+	return nil
+}
+
+func queryFilterResultsMultipleConditionsTest() {
+	err := queryFilterResultsMultipleConditions("USA")
+	if err != nil {
+		fmt.Printf("queryFilterResultsMultipleConditions() failed with '%s'\n", err)
+	}
+}
+
+func queryFilterResultsBasicTest() {
+	err := queryFilterResultsBasic()
+	if err != nil {
+		fmt.Printf("queryFilterResultsBasic() failed with '%s'\n", err)
+	}
+}
+
+func queryByDocumentIDTest() {
+	err := queryByDocumentID("employees/1-A")
+	if err != nil {
+		fmt.Printf("queryByDocumentID() failed with '%s'\n", err)
+	}
+}
+
+func fullCollectionQueryTest() {
+	err := fullCollectionQuery()
+	if err != nil {
+		fmt.Printf("fullCollectionQuery() failed with '%s'\n", err)
+	}
+}
+
+func queryExampleTest() {
+	err := queryExample()
+	if err != nil {
+		fmt.Printf("queryExample() failed with '%s'\n", err)
+	}
+}
+
+func queryOverviewTest() {
+	err := queryOverview()
+	if err != nil {
+		fmt.Printf("queryOverview() failed with '%s'\n", err)
+	}
+}
+
 func getRevisionsTest() {
 	err := getRevisions()
 	if err != nil {
-		fmt.Printf("getRevisionsTest() failed with '%s'\n", err)
+		fmt.Printf("getRevisions() failed with '%s'\n", err)
 	}
 }
 
@@ -579,9 +803,15 @@ func queryRelatedDocumentsTest() {
 
 var (
 	testFunctions = map[string]func(){
-		"indexRelatedDocuments": indexRelatedDocumentsTest,
-		"queryRelatedDocuments": queryRelatedDocumentsTest,
-		"getRevisions":          getRevisionsTest,
+		"indexRelatedDocuments":                indexRelatedDocumentsTest,
+		"queryRelatedDocuments":                queryRelatedDocumentsTest,
+		"getRevisions":                         getRevisionsTest,
+		"queryOverview":                        queryOverviewTest,
+		"queryExample":                         queryExampleTest,
+		"fullCollectionQuery":                  fullCollectionQueryTest,
+		"queryByDocumentID":                    queryByDocumentIDTest,
+		"queryFilterResultsBasic":              queryFilterResultsBasicTest,
+		"queryFilterResultsMultipleConditions": queryFilterResultsMultipleConditionsTest,
 	}
 )
 
