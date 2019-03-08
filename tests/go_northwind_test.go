@@ -89,7 +89,7 @@ func goNorthwindIssue146(t *testing.T, driver *RavenTestDriver) {
 		tp := reflect.TypeOf(&northwind.Employee{})
 		q := session.QueryCollectionForType(tp)
 		q = q.Where("ID", "=", "employees/1-A")
-		var results []*northwind.Order
+		var results []*northwind.Employee
 		err = q.Single(&results)
 		_, ok := err.(*ravendb.IllegalArgumentError)
 		assert.True(t, ok)
@@ -108,7 +108,7 @@ func goNorthwindIssue146(t *testing.T, driver *RavenTestDriver) {
 		tp := reflect.TypeOf(&northwind.Employee{})
 		q := session.QueryCollectionForType(tp)
 		q = q.Where("ID", "=", "employees/1-A")
-		var results []*northwind.Order
+		var results []*northwind.Employee
 		err = q.First(&results)
 		_, ok := err.(*ravendb.IllegalArgumentError)
 		assert.True(t, ok)
@@ -126,10 +126,33 @@ func goNorthwindIssue146(t *testing.T, driver *RavenTestDriver) {
 		tp := reflect.TypeOf(&northwind.Employee{})
 		q := session.QueryCollectionForType(tp)
 
-		var results *northwind.Order
+		var results *northwind.Employee
+		err = q.GetResults(results)
 		err = q.GetResults(&results)
 		_, ok := err.(*ravendb.IllegalArgumentError)
 		assert.True(t, ok)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+		strType := reflect.TypeOf("")
+		q = q.SelectFields(strType, "FirstName")
+
+		var results []string
+		err = q.GetResults(&results)
+		assert.NoError(t, err)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+
+		var results []*northwind.Employee
+		err = q.GetResults(results)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+		assert.Equal(t, "results can't be of type []*northwind.Employee, try *[]*northwind.Employee", err.Error())
 	}
 
 }

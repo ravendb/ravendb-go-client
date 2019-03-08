@@ -2102,19 +2102,10 @@ func (q *abstractDocumentQuery) getQueryResult() (*QueryResult, error) {
 	return q.queryOperation.currentQueryResults.createSnapshot(), nil
 }
 
-// given *[]<type> returns <type>
-func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
-	rt := reflect.TypeOf(results)
-	if (rt.Kind() == reflect.Ptr) && (rt.Elem() != nil) && (rt.Elem().Kind() == reflect.Slice) {
-		return rt.Elem().Elem(), nil
-	}
-	return nil, newIllegalArgumentError("expected value of type *[]<type>, got %T", results)
-}
-
 // check if v is a valid argument to query GetResults().
 // it must be map[string]*<type> where <type> is struct
 func checkValidGetResultsArg(v interface{}, argName string) error {
-	return checkIsPtrSlicePtrStruct(v, argName)
+	return checkIsPtrSlice(v, argName)
 }
 
 // GetResults executes the query and sets results to returned values.

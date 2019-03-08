@@ -307,65 +307,6 @@ func (s *DocumentSession) lazyLoadInternal(ids []string, includes []string, onEv
 	return s.addLazyOperation(lazyOp, onEval, onEvalResult)
 }
 
-// TODO: better error messages for common mistakes, like passing []*<type>
-func checkIsPtrSlicePtrStruct(v interface{}, argName string) error {
-	if v == nil {
-		return newIllegalArgumentError("%s can't be nil", argName)
-	}
-	tp := reflect.TypeOf(v)
-	if tp.Kind() != reflect.Ptr {
-		return newIllegalArgumentError("%s can't be of type %T", argName, v)
-	}
-	if tp.Elem().Kind() != reflect.Slice {
-		return newIllegalArgumentError("%s can't be of type %T", argName, v)
-	}
-	tp = tp.Elem()
-	if tp.Elem().Kind() != reflect.Ptr {
-		return newIllegalArgumentError("%s can't be of type %T", argName, v)
-	}
-
-	// we only allow pointer to struct
-	if tp.Elem().Elem().Kind() == reflect.Struct {
-		return nil
-	}
-	return newIllegalArgumentError("%s can't be of type %T", argName, v)
-}
-
-func checkIsPtrPtrStruct(v interface{}, argName string) error {
-	if v == nil {
-		return newIllegalArgumentError("%s can't be nil", argName)
-	}
-	tp := reflect.TypeOf(v)
-
-	if tp.Kind() == reflect.Struct {
-		// possibly a common mistake, so try to provide a helpful error message
-		typeGot := fmt.Sprintf("%T", v)
-		typeExpect := "**" + typeGot
-		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
-	}
-
-	if tp.Kind() != reflect.Ptr {
-		return newIllegalArgumentError("%s can't be of type %T", argName, v)
-	}
-
-	if tp.Elem().Kind() == reflect.Struct {
-		// possibly a common mistake, so try to provide a helpful error message
-		typeGot := fmt.Sprintf("%T", v)
-		typeExpect := "*" + typeGot
-		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
-	}
-
-	if tp.Elem().Kind() != reflect.Ptr {
-		return newIllegalArgumentError("%s can't be of type %T", argName, v)
-	}
-
-	// we only allow pointer to struct
-	if tp.Elem().Elem().Kind() == reflect.Struct {
-		return nil
-	}
-	return newIllegalArgumentError("%s can't be of type %T", argName, v)
-}
-
 // check if v is a valid argument to Load().
 // it must be *<type> where <type> is *struct or map[string]interface{}
 func checkValidLoadArg(v interface{}, argName string) error {

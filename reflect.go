@@ -378,3 +378,57 @@ func getSingleMapValue(results interface{}) (interface{}, error) {
 	v := m.MapIndex(keys[0])
 	return v.Interface(), nil
 }
+
+func checkIsPtrSlice(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+	tp := reflect.TypeOf(v)
+	if tp.Kind() == reflect.Slice {
+		// more specific error message for common error of passing
+		// []<type> instead of *[]<type>
+		return newIllegalArgumentError("%s can't be of type %T, try *%T", argName, v, v)
+	}
+	if tp.Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+	if tp.Elem().Kind() != reflect.Slice {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+	return nil
+}
+
+func checkIsPtrPtrStruct(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+	tp := reflect.TypeOf(v)
+
+	if tp.Kind() == reflect.Struct {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := "**" + typeGot
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+	}
+
+	if tp.Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+
+	if tp.Elem().Kind() == reflect.Struct {
+		// possibly a common mistake, so try to provide a helpful error message
+		typeGot := fmt.Sprintf("%T", v)
+		typeExpect := "*" + typeGot
+		return newIllegalArgumentError("%s can't be of type %s, try passing %s", argName, typeGot, typeExpect)
+	}
+
+	if tp.Elem().Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+
+	// we only allow pointer to struct
+	if tp.Elem().Elem().Kind() == reflect.Struct {
+		return nil
+	}
+	return newIllegalArgumentError("%s can't be of type %T", argName, v)
+}
