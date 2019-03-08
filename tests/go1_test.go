@@ -628,9 +628,9 @@ func goTestFindCollectionName(t *testing.T, driver *RavenTestDriver) {
 	name = c.GetCollectionName(&User{})
 	assert.Equal(t, name, "my users")
 }
+
 func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 	// test that insertion order of bulk_docs (BatchOperation / BatchCommand)
-	fmt.Printf("goTestBatchCommandOrder\n")
 
 	var err error
 

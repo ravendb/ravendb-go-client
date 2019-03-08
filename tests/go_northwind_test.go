@@ -61,6 +61,76 @@ func goNorthwindWhereBetween(t *testing.T, driver *RavenTestDriver) {
 	assert.NoError(t, err)
 
 	assert.True(t, len(results) > 5) // it's 35 currently
+}
+
+// test that Single()/First()/GetResults() validate early type of result
+// https://github.com/ravendb/ravendb-go-client/issues/146
+func goNorthwindIssue146(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	createNorthwindDatabase(t, driver, store)
+
+	session, err := store.OpenSession("")
+	assert.NoError(t, err)
+	defer session.Close()
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+		q = q.Where("ID", "=", "employees/1-A")
+		err = q.Single(nil)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+		q = q.Where("ID", "=", "employees/1-A")
+		var results []*northwind.Order
+		err = q.Single(&results)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+		q = q.Where("ID", "=", "employees/1-A")
+		err = q.First(nil)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+		q = q.Where("ID", "=", "employees/1-A")
+		var results []*northwind.Order
+		err = q.First(&results)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+		err = q.GetResults(nil)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
+
+	{
+		tp := reflect.TypeOf(&northwind.Employee{})
+		q := session.QueryCollectionForType(tp)
+
+		var results *northwind.Order
+		err = q.GetResults(&results)
+		_, ok := err.(*ravendb.IllegalArgumentError)
+		assert.True(t, ok)
+	}
 
 }
 
@@ -71,4 +141,5 @@ func TestGoNorthwind(t *testing.T) {
 
 	goNorthwindEmployeeLoad(t, driver)
 	goNorthwindWhereBetween(t, driver)
+	goNorthwindIssue146(t, driver)
 }

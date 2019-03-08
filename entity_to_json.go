@@ -91,7 +91,6 @@ func (e *entityToJSON) convertToEntity2(result interface{}, id string, document 
 		// TODO: is this code path ever executed?
 		return setInterfaceToValue(result, document)
 	}
-	// TODO: deal with default values
 	entityType := reflect.TypeOf(result)
 	entity, err := makeStructFromJSONMap(entityType, document)
 	if err != nil {
@@ -112,7 +111,6 @@ func (e *entityToJSON) convertToEntity(entityType reflect.Type, id string, docum
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}
-	// TODO: deal with default values
 	entity, err := makeStructFromJSONMap(entityType, document)
 	if err != nil {
 		return nil, err
@@ -125,7 +123,6 @@ func entityToJSONConvertToEntity(entityType reflect.Type, id string, document ma
 	if isTypeObjectNode(entityType) {
 		return document, nil
 	}
-	// TODO: deal with default values
 	entity, err := makeStructFromJSONMap(entityType, document)
 	if err != nil {
 		return nil, err

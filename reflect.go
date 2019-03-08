@@ -273,7 +273,9 @@ func makeStructFromJSONMap(typ reflect.Type, js map[string]interface{}) (interfa
 		return js, nil
 	}
 	typ2 := fixUpStructType(typ)
-	panicIf(typ2 == nil, "typ should be pointer-to-struct or pointer-to-pointer-to-struct but is %s, %s", typ.String(), typ.Kind().String())
+	if typ2 == nil {
+		return nil, newIllegalArgumentError("typ should be *<type> or *(*<type> but is %s", typ.String())
+	}
 
 	typ = typ2
 	// reflect.New() creates a pointer to type. if typ is already a pointer,

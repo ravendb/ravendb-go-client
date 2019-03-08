@@ -54,7 +54,7 @@ func (s *DocumentSession) Attachments() *AttachmentsSessionOperations {
 	if s.attachments == nil {
 		s.attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
 	} else {
-		if (s.InMemoryDocumentSessionOperations != s.attachments.session) {
+		if s.InMemoryDocumentSessionOperations != s.attachments.session {
 			s.attachments = NewDocumentSessionAttachments(s.InMemoryDocumentSessionOperations)
 		}
 	}
@@ -149,7 +149,6 @@ func (s *DocumentSession) Refresh(entity interface{}) error {
 }
 
 // TODO:    protected string generateID(Object entity) {
-
 
 func (s *DocumentSession) executeAllPendingLazyOperations() (*ResponseTimeInformation, error) {
 	var requests []*getRequest
@@ -264,7 +263,7 @@ func (s *DocumentSession) addLazyOperation(operation ILazyOperation, onEval func
 		}
 		// TODO: make sure this is tested
 		s.onEvaluateLazy[operation] = &onLazyEval{
-			fn: onEval,
+			fn:     onEval,
 			result: onEvalResult,
 		}
 	}
@@ -306,6 +305,30 @@ func (s *DocumentSession) lazyLoadInternal(ids []string, includes []string, onEv
 	lazyOp = lazyOp.withIncludes(includes)
 
 	return s.addLazyOperation(lazyOp, onEval, onEvalResult)
+}
+
+// TODO: better error messages for common mistakes, like passing []*<type>
+func checkIsPtrSlicePtrStruct(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+	tp := reflect.TypeOf(v)
+	if tp.Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+	if tp.Elem().Kind() != reflect.Slice {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+	tp = tp.Elem()
+	if tp.Elem().Kind() != reflect.Ptr {
+		return newIllegalArgumentError("%s can't be of type %T", argName, v)
+	}
+
+	// we only allow pointer to struct
+	if tp.Elem().Elem().Kind() == reflect.Struct {
+		return nil
+	}
+	return newIllegalArgumentError("%s can't be of type %T", argName, v)
 }
 
 func checkIsPtrPtrStruct(v interface{}, argName string) error {

@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -2114,34 +2113,28 @@ func getTypeFromQueryResults(results interface{}) (reflect.Type, error) {
 
 // check if v is a valid argument to query GetResults().
 // it must be map[string]*<type> where <type> is struct
-func checkValidQueryResults(v interface{}, argName string) error {
-	if v == nil {
-		return newIllegalArgumentError("%s can't be nil", argName)
-	}
-
-	tp := reflect.TypeOf(v)
-	if tp.Kind() != reflect.Ptr {
-		typeGot := fmt.Sprintf("%T", v)
-		return newIllegalArgumentError("%s can't be of type %s, must be *[]<type>", argName, typeGot)
-	}
-	if reflect.ValueOf(v).IsNil() {
-		return newIllegalArgumentError("%s can't be a nil slice", argName)
-	}
-	return nil
+func checkValidGetResultsArg(v interface{}, argName string) error {
+	return checkIsPtrSlicePtrStruct(v, argName)
 }
 
 // GetResults executes the query and sets results to returned values.
 // results should be of type *[]<type>
 func (q *abstractDocumentQuery) GetResults(results interface{}) error {
+	// Note: in Java it's called ToList
 	if q.err != nil {
 		return q.err
 	}
-	// Note: in Java it's called ToList
-	q.err = checkValidQueryResults(results, "results")
-	if q.err != nil {
+	if q.err = checkValidGetResultsArg(results, "results"); q.err != nil {
 		return q.err
 	}
 	return q.executeQueryOperation(results, -1)
+}
+
+func checkValidSingleArg(v interface{}, argName string) error {
+	if v == nil {
+		return newIllegalArgumentError("%s can't be nil", argName)
+	}
+	return checkIsPtrPtrStruct(v, argName)
 }
 
 // First runs a query and returns a first result.
@@ -2149,8 +2142,9 @@ func (q *abstractDocumentQuery) First(result interface{}) error {
 	if q.err != nil {
 		return q.err
 	}
-	if result == nil {
-		return newIllegalArgumentError("result can't be nil")
+
+	if q.err = checkValidSingleArg(result, "result"); q.err != nil {
+		return q.err
 	}
 
 	tp := reflect.TypeOf(result)
@@ -2179,8 +2173,9 @@ func (q *abstractDocumentQuery) Single(result interface{}) error {
 	if q.err != nil {
 		return q.err
 	}
-	if result == nil {
-		return fmt.Errorf("result can't be nil")
+
+	if q.err = checkValidSingleArg(result, "result"); q.err != nil {
+		return q.err
 	}
 
 	tp := reflect.TypeOf(result)
