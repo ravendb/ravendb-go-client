@@ -586,10 +586,10 @@ func queryOverview() error {
 
 // EmployeeDetails describes details of an employee
 type EmployeeDetails struct {
-	FirstName   string       `json:"FirstName"`
-	Title       string       `json:"Title"`
-	HiredAt     ravendb.Time `json:"HiredAt"`
-	ManagerName string       `json:"ManagerName"`
+	FirstName string       `json:"FirstName"`
+	LastName  string       `json:"LastName"`
+	Title     string       `json:"Title"`
+	HiredAt   ravendb.Time `json:"HiredAt"`
 }
 
 func queryExample() error {
@@ -616,30 +616,15 @@ func queryExample() error {
 	query = query.Statistics(&statistics)
 
 	query = query.OrderByDescending("HiredAt")
-	projectedType := reflect.TypeOf(&EmployeeDetails{})
 
-	// TOOD: ManagerName, EmployeeName
-	/*
-	   .Select(x => new EmployeeDetails
-	   {
-	       EmployeeName = $"{x.FirstName} {x.LastName}",
-	       Title = x.Title,
-	       HiredAt = x.HiredAt,
-	       ManagerName = RavenQuery.Load<Employee>(x.ReportsTo).FirstName + " " +
-	                     RavenQuery.Load<Employee>(x.ReportsTo).LastName,
-	   })
-	*/
-	projections := []string{"FirstName", "Title", "HiredAt"}
+	projectedType := reflect.TypeOf(&EmployeeDetails{})
 	fields := []string{
 		"FirstName",
+		"LastName",
 		"Title",
 		"HiredAt",
 	}
-	queryData := &ravendb.QueryData{
-		Fields:      fields,
-		Projections: projections,
-	}
-	query = query.SelectFieldsWithQueryData(projectedType, queryData)
+	query = query.SelectFields(projectedType, fields...)
 	query = query.Take(5)
 	err = query.GetResults(&queryResults)
 	if err != nil {
