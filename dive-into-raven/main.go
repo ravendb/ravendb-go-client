@@ -384,8 +384,8 @@ func queryRelatedDocuments() error {
 
 	session.Advanced().SetMaxNumberOfRequestsPerSession(128)
 
-	tp := reflect.TypeOf(&northwind.Order{})
-	q := session.QueryCollectionForType(tp)
+	queriedType := reflect.TypeOf(&northwind.Order{})
+	q := session.QueryCollectionForType(queriedType)
 	q = q.Include("Lines.Product")
 	q = q.WhereNotEquals("ShippedAt", nil)
 	var shippedOrders []*northwind.Order
@@ -563,8 +563,8 @@ func queryOverview() error {
 	}
 	defer session.Close()
 
-	tp := reflect.TypeOf(&northwind.Employee{})
-	queryDefinition := session.QueryCollectionForType(tp)
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	queryDefinition := session.QueryCollectionForType(queriedType)
 
 	// Define actions such as:
 	// Filter documents by documents fields
@@ -584,10 +584,12 @@ func queryOverview() error {
 	return nil
 }
 
+// EmployeeDetails describes details of an employee
 type EmployeeDetails struct {
-	FirstName string
-	Title     string
-	HiredAt   ravendb.Time
+	FirstName   string       `json:"FirstName"`
+	Title       string       `json:"Title"`
+	HiredAt     ravendb.Time `json:"HiredAt"`
+	ManagerName string       `json:"ManagerName"`
 }
 
 func queryExample() error {
@@ -599,8 +601,8 @@ func queryExample() error {
 
 	var queryResults []*EmployeeDetails
 
-	tp := reflect.TypeOf(&northwind.Employee{})
-	query := session.QueryCollectionForType(tp)
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	query := session.QueryCollectionForType(queriedType)
 	{
 		query = query.OpenSubclause()
 		query = query.WhereEquals("FirstName", "Steven")
@@ -615,8 +617,8 @@ func queryExample() error {
 
 	query = query.OrderByDescending("HiredAt")
 	projectionType := reflect.TypeOf(&EmployeeDetails{})
-	query = query.SelectFields(projectionType, "FirstName", "Title", "HiredAt")
-	// TODO: more complex projections like this below:
+
+	// TOOD: ManagerName, EmployeeName
 	/*
 	   .Select(x => new EmployeeDetails
 	   {
@@ -627,6 +629,13 @@ func queryExample() error {
 	                     RavenQuery.Load<Employee>(x.ReportsTo).LastName,
 	   })
 	*/
+	projections := []string{"FirstName", "Title", "HiredAt"}
+	fields := []string{
+		"FirstName",
+		"Title",
+		"HiredAt",
+	}
+	query = query.SelectFieldsWithProjections(projectionType, fields, projections)
 	query = query.Take(5)
 	err = query.GetResults(&queryResults)
 	if err != nil {
@@ -646,8 +655,8 @@ func fullCollectionQuery() error {
 	}
 	defer session.Close()
 
-	tp := reflect.TypeOf(&northwind.Company{})
-	fullCollectionQuery := session.QueryCollectionForType(tp)
+	queriedType := reflect.TypeOf(&northwind.Company{})
+	fullCollectionQuery := session.QueryCollectionForType(queriedType)
 
 	var queryResults []*northwind.Company
 	err = fullCollectionQuery.GetResults(&queryResults)
@@ -666,12 +675,12 @@ func queryByDocumentID(employeeDocumentID string) error {
 	}
 	defer session.Close()
 
-	tp := reflect.TypeOf(&northwind.Employee{})
-	queryByDocumentId := session.QueryCollectionForType(tp)
-	queryByDocumentId = queryByDocumentId.Where("ID", "==", employeeDocumentID)
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	queryByDocumentID := session.QueryCollectionForType(queriedType)
+	queryByDocumentID = queryByDocumentID.Where("ID", "==", employeeDocumentID)
 
 	var employee *northwind.Employee
-	err = queryByDocumentId.Single(&employee)
+	err = queryByDocumentID.Single(&employee)
 	if err != nil {
 		return err
 	}
@@ -687,8 +696,8 @@ func queryFilterResultsBasic() error {
 	}
 	defer session.Close()
 
-	tp := reflect.TypeOf(&northwind.Employee{})
-	filteredQuery := session.QueryCollectionForType(tp)
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	filteredQuery := session.QueryCollectionForType(queriedType)
 	filteredQuery = filteredQuery.Where("FirstName", "==", "Anne")
 
 	var filteredEmployees []*northwind.Employee
@@ -712,8 +721,8 @@ func queryFilterResultsMultipleConditions(country string) error {
 	}
 	defer session.Close()
 
-	tp := reflect.TypeOf(&northwind.Employee{})
-	filteredQuery := session.QueryCollectionForType(tp)
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	filteredQuery := session.QueryCollectionForType(queriedType)
 	filteredQuery = filteredQuery.Where("FirstName", "==", "Anne")
 	filteredQuery = filteredQuery.OrElse()
 	{
@@ -732,10 +741,48 @@ func queryFilterResultsMultipleConditions(country string) error {
 	fmt.Printf("Got %d results\n", len(filteredEmployees))
 	if len(filteredEmployees) > 0 {
 		pretty.Print(filteredEmployees[0])
-
 	}
 
 	return nil
+}
+
+// CompanyDetails describes details about a company
+type CompanyDetails struct {
+	CompanyName string `json:"CompanyName"`
+	City        string `json:"City"`
+	Country     string `json:"Country"`
+}
+
+func queryProjectingIndividualFields() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	queriedType := reflect.TypeOf(&northwind.Company{})
+	projectedQuery := session.QueryCollectionForType(queriedType)
+	projectedType := reflect.TypeOf(&CompanyDetails{})
+	fields := []string{"Name", "Address.City", "Address.Country"}
+	projections := []string{"CompanyName", "City", "Country"}
+	projectedQuery = projectedQuery.SelectFieldsWithProjections(projectedType, fields, projections)
+	var projectedResults []*CompanyDetails
+	err = projectedQuery.GetResults(&projectedResults)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(projectedResults))
+	if len(projectedResults) > 0 {
+		pretty.Print(projectedResults[0])
+	}
+	return nil
+}
+
+func queryProjectingIndividualFieldsTest() {
+	err := queryProjectingIndividualFields()
+	if err != nil {
+		fmt.Printf("queryProjectingIndividualFields() failed with '%s'\n", err)
+	}
 }
 
 func queryFilterResultsMultipleConditionsTest() {
@@ -812,6 +859,7 @@ var (
 		"queryByDocumentID":                    queryByDocumentIDTest,
 		"queryFilterResultsBasic":              queryFilterResultsBasicTest,
 		"queryFilterResultsMultipleConditions": queryFilterResultsMultipleConditionsTest,
+		"queryProjectingIndividualFields":      queryProjectingIndividualFieldsTest,
 	}
 )
 

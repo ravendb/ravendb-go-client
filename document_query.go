@@ -76,7 +76,38 @@ func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...st
 	}
 	res, err := q.createDocumentQueryInternal(projectionType, queryData)
 	if err != nil {
-		res.err = err
+		q.err = err
+		return q
+	}
+	return res
+}
+
+// SelectFieldsWithProjections limits the returned values to one or more fields of the queried type.
+func (q *DocumentQuery) SelectFieldsWithProjections(projectionType reflect.Type, fields []string, projections []string) *DocumentQuery {
+	// TODO: tests
+	// TODO: better name?
+	if q.err != nil {
+		return q
+	}
+	if len(fields) == 0 || len(projections) == 0 {
+		q.err = newIllegalArgumentError("fields and projections cannot be empty slices")
+		return q
+	}
+
+	if len(fields) != len(projections) {
+		q.err = newIllegalArgumentError("fields and projections should be of the same size. Have %d and %d elements respectively", len(fields), len(projections))
+		return q
+	}
+	// TODO: check that fields exist on projectionType
+
+	queryData := &queryData{
+		fields:      fields,
+		projections: projections,
+	}
+	res, err := q.createDocumentQueryInternal(projectionType, queryData)
+	if err != nil {
+		q.err = err
+		return q
 	}
 	return res
 }
@@ -171,6 +202,7 @@ func (q *DocumentQuery) AddOrderWithOrdering(fieldName string, descending bool, 
 }
 */
 
+// OpenSubclause opens a query sub-clause
 func (q *DocumentQuery) OpenSubclause() *DocumentQuery {
 	if q.err != nil {
 		return q
@@ -179,6 +211,7 @@ func (q *DocumentQuery) OpenSubclause() *DocumentQuery {
 	return q
 }
 
+// CloseSubclause closes a query sub-clause
 func (q *DocumentQuery) CloseSubclause() *DocumentQuery {
 	if q.err != nil {
 		return q
@@ -524,7 +557,7 @@ func (q *DocumentQuery) GroupBy(fieldName string, fieldNames ...string) *GroupBy
 	return res
 }
 
-// GroupBy makes a query grouped by fields and also allows specifying method
+// GroupByFieldWithMethod makes a query grouped by fields and also allows specifying method
 // of grouping for each field
 func (q *DocumentQuery) GroupByFieldWithMethod(field *GroupBy, fields ...*GroupBy) *GroupByDocumentQuery {
 	res := newGroupByDocumentQuery(q)
@@ -535,11 +568,12 @@ func (q *DocumentQuery) GroupByFieldWithMethod(field *GroupBy, fields ...*GroupB
 	return res
 }
 
-// OrderBy makes a query ordered by a given field
+// OrderBy orders query results by a field
 func (q *DocumentQuery) OrderBy(field string) *DocumentQuery {
 	return q.OrderByWithOrdering(field, OrderingTypeString)
 }
 
+// OrderByWithOrdering orders query results by ordering
 func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType) *DocumentQuery {
 	if q.err != nil {
 		return q
@@ -550,10 +584,12 @@ func (q *DocumentQuery) OrderByWithOrdering(field string, ordering OrderingType)
 
 //TBD expr  IDocumentQuery<T> OrderBy<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
+// OrderByDescending orders query by a field in descending order
 func (q *DocumentQuery) OrderByDescending(field string) *DocumentQuery {
 	return q.OrderByDescendingWithOrdering(field, OrderingTypeString)
 }
 
+// OrderByDescendingWithOrdering orders query by ordering in descending order
 func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering OrderingType) *DocumentQuery {
 	if q.err != nil {
 		return q
@@ -564,10 +600,13 @@ func (q *DocumentQuery) OrderByDescendingWithOrdering(field string, ordering Ord
 
 //TBD expr  IDocumentQuery<T> OrderByDescending<TValue>(params Expression<Func<T, TValue>>[] propertySelectors)
 
+// AddBeforeQueryExecutedListener adds a listener that will be called before query
+// is executed
 func (q *DocumentQuery) AddBeforeQueryExecutedListener(action func(*IndexQuery)) int {
 	return q.addBeforeQueryExecutedListener(action)
 }
 
+// RemoveBeforeQueryExecutedListener removes a listener registered with AddBeforeQueryExecutedListener
 func (q *DocumentQuery) RemoveBeforeQueryExecutedListener(idx int) *DocumentQuery {
 	q.removeBeforeQueryExecutedListener(idx)
 	return q
@@ -656,6 +695,7 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	return query, nil
 }
 
+// AggregateByFacet aggregates the query by a facet
 func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQuery {
 	res := newAggregationDocumentQuery(q)
 	if q.err != nil {
@@ -666,6 +706,7 @@ func (q *DocumentQuery) AggregateByFacet(facet FacetBase) *AggregationDocumentQu
 	return res
 }
 
+// AggregateByFacets aggregates the query by facets
 func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *AggregationDocumentQuery {
 	res := newAggregationDocumentQuery(q)
 	if q.err != nil {
@@ -680,6 +721,7 @@ func (q *DocumentQuery) AggregateByFacets(facets ...*Facet) *AggregationDocument
 	return res
 }
 
+// AggregateUsing aggregates the query by facet setup
 func (q *DocumentQuery) AggregateUsing(facetSetupDocumentID string) *AggregationDocumentQuery {
 	res := newAggregationDocumentQuery(q)
 	if q.err != nil {
