@@ -586,8 +586,8 @@ func queryOverview() error {
 
 // EmployeeDetails describes details of an employee
 type EmployeeDetails struct {
+	FullName  string       `json:"FullName"`
 	FirstName string       `json:"FirstName"`
-	LastName  string       `json:"LastName"`
 	Title     string       `json:"Title"`
 	HiredAt   ravendb.Time `json:"HiredAt"`
 }
@@ -620,7 +620,6 @@ func queryExample() error {
 	projectedType := reflect.TypeOf(&EmployeeDetails{})
 	fields := []string{
 		"FirstName",
-		"LastName",
 		"Title",
 		"HiredAt",
 	}
@@ -771,6 +770,80 @@ func queryProjectingIndividualFields() error {
 	return nil
 }
 
+func queryProjectingUsingFunctions() error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	rawQuery := `declare function output(e) {
+	    var format = function(p){ return p.FirstName + " " + p.LastName; };
+	    return { FullName : format(e), Title: e.Title, HiredAt: e.HiredAt };
+	}
+	from Employees as e select output(e)
+	`
+	query := session.Advanced().RawQuery(rawQuery)
+	var projectedResults []*EmployeeDetails
+	err = query.GetResults(&projectedResults)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(projectedResults))
+	if len(projectedResults) > 0 {
+		pretty.Print(projectedResults[0])
+	}
+	return nil
+}
+
+func staticIndexesOverview() error {
+	indexName := "Employees/ByLastName"
+	index := ravendb.NewIndexCreationTask(indexName)
+	// Define:
+	//    Map(s) functions
+	//    Reduce function
+	//    Additional indexing options per field
+	index.Map = "from e in docs.Employees select new { e.LastName }"
+
+	err := index.Execute(globalDocumentStore, nil, "")
+	if err != nil {
+		return err
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	queryOnIndex := session.QueryIndex(indexName)
+	queryOnIndex = queryOnIndex.Where("LastName", "==", "SomeName")
+	var queryResults []*northwind.Employee
+	err = queryOnIndex.GetResults(&queryResults)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(queryResults))
+	if len(queryResults) > 0 {
+		pretty.Print(queryResults[0])
+	}
+	return nil
+}
+
+func staticIndexesOverviewTest() {
+	err := staticIndexesOverview()
+	if err != nil {
+		fmt.Printf("staticIndexesOverview() failed with '%s'\n", err)
+	}
+}
+
+func queryProjectingUsingFunctionsTest() {
+	err := queryProjectingUsingFunctions()
+	if err != nil {
+		fmt.Printf("queryProjectingUsingFunctions() failed with '%s'\n", err)
+	}
+}
+
 func queryProjectingIndividualFieldsTest() {
 	err := queryProjectingIndividualFields()
 	if err != nil {
@@ -853,6 +926,8 @@ var (
 		"queryFilterResultsBasic":              queryFilterResultsBasicTest,
 		"queryFilterResultsMultipleConditions": queryFilterResultsMultipleConditionsTest,
 		"queryProjectingIndividualFields":      queryProjectingIndividualFieldsTest,
+		"queryProjectingUsingFunctions":        queryProjectingUsingFunctionsTest,
+		"staticIndexesOverview":                staticIndexesOverviewTest,
 	}
 )
 
