@@ -70,9 +70,9 @@ func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...st
 		fields = fieldsIn
 	}
 
-	queryData := &queryData{
-		fields:      fields,
-		projections: fields,
+	queryData := &QueryData{
+		Fields:      fields,
+		Projections: fields,
 	}
 	res, err := q.createDocumentQueryInternal(projectionType, queryData)
 	if err != nil {
@@ -82,28 +82,19 @@ func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...st
 	return res
 }
 
-// SelectFieldsWithProjections limits the returned values to one or more fields of the queried type.
-func (q *DocumentQuery) SelectFieldsWithProjections(projectionType reflect.Type, fields []string, projections []string) *DocumentQuery {
+// SelectFieldsWithQueryData limits the returned values to one or more fields of the queried type.
+func (q *DocumentQuery) SelectFieldsWithQueryData(projectionType reflect.Type, queryData *QueryData) *DocumentQuery {
 	// TODO: tests
 	// TODO: better name?
 	if q.err != nil {
 		return q
 	}
-	if len(fields) == 0 || len(projections) == 0 {
-		q.err = newIllegalArgumentError("fields and projections cannot be empty slices")
-		return q
-	}
 
-	if len(fields) != len(projections) {
-		q.err = newIllegalArgumentError("fields and projections should be of the same size. Have %d and %d elements respectively", len(fields), len(projections))
+	if len(queryData.Fields) != len(queryData.Projections) {
+		q.err = newIllegalArgumentError("fields and projections should be of the same size. Have %d and %d elements respectively", len(queryData.Fields), len(queryData.Projections))
 		return q
 	}
 	// TODO: check that fields exist on projectionType
-
-	queryData := &queryData{
-		fields:      fields,
-		projections: projections,
-	}
 	res, err := q.createDocumentQueryInternal(projectionType, queryData)
 	if err != nil {
 		q.err = err
@@ -142,6 +133,8 @@ func (q *DocumentQuery) OrderByScoreDescending() *DocumentQuery {
 
 //TBD 4.1  IDocumentQuery<T> explainScores() {
 
+// WaitForNonStaleResults waits for non-stale results for a given waitTimeout.
+// Timeout of 0 means default timeout.
 func (q *DocumentQuery) WaitForNonStaleResults(waitTimeout time.Duration) *DocumentQuery {
 	if q.err != nil {
 		return q
@@ -612,13 +605,13 @@ func (q *DocumentQuery) RemoveBeforeQueryExecutedListener(idx int) *DocumentQuer
 	return q
 }
 
-// Note: had to move it down to abstractDocumentQuery
-func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *queryData) (*DocumentQuery, error) {
+// Note: compared to Java, had to move it down to abstractDocumentQuery
+func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.Type, queryData *QueryData) (*DocumentQuery, error) {
 
 	var newFieldsToFetch *fieldsToFetchToken
 
-	if queryData != nil && len(queryData.fields) > 0 {
-		fields := queryData.fields
+	if queryData != nil && len(queryData.Fields) > 0 {
+		fields := queryData.Fields
 
 		identityProperty := q.conventions.GetIdentityProperty(resultClass)
 
@@ -634,7 +627,7 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 		}
 
 		sourceAliasReference := getSourceAliasIfExists(resultClass, queryData, fields)
-		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.projections, queryData.isCustomFunction, sourceAliasReference)
+		newFieldsToFetch = createFieldsToFetchToken(fields, queryData.Projections, queryData.isCustomFunction, sourceAliasReference)
 	}
 
 	if newFieldsToFetch != nil {

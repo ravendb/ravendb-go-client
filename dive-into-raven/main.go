@@ -616,7 +616,7 @@ func queryExample() error {
 	query = query.Statistics(&statistics)
 
 	query = query.OrderByDescending("HiredAt")
-	projectionType := reflect.TypeOf(&EmployeeDetails{})
+	projectedType := reflect.TypeOf(&EmployeeDetails{})
 
 	// TOOD: ManagerName, EmployeeName
 	/*
@@ -635,7 +635,11 @@ func queryExample() error {
 		"Title",
 		"HiredAt",
 	}
-	query = query.SelectFieldsWithProjections(projectionType, fields, projections)
+	queryData := &ravendb.QueryData{
+		Fields:      fields,
+		Projections: projections,
+	}
+	query = query.SelectFieldsWithQueryData(projectedType, queryData)
 	query = query.Take(5)
 	err = query.GetResults(&queryResults)
 	if err != nil {
@@ -765,7 +769,11 @@ func queryProjectingIndividualFields() error {
 	projectedType := reflect.TypeOf(&CompanyDetails{})
 	fields := []string{"Name", "Address.City", "Address.Country"}
 	projections := []string{"CompanyName", "City", "Country"}
-	projectedQuery = projectedQuery.SelectFieldsWithProjections(projectedType, fields, projections)
+	queryData := &ravendb.QueryData{
+		Fields:      fields,
+		Projections: projections,
+	}
+	projectedQuery = projectedQuery.SelectFieldsWithQueryData(projectedType, queryData)
 	var projectedResults []*CompanyDetails
 	err = projectedQuery.GetResults(&projectedResults)
 	if err != nil {

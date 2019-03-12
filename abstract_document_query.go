@@ -1732,7 +1732,7 @@ func (q *abstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 	q.selectTokens = append(q.selectTokens, fieldsToFetch)
 }
 
-func getSourceAliasIfExists(clazz reflect.Type, queryData *queryData, fields []string) string {
+func getSourceAliasIfExists(clazz reflect.Type, queryData *QueryData, fields []string) string {
 	if len(fields) != 1 || fields[0] == "" {
 		return ""
 	}
