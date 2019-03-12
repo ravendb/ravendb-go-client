@@ -1,8 +1,5 @@
 package main
 
-// Note: this file is just to make sure that the code for the book examples
-// compile. This code is not supposed to be run
-
 import (
 	"crypto/rand"
 	"encoding/hex"
@@ -59,7 +56,7 @@ func createDocumentStore() (*ravendb.DocumentStore, error) {
 
 func genUID() string {
 	var u [16]byte
-	io.ReadFull(rand.Reader, u[:])
+	_, _ = io.ReadFull(rand.Reader, u[:])
 	return hex.EncodeToString(u[:])
 }
 
@@ -221,11 +218,11 @@ func createDocument(companyName, companyPhone, contactName, contactTitle string)
 		return err
 	}
 
-	fmt.Printf("Document id: %s\n", theNewDocumentID)
+	fmt.Printf("Created a new document with id: %s\n", theNewDocumentID)
 	return nil
 }
 
-func sessionChapter() error {
+func session() error {
 	session, err := globalDocumentStore.OpenSession("")
 	if err != nil {
 		return err
@@ -243,13 +240,13 @@ func sessionChapter() error {
 		return err
 	}
 
-	// make sure to close the sessoin
+	// make sure to close the session
 	session.Close()
 
 	return nil
 }
 
-func editDocumentChapter(companyName string) error {
+func editDocument(companyName string) error {
 	session, err := globalDocumentStore.OpenSession("")
 	if err != nil {
 		return err
@@ -275,7 +272,7 @@ func editDocumentChapter(companyName string) error {
 	return nil
 }
 
-func deleteDocumentChapter(documentID string) error {
+func deleteDocument(documentID string) error {
 	session, err := globalDocumentStore.OpenSession("")
 	if err != nil {
 		return err
@@ -457,7 +454,9 @@ func storeAttachement(documentID string, attachmentPath string) error {
 	if err != nil {
 		return err
 	}
-	defer stream.Close()
+	defer func() {
+		_ = stream.Close()
+	}()
 
 	contentType := mime.TypeByExtension(filepath.Ext(attachmentPath))
 	attachmentName := filepath.Base(attachmentPath)
@@ -830,6 +829,57 @@ func staticIndexesOverview() error {
 	return nil
 }
 
+func mapIndex(startYear int) error {
+	mapIndexDef := `
+docs.Employees.Select(e => new {
+	FullName = e.FirstName + " " + e.LastName,
+	Country = e.Address.Country,
+	WorkingInCompanySince = e.HiredAt.Year,
+	NumberOfTerritories = e.Territories.Count
+}
+`
+	indexName := "Employees/ImportantDetails"
+	index := ravendb.NewIndexCreationTask(indexName)
+	index.Map = mapIndexDef
+
+	err := index.Execute(globalDocumentStore, nil, "")
+	if err != nil {
+		return err
+	}
+	err = waitForIndexing(globalDocumentStore, "", 0)
+	if err != nil {
+		return err
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	query := session.QueryIndex(indexName)
+	query = query.Where("Country", "==", "USA")
+	query = query.Where("WorkingInCompanySince", ">", startYear)
+
+	var employeesFromUSA []*northwind.Employee
+	err = query.GetResults(&employeesFromUSA)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Got %d results\n", len(employeesFromUSA))
+	if len(employeesFromUSA) > 0 {
+		pretty.Print(employeesFromUSA[0])
+	}
+	return nil
+}
+
+func mapIndexTest() {
+	err := mapIndex(1993)
+	if err != nil {
+		fmt.Printf("mapIndex() failed with '%s'\n", err)
+	}
+}
+
 func staticIndexesOverviewTest() {
 	err := staticIndexesOverview()
 	if err != nil {
@@ -914,8 +964,75 @@ func queryRelatedDocumentsTest() {
 	}
 }
 
+// sessionChapter
+
+func sessionTest() {
+	err := session()
+	if err != nil {
+		fmt.Printf("sessionChapter() failed with '%s'\n", err)
+	}
+}
+
+func createDocumentTest() {
+	err := createDocument("Hibernating Rhinos", "(+972)52-5486969", "New Contact Name", "New Contact Title")
+	if err != nil {
+		fmt.Printf("createDocument() failed with '%s'\n", err)
+	}
+}
+
+func editDocumentTest() {
+	err := editDocument("New Company Name")
+	if err != nil {
+		fmt.Printf("editDocument() failed with '%s'\n", err)
+	}
+}
+
+func deleteDocumentTest() {
+	err := deleteDocument("companies/1-A")
+	if err != nil {
+		fmt.Printf("deleteDocument() failed with '%s'\n", err)
+	}
+}
+
+func createRelatedDocumentsTest() {
+	err := createRelatedDocuments("RavenDB", "Hibernating Rhinos", "(+972)52-54869696")
+	if err != nil {
+		fmt.Printf("createRelatedDocuments() failed with '%s'\n", err)
+	}
+}
+
+func loadRelatedDocumentsTest() {
+	err := loadRelatedDocuments(12, "(+972)52-54869696")
+	if err != nil {
+		fmt.Printf("loadRelatedDocuments() failed with '%s'\n", err)
+	}
+}
+
+func storeAttachementTest() {
+	path := filepath.Join("examples", "pic.png")
+	err := storeAttachement("companies/2-A", path)
+	if err != nil {
+		fmt.Printf("storeAttachement() failed with '%s'\n", err)
+	}
+}
+
+func enableRevisionsTest() {
+	err := enableRevisions("Orders", "Companies")
+	if err != nil {
+		fmt.Printf("enableRevisions() failed with '%s'\n", err)
+	}
+}
+
 var (
 	testFunctions = map[string]func(){
+		"createDocument":                       createDocumentTest,
+		"session":                              sessionTest,
+		"editDocument":                         editDocumentTest,
+		"deleteDocument":                       deleteDocumentTest,
+		"createRelatedDocuments":               createRelatedDocumentsTest,
+		"loadRelatedDocuments":                 loadRelatedDocumentsTest,
+		"storeAttachement":                     storeAttachementTest,
+		"enableRevisions":                      enableRevisionsTest,
 		"indexRelatedDocuments":                indexRelatedDocumentsTest,
 		"queryRelatedDocuments":                queryRelatedDocumentsTest,
 		"getRevisions":                         getRevisionsTest,
@@ -928,6 +1045,7 @@ var (
 		"queryProjectingIndividualFields":      queryProjectingIndividualFieldsTest,
 		"queryProjectingUsingFunctions":        queryProjectingUsingFunctionsTest,
 		"staticIndexesOverview":                staticIndexesOverviewTest,
+		"mapIndex":                             mapIndexTest,
 	}
 )
 
