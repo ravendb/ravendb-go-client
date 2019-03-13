@@ -1002,6 +1002,56 @@ func autoMapIndex2(country string) error {
 	return nil
 }
 
+func fullTextSearchSingleField(searchTerm string) error {
+	indexName := "Categories/DescriptionText"
+	index := ravendb.NewIndexCreationTask(indexName)
+
+	index.Map = `
+from c in docs.Categories 
+select new { 
+   CategoryDescription = c.Description 
+}
+`
+	index.Index("CategoryDescription", ravendb.FieldIndexingSearch)
+
+	err := index.Execute(globalDocumentStore, nil, "")
+	if err != nil {
+		return err
+	}
+	err = waitForIndexing(globalDocumentStore, "", 0)
+	if err != nil {
+		return err
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	query := session.QueryIndex(indexName)
+	query = query.Where("CategoryDescription", "==", searchTerm)
+
+	var categoriesWithSearchTerm []*northwind.Category
+	err = query.GetResults(&categoriesWithSearchTerm)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Get %d results\n", len(categoriesWithSearchTerm))
+	if len(categoriesWithSearchTerm) > 0 {
+		pretty.Print(categoriesWithSearchTerm[0])
+	}
+
+	return nil
+}
+
+func fullTextSearchSingleFieldTest() {
+	err := fullTextSearchSingleField("pasta")
+	if err != nil {
+		fmt.Printf("fullTextSearchSingleField() failed with '%s'\n", err)
+	}
+}
+
 func autoMapIndex2Test() {
 	err := autoMapIndex2("UK")
 	if err != nil {
@@ -1190,6 +1240,7 @@ var (
 		"mapReduceIndex":                       mapReduceIndexTest,
 		"autoMapIndex":                         autoMapIndexTest,
 		"autoMapIndex2":                        autoMapIndex2Test,
+		"fullTextSearchSingleField":            fullTextSearchSingleFieldTest,
 	}
 )
 
