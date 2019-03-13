@@ -890,6 +890,8 @@ docs.Employees.Select(e => new {
 }
 
 func mapReduceIndex(country string) error {
+	indexName := "Employees/ByCountry"
+	index := ravendb.NewIndexCreationTask(indexName)
 	mapIndexDef := `
 map('employees', function(e) {
 	return {
@@ -898,6 +900,7 @@ map('employees', function(e) {
 	}
 })
 `
+	index.Map = mapIndexDef
 
 	reduceIndexDef := `
 groupBy(x => x.Country)
@@ -908,9 +911,6 @@ groupBy(x => x.Country)
 	}
 })
 `
-	indexName := "Employees/ByCountry"
-	index := ravendb.NewIndexCreationTask(indexName)
-	index.Map = mapIndexDef
 	index.Reduce = reduceIndexDef
 
 	err := index.Execute(globalDocumentStore, nil, "")
@@ -944,6 +944,37 @@ groupBy(x => x.Country)
 		fmt.Printf("Number of employees from country '%s': %d\n", queryResult.Country, queryResult.Count)
 	}
 	return nil
+}
+
+func autoMapIndex(firstName string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	query := session.QueryCollectionForType(queriedType)
+	query = query.Where("FirstName", "==", firstName)
+
+	var employeeResult *northwind.Employee
+	err = query.First(&employeeResult)
+	if err != nil {
+		return err
+	}
+	if employeeResult != nil {
+		pretty.Print(employeeResult)
+	} else {
+		fmt.Printf("No employee with first name '%s'\n", firstName)
+	}
+	return nil
+}
+
+func autoMapIndexTest() {
+	err := autoMapIndex("Steven")
+	if err != nil {
+		fmt.Printf("autoMapIndex() failed with '%s'\n", err)
+	}
 }
 
 func mapIndexTest() {
@@ -1125,6 +1156,7 @@ var (
 		"staticIndexesOverview":                staticIndexesOverviewTest,
 		"mapIndex":                             mapIndexTest,
 		"mapReduceIndex":                       mapReduceIndexTest,
+		"autoMapIndex":                         autoMapIndexTest,
 	}
 )
 
