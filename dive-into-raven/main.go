@@ -977,6 +977,38 @@ func autoMapIndexTest() {
 	}
 }
 
+func autoMapIndex2(country string) error {
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	query := session.QueryCollectionForType(queriedType)
+	query = query.WhereStartsWith("Title", "Sales")
+	query = query.Where("Address.Country", "==", country)
+
+	var employeeResult *northwind.Employee
+	err = query.First(&employeeResult)
+	if err != nil {
+		return err
+	}
+	if employeeResult != nil {
+		pretty.Print(employeeResult)
+	} else {
+		fmt.Printf("No employee matching query\n")
+	}
+	return nil
+}
+
+func autoMapIndex2Test() {
+	err := autoMapIndex2("UK")
+	if err != nil {
+		fmt.Printf("autoMapIndex2() failed with '%s'\n", err)
+	}
+}
+
 func mapIndexTest() {
 	err := mapIndex(1993)
 	if err != nil {
@@ -1157,6 +1189,7 @@ var (
 		"mapIndex":                             mapIndexTest,
 		"mapReduceIndex":                       mapReduceIndexTest,
 		"autoMapIndex":                         autoMapIndexTest,
+		"autoMapIndex2":                        autoMapIndex2Test,
 	}
 )
 
