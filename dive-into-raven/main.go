@@ -31,6 +31,22 @@ var (
 	testDatabaseName string
 )
 
+// for optional logging
+var (
+	// if true, we'll show summary of HTTP requests made to the server
+	// and dump full info about failed HTTP requests
+	verboseLogging = false
+
+	// if true, logs all http requests/responses to a file for further inspection
+	// this is for use in tests so the file has a fixed location:
+	// logs/trace_${test_name}_go.txt
+	logAllRequests = true
+
+	// if logAllRequests is true, this is a path of a file where we log
+	// info about all HTTP requests
+	logAllRequestsPath = "http_requests_log.txt"
+)
+
 var (
 	serverURL    = "http://localhost:8080"
 	databaseName = "YourDatabaseName"
@@ -873,6 +889,63 @@ docs.Employees.Select(e => new {
 	return nil
 }
 
+func mapReduceIndex(country string) error {
+	mapIndexDef := `
+map('employees', function(e) {
+	return {
+		Country: e.Address.Country,
+		CountryCount: 1
+	}
+})
+`
+
+	reduceIndexDef := `
+groupBy(x => x.Country)
+.aggregate(g => {
+	return {
+		Country: g.Key,
+		CountryCount: g.values.reduce((count, val) => val.CountryCount + count, 0)
+	}
+})
+`
+	indexName := "Employees/ByCountry"
+	index := ravendb.NewIndexCreationTask(indexName)
+	index.Map = mapIndexDef
+	index.Reduce = reduceIndexDef
+
+	err := index.Execute(globalDocumentStore, nil, "")
+	if err != nil {
+		return err
+	}
+	err = waitForIndexing(globalDocumentStore, "", 0)
+	if err != nil {
+		return err
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	query := session.QueryIndex(indexName)
+	query = query.Where("Country", "==", country)
+
+	queryResult := &(struct {
+		Country      string
+		CountryCount int
+	}{})
+
+	err = query.First(&queryResult)
+	if err != nil {
+		return err
+	}
+	if queryResult != nil {
+		fmt.Printf("Number of employees from country '%s': %d\n", queryResult.CountryCount)
+	}
+	return nil
+}
+
 func mapIndexTest() {
 	err := mapIndex(1993)
 	if err != nil {
@@ -964,8 +1037,6 @@ func queryRelatedDocumentsTest() {
 	}
 }
 
-// sessionChapter
-
 func sessionTest() {
 	err := session()
 	if err != nil {
@@ -1009,7 +1080,7 @@ func loadRelatedDocumentsTest() {
 }
 
 func storeAttachementTest() {
-	path := filepath.Join("examples", "pic.png")
+	path := "pic.png"
 	err := storeAttachement("companies/2-A", path)
 	if err != nil {
 		fmt.Printf("storeAttachement() failed with '%s'\n", err)
@@ -1020,6 +1091,13 @@ func enableRevisionsTest() {
 	err := enableRevisions("Orders", "Companies")
 	if err != nil {
 		fmt.Printf("enableRevisions() failed with '%s'\n", err)
+	}
+}
+
+func mapReduceIndexTest() {
+	err := mapReduceIndex("USA")
+	if err != nil {
+		fmt.Printf("mapReduceIndex() failed with '%s'\n", err)
 	}
 }
 
@@ -1046,6 +1124,7 @@ var (
 		"queryProjectingUsingFunctions":        queryProjectingUsingFunctionsTest,
 		"staticIndexesOverview":                staticIndexesOverviewTest,
 		"mapIndex":                             mapIndexTest,
+		"mapReduceIndex":                       mapReduceIndexTest,
 	}
 )
 
@@ -1076,6 +1155,10 @@ func main() {
 		fmt.Printf("'%s' is not a known test function\n", testNameArg)
 		usageAndExit()
 	}
+
+	// setup optional logging
+	setupLogging()
+	defer finishLogging()
 
 	_, err := createTestDocumentStore()
 	defer deleteTestDatabase()
