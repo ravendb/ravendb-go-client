@@ -894,7 +894,7 @@ func mapReduceIndex(country string) error {
 map('employees', function(e) {
 	return {
 		Country: e.Address.Country,
-		CountryCount: 1
+		Count: 1
 	}
 })
 `
@@ -903,8 +903,8 @@ map('employees', function(e) {
 groupBy(x => x.Country)
 .aggregate(g => {
 	return {
-		Country: g.Key,
-		CountryCount: g.values.reduce((count, val) => val.CountryCount + count, 0)
+		Country: g.key,
+		Count: g.values.reduce((count, val) => val.Count + count, 0)
 	}
 })
 `
@@ -931,17 +931,17 @@ groupBy(x => x.Country)
 	query := session.QueryIndex(indexName)
 	query = query.Where("Country", "==", country)
 
-	queryResult := &(struct {
-		Country      string
-		CountryCount int
-	}{})
+	var queryResult *struct {
+		Country string
+		Count   int
+	}
 
 	err = query.First(&queryResult)
 	if err != nil {
 		return err
 	}
 	if queryResult != nil {
-		fmt.Printf("Number of employees from country '%s': %d\n", queryResult.CountryCount)
+		fmt.Printf("Number of employees from country '%s': %d\n", queryResult.Country, queryResult.Count)
 	}
 	return nil
 }
