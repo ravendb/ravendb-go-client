@@ -2152,7 +2152,7 @@ func (q *abstractDocumentQuery) First(result interface{}) error {
 	}
 	slice := slicePtr.Elem()
 	if slice.Len() == 0 {
-		return newIllegalStateError("Expected at least one result")
+		return nil
 	}
 	el := slice.Index(0)
 	return setInterfaceToValue(result, el.Interface())

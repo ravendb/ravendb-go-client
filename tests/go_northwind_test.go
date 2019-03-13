@@ -63,6 +63,29 @@ func goNorthwindWhereBetween(t *testing.T, driver *RavenTestDriver) {
 	assert.True(t, len(results) > 5) // it's 35 currently
 }
 
+// First() should allow zero results
+// https://github.com/ravendb/ravendb-go-client/issues/148
+func goNorthwindIssue148(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	createNorthwindDatabase(t, driver, store)
+	session, err := store.OpenSession("")
+	assert.NoError(t, err)
+	defer session.Close()
+
+	queriedType := reflect.TypeOf(&northwind.Employee{})
+	query := session.QueryCollectionForType(queriedType)
+	query = query.Where("FirstName", "==", "name-that-doesn't exists")
+	var result *northwind.Employee
+	err = query.First(&result)
+	// no error, result not set
+	assert.NoError(t, err)
+	assert.Nil(t, result)
+
+}
+
 // test that Single()/First()/GetResults() validate early type of result
 // https://github.com/ravendb/ravendb-go-client/issues/146
 func goNorthwindIssue146(t *testing.T, driver *RavenTestDriver) {
@@ -165,4 +188,5 @@ func TestGoNorthwind(t *testing.T) {
 	goNorthwindEmployeeLoad(t, driver)
 	goNorthwindWhereBetween(t, driver)
 	goNorthwindIssue146(t, driver)
+	goNorthwindIssue148(t, driver)
 }
