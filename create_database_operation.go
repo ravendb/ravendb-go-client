@@ -2,6 +2,7 @@ package ravendb
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -62,7 +63,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 }
 
 func (c *CreateDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/admin/databases?name=" + c.databaseName
+	url := node.URL + "/admin/databases?name=" + url.QueryEscape(c.databaseName)
 	url += "&replicationFactor=" + strconv.Itoa(c.replicationFactor)
 
 	js, err := jsonMarshal(c.databaseRecord)
