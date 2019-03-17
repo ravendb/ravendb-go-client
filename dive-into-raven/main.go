@@ -1007,9 +1007,9 @@ func fullTextSearchSingleField(searchTerm string) error {
 	index := ravendb.NewIndexCreationTask(indexName)
 
 	index.Map = `
-from c in docs.Categories 
-select new { 
-   CategoryDescription = c.Description 
+from c in docs.Categories
+select new {
+   CategoryDescription = c.Description
 }
 `
 	index.Index("CategoryDescription", ravendb.FieldIndexingSearch)
@@ -1043,6 +1043,106 @@ select new {
 	}
 
 	return nil
+}
+
+// SongData represents data about a song
+type SongData struct {
+	Artist  string   `json:"Artist"`
+	Title   string   `json:"Title"`
+	Tags    []string `json:"Tags"`
+	TrackID string   `json:"TrackID"`
+}
+
+// LastFm represents an last fm document
+type LastFm struct {
+	ID        string
+	Artist    string       `json:"Artist"`
+	Title     string       `json:"Title"`
+	TrackID   string       `json:"TrackId"`
+	Tags      []string     `json:"Tags"`
+	TimeStamp ravendb.Time `json:"TimeStamp"`
+}
+
+// TODO: this requires database that I don't know how to create
+func fullTextSearchMultipleField(searchTerm string) error {
+	indexName := "Song/TextData"
+	index := ravendb.NewIndexCreationTask(indexName)
+
+	index.Map = `
+from song in docs.Songs
+select new {
+	SongData = new {
+		song.Artist,
+		song.Title,
+		song.Tags,
+		song.TrackId
+	}
+}
+`
+	index.Index("SongData", ravendb.FieldIndexingSearch)
+
+	err := index.Execute(globalDocumentStore, nil, "")
+	if err != nil {
+		return err
+	}
+	err = waitForIndexing(globalDocumentStore, "", 0)
+	if err != nil {
+		return err
+	}
+
+	session, err := globalDocumentStore.OpenSession("")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	query := session.QueryIndex(indexName)
+	query = query.Search("SongData", searchTerm)
+	query = query.Take(20)
+
+	var results []*LastFm
+	err = query.GetResults(&results)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Get %d results\n", len(results))
+	if len(results) > 0 {
+		pretty.Print(results[0])
+	}
+
+	return nil
+}
+
+func createDatabase() error {
+	databaseRecord := ravendb.NewDatabaseRecord()
+	databaseRecord.DatabaseName = "NameOfDatabase"
+
+	createDatabaseOperation := ravendb.NewCreateDatabaseOperation(databaseRecord, 1)
+	err := globalDocumentStore.Maintenance().Server().Send(createDatabaseOperation)
+	if err != nil {
+		if _, ok := err.(*ravendb.ConcurrencyError); ok {
+			fmt.Printf("Database '%s' already exists\n", databaseRecord.DatabaseName)
+			return nil
+		}
+		fmt.Printf("globalDocumentStore.Maintenance().Server().Send(createDatabaseOperation) failed with %s\n", err)
+		return err
+	}
+
+	return nil
+}
+
+func createDatabaseTest() {
+	err := createDatabase()
+	if err != nil {
+		fmt.Printf("createDatabase() failed with '%s'\n", err)
+	}
+}
+
+func fullTextSearchMultipleFieldTest() {
+	err := fullTextSearchMultipleField("Floyd")
+	if err != nil {
+		fmt.Printf("fullTextSearchMultipleField() failed with '%s'\n", err)
+	}
 }
 
 func fullTextSearchSingleFieldTest() {
@@ -1241,6 +1341,8 @@ var (
 		"autoMapIndex":                         autoMapIndexTest,
 		"autoMapIndex2":                        autoMapIndex2Test,
 		"fullTextSearchSingleField":            fullTextSearchSingleFieldTest,
+		"fullTextSearchMultipleField":          fullTextSearchMultipleFieldTest,
+		"createDatabase":                       createDatabaseTest,
 	}
 )
 
