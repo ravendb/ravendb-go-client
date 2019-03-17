@@ -465,7 +465,7 @@ func indexRelatedDocuments(categoryName string) error {
 	return nil
 }
 
-func storeAttachement(documentID string, attachmentPath string) error {
+func storeAttachment(documentID string, attachmentPath string) error {
 	stream, err := os.Open(attachmentPath)
 	if err != nil {
 		return err
@@ -483,7 +483,7 @@ func storeAttachement(documentID string, attachmentPath string) error {
 	}
 	defer session.Close()
 
-	err = session.Advanced().Attachments().Store(documentID, attachmentName, stream, contentType)
+	err = session.Advanced().Attachments().StoreByID(documentID, attachmentName, stream, contentType)
 	if err != nil {
 		return err
 	}
@@ -1292,11 +1292,14 @@ func loadRelatedDocumentsTest() {
 	}
 }
 
-func storeAttachementTest() {
+func storeAttachmentTest() {
 	path := "pic.png"
-	err := storeAttachement("companies/2-A", path)
+	documentID := "companies/2-A"
+	err := storeAttachment(documentID, path)
 	if err != nil {
-		fmt.Printf("storeAttachement() failed with '%s'\n", err)
+		fmt.Printf("storeAttachment() failed with '%s'\n", err)
+	} else {
+		fmt.Printf("stored file '%s' as attachment in a document with ID '%s'\n", path, documentID)
 	}
 }
 
@@ -1322,7 +1325,7 @@ var (
 		"deleteDocument":                       deleteDocumentTest,
 		"createRelatedDocuments":               createRelatedDocumentsTest,
 		"loadRelatedDocuments":                 loadRelatedDocumentsTest,
-		"storeAttachement":                     storeAttachementTest,
+		"storeAttachment":                      storeAttachmentTest,
 		"enableRevisions":                      enableRevisionsTest,
 		"indexRelatedDocuments":                indexRelatedDocumentsTest,
 		"queryRelatedDocuments":                queryRelatedDocumentsTest,
