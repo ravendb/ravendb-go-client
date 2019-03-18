@@ -811,10 +811,13 @@ func (c *DatabaseChanges) startProcessMessagesWorker(ctx context.Context, conn *
 
 			for _, msgNodeV := range msgArray {
 				msgNode := msgNodeV.(map[string]interface{})
-				typ, _ := jsonGetAsString(msgNode, "Type")
+				typ, ok := jsonGetAsText(msgNode, "Type")
+				if !ok {
+					continue
+				}
 				switch typ {
 				case "Error":
-					errStr, _ := jsonGetAsString(msgNode, "Error")
+					errStr, _ := jsonGetAsText(msgNode, "Error")
 					c.notifyAboutError(newRuntimeError("%s", errStr))
 				case "Confirm":
 					commandID, ok := jsonGetAsInt(msgNode, "CommandId")
