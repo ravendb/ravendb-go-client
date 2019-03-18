@@ -726,7 +726,7 @@ func queryFilterResultsMultipleConditions(country string) error {
 
 	queriedType := reflect.TypeOf(&northwind.Employee{})
 	filteredQuery := session.QueryCollectionForType(queriedType)
-	filteredQuery = filteredQuery.Where("FirstName", "==", "Anne")
+	filteredQuery = filteredQuery.WhereIn("FirstName", []interface{}{"Anne", "John"})
 	filteredQuery = filteredQuery.OrElse()
 	{
 		filteredQuery = filteredQuery.OpenSubclause()
