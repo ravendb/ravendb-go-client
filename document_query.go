@@ -58,7 +58,6 @@ func (q *DocumentQuery) SelectFields(projectionType reflect.Type, fieldsIn ...st
 	if q.err != nil {
 		return q
 	}
-	// TODO: add SelectFieldsWithProjection(projectionType reflect.Type, fields []string, projections []string)
 	var fields []string
 	if len(fieldsIn) == 0 {
 		fields = FieldsFor(projectionType)

@@ -896,7 +896,7 @@ func mapReduceIndex(country string) error {
 map('employees', function(e) {
 	return {
 		Country: e.Address.Country,
-		Count: 1
+		CountryCount: 1
 	}
 })
 `
@@ -907,7 +907,7 @@ groupBy(x => x.Country)
 .aggregate(g => {
 	return {
 		Country: g.key,
-		Count: g.values.reduce((count, val) => val.Count + count, 0)
+		Count: g.values.reduce((count, val) => val.CountryCount + count, 0)
 	}
 })
 `
@@ -1043,14 +1043,6 @@ select new {
 	}
 
 	return nil
-}
-
-// SongData represents data about a song
-type SongData struct {
-	Artist  string   `json:"Artist"`
-	Title   string   `json:"Title"`
-	Tags    []string `json:"Tags"`
-	TrackID string   `json:"TrackID"`
 }
 
 // LastFm represents an last fm document
