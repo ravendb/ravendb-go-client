@@ -3,6 +3,8 @@ package ravendb
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 )
@@ -86,4 +88,27 @@ func TestPanicIf(t *testing.T) {
 		}
 	}()
 	panicIf(true, "should fail")
+}
+
+func TestDbg(t *testing.T) {
+	stdoutSaved := os.Stdout
+	verboseSaved := LogVerbose
+	path := "util_test_tmp.txt"
+	f, err := os.Create(path)
+	assert.NoError(t, err)
+	os.Stdout = f
+	LogVerbose = true
+
+	dbg("v: %d\n", 5)
+
+	os.Stdout = stdoutSaved
+	LogVerbose = verboseSaved
+	err = f.Close()
+	assert.NoError(t, err)
+
+	d, err := ioutil.ReadFile(path)
+	assert.NoError(t, err)
+	s := string(d)
+	assert.Equal(t, s, "v: 5\n")
+	_ = os.Remove(path)
 }
