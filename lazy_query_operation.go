@@ -54,9 +54,11 @@ func (o *LazyQueryOperation) handleResponse(response *GetResponse) error {
 	}
 
 	var queryResult *QueryResult
-	err := jsonUnmarshal(response.Result, &queryResult)
-	if err != nil {
-		return err
+	if len(response.Result) != 0 {
+		err := jsonUnmarshal(response.Result, &queryResult)
+		if err != nil {
+			return err
+		}
 	}
 	return o.handleResponse2(queryResult)
 }
