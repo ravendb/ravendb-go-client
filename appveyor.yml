@@ -39,9 +39,7 @@ install:
 # https://www.appveyor.com/docs/windows-images-software/#golang
 
 test_script:
-  # default timeout is 10m which sometimes is not enough (usually we finish
-  # under 8 but sometimes appveyor is slower)
-  - cmd: go test -tags for_tests -v -parallel 1 -timeout 20m "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt" . ./tests
+  - cmd:./scripts/appveyor_run_tests_win.sh
   - sh: ./scripts/appveyor_run_tests.sh
 
 deploy: off
