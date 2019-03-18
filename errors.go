@@ -3,6 +3,7 @@ package ravendb
 import "fmt"
 
 type errorBase struct {
+	wrapped  error
 	ErrorStr string
 }
 
@@ -15,6 +16,14 @@ func (e *errorBase) setErrorf(format string, args ...interface{}) {
 	if len(args) == 0 {
 		e.ErrorStr = format
 		return
+	}
+	// a bit of a hack: to make it easy to port Java code, if the last
+	// argument is of type error, we consider it a wrapped error
+	n := len(args)
+	last := args[n-1]
+	if err, ok := last.(error); ok {
+		e.wrapped = err
+		args = args[:n-1]
 	}
 	e.ErrorStr = fmt.Sprintf(format, args...)
 }
