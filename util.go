@@ -1,7 +1,6 @@
 package ravendb
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,48 +39,6 @@ func panicIfErr(err error) {
 func i64toa(n int64) string {
 	return strconv.FormatInt(n, 10)
 }
-
-func isCtxCancelled(ctx context.Context) bool {
-	select {
-	case <-ctx.Done():
-		return true
-	default:
-		return false
-	}
-}
-
-/*
-// TODO:
-func isValidDbNameChar(c rune) bool {
-	if c >= 'A' && c <= 'Z' {
-		return true
-	}
-	if c >= 'a' && c <= 'z' {
-		return true
-	}
-	if c >= '0' && c <= '9' {
-		return true
-	}
-	switch c {
-	case '_', '-', '.':
-		return true
-	}
-	return false
-}
-*/
-
-// TODO: remove
-/*
-// TODO: implement me exactly
-func quoteKey2(s string, reservedSlash bool) string {
-	// https://golang.org/src/net/url/url.go?s=7512:7544#L265
-	return url.PathEscape(s)
-}
-
-func quoteKey(s string) string {
-	return quoteKey2(s, false)
-}
-*/
 
 func min(i1, i2 int) int {
 	if i1 < i2 {
