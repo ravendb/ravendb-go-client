@@ -19,7 +19,7 @@ func dbg(format string, args ...interface{}) {
 
 func must(err error) {
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 }
 
@@ -27,12 +27,6 @@ func panicIf(cond bool, format string, args ...interface{}) {
 	if cond {
 		err := fmt.Errorf(format, args...)
 		must(err)
-	}
-}
-
-func panicIfErr(err error) {
-	if err != nil {
-		panic(err.Error())
 	}
 }
 

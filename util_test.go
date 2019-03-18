@@ -76,3 +76,14 @@ func TestBuilderWriteInt(t *testing.T) {
 		assert.Equal(t, exp, got, "test: %d", test)
 	}
 }
+
+func TestPanicIf(t *testing.T) {
+	defer func() {
+		if err := recover(); err == nil {
+			assert.Fail(t, "expected to panic")
+		} else {
+			assert.Equal(t, err.(error).Error(), "should fail")
+		}
+	}()
+	panicIf(true, "should fail")
+}

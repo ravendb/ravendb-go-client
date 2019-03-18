@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Note: Java's RawDocumentQuery is RawDocumentQuery
+// Note: Java's IRawDocumentQuery is RawDocumentQuery
 
 type RawDocumentQuery struct {
 	*abstractDocumentQuery

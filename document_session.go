@@ -739,7 +739,7 @@ func (s *DocumentSession) DocumentQueryCollection(collectionName string) *Docume
 func (s *DocumentSession) DocumentQueryCollectionForType(clazz reflect.Type) (*DocumentQuery, error) {
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	indexName, collectionName, err := s.processQueryParameters(clazz, "", "", s.GetConventions())
-	panicIfErr(err)
+	must(err)
 	opts := &DocumentQueryOptions{
 		IndexName:      indexName,
 		CollectionName: collectionName,
@@ -770,7 +770,7 @@ func (s *DocumentSession) DocumentQueryAllOld(clazz reflect.Type, indexName stri
 	panicIf(s.InMemoryDocumentSessionOperations.session != s, "must have session")
 	var err error
 	indexName, collectionName, err = s.processQueryParameters(clazz, indexName, collectionName, s.GetConventions())
-	panicIfErr(err)
+	must(err)
 	opts := &DocumentQueryOptions{
 		Type:           clazz,
 		session:        s.InMemoryDocumentSessionOperations,
