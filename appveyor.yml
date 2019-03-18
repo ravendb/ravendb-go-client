@@ -39,7 +39,7 @@ install:
 # https://www.appveyor.com/docs/windows-images-software/#golang
 
 test_script:
-  - cmd:./scripts/appveyor_run_tests_win.sh
+  - cmd:./scripts/appveyor_run_tests_win.bat
   - sh: ./scripts/appveyor_run_tests.sh
 
 deploy: off
