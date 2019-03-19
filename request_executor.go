@@ -1158,12 +1158,11 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 	}
 
 	// this would be connections that didn't have response, such as "couldn't connect to remote server"
-	/* TODO: remove if doesn't break tests
+
 	if e == nil {
-		// TODO: not sure if this is needed or a sign of a buf
 		e = newRavenError("")
 	}
-	*/
+
 	exceptionSchema := &exceptionSchema{
 		URL:     request.URL.String(),
 		Type:    fmt.Sprintf("%T", e),
