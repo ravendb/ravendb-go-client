@@ -30,4 +30,12 @@ func TestErrorWrapping(t *testing.T) {
 		err := newSubscriptionDoesNotExistError("")
 		assert.True(t, isRavenError(err))
 	}
+
+	{
+		err := makeRavenErrorFromName("IndexCompilationException", "message")
+		_, ok := err.(*IndexCompilationError)
+		assert.True(t, ok)
+		assert.Equal(t, "message", err.Error())
+	}
+
 }

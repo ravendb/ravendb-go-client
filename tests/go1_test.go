@@ -629,9 +629,8 @@ func goTestFindCollectionName(t *testing.T, driver *RavenTestDriver) {
 	assert.Equal(t, name, "my users")
 }
 
+// test that insertion order of bulk_docs (BatchOperation / BatchCommand)
 func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
-	// test that insertion order of bulk_docs (BatchOperation / BatchCommand)
-
 	var err error
 
 	store := driver.getDocumentStoreMust(t)
@@ -679,6 +678,36 @@ func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+// test that we get a meaningful error for server exceptions sent as JSON response
+// https://github.com/ravendb/ravendb-go-client/issues/147
+func goTestInvalidIndexDefinition(t *testing.T, driver *RavenTestDriver) {
+	var err error
+
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	indexName := "Song/TextData"
+	index := ravendb.NewIndexCreationTask(indexName)
+
+	index.Map = `
+from song in docs.Songs
+select {
+	SongData = new {
+		song.Artist,
+		song.Title,
+		song.Tags,
+		song.TrackId
+	}
+}
+`
+	index.Index("SongData", ravendb.FieldIndexingSearch)
+
+	err = index.Execute(store, nil, "")
+	assert.Error(t, err)
+	_, ok := err.(*ravendb.IndexCompilationError)
+	assert.True(t, ok)
+}
+
 func TestGo1(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
@@ -690,4 +719,5 @@ func TestGo1(t *testing.T) {
 	goTestListeners(t, driver)
 	goTestFindCollectionName(t, driver)
 	goTestBatchCommandOrder(t, driver)
+	goTestInvalidIndexDefinition(t, driver)
 }

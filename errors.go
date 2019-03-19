@@ -22,6 +22,22 @@ func (e *errorBase) Error() string {
 	return e.ErrorStr
 }
 
+// hackish way to get a wrapped error
+func (e *errorBase) WrappedError() error {
+	return e.wrapped
+}
+
+type iWrappedError interface {
+	WrappedError() error
+}
+
+func GetWrappedError(err error) error {
+	if e, ok := err.(iWrappedError); ok {
+		return e.WrappedError()
+	}
+	return nil
+}
+
 func (e *errorBase) setErrorf(format string, args ...interface{}) {
 	if len(args) == 0 {
 		e.ErrorStr = format
@@ -435,100 +451,186 @@ type ServerLoadFailureError struct {
 	RavenError
 }
 
-type LicenseActivation struct {
+type IndexCompilationError struct {
 	RavenError
 }
 
-func makeRavenErrorFromName(s string) error {
+func makeRavenErrorFromName(exceptionName string, errMsg string) error {
 	// Java's "FooException" is "FooError" in Go
-	s = strings.Replace(s, "Exception", "Error", -1)
+	s := strings.Replace(exceptionName, "Exception", "Error", -1)
 	switch s {
-	case "LicenseActivation":
-		return &LicenseActivation{}
+	case "IndexCompilationError":
+		res := &IndexCompilationError{}
+		res.ErrorStr = errMsg
+		return res
 	case "ConcurrencyError":
-		return &ConcurrencyError{}
+		res := &ConcurrencyError{}
+		res.ErrorStr = errMsg
+		return res
 	case "NonUniqueObjectError":
-		return &NonUniqueObjectError{}
+		res := &NonUniqueObjectError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DatabaseDoesNotExistError":
-		return &DatabaseDoesNotExistError{}
+		res := &DatabaseDoesNotExistError{}
+		res.ErrorStr = errMsg
+		return res
 	case "TimeoutError":
-		return &TimeoutError{}
+		res := &TimeoutError{}
+		res.ErrorStr = errMsg
+		return res
 	case "IndexDoesNotExistError":
-		return &IndexDoesNotExistError{}
+		res := &IndexDoesNotExistError{}
+		res.ErrorStr = errMsg
+		return res
 	case "BadResponseError":
-		return &BadResponseError{}
+		res := &BadResponseError{}
+		res.ErrorStr = errMsg
+		return res
 	case "BadRequestError":
-		return &BadRequestError{}
+		res := &BadRequestError{}
+		res.ErrorStr = errMsg
+		return res
 	case "ConflictError":
-		return &ConflictError{}
+		res := &ConflictError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriberErrorError":
-		return &SubscriberErrorError{}
+		res := &SubscriberErrorError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriptionChangeVectorUpdateConcurrencyError":
-		return &SubscriptionChangeVectorUpdateConcurrencyError{}
+		res := &SubscriptionChangeVectorUpdateConcurrencyError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriptionClosedError":
-		return &SubscriptionClosedError{}
+		res := &SubscriptionClosedError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriptionDoesNotBelongToNodeError":
-		return &SubscriptionDoesNotBelongToNodeError{}
+		res := &SubscriptionDoesNotBelongToNodeError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriptionDoesNotExistError":
-		return &SubscriptionDoesNotExistError{}
+		res := &SubscriptionDoesNotExistError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriptionInvalidStateError":
-		return &SubscriptionInvalidStateError{}
+		res := &SubscriptionInvalidStateError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SubscriptionInUseError":
-		return &SubscriptionInUseError{}
+		res := &SubscriptionInUseError{}
+		res.ErrorStr = errMsg
+		return res
 	case "ClientVersionMismatchError":
-		return &ClientVersionMismatchError{}
+		res := &ClientVersionMismatchError{}
+		res.ErrorStr = errMsg
+		return res
 	case "CertificateNameMismatchError":
-		return &CertificateNameMismatchError{}
+		res := &CertificateNameMismatchError{}
+		res.ErrorStr = errMsg
+		return res
 	case "InvalidQueryError":
-		return &InvalidQueryError{}
+		res := &InvalidQueryError{}
+		res.ErrorStr = errMsg
+		return res
 	case "UnsuccessfulRequestError":
-		return &UnsuccessfulRequestError{}
+		res := &UnsuccessfulRequestError{}
+		res.ErrorStr = errMsg
+		return res
 	case "ChangeProcessingError":
-		return &ChangeProcessingError{}
+		res := &ChangeProcessingError{}
+		res.ErrorStr = errMsg
+		return res
 	case "CommandExecutionError":
-		return &CommandExecutionError{}
+		res := &CommandExecutionError{}
+		res.ErrorStr = errMsg
+		return res
 	case "NodeIsPassiveError":
-		return &NodeIsPassiveError{}
+		res := &NodeIsPassiveError{}
+		res.ErrorStr = errMsg
+		return res
 	case "NoLeaderError":
-		return &NoLeaderError{}
+		res := &NoLeaderError{}
+		res.ErrorStr = errMsg
+		return res
 	case "LicenseActivationError":
-		return &LicenseActivationError{}
+		res := &LicenseActivationError{}
+		res.ErrorStr = errMsg
+		return res
 	case "CompilationError":
-		return &CompilationError{}
+		res := &CompilationError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DatabaseConcurrentLoadTimeoutError":
-		return &DatabaseConcurrentLoadTimeoutError{}
+		res := &DatabaseConcurrentLoadTimeoutError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DatabaseDisabledError":
-		return &DatabaseDisabledError{}
+		res := &DatabaseDisabledError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DatabaseLoadFailureError":
-		return &DatabaseLoadFailureError{}
+		res := &DatabaseLoadFailureError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DatabaseLoadTimeoutError":
-		return &DatabaseLoadTimeoutError{}
+		res := &DatabaseLoadTimeoutError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DatabaseNotRelevantError":
-		return &DatabaseNotRelevantError{}
+		res := &DatabaseNotRelevantError{}
+		res.ErrorStr = errMsg
+		return res
 	case "DocumentDoesNotExistError":
-		return &DocumentDoesNotExistError{}
+		res := &DocumentDoesNotExistError{}
+		res.ErrorStr = errMsg
+		return res
 	case "BulkInsertAbortedError":
-		return &BulkInsertAbortedError{}
+		res := &BulkInsertAbortedError{}
+		res.ErrorStr = errMsg
+		return res
 	case "BulkInsertProtocolViolationError":
-		return &BulkInsertProtocolViolationError{}
+		res := &BulkInsertProtocolViolationError{}
+		res.ErrorStr = errMsg
+		return res
 	case "IndexAlreadyExistError":
-		return &IndexAlreadyExistError{}
+		res := &IndexAlreadyExistError{}
+		res.ErrorStr = errMsg
+		return res
 	case "IndexCreationError":
-		return &IndexCreationError{}
+		res := &IndexCreationError{}
+		res.ErrorStr = errMsg
+		return res
 	case "IndexDeletionError":
-		return &IndexDeletionError{}
+		res := &IndexDeletionError{}
+		res.ErrorStr = errMsg
+		return res
 	case "IndexInvalidError":
-		return &IndexInvalidError{}
+		res := &IndexInvalidError{}
+		res.ErrorStr = errMsg
+		return res
 	case "JavaScriptError":
-		return &JavaScriptError{}
+		res := &JavaScriptError{}
+		res.ErrorStr = errMsg
+		return res
 	case "RevisionsDisabledError":
-		return &RevisionsDisabledError{}
+		res := &RevisionsDisabledError{}
+		res.ErrorStr = errMsg
+		return res
 	case "RouteNotFoundError":
-		return &RouteNotFoundError{}
+		res := &RouteNotFoundError{}
+		res.ErrorStr = errMsg
+		return res
 	case "SecurityError":
-		return &SecurityError{}
+		res := &SecurityError{}
+		res.ErrorStr = errMsg
+		return res
 	case "ServerLoadFailureError":
-		return &ServerLoadFailureError{}
+		res := &ServerLoadFailureError{}
+		res.ErrorStr = errMsg
+		return res
 
 	}
 	return nil

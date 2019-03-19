@@ -21,9 +21,9 @@ go clean -testcache
 
 #go test -tags for_tests -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
+go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRavenDb12790$
+#go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRavenDb12790$
 
 
 # TODO: TestAggressiveCaching is suspiciously long

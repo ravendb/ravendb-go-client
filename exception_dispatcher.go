@@ -17,14 +17,11 @@ func exceptionDispatcherGet(message string, errStr string, typeAsString string, 
 		}
 		return newConcurrencyError(message)
 	}
-	err := exceptionDispatherMakeErrorFromType(typeAsString)
+	err := exceptionDispatherMakeErrorFromType(typeAsString, errStr)
 	if err == nil {
 		return newRavenError("%s", errStr, inner)
 	}
 
-	if errBase, ok := err.(*errorBase); ok {
-		errBase.setErrorf("%s", errStr, inner)
-	}
 	return err
 }
 
@@ -38,30 +35,46 @@ func exceptionDispatcherThrowError(response *http.Response) error {
 		d, err = ioutil.ReadAll(response.Body)
 		_ = response.Body.Close()
 		if err != nil {
-			return newRavenError("%s", err.Error())
+			return newRavenError("%s", err.Error(), err)
 		}
 	}
 	var schema exceptionSchema
 	if len(d) > 0 {
-		_ = jsonUnmarshal(d, &schema)
+		err = jsonUnmarshal(d, &schema)
+		if err != nil {
+			return newRavenError("%")
+		}
 		if response.StatusCode == http.StatusConflict {
 			return exceptionDispatcherThrowConflict(&schema, string(d))
 		}
 	}
 
-	err = exceptionDispatherMakeErrorFromType(schema.Type)
-	if err == nil {
-		return newRavenError("%s. Response: %s", schema.Error, string(d))
+	exception := exceptionDispatherMakeErrorFromType(schema.Type, schema.Error)
+	if exception == nil {
+		return newRavenError("%s. Response: %s", schema.Error, string(d), exception)
 	}
 
-	if errBase, ok := err.(*errorBase); ok {
-		errBase.setErrorf("%s", schema.Error, err)
-	}
+	// TODO: handle IndexCompilationError
+	/*
+	   if (IndexCompilationException.class.equals(type)) {
+	       IndexCompilationException indexCompilationException = (IndexCompilationException) exception;
+	       JsonNode jsonNode = JsonExtensions.getDefaultMapper().readTree(json);
+	       JsonNode indexDefinitionProperty = jsonNode.get("TransformerDefinitionProperty");
+	       if (indexDefinitionProperty != null) {
+	           indexCompilationException.setIndexDefinitionProperty(indexDefinitionProperty.asText());
+	       }
 
-	//fmt.Printf("exceptionDispatcherThrowError. schema: %#v\n", schema)
-	// TODO: Java is more complicated, throws exception based on type returned by server.
-	// Not sure we can do it in Go
-	return newRavenError("exceptionDispatcherThrowError: http response exception")
+	       JsonNode problematicText = jsonNode.get("ProblematicText");
+	       if (problematicText != null) {
+	           indexCompilationException.setProblematicText(problematicText.asText());
+	       }
+
+	       throw indexCompilationException;
+	   }
+
+	*/
+
+	return exception
 }
 
 func exceptionDispatcherThrowConflict(schema *exceptionSchema, js string) error {
@@ -72,7 +85,7 @@ func exceptionDispatcherThrowConflict(schema *exceptionSchema, js string) error 
 }
 
 // make an error corresponding to C#'s exception name as returned by the server
-func exceptionDispatherMakeErrorFromType(typeAsString string) error {
+func exceptionDispatherMakeErrorFromType(typeAsString string, errMsg string) error {
 	if typeAsString == "System.TimeoutException" {
 		return &TimeoutError{}
 	}
@@ -86,7 +99,7 @@ func exceptionDispatherMakeErrorFromType(typeAsString string) error {
 	if len(parts) > 1 {
 		exceptionName = parts[len(parts)-1]
 	}
-	return makeRavenErrorFromName(typeAsString)
+	return makeRavenErrorFromName(exceptionName, errMsg)
 }
 
 type exceptionSchema struct {
