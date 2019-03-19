@@ -23,7 +23,7 @@ go clean -testcache
 
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGoNorthwind$
+go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestRavenDb12790$
 
 
 # TODO: TestAggressiveCaching is suspiciously long
