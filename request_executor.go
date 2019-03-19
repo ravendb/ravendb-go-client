@@ -1136,11 +1136,13 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 	failedNodes := command.getBase().FailedNodes
 
 	if response != nil && response.Body != nil {
+		var schema exceptionSchema
 		responseJson, err := ioutil.ReadAll(response.Body)
 		if err == nil {
-			var schema exceptionSchema
-			jsonUnmarshal(responseJson, &schema)
-			readException := exceptionDispatcherGet(&schema, response.StatusCode)
+			err = jsonUnmarshal(responseJson, &schema)
+		}
+		if err == nil {
+			readException := exceptionDispatcherGetFromSchema(&schema, response.StatusCode, e)
 			failedNodes[chosenNode] = readException
 		} else {
 			exceptionSchema := &exceptionSchema{
@@ -1149,17 +1151,19 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 				Message: "Get unrecognized response from the server",
 				Error:   string(responseJson),
 			}
-			exceptionToUse := exceptionDispatcherGet(exceptionSchema, response.StatusCode)
+			exceptionToUse := exceptionDispatcherGetFromSchema(exceptionSchema, response.StatusCode, e)
 
 			failedNodes[chosenNode] = exceptionToUse
 		}
 	}
 
 	// this would be connections that didn't have response, such as "couldn't connect to remote server"
+	/* TODO: remove if doesn't break tests
 	if e == nil {
 		// TODO: not sure if this is needed or a sign of a buf
 		e = newRavenError("")
 	}
+	*/
 	exceptionSchema := &exceptionSchema{
 		URL:     request.URL.String(),
 		Type:    fmt.Sprintf("%T", e),
@@ -1167,7 +1171,7 @@ func (re *RequestExecutor) addFailedResponseToCommand(chosenNode *ServerNode, co
 		Error:   e.Error(),
 	}
 
-	exceptionToUse := exceptionDispatcherGet(exceptionSchema, http.StatusInternalServerError)
+	exceptionToUse := exceptionDispatcherGetFromSchema(exceptionSchema, http.StatusInternalServerError, e)
 	failedNodes[chosenNode] = exceptionToUse
 }
 

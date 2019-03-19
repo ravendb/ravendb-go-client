@@ -2,14 +2,14 @@ package ravendb
 
 // DocumentConflictError represents document conflict error from the server
 type DocumentConflictError struct {
-	*ConflictException
+	ConflictError
 	DocID       string
 	LargestEtag int64
 }
 
 func newDocumentConflictError(message string, docID string, etag int64) *DocumentConflictError {
 	res := &DocumentConflictError{}
-	res.ConflictException = NewConflictException("%s", message)
+	res.ConflictError = *newConflictError("%s", message)
 	res.DocID = docID
 	res.LargestEtag = etag
 	return res

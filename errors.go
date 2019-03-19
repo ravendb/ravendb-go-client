@@ -1,6 +1,16 @@
 package ravendb
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+
+type CancellationError struct {
+}
+
+func (e *CancellationError) Error() string {
+	return "CancellationError"
+}
 
 type errorBase struct {
 	wrapped  error
@@ -35,28 +45,111 @@ type RuntimeError struct {
 
 func newRuntimeError(format string, args ...interface{}) *RuntimeError {
 	res := &RuntimeError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
+	return res
+}
+
+// UnsupportedOperationError represents unsupported operation error
+type UnsupportedOperationError struct {
+	errorBase
+}
+
+func newUnsupportedOperationError(format string, args ...interface{}) *UnsupportedOperationError {
+	res := &UnsupportedOperationError{}
+	res.setErrorf(format, args...)
+	return res
+}
+
+// IllegalStateError represents illegal state error
+type IllegalStateError struct {
+	errorBase
+}
+
+func newIllegalStateError(format string, args ...interface{}) *IllegalStateError {
+	res := &IllegalStateError{}
+	res.setErrorf(format, args...)
+	return res
+}
+
+// IllegalArgumentError represents illegal argument error
+type IllegalArgumentError struct {
+	errorBase
+}
+
+func newIllegalArgumentError(format string, args ...interface{}) *IllegalArgumentError {
+	res := &IllegalArgumentError{}
+	res.setErrorf(format, args...)
+	return res
+}
+
+// NotImplementedError represents not implemented error
+type NotImplementedError struct {
+	errorBase
+}
+
+func newNotImplementedError(format string, args ...interface{}) *NotImplementedError {
+	res := &NotImplementedError{}
+	res.setErrorf(format, args...)
+	return res
+}
+
+// AllTopologyNodesDownError represents "all topology nodes are down" error
+type AllTopologyNodesDownError struct {
+	errorBase
+}
+
+func newAllTopologyNodesDownError(format string, args ...interface{}) *AllTopologyNodesDownError {
+	res := &AllTopologyNodesDownError{}
+	res.setErrorf(format, args...)
+	return res
+}
+
+// OperationCancelledError represents "operation cancelled" error
+type OperationCancelledError struct {
+	errorBase
+}
+
+func newOperationCancelledError(format string, args ...interface{}) *OperationCancelledError {
+	res := &OperationCancelledError{}
+	res.setErrorf(format, args...)
+	return res
+}
+
+// AuthorizationError represents authorization error
+type AuthorizationError struct {
+	errorBase
+}
+
+func newAuthorizationError(format string, args ...interface{}) *AuthorizationError {
+	res := &AuthorizationError{}
+	res.setErrorf(format, args...)
 	return res
 }
 
 // RavenError represents generic raven error
+// all exceptions that in Java extend RavenException should
+// contain this error
 type RavenError struct {
 	errorBase
 }
 
+// hackish way to see if "inherits" from (embeds) RavenError
+func (e *RavenError) isRavenError() bool {
+	return true
+}
+
+type iRavenError interface {
+	isRavenError() bool
+}
+
+func isRavenError(err error) bool {
+	_, ok := err.(iRavenError)
+	return ok
+}
+
 func newRavenError(format string, args ...interface{}) *RavenError {
 	res := &RavenError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-type ConflictException struct {
-	RavenError
-}
-
-func NewConflictException(format string, args ...interface{}) *ConflictException {
-	res := &ConflictException{}
-	res.RavenError = *newRavenError(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
@@ -72,327 +165,169 @@ type ConcurrencyError struct {
 
 func newConcurrencyError(format string, args ...interface{}) *ConcurrencyError {
 	res := &ConcurrencyError{}
-	res.RavenError = *newRavenError(format, args...)
-	return res
-}
-
-// UnsupportedOperationError represents unsupported operation error
-type UnsupportedOperationError struct {
-	errorBase
-}
-
-func newUnsupportedOperationError(format string, args ...interface{}) *UnsupportedOperationError {
-	res := &UnsupportedOperationError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// IllegalStateError represents illegal state error
-type IllegalStateError struct {
-	errorBase
-}
-
-func newIllegalStateError(format string, args ...interface{}) *IllegalStateError {
-	res := &IllegalStateError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// IllegalArgumentError represents illegal argument error
-type IllegalArgumentError struct {
-	errorBase
-}
-
-func newIllegalArgumentError(format string, args ...interface{}) *IllegalArgumentError {
-	res := &IllegalArgumentError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// NotImplementedError represents not implemented error
-type NotImplementedError struct {
-	errorBase
-}
-
-func newNotImplementedError(format string, args ...interface{}) *NotImplementedError {
-	res := &NotImplementedError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // NonUniqueObjectError represents non unique object error
 type NonUniqueObjectError struct {
-	errorBase
+	RavenError
 }
 
 // newNonUniqueObjectError creates new NonUniqueObjectError
 func newNonUniqueObjectError(format string, args ...interface{}) *NonUniqueObjectError {
 	res := &NonUniqueObjectError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // DatabaseDoesNotExistError represents "database not not exist" error
 type DatabaseDoesNotExistError struct {
-	errorBase
+	RavenError
 }
 
 // newDatabaseDoesNotExistError creates new NonUniqueObjectError
 func newDatabaseDoesNotExistError(format string, args ...interface{}) *DatabaseDoesNotExistError {
 	res := &DatabaseDoesNotExistError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// AllTopologyNodesDownError represents "all topology nodes are down" error
-type AllTopologyNodesDownError struct {
-	errorBase
-}
-
-func newAllTopologyNodesDownError(format string, args ...interface{}) *AllTopologyNodesDownError {
-	res := &AllTopologyNodesDownError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// OperationCancelledError represents "operation cancelled" error
-type OperationCancelledError struct {
-	errorBase
-}
-
-func newOperationCancelledError(format string, args ...interface{}) *OperationCancelledError {
-	res := &OperationCancelledError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// AuthorizationError represents authorization error
-type AuthorizationError struct {
-	errorBase
-}
-
-func newAuthorizationError(format string, args ...interface{}) *AuthorizationError {
-	res := &AuthorizationError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // TimeoutError represents timeout error
 type TimeoutError struct {
-	errorBase
+	RavenError
 }
 
 // NewTimeoutError returns new TimeoutError
 func NewTimeoutError(format string, args ...interface{}) *TimeoutError {
 	res := &TimeoutError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // IndexDoesNotExistError represents "index doesn't exist" error
 type IndexDoesNotExistError struct {
-	errorBase
+	RavenError
 }
 
 func newIndexDoesNotExistError(format string, args ...interface{}) *IndexDoesNotExistError {
 	res := &IndexDoesNotExistError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // BadResponseError represents "bad response" error
 type BadResponseError struct {
-	errorBase
+	RavenError
 }
 
 func newBadResponseError(format string, args ...interface{}) *BadResponseError {
 	res := &BadResponseError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // BadRequestError maps to server's 400 Bad Request response
 // This is additional information sent by the server
 type BadRequestError struct {
-	URL      string `json:"Url"`
-	Type     string `json:"Type"`
-	Message  string `json:"Message"`
-	ErrorStr string `json:"Error"`
-}
-
-// Error makes it conform to error interface
-func (e *BadRequestError) Error() string {
-	return fmt.Sprintf(`Server returned 400 Bad Request for URL '%s'
-Type: %s
-Message: %s
-Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
-}
-
-// InternalServerError maps to server's 500 Internal Server response
-type InternalServerError struct {
-	URL      string `json:"Url"`
-	Type     string `json:"Type"`
-	Message  string `json:"Message"`
-	ErrorStr string `json:"Error"`
-}
-
-// Error makes it conform to error interface
-func (e *InternalServerError) Error() string {
-	return fmt.Sprintf(`Server returned 500 Internal Server for URL '%s'
-Type: %s
-Message: %s
-Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
-}
-
-// ServiceUnavailableError maps to server's 501 Service Unavailable
-// response. This is additional information sent by the server.
-type ServiceUnavailableError struct {
-	Type    string `json:"Type"`
-	Message string `json:"Message"`
-}
-
-// Error makes it conform to error interface
-func (e *ServiceUnavailableError) Error() string {
-	return fmt.Sprintf(`Server returned 501 Service Unavailable'
-Type: %s
-Message: %s`, e.Type, e.Message)
+	RavenError
 }
 
 // ConflictError maps to server's 409 Conflict response
 type ConflictError struct {
-	URL      string `json:"Url"`
-	Type     string `json:"Type"`
-	Message  string `json:"Message"`
-	ErrorStr string `json:"Error"`
+	RavenError
 }
 
-// Error makes it conform to error interface
-func (e *ConflictError) Error() string {
-	return fmt.Sprintf(`Server returned 409 Conflict for URL '%s'
-Type: %s
-Message: %s
-Error: %s`, e.URL, e.Type, e.Message, e.ErrorStr)
+func newConflictError(format string, args ...interface{}) *ConflictError {
+	res := &ConflictError{}
+	res.setErrorf(format, args...)
+	return res
 }
 
-// NotFoundError maps to server's 404 Not Found
-type NotFoundError struct {
-	URL string
-}
-
-// Error makes it conform to error interface
-func (e *NotFoundError) Error() string {
-	return fmt.Sprintf(`Server returned 404 Not Found for URL '%s'`, e.URL)
-}
-
-type CancellationError struct {
-}
-
-func (e *CancellationError) Error() string {
-	return "CancellationError"
+// a base type for subscription-related errors
+type SubscriptionError struct {
+	RavenError
 }
 
 // SubscriberErrorError represents error about subscriber error
 // Note: name is unfortunate but it corresponds to Java's SubscriberErrorException
 type SubscriberErrorError struct {
-	errorBase
-}
-
-func newSubscriberErrorError(format string, args ...interface{}) *SubscriberErrorError {
-	res := &SubscriberErrorError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
+	SubscriptionError
 }
 
 // SubscriptionChangeVectorUpdateConcurrencyError represents an error about
 // subscription change vector update concurrency
 type SubscriptionChangeVectorUpdateConcurrencyError struct {
-	errorBase
+	SubscriptionError
 }
 
 func newSubscriptionChangeVectorUpdateConcurrencyError(format string, args ...interface{}) *SubscriptionChangeVectorUpdateConcurrencyError {
 	res := &SubscriptionChangeVectorUpdateConcurrencyError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // SubscriptionClosedError is returned when subscription is closed
 type SubscriptionClosedError struct {
-	errorBase
+	SubscriptionError
 }
 
 func newSubscriptionClosedError(format string, args ...interface{}) *SubscriptionClosedError {
 	res := &SubscriptionClosedError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
-// SubscriptionDoesNotBelongToNodeError is returned when subscription does not belong
-// to node
+// SubscriptionDoesNotBelongToNodeError is returned when subscription
+// does not belong to node
 type SubscriptionDoesNotBelongToNodeError struct {
-	errorBase
+	SubscriptionError
 
 	appropriateNode string
 }
 
 func newSubscriptionDoesNotBelongToNodeError(format string, args ...interface{}) *SubscriptionDoesNotBelongToNodeError {
 	res := &SubscriptionDoesNotBelongToNodeError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // SubscriptionDoesNotExistError is returned when subscription doesn't exist
 type SubscriptionDoesNotExistError struct {
-	errorBase
+	SubscriptionError
 }
 
 func newSubscriptionDoesNotExistError(format string, args ...interface{}) *SubscriptionDoesNotExistError {
 	res := &SubscriptionDoesNotExistError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
-// SubscriptionError is a generic error related to subscription
-type SubscriptionError struct {
-	errorBase
-}
-
-func newSubscriptionError(format string, args ...interface{}) *SubscriptionError {
-	res := &SubscriptionError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // SubscriptionInvalidStateError is returned when subscription is in invalid state
 type SubscriptionInvalidStateError struct {
-	errorBase
+	SubscriptionError
 }
 
 func newSubscriptionInvalidStateError(format string, args ...interface{}) *SubscriptionInvalidStateError {
 	res := &SubscriptionInvalidStateError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // SubscriptionInUseError is returned when subscription is in use
 type SubscriptionInUseError struct {
-	errorBase
+	SubscriptionError
 }
 
 func newSubscriptionInUseError(format string, args ...interface{}) *SubscriptionInUseError {
 	res := &SubscriptionInUseError{}
-	res.errorBase.setErrorf(format, args...)
+	res.setErrorf(format, args...)
 	return res
 }
 
 // ClientVersionMismatchError is returned when subscription is in use
 type ClientVersionMismatchError struct {
-	errorBase
-}
-
-func newClientVersionMismatchError(format string, args ...interface{}) *ClientVersionMismatchError {
-	res := &ClientVersionMismatchError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
+	RavenError
 }
 
 // CertificateNameMismatchError is returned when subscription is in use
@@ -400,12 +335,201 @@ type CertificateNameMismatchError struct {
 	errorBase
 }
 
-func newCertificateNameMismatchError(format string, args ...interface{}) *CertificateNameMismatchError {
-	res := &CertificateNameMismatchError{}
-	res.errorBase.setErrorf(format, args...)
-	return res
-}
-
 func throwCancellationRequested() error {
 	return newOperationCancelledError("")
+}
+
+type InvalidQueryError struct {
+	RavenError
+}
+
+type UnsuccessfulRequestError struct {
+	RavenError
+}
+
+type ChangeProcessingError struct {
+	RavenError
+}
+
+type CommandExecutionError struct {
+	RavenError
+}
+
+type NodeIsPassiveError struct {
+	RavenError
+}
+
+type NoLeaderError struct {
+	RavenError
+}
+
+type LicenseActivationError struct {
+	RavenError
+}
+
+type CompilationError struct {
+	RavenError
+}
+
+type DatabaseConcurrentLoadTimeoutError struct {
+	RavenError
+}
+
+type DatabaseDisabledError struct {
+	RavenError
+}
+
+type DatabaseLoadFailureError struct {
+	RavenError
+}
+
+type DatabaseLoadTimeoutError struct {
+	RavenError
+}
+
+type DatabaseNotRelevantError struct {
+	RavenError
+}
+
+type DocumentDoesNotExistError struct {
+	RavenError
+}
+
+type BulkInsertProtocolViolationError struct {
+	RavenError
+}
+
+type IndexAlreadyExistError struct {
+	RavenError
+}
+
+type IndexCreationError struct {
+	RavenError
+}
+
+type IndexDeletionError struct {
+	RavenError
+}
+
+type IndexInvalidError struct {
+	RavenError
+}
+
+type JavaScriptError struct {
+	RavenError
+}
+
+type RevisionsDisabledError struct {
+	RavenError
+}
+
+type RouteNotFoundError struct {
+	RavenError
+}
+
+type SecurityError struct {
+	RavenError
+}
+
+type ServerLoadFailureError struct {
+	RavenError
+}
+
+type LicenseActivation struct {
+	RavenError
+}
+
+func makeRavenErrorFromName(s string) error {
+	// Java's "FooException" is "FooError" in Go
+	s = strings.Replace(s, "Exception", "Error", -1)
+	switch s {
+	case "LicenseActivation":
+		return &LicenseActivation{}
+	case "ConcurrencyError":
+		return &ConcurrencyError{}
+	case "NonUniqueObjectError":
+		return &NonUniqueObjectError{}
+	case "DatabaseDoesNotExistError":
+		return &DatabaseDoesNotExistError{}
+	case "TimeoutError":
+		return &TimeoutError{}
+	case "IndexDoesNotExistError":
+		return &IndexDoesNotExistError{}
+	case "BadResponseError":
+		return &BadResponseError{}
+	case "BadRequestError":
+		return &BadRequestError{}
+	case "ConflictError":
+		return &ConflictError{}
+	case "SubscriberErrorError":
+		return &SubscriberErrorError{}
+	case "SubscriptionChangeVectorUpdateConcurrencyError":
+		return &SubscriptionChangeVectorUpdateConcurrencyError{}
+	case "SubscriptionClosedError":
+		return &SubscriptionClosedError{}
+	case "SubscriptionDoesNotBelongToNodeError":
+		return &SubscriptionDoesNotBelongToNodeError{}
+	case "SubscriptionDoesNotExistError":
+		return &SubscriptionDoesNotExistError{}
+	case "SubscriptionInvalidStateError":
+		return &SubscriptionInvalidStateError{}
+	case "SubscriptionInUseError":
+		return &SubscriptionInUseError{}
+	case "ClientVersionMismatchError":
+		return &ClientVersionMismatchError{}
+	case "CertificateNameMismatchError":
+		return &CertificateNameMismatchError{}
+	case "InvalidQueryError":
+		return &InvalidQueryError{}
+	case "UnsuccessfulRequestError":
+		return &UnsuccessfulRequestError{}
+	case "ChangeProcessingError":
+		return &ChangeProcessingError{}
+	case "CommandExecutionError":
+		return &CommandExecutionError{}
+	case "NodeIsPassiveError":
+		return &NodeIsPassiveError{}
+	case "NoLeaderError":
+		return &NoLeaderError{}
+	case "LicenseActivationError":
+		return &LicenseActivationError{}
+	case "CompilationError":
+		return &CompilationError{}
+	case "DatabaseConcurrentLoadTimeoutError":
+		return &DatabaseConcurrentLoadTimeoutError{}
+	case "DatabaseDisabledError":
+		return &DatabaseDisabledError{}
+	case "DatabaseLoadFailureError":
+		return &DatabaseLoadFailureError{}
+	case "DatabaseLoadTimeoutError":
+		return &DatabaseLoadTimeoutError{}
+	case "DatabaseNotRelevantError":
+		return &DatabaseNotRelevantError{}
+	case "DocumentDoesNotExistError":
+		return &DocumentDoesNotExistError{}
+	case "BulkInsertAbortedError":
+		return &BulkInsertAbortedError{}
+	case "BulkInsertProtocolViolationError":
+		return &BulkInsertProtocolViolationError{}
+	case "IndexAlreadyExistError":
+		return &IndexAlreadyExistError{}
+	case "IndexCreationError":
+		return &IndexCreationError{}
+	case "IndexDeletionError":
+		return &IndexDeletionError{}
+	case "IndexInvalidError":
+		return &IndexInvalidError{}
+	case "JavaScriptError":
+		return &JavaScriptError{}
+	case "RevisionsDisabledError":
+		return &RevisionsDisabledError{}
+	case "RouteNotFoundError":
+		return &RouteNotFoundError{}
+	case "SecurityError":
+		return &SecurityError{}
+	case "ServerLoadFailureError":
+		return &ServerLoadFailureError{}
+
+	}
+	return nil
 }

@@ -25,4 +25,9 @@ func TestErrorWrapping(t *testing.T) {
 		assert.Equal(t, err.Error(), "3, hey")
 		assert.Nil(t, err.wrapped)
 	}
+
+	{
+		err := newSubscriptionDoesNotExistError("")
+		assert.True(t, isRavenError(err))
+	}
 }

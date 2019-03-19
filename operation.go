@@ -78,7 +78,7 @@ func (o *Operation) WaitForCompletion() error {
 			if err != nil {
 				return err
 			}
-			return exceptionDispatcherGet2(exceptionResult.Message, exceptionResult.Error, exceptionResult.Type, exceptionResult.StatusCode)
+			return exceptionDispatcherGet(exceptionResult.Message, exceptionResult.Error, exceptionResult.Type, exceptionResult.StatusCode, nil)
 		}
 
 		time.Sleep(500 * time.Millisecond)
