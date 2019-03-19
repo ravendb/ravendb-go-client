@@ -53,6 +53,7 @@ func (s *DocumentSubscriptions) CreateForType(clazz reflect.Type, options *Subsc
 	creationOptions := &SubscriptionCreationOptions{
 		Name:         options.Name,
 		ChangeVector: options.ChangeVector,
+		Query:        options.Query,
 	}
 
 	opts := s.ensureCriteria(creationOptions, clazz, false)
@@ -68,6 +69,7 @@ func (s *DocumentSubscriptions) CreateForRevisions(clazz reflect.Type, options *
 	creationOptions := &SubscriptionCreationOptions{
 		Name:         options.Name,
 		ChangeVector: options.ChangeVector,
+		Query:        options.Query,
 	}
 
 	opts := s.ensureCriteria(creationOptions, clazz, true)
