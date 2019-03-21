@@ -1,10 +1,13 @@
 package ravendb
 
+import "sync"
+
 // MultiDatabaseHiLoIDGenerator manages per-database HiLoKeyGenerotr
 type MultiDatabaseHiLoIDGenerator struct {
 	store       *DocumentStore
 	conventions *DocumentConventions
-	_generators map[string]*MultiTypeHiLoIDGenerator
+	// string -> *MultiTypeHiLoIDGenerator
+	_generators sync.Map
 }
 
 // NewMultiDatabaseHiLoIDGenerator creates new MultiDatabaseHiLoKeyGenerator
@@ -12,7 +15,6 @@ func NewMultiDatabaseHiLoIDGenerator(store *DocumentStore, conventions *Document
 	return &MultiDatabaseHiLoIDGenerator{
 		store:       store,
 		conventions: conventions,
-		_generators: map[string]*MultiTypeHiLoIDGenerator{},
 	}
 }
 
@@ -22,17 +24,23 @@ func (g *MultiDatabaseHiLoIDGenerator) GenerateDocumentID(dbName string, entity 
 		dbName = g.store.database
 	}
 	panicIf(dbName == "", "expected non-empty dbName")
-	generator, ok := g._generators[dbName]
+	generatorI, ok := g._generators.Load(dbName)
+	var generator *MultiTypeHiLoIDGenerator
 	if !ok {
 		generator = NewMultiTypeHiLoIDGenerator(g.store, dbName, g.conventions)
-		g._generators[dbName] = generator
+		g._generators.Store(dbName, generator)
+	} else {
+		generator = generatorI.(*MultiTypeHiLoIDGenerator)
 	}
 	return generator.GenerateDocumentID(entity)
 }
 
 // ReturnUnusedRange returns unused range for all generators
 func (g *MultiDatabaseHiLoIDGenerator) ReturnUnusedRange() {
-	for _, generator := range g._generators {
+	cb := func(key, value interface{}) bool {
+		generator := value.(*MultiTypeHiLoIDGenerator)
 		generator.ReturnUnusedRange()
+		return true
 	}
+	g._generators.Range(cb)
 }

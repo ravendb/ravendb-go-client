@@ -490,6 +490,10 @@ func (re *RequestExecutor) disposeAllFailedNodesTimers() {
 // sessionInfo can be nil
 func (re *RequestExecutor) ExecuteCommand(command RavenCommand, sessionInfo *SessionInfo) error {
 	redbg("RequestExector.ExecuteCommand: %T\n", command)
+	if re.isDisposed() {
+		// can happen if e.g. we create BulkInsertOperation, close the store and then call Close() on BulkInsertOperation
+		return newIllegalStateError("RequestExecutor has been disposed")
+	}
 	topologyUpdate := re.firstTopologyUpdateFuture
 	isDone := topologyUpdate != nil && topologyUpdate.IsDone() && !topologyUpdate.IsCompletedExceptionally() && !topologyUpdate.isCancelled()
 	if isDone || re.disableTopologyUpdates {

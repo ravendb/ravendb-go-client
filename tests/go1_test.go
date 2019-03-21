@@ -708,6 +708,121 @@ select {
 	assert.True(t, ok)
 }
 
+// increasing code coverage of bulk_insert_operation.go
+func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+
+	var orphanedInsert *ravendb.BulkInsertOperation
+
+	defer func() {
+		store.Close()
+		err = orphanedInsert.Close()
+		assert.Error(t, err)
+	}()
+
+	{
+		bulkInsert := store.BulkInsert("")
+		o := &FooBar{
+			Name: "John Doe",
+		}
+		// trigger BulkInsertOperation.escapeID
+		err = bulkInsert.StoreWithID(o, `FooBars/my-"-\id`, nil)
+		assert.NoError(t, err)
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+	}
+
+	{
+		bulkInsert := store.BulkInsert("")
+		o := &FooBar{
+			Name: "John Doe",
+		}
+		// trigger BulkInsertOperation.escapeID
+		err = bulkInsert.StoreWithID(o, ``, nil)
+		assert.Error(t, err)
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+	}
+
+	{
+		bulkInsert := store.BulkInsert("")
+		o := &FooBar{
+			Name: "John Doe",
+		}
+		// trigger BulkInsertOperation.escapeID
+		err = bulkInsert.StoreWithID(o, ``, nil)
+		assert.Error(t, err)
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+	}
+
+	{
+		bulkInsert := store.BulkInsert("")
+		o := &FooBar{
+			Name: "John Doe",
+		}
+		// trigger a path inBulkInsertOperation.Store() that takes ID from metadata
+		m := map[string]interface{}{
+			ravendb.MetadataID: "FooBars/id-frommeta",
+		}
+		meta := ravendb.NewMetadataAsDictionaryWithMetadata(m)
+		id, err := bulkInsert.Store(o, meta)
+		assert.Equal(t, "FooBars/id-frommeta", id)
+		assert.NoError(t, err)
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+	}
+
+	{
+		bulkInsert := store.BulkInsert("")
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+	}
+
+	{
+		orphanedInsert = store.BulkInsert("")
+		o := &FooBar{
+			Name: "John Doe",
+		}
+		_, err = orphanedInsert.Store(o, nil)
+		assert.NoError(t, err)
+	}
+
+	// TODO: this triggers DATA RACE in HiLoIDGenerator
+	/*
+		{
+			// try to trigger concurrency check
+			bulkInsert := store.BulkInsert("")
+			var wg sync.WaitGroup
+			for i := 0; i < 5; i++ {
+				wg.Add(1)
+				go func() {
+					o := &FooBar{
+						Name: "John Doe",
+					}
+					_, _ = bulkInsert.Store(o, nil)
+					wg.Done()
+				}()
+			}
+			wg.Wait()
+
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+		}
+	*/
+
+	{
+		// trigger operationID == -1 code path in Abort
+		bulkInsert := store.BulkInsert("")
+		err = bulkInsert.Abort()
+		assert.NoError(t, err)
+		err = bulkInsert.Close()
+		assert.NoError(t, err)
+	}
+
+}
+
 func TestGo1(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
@@ -720,4 +835,5 @@ func TestGo1(t *testing.T) {
 	goTestFindCollectionName(t)
 	goTestBatchCommandOrder(t, driver)
 	goTestInvalidIndexDefinition(t, driver)
+	goTestBulkInsertCoverage(t, driver)
 }

@@ -323,7 +323,7 @@ func (o *BulkInsertOperation) Close() error {
 	return nil
 }
 
-// Store stores entity. metadata can be nil
+// Store schedules entity for storing and returns its id. metadata can be nil
 func (o *BulkInsertOperation) Store(entity interface{}, metadata *MetadataAsDictionary) (string, error) {
 	var err error
 	var id string
