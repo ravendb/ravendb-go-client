@@ -345,18 +345,25 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 	return future
 }
 
-func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) *completableFuture {
+func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) chan *ClusterUpdateAsyncResult {
 	return re.updateTopologyAsyncWithForceUpdate(node, timeout, false)
 }
 
-func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *completableFuture {
+type ClusterUpdateAsyncResult struct {
+	Ok  bool
+	Err error
+}
+
+func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *ClusterUpdateAsyncResult {
 	panicIf(!re.isCluster, "clusterUpdateTopologyAsyncWithForceUpdate() called on non-cluster RequestExecutor")
 
+	future := make(chan *ClusterUpdateAsyncResult, 1)
 	if re.isDisposed() {
-		return newCompletableFutureAlreadyCompleted(false)
+		future <- &ClusterUpdateAsyncResult{Ok: false}
+		close(future)
+		return future
 	}
 
-	future := newCompletableFuture()
 	f := func() {
 		var err error
 		var res bool
@@ -364,11 +371,13 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			if err != nil && !re.isDisposed() {
 				err = nil
 			}
+
 			if err != nil {
-				future.completeWithError(err)
+				future <- &ClusterUpdateAsyncResult{Err: err}
 			} else {
-				future.complete(res)
+				future <- &ClusterUpdateAsyncResult{Ok: res}
 			}
+			close(future)
 			re.clusterTopologySemaphore.release()
 		}()
 
@@ -417,21 +426,22 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 	return future
 }
 
-func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) *completableFuture {
+func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *ClusterUpdateAsyncResult {
 	// Note: in Java this is done via virtual functions
 	if re.isCluster {
 		return re.clusterUpdateTopologyAsyncWithForceUpdate(node, timeout, forceUpdate)
 	}
-	future := newCompletableFuture()
+	future := make(chan *ClusterUpdateAsyncResult, 1)
 	f := func() {
 		var err error
 		var res bool
 		defer func() {
 			if err != nil {
-				future.completeWithError(err)
+				future <- &ClusterUpdateAsyncResult{Err: err}
 			} else {
-				future.complete(res)
+				future <- &ClusterUpdateAsyncResult{Ok: res}
 			}
+			close(future)
 		}()
 		if re.isDisposed() {
 			res = false
@@ -602,9 +612,9 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 				serverNode.URL = url
 				serverNode.Database = re.databaseName
 
-				res := re.UpdateTopologyAsync(serverNode, math.MaxInt32)
-				_, err = res.Get()
-				if err == nil {
+				chRes := re.UpdateTopologyAsync(serverNode, math.MaxInt32)
+				res := <-chRes
+				if res.Err == nil {
 					re.initializeUpdateTopologyTimer()
 					re.topologyTakenFromNode = serverNode
 					return
@@ -815,9 +825,7 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 	}
 
 	if responseDispose == responseDisposeHandlingAutomatic {
-		// TODO: not sure if it translates
-		response.Body.Close()
-		//IOUtils.closeQuietly(response)
+		_ = response.Body.Close()
 	}
 
 	if refreshTopology || refreshClientConfiguration {
@@ -826,11 +834,13 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		serverNode.URL = chosenNode.URL
 		serverNode.Database = re.databaseName
 
-		var topologyTask *completableFuture
+		var topologyTask chan *ClusterUpdateAsyncResult
 		if refreshTopology {
 			topologyTask = re.UpdateTopologyAsync(serverNode, 0)
 		} else {
-			topologyTask = newCompletableFutureAlreadyCompleted(false)
+			topologyTask = make(chan *ClusterUpdateAsyncResult, 1)
+			topologyTask <- &ClusterUpdateAsyncResult{Ok: false}
+			close(topologyTask)
 		}
 		var clientConfiguration *completableFuture
 		if refreshClientConfiguration {
@@ -838,7 +848,8 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		} else {
 			clientConfiguration = newCompletableFutureAlreadyCompleted(nil)
 		}
-		_, err1 := topologyTask.Get()
+		result := <-topologyTask
+		err1 := result.Err
 		_, err2 := clientConfiguration.Get()
 		if err1 != nil {
 			return err1
@@ -983,9 +994,12 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		case RavenCommandResponseTypeEmpty:
 			return true, nil
 		case RavenCommandResponseTypeObject:
-			command.setResponse(nil, false)
+			err = command.setResponse(nil, false)
 		default:
-			command.setResponseRaw(response, nil)
+			err = command.setResponseRaw(response, nil)
+		}
+		if err != nil {
+			return false, err
 		}
 		return true, nil
 	case http.StatusForbidden:
@@ -996,9 +1010,9 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		}
 
 		updateFuture := re.updateTopologyAsyncWithForceUpdate(chosenNode, int(math.MaxInt32), true)
-		_, err = updateFuture.Get()
-		if err != nil {
-			return false, err
+		result := <-updateFuture
+		if result.Err != nil {
+			return false, result.Err
 		}
 
 		var currentIndexAndNode *CurrentIndexAndNode

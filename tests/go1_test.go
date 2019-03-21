@@ -613,7 +613,7 @@ func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
-func goTestFindCollectionName(t *testing.T, driver *RavenTestDriver) {
+func goTestFindCollectionName(t *testing.T) {
 	findCollectionName := func(entity interface{}) string {
 		if _, ok := entity.(*User); ok {
 			return "my users"
@@ -717,7 +717,7 @@ func TestGo1(t *testing.T) {
 	go1Test(t, driver)
 	goTestGetLastModifiedForAndChanges(t, driver)
 	goTestListeners(t, driver)
-	goTestFindCollectionName(t, driver)
+	goTestFindCollectionName(t)
 	goTestBatchCommandOrder(t, driver)
 	goTestInvalidIndexDefinition(t, driver)
 }

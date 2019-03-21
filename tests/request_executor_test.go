@@ -103,7 +103,8 @@ func requestExecutorTestThrowsWhenUpdatingTopologyOfNotExistingDb(t *testing.T, 
 		serverNode.URL = store.GetUrls()[0]
 		serverNode.Database = "no_such"
 		future := executor.UpdateTopologyAsync(serverNode, 5000)
-		_, err := future.Get()
+		result := <-future
+		err := result.Err
 		_ = err.(*ravendb.DatabaseDoesNotExistError)
 	}
 	if dbgRequestExecutorTests {

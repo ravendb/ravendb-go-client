@@ -31,6 +31,8 @@ type iWrappedError interface {
 	WrappedError() error
 }
 
+// GetWrappedError returns an error wrapped by this error
+// If no error is wrapped, returns nil
 func GetWrappedError(err error) error {
 	if e, ok := err.(iWrappedError); ok {
 		return e.WrappedError()
