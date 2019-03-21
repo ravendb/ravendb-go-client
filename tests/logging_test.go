@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/ravendb/ravendb-go-client"
+	ravendb "github.com/ravendb/ravendb-go-client"
 )
 
 var (
@@ -39,8 +39,9 @@ var (
 	// status code >= 400) to stdout
 	logFailedRequests = false
 
-	// httpLoggerWriter is where we log all http requests and responses
-	httpLoggerWriter io.WriteCloser
+	// testFileLog is a per-test file logs/trace_${test_name}_go.txt where we log all http requests, responses and
+	// other stuff
+	testFileLog io.WriteCloser
 	// httpFailedRequestsLogger is where we log failed http requests.
 	// it's either os.Stdout for immediate logging or bytes.Buffer for delayed logging
 	httpFailedRequestsLogger io.Writer
@@ -59,6 +60,16 @@ func logsLock() {
 
 func logsUnlock() {
 	muLog.Unlock()
+}
+
+func logToPerTestFile(format string, args ...interface{}) {
+	if testFileLog == nil {
+		return
+	}
+	s := fmt.Sprintf(format, args...)
+	logsLock()
+	_, _ = testFileLog.Write([]byte(s))
+	logsUnlock()
 }
 
 func setLoggingStateFromEnv() {
@@ -120,13 +131,21 @@ func httpLogPathFromTestName(t *testing.T) string {
 	return filepath.Join(getLogDir(), name)
 }
 
+func logSubscriptionWorker(op string, d []byte) {
+	if testFileLog == nil {
+		return
+	}
+	logToPerTestFile("SubscriptionWorker: op: %s, data:\n%s\n", op, string(d))
+}
+
 func setupLogging(t *testing.T) {
 	logsLock()
 	defer logsUnlock()
 
 	ravendb.HTTPClientPostProcessor = httpClientProcessor
+	ravendb.LogSubscriptionWorker = logSubscriptionWorker
 
-	httpLoggerWriter = nil
+	testFileLog = nil
 	if logAllRequests {
 		var err error
 		path := httpLogPathFromTestName(t)
@@ -135,7 +154,7 @@ func setupLogging(t *testing.T) {
 			fmt.Printf("os.Create('%s') failed with %s\n", path, err)
 		} else {
 			fmt.Printf("Logging HTTP traffic to %s\n", path)
-			httpLoggerWriter = f
+			testFileLog = f
 		}
 	}
 
@@ -152,10 +171,10 @@ func setupLogging(t *testing.T) {
 func finishLogging() {
 	logsLock()
 	defer logsUnlock()
-	w := httpLoggerWriter
+	w := testFileLog
 	if w != nil {
-		w.Close()
-		httpLoggerWriter = nil
+		_ = w.Close()
+		testFileLog = nil
 	}
 }
 
@@ -203,7 +222,7 @@ func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Res
 
 	d, err := httputil.DumpRequest(req, false)
 	if err == nil {
-		w.Write(d)
+		_, _ = w.Write(d)
 	}
 
 	if req.Body != nil {
@@ -228,7 +247,7 @@ func logRequestAndResponseToWriter(w io.Writer, req *http.Request, rsp *http.Res
 	fmt.Fprint(w, "--------\n")
 	d, err = httputil.DumpResponse(rsp, false)
 	if err == nil {
-		w.Write(d)
+		_, _ = w.Write(d)
 	}
 	if d, err := getCopyOfResponseBody(rsp); err != nil {
 		fmt.Fprintf(w, "Failed to read response body. Error: '%s'\n", err)
@@ -244,7 +263,7 @@ func maybePrintFailedRequestsLog() {
 	defer logsUnlock()
 	if logFailedRequests && logFailedRequestsDelayed {
 		buf := httpFailedRequestsLogger.(*bytes.Buffer)
-		os.Stdout.Write(buf.Bytes())
+		_, _ = os.Stdout.Write(buf.Bytes())
 		buf.Reset()
 	}
 }
@@ -253,10 +272,10 @@ func maybeLogHTTPRequest(req *http.Request, rsp *http.Response, err error) {
 	logsLock()
 	defer logsUnlock()
 
-	if httpLoggerWriter == nil {
+	if testFileLog == nil {
 		return
 	}
-	logRequestAndResponseToWriter(httpLoggerWriter, req, rsp, err)
+	logRequestAndResponseToWriter(testFileLog, req, rsp, err)
 }
 
 func maybeLogFailedResponse(req *http.Request, rsp *http.Response, err error) {
@@ -276,7 +295,7 @@ func maybeLogFailedResponse(req *http.Request, rsp *http.Response, err error) {
 // to be able to print request body for failed requests, we must replace
 // body with one that captures data read from original body.
 func maybeCaptureRequestBody(req *http.Request) {
-	shouldCapture := (logFailedRequests && !isErrLoggingDisabled()) || (httpLoggerWriter != nil)
+	shouldCapture := (logFailedRequests && !isErrLoggingDisabled()) || (testFileLog != nil)
 	if !shouldCapture {
 		return
 	}
@@ -321,6 +340,8 @@ func logGoroutines(file string) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
-	profile.WriteTo(f, 2)
+	defer func() {
+		_ = f.Close()
+	}()
+	_ = profile.WriteTo(f, 2)
 }

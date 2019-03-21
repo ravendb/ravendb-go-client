@@ -84,7 +84,7 @@ func newSubscriptionBatch(clazz reflect.Type, revisions bool, requestExecutor *R
 	return res
 }
 
-func (b *SubscriptionBatch) initialize(batch []*SubscriptionConnectionServerMessage) (string, error) {
+func (b *SubscriptionBatch) initialize(batch []*subscriptionConnectionServerMessage) (string, error) {
 	b.Items = nil
 
 	lastReceivedChangeVector := ""

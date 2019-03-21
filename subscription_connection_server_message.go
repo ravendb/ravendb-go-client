@@ -1,45 +1,45 @@
 package ravendb
 
-// SubscriptionServerMessageType describes type of subscription server message
-type SubscriptionServerMessageType = string
+// subscriptionServerMessageType describes type of subscription server message
+type subscriptionServerMessageType = string
 
 const (
-	SubscriptionServerMessageNone             = "None"
-	SubscriptionServerMessageConnectionStatus = "ConnectionStatus"
-	SubscriptionServerMessageEndOfBatch       = "EndOfBatch"
-	SubscriptionServerMessageData             = "Data"
-	SubscriptionServerMessageConfirm          = "Confirm"
-	SubscriptionServerMessageError            = "Error"
+	//subscriptionServerMessageNone             = "None"
+	subscriptionServerMessageConnectionStatus = "ConnectionStatus"
+	subscriptionServerMessageEndOfBatch       = "EndOfBatch"
+	subscriptionServerMessageData             = "Data"
+	subscriptionServerMessageConfirm          = "Confirm"
+	subscriptionServerMessageError            = "Error"
 )
 
-// SubscriptionConnectionStatus describes subscription connection status
-type SubscriptionConnectionStatus = string
+// subscriptionConnectionStatus describes subscription connection status
+type subscriptionConnectionStatus = string
 
 const (
-	SubscriptionConnectionStatusNone                 = "None"
-	SubscriptionConnectionStatusAccepted             = "Accepted"
-	SubscriptionConnectionStatusInUse                = "InUse"
-	SubscriptionConnectionStatusClosed               = "Closed"
-	SubscriptionConnectionStatusNotFound             = "NotFound"
-	SubscriptionConnectionStatusRedirect             = "Redirect"
-	SubscriptionConnectionStatusForbiddenReadOnly    = "ForbiddenReadOnly"
-	SubscriptionConnectionStatusForbidden            = "Forbidden"
-	SubscriptionConnectionStatusInvalid              = "Invalid"
-	SubscriptionConnectionStatusConcurrencyReconnect = "ConcurrencyReconnect"
+	//subscriptionConnectionStatusNone                 = "None"
+	subscriptionConnectionStatusAccepted = "Accepted"
+	subscriptionConnectionStatusInUse    = "InUse"
+	subscriptionConnectionStatusClosed   = "Closed"
+	subscriptionConnectionStatusNotFound = "NotFound"
+	subscriptionConnectionStatusRedirect = "Redirect"
+	//subscriptionConnectionStatusForbiddenReadOnly    = "ForbiddenReadOnly"
+	//subscriptionConnectionStatusForbidden            = "Forbidden"
+	subscriptionConnectionStatusInvalid              = "Invalid"
+	subscriptionConnectionStatusConcurrencyReconnect = "ConcurrencyReconnect"
 )
 
-// SubscriptionRedirectData describes subscription redirect data
-// TODO: make private?
-type SubscriptionRedirectData struct {
+// subscriptionRedirectData describes subscription redirect data
+/*
+type subscriptionRedirectData struct {
 	currentTag    string
 	redirectedTag string
 }
+*/
 
-// SubscriptionConnectionServerMessage describes subscription connection server message
-// TODO: make private?
-type SubscriptionConnectionServerMessage struct {
-	Type      SubscriptionServerMessageType `json:"Type"`
-	Status    SubscriptionConnectionStatus  `json:"Status"`
+// subscriptionConnectionServerMessage describes subscription connection server message
+type subscriptionConnectionServerMessage struct {
+	Type      subscriptionServerMessageType `json:"Type"`
+	Status    subscriptionConnectionStatus  `json:"Status"`
 	Data      map[string]interface{}        `json:"Data"`
 	Exception string                        `json:"Exception"`
 	Message   string                        `json:"Message"`
