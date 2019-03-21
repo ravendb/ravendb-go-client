@@ -436,13 +436,14 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 		var err error
 		var res bool
 		defer func() {
-			if err != nil {
-				future <- &ClusterUpdateAsyncResult{Err: err}
-			} else {
-				future <- &ClusterUpdateAsyncResult{Ok: res}
+			result := &ClusterUpdateAsyncResult{
+				Ok:  res,
+				Err: err,
 			}
+			future <- result
 			close(future)
 		}()
+
 		if re.isDisposed() {
 			res = false
 			return
@@ -614,7 +615,8 @@ func (re *RequestExecutor) firstTopologyUpdate(inputUrls []string) *completableF
 
 				chRes := re.UpdateTopologyAsync(serverNode, math.MaxInt32)
 				res := <-chRes
-				if res.Err == nil {
+				err = res.Err
+				if err == nil {
 					re.initializeUpdateTopologyTimer()
 					re.topologyTakenFromNode = serverNode
 					return
@@ -714,7 +716,6 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		return err
 	}
 	urlRef := request.URL.String()
-	//fmt.Printf("RequestExecutor.Execute cmd: %T url: %s\n", command, urlRef)
 
 	cachedItem, cachedChangeVector, cachedValue := re.getFromCache(command, urlRef)
 	defer cachedItem.close()
@@ -723,11 +724,9 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		aggressiveCacheOptions := re.aggressiveCaching
 		if aggressiveCacheOptions != nil {
 			expired := cachedItem.getAge() > aggressiveCacheOptions.Duration
-			//fmt.Printf("RequestExecutor.Execute(): expired: %v, mightHaveBeenModified: %v, canCacheAggressively: %v\n", expired, cachedItem.getMightHaveBeenModified(), command.GetBase().CanCacheAggressively)
 			if !expired &&
 				!cachedItem.getMightHaveBeenModified() &&
 				command.getBase().CanCacheAggressively {
-				//fmt.Printf("RequestExecutor.Execute(): using cached value of size %d\n", len(cachedValue))
 				return command.setResponse(cachedValue, true)
 			}
 		}
@@ -994,12 +993,9 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		case RavenCommandResponseTypeEmpty:
 			return true, nil
 		case RavenCommandResponseTypeObject:
-			err = command.setResponse(nil, false)
+			command.setResponse(nil, false)
 		default:
-			err = command.setResponseRaw(response, nil)
-		}
-		if err != nil {
-			return false, err
+			command.setResponseRaw(response, nil)
 		}
 		return true, nil
 	case http.StatusForbidden:
