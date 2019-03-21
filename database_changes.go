@@ -592,7 +592,9 @@ func (c *DatabaseChanges) send(command, value string, waitForConfirmation bool) 
 func startSendWorker(conn *websocket.Conn, chCommands chan *databaseChangesCommand) chan error {
 	chFailed := make(chan error, 1)
 	go func() {
+		dcdbg("starting a chCommands reading loop\n")
 		for cmd := range chCommands {
+			dcdbg("got command with id %d to send. Command: %s, param: %s\n", cmd.id, cmd.command, cmd.value)
 			o := struct {
 				CommandID int    `json:"CommandId"`
 				Command   string `json:"Command"`
@@ -614,6 +616,7 @@ func startSendWorker(conn *websocket.Conn, chCommands chan *databaseChangesComma
 				chFailed <- err
 				return
 			}
+			dcdbg("wrote command with id %d to socket\n", cmd.id)
 		}
 		dcdbg("DatabaseChanges: send worker finished\n")
 	}()
@@ -656,6 +659,11 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 		return err, false
 	}
 
+	var chWriterFailed chan error
+	chWriterFailed = startSendWorker(client, c.chCommands)
+	var chReaderFailed chan error
+	chReaderFailed = c.startProcessMessagesWorker(ctx, client)
+
 	connectFn := func(key, value interface{}) bool {
 		subscribers := value.(*changeSubscribers)
 		_ = c.connectSubscribers(subscribers)
@@ -664,11 +672,6 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 	c.subscribers.Range(connectFn)
 
 	c.invokeConnectionStatusChanged()
-
-	var chWriterFailed chan error
-	chWriterFailed = startSendWorker(client, c.chCommands)
-	var chReaderFailed chan error
-	chReaderFailed = c.startProcessMessagesWorker(ctx, client)
 
 	c.chIsConnected <- nil
 	// close so that subsequent channel reads also return immediately
@@ -806,7 +809,7 @@ func (c *DatabaseChanges) startProcessMessagesWorker(ctx context.Context, conn *
 
 			if enableDatabaseChangesDebugOutput {
 				s, _ := json.Marshal(msgArray)
-				fmt.Printf("DatatabaseChange: received messages:\n%s\n", s)
+				dcdbg("DatatabaseChange: received messages:\n%s\n", s)
 			}
 
 			for _, msgNodeV := range msgArray {
