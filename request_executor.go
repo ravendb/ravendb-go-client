@@ -175,16 +175,16 @@ func NewRequestExecutor(databaseName string, certificate *tls.Certificate, trust
 }
 
 // GetHTTPClient returns http client for sending the requests
-func (r *RequestExecutor) GetHTTPClient() (*http.Client, error) {
-	if r.httpClient != nil {
-		return r.httpClient, nil
+func (re *RequestExecutor) GetHTTPClient() (*http.Client, error) {
+	if re.httpClient != nil {
+		return re.httpClient, nil
 	}
-	c, err := r.createClient()
+	c, err := re.createClient()
 	if err != nil {
 		return nil, err
 	}
-	r.httpClient = c
-	return r.httpClient, nil
+	re.httpClient = c
+	return re.httpClient, nil
 }
 func NewClusterRequestExecutor(certificate *tls.Certificate, trustStore *x509.Certificate, conventions *DocumentConventions, initialUrls []string) *RequestExecutor {
 	res := NewRequestExecutor("", certificate, trustStore, conventions, initialUrls)
@@ -951,7 +951,7 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 				}
 			} else {
 				if response != nil && err == nil {
-					response.Body.Close()
+					_ = response.Body.Close()
 				}
 			}
 		}(idx, node)
@@ -993,9 +993,11 @@ func (re *RequestExecutor) handleUnsuccessfulResponse(chosenNode *ServerNode, no
 		case RavenCommandResponseTypeEmpty:
 			return true, nil
 		case RavenCommandResponseTypeObject:
-			command.setResponse(nil, false)
+			// TODO: should I propagate the error?
+			_ = command.setResponse(nil, false)
 		default:
-			command.setResponseRaw(response, nil)
+			// TODO: should I propagate the error?
+			_ = command.setResponseRaw(response, nil)
 		}
 		return true, nil
 	case http.StatusForbidden:
