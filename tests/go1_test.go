@@ -701,6 +701,9 @@ func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 func goTestInvalidIndexDefinition(t *testing.T, driver *RavenTestDriver) {
 	logTestName()
 
+	restore := disableLogFailedRequests()
+	defer restore()
+
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -737,12 +740,15 @@ func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
 	var orphanedInsert *ravendb.BulkInsertOperation
 
 	defer func() {
+		restore := disableLogFailedRequests()
 		store.Close()
 		err = orphanedInsert.Close()
 		assert.Error(t, err)
+		restore()
 	}()
 
 	{
+
 		bulkInsert := store.BulkInsert("")
 		o := &FooBar{
 			Name: "John Doe",
@@ -759,7 +765,6 @@ func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
 		o := &FooBar{
 			Name: "John Doe",
 		}
-		// trigger BulkInsertOperation.escapeID
 		err = bulkInsert.StoreWithID(o, ``, nil)
 		assert.Error(t, err)
 		err = bulkInsert.Close()
@@ -771,7 +776,6 @@ func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
 		o := &FooBar{
 			Name: "John Doe",
 		}
-		// trigger BulkInsertOperation.escapeID
 		err = bulkInsert.StoreWithID(o, ``, nil)
 		assert.Error(t, err)
 		err = bulkInsert.Close()
@@ -783,7 +787,7 @@ func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
 		o := &FooBar{
 			Name: "John Doe",
 		}
-		// trigger a path inBulkInsertOperation.Store() that takes ID from metadata
+		// trigger a path in BulkInsertOperation.Store() that takes ID from metadata
 		m := map[string]interface{}{
 			ravendb.MetadataID: "FooBars/id-frommeta",
 		}
@@ -955,6 +959,6 @@ func TestGo1(t *testing.T) {
 	goTestFindCollectionName(t)
 	goTestBatchCommandOrder(t, driver)
 	goTestInvalidIndexDefinition(t, driver)
-	goTestBulkInsertCoverage(t, driver)
 	goTestRawQueryCoverage(t, driver)
+	goTestBulkInsertCoverage(t, driver)
 }

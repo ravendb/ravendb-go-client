@@ -65,13 +65,14 @@ func logsUnlock() {
 }
 
 func logToPerTestFile(format string, args ...interface{}) {
+	logsLock()
+	defer logsUnlock()
+
 	if testFileLog == nil {
 		return
 	}
 	s := fmt.Sprintf(format, args...)
-	logsLock()
 	_, _ = testFileLog.Write([]byte(s))
-	logsUnlock()
 }
 
 // this logs to both stdout and to a per-test file
@@ -158,9 +159,6 @@ func httpLogPathFromTestName(t *testing.T) string {
 }
 
 func logSubscriptionWorker(op string, d []byte) {
-	if testFileLog == nil {
-		return
-	}
 	logToPerTestFile("SubscriptionWorker: op: %s, data:\n%s\n", op, string(d))
 }
 
