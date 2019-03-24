@@ -9,7 +9,9 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -70,6 +72,30 @@ func logToPerTestFile(format string, args ...interface{}) {
 	logsLock()
 	_, _ = testFileLog.Write([]byte(s))
 	logsUnlock()
+}
+
+// this logs to both stdout and to a per-test file
+func lg(format string, args ...interface{}) {
+	fmt.Printf(format, args...)
+	logToPerTestFile(format, args...)
+}
+
+func logTestName() {
+	/* print the name of the calling function, which we assume is a test */
+	pc := make([]uintptr, 16)
+	n := runtime.Callers(2, pc)
+	if n == 0 {
+		return
+	}
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+	fn := frame.Function
+	parts := strings.Split(fn, ".")
+	n = len(parts)
+	if n > 0 {
+		fn = parts[n-1]
+	}
+	lg("Test: %s\n", fn)
 }
 
 func setLoggingStateFromEnv() {
@@ -316,7 +342,7 @@ func maybeLogRequestSummary(req *http.Request) {
 	}
 	method := req.Method
 	uri := req.URL.String()
-	fmt.Printf("%s %s\n", method, uri)
+	lg("%s %s\n", method, uri)
 }
 
 // This helps debugging leaking gorutines by dumping stack traces

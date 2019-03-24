@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -42,6 +43,8 @@ func assertIllegalStateError(t *testing.T, err error, s ...string) {
 }
 
 func go1Test(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -247,6 +250,8 @@ func go1Test(t *testing.T, driver *RavenTestDriver) {
 }
 
 func goStore(t *testing.T, session *ravendb.DocumentSession) []*User {
+	logTestName()
+
 	var err error
 	var res []*User
 	{
@@ -266,6 +271,8 @@ func goStore(t *testing.T, session *ravendb.DocumentSession) []*User {
 }
 
 func goTestGetLastModifiedForAndChanges(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
 	var err error
 	var changed, hasChanges bool
 
@@ -361,6 +368,8 @@ func goTestGetLastModifiedForAndChanges(t *testing.T, driver *RavenTestDriver) {
 }
 
 func goTestListeners(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
 	var err error
 
 	store := driver.getDocumentStoreMust(t)
@@ -563,6 +572,8 @@ func goTestListeners(t *testing.T, driver *RavenTestDriver) {
 
 // TODO: this must be more comprehensive. Need to test all APIs.
 func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
 	var err error
 
 	store := driver.getDocumentStoreMust(t)
@@ -614,6 +625,8 @@ func goTestStoreMap(t *testing.T, driver *RavenTestDriver) {
 }
 
 func goTestFindCollectionName(t *testing.T) {
+	logTestName()
+
 	findCollectionName := func(entity interface{}) string {
 		if _, ok := entity.(*User); ok {
 			return "my users"
@@ -631,8 +644,9 @@ func goTestFindCollectionName(t *testing.T) {
 
 // test that insertion order of bulk_docs (BatchOperation / BatchCommand)
 func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
-	var err error
+	logTestName()
 
+	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -681,8 +695,9 @@ func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 // test that we get a meaningful error for server exceptions sent as JSON response
 // https://github.com/ravendb/ravendb-go-client/issues/147
 func goTestInvalidIndexDefinition(t *testing.T, driver *RavenTestDriver) {
-	var err error
+	logTestName()
 
+	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
 
@@ -710,6 +725,8 @@ select {
 
 // increasing code coverage of bulk_insert_operation.go
 func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
 	var err error
 	store := driver.getDocumentStoreMust(t)
 
@@ -789,28 +806,25 @@ func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
 		assert.NoError(t, err)
 	}
 
-	// TODO: this triggers DATA RACE in HiLoIDGenerator
-	/*
-		{
-			// try to trigger concurrency check
-			bulkInsert := store.BulkInsert("")
-			var wg sync.WaitGroup
-			for i := 0; i < 5; i++ {
-				wg.Add(1)
-				go func() {
-					o := &FooBar{
-						Name: "John Doe",
-					}
-					_, _ = bulkInsert.Store(o, nil)
-					wg.Done()
-				}()
-			}
-			wg.Wait()
+	{
+		// try to trigger concurrency check
+		bulkInsert := store.BulkInsert("")
+		var wg sync.WaitGroup
+		for i := 0; i < 5; i++ {
+			wg.Add(1)
+			go func() {
+				o := &FooBar{
+					Name: "John Doe",
+				}
+				_, _ = bulkInsert.Store(o, nil)
+				wg.Done()
+			}()
+		}
+		wg.Wait()
 
 		err = bulkInsert.Close()
 		assert.NoError(t, err)
-		}
-	*/
+	}
 
 	{
 		// trigger operationID == -1 code path in Abort
