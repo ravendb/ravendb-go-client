@@ -60,14 +60,12 @@ func (q *RawDocumentQuery) RemoveAfterQueryExecutedListener(idx int) *RawDocumen
 	return q
 }
 
-func (q *RawDocumentQuery) AddAfterQueryExecutedListener(action func(*QueryResult)) *RawDocumentQuery {
-	q.addAfterQueryExecutedListener(action)
-	return q
+func (q *RawDocumentQuery) AddAfterQueryExecutedListener(action func(*QueryResult)) int {
+	return q.addAfterQueryExecutedListener(action)
 }
 
-func (q *RawDocumentQuery) AddBeforeQueryExecutedListener(action func(*IndexQuery)) *RawDocumentQuery {
-	q.addBeforeQueryExecutedListener(action)
-	return q
+func (q *RawDocumentQuery) AddBeforeQueryExecutedListener(action func(*IndexQuery)) int {
+	return q.addBeforeQueryExecutedListener(action)
 }
 
 func (q *RawDocumentQuery) RemoveBeforeQueryExecutedListener(idx int) *RawDocumentQuery {
@@ -75,9 +73,8 @@ func (q *RawDocumentQuery) RemoveBeforeQueryExecutedListener(idx int) *RawDocume
 	return q
 }
 
-func (q *RawDocumentQuery) AddAfterStreamExecutedListener(action func(map[string]interface{})) *RawDocumentQuery {
-	q.addAfterStreamExecutedListener(action)
-	return q
+func (q *RawDocumentQuery) AddAfterStreamExecutedListener(action func(map[string]interface{})) int {
+	return q.addAfterStreamExecutedListener(action)
 }
 
 func (q *RawDocumentQuery) RemoveAfterStreamExecutedListener(idx int) *RawDocumentQuery {

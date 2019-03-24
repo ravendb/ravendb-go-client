@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ravendb/ravendb-go-client/examples/northwind"
+
 	ravendb "github.com/ravendb/ravendb-go-client"
 
 	"github.com/stretchr/testify/assert"
@@ -657,6 +659,7 @@ func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 	nUsers := 10
 	{
 		session := openSessionMust(t, store)
+
 		ids := []string{"users/5"}
 		for i := 1; i <= nUsers; i++ {
 			u := &User{
@@ -688,6 +691,7 @@ func goTestBatchCommandOrder(t *testing.T, driver *RavenTestDriver) {
 			assert.Equal(t, expID, id)
 			assert.Equal(t, expID, id)
 		}
+
 		session.Close()
 	}
 }
@@ -837,6 +841,108 @@ func goTestBulkInsertCoverage(t *testing.T, driver *RavenTestDriver) {
 
 }
 
+// increasing code coverage of raw_document_query.go
+func goTestRawQueryCoverage(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	createNorthwindDatabase(t, driver, store)
+
+	{
+		session := openSessionMust(t, store)
+
+		rawQuery := `from employees where FirstName == $p0`
+		q := session.RawQuery(rawQuery)
+		q = q.AddParameter("p0", "Anne")
+		assert.NoError(t, q.Err())
+		// adding the same parameter twice generates an error
+		q = q.AddParameter("p0", "Anne")
+		assert.Error(t, q.Err())
+		q = q.AddParameter("p0", "Anne")
+		assert.Error(t, q.Err())
+		// trigger early error check
+		q = q.UsingDefaultOperator(ravendb.QueryOperatorAnd)
+		assert.Error(t, q.Err())
+
+		session.Close()
+	}
+
+	{
+		restore := disableLogFailedRequests()
+		session := openSessionMust(t, store)
+		rawQuery := `from employees where FirstName == $p0`
+		q := session.RawQuery(rawQuery)
+
+		var results []*northwind.Employee
+		err = q.GetResults(&results)
+		assert.Error(t, err)
+		_, ok := err.(*ravendb.InvalidQueryError)
+		assert.True(t, ok)
+
+		session.Close()
+		restore()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		rawQuery := `from employees where FirstName == $p0`
+		q := session.RawQuery(rawQuery)
+		q = q.AddParameter("p0", "Anne")
+		q = q.WaitForNonStaleResultsWithTimeout(time.Second * 15)
+		q = q.WaitForNonStaleResults()
+		q = q.NoTracking()
+		q = q.NoCaching()
+		var stats *ravendb.QueryStatistics
+		q = q.Statistics(&stats)
+
+		nAfterQueryCalled := 0
+		afterQueryExecuted := func(r *ravendb.QueryResult) {
+			nAfterQueryCalled++
+		}
+
+		afterQueryExecutedIdx := q.AddAfterQueryExecutedListener(afterQueryExecuted)
+		q = q.RemoveAfterQueryExecutedListener(afterQueryExecutedIdx)
+
+		afterQueryExecutedIdx1 := q.AddAfterQueryExecutedListener(afterQueryExecuted)
+		afterQueryExecutedIdx2 := q.AddAfterQueryExecutedListener(afterQueryExecuted)
+
+		nBeforeQueryCalled := 0
+		beforeQueryCalled := func(r *ravendb.IndexQuery) {
+			nBeforeQueryCalled++
+		}
+
+		beforeQueryExecutedIdx := q.AddBeforeQueryExecutedListener(beforeQueryCalled)
+		q = q.RemoveBeforeQueryExecutedListener(beforeQueryExecutedIdx)
+
+		beforeQueryExecutedIdx1 := q.AddBeforeQueryExecutedListener(beforeQueryCalled)
+		beforeQueryExecutedIdx2 := q.AddBeforeQueryExecutedListener(beforeQueryCalled)
+
+		afterStreamExecuted := func(map[string]interface{}) {
+			// no-op
+		}
+		afterStreamExecutedIdx := q.AddAfterStreamExecutedListener(afterStreamExecuted)
+
+		var results []*northwind.Employee
+		err = q.GetResults(&results)
+		assert.NoError(t, err)
+
+		q = q.RemoveAfterQueryExecutedListener(afterQueryExecutedIdx1)
+		q = q.RemoveAfterQueryExecutedListener(afterQueryExecutedIdx2)
+
+		q = q.RemoveBeforeQueryExecutedListener(beforeQueryExecutedIdx1)
+		q = q.RemoveBeforeQueryExecutedListener(beforeQueryExecutedIdx2)
+
+		q = q.RemoveAfterStreamExecutedListener(afterStreamExecutedIdx)
+		assert.Equal(t, 2, nAfterQueryCalled)
+		assert.Equal(t, 2, nBeforeQueryCalled)
+		assert.NotNil(t, stats)
+
+		session.Close()
+	}
+}
+
 func TestGo1(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
@@ -850,4 +956,5 @@ func TestGo1(t *testing.T) {
 	goTestBatchCommandOrder(t, driver)
 	goTestInvalidIndexDefinition(t, driver)
 	goTestBulkInsertCoverage(t, driver)
+	goTestRawQueryCoverage(t, driver)
 }

@@ -10,15 +10,15 @@ type queryOperatorToken struct {
 
 var (
 	queryOperatorTokenAnd = &queryOperatorToken{
-		queryOperator: queryOperatorAnd,
+		queryOperator: QueryOperatorAnd,
 	}
 	queryOperatorTokenOr = &queryOperatorToken{
-		queryOperator: queryOperatorOr,
+		queryOperator: QueryOperatorOr,
 	}
 )
 
 func (t *queryOperatorToken) writeTo(writer *strings.Builder) error {
-	if t.queryOperator == queryOperatorAnd {
+	if t.queryOperator == QueryOperatorAnd {
 		writer.WriteString("and")
 		return nil
 	}

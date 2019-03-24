@@ -67,8 +67,12 @@ type abstractDocumentQuery struct {
 	queryOperation *queryOperation
 
 	// to allow "fluid" API, in many methods instead of returning an error, we
-	// remember it here and retrun in GetResults()
+	// remember it here and return in GetResults()
 	err error
+}
+
+func (q *abstractDocumentQuery) Err() error {
+	return q.err
 }
 
 func (q *abstractDocumentQuery) isDistinct() bool {
@@ -94,7 +98,7 @@ func getQueryDefaultTimeout() time.Duration {
 // at this point we assume all
 func newAbstractDocumentQuery(opts *DocumentQueryOptions) *abstractDocumentQuery {
 	res := &abstractDocumentQuery{
-		defaultOperator:         queryOperatorAnd,
+		defaultOperator:         QueryOperatorAnd,
 		isGroupBy:               opts.isGroupBy,
 		indexName:               opts.IndexName,
 		collectionName:          opts.CollectionName,
@@ -1539,7 +1543,7 @@ func (q *abstractDocumentQuery) appendOperatorIfNeeded(tokensRef *[]queryToken) 
 	}
 
 	var token *queryOperatorToken
-	if q.defaultOperator == queryOperatorAnd {
+	if q.defaultOperator == QueryOperatorAnd {
 		token = queryOperatorTokenAnd
 	} else {
 		token = queryOperatorTokenOr

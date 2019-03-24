@@ -3,6 +3,6 @@ package ravendb
 type QueryOperator = string
 
 const (
-	queryOperatorAnd = "And"
-	queryOperatorOr  = "Or"
+	QueryOperatorAnd = "And"
+	QueryOperatorOr  = "Or"
 )
