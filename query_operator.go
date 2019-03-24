@@ -1,6 +1,6 @@
 package ravendb
 
-type QueryOperator = string
+type QueryOperator string
 
 const (
 	QueryOperatorAnd = "And"
