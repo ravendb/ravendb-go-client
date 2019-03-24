@@ -869,6 +869,9 @@ func goTestRawQueryCoverage(t *testing.T, driver *RavenTestDriver) {
 		q = q.UsingDefaultOperator(ravendb.QueryOperatorAnd)
 		assert.Error(t, q.Err())
 
+		// exercise error path in Any()
+		_, _ = q.Any()
+
 		session.Close()
 	}
 
@@ -888,6 +891,19 @@ func goTestRawQueryCoverage(t *testing.T, driver *RavenTestDriver) {
 
 		session.Close()
 		restore()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		rawQuery := `from employees where FirstName == $p0`
+		q := session.RawQuery(rawQuery)
+		q = q.AddParameter("p0", "Anne")
+
+		_, err = q.Any()
+		assert.NoError(t, err)
+
+		session.Close()
 	}
 
 	{
@@ -949,6 +965,56 @@ func goTestRawQueryCoverage(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+// increase code coverage in abstract_document_query.go etc.
+func goTestQueryCoverage(t *testing.T, driver *RavenTestDriver) {
+	logTestName()
+
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	createNorthwindDatabase(t, driver, store)
+
+	{
+		session := openSessionMust(t, store)
+		q := session.QueryCollection("empoloyees")
+		q = q.Distinct()
+		_, err = q.Any()
+		assert.NoError(t, err)
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		q := session.QueryCollection("empoloyees")
+		// trigger error condition in distinct()
+		q = q.Distinct()
+		q = q.Distinct()
+		assert.Error(t, q.Err())
+
+		q = session.QueryCollection("empoloyees")
+		q = q.Where("LastName", "asd", "me")
+		assert.Error(t, q.Err())
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		q := session.QueryCollection("empoloyees")
+		q = q.Where("FirstName", "!=", "zzz")
+		q = q.Where("FirstName", "<", "Zorro")
+		q = q.Where("FirstName", "<=", "Zorro")
+		q = q.Where("FirstName", ">", "Aha")
+		q = q.Where("FirstName", ">=", "Aha")
+		q = q.RandomOrderingWithSeed("")
+
+		var results []*northwind.Employee
+		err = q.GetResults(&results)
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+}
+
 func TestGo1(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
@@ -961,6 +1027,7 @@ func TestGo1(t *testing.T) {
 	goTestFindCollectionName(t)
 	goTestBatchCommandOrder(t, driver)
 	goTestInvalidIndexDefinition(t, driver)
-	goTestRawQueryCoverage(t, driver)
 	goTestBulkInsertCoverage(t, driver)
+	goTestRawQueryCoverage(t, driver)
+	goTestQueryCoverage(t, driver)
 }

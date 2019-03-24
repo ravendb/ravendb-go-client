@@ -2206,7 +2206,6 @@ func (q *abstractDocumentQuery) Count() (int, error) {
 }
 
 // Any returns true if query returns at least one result
-// TODO: write tests
 func (q *abstractDocumentQuery) Any() (bool, error) {
 	if q.err != nil {
 		return false, q.err
@@ -2223,9 +2222,7 @@ func (q *abstractDocumentQuery) Any() (bool, error) {
 		return q.queryOperation.currentQueryResults.TotalResults > 0, nil
 	}
 
-	{
-		q.take(0)
-	}
+	q.take(0)
 	queryResult, err := q.getQueryResult()
 	if err != nil {
 		return false, err
