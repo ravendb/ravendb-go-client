@@ -189,7 +189,8 @@ type DatabaseChanges struct {
 	// commands that have been sent to the server but not confirmed
 	outstandingCommands sync.Map // int -> *commandConfirmation
 
-	immediateConnection atomicBool
+	// TODO: why is this not used?
+	// immediateConnection int32 // atomic
 
 	connectionStatusChanged []func()
 	onError                 []func(error)

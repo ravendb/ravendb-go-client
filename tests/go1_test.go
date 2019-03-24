@@ -877,6 +877,8 @@ func goTestRawQueryCoverage(t *testing.T, driver *RavenTestDriver) {
 		session := openSessionMust(t, store)
 		rawQuery := `from employees where FirstName == $p0`
 		q := session.RawQuery(rawQuery)
+		// a no-op but exercises the code path
+		q = q.UsingDefaultOperator(ravendb.QueryOperatorOr)
 
 		var results []*northwind.Employee
 		err = q.GetResults(&results)
