@@ -1039,6 +1039,27 @@ func goTestLazyCoverage(t *testing.T, driver *RavenTestDriver) {
 	{
 		session := openSessionMust(t, store)
 
+		user := User5{
+			Name: "Ayende",
+		}
+		err = session.Store(&user)
+		assert.NoError(t, err)
+
+		partner := User5{
+			PartnerID: "user5s/1-A",
+		}
+		err = session.Store(&partner)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
 		fn1 := func() {
 			// no-op
 		}
@@ -1078,8 +1099,89 @@ func goTestLazyCoverage(t *testing.T, driver *RavenTestDriver) {
 			assert.Equal(t, c.ID, "companies/1")
 		}
 
+		{
+			session := openSessionMust(t, store)
+
+			advanced := session.Advanced()
+			_, err = advanced.Lazily().Load("user5s/2-A")
+			assert.NoError(t, err)
+			_, err = advanced.Lazily().Load("user5s/1-A")
+			assert.NoError(t, err)
+
+			_, err = advanced.Eagerly().ExecuteAllPendingLazyOperations()
+			assert.NoError(t, err)
+
+			oldCount := advanced.GetNumberOfRequests()
+
+			resultLazy, err := advanced.Lazily().Include("PartnerId").Load("user5s/2-A")
+			assert.NoError(t, err)
+			var user *User
+			err = resultLazy.GetValue(&user)
+			assert.NoError(t, err)
+			assert.NotNil(t, user)
+			assert.Equal(t, user.ID, "user5s/2-A")
+
+			newCount := advanced.GetNumberOfRequests()
+			assert.Equal(t, newCount, oldCount)
+
+			session.Close()
+		}
+
 		session.Close()
 	}
+
+	{
+		session := openSessionMust(t, store)
+
+		advanced := session.Advanced()
+
+		{
+			// empty id returns an error
+			resultLazy, err := advanced.Lazily().Include("PartnerId").Load("")
+			assert.Error(t, err)
+			assert.Nil(t, resultLazy)
+		}
+
+		{
+			// empty ids returns an error
+			resultLazy, err := advanced.Lazily().Include("PartnerId").LoadMulti(nil)
+			assert.Error(t, err)
+			assert.Nil(t, resultLazy)
+
+			resultLazy, err = advanced.Lazily().Include("PartnerId").LoadMulti([]string{})
+			assert.Error(t, err)
+			assert.Nil(t, resultLazy)
+		}
+
+		{
+			resultLazy, err := advanced.Lazily().Include("PartnerId").LoadMulti([]string{"user5s/2-A", "user5s/1-A"})
+			assert.NoError(t, err)
+			err = resultLazy.GetValue(nil)
+			assert.Error(t, err)
+		}
+
+		{
+			resultLazy, err := advanced.Lazily().Include("PartnerId").LoadMulti([]string{"user5s/2-A", "user5s/1-A"})
+			assert.NoError(t, err)
+			results := map[string]*User5{}
+			err = resultLazy.GetValue(results)
+			assert.NoError(t, err)
+			assert.Equal(t, 2, len(results))
+		}
+
+		/* TODO: this panics */
+		if false {
+			resultLazy, err := advanced.Lazily().Include("PartnerId").LoadMulti([]string{"user5s/2-A", "user5s/1-A"})
+			assert.NoError(t, err)
+			results := map[string]*User{}
+			err = resultLazy.GetValue(results)
+			assert.NoError(t, err)
+			assert.Equal(t, 2, len(results))
+		}
+
+		session.Close()
+	}
+
 }
 
 func TestGo1(t *testing.T) {

@@ -22,7 +22,6 @@ func (l *LazyMultiLoaderWithInclude) Include(path string) *LazyMultiLoaderWithIn
 }
 
 // LoadMulti lazily loads multiple values of a given type with given ids
-// TODO: not covered by tests at all
 func (l *LazyMultiLoaderWithInclude) LoadMulti(ids []string) (*Lazy, error) {
 	if len(ids) == 0 {
 		return nil, newIllegalArgumentError("ids cannot be empty array")

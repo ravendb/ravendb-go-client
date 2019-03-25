@@ -6,10 +6,10 @@ import "sync"
 type Lazy struct {
 	// function which, when called, executes lazy operation
 	valueFactory func(interface{}) error
-	err error
+	err          error
 	valueCreated bool
-	Value interface{}
-	mu    sync.Mutex
+	Value        interface{}
+	mu           sync.Mutex
 }
 
 func newLazy(valueFactory func(interface{}) error) *Lazy {
@@ -33,6 +33,9 @@ func (l *Lazy) IsValueCreated() bool {
 // GetValue executes lazy operation and ensures the Value is set in result variable
 // provided in NewLazy()
 func (l *Lazy) GetValue(result interface{}) error {
+	if result == nil {
+		return newIllegalArgumentError("result cannot be nil")
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
