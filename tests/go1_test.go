@@ -44,7 +44,7 @@ func assertIllegalStateError(t *testing.T, err error, s ...string) {
 	}
 }
 
-func go1Test(t *testing.T, driver *RavenTestDriver) {
+func goTest(t *testing.T, driver *RavenTestDriver) {
 	logTestName()
 
 	var err error
@@ -1015,13 +1015,80 @@ func goTestQueryCoverage(t *testing.T, driver *RavenTestDriver) {
 
 }
 
+func goTestLazyCoverage(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	{
+		session := openSessionMust(t, store)
+		for i := 1; i <= 2; i++ {
+			company := &Company{
+				ID: fmt.Sprintf("companies/%d", i),
+			}
+			err = session.StoreWithID(company, company.ID)
+			assert.NoError(t, err)
+		}
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+
+		fn1 := func() {
+			// no-op
+		}
+
+		var company1Ref *Company
+
+		query := session.Advanced().Lazily()
+		// returns error on empty id
+		lazy, err := query.LoadWithEval("", fn1, &company1Ref)
+		assert.Error(t, err)
+		assert.Nil(t, lazy)
+
+		// returns error on empty ids
+		lazy, err = query.LoadMulti(nil)
+		assert.Error(t, err)
+		assert.Nil(t, lazy)
+
+		// returns error on empty ids
+		lazy, err = query.LoadMultiWithEval(nil, fn1, nil)
+		assert.Error(t, err)
+		assert.Nil(t, lazy)
+
+		var c *Company
+		err = session.Load(&c, "companies/1")
+		assert.NoError(t, err)
+		assert.Equal(t, c.ID, "companies/1")
+
+		// trigger o.delegate.IsLoaded(id) code path in LoadWithEval
+		{
+			query := session.Advanced().Lazily()
+			lazy, err := query.LoadWithEval("companies/1", fn1, &company1Ref)
+			assert.NoError(t, err)
+
+			var c1 *Company
+			err = lazy.GetValue(&c1)
+			assert.NoError(t, err)
+			assert.Equal(t, c.ID, "companies/1")
+		}
+
+		session.Close()
+	}
+}
+
 func TestGo1(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
 	goTestStoreMap(t, driver)
-	go1Test(t, driver)
+	goTest(t, driver)
 	goTestGetLastModifiedForAndChanges(t, driver)
 	goTestListeners(t, driver)
 	goTestFindCollectionName(t)
@@ -1030,4 +1097,5 @@ func TestGo1(t *testing.T) {
 	goTestBulkInsertCoverage(t, driver)
 	goTestRawQueryCoverage(t, driver)
 	goTestQueryCoverage(t, driver)
+	goTestLazyCoverage(t, driver)
 }

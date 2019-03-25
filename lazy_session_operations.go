@@ -24,7 +24,6 @@ func (o *LazySessionOperations) LoadWithEval(id string, onEval func(), onEvalRes
 	}
 	if o.delegate.IsLoaded(id) {
 		fn := func(result interface{}) error {
-			// TODO: test for this code path
 			return o.delegate.Load(result, id)
 		}
 		return newLazy(fn), nil
