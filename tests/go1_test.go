@@ -1169,14 +1169,14 @@ func goTestLazyCoverage(t *testing.T, driver *RavenTestDriver) {
 			assert.Equal(t, 2, len(results))
 		}
 
-		/* TODO: this panics */
-		if false {
+		{
 			resultLazy, err := advanced.Lazily().Include("PartnerId").LoadMulti([]string{"user5s/2-A", "user5s/1-A"})
 			assert.NoError(t, err)
 			results := map[string]*User{}
+			// trying to get a mismatched type. has User5, we're trying to get User
 			err = resultLazy.GetValue(results)
-			assert.NoError(t, err)
-			assert.Equal(t, 2, len(results))
+			assert.Error(t, err)
+			assert.Equal(t, len(results), 0)
 		}
 
 		session.Close()
@@ -1189,15 +1189,17 @@ func TestGo1(t *testing.T) {
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
-	goTestStoreMap(t, driver)
-	goTest(t, driver)
-	goTestGetLastModifiedForAndChanges(t, driver)
-	goTestListeners(t, driver)
-	goTestFindCollectionName(t)
-	goTestBatchCommandOrder(t, driver)
-	goTestInvalidIndexDefinition(t, driver)
-	goTestBulkInsertCoverage(t, driver)
-	goTestRawQueryCoverage(t, driver)
-	goTestQueryCoverage(t, driver)
+	if false {
+		goTestStoreMap(t, driver)
+		goTest(t, driver)
+		goTestGetLastModifiedForAndChanges(t, driver)
+		goTestListeners(t, driver)
+		goTestFindCollectionName(t)
+		goTestBatchCommandOrder(t, driver)
+		goTestInvalidIndexDefinition(t, driver)
+		goTestBulkInsertCoverage(t, driver)
+		goTestRawQueryCoverage(t, driver)
+		goTestQueryCoverage(t, driver)
+	}
 	goTestLazyCoverage(t, driver)
 }

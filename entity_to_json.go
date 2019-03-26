@@ -1,6 +1,7 @@
 package ravendb
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -46,11 +47,28 @@ func isTypeObjectNode(entityType reflect.Type) bool {
 }
 
 // assumes v is ptr-to-struct and result is ptr-to-ptr-to-struct
-// TODO: ensure it doesn't panic
-func setInterfaceToValue(result interface{}, v interface{}) error {
+func setInterfaceToValue(result interface{}, v interface{}) (err error) {
+
+	// this catches a panic that reflect.Value.Set() can produce
+	// and turns it into an error
+	// TODO: a cleaner way would be to check instead suppressing a panic by e.g.
+	// lifting implementation of func directlyAssignable(T, V *rtype) bool {
+	// from reflect package
+	defer func() {
+		if res := recover(); res != nil {
+			fmt.Printf("setInterfaceToValue: panic, res: %v %T\n", res, res)
+			if s, ok := res.(string); ok {
+				err = errors.New(s)
+			} else if panicErr, ok := res.(error); ok {
+				err = panicErr
+			} else {
+				err = fmt.Errorf("%v", res)
+			}
+		}
+	}()
+
 	out := reflect.ValueOf(result)
 	outt := out.Type()
-	//fmt.Printf("outt: %s, outk: %s\n", outt, outk)
 	if outt.Kind() == reflect.Ptr && out.IsNil() {
 		out.Set(reflect.New(outt.Elem()))
 	}
@@ -59,17 +77,14 @@ func setInterfaceToValue(result interface{}, v interface{}) error {
 		//outt = out.Type()
 		//outk = out.Kind()
 	}
-	//fmt.Printf("outt: %s, outk: %s\n", outt, outk)
+
 	vin := reflect.ValueOf(v)
-	//fmt.Printf("int: %s, ink: %s\n", vin.Type(), vin.Kind())
 	if !out.CanSet() {
 		return fmt.Errorf("cannot set out %s\n", out.String())
 	}
-	// TODO: it can still panic. Need to lift implementaion of
-	// func directlyAssignable(T, V *rtype) bool {
-	// from reflect package
+
 	out.Set(vin)
-	return nil
+	return
 }
 
 // makes a copy of a map and returns a pointer to it
