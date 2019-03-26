@@ -41,6 +41,8 @@ var (
 	// status code >= 400) to stdout
 	logFailedRequests = false
 
+	logTopology = false
+
 	// testFileLog is a per-test file logs/trace_${test_name}_go.txt where we log all http requests, responses and
 	// other stuff
 	testFileLog io.WriteCloser
@@ -129,6 +131,11 @@ func setLoggingStateFromEnv() {
 		logAllRequests = true
 		fmt.Printf("Setting logAllRequests to true\n")
 	}
+
+	if !logTopology && isEnvVarTrue("LOG_TOPOLOGY") {
+		logTopology = true
+		fmt.Printf("Setting logTopology to true\n")
+	}
 }
 
 type loggingTransport struct {
@@ -165,6 +172,8 @@ func logSubscriptionWorker(op string, d []byte) {
 func setupLogging(t *testing.T) {
 	logsLock()
 	defer logsUnlock()
+
+	ravendb.DebugTopology = logTopology
 
 	ravendb.HTTPClientPostProcessor = httpClientProcessor
 	ravendb.LogSubscriptionWorker = logSubscriptionWorker

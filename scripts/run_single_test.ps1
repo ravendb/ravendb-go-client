@@ -11,17 +11,29 @@ $Env:ENABLE_FAILING_TESTS = "false"
 $Env:ENABLE_FLAKY_TESTS = "false"
 $Env:ENABLE_NORTHWIND_TESTS = "true"
 
-# for running tests in a cluster, set to NODES_IN_CLUSTER to 3
-# and KILL_SERVER_CHANCE to e.g. 10 (10%) and "SHUFFLE_CLUSTER_NODES" to true
-$Env:NODES_IN_CLUSTER = "0"
-$Env:KILL_SERVER_CHANCE = "0"
-$Env:SHUFFLE_CLUSTER_NODES = "false"
+$enableCluster = $false # change to $true to enable cluster setup
+
+if ($enableCluster) {
+    Write-Host "Cluster enabled"
+    # for running tests in a cluster, set to NODES_IN_CLUSTER to 3
+    # and KILL_SERVER_CHANCE to e.g. 10 (10%) and "SHUFFLE_CLUSTER_NODES" to true
+    $Env:NODES_IN_CLUSTER = "3"
+    $Env:KILL_SERVER_CHANCE = "0"
+    $Env:SHUFFLE_CLUSTER_NODES = "true"
+    $Env:LOG_TOPOLOGY = "true"
+} else {
+    Write-Host "Cluster not enabled"
+    $Env:NODES_IN_CLUSTER = "0"
+    $Env:KILL_SERVER_CHANCE = "0"
+    $Env:SHUFFLE_CLUSTER_NODES = "false"
+    $Env:LOG_TOPOLOGY = "false"
+}
 
 go clean -testcache
 
 #go test -tags for_tests -v -timeout 30s "-coverpkg=github.com/ravendb/ravendb-go-client" -covermode=atomic "-coverprofile=coverage.txt"  ./tests -run ^TestCachingOfDocumentInclude$
 
-go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestGo1$
+go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestLoad$
 
 #go test -tags for_tests -v -race -timeout 60s ./tests -run ^TestAggressiveCaching$
 

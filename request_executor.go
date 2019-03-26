@@ -24,6 +24,7 @@ var (
 
 	// if true, adds lots of logging to track bugs in request executor
 	DebugLogRequestExecutor bool = false
+	DebugTopology           bool = false
 )
 
 const (
@@ -32,6 +33,12 @@ const (
 
 func redbg(format string, args ...interface{}) {
 	if DebugLogRequestExecutor {
+		fmt.Printf(format, args...)
+	}
+}
+
+func tdbg(format string, args ...interface{}) {
+	if DebugTopology {
 		fmt.Printf(format, args...)
 	}
 }
@@ -345,21 +352,48 @@ func (re *RequestExecutor) updateClientConfigurationAsync() *completableFuture {
 	return future
 }
 
-func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) chan *ClusterUpdateAsyncResult {
+func (re *RequestExecutor) UpdateTopologyAsync(node *ServerNode, timeout int) chan *clusterUpdateAsyncResult {
 	return re.updateTopologyAsyncWithForceUpdate(node, timeout, false)
 }
 
-type ClusterUpdateAsyncResult struct {
+type clusterUpdateAsyncResult struct {
 	Ok  bool
 	Err error
 }
 
-func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *ClusterUpdateAsyncResult {
+func dbgPrintTopology(t *Topology) {
+	tdbg("Topology nodes: %d, etag: %d\n", len(t.Nodes), t.Etag)
+	for _, node := range t.Nodes {
+		tdbg("  tag: %s, db: %s, role: %s, url: %s\n", node.ClusterTag, node.Database, node.ServerRole, node.URL)
+	}
+}
+
+func dbgPrintClusterTopologyMap(name string, m map[string]string) {
+	if len(m) == 0 {
+		return
+	}
+	tdbg("  %s %d:\n", name, len(m))
+	for k, v := range m {
+		tdbg("    %s: %s\n", k, v)
+	}
+
+}
+
+func dbgPrintClusterTopology(t *ClusterTopologyResponse) {
+	tdbg("ClusterTopology: leader: %s, nodetag: %s\n", t.Leader, t.NodeTag)
+	ct := t.Topology
+	tdbg("  lastnodeid: %s, topologyid: %s\n", ct.LastNodeID, ct.TopologyID)
+	dbgPrintClusterTopologyMap("members", ct.Members)
+	dbgPrintClusterTopologyMap("promotables", ct.Promotables)
+	dbgPrintClusterTopologyMap("watchers", ct.Watchers)
+}
+
+func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *clusterUpdateAsyncResult {
 	panicIf(!re.isCluster, "clusterUpdateTopologyAsyncWithForceUpdate() called on non-cluster RequestExecutor")
 
-	future := make(chan *ClusterUpdateAsyncResult, 1)
+	future := make(chan *clusterUpdateAsyncResult, 1)
 	if re.isDisposed() {
-		future <- &ClusterUpdateAsyncResult{Ok: false}
+		future <- &clusterUpdateAsyncResult{Ok: false}
 		close(future)
 		return future
 	}
@@ -373,9 +407,9 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			}
 
 			if err != nil {
-				future <- &ClusterUpdateAsyncResult{Err: err}
+				future <- &clusterUpdateAsyncResult{Err: err}
 			} else {
-				future <- &ClusterUpdateAsyncResult{Ok: res}
+				future <- &clusterUpdateAsyncResult{Ok: res}
 			}
 			close(future)
 			re.clusterTopologySemaphore.release()
@@ -393,6 +427,7 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			return
 		}
 		results := command.Result
+		dbgPrintClusterTopology(results)
 		members := results.Topology.Members
 		var nodes []*ServerNode
 		for key, value := range members {
@@ -426,17 +461,17 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 	return future
 }
 
-func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *ClusterUpdateAsyncResult {
+func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *clusterUpdateAsyncResult {
 	// Note: in Java this is done via virtual functions
 	if re.isCluster {
 		return re.clusterUpdateTopologyAsyncWithForceUpdate(node, timeout, forceUpdate)
 	}
-	future := make(chan *ClusterUpdateAsyncResult, 1)
+	future := make(chan *clusterUpdateAsyncResult, 1)
 	f := func() {
 		var err error
 		var res bool
 		defer func() {
-			result := &ClusterUpdateAsyncResult{
+			result := &clusterUpdateAsyncResult{
 				Ok:  res,
 				Err: err,
 			}
@@ -456,6 +491,7 @@ func (re *RequestExecutor) updateTopologyAsyncWithForceUpdate(node *ServerNode, 
 			return
 		}
 		result := command.Result
+		dbgPrintTopology(result)
 		nodeSelector := re.getNodeSelector()
 		if nodeSelector == nil {
 			nodeSelector = NewNodeSelector(result)
@@ -837,12 +873,12 @@ func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, comman
 		serverNode.URL = chosenNode.URL
 		serverNode.Database = re.databaseName
 
-		var topologyTask chan *ClusterUpdateAsyncResult
+		var topologyTask chan *clusterUpdateAsyncResult
 		if refreshTopology {
 			topologyTask = re.UpdateTopologyAsync(serverNode, 0)
 		} else {
-			topologyTask = make(chan *ClusterUpdateAsyncResult, 1)
-			topologyTask <- &ClusterUpdateAsyncResult{Ok: false}
+			topologyTask = make(chan *clusterUpdateAsyncResult, 1)
+			topologyTask <- &clusterUpdateAsyncResult{Ok: false}
 			close(topologyTask)
 		}
 		var clientConfiguration *completableFuture

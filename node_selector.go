@@ -6,24 +6,24 @@ import (
 
 // NodeSelector describes node selector
 type NodeSelector struct {
-	_updateFastestNodeTimer *time.Timer
-	_state                  *NodeSelectorState
+	updateFastestNodeTimer *time.Timer
+	state                  *NodeSelectorState
 }
 
 // NewNodeSelector creates a new NodeSelector
 func NewNodeSelector(t *Topology) *NodeSelector {
 	state := NewNodeSelectorState(t)
 	return &NodeSelector{
-		_state: state,
+		state: state,
 	}
 }
 
 func (s *NodeSelector) getTopology() *Topology {
-	return s._state.topology
+	return s.state.topology
 }
 
 func (s *NodeSelector) onFailedRequest(nodeIndex int) {
-	state := s._state
+	state := s.state
 	if nodeIndex < 0 || nodeIndex >= len(state.failures) {
 		return // probably already changed
 	}
@@ -36,20 +36,20 @@ func (s *NodeSelector) onUpdateTopology(topology *Topology, forceUpdate bool) bo
 		return false
 	}
 
-	stateEtag := s._state.topology.Etag
+	stateEtag := s.state.topology.Etag
 	topologyEtag := topology.Etag
 
 	if stateEtag >= topologyEtag && !forceUpdate {
 		return false
 	}
 
-	s._state = NewNodeSelectorState(topology)
+	s.state = NewNodeSelectorState(topology)
 
 	return true
 }
 
 func (s *NodeSelector) getPreferredNode() (*CurrentIndexAndNode, error) {
-	state := s._state
+	state := s.state
 	stateFailures := state.failures
 	serverNodes := state.nodes
 	n := min(len(serverNodes), len(stateFailures))
@@ -72,7 +72,7 @@ func (s *NodeSelector) unlikelyEveryoneFaultedChoice(state *NodeSelectorState) (
 }
 
 func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, error) {
-	state := s._state
+	state := s.state
 	index := sessionId % len(state.topology.Nodes)
 
 	for i := index; i < len(state.failures); i++ {
@@ -91,7 +91,7 @@ func (s *NodeSelector) getNodeBySessionID(sessionId int) (*CurrentIndexAndNode, 
 }
 
 func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
-	state := s._state
+	state := s.state
 	if state.failures[state.fastest].get() == 0 && state.nodes[state.fastest].ServerRole == ServerNodeRoleMember {
 		return NewCurrentIndexAndNode(state.fastest, state.nodes[state.fastest]), nil
 	}
@@ -105,7 +105,7 @@ func (s *NodeSelector) getFastestNode() (*CurrentIndexAndNode, error) {
 }
 
 func (s *NodeSelector) restoreNodeIndex(nodeIndex int) {
-	state := s._state
+	state := s.state
 	if len(state.failures) < nodeIndex {
 		return // the state was changed and we no longer have it?
 	}
@@ -121,7 +121,7 @@ func nodeSelectorThrowEmptyTopology() error {
 */
 
 func (s *NodeSelector) switchToSpeedTestPhase() {
-	state := s._state
+	state := s.state
 
 	if !state.speedTestMode.compareAndSet(0, 1) {
 		return
@@ -135,11 +135,11 @@ func (s *NodeSelector) switchToSpeedTestPhase() {
 }
 
 func (s *NodeSelector) inSpeedTestPhase() bool {
-	return s._state.speedTestMode.get() > 1
+	return s.state.speedTestMode.get() > 1
 }
 
 func (s *NodeSelector) recordFastest(index int, node *ServerNode) {
-	state := s._state
+	state := s.state
 	stateFastest := state.fastestRecords
 
 	// the following two checks are to verify that things didn't move
@@ -189,14 +189,14 @@ func (s *NodeSelector) selectFastest(state *NodeSelectorState, index int) {
 	state.fastest = index
 	state.speedTestMode.set(0)
 
-	if s._updateFastestNodeTimer != nil {
-		s._updateFastestNodeTimer.Reset(time.Minute)
+	if s.updateFastestNodeTimer != nil {
+		s.updateFastestNodeTimer.Reset(time.Minute)
 	} else {
 		f := func() {
-			s._updateFastestNodeTimer = nil
+			s.updateFastestNodeTimer = nil
 			s.switchToSpeedTestPhase()
 		}
-		s._updateFastestNodeTimer = time.AfterFunc(time.Minute, f)
+		s.updateFastestNodeTimer = time.AfterFunc(time.Minute, f)
 	}
 }
 
@@ -205,9 +205,9 @@ func (s *NodeSelector) scheduleSpeedTest() {
 }
 
 func (s *NodeSelector) Close() {
-	if s._updateFastestNodeTimer != nil {
-		s._updateFastestNodeTimer.Stop()
-		s._updateFastestNodeTimer = nil
+	if s.updateFastestNodeTimer != nil {
+		s.updateFastestNodeTimer.Stop()
+		s.updateFastestNodeTimer = nil
 	}
 }
 
