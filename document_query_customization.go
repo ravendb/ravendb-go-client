@@ -55,6 +55,11 @@ func (d *DocumentQueryCustomization) NoTracking() {
 	d.query.noTracking()
 }
 
+func (d *DocumentQueryCustomization) timings(timings **QueryTimings) {
+	d.query._includeTimings(timings)
+	return
+}
+
 // RandomOrdering orders search results randomly.
 func (d *DocumentQueryCustomization) RandomOrdering() {
 	d.query.randomOrdering()

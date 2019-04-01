@@ -1,32 +1,35 @@
 package ravendb
 
+var _ ICommandData = &DeleteAttachmentCommandData{}
+
 type DeleteAttachmentCommandData struct {
-	*CommandData
+	CommandData
 }
 
-// NewDeleteAttachmentCommandData creates CommandData for Delete Attachment command
-func NewDeleteAttachmentCommandData(documentID string, name string, changeVector *string) (*DeleteAttachmentCommandData, error) {
-	if stringIsBlank(documentID) {
-		return nil, newIllegalArgumentError("DocumentId cannot be null or empty")
+func NewDeleteAttachmentCommandData(documentId string, name string, destinationDocumentId string, changeVector string) (*DeleteAttachmentCommandData, error) {
+	if stringIsWhitespace(documentId) {
+		return nil, newIllegalArgumentError("DocumentId cannot be empty")
 	}
-	if stringIsBlank(name) {
-		return nil, newIllegalArgumentError("Name cannot be null or empty")
+
+	if stringIsWhitespace(name) {
+		return nil, newIllegalArgumentError("Name cannot be empty")
 	}
 
 	res := &DeleteAttachmentCommandData{
-		&CommandData{
-			Type:         CommandDelete,
-			ID:           documentID,
+		CommandData: CommandData{
+			ID:           documentId,
 			Name:         name,
-			ChangeVector: changeVector,
+			ChangeVector: stringToPtr(changeVector),
+			Type:         CommandAttachmentDelete,
 		},
 	}
 	return res, nil
 }
 
 func (d *DeleteAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
-	res := d.baseJSON()
-	res["Type"] = "AttachmentDELETE"
-	res["Name"] = d.Name
-	return res, nil
+	js := d.baseJSON()
+	if d.Name != "" {
+		js["Name"] = d.Name
+	}
+	return js, nil
 }

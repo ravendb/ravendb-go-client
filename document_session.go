@@ -66,9 +66,9 @@ func (s *DocumentSession) Revisions() *RevisionsSessionOperations {
 }
 
 // NewDocumentSession creates a new DocumentSession
-func NewDocumentSession(dbName string, documentStore *DocumentStore, id string, re *RequestExecutor) *DocumentSession {
+func NewDocumentSession(documentStore *DocumentStore, id string, options *SessionOptions) *DocumentSession {
 	res := &DocumentSession{
-		InMemoryDocumentSessionOperations: newInMemoryDocumentSessionOperations(dbName, documentStore, re, id),
+		InMemoryDocumentSessionOperations: newInMemoryDocumentSessionOperations(documentStore, id, options),
 	}
 
 	res.InMemoryDocumentSessionOperations.session = res
@@ -568,7 +568,10 @@ func (s *DocumentSession) IncrementByID(id string, path string, valueToAdd inter
 	s.valsCount++
 
 	if !s.tryMergePatches(id, patchRequest) {
-		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
+		cmdData, err := NewPatchCommandData(id, nil, patchRequest, nil)
+		if err != nil {
+			return err
+		}
 		s.Defer(cmdData)
 	}
 	return nil
@@ -612,7 +615,10 @@ func (s *DocumentSession) PatchByID(id string, path string, value interface{}) e
 	s.valsCount++
 
 	if !s.tryMergePatches(id, patchRequest) {
-		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
+		cmdData, err := NewPatchCommandData(id, nil, patchRequest, nil)
+		if err != nil {
+			return err
+		}
 		s.Defer(cmdData)
 	}
 	return nil
@@ -658,7 +664,10 @@ func (s *DocumentSession) PatchArrayByID(id string, pathToArray string, arrayAdd
 	patchRequest.Values = scriptArray.Parameters
 
 	if !s.tryMergePatches(id, patchRequest) {
-		cmdData := NewPatchCommandData(id, nil, patchRequest, nil)
+		cmdData, err := NewPatchCommandData(id, nil, patchRequest, nil)
+		if err != nil {
+			return err
+		}
 		s.Defer(cmdData)
 	}
 	return nil
@@ -701,7 +710,10 @@ func (s *DocumentSession) tryMergePatches(id string, patchRequest *PatchRequest)
 	newPatchRequest.Script = newScript
 	newPatchRequest.Values = newVals
 
-	cmdData := NewPatchCommandData(id, nil, newPatchRequest, nil)
+	cmdData, err := NewPatchCommandData(id, nil, newPatchRequest, nil)
+	if err != nil {
+		return false
+	}
 	s.Defer(cmdData)
 	return true
 }

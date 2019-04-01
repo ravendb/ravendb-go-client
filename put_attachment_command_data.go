@@ -2,28 +2,30 @@ package ravendb
 
 import "io"
 
+var _ ICommandData = &PutAttachmentCommandData{}
+
 type PutAttachmentCommandData struct {
-	*CommandData
+	CommandData
+
 	stream      io.Reader
 	contentType string
 }
 
-var _ ICommandData = &PutAttachmentCommandData{} // verify interface match
-
-func NewPutAttachmentCommandData(documentID string, name string, stream io.Reader, contentType string, changeVector *string) (*PutAttachmentCommandData, error) {
-	if stringIsBlank(documentID) {
-		return nil, newIllegalArgumentError("DocumentId cannot be null or empty")
+func NewPutAttachmentCommandData(documentId string, name string, stream io.Reader, contentType string, changeVector string) (*PutAttachmentCommandData, error) {
+	if stringIsWhitespace(documentId) {
+		return nil, newIllegalArgumentError("DocumentId cannot be empty")
 	}
-	if stringIsBlank(name) {
-		return nil, newIllegalArgumentError("Name cannot be null or empty")
+
+	if stringIsWhitespace(name) {
+		return nil, newIllegalArgumentError("Name cannot be empty")
 	}
 
 	res := &PutAttachmentCommandData{
-		CommandData: &CommandData{
-			Type:         CommandAttachmentPut,
-			ID:           documentID,
+		CommandData: CommandData{
+			ID:           documentId,
 			Name:         name,
-			ChangeVector: changeVector,
+			ChangeVector: stringToPtr(changeVector),
+			Type:         CommandAttachmentPut,
 		},
 		stream:      stream,
 		contentType: contentType,
@@ -32,22 +34,10 @@ func NewPutAttachmentCommandData(documentID string, name string, stream io.Reade
 }
 
 func (d *PutAttachmentCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
-	res := d.baseJSON()
-	res["Name"] = d.Name
-	if d.contentType != "" {
-		res["ContentType"] = d.contentType
-	} else {
-		res["ContentType"] = nil
+	js := d.baseJSON()
+	if d.Name != "" {
+		js["Name"] = d.Name
 	}
-	res["Type"] = "AttachmentPUT"
-	res["ChangeVector"] = d.ChangeVector
-	return res, nil
-}
-
-func (d *PutAttachmentCommandData) getStream() io.Reader {
-	return d.stream
-}
-
-func (d *PutAttachmentCommandData) GetContentType() string {
-	return d.contentType
+	js["ContentType"] = d.contentType
+	return js, nil
 }

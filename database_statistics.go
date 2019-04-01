@@ -7,11 +7,12 @@ type DatabaseStatistics struct {
 	LastDocEtag               int64 `json:"LastDocEtag"`
 	CountOfIndexes            int   `json:"CountOfIndexes"`
 	CountOfDocuments          int64 `json:"CountOfDocuments"`
-	CountOfRevisionDocuments  int64 `json:"CountOfRevisionDocuments"` // TODO: present in Java, not seen in JSON
+	CountOfRevisionDocuments  int64 `json:"CountOfRevisionDocuments"`
 	CountOfDocumentsConflicts int64 `json:"CountOfDocumentsConflicts"`
 	CountOfTombstones         int64 `json:"CountOfTombstones"`
 	CountOfConflicts          int64 `json:"CountOfConflicts"`
 	CountOfAttachments        int64 `json:"CountOfAttachments"`
+	CountOfCounters           int64 `json:"CountOfCounters"`
 	CountOfUniqueAttachments  int64 `json:"CountOfUniqueAttachments"`
 
 	Indexes []*IndexInformation `json:"Indexes"`

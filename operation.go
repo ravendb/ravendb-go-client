@@ -7,9 +7,8 @@ import (
 // Operation describes async operation being executed on the server
 type Operation struct {
 	requestExecutor *RequestExecutor
-	//TBD private readonly Func<DatabaseChanges> _changes;
-	conventions *DocumentConventions
-	id          int64
+	conventions     *DocumentConventions
+	id              int64
 
 	// if true, this represents ServerWideOperation
 	IsServerWide bool
@@ -22,9 +21,8 @@ func (o *Operation) GetID() int64 {
 func NewOperation(requestExecutor *RequestExecutor, changes func() *DatabaseChanges, conventions *DocumentConventions, id int64) *Operation {
 	return &Operation{
 		requestExecutor: requestExecutor,
-		//TBD _changes = changes;
-		conventions: conventions,
-		id:          id,
+		conventions:     conventions,
+		id:              id,
 	}
 }
 

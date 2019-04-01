@@ -31,7 +31,7 @@ func (b *BatchOperation) createRequest() (*BatchCommand, error) {
 
 	b.entities = result.entities
 
-	return newBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options)
+	return newBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options, b.session.transactionMode)
 }
 
 func (b *BatchOperation) setResult(result []map[string]interface{}) error {

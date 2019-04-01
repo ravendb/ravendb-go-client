@@ -10,7 +10,8 @@ var (
 
 // PutIndexesOperation represents put indexes operation
 type PutIndexesOperation struct {
-	indexToAdd []*IndexDefinition
+	indexToAdd            []*IndexDefinition
+	_allJavaScriptIndexes bool
 
 	Command *PutIndexesCommand
 }
@@ -38,7 +39,8 @@ var _ RavenCommand = &PutIndexesCommand{}
 type PutIndexesCommand struct {
 	RavenCommandBase
 
-	indexToAdd []map[string]interface{}
+	indexToAdd            []map[string]interface{}
+	_allJavaScriptIndexes bool
 
 	Result []*PutIndexResult
 }
@@ -48,22 +50,31 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 	if conventions == nil {
 		return nil, newIllegalArgumentError("conventions cannot be nil")
 	}
-	if indexesToAdd == nil {
-		return nil, newIllegalArgumentError("indexesToAdd cannot be nil")
+	if len(indexesToAdd) == 0 {
+		return nil, newIllegalArgumentError("indexesToAdd cannot be empty")
 	}
 
 	cmd := &PutIndexesCommand{
-		RavenCommandBase: NewRavenCommandBase(),
+		RavenCommandBase:      NewRavenCommandBase(),
+		_allJavaScriptIndexes: true,
 	}
 
 	for _, indexToAdd := range indexesToAdd {
+		// We validate on the server that it is indeed a javascript index.
+
 		// Note: unlike java, Type is not calculated on demand. This is a decent
 		// place to ensure it. Assumes that indexToAdd will not be modified
 		// between now an createRequest()
 		indexToAdd.updateIndexTypeAndMaps()
 
-		panicIf(indexToAdd.Name == "", "Index name cannot be empty")
-		objectNode := convertEntityToJSON(indexToAdd, nil)
+		if !IndexTypeExtensions_isJavaScript(indexToAdd.IndexType) {
+			cmd._allJavaScriptIndexes = false
+
+		}
+		if indexToAdd.Name == "" {
+			return nil, newIllegalArgumentError("Index name cannot be empty")
+		}
+		objectNode := valueToTree(indexToAdd)
 		cmd.indexToAdd = append(cmd.indexToAdd, objectNode)
 	}
 
@@ -71,7 +82,12 @@ func NewPutIndexesCommand(conventions *DocumentConventions, indexesToAdd []*Inde
 }
 
 func (c *PutIndexesCommand) createRequest(node *ServerNode) (*http.Request, error) {
-	url := node.URL + "/databases/" + node.Database + "/admin/indexes"
+	url := node.URL + "/databases/" + node.Database
+	if c._allJavaScriptIndexes {
+		url += "/indexes"
+	} else {
+		url += "/admin/indexes"
+	}
 
 	m := map[string]interface{}{
 		"Indexes": c.indexToAdd,

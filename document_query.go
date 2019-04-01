@@ -671,7 +671,7 @@ func (q *abstractDocumentQuery) createDocumentQueryInternal(resultClass reflect.
 	query.theWaitForNonStaleResults = q.theWaitForNonStaleResults
 	query.negate = q.negate
 	//noinspection unchecked
-	query.includes = stringArrayCopy(q.includes)
+	query.documentIncludes = stringArrayCopy(q.documentIncludes)
 	// TODO: should this be deep copy so that adding/removing in one
 	// doesn't affect the other?
 	query.beforeQueryExecutedCallback = q.beforeQueryExecutedCallback
@@ -788,7 +788,8 @@ func (q *DocumentQuery) RelatesToShapeWithError(fieldName string, shapeWkt strin
 	if q.err != nil {
 		return q
 	}
-	q.err = q.spatial(fieldName, shapeWkt, relation, distanceErrorPct)
+	units := "TODO"
+	q.err = q.spatial(fieldName, shapeWkt, relation, units, distanceErrorPct)
 	return q
 }
 

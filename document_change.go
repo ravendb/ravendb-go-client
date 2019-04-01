@@ -4,6 +4,7 @@ package ravendb
 type DocumentChange struct {
 	Type           DocumentChangeTypes
 	ID             string
+	CounterName    string
 	CollectionName string
 	ChangeVector   *string
 }

@@ -10,5 +10,6 @@ type DatabaseTopology struct {
 	PromotablesStatus        map[string]string `json:"PromotablesStatus"`
 	ReplicationFactor        int               `json:"ReplicationFactor"`
 	DynamicNodesDistribution bool              `json:"DynamicNodesDistribution"`
-	Stamp                    LeaderStamp       `json:"Stamp"`
+	Stamp                    *LeaderStamp      `json:"Stamp"`
+	DatabaseTopologyIdBase64 string            `json:"DatabaseTopologyIdBase64"`
 }

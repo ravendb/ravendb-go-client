@@ -1,17 +1,16 @@
 package ravendb
 
 type IndexDefinition struct {
-	Name              string                        `json:"Name"`
-	Priority          IndexPriority                 `json:"Priority,omitempty"`
-	LockMode          IndexLockMode                 `json:"LockMode,omitempty"`
-	AdditionalSources map[string]string             `json:"AdditionalSources"`
-	Maps              []string                      `json:"Maps"`
-	Reduce            *string                       `json:"Reduce"`
-	Fields            map[string]*IndexFieldOptions `json:"Fields"`
-	Configuration     IndexConfiguration            `json:"Configuration"`
-	IndexType         IndexType                     `json:"Type"`
-	//TBD 4.1  bool testIndex;
-	OutputReduceToCollection *string `json:"OutputReduceToCollection"`
+	Name                     string                        `json:"Name"`
+	Priority                 IndexPriority                 `json:"Priority,omitempty"`
+	LockMode                 IndexLockMode                 `json:"LockMode,omitempty"`
+	AdditionalSources        map[string]string             `json:"AdditionalSources"`
+	Maps                     []string                      `json:"Maps"`
+	Reduce                   *string                       `json:"Reduce"`
+	Fields                   map[string]*IndexFieldOptions `json:"Fields"`
+	Configuration            IndexConfiguration            `json:"Configuration"`
+	IndexType                IndexType                     `json:"Type"`
+	OutputReduceToCollection *string                       `json:"OutputReduceToCollection"`
 }
 
 func toStrPtr(s string) *string {
@@ -104,10 +103,6 @@ func (d *IndexDefinition) detectStaticIndexType() IndexType {
 	}
 	return IndexTypeMapReduce
 }
-
-//TBD 4.1  bool isTestIndex()
-
-//TBD 4.1   setTestIndex(bool testIndex)
 
 func (d *IndexDefinition) GetOutputReduceToCollection() *string {
 	return d.OutputReduceToCollection

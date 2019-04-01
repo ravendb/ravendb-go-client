@@ -33,6 +33,7 @@ type InMemoryDocumentSessionOperations struct {
 	generateDocumentKeysOnStore bool
 	sessionInfo                 *SessionInfo
 	saveChangesOptions          *BatchOptions
+	transactionMode             TransactionMode
 	isDisposed                  bool
 
 	// Note: skipping unused isDisposed
@@ -74,6 +75,8 @@ type InMemoryDocumentSessionOperations struct {
 
 	deferredCommands []ICommandData
 
+	noTracking bool
+
 	// Note: using value type so that lookups are based on value
 	deferredCommandsMap map[idTypeAndName]ICommandData
 
@@ -86,23 +89,34 @@ type InMemoryDocumentSessionOperations struct {
 	session *DocumentSession
 }
 
-func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string) *InMemoryDocumentSessionOperations {
+func newInMemoryDocumentSessionOperations(store *DocumentStore, id string, options *SessionOptions) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
+	databaseName := options.Database
+	if databaseName == "" {
+		databaseName = store.GetDatabase()
+	}
+	re := options.RequestExecutor
+	if re == nil {
+		re = store.GetRequestExecutor(databaseName)
+	}
+
 	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
-		clientSessionID:               clientSessionID,
-		deletedEntities:               newObjectSet(),
-		requestExecutor:               re,
-		generateDocumentKeysOnStore:   true,
-		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
-		documentsByID:                 newDocumentsByID(),
-		includedDocumentsByID:         map[string]*documentInfo{},
-		documentsByEntity:             []*documentInfo{},
+		DatabaseName:                  databaseName,
 		documentStore:                 store,
-		DatabaseName:                  dbName,
-		maxNumberOfRequestsPerSession: re.conventions.MaxNumberOfRequestsPerSession,
+		requestExecutor:               re,
+		noTracking:                    options.NoTracking,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
-		deferredCommandsMap:           map[idTypeAndName]ICommandData{},
+		maxNumberOfRequestsPerSession: re.conventions.MaxNumberOfRequestsPerSession,
+		sessionInfo:                   &SessionInfo{SessionID: clientSessionID},
+		transactionMode:               options.TransactionMode,
+
+		deletedEntities:             newObjectSet(),
+		generateDocumentKeysOnStore: true,
+		documentsByID:               newDocumentsByID(),
+		includedDocumentsByID:       map[string]*documentInfo{},
+		documentsByEntity:           []*documentInfo{},
+		deferredCommandsMap:         map[idTypeAndName]ICommandData{},
 	}
 
 	genIDFunc := func(entity interface{}) (string, error) {
@@ -1003,10 +1017,10 @@ func (s *InMemoryDocumentSessionOperations) WaitForReplicationAfterSaveChanges(o
 	options(builder)
 
 	builderOptions := builder.getOptions()
-	if builderOptions.waitForReplicasTimeout == 0 {
-		builderOptions.waitForReplicasTimeout = time.Second * 15
+	if builderOptions.replicationOptions.waitForReplicasTimeout == 0 {
+		builderOptions.replicationOptions.waitForReplicasTimeout = time.Second * 15
 	}
-	builderOptions.waitForReplicas = true
+	builderOptions.replicationOptions.waitForReplicas = true
 }
 
 func (s *InMemoryDocumentSessionOperations) WaitForIndexesAfterSaveChanges(options func(*IndexesWaitOptsBuilder)) {
@@ -1015,10 +1029,10 @@ func (s *InMemoryDocumentSessionOperations) WaitForIndexesAfterSaveChanges(optio
 	options(builder)
 
 	builderOptions := builder.getOptions()
-	if builderOptions.waitForIndexesTimeout == 0 {
-		builderOptions.waitForIndexesTimeout = time.Second * 15
+	if builderOptions.indexOptions.waitForIndexesTimeout == 0 {
+		builderOptions.indexOptions.waitForIndexesTimeout = time.Second * 15
 	}
-	builderOptions.waitForIndexes = true
+	builderOptions.indexOptions.waitForIndexes = true
 }
 
 func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
@@ -1317,22 +1331,22 @@ func (b *ReplicationWaitOptsBuilder) getOptions() *BatchOptions {
 }
 
 func (b *ReplicationWaitOptsBuilder) WithTimeout(timeout time.Duration) *ReplicationWaitOptsBuilder {
-	b.getOptions().waitForReplicasTimeout = timeout
+	b.getOptions().replicationOptions.waitForReplicasTimeout = timeout
 	return b
 }
 
 func (b *ReplicationWaitOptsBuilder) ThrowOnTimeout(shouldThrow bool) *ReplicationWaitOptsBuilder {
-	b.getOptions().throwOnTimeoutInWaitForReplicas = shouldThrow
+	b.getOptions().replicationOptions.throwOnTimeoutInWaitForReplicas = shouldThrow
 	return b
 }
 
 func (b *ReplicationWaitOptsBuilder) NumberOfReplicas(replicas int) *ReplicationWaitOptsBuilder {
-	b.getOptions().numberOfReplicasToWaitFor = replicas
+	b.getOptions().replicationOptions.numberOfReplicasToWaitFor = replicas
 	return b
 }
 
 func (b *ReplicationWaitOptsBuilder) Majority(waitForMajority bool) *ReplicationWaitOptsBuilder {
-	b.getOptions().majority = waitForMajority
+	b.getOptions().replicationOptions.majority = waitForMajority
 	return b
 }
 
@@ -1349,17 +1363,17 @@ func (b *IndexesWaitOptsBuilder) getOptions() *BatchOptions {
 
 func (b *IndexesWaitOptsBuilder) WithTimeout(timeout time.Duration) *IndexesWaitOptsBuilder {
 	// TODO: most likely a bug and meant waitForIndexesTimeout
-	b.getOptions().waitForReplicasTimeout = timeout
+	b.getOptions().replicationOptions.waitForReplicasTimeout = timeout
 	return b
 }
 
 func (b *IndexesWaitOptsBuilder) ThrowOnTimeout(shouldThrow bool) *IndexesWaitOptsBuilder {
 	// TODO: most likely a bug and meant throwOnTimeoutInWaitForIndexes
-	b.getOptions().throwOnTimeoutInWaitForReplicas = shouldThrow
+	b.getOptions().replicationOptions.throwOnTimeoutInWaitForReplicas = shouldThrow
 	return b
 }
 
 func (b *IndexesWaitOptsBuilder) WaitForIndexes(indexes ...string) *IndexesWaitOptsBuilder {
-	b.getOptions().waitForSpecificIndexes = indexes
+	b.getOptions().indexOptions.waitForSpecificIndexes = indexes
 	return b
 }

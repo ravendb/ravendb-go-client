@@ -84,7 +84,7 @@ func (s *DocumentSessionAttachmentsBase) StoreByID(documentID string, name strin
 		return newIllegalStateError("Cannot Store attachment " + name + " of document " + documentID + ", the document was already deleted in this session.")
 	}
 
-	cmdData, err := NewPutAttachmentCommandData(documentID, name, stream, contentType, nil)
+	cmdData, err := NewPutAttachmentCommandData(documentID, name, stream, contentType, "")
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (s *DocumentSessionAttachmentsBase) DeleteByID(documentID string, name stri
 		return newIllegalStateError("Cannot delete attachment " + name + " of document " + documentID + ", there is a deferred command registered to create an attachment with the same name.")
 	}
 
-	cmdData, err := NewDeleteAttachmentCommandData(documentID, name, nil)
+	cmdData, err := NewDeleteAttachmentCommandData(documentID, name, "", "")
 	if err != nil {
 		return err
 	}

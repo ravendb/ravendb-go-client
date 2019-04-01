@@ -46,7 +46,7 @@ type abstractDocumentQuery struct {
 
 	theWaitForNonStaleResults bool
 
-	includes []string
+	documentIncludes []string
 
 	queryStats *QueryStatistics
 
@@ -55,6 +55,8 @@ type abstractDocumentQuery struct {
 	disableCaching bool
 
 	isInMoreLikeThis bool
+
+	_includesAlias string
 
 	// Go doesn't allow comparing functions so to remove we use index returned
 	// by add() function. We maintain stable index by never shrinking
@@ -65,6 +67,13 @@ type abstractDocumentQuery struct {
 	afterStreamExecutedCallback []func(map[string]interface{})
 
 	queryOperation *queryOperation
+
+	queryTimings          *QueryTimings
+	highlightingTokens    []*highlightingToken
+	queryHighlightings    *QueryHighlightings
+	explanations          *Explanations
+	explanationToken      *explanationToken
+	counterIncludesTokens []*counterIncludesToken
 
 	// to allow "fluid" API, in many methods instead of returning an error, we
 	// remember it here and return in GetResults()
@@ -109,6 +118,7 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) *abstractDocumentQuery
 		queryParameters:         make(map[string]interface{}),
 		queryStats:              NewQueryStatistics(),
 		queryRaw:                opts.rawQuery,
+		queryHighlightings:      &QueryHighlightings{},
 	}
 
 	if opts.session == nil {
@@ -125,7 +135,7 @@ func newAbstractDocumentQuery(opts *DocumentQueryOptions) *abstractDocumentQuery
 	}
 
 	f := func(queryResult *QueryResult) {
-		res.updateStatsAndHighlightings(queryResult)
+		res.updateStatsHighlightingsAndExplanations(queryResult)
 	}
 	res.addAfterQueryExecutedListener(f)
 	if opts.session == nil {
@@ -364,7 +374,20 @@ func (q *abstractDocumentQuery) moreLikeThis() (*moreLikeThisScope, error) {
 }
 
 func (q *abstractDocumentQuery) include(path string) {
-	q.includes = append(q.includes, path)
+	q.documentIncludes = append(q.documentIncludes, path)
+}
+
+func (q *abstractDocumentQuery) includeWithBuilder(includes *IncludeBuilder) {
+	if includes == nil {
+		return
+	}
+	if includes.documentsToInclude != nil {
+		for doc := range includes.documentsToInclude {
+			q.documentIncludes = append(q.documentIncludes, doc)
+		}
+	}
+
+	q._includeCounters(includes.alias, includes.countersToIncludeBySourcePath)
 }
 
 func (q *abstractDocumentQuery) take(count int) {
@@ -1218,16 +1241,18 @@ func (q *abstractDocumentQuery) string() (string, error) {
 }
 
 func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) error {
-	if len(q.includes) == 0 {
+	if len(q.documentIncludes) == 0 && len(q.highlightingTokens) == 0 && q.explanationToken == nil && q.queryTimings == nil && len(q.counterIncludesTokens) == 0 {
 		return nil
 	}
 
-	q.includes = stringArrayRemoveDuplicates(q.includes)
+	q.documentIncludes = stringArrayRemoveDuplicates(q.documentIncludes)
 	queryText.WriteString(" include ")
-	for i, include := range q.includes {
-		if i > 0 {
+	first := true
+	for _, include := range q.documentIncludes {
+		if !first {
 			queryText.WriteString(",")
 		}
+		first = false
 
 		requiredQuotes := false
 
@@ -1247,6 +1272,44 @@ func (q *abstractDocumentQuery) buildInclude(queryText *strings.Builder) error {
 			queryText.WriteString(include)
 		}
 	}
+
+	if len(q.counterIncludesTokens) > 0 {
+		for _, counterIncludesToken := range q.counterIncludesTokens {
+			if !first {
+				queryText.WriteString(",")
+			}
+			first = false
+
+			counterIncludesToken.writeTo(queryText)
+		}
+	}
+	for _, token := range q.highlightingTokens {
+		if !first {
+			queryText.WriteString(",")
+		}
+		first = false
+
+		token.writeTo(queryText)
+	}
+
+	if q.explanationToken != nil {
+		if !first {
+			queryText.WriteString(",")
+		}
+
+		first = false
+		q.explanationToken.writeTo(queryText)
+	}
+
+	if q.queryTimings != nil {
+		if !first {
+			queryText.WriteString(",")
+		}
+		first = false
+
+		timingsToken_INSTANCE.writeTo(queryText)
+	}
+
 	return nil
 }
 
@@ -1375,9 +1438,15 @@ func (q *abstractDocumentQuery) distinct() error {
 	return nil
 }
 
-func (q *abstractDocumentQuery) updateStatsAndHighlightings(queryResult *QueryResult) {
+func (q *abstractDocumentQuery) updateStatsHighlightingsAndExplanations(queryResult *QueryResult) {
 	q.queryStats.UpdateQueryStats(queryResult)
-	//TBD 4.1 Highlightings.Update(queryResult);
+	q.queryHighlightings.update(queryResult)
+	if q.explanations != nil {
+		q.explanations.update(queryResult)
+	}
+	if q.queryTimings != nil {
+		q.queryTimings.update(queryResult)
+	}
 }
 
 func (q *abstractDocumentQuery) buildSelect(writer *strings.Builder) error {
@@ -1736,14 +1805,45 @@ func (q *abstractDocumentQuery) updateFieldsToFetchToken(fieldsToFetch *fieldsTo
 	q.selectTokens = append(q.selectTokens, fieldsToFetch)
 }
 
+func (q *abstractDocumentQuery) addFromAliasToWhereTokens(fromAlias string) error {
+	if stringIsEmpty(fromAlias) {
+		return newIllegalArgumentError("Alias cannot be null or empty")
+	}
+
+	tokensRef, err := q.getCurrentWhereTokensRef()
+	if err != nil {
+		return err
+	}
+	for _, token := range *tokensRef {
+		if tok, ok := token.(*whereToken); ok {
+			tok.addAlias(fromAlias)
+		}
+	}
+	return nil
+}
+
+func (q *abstractDocumentQuery) addAliasToCounterIncludesTokens(fromAlias string) string {
+	if q._includesAlias == "" {
+		return fromAlias
+	}
+
+	if fromAlias == "" {
+		fromAlias = q._includesAlias
+		q.addFromAliasToWhereTokens(fromAlias)
+	}
+
+	for _, counterIncludesToken := range q.counterIncludesTokens {
+		counterIncludesToken.addAliasToPath(fromAlias)
+	}
+
+	return fromAlias
+}
+
 func getSourceAliasIfExists(clazz reflect.Type, queryData *QueryData, fields []string) string {
 	if len(fields) != 1 || fields[0] == "" {
 		return ""
 	}
 
-	if clazz != reflect.TypeOf("") && !isPrimitiveOrWrapper(clazz) {
-		return ""
-	}
 	indexOf := strings.Index(fields[0], ".")
 	if indexOf == -1 {
 		return ""
@@ -1802,6 +1902,34 @@ func (q *abstractDocumentQuery) noCaching() {
 	q.disableCaching = true
 }
 
+func (q *abstractDocumentQuery) _includeTimings(timingsReference **QueryTimings) {
+	if q.queryTimings != nil {
+		*timingsReference = q.queryTimings
+		return
+	}
+
+	q.queryTimings = &QueryTimings{}
+	*timingsReference = q.queryTimings
+}
+
+func (q *abstractDocumentQuery) _highlight(fieldName string, fragmentLength int, fragmentCount int, options *HighlightingOptions, highlightingsReference **Highlightings) {
+	*highlightingsReference = q.queryHighlightings.add(fieldName)
+
+	var optionsParameterName string
+	if options != nil {
+		tree := valueToTree(options)
+		optionsParameterName = q.addQueryParameter(tree)
+	}
+
+	tok := &highlightingToken{
+		_fieldName:            fieldName,
+		_fragmentLength:       fragmentLength,
+		_fragmentCount:        fragmentCount,
+		_optionsParameterName: optionsParameterName,
+	}
+	q.highlightingTokens = append(q.highlightingTokens, tok)
+}
+
 func (q *abstractDocumentQuery) withinRadiusOf(fieldName string, radius float64, latitude float64, longitude float64, radiusUnits SpatialUnits, distErrorPercent float64) error {
 	var err error
 	fieldName, err = q.ensureValidFieldName(fieldName, false)
@@ -1832,7 +1960,7 @@ func (q *abstractDocumentQuery) withinRadiusOf(fieldName string, radius float64,
 	return nil
 }
 
-func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relation SpatialRelation, distErrorPercent float64) error {
+func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relation SpatialRelation, units SpatialUnits, distErrorPercent float64) error {
 	var err error
 	fieldName, err = q.ensureValidFieldName(fieldName, false)
 	if err != nil {
@@ -1852,7 +1980,7 @@ func (q *abstractDocumentQuery) spatial(fieldName string, shapeWkt string, relat
 		return err
 	}
 
-	wktToken := shapeTokenWkt(q.addQueryParameter(shapeWkt))
+	wktToken := shapeTokenWkt(q.addQueryParameter(shapeWkt), units)
 
 	var whereOperator whereOperator
 	switch relation {
@@ -2358,4 +2486,53 @@ func (q *abstractDocumentQuery) assertCanSuggest() error {
 		return newIllegalStateError("Cannot add suggest when ORDER BY statements are present.")
 	}
 	return nil
+}
+
+func (q *abstractDocumentQuery) _includeExplanations(options *ExplanationOptions, explanationsReference **Explanations) error {
+	if q.explanationToken != nil {
+		return newIllegalStateError("Duplicate IncludeExplanations method calls are forbidden.")
+	}
+
+	var optionsParameterName string
+	if options != nil {
+		optionsParameterName = q.addQueryParameter(options)
+	}
+	tok := &explanationToken{
+		_optionsParameterName: optionsParameterName,
+	}
+	q.explanationToken = tok
+	q.explanations = &Explanations{}
+	*explanationsReference = q.explanations
+	return nil
+}
+
+func (q *abstractDocumentQuery) _includeCounters(alias string, counterToIncludeByDocId map[string]*TupleBoolStringSet) {
+	if len(counterToIncludeByDocId) == 0 {
+		return
+	}
+
+	q.counterIncludesTokens = nil
+	q._includesAlias = alias
+
+	for k, v := range counterToIncludeByDocId {
+		if v.b {
+			tok := newCounterIncludesToken(k, "", true)
+			q.counterIncludesTokens = append(q.counterIncludesTokens, tok)
+			continue
+		}
+
+		if len(v.set) == 0 {
+			continue
+		}
+
+		var val interface{}
+		if len(v.set) == 1 {
+			val = v.set[0]
+		} else {
+			val = v.set
+		}
+		paramName := q.addQueryParameter(val)
+		tok := newCounterIncludesToken(k, paramName, false)
+		q.counterIncludesTokens = append(q.counterIncludesTokens, tok)
+	}
 }

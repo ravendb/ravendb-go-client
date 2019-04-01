@@ -2,5 +2,7 @@ package ravendb
 
 // SessionInfo describes a session
 type SessionInfo struct {
-	SessionID int
+	LastClusterTransactionIndex int64
+	SessionID                   int
+	NoCaching                   bool
 }

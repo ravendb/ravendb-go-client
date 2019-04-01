@@ -2,12 +2,14 @@ package ravendb
 
 type WktCriteria struct {
 	SpatialCriteriaCommon
-	_shapeWkt string
+	_shapeWkt    string
+	_radiusUnits SpatialUnits
 }
 
-func NewWktCriteria(shapeWkt string, relation SpatialRelation, distErrorPercent float64) *WktCriteria {
+func NewWktCriteria(shapeWkt string, relation SpatialRelation, radiusUnits SpatialUnits, distErrorPercent float64) *WktCriteria {
 	res := &WktCriteria{
-		_shapeWkt: shapeWkt,
+		_shapeWkt:    shapeWkt,
+		_radiusUnits: radiusUnits,
 	}
 	res._relation = relation
 	res._distanceErrorPct = distErrorPercent
@@ -19,5 +21,5 @@ func (c *WktCriteria) ToQueryToken(fieldName string, addQueryParameter func(inte
 }
 
 func (c *WktCriteria) GetShapeToken(addQueryParameter func(interface{}) string) *shapeToken {
-	return shapeTokenWkt(addQueryParameter(c._shapeWkt))
+	return shapeTokenWkt(addQueryParameter(c._shapeWkt), c._radiusUnits)
 }

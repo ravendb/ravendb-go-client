@@ -81,7 +81,7 @@ func exceptionDispatcherThrowConflict(schema *exceptionSchema, js string) error 
 	if strings.Contains(schema.Type, "DocumentConflictException") {
 		return newDocumentConflictErrorFromJSON(js)
 	}
-	return newConcurrencyError("%s", schema.Message)
+	return newConcurrencyError("%s", schema.Error)
 }
 
 // make an error corresponding to C#'s exception name as returned by the server

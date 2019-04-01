@@ -11,16 +11,16 @@ import (
 	"time"
 )
 
-type HashCalculator struct {
+type QueryHashCalculator struct {
 	_buffer bytes.Buffer
 }
 
-func (h *HashCalculator) getHash() string {
+func (h *QueryHashCalculator) getHash() string {
 	data := h._buffer.Bytes()
 	return fmt.Sprintf("%x", md5.Sum(data))
 }
 
-func (h *HashCalculator) write(v interface{}) {
+func (h *QueryHashCalculator) write(v interface{}) {
 	if v == nil {
 		io.WriteString(&h._buffer, "null")
 		return

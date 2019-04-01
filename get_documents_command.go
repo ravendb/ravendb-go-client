@@ -14,8 +14,10 @@ type GetDocumentsCommand struct {
 
 	_id string
 
-	_ids      []string
-	_includes []string
+	_ids                []string
+	_includes           []string
+	_counters           []string
+	_includeAllCounters bool
 
 	_metadataOnly bool
 
@@ -67,6 +69,8 @@ func NewGetDocumentsCommandFull(startWith string, startAfter string, matches str
 		_pageSize:     pageSize,
 		_metadataOnly: metadataOnly,
 	}, nil
+
+	// Note: we delay creating url until createRequest
 }
 
 func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, error) {
@@ -115,6 +119,14 @@ func (c *GetDocumentsCommand) createRequest(node *ServerNode) (*http.Request, er
 		return c.prepareRequestWithMultipleIds(url)
 	}
 
+	if c._includeAllCounters {
+		url += "&counter="
+		url += Counters_All
+	} else if len(c._counters) > 0 {
+		for _, counter := range c._counters {
+			url += "&counter=" + counter
+		}
+	}
 	return newHttpGet(url)
 }
 
@@ -150,7 +162,7 @@ func (c *GetDocumentsCommand) prepareRequestWithMultipleIds(url string) (*http.R
 }
 
 func (c *GetDocumentsCommand) calculateHash(uniqueIds []string) string {
-	hasher := &HashCalculator{}
+	hasher := &QueryHashCalculator{}
 	for _, x := range uniqueIds {
 		hasher.write(x)
 	}

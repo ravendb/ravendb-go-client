@@ -8,4 +8,5 @@ const (
 	DocumentChangeDelete   = "Delete"
 	DocumentChangeConflict = "Conflict"
 	DocumentChangeCommon   = "Common"
+	DocumentChangeCounter  = "Counter"
 )

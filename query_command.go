@@ -67,5 +67,17 @@ func (c *QueryCommand) setResponse(response []byte, fromCache bool) error {
 		return nil
 	}
 
-	return jsonUnmarshal(response, &c.Result)
+	err := jsonUnmarshal(response, &c.Result)
+	if err != nil {
+		return err
+	}
+
+	if fromCache {
+		c.Result.DurationInMs = -1
+		if c.Result.Timings != nil {
+			c.Result.Timings.DurationInMs = -1
+			c.Result.Timings.Timings = nil
+		}
+	}
+	return nil
 }

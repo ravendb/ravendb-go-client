@@ -23,12 +23,13 @@ type BatchCommand struct {
 	commands          []ICommandData
 	attachmentStreams []io.Reader
 	options           *BatchOptions
+	_mode             TransactionMode
 
-	Result *JSONArrayResult
+	Result *BatchCommandResult
 }
 
 // newBatchCommand returns new BatchCommand
-func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) (*BatchCommand, error) {
+func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions, mode TransactionMode) (*BatchCommand, error) {
 	if conventions == nil {
 		return nil, newIllegalStateError("conventions cannot be nil")
 	}
@@ -42,13 +43,14 @@ func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, 
 		commands:    commands,
 		options:     options,
 		conventions: conventions,
+		_mode:       mode,
 	}
 
 	for i := 0; i < len(commands); i++ {
 		command := commands[i]
 		if putAttachmentCommandData, ok := command.(*PutAttachmentCommandData); ok {
 
-			stream := putAttachmentCommandData.getStream()
+			stream := putAttachmentCommandData.stream
 			for _, existingStream := range cmd.attachmentStreams {
 				if stream == existingStream {
 					return nil, throwStreamAlready()
@@ -81,6 +83,9 @@ func (c *BatchCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	}
 	v := map[string]interface{}{
 		"Commands": a,
+	}
+	if c._mode == TransactionMode_CLUSTER_WIDE {
+		v["TransactionMode"] = "ClusterWide"
 	}
 	js, err := jsonMarshal(v)
 	if err != nil {
@@ -148,33 +153,36 @@ func (c *BatchCommand) appendOptions(sb string) string {
 
 	sb += "?"
 
-	if _options.waitForReplicas {
-		ts := durationToTimeSpan(_options.waitForReplicasTimeout)
+	replicationOptions := c.options.replicationOptions
+
+	if replicationOptions != nil {
+		ts := durationToTimeSpan(replicationOptions.waitForReplicasTimeout)
 		sb += "&waitForReplicasTimeout=" + ts
 
-		if _options.throwOnTimeoutInWaitForReplicas {
+		if replicationOptions.throwOnTimeoutInWaitForReplicas {
 			sb += "&throwOnTimeoutInWaitForReplicas=true"
 		}
 
 		sb += "&numberOfReplicasToWaitFor="
-		if _options.majority {
+		if replicationOptions.majority {
 			sb += "majority"
 		} else {
-			sb += strconv.Itoa(_options.numberOfReplicasToWaitFor)
+			sb += strconv.Itoa(replicationOptions.numberOfReplicasToWaitFor)
 		}
 	}
 
-	if _options.waitForIndexes {
-		ts := durationToTimeSpan(_options.waitForIndexesTimeout)
+	indexOptions := c.options.indexOptions
+	if indexOptions != nil {
+		ts := durationToTimeSpan(indexOptions.waitForIndexesTimeout)
 		sb += "&waitForIndexesTimeout=" + ts
 
-		if _options.throwOnTimeoutInWaitForIndexes {
+		if indexOptions.throwOnTimeoutInWaitForIndexes {
 			sb += "&waitForIndexThrow=true"
 		} else {
 			sb += "&waitForIndexThrow=false"
 		}
 
-		for _, specificIndex := range _options.waitForSpecificIndexes {
+		for _, specificIndex := range indexOptions.waitForSpecificIndexes {
 			sb += "&waitForSpecificIndex=" + specificIndex
 		}
 	}

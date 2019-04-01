@@ -42,12 +42,10 @@ func (q *IndexQuery) GetQueryParameters() Parameters {
 }
 
 func (q *IndexQuery) GetQueryHash() string {
-	hasher := &HashCalculator{}
+	hasher := &QueryHashCalculator{}
 	hasher.write(q.query)
 	hasher.write(q.waitForNonStaleResults)
 	hasher.write(q.skipDuplicateChecking)
-	//TBD 4.1 hasher.write(isShowTimings());
-	//TBD 4.1 hasher.write(isExplainScores());
 	n := int64(q.waitForNonStaleResultsTimeout)
 	hasher.write(n)
 	hasher.write(q.start)

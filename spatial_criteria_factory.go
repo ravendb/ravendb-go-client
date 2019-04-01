@@ -16,7 +16,8 @@ func (f *SpatialCriteriaFactory) RelatesToShape(shapeWkt string, relation Spatia
 }
 
 func (f *SpatialCriteriaFactory) RelatesToShapeWithError(shapeWkt string, relation SpatialRelation, distErrorPercent float64) *WktCriteria {
-	return NewWktCriteria(shapeWkt, relation, distErrorPercent)
+	units := "TODO"
+	return NewWktCriteria(shapeWkt, relation, units, distErrorPercent)
 }
 
 func (f *SpatialCriteriaFactory) Intersects(shapeWkt string) *WktCriteria {

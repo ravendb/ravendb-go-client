@@ -54,6 +54,15 @@ type DocumentStore struct {
 	beforeClose []func(*DocumentStore)
 
 	mu sync.Mutex
+
+	// Note: in Java it's ConcurrentSkipListMap with compareToIgnoreCase
+	_lastRaftIndexPerDatabase   []*transactionIndex
+	_lastRaftIndexPerDatabaseMu sync.Mutex
+}
+
+type transactionIndex struct {
+	database string
+	index    int64
 }
 
 // methods from DocumentStoreBase
@@ -90,6 +99,41 @@ func (s *DocumentStore) SetUrls(urls []string) {
 		urls[i] = strings.TrimSuffix(s, "/")
 	}
 	s.urls = urls
+}
+
+// returns 0 if doesn't exist
+func (s *DocumentStore) getLastTransactionIndex(database string) int64 {
+	s._lastRaftIndexPerDatabaseMu.Lock()
+	defer s._lastRaftIndexPerDatabaseMu.Unlock()
+
+	for _, ti := range s._lastRaftIndexPerDatabase {
+		if strings.EqualFold(database, ti.database) {
+			return ti.index
+		}
+	}
+	return 0
+}
+
+func (s *DocumentStore) setLastTransactionIndex(database string, index int64) {
+	if index == 0 {
+		return
+	}
+	s._lastRaftIndexPerDatabaseMu.Lock()
+	defer s._lastRaftIndexPerDatabaseMu.Unlock()
+
+	for _, ti := range s._lastRaftIndexPerDatabase {
+		if strings.EqualFold(database, ti.database) {
+			if index > ti.index {
+				ti.index = index
+				return
+			}
+		}
+	}
+	ti := &transactionIndex{
+		database: database,
+		index:    index,
+	}
+	s._lastRaftIndexPerDatabase = append(s._lastRaftIndexPerDatabase, ti)
 }
 
 func (s *DocumentStore) ensureNotClosed() error {
@@ -322,15 +366,7 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	}
 
 	sessionID := NewUUID().String()
-	databaseName := options.Database
-	if databaseName == "" {
-		databaseName = s.GetDatabase()
-	}
-	requestExecutor := options.RequestExecutor
-	if requestExecutor == nil {
-		requestExecutor = s.GetRequestExecutor(databaseName)
-	}
-	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
+	session := NewDocumentSession(s, sessionID, options)
 	s.registerEvents(session.InMemoryDocumentSessionOperations)
 	s.afterSessionCreated(session.InMemoryDocumentSessionOperations)
 	return session, nil

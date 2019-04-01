@@ -2,7 +2,6 @@ package ravendb
 
 import (
 	"math"
-	"unsafe"
 )
 
 var (
@@ -18,12 +17,14 @@ type FacetOptions struct {
 	PageSize              int               `json:"PageSize"`
 }
 
+/*
 func maxInt() int {
 	if unsafe.Sizeof(int(0)) == unsafe.Sizeof(int32(0)) {
 		return int(math.MaxInt32)
 	}
 	return int(math.MaxInt64)
 }
+*/
 
 // NewFacetOptions returns new FacetOptions
 func NewFacetOptions() *FacetOptions {
