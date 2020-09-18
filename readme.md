@@ -41,6 +41,35 @@ func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 }
 ```
 
+To setup an document store with security, you'll need to provide the client certificate for authentication. 
+Here is how to setup a document store with a certificate:
+
+
+```go
+func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
+	cerPath := "/path/to/certificate.crt"
+	keyPath := "/path/to/certificate.key"
+	serverNodes := []string{"https://a.tasty.ravendb.run", 
+		"https://b.tasty.ravendb.run", "https://c.tasty.ravendb.run"}
+
+	cer, err := tls.LoadX509KeyPair(cerPath, keyPath)
+	if err != nil {
+		return nil, err
+	}
+	store := ravendb.NewDocumentStore(serverNodes, databaseName)
+	store.Certificate = &cer
+	x509cert, err :=  x509.ParseCertificate(cer.Certificate[0])
+	if err != nil {
+		return nil, err
+	}
+	store.TrustStore = x509cert
+	if err := store.Initialize(); err != nil {
+		return nil, err
+	}
+	return store, nil
+}
+```
+
 3. Open a session and close it when done
 ```go
 session, err = store.OpenSession()
