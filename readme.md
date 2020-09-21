@@ -70,6 +70,8 @@ func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
 }
 ```
 
+If you are using an encrypted certificate, see the sample code on how to translate that to `tls.Certificate` here: https://play.golang.org/p/8OYTuZtZIQ
+
 3. Open a session and close it when done
 ```go
 session, err = store.OpenSession()
