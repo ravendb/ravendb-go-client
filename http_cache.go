@@ -4,6 +4,7 @@ import (
 	//"fmt"
 
 	"math"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -15,26 +16,37 @@ type genericCache struct {
 	maximumWeight int
 	weighter      func(string, *httpCacheItem) int
 
-	data map[string]*httpCacheItem
+	data *sync.Map
 }
 
 func (c *genericCache) size() int {
-	return len(c.data)
+	// this is probably only ever going to be called from tests
+	// fine to do O(N) work here
+	length := 0
+	c.data.Range(func(_, _ interface{}) bool {
+		length++
+		return true
+	})
+	return length
 }
 
 func (c *genericCache) invalidateAll() {
-	c.data = nil
+	c.data = &sync.Map{}
 }
 
 func (c *genericCache) getIfPresent(uri string) *httpCacheItem {
-	return c.data[uri]
+	item, found := c.data.Load(uri)
+	if !found {
+		return nil
+	}
+	return item.(*httpCacheItem)
 }
 
 func (c *genericCache) put(uri string, i *httpCacheItem) {
 	//fmt.Printf("genericCache.put(): url: %s, changeVector: %s, len(result): %d\n", uri, *i.changeVector, len(i.payload))
 
 	// TODO: probably implement cache eviction
-	c.data[uri] = i
+	c.data.Store(uri, i)
 }
 
 type httpCache struct {
@@ -61,7 +73,7 @@ func newHttpCache(size int) *httpCache {
 		weighter: func(k string, v *httpCacheItem) int {
 			return len(v.payload) + 20
 		},
-		data: map[string]*httpCacheItem{},
+		data: &sync.Map{ },
 	}
 	return &httpCache{
 		items: cache,
