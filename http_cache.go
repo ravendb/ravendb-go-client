@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var lock = sync.RWMutex{}
+
 // equivalent of com.google.common.cache.Cache, specialized for String -> HttpCacheItem mapping
 // TODO: match semantics
 type genericCache struct {
@@ -33,6 +35,8 @@ func (c *genericCache) getIfPresent(uri string) *httpCacheItem {
 func (c *genericCache) put(uri string, i *httpCacheItem) {
 	//fmt.Printf("genericCache.put(): url: %s, changeVector: %s, len(result): %d\n", uri, *i.changeVector, len(i.payload))
 
+	lock.Lock()
+	defer lock.Unlock()
 	// TODO: probably implement cache eviction
 	c.data[uri] = i
 }
