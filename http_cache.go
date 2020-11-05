@@ -8,37 +8,40 @@ import (
 	"time"
 )
 
-var lock = sync.RWMutex{}
-
 // equivalent of com.google.common.cache.Cache, specialized for String -> HttpCacheItem mapping
 // TODO: match semantics
 type genericCache struct {
 	softValues    bool
 	maximumWeight int
 	weighter      func(string, *httpCacheItem) int
-
-	data map[string]*httpCacheItem
+	data          sync.Map
 }
 
 func (c *genericCache) size() int {
-	return len(c.data)
+	length := 0
+	c.data.Range(func(_, _ interface{}) bool {
+		length++
+		return true
+	})
+	return length
 }
 
 func (c *genericCache) invalidateAll() {
-	c.data = nil
+	c.data.Range(func(key interface{}, value interface{}) bool {
+		c.data.Delete(key)
+		return true
+	})
 }
 
 func (c *genericCache) getIfPresent(uri string) *httpCacheItem {
-	return c.data[uri]
+	val, _ := c.data.Load(uri)
+	return val.(*httpCacheItem)
 }
 
 func (c *genericCache) put(uri string, i *httpCacheItem) {
 	//fmt.Printf("genericCache.put(): url: %s, changeVector: %s, len(result): %d\n", uri, *i.changeVector, len(i.payload))
-
-	lock.Lock()
-	defer lock.Unlock()
 	// TODO: probably implement cache eviction
-	c.data[uri] = i
+	c.data.Store(uri, i)
 }
 
 type httpCache struct {
@@ -65,7 +68,6 @@ func newHttpCache(size int) *httpCache {
 		weighter: func(k string, v *httpCacheItem) int {
 			return len(v.payload) + 20
 		},
-		data: map[string]*httpCacheItem{},
 	}
 	return &httpCache{
 		items: cache,
