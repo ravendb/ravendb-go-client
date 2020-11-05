@@ -2,8 +2,8 @@ package ravendb
 
 import (
 	//"fmt"
-
 	"math"
+	"sync"
 	"sync/atomic"
 	"time"
 )
