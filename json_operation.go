@@ -28,6 +28,8 @@ func jsonOperationEntityChanged(newObj map[string]interface{}, documentInfo *doc
 
 func isJSONFloatEqual(oldPropVal float64, newProp interface{}) bool {
 	switch newPropVal := newProp.(type) {
+	case nil:
+		return false
 	case float64:
 		return oldPropVal == newPropVal
 	default:
@@ -39,6 +41,8 @@ func isJSONFloatEqual(oldPropVal float64, newProp interface{}) bool {
 
 func isJSONBoolEqual(oldPropVal bool, newProp interface{}) bool {
 	switch newPropVal := newProp.(type) {
+	case nil:
+		return false
 	case bool:
 		return oldPropVal == newPropVal
 	default:
@@ -50,6 +54,8 @@ func isJSONBoolEqual(oldPropVal bool, newProp interface{}) bool {
 
 func isJSONStringEqual(oldPropVal string, newProp interface{}) bool {
 	switch newPropVal := newProp.(type) {
+	case nil:
+		return false
 	case string:
 		return oldPropVal == newPropVal
 	default:
