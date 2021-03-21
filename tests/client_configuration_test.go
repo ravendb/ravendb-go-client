@@ -37,10 +37,11 @@ func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *
 	err = store.Maintenance().Send(operation)
 	assert.NoError(t, err)
 	result := operation.Command.Result
-	assert.True(t, result.Etag > 0)
+	println(result.Etag)
+	assert.True(t, result.Etag != 0)
 	newConfiguration := result.Configuration
 	assert.NotNil(t, newConfiguration)
-	assert.True(t, newConfiguration.Etag > configurationToSave.Etag)
+	assert.True(t, newConfiguration.Etag != configurationToSave.Etag)
 	assert.True(t, newConfiguration.IsDisabled)
 	assert.Equal(t, newConfiguration.MaxNumberOfRequestsPerSession, 80)
 	assert.Equal(t, newConfiguration.ReadBalanceBehavior, ravendb.ReadBalanceBehaviorFastestNode)

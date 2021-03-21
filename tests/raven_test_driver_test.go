@@ -46,7 +46,7 @@ var (
 	shuffleClusterNodes = false
 
 	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
-	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=4.1"
+	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=5.1"
 
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
