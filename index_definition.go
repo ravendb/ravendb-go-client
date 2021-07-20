@@ -11,7 +11,9 @@ type IndexDefinition struct {
 	Configuration     IndexConfiguration            `json:"Configuration"`
 	IndexType         IndexType                     `json:"Type"`
 	//TBD 4.1  bool testIndex;
-	OutputReduceToCollection *string `json:"OutputReduceToCollection"`
+	OutputReduceToCollection *string 		`json:"OutputReduceToCollection"`
+	PatternReferencesCollectionName *string 	`json:"PatternReferencesCollectionName"`
+	PatternForOutputReduceToCollectionReferences *string `json:"PatternForOutputReduceToCollectionReferences"`
 }
 
 func toStrPtr(s string) *string {
