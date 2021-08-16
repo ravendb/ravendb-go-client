@@ -1,5 +1,7 @@
 module github.com/ravendb/ravendb-go-client
 
+go 1.16
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gorilla/websocket v1.4.0
