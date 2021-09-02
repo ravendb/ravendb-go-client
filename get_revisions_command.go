@@ -50,7 +50,7 @@ func (c *GetRevisionsCommand) GetChangeVectors() []string {
 	return c.changeVectors
 }
 
-func (c *GetRevisionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/revisions?"
 
 	if c.id != "" {
@@ -78,7 +78,7 @@ func (c *GetRevisionsCommand) createRequest(node *ServerNode) (*http.Request, er
 	return newHttpGet(url)
 }
 
-func (c *GetRevisionsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
 	var res JSONArrayResult
 	err := jsonUnmarshal(response, &res)
 	if err != nil {

@@ -72,7 +72,7 @@ func NewGetAttachmentCommand(documentID string, name string, typ AttachmentType,
 	return cmd, nil
 }
 
-func (c *GetAttachmentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetAttachmentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/attachments?id=" + urlUtilsEscapeDataString(c._documentID) + "&name=" + urlUtilsEscapeDataString(c._name)
 
 	if c._type == AttachmentRevision {
@@ -84,7 +84,7 @@ func (c *GetAttachmentCommand) createRequest(node *ServerNode) (*http.Request, e
 		if err != nil {
 			return nil, err
 		}
-		return newHttpPost(url, d)
+		return NewHttpPost(url, d)
 	}
 
 	return newHttpGet(url)

@@ -30,7 +30,7 @@ func newCreateSubscriptionCommand(conventions *DocumentConventions, options *Sub
 	}
 }
 
-func (c *CreateSubscriptionCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *CreateSubscriptionCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	uri := node.URL + "/databases/" + node.Database + "/subscriptions"
 
 	if c.id != "" {
@@ -45,7 +45,7 @@ func (c *CreateSubscriptionCommand) createRequest(node *ServerNode) (*http.Reque
 	return newHttpPut(uri, d)
 }
 
-func (c *CreateSubscriptionCommand) setResponse(response []byte, fromCache bool) error {
+func (c *CreateSubscriptionCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

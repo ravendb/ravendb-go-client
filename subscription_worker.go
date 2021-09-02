@@ -458,7 +458,7 @@ func (w *SubscriptionWorker) processSubscriptionInner(cb func(batch *Subscriptio
 			return err
 		}
 
-		// send a copy so that the client can safely access it
+		// Send a copy so that the client can safely access it
 		// only copy the fields needed in OpenSession
 		batchCopy := &SubscriptionBatch{
 			Items:           batch.Items,

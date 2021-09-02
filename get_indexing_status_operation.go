@@ -37,13 +37,13 @@ func NewGetIndexingStatusCommand() *GetIndexingStatusCommand {
 	return res
 }
 
-func (c *GetIndexingStatusCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexingStatusCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/status"
 
 	return newHttpGet(url)
 }
 
-func (c *GetIndexingStatusCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIndexingStatusCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

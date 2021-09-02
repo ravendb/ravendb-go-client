@@ -45,7 +45,7 @@ func NewGetIndexErrorsCommand(indexNames []string) *GetIndexErrorsCommand {
 	return res
 }
 
-func (c *GetIndexErrorsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexErrorsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/errors"
 
 	if len(c.indexNames) > 0 {
@@ -59,7 +59,7 @@ func (c *GetIndexErrorsCommand) createRequest(node *ServerNode) (*http.Request, 
 	return newHttpGet(url)
 }
 
-func (c *GetIndexErrorsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIndexErrorsCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

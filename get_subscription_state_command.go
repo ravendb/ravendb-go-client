@@ -27,13 +27,13 @@ func newGetSubscriptionStateCommand(subscriptionName string) *GetSubscriptionSta
 	return cmd
 }
 
-func (c *GetSubscriptionStateCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetSubscriptionStateCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions/state?name=" + urlUtilsEscapeDataString(c.subscriptionName)
 
 	return newHttpGet(url)
 }
 
-func (c *GetSubscriptionStateCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetSubscriptionStateCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

@@ -35,7 +35,7 @@ func NewQueryCommand(conventions *DocumentConventions, indexQuery *IndexQuery, m
 	return cmd, nil
 }
 
-func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *QueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	c.CanCache = !c.indexQuery.disableCaching
 
 	// we won't allow aggressive caching of queries with WaitForNonStaleResults
@@ -59,10 +59,10 @@ func (c *QueryCommand) createRequest(node *ServerNode) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newHttpPost(path, d)
+	return NewHttpPost(path, d)
 }
 
-func (c *QueryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *QueryCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

@@ -13,14 +13,14 @@ var (
 // RavenCommand defines interface for server commands
 type RavenCommand interface {
 	// those are meant to be over-written
-	createRequest(node *ServerNode) (*http.Request, error)
-	setResponse(response []byte, fromCache bool) error
-	setResponseRaw(response *http.Response, body io.Reader) error
+	CreateRequest(node *ServerNode) (*http.Request, error)
+	SetResponse(response []byte, fromCache bool) error
+	SetResponseRaw(response *http.Response, body io.Reader) error
 
-	send(client *http.Client, req *http.Request) (*http.Response, error)
+	Send(client *http.Client, req *http.Request) (*http.Response, error)
 
 	// for all other functions, get access to underlying RavenCommandBase
-	getBase() *RavenCommandBase
+	GetBase() *RavenCommandBase
 }
 
 type RavenCommandBase struct {
@@ -44,11 +44,11 @@ func NewRavenCommandBase() RavenCommandBase {
 	return res
 }
 
-func (c *RavenCommandBase) getBase() *RavenCommandBase {
+func (c *RavenCommandBase) GetBase() *RavenCommandBase {
 	return c
 }
 
-func (c *RavenCommandBase) setResponse(response []byte, fromCache bool) error {
+func (c *RavenCommandBase) SetResponse(response []byte, fromCache bool) error {
 	if c.ResponseType == RavenCommandResponseTypeEmpty || c.ResponseType == RavenCommandResponseTypeRaw {
 		return throwInvalidResponse()
 	}
@@ -56,13 +56,13 @@ func (c *RavenCommandBase) setResponse(response []byte, fromCache bool) error {
 	return newUnsupportedOperationError(c.ResponseType + " command must override the SetResponse method which expects response with the following type: " + c.ResponseType)
 }
 
-func (c *RavenCommandBase) setResponseRaw(response *http.Response, stream io.Reader) error {
+func (c *RavenCommandBase) SetResponseRaw(response *http.Response, stream io.Reader) error {
 	panicIf(true, "When "+c.ResponseType+" is set to Raw then please override this method to handle the response. ")
 	return nil
 }
 
-func (c *RavenCommandBase) createRequest(node *ServerNode) (*http.Request, error) {
-	panicIf(true, "createRequest must be over-written by all types")
+func (c *RavenCommandBase) CreateRequest(node *ServerNode) (*http.Request, error) {
+	panicIf(true, "CreateRequest must be over-written by all types")
 	return nil, nil
 }
 
@@ -70,7 +70,7 @@ func throwInvalidResponse() error {
 	return newIllegalStateError("Invalid response")
 }
 
-func (c *RavenCommandBase) send(client *http.Client, req *http.Request) (*http.Response, error) {
+func (c *RavenCommandBase) Send(client *http.Client, req *http.Request) (*http.Response, error) {
 	rsp, err := client.Do(req)
 	return rsp, err
 }
@@ -118,7 +118,7 @@ func ravenCommand_processResponse(cmd RavenCommand, cache *httpCache, response *
 		return cmdStream.processResponse(cache, response, url)
 	}
 
-	c := cmd.getBase()
+	c := cmd.GetBase()
 
 	if response.Body == nil {
 		return responseDisposeHandlingAutomatic, nil
@@ -145,11 +145,11 @@ func ravenCommand_processResponse(cmd RavenCommand, cache *httpCache, response *
 		if cache != nil {
 			c.cacheResponse(cache, url, response, js)
 		}
-		err = cmd.setResponse(js, false)
+		err = cmd.SetResponse(js, false)
 		return responseDisposeHandlingAutomatic, err
 	}
 
-	err := cmd.setResponseRaw(response, response.Body)
+	err := cmd.SetResponseRaw(response, response.Body)
 	return responseDisposeHandlingAutomatic, err
 }
 

@@ -30,13 +30,13 @@ func newGetSubscriptionsCommand(start int, pageSize int) *GetSubscriptionsComman
 	return cmd
 }
 
-func (c *GetSubscriptionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetSubscriptionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/subscriptions?start=" + strconv.Itoa(c.start) + "&pageSize=" + strconv.Itoa(c.pageSize)
 
 	return newHttpGet(url)
 }
 
-func (c *GetSubscriptionsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetSubscriptionsCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return nil
 	}

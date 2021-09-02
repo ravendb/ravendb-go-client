@@ -32,7 +32,7 @@ func NewGetTcpInfoCommand(tag, dbName string) *GetTcpInfoCommand {
 	return cmd
 }
 
-func (c *GetTcpInfoCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetTcpInfoCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := ""
 	if c.dbName == "" {
 		url = node.URL + "/info/tcp?tcp=" + c.tag
@@ -43,7 +43,7 @@ func (c *GetTcpInfoCommand) createRequest(node *ServerNode) (*http.Request, erro
 	return newHttpGet(url)
 }
 
-func (c *GetTcpInfoCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetTcpInfoCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}
