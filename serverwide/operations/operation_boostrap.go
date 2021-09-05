@@ -25,11 +25,11 @@ type bootstrapCommand struct {
 	parent *OperationBootstrap
 }
 
-func (c *bootstrapCommand) createRequest(node *ravendb.ServerNode) (*http.Request, error) {
+func (c *bootstrapCommand) CreateRequest(node *ravendb.ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/cluster/bootstrap"
 	return ravendb.NewHttpPost(url, []byte{})
 }
 
-func (c *bootstrapCommand) setResponse(response []byte, fromCache bool) error {
+func (c *bootstrapCommand) SetResponse(response []byte, fromCache bool) error {
 	return json.Unmarshal(response, c.parent)
 }

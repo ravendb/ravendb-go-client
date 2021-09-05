@@ -32,7 +32,7 @@ type addNodeCommand struct {
 	parent *OperationAddClusterNode
 }
 
-func (c *addNodeCommand) createRequest(node *ravendb.ServerNode) (*http.Request, error) {
+func (c *addNodeCommand) CreateRequest(node *ravendb.ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/cluster/node?url=" + url.QueryEscape(c.parent.Url) + "&watcher=" + strconv.FormatBool(c.parent.Watcher)
 
 	if len(strings.TrimSpace(c.parent.Tag)) == 0 {
@@ -41,6 +41,6 @@ func (c *addNodeCommand) createRequest(node *ravendb.ServerNode) (*http.Request,
 	return http.NewRequest(http.MethodPut, url, nil)
 }
 
-func (c *addNodeCommand) setResponse(response []byte, fromCache bool) error {
+func (c *addNodeCommand) SetResponse(response []byte, fromCache bool) error {
 	return json.Unmarshal(response, c.parent)
 }
