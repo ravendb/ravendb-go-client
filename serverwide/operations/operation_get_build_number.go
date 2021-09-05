@@ -27,11 +27,11 @@ type getBuildNumber struct {
 	parent *OperationGetBuildNumber
 }
 
-func (c *getBuildNumber) createRequest(node *ravendb.ServerNode) (*http.Request, error) {
+func (c *getBuildNumber) CreateRequest(node *ravendb.ServerNode) (*http.Request, error) {
 	url := node.URL + "/build/version"
 	return http.NewRequest(http.MethodGet, url, nil)
 }
 
-func (c *getBuildNumber) setResponse(response []byte, fromCache bool) error {
+func (c *getBuildNumber) SetResponse(response []byte, fromCache bool) error {
 	return json.Unmarshal(response, c.parent)
 }
