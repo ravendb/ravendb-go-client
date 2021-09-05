@@ -26,11 +26,11 @@ type removeNodeCommand struct {
 	parent *RemoveClusterNode
 }
 
-func (c *removeNodeCommand) createRequest(node *ravendb.ServerNode) (*http.Request, error) {
+func (c *removeNodeCommand) CreateRequest(node *ravendb.ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/cluster/node?nodeTag=" + c.parent.Node
 	return http.NewRequest(http.MethodDelete, url, nil)
 }
 
-func (c *removeNodeCommand) setResponse(response []byte, fromCache bool) error {
+func (c *removeNodeCommand) SetResponse(response []byte, fromCache bool) error {
 	return json.Unmarshal(response, c.parent)
 }
