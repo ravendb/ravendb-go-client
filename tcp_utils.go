@@ -42,7 +42,7 @@ func tcpConnect(uri string, serverCertificateBase64 []byte, clientCertificate *t
 	if len(serverCertificateBase64) > 0 || clientCertificate != nil {
 		// serverCertificateBase64 is base64-encoded ASN1-encoded certificate
 		// This is a root signing certificate needed for tls.Dial to recognize
-		// data send by the server (?) as properly signed.
+		// data Send by the server (?) as properly signed.
 		// If we didn't have this we could set tls.Config.InsecureSkipVerify to true
 		var trustStore *x509.Certificate
 		if len(serverCertificateBase64) > 0 {

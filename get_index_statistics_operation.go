@@ -54,13 +54,13 @@ func NewGetIndexStatisticsCommand(indexName string) (*GetIndexStatisticsCommand,
 	return res, nil
 }
 
-func (c *GetIndexStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/stats?name=" + urlUtilsEscapeDataString(c._indexName)
 
 	return newHttpGet(url)
 }
 
-func (c *GetIndexStatisticsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIndexStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

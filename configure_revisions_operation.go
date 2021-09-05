@@ -48,17 +48,17 @@ func NewConfigureRevisionsCommand(configuration *RevisionsConfiguration) *Config
 	return cmd
 }
 
-func (c *ConfigureRevisionsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *ConfigureRevisionsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/revisions/config"
 
 	d, err := jsonMarshal(c.configuration)
 	if err != nil {
 		return nil, err
 	}
-	return newHttpPost(url, d)
+	return NewHttpPost(url, d)
 }
 
-func (c *ConfigureRevisionsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *ConfigureRevisionsCommand) SetResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }
 

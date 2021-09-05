@@ -37,12 +37,12 @@ func NewGetCollectionStatisticsCommand() *GetCollectionStatisticsCommand {
 	return cmd
 }
 
-func (c *GetCollectionStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetCollectionStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/collections/stats"
 	return newHttpGet(url)
 }
 
-func (c *GetCollectionStatisticsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetCollectionStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

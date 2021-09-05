@@ -29,7 +29,7 @@ func NewGetRevisionsBinEntryCommand(etag int64, pageSize int) *GetRevisionsBinEn
 	return cmd
 }
 
-func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	etagStr := i64toa(c.etag)
 	url := node.URL + "/databases/" + node.Database + "/revisions/bin?etag=" + etagStr
 
@@ -40,7 +40,7 @@ func (c *GetRevisionsBinEntryCommand) createRequest(node *ServerNode) (*http.Req
 	return newHttpGet(url)
 }
 
-func (c *GetRevisionsBinEntryCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetRevisionsBinEntryCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

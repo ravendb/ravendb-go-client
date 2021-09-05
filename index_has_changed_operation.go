@@ -52,12 +52,12 @@ func NewIndexHasChangedCommand(conventions *DocumentConventions, definition *Ind
 	return res, nil
 }
 
-func (c *IndexHasChangedCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *IndexHasChangedCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/has-changed"
-	return newHttpPost(url, c.definition)
+	return NewHttpPost(url, c.definition)
 }
 
-func (c *IndexHasChangedCommand) setResponse(response []byte, fromCache bool) error {
+func (c *IndexHasChangedCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

@@ -21,12 +21,12 @@ func NewGetClusterTopologyCommand() *GetClusterTopologyCommand {
 	return cmd
 }
 
-func (c *GetClusterTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetClusterTopologyCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/cluster/topology"
 	return newHttpGet(url)
 }
 
-func (c *GetClusterTopologyCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetClusterTopologyCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

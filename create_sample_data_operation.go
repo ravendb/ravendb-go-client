@@ -43,8 +43,8 @@ func NewCreateSampleDataCommand(conventions *DocumentConventions) *CreateSampleD
 	return cmd
 }
 
-func (c *CreateSampleDataCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *CreateSampleDataCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/studio/sample-data"
 
-	return newHttpPost(url, nil)
+	return NewHttpPost(url, nil)
 }

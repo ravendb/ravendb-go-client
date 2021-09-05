@@ -30,7 +30,7 @@ func NewQueryStreamCommand(conventions *DocumentConventions, indexQuery *IndexQu
 	return cmd
 }
 
-func (c *QueryStreamCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *QueryStreamCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/streams/queries"
 
 	m := jsonExtensionsWriteIndexQuery(c._conventions, c._indexQuery)
@@ -38,7 +38,7 @@ func (c *QueryStreamCommand) createRequest(node *ServerNode) (*http.Request, err
 	if err != nil {
 		return nil, err
 	}
-	return newHttpPost(url, d)
+	return NewHttpPost(url, d)
 }
 
 func (c *QueryStreamCommand) processResponse(cache *httpCache, response *http.Response, url string) (responseDisposeHandling, error) {
