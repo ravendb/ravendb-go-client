@@ -79,11 +79,11 @@ func NewDeleteDatabaseCommand(conventions *DocumentConventions, parameters *Dele
 	return cmd, nil
 }
 
-func (c *DeleteDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *DeleteDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/databases"
 	return newHttpDelete(url, c.parameters)
 }
 
-func (c *DeleteDatabaseCommand) setResponse(response []byte, fromCache bool) error {
+func (c *DeleteDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

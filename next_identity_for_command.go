@@ -27,7 +27,7 @@ func NewNextIdentityForCommand(id string) *NextIdentityForCommand {
 	return res
 }
 
-func (c *NextIdentityForCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *NextIdentityForCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	err := ensureIsNotNullOrString(c._id, "ID")
 	if err != nil {
 		return nil, err
@@ -35,10 +35,10 @@ func (c *NextIdentityForCommand) createRequest(node *ServerNode) (*http.Request,
 
 	url := node.URL + "/databases/" + node.Database + "/identity/next?name=" + urlEncode(c._id)
 
-	return newHttpPost(url, nil)
+	return NewHttpPost(url, nil)
 }
 
-func (c *NextIdentityForCommand) setResponse(response []byte, fromCache bool) error {
+func (c *NextIdentityForCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

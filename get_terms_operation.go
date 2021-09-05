@@ -78,7 +78,7 @@ func NewGetTermsCommand(indexName string, field string, fromValue string, pageSi
 	return res, nil
 }
 
-func (c *GetTermsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetTermsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	pageSize := ""
 	if c._pageSize > 0 {
 		pageSize = strconv.Itoa(c._pageSize)
@@ -88,7 +88,7 @@ func (c *GetTermsCommand) createRequest(node *ServerNode) (*http.Request, error)
 	return newHttpGet(url)
 }
 
-func (c *GetTermsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetTermsCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

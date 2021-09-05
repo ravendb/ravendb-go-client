@@ -23,7 +23,7 @@ func NewGetDatabaseTopologyCommand() *GetDatabaseTopologyCommand {
 	return cmd
 }
 
-func (c *GetDatabaseTopologyCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetDatabaseTopologyCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/topology?name=" + node.Database
 	if strings.Contains(strings.ToLower(node.URL), ".fiddler") {
 		// we want to keep the '.fiddler' stuff there so we'll keep tracking request
@@ -33,6 +33,6 @@ func (c *GetDatabaseTopologyCommand) createRequest(node *ServerNode) (*http.Requ
 	return newHttpGet(url)
 }
 
-func (c *GetDatabaseTopologyCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetDatabaseTopologyCommand) SetResponse(response []byte, fromCache bool) error {
 	return jsonUnmarshal(response, &c.Result)
 }

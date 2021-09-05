@@ -28,13 +28,13 @@ func NewGetConflictsCommand(id string) *GetConflictsCommand {
 	return cmd
 }
 
-func (c *GetConflictsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetConflictsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/replication/conflicts?docId=" + c._id
 
 	return newHttpGet(url)
 }
 
-func (c *GetConflictsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetConflictsCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

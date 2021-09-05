@@ -54,8 +54,8 @@ func NewStopIndexCommand(indexName string) (*StopIndexCommand, error) {
 	return cmd, nil
 }
 
-func (c *StopIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *StopIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/indexes/stop?name=" + urlUtilsEscapeDataString(c.indexName)
 
-	return newHttpPost(url, nil)
+	return NewHttpPost(url, nil)
 }

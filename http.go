@@ -60,7 +60,7 @@ func newHttpPostReader(uri string, r io.Reader) (*http.Request, error) {
 	return req, nil
 }
 
-func newHttpPost(uri string, data []byte) (*http.Request, error) {
+func NewHttpPost(uri string, data []byte) (*http.Request, error) {
 	var body io.Reader
 	if len(data) > 0 {
 		body = bytes.NewReader(data)

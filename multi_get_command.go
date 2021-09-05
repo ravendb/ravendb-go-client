@@ -32,7 +32,7 @@ func newMultiGetCommand(cache *httpCache, commands []*getRequest) *MultiGetComma
 	return cmd
 }
 
-func (c *MultiGetCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *MultiGetCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	c.baseURL = node.URL + "/databases/" + node.Database
 
 	m := map[string]interface{}{}
@@ -76,7 +76,7 @@ func (c *MultiGetCommand) createRequest(node *ServerNode) (*http.Request, error)
 	}
 
 	uri := c.baseURL + "/multi_get"
-	return newHttpPost(uri, d)
+	return NewHttpPost(uri, d)
 }
 
 func (c *MultiGetCommand) getCacheKey(command *getRequest) (string, string) {
@@ -95,7 +95,7 @@ type resultsJSON struct {
 	Results []*getResponseJSON `json:"Results"`
 }
 
-func (c *MultiGetCommand) setResponseRaw(response *http.Response, stream io.Reader) error {
+func (c *MultiGetCommand) SetResponseRaw(response *http.Response, stream io.Reader) error {
 	var results *resultsJSON
 	d, err := ioutil.ReadAll(stream)
 	if err != nil {

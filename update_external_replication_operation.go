@@ -44,7 +44,7 @@ func NewUpdateExternalReplicationCommand(newWatcher *ExternalReplication) *Updat
 	return cmd
 }
 
-func (c *UpdateExternalReplicationCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *UpdateExternalReplicationCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/admin/tasks/external-replication"
 
 	m := map[string]interface{}{
@@ -54,10 +54,10 @@ func (c *UpdateExternalReplicationCommand) createRequest(node *ServerNode) (*htt
 	if err != nil {
 		return nil, err
 	}
-	return newHttpPost(url, d)
+	return NewHttpPost(url, d)
 }
 
-func (c *UpdateExternalReplicationCommand) setResponse(response []byte, fromCache bool) error {
+func (c *UpdateExternalReplicationCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

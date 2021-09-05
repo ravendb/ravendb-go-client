@@ -128,7 +128,7 @@ func newDatabaseChangesCommand(id int, command string, value string) *databaseCh
 }
 
 type databaseChangesCommand struct {
-	// the data we send
+	// the data we Send
 	id      int
 	command string
 	value   string
@@ -569,12 +569,12 @@ func (c *DatabaseChanges) connectSubscribers(subscribers *changeSubscribers) err
 
 func (c *DatabaseChanges) send(command, value string, waitForConfirmation bool) error {
 	if c.isClosed() {
-		return errors.New("send() called after Close()")
+		return errors.New("Send() called after Close()")
 	}
 
 	id := c.nextCommandID()
 	cmd := newDatabaseChangesCommand(id, command, value)
-	dcdbg("DatabaseChanges: send(): command id: %d, command: '%s', wait: %v\n", id, fmtDCCommand(command, value), waitForConfirmation)
+	dcdbg("DatabaseChanges: Send(): command id: %d, command: '%s', wait: %v\n", id, fmtDCCommand(command, value), waitForConfirmation)
 	if waitForConfirmation {
 		c.outstandingCommands.Store(id, cmd)
 	}
@@ -595,7 +595,7 @@ func startSendWorker(conn *websocket.Conn, chCommands chan *databaseChangesComma
 	go func() {
 		dcdbg("starting a chCommands reading loop\n")
 		for cmd := range chCommands {
-			dcdbg("got command with id %d to send. Command: %s, param: %s\n", cmd.id, cmd.command, cmd.value)
+			dcdbg("got command with id %d to Send. Command: %s, param: %s\n", cmd.id, cmd.command, cmd.value)
 			o := struct {
 				CommandID int    `json:"CommandId"`
 				Command   string `json:"Command"`
@@ -619,7 +619,7 @@ func startSendWorker(conn *websocket.Conn, chCommands chan *databaseChangesComma
 			}
 			dcdbg("wrote command with id %d to socket\n", cmd.id)
 		}
-		dcdbg("DatabaseChanges: send worker finished\n")
+		dcdbg("DatabaseChanges: Send worker finished\n")
 	}()
 	return chFailed
 }

@@ -64,12 +64,12 @@ func NewCompactDatabaseCommand(conventions *DocumentConventions, compactSettings
 	return res, nil
 }
 
-func (c *CompactDatabaseCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *CompactDatabaseCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/admin/compact"
-	return newHttpPost(url, c.compactSettings)
+	return NewHttpPost(url, c.compactSettings)
 }
 
-func (c *CompactDatabaseCommand) setResponse(response []byte, fromCache bool) error {
+func (c *CompactDatabaseCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

@@ -59,7 +59,7 @@ func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *In
 	return cmd, nil
 }
 
-func (c *DeleteByIndexCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	options := c.options
 
 	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", options.allowStale)
@@ -86,7 +86,7 @@ func (c *DeleteByIndexCommand) createRequest(node *ServerNode) (*http.Request, e
 	return request, nil
 }
 
-func (c *DeleteByIndexCommand) setResponse(response []byte, fromCache bool) error {
+func (c *DeleteByIndexCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) == 0 {
 		return throwInvalidResponse()
 	}

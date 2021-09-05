@@ -31,7 +31,7 @@ func NewHeadDocumentCommand(id string, changeVector *string) *HeadDocumentComman
 	return cmd
 }
 
-func (c *HeadDocumentCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *HeadDocumentCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/docs?id=" + urlUtilsEscapeDataString(c.id)
 
 	request, err := newHttpHead(url)
@@ -64,7 +64,7 @@ func (c *HeadDocumentCommand) ProcessResponse(cache *httpCache, response *http.R
 	return responseDisposeHandlingAutomatic, err
 }
 
-func (c *HeadDocumentCommand) setResponse(response []byte, fromCache bool) error {
+func (c *HeadDocumentCommand) SetResponse(response []byte, fromCache bool) error {
 	if len(response) != 0 {
 		return throwInvalidResponse()
 	}

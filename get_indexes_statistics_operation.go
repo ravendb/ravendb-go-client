@@ -38,13 +38,13 @@ func NewGetIndexesStatisticsCommand() *GetIndexesStatisticsCommand {
 	return res
 }
 
-func (c *GetIndexesStatisticsCommand) createRequest(node *ServerNode) (*http.Request, error) {
+func (c *GetIndexesStatisticsCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	url := node.URL + "/databases/" + node.Database + "/indexes/stats"
 
 	return newHttpGet(url)
 }
 
-func (c *GetIndexesStatisticsCommand) setResponse(response []byte, fromCache bool) error {
+func (c *GetIndexesStatisticsCommand) SetResponse(response []byte, fromCache bool) error {
 	if response == nil {
 		return throwInvalidResponse()
 	}

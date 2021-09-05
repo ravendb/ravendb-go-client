@@ -64,8 +64,8 @@ func (e *OperationExecutor) SendAsync(operation IOperation, sessionInfo *Session
 }
 
 // Note: use SendPatchOperation() instead and check PatchOperationResult.Status
-// public PatchStatus send(PatchOperation operation) {
-// public PatchStatus send(PatchOperation operation, SessionInfo sessionInfo) {
+// public PatchStatus Send(PatchOperation operation) {
+// public PatchStatus Send(PatchOperation operation, SessionInfo sessionInfo) {
 
 func (e *OperationExecutor) SendPatchOperation(operation *PatchOperation, sessionInfo *SessionInfo) (*PatchOperationResult, error) {
 	conventions := e.requestExecutor.GetConventions()
