@@ -8,6 +8,7 @@ import (
 
 type RemoveClusterNode struct {
 	Node string `json:"Node"`
+	Tag  string `json:"Tag"`
 }
 
 func NewRemovePromoteClusterNode(node string) *OperationPromoteClusterNode {
@@ -15,6 +16,7 @@ func NewRemovePromoteClusterNode(node string) *OperationPromoteClusterNode {
 		Node: node,
 	}
 }
+
 func (operation *RemoveClusterNode) GetCommand(conventions *ravendb.DocumentConventions) (ravendb.RavenCommand, error) {
 	return &removeNodeCommand{
 		parent: operation,
@@ -30,7 +32,6 @@ func (c *removeNodeCommand) CreateRequest(node *ravendb.ServerNode) (*http.Reque
 	url := node.URL + "/admin/cluster/node?nodeTag=" + c.parent.Node
 	return http.NewRequest(http.MethodDelete, url, nil)
 }
-
 func (c *removeNodeCommand) SetResponse(response []byte, fromCache bool) error {
 	return json.Unmarshal(response, c.parent)
 }
