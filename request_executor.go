@@ -3,6 +3,7 @@ package ravendb
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -368,24 +369,56 @@ func dbgPrintTopology(t *Topology) {
 	}
 }
 
-func dbgPrintClusterTopologyMap(name string, m map[string]string) {
-	if len(m) == 0 {
-		return
+// used by the request executer, so we are handling this internally
+type clusterTopologyCommand struct {
+	RavenCommandBase
+	Response struct {
+		Topology struct {
+			TopologyId string            `json:"TopologyId"`
+			AllNodes   map[string]string `json:"AllNodes"`
+			Members     map[string]string `json:"Members"`
+			Promotables map[string]string `json:"Promotables"`
+			Watchers    map[string]string `json:"Watchers"`
+			LastNodeId  string            `json:"LastNodeId"`
+			Etag        int               `json:"Etag"`
+		}
+		Etag               int    `json:"Etag"`
+		Leader             string `json:"Leader"`
+		LeaderShipDuration int    `json:"LeaderShipDuration"`
+		CurrentState       string `json:"CurrentState"`
+		NodeTag            string `json:"NodeTag"`
+		CurrentTerm        int    `json:"CurrentTerm"`
+		NodeLicenseDetails struct {
+			UtilizedCores       int         `json:"UtilizedCores"`
+			MaxUtilizedCores    interface{} `json:"MaxUtilizedCores"`
+			NumberOfCores       int         `json:"NumberOfCores"`
+			InstalledMemoryInGb float64     `json:"InstalledMemoryInGb"`
+			UsableMemoryInGb    float64     `json:"UsableMemoryInGb"`
+			BuildInfo           struct {
+				ProductVersion string `json:"ProductVersion"`
+				BuildVersion   int    `json:"BuildVersion"`
+				CommitHash     string `json:"CommitHash"`
+				FullVersion    string `json:"FullVersion"`
+			} `json:"BuildInfo"`
+			OsInfo struct {
+				Type         string `json:"Type"`
+				FullName     string `json:"FullName"`
+				Version      string `json:"Version"`
+				BuildVersion string `json:"BuildVersion"`
+				Is64Bit      bool   `json:"Is64Bit"`
+			} `json:"OsInfo"`
+		}
+		LastStateChangeReason string   `json:"LastStateChangeReason"`
+		Status                struct{} `json:"Status"`
 	}
-	tdbg("  %s %d:\n", name, len(m))
-	for k, v := range m {
-		tdbg("    %s: %s\n", k, v)
-	}
-
 }
 
-func dbgPrintClusterTopology(t *ClusterTopologyResponse) {
-	tdbg("ClusterTopology: leader: %s, nodetag: %s\n", t.Leader, t.NodeTag)
-	ct := t.Topology
-	tdbg("  lastnodeid: %s, topologyid: %s\n", ct.LastNodeID, ct.TopologyID)
-	dbgPrintClusterTopologyMap("members", ct.Members)
-	dbgPrintClusterTopologyMap("promotables", ct.Promotables)
-	dbgPrintClusterTopologyMap("watchers", ct.Watchers)
+func (c *clusterTopologyCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
+	url := node.URL + "/cluster/topology"
+	return http.NewRequest(http.MethodGet, url, nil)
+}
+func (c *clusterTopologyCommand) SetResponse(response []byte, fromCache bool) error {
+	return json.Unmarshal(response, &c.Response)
 }
 
 func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *ServerNode, timeout int, forceUpdate bool) chan *clusterUpdateAsyncResult {
@@ -421,14 +454,16 @@ func (re *RequestExecutor) clusterUpdateTopologyAsyncWithForceUpdate(node *Serve
 			return
 		}
 
-		command := NewGetClusterTopologyCommand()
-		err = re.Execute(node, -1, command, false, nil)
+		command := clusterTopologyCommand{
+			RavenCommandBase: RavenCommandBase{
+				ResponseType: RavenCommandResponseTypeObject,
+			},
+		}
+		err = re.Execute(node, -1, &command, false, nil)
 		if err != nil {
 			return
 		}
-		results := command.Result
-		dbgPrintClusterTopology(results)
-		members := results.Topology.Members
+		members := command.Response.Topology.Members
 		var nodes []*ServerNode
 		for key, value := range members {
 			serverNode := NewServerNode()
