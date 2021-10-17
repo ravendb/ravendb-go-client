@@ -7,15 +7,7 @@ import (
 )
 
 type OperationGetClusterTopology struct {
-	Topology struct {
-		TopologyId  string            `json:"TopologyId"`
-		AllNodes    map[string]string `json:"AllNodes"`
-		Members     map[string]string `json:"Members"`
-		Promotables map[string]string `json:"Promotables"`
-		Watchers    map[string]string `json:"Watchers"`
-		LastNodeId  string            `json:"LastNodeId"`
-		Etag        int               `json:"Etag"`
-	} `json:"Topology"`
+	Topology           ravendb.ClusterTopology
 	Etag               int    `json:"Etag"`
 	Leader             string `json:"Leader"`
 	LeaderShipDuration int    `json:"LeaderShipDuration"`

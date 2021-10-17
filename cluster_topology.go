@@ -1,15 +1,15 @@
 package ravendb
 
 // ClusterTopology is a part of ClusterTopologyResponse
-// TODO: should be private?
 type ClusterTopology struct {
-	LastNodeID string `json:"LastNodeId"`
 	TopologyID string `json:"TopologyId"`
-
+	AllNodes    map[string]string `json:"AllNodes"`
 	// Those map name like A to server url like http://localhost:9999
 	Members     map[string]string `json:"Members"`
 	Promotables map[string]string `json:"Promotables"`
 	Watchers    map[string]string `json:"Watchers"`
+	LastNodeId  string            `json:"LastNodeId"`
+	Etag        int               `json:"Etag"`
 }
 
 // contains returns true if topology contains a given node
