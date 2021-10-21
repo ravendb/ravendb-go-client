@@ -16,7 +16,7 @@ func clientConfigurationCanHandleNoConfiguration(t *testing.T, driver *RavenTest
 	assert.NoError(t, err)
 	result := operation.Command.Result
 	assert.Nil(t, result.Configuration)
-	assert.True(t, result.Etag > 0)
+	assert.True(t, result.Etag == -2)
 }
 
 func clientConfigurationCanSaveAndReadClientConfiguration(t *testing.T, driver *RavenTestDriver) {
