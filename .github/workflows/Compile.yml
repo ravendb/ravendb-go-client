@@ -1,4 +1,4 @@
-name: RavenDB Go client CI
+name: compile
 on:
   push:
     branches: [ master,dev ]
@@ -35,6 +35,4 @@ jobs:
 
       - name: build package
         run: go build
-
-      - name: run tests
-        run: go test -tags="for_tests" ./tests
+        
