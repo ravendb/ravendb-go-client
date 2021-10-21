@@ -1,0 +1,40 @@
+name: RavenDB Go client CI
+on:
+  push:
+    branches: [ master,dev ]
+  pull_request:
+    branches: [ master,dev ]
+jobs:
+  build-and-test:
+    name: Run
+    runs-on: ${{ matrix.operating-system }}
+
+    strategy:
+      matrix:
+        go version: [ 1.17.x ]
+        operating-system: [ ubuntu-latest ]
+
+    env:
+      RAVEN_License: ${{ secrets.RAVEN_LICENSE }}
+
+    steps:
+      - name: setup GO
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: check out code into the go module directory
+        uses: actions/checkout@v2
+
+      - name: install dependencies
+        run: |
+          go version
+          go get -u golang.org/x/lint/golint
+      - name: compile test package
+        run: go test -tags for_tests -v -c ./tests
+
+      - name: build package
+        run: go build
+
+      - name: run tests
+        run: go test -tags="for_tests" ./tests
