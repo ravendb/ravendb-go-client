@@ -15,7 +15,7 @@ export RAVENDB_TEST_CERTIFICATE_PATH="${wd}/certs/server.pfx"
 export RAVENDB_TEST_CA_PATH="${wd}/certs/ca.crt"
 export RAVENDB_TEST_CLIENT_CERTIFICATE_PATH="${wd}/certs/cert.pem"
 export RAVENDB_TEST_HTTPS_SERVER_URL="https://a.javatest11.development.run:8085"
-export RAVENDB_SERVER_VERSION="4.1.3" # see .travis.yml
+export RAVENDB_SERVER_VERSION="5.1.11" # see .travis.yml
 
 #export NODES_IN_CLUSTER="3"
 #export KILL_SERVER_CHANCE="10"
