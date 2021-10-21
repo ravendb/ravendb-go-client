@@ -27,7 +27,7 @@ func getStatisticsCommandTestCanGetStats(t *testing.T, driver *RavenTestDriver) 
 	stats := command.Result
 	assert.NotNil(t, stats)
 	assert.True(t, stats.LastDocEtag > 0)
-	assert.Equal(t, stats.CountOfIndexes, 3)
+	assert.Equal(t, stats.CountOfIndexes, 7)
 	assert.Equal(t, stats.CountOfDocuments, int64(1059))
 	assert.True(t, stats.CountOfRevisionDocuments > 0)
 	assert.Equal(t, stats.CountOfDocumentsConflicts, int64(0))
