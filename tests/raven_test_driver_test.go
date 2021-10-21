@@ -45,8 +45,7 @@ var (
 	// can be changed via SHUFFLE_CLUSTER_NODES=true env variable
 	shuffleClusterNodes = false
 
-	// ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-4.1.3-windows-x64.zip"
-	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/latest?buildType=nightly&version=5.1"
+	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-5.1.11-windows-x64.zip"
 
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
