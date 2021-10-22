@@ -145,7 +145,7 @@ func getNextTcpPort() int {
 }
 
 func startRavenServer(secure bool) (*ravenProcess, error) {
-	serverURL := "http://127.0.0.1:0"
+	serverURL := fmt.Sprintf("http://127.0.0.1:%d", getNextTcpPort())
 	// we run potentially multiple server so need to make the port unique
 	tcpServerURL := fmt.Sprintf("tcp://127.0.0.1:%d", getNextTcpPort())
 
