@@ -7,6 +7,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"github.com/hashicorp/go-multierror"
+	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -23,9 +26,11 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+)
 
-	ravendb "github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
+const (
+	RAVENDB_TEST_PORT_START int32 = 10_000
+	LOCALHOST                     = "127.0.0.1"
 )
 
 var (
@@ -45,7 +50,7 @@ var (
 	// can be changed via SHUFFLE_CLUSTER_NODES=true env variable
 	shuffleClusterNodes = false
 
-	ravendbWindowsDownloadURL = "https://daily-builds.s3.amazonaws.com/RavenDB-5.1.11-windows-x64.zip"
+	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/53000"
 
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
@@ -54,6 +59,7 @@ type ravenProcess struct {
 	cmd          *exec.Cmd
 	pid          int
 	stdoutReader io.ReadCloser
+	stderrReader io.ReadCloser
 
 	// auto-detected url on which to contact the server
 	uri string
@@ -97,7 +103,7 @@ var (
 
 	httpsServerURL string
 
-	tcpServerPort int32 = 38880 // atomic
+	nextPort = RAVENDB_TEST_PORT_START
 )
 
 func must(err error) {
@@ -135,52 +141,24 @@ func killServer(proc *ravenProcess) {
 		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
 	} else {
 		s := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Killed RavenDB process %d '%s' on '%s'\n", proc.pid, s, proc.uri)
+		fmt.Printf("RavenDB process %d terminated \nConfiguration arguments: '%s'\n on '%s'\n", proc.pid, s, proc.uri)
 	}
 }
 
-func getNextTcpPort() int {
-	n := atomic.AddInt32(&tcpServerPort, 1)
+func getNextPort() int {
+	n := atomic.AddInt32(&nextPort, 1)
 	return int(n)
 }
 
 func startRavenServer(secure bool) (*ravenProcess, error) {
-	serverURL := fmt.Sprintf("http://127.0.0.1:%d", getNextTcpPort())
-	// we run potentially multiple server so need to make the port unique
-	tcpServerURL := fmt.Sprintf("tcp://127.0.0.1:%d", getNextTcpPort())
-
-	if secure {
-		serverURL = httpsServerURL
-		parsed, err := url.Parse(httpsServerURL)
-		must(err)
-		host := parsed.Host
-		parts := strings.Split(host, ":")
-		panicIf(len(parts) > 2, "invalid https URL '%s'", httpsServerURL)
-		// host can be name:port, extract "name" part
-		host = parts[0]
-		tcpServerURL = "tcp://" + host + ":38882"
-	}
-
-	args := []string{
-		"--ServerUrl=" + serverURL,
-		"--ServerUrl.Tcp=" + tcpServerURL,
-		"--RunInMemory=true",
-		"--License.Eula.Accepted=true",
-		"--Setup.Mode=None",
-		"--Testing.ParentProcessId=" + getProcessId(),
-		// "--non-interactive",
-	}
-
-	if secure {
-		secureArgs := []string{
-			"--Security.Certificate.Path=" + certificatePath,
-			"--Security.Certificate.Password=pwd1234",
-		}
-		args = append(args, secureArgs...)
+	args, err := getServerConfiguration(secure)
+	if err != nil {
+		return nil, err
 	}
 
 	cmd := exec.Command(ravendbServerExePath, args...)
 	stdoutReader, err := cmd.StdoutPipe()
+	stderrReader, err := cmd.StderrPipe()
 
 	if false && ravenServerVerbose {
 		cmd.Stderr = os.Stderr
@@ -203,6 +181,7 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	proc := &ravenProcess{
 		cmd:          cmd,
 		stdoutReader: stdoutReader,
+		stderrReader: stderrReader,
 		pid:          cmd.Process.Pid,
 	}
 
@@ -214,7 +193,7 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	var outputCopy bytes.Buffer
 	for scanner.Scan() {
 		dur := time.Since(startTime)
-		if dur > time.Minute {
+		if dur > 3*time.Minute {
 			break
 		}
 		s := scanner.Text()
@@ -236,7 +215,8 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	}
 	if proc.uri == "" {
 		s := string(outputCopy.Bytes())
-		fmt.Printf("startRavenServer: couldn't detect start url. Server output: %s\n", s)
+		errorStr, _ := ioutil.ReadAll(stderrReader)
+		fmt.Printf("startRavenServer: couldn't detect start url. Server output: %s\nError:\n%s\n", s, string(errorStr))
 		killServer(proc)
 		return nil, fmt.Errorf("Unable to start server")
 	}
@@ -254,19 +234,90 @@ func startRavenServer(secure bool) (*ravenProcess, error) {
 	return proc, nil
 }
 
-func runServersMust(n int, secure bool) []*ravenProcess {
+func getServerConfiguration(secure bool) ([]string, error) {
+	var httpUrl, tcpUrl url.URL
+	httpPort := getNextPort()
+	tcpPort := getNextPort()
+	if secure {
+		u, err := url.Parse(httpsServerURL)
+		if err != nil {
+			return nil, err
+		}
+		httpUrl = url.URL{
+			Host:   u.Hostname() + ":" + strconv.Itoa(httpPort),
+			Scheme: "https",
+		}
+		tcpUrl = url.URL{
+			Host:   u.Hostname() + ":" + strconv.Itoa(tcpPort),
+			Scheme: "tcp",
+		}
+	} else {
+		httpUrl = url.URL{
+			Host:   LOCALHOST + ":" + strconv.Itoa(httpPort),
+			Scheme: "http",
+		}
+		tcpUrl = url.URL{
+			Host:   LOCALHOST + ":" + strconv.Itoa(tcpPort),
+			Scheme: "tcp",
+		}
+	}
+
+	args := []string{
+		"--RunInMemory=true",
+		"--License.Eula.Accepted=true",
+		"--Setup.Mode=None",
+		"--Testing.ParentProcessId=" + getProcessId(),
+	}
+
+	if secure {
+		secureArgs := []string{
+			"--PublicServerUrl=" + httpUrl.String(),
+			"--PublicServerUrl.Tcp=" + tcpUrl.String(),
+			"--ServerUrl=https://0.0.0.0:" + strconv.Itoa(httpPort),
+			"--ServerUrl.Tcp=tcp://0.0.0.0:" + strconv.Itoa(tcpPort),
+			"--Security.Certificate.Path=" + certificatePath,
+		}
+		args = append(args, secureArgs...)
+	} else {
+		unsecureArgs := []string{
+			"--ServerUrl=" + httpUrl.String(),
+			"--ServerUrl.Tcp=" + tcpUrl.String(),
+		}
+		args = append(args, unsecureArgs...)
+	}
+	return args, nil
+}
+
+func runServersMust(n int, secure bool) ([]*ravenProcess, error) {
+	var wg sync.WaitGroup
+	errorsChannel := make(chan error, n)
 	if secure {
 		n = 1
 	}
 	var procs []*ravenProcess
 	for i := 0; i < n; i++ {
-		proc, err := startRavenServer(secure)
-		must(err)
-		args := strings.Join(proc.cmd.Args, " ")
-		fmt.Printf("Started server '%s' on port '%s' pid: %d\n", args, proc.uri, proc.pid)
-		procs = append(procs, proc)
+		wg.Add(1)
+		go func(secureCopy bool) {
+			proc, err := startRavenServer(secureCopy)
+			if err != nil {
+				errorsChannel <- err
+			}
+			args := strings.Join(proc.cmd.Args, " ")
+			fmt.Printf("Started server '%s' on port '%s' pid: %d\n", args, proc.uri, proc.pid)
+			procs = append(procs, proc)
+			wg.Done()
+		}(secure)
 	}
-	return procs
+	wg.Wait()
+	close(errorsChannel)
+
+	var result error
+
+	for err := range errorsChannel {
+		result = multierror.Append(result, err)
+	}
+
+	return procs, result
 }
 
 func setupRevisions(store *ravendb.DocumentStore, purgeOnDelete bool, minimumRevisionsToKeep int64) (*ravendb.ConfigureRevisionsOperationResult, error) {
@@ -467,9 +518,13 @@ func newHttpPut(uri string, data []byte) (*http.Request, error) {
 }
 
 func (d *RavenTestDriver) createMainStore() (*ravendb.DocumentStore, error) {
+	var err error
 	panicIf(len(d.serverProcesses) > 0, "len(d.serverProcesses): %d", len(d.serverProcesses))
 
-	d.serverProcesses = runServersMust(numClusterNodes, d.isSecure)
+	d.serverProcesses, err = runServersMust(numClusterNodes, d.isSecure)
+	if err != nil {
+		return nil, err
+	}
 
 	var uris []string
 	for _, proc := range d.serverProcesses {
@@ -492,7 +547,7 @@ func (d *RavenTestDriver) createMainStore() (*ravendb.DocumentStore, error) {
 		store.Certificate = clientCertificate
 		store.TrustStore = caCertificate
 	}
-	err := store.Initialize()
+	err = store.Initialize()
 	if err != nil {
 		fmt.Printf("createMainStore: store.Initialize() failed with '%s'\n", err)
 		store.Close()
@@ -925,7 +980,7 @@ func initializeTests() {
 	{
 		path := os.Getenv("RAVENDB_TEST_CLIENT_CERTIFICATE_PATH")
 		if !fileExists(path) {
-			path = filepath.Join(rootDir, "certs", "cert.pem")
+			path = filepath.Join(rootDir, "certs", "go.pem")
 		}
 		if !fileExists(path) {
 			fmt.Printf("Didn't find cert.pem file at '%s'. Set RAVENDB_TEST_CLIENT_CERTIFICATE_PATH env variable\n", path)
@@ -936,11 +991,10 @@ func initializeTests() {
 	}
 
 	{
-		uri := os.Getenv("RAVENDB_TEST_HTTPS_SERVER_URL")
-		if uri == "" {
-			uri = "https://a.javatest11.development.run:8085"
+		httpsServerURL = os.Getenv("RAVENDB_TEST_HTTPS_SERVER_URL")
+		if httpsServerURL == "" {
+			httpsServerURL = "https://localhost:7325"
 		}
-		httpsServerURL = uri
 		fmt.Printf("HTTPS url: '%s'\n", httpsServerURL)
 	}
 

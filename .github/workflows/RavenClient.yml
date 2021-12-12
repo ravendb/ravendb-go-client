@@ -1,0 +1,79 @@
+name: compile
+on:
+  push:
+    branches: [ master,dev ]
+  pull_request:
+    branches: [ master,dev ]
+  schedule:
+    - cron: '0 10 * * 6'
+jobs:
+  build:
+    name: Run
+    runs-on: ${{ matrix.operating-system }}
+
+    strategy:
+      matrix:
+        go version: [ 1.15,1.16,1.17.x ]
+        serverVersion: [ "5.2", "5.3" ]
+        operating-system: [ ubuntu-latest ]
+      fail-fast: false
+
+    env:
+      RAVEN_License: ${{ secrets.RAVEN_LICENSE }}
+      RAVENDB_TEST_SERVER_PATH: ./RavenDB/Server/Raven.Server
+      RAVENDB_TEST_CERTIFICATE_PATH: ./certs/server.pfx
+      RAVENDB_TEST_CLIENT_CERTIFICATE_PATH: ./certs/go.pem
+      RAVENDB_TEST_CA_PATH: /usr/local/share/ca-certificates/ca.crt
+      RAVENDB_TEST_HTTPS_SERVER_URL: https://localhost:7325
+      RAVENDB_BUILD_TYPE: nightly
+
+      VERBOSE_LOG: true
+      LOG_FAILED_HTTP_REQUESTS: true
+      LOG_ALL_REQUESTS: true
+      LOG_FAILED_HTTP_REQUESTS_DELAYED: true
+
+    steps:
+      - name: Setup GO
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code into the go module directory
+        uses: actions/checkout@v2
+
+      - name: Download RavenDB Server
+        run: wget -O RavenDB.tar.bz2 "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Linux%20x64/latest?buildType=${{ env.RAVENDB_BUILD_TYPE }}&version=${{ matrix.serverVersion }}"
+
+      - run: mkdir certs
+      - run: openssl genrsa -out certs/ca.key 4096
+      - run: openssl req -new -x509 -key certs/ca.key -out certs/ca.crt -subj "/C=US/ST=Arizona/L=Nevada/O=RavenDB Test CA/OU=RavenDB test CA/CN=localhost/emailAddress=ravendbca@example.com"
+      - run: openssl genrsa -out certs/localhost.key 4096
+      - run: openssl req -new  -key certs/localhost.key -out certs/localhost.csr -subj "/C=US/ST=Arizona/L=Nevada/O=RavenDB Test/OU=RavenDB test/CN=localhost/emailAddress=ravendb@example.com"
+      - run: openssl x509 -req -extensions ext -extfile tests/cert/test_cert.conf -in certs/localhost.csr -CA certs/ca.crt -CAkey certs/ca.key -CAcreateserial -out certs/localhost.crt
+      - run: cat certs/localhost.key certs/localhost.crt > certs/go.pem
+      - run: openssl pkcs12 -passout pass:"" -export -out certs/server.pfx -inkey certs/localhost.key -in certs/localhost.crt
+      - run: sudo cp certs/ca.crt /usr/local/share/ca-certificates/ca.crt
+      - run: sudo update-ca-certificates
+
+      - name: Extract RavenDB Server
+        run: tar xjf RavenDB.tar.bz2
+
+      - name: Deploy server certificate
+        run: mkdir RavenDB/Server/certs && cp certs/server.pfx RavenDB/Server/certs/
+
+      - name: Install dependencies
+        run: |
+          go version
+          go get -u golang.org/x/lint/golint
+
+      - name: Build package
+        run: go build
+
+      - name: Compile tests
+        run: go test -tags for_tests -c ./tests
+
+      - name: Run tests
+        run: go test -tags for_tests -v ./tests
+
+
+        
