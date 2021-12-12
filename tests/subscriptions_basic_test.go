@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	_reasonableWaitTime = time.Second * 5 // TODO: is it 60 seconds in Java?
+	_reasonableWaitTime = time.Second * 60
 )
 
 // returns true if timed out
@@ -371,7 +371,7 @@ func subscriptionsBasic_shouldRespectMaxDocCountInBatch(t *testing.T, driver *Ra
 				assert.True(t, n <= 25)
 				totalItems += n
 			case <-time.After(_reasonableWaitTime):
-				assert.Fail(t,  "timed out waiting for a batch")
+				assert.Fail(t, "timed out waiting for a batch")
 				totalItems = 100
 			}
 		}

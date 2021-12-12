@@ -11,11 +11,12 @@ import (
 func putCertificateTest(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getSecuredDocumentStoreMust(t)
+	assert.NotNil(t, store)
 	defer store.Close()
 
-	path := os.Getenv("RAVENDB_TEST_CLIENT_CERTIFICATE_PATH")
+	path := os.Getenv("RAVENDB_TEST_CA_PATH")
 	if !fileExists(path) {
-		fmt.Printf("Didn't find cert.pem file at '%s'. Set RAVENDB_TEST_CLIENT_CERTIFICATE_PATH env variable\n", path)
+		fmt.Printf("Didn't find cert.crt file at '%s'. Set RAVENDB_TEST_CA_PATH env variable\n", path)
 		os.Exit(1)
 	}
 	certificate := loadTestCaCertificate(path)
@@ -23,8 +24,8 @@ func putCertificateTest(t *testing.T, driver *RavenTestDriver) {
 	fmt.Printf("Loaded client certificate from '%s'\n", path)
 
 	operation := certificates.OperationPutCertificate{
-		CertName: "Admin Certificate",
-		//CertBytes:         certificate.Raw,
+		CertName:          "Admin Certificate",
+		CertBytes:         certificate.Raw,
 		SecurityClearance: certificates.SecurityClearance.Operator,
 		Permissions:       nil,
 	}

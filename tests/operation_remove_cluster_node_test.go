@@ -29,7 +29,7 @@ func removeNodeFromClusterTest(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Server().Send(&operationAddNodeToCluster)
 	assert.NoError(t, err)
 
-	time.Sleep(time.Second * 2) // wait for topology to be updated
+	time.Sleep(time.Second * 5) // wait for topology to be updated
 	operation := operations.OperationGetClusterTopology{}
 	err = store.Maintenance().Server().Send(&operation)
 	assert.NoError(t, err)
@@ -50,6 +50,7 @@ func removeNodeFromClusterTest(t *testing.T, driver *RavenTestDriver) {
 	err = store.Maintenance().Server().Send(&operationRemoveNode)
 	assert.NoError(t, err)
 
+	time.Sleep(time.Second * 5) // wait for topology to be updated
 	operation = operations.OperationGetClusterTopology{}
 	err = store.Maintenance().Server().Send(&operation)
 	assert.NoError(t, err)
