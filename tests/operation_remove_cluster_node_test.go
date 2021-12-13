@@ -3,11 +3,15 @@ package tests
 import (
 	"github.com/ravendb/ravendb-go-client/serverwide/operations"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 	"time"
 )
 
 func removeNodeFromClusterTest(t *testing.T, driver *RavenTestDriver) {
+	if os.Getenv("RAVEN_License") == "" {
+		t.Skip("This test requires RavenDB license.")
+	}
 	var err error
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()

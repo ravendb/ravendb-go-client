@@ -23,13 +23,6 @@ func httpsTestCanConnectWithCertificate(t *testing.T, driver *RavenTestDriver) {
 }
 
 func TestHttps(t *testing.T) {
-	// self-signing cert on windows is not added as root ca
-	//if isWindows() {
-	//	fmt.Printf("Skipping TestHttps on windows\n")
-	//	t.Skip("Skipping on windows")
-	//	return
-	//}
-
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)

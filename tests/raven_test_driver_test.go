@@ -30,7 +30,8 @@ import (
 
 const (
 	RAVENDB_TEST_PORT_START int32 = 10_000
-	LOCALHOST                     = "127.0.0.1"
+	LOOPBACK                      = "127.0.0.1"
+	LOCALHOST                     = "localhost"
 )
 
 var (
@@ -50,7 +51,7 @@ var (
 	// can be changed via SHUFFLE_CLUSTER_NODES=true env variable
 	shuffleClusterNodes = false
 
-	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/53000"
+	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/53000" // for local usage
 
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
@@ -100,8 +101,6 @@ var (
 
 	caCertificate     *x509.Certificate
 	clientCertificate *tls.Certificate
-
-	httpsServerURL string
 
 	nextPort = RAVENDB_TEST_PORT_START
 )
@@ -239,25 +238,21 @@ func getServerConfiguration(secure bool) ([]string, error) {
 	httpPort := getNextPort()
 	tcpPort := getNextPort()
 	if secure {
-		u, err := url.Parse(httpsServerURL)
-		if err != nil {
-			return nil, err
-		}
 		httpUrl = url.URL{
-			Host:   u.Hostname() + ":" + strconv.Itoa(httpPort),
+			Host:   LOCALHOST + ":" + strconv.Itoa(httpPort),
 			Scheme: "https",
 		}
 		tcpUrl = url.URL{
-			Host:   u.Hostname() + ":" + strconv.Itoa(tcpPort),
+			Host:   LOCALHOST + ":" + strconv.Itoa(tcpPort),
 			Scheme: "tcp",
 		}
 	} else {
 		httpUrl = url.URL{
-			Host:   LOCALHOST + ":" + strconv.Itoa(httpPort),
+			Host:   LOOPBACK + ":" + strconv.Itoa(httpPort),
 			Scheme: "http",
 		}
 		tcpUrl = url.URL{
-			Host:   LOCALHOST + ":" + strconv.Itoa(tcpPort),
+			Host:   LOOPBACK + ":" + strconv.Itoa(tcpPort),
 			Scheme: "tcp",
 		}
 	}
@@ -988,14 +983,6 @@ func initializeTests() {
 		}
 		clientCertificate = loadTestClientCertificate(path)
 		fmt.Printf("Loaded client certificate from '%s'\n", path)
-	}
-
-	{
-		httpsServerURL = os.Getenv("RAVENDB_TEST_HTTPS_SERVER_URL")
-		if httpsServerURL == "" {
-			httpsServerURL = "https://localhost:7325"
-		}
-		fmt.Printf("HTTPS url: '%s'\n", httpsServerURL)
 	}
 
 	testsWereInitialized = true

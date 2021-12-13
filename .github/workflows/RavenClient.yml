@@ -24,7 +24,6 @@ jobs:
       RAVENDB_TEST_CERTIFICATE_PATH: ./certs/server.pfx
       RAVENDB_TEST_CLIENT_CERTIFICATE_PATH: ./certs/go.pem
       RAVENDB_TEST_CA_PATH: /usr/local/share/ca-certificates/ca.crt
-      RAVENDB_TEST_HTTPS_SERVER_URL: https://localhost:7325
       RAVENDB_BUILD_TYPE: nightly
 
       VERBOSE_LOG: true
