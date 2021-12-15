@@ -1,35 +1,26 @@
 package certificates
 
-var SecurityClearance = newSecurityClearance()
+type SecurityClearance int
 
-func newSecurityClearance() *securityClearance {
-	return &securityClearance{
-		ClusterAdmin: "ClusterAdmin",
-		ClusterNode:  "ClusterNode",
-		Operator:     "Operator",
-		ValidUser:    "ValidUser",
-	}
+const (
+	ClusterAdmin SecurityClearance = iota
+	ClusterNode
+	Operator
+	ValidUser
+)
+
+type DatabaseAccess int
+
+const (
+	ReadWrite DatabaseAccess = iota
+	Admin
+	Read
+)
+
+func (da DatabaseAccess) String() string {
+	return []string{"ReadWrite", "Admin", "Read"}[da]
 }
 
-type securityClearance = struct {
-	ClusterAdmin string `default:"ClusterAdmin"`
-	ClusterNode  string `default:"ClusterNode"`
-	Operator     string `default:"Operator"`
-	ValidUser    string `default:"ValidUser"`
-}
-
-var DatabaseAccess = newDatabaseAccess()
-
-func newDatabaseAccess() *databaseAccess {
-	return &databaseAccess{
-		ReadWrite: "ReadWrite",
-		Admin:     "Admin",
-		Read:      "Read",
-	}
-}
-
-type databaseAccess = struct {
-	ReadWrite string `default:"ReadWrite"`
-	Admin     string `default:"Admin"`
-	Read      string `default:"Read"`
+func (sa SecurityClearance) String() string {
+	return []string{"ClusterAdmin", "ClusterNode", "Operator", "ValidUser"}[sa]
 }
