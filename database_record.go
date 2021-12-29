@@ -7,6 +7,8 @@ type DatabaseRecord struct {
 	DataDirectory        string            `json:"DataDirectory,omitempty"`
 	Settings             map[string]string `json:"Settings"`
 	ConflictSolverConfig *ConflictSolver   `json:"ConflictSolverConfig"`
+	Encrypted            bool              `json:"Encrypted"`
+	DatabaseTopology     *DatabaseTopology `json:"DatabaseTopology"`
 }
 
 // NewDatabaseRecord returns new database record
