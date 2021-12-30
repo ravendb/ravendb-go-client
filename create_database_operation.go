@@ -16,7 +16,7 @@ type CreateDatabaseOperation struct {
 
 // NewCreateDatabaseOperation returns CreateDatabaseOperation
 func NewCreateDatabaseOperation(databaseRecord *DatabaseRecord, replicationFactor int) *CreateDatabaseOperation {
-	if databaseRecord.DatabaseTopology.ReplicationFactor > 0 {
+	if databaseRecord.DatabaseTopology != nil && databaseRecord.DatabaseTopology.ReplicationFactor > 0 {
 		replicationFactor = databaseRecord.DatabaseTopology.ReplicationFactor
 	} else if replicationFactor <= 0 {
 		replicationFactor = 1
@@ -54,7 +54,7 @@ func NewCreateDatabaseCommand(conventions *DocumentConventions, databaseRecord *
 	if databaseRecord.DatabaseName == "" {
 		return nil, newIllegalArgumentError("databaseRecord.DatabaseName cannot be empty")
 	}
-	if databaseRecord.DatabaseTopology.ReplicationFactor > 0 {
+	if databaseRecord.DatabaseTopology != nil && databaseRecord.DatabaseTopology.ReplicationFactor > 0 {
 		replicationFactor = databaseRecord.DatabaseTopology.ReplicationFactor
 	} else if replicationFactor <= 0 {
 		replicationFactor = 1
