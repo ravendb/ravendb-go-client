@@ -12,7 +12,7 @@ func httpsTestCanConnectWithCertificate(t *testing.T, driver *RavenTestDriver) {
 	defer store.Close()
 
 	{
-		newSession := openSessionMust(t, store)
+		newSession := openSessionMust(t, store) //may need to run the IDE from administrator
 		user1 := &User{}
 		user1.setLastName("user1")
 		err = newSession.StoreWithID(user1, "users/1")
