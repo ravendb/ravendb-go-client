@@ -1,40 +1,51 @@
 package ravendb
 
-import "strings"
+import (
+	"strings"
+	"sync"
+)
 
 // TODO: change to an alias:
 //  type documentsByID map[string]*documentInfo
 
 type documentsByID struct {
-	inner map[string]*documentInfo
+	inner sync.Map
 }
 
 func newDocumentsByID() *documentsByID {
 	return &documentsByID{
-		inner: map[string]*documentInfo{},
+		inner: sync.Map{},
 	}
 }
 
 func (d *documentsByID) getValue(id string) *documentInfo {
 	id = strings.ToLower(id)
-	return d.inner[id]
+	value, ok := d.inner.Load(id)
+	if !ok {
+		return nil
+	}
+	return value.(*documentInfo)
 }
 
 func (d *documentsByID) add(info *documentInfo) {
 	id := strings.ToLower(info.id)
 
-	if _, ok := d.inner[id]; ok {
+	_, ok := d.inner.Load(id)
+
+	if ok {
 		return
 	}
 
-	d.inner[id] = info
+	d.inner.Store(id, info)
 }
 
 func (d *documentsByID) remove(id string) bool {
 	id = strings.ToLower(id)
-	if _, ok := d.inner[id]; !ok {
+
+	_, ok := d.inner.Load(id)
+	if !ok {
 		return false
 	}
-	delete(d.inner, id)
+	d.inner.Delete(id)
 	return true
 }

@@ -1022,12 +1022,14 @@ func (s *InMemoryDocumentSessionOperations) WaitForIndexesAfterSaveChanges(optio
 }
 
 func (s *InMemoryDocumentSessionOperations) getAllEntitiesChanges(changes map[string][]*DocumentsChanges) {
-	for _, docInfo := range s.documentsByID.inner {
+	s.documentsByID.inner.Range(func(key, value any) bool {
+		docInfo := value.(*documentInfo)
 		s.UpdateMetadataModifications(docInfo)
 		entity := docInfo.entity
 		newObj := convertEntityToJSON(entity, docInfo)
 		s.entityChanged(newObj, docInfo, changes)
-	}
+		return true
+	})
 }
 
 // IgnoreChangesFor marks the entity as one that should be ignore for change tracking purposes,
