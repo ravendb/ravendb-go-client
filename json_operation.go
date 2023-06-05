@@ -114,7 +114,14 @@ func jsonOperationCompareJson(id string, originalJson map[string]interface{}, ne
 			}
 			jsonOperationNewChange(prop, newProp, oldProp, docChanges, DocumentChangeFieldChanged)
 		case bool:
-			isJSONBoolEqual(newPropVal, oldProp)
+			if isJSONBoolEqual(newPropVal, oldProp) {
+				break
+			}
+
+			if changes == nil {
+				return true
+			}
+			jsonOperationNewChange(prop, newProp, oldProp, docChanges, DocumentChangeFieldChanged)
 		case []interface{}:
 			if oldProp == nil || !isInstanceOfArrayOfInterface(oldProp) {
 				if changes == nil {

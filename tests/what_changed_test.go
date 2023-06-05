@@ -396,6 +396,51 @@ func whatChangedWhatChangedShouldBeIdempotentOperation(t *testing.T, driver *Rav
 	}
 }
 
+func whatChangedWhatChangedBooleanItem(t *testing.T, driver *RavenTestDriver) {
+	var err error
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+	{
+		session := openSessionMust(t, store)
+		hasChanges := session.Advanced().HasChanges()
+		assert.False(t, hasChanges)
+
+		logicValue := &Boolean{}
+		logicValue.LogicValue = true
+		err = session.StoreWithID(logicValue, "logic/1")
+		assert.NoError(t, err)
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		hasChanges, err = session.Advanced().HasChanged(logicValue)
+		assert.NoError(t, err)
+		assert.False(t, hasChanges)
+
+		logicValue.LogicValue = false
+
+		hasChanges, err = session.Advanced().HasChanged(logicValue)
+		assert.NoError(t, err)
+		assert.True(t, hasChanges)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+		session.Close()
+	}
+
+	{
+		session := openSessionMust(t, store)
+		hasChanges := session.Advanced().HasChanges()
+		assert.False(t, hasChanges)
+
+		var b1 *Boolean
+		err = session.Load(&b1, "logic/1")
+		assert.NoError(t, err)
+		assert.False(t, b1.LogicValue)
+		session.Close()
+
+	}
+}
+
 func whatChangedHasChanges(t *testing.T, driver *RavenTestDriver) {
 	var err error
 	store := driver.getDocumentStoreMust(t)
@@ -485,6 +530,10 @@ type Arr struct {
 	Array []interface{}
 }
 
+type Boolean struct {
+	LogicValue bool
+}
+
 func TestWhatChanged(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
@@ -499,7 +548,7 @@ func TestWhatChanged(t *testing.T) {
 	whatChangedRavenDB8169(t, driver)
 	whatChangedWhatChangedRemovedField(t, driver)
 	whatChangedWhatChangedShouldBeIdempotentOperation(t, driver)
-
+	whatChangedWhatChangedBooleanItem(t, driver)
 	// TODO: order doesn't match Java
 	whatChangedHasChanges(t, driver)
 }
