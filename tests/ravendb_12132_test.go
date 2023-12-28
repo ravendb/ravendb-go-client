@@ -9,7 +9,6 @@ import (
 
 func canCreateClusterTransactionRequest1(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
-	ravendb.WithFiddler()
 	{
 		session := openSessionMustWithOptions(t, store, &ravendb.SessionOptions{
 			Database:        "",

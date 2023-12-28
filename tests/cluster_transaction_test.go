@@ -10,6 +10,8 @@ import (
 
 func throwOnInvalidTransactionMode(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
 	user := &User{}
 	user.setName("Karmel")
 
@@ -54,6 +56,8 @@ func throwOnInvalidTransactionMode(t *testing.T, driver *RavenTestDriver) {
 
 func testSessionSequance(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
 	user1 := &User{}
 	user2 := &User{}
 
@@ -92,6 +96,8 @@ func testSessionSequance(t *testing.T, driver *RavenTestDriver) {
 
 func canCreateClusterTransactionRequest(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
 	user1 := &User{}
 	user3 := &User{}
 
@@ -134,6 +140,72 @@ func canCreateClusterTransactionRequest(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func canDeleteCompareExchangeValue(t *testing.T, driver *RavenTestDriver) {
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+
+	user1 := &User{}
+	user3 := &User{}
+
+	user1.setName("Karmel")
+	user3.setName("Indych")
+
+	opt := true
+	options := &ravendb.SessionOptions{
+		Database:        "",
+		RequestExecutor: nil,
+		TransactionMode: ravendb.TransactionMode_ClusterWide,
+		DisableAtomicDocumentWritesInClusterWideTransaction: &opt,
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+		ct, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+		ct.CreateCompareExchangeValue("usernames/ayende", user1)
+		ct.CreateCompareExchangeValue("usernames/marcin", user3)
+		session.SaveChanges()
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+		ct, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+
+		compareExchangeValue, err := ct.GetCompareExchangeValue(reflect.TypeOf(&User{}), "usernames/ayende")
+		assert.NoError(t, err)
+		assert.NotNil(t, compareExchangeValue)
+
+		err = ct.DeleteCompareExchangeValue(compareExchangeValue)
+		assert.NoError(t, err)
+
+		compareExchangeValue2, err := ct.GetCompareExchangeValue(reflect.TypeOf(&User{}), "usernames/marcin")
+		assert.NoError(t, err)
+		assert.NotNil(t, compareExchangeValue2)
+		err = ct.DeleteCompareExchangeValueByKey(compareExchangeValue2.GetKey(), compareExchangeValue2.GetIndex())
+		assert.NoError(t, err)
+		session.SaveChanges()
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+		ct, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+
+		compareExchangeValue, err := ct.GetCompareExchangeValue(reflect.TypeOf(&User{}), "usernames/ayende")
+		assert.NoError(t, err)
+		assert.Nil(t, compareExchangeValue)
+
+		compareExchangeValue, err = ct.GetCompareExchangeValue(reflect.TypeOf(&User{}), "usernames/marcin")
+		assert.NoError(t, err)
+		assert.Nil(t, compareExchangeValue)
+	}
+
+}
+
 func TestClusterTransaction(t *testing.T) {
 	driver := createTestDriver(t)
 	destroy := func() { destroyDriver(t, driver) }
@@ -141,4 +213,5 @@ func TestClusterTransaction(t *testing.T) {
 	throwOnInvalidTransactionMode(t, driver)
 	testSessionSequance(t, driver)
 	canCreateClusterTransactionRequest(t, driver)
+	canDeleteCompareExchangeValue(t, driver)
 }

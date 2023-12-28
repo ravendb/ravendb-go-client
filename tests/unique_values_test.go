@@ -151,6 +151,16 @@ func uniqueValuesCanListCompareExchange(t *testing.T, driver *RavenTestDriver) {
 
 		v = values["test2"].Value.(*User)
 		assert.Equal(t, *v.Name, "Karmel")
+	}
+
+	{
+		op, err := ravendb.NewGetCompareExchangeValueOperation(reflect.TypeOf(&User{}), "test")
+		assert.NoError(t, err)
+		err = store.Operations().Send(op, nil)
+		assert.NoError(t, err)
+		v, ok := op.Command.Result.Value.(*User)
+		assert.True(t, ok)
+		assert.Equal(t, *v.Name, "Karmel")
 
 	}
 }

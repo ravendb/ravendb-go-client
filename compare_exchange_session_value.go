@@ -180,22 +180,6 @@ func (cesv *CompareExchangeSessionValue) GetCommand(session *InMemoryDocumentSes
 			return nil, nil
 		}
 		var err error
-		////Getting json
-		//entity := cesv.compareExchangeValueToJson(cesv.value.Value, session)
-		//entityJson, ok := entity.(map[string]interface{})
-		//if ok == false {
-		//	return nil, newIllegalArgumentError("Entity should be a dictionary.")
-		//}
-		//
-		//originalEntity := cesv.compareExchangeValueToJson(cesv.originalValue.Value, session)
-		//originalEntityJson, ok := entity.(map[string]interface{})
-		//
-		//if ok {
-		//	areEqual := reflect.DeepEqual(entityJson, originalEntityJson)
-		//	if areEqual == false {
-		//
-		//	}
-		//}
 
 		entity := cesv.compareExchangeValueToJson(cesv.value.Value, session)
 		entityJson, _ := entity.(map[string]interface{})
@@ -348,7 +332,7 @@ func newPutCompareExchangeCommandData(key string, value interface{}, index int64
 
 type DeleteCompareExchangeCommandData struct {
 	*CommandData
-	index int64
+	Index int64
 }
 
 func (pcecd *DeleteCompareExchangeCommandData) getId() string            { return pcecd.ID }
@@ -357,6 +341,7 @@ func (pcecd *DeleteCompareExchangeCommandData) getChangeVector() *string { retur
 func (pcecd *DeleteCompareExchangeCommandData) getType() CommandType     { return CompareExchangeDelete }
 func (pcecd *DeleteCompareExchangeCommandData) serialize(conventions *DocumentConventions) (interface{}, error) {
 	res := pcecd.baseJSON()
+	res["Index"] = pcecd.Index
 	res["Type"] = "CompareExchangeDELETE"
 	return res, nil
 }
@@ -364,7 +349,7 @@ func (pcecd *DeleteCompareExchangeCommandData) serialize(conventions *DocumentCo
 func newDeleteCompareExchangeCommandData(key string, index int64) *DeleteCompareExchangeCommandData {
 	return &DeleteCompareExchangeCommandData{
 		CommandData: &CommandData{ID: key},
-		index:       index,
+		Index:       index,
 	}
 }
 
