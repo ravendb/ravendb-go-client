@@ -1431,3 +1431,8 @@ func (s *InMemoryDocumentSessionOperations) GetClusterSession() (*ClusterTransac
 
 	return s.clusterTransactions, nil
 }
+
+// Track entities in session. Default: false
+func (s *InMemoryDocumentSessionOperations) NoTracking(mode bool) {
+	s.noTracking = mode
+}

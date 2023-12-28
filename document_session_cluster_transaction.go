@@ -102,13 +102,47 @@ func (cto *ClusterTransactionOperations) GetCompareExchangeValue(clazz reflect.T
 
 }
 
-func (cto *ClusterTransactionOperations) GetCompareExchangeValues(clazz reflect.Type, keys []string) (map[string]*CompareExchangeValue, error) {
-	return cto.getCompareExchangeValuesInternal(clazz, keys)
-
+func (cto *ClusterTransactionOperations) GetCompareExchangeValuesWithKeys(clazz reflect.Type, keys []string) (map[string]*CompareExchangeValue, error) {
+	return cto.getCompareExchangeValuesInternalWithKeys(clazz, keys)
 }
 
-func (cto *ClusterTransactionOperations) getCompareExchangeValuesInternal(clazz reflect.Type, keys []string) (map[string]*CompareExchangeValue, error) {
-	results, notTracked, err := cto.getCompareExchangeValuesFromSessionInternal(clazz, keys)
+func (cto *ClusterTransactionOperations) GetCompareExchangeValues(clazz reflect.Type, startsWith string, start int, pageSize int) (map[string]*CompareExchangeValue, error) {
+	return cto.getCompareExchangeValuesInternal(clazz, startsWith, start, pageSize)
+}
+func (cto *ClusterTransactionOperations) getCompareExchangeValuesInternal(clazz reflect.Type, startsWith string, start int, pageSize int) (map[string]*CompareExchangeValue, error) {
+	cto.session.incrementRequestCount()
+
+	operation, err := NewGetCompareExchangeValuesOperation(clazz, startsWith, start, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	err = cto.session.GetOperations().Send(operation, cto.session.sessionInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	operationResult := operation.Command.Result
+	results := make(map[string]*CompareExchangeValue)
+
+	for _, value := range operationResult {
+
+		sessionValue, err := cto.registerCompareExchangeValue(value)
+		if err != nil {
+			return nil, err
+		}
+		resultValue, err := sessionValue.GetValue(clazz, cto.session)
+		if err != nil {
+			return nil, err
+		}
+
+		results[value.GetKey()] = resultValue
+	}
+
+	return results, nil
+}
+
+func (cto *ClusterTransactionOperations) getCompareExchangeValuesInternalWithKeys(clazz reflect.Type, keys []string) (map[string]*CompareExchangeValue, error) {
+	results, notTracked, err := cto.getCompareExchangeValuesWithKeysFromSessionInternal(clazz, keys)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +270,7 @@ func (cto *ClusterTransactionOperations) getCompareExchangeValueFromSessionInter
 	return result.value, false
 }
 
-func (cto *ClusterTransactionOperations) getCompareExchangeValuesFromSessionInternal(clazz reflect.Type, keys []string) (map[string]*CompareExchangeValue, []string, error) {
+func (cto *ClusterTransactionOperations) getCompareExchangeValuesWithKeysFromSessionInternal(clazz reflect.Type, keys []string) (map[string]*CompareExchangeValue, []string, error) {
 	var results map[string]*CompareExchangeValue
 	results = make(map[string]*CompareExchangeValue)
 	var notTracked []string
@@ -263,20 +297,32 @@ func (cto *ClusterTransactionOperations) getCompareExchangeValuesFromSessionInte
 	return results, notTracked, nil
 }
 
-//func newDocumentSessionClusterTransactions(session *InMemoryDocumentSessionOperations) *DocumentSessionTransactionOperations {
-//	return &DocumentSessionTransactionOperations{
-//		AdvancedSessionExtensionBase: newAdvancedSessionExtensionBase(session),
-//	}
-//}
-//
-//func (to *DocumentSessionTransactionOperations) DeleteCompareExchangeValue(key string, index int64) {
-//
-//}
+func (cto *ClusterTransactionOperations) DeleteCompareExchangeValue(item *CompareExchangeValue) error {
+	if item == nil {
+		return newIllegalArgumentError("Item cannot be null")
+	}
 
-//void DeleteCompareExchangeValue(string key, long index);
+	sessionValue, exists := cto.tryGetCompareExchangeValueFromSession(item.GetKey())
+	if exists == false {
+		sessionValue, _ = NewCompareExchangeSessionValue(item.GetKey(), 0, compareExchangeValueStateNone)
+		cto.state[item.GetKey()] = sessionValue
+	}
 
-//void DeleteCompareExchangeValue<T>(CompareExchangeValue<T> item);
+	sessionValue.Delete(item.GetIndex())
+	return nil
+}
 
-//CompareExchangeValue<T> CreateCompareExchangeValue<T>(string key, T value);
+func (cto *ClusterTransactionOperations) DeleteCompareExchangeValueByKey(key string, index int64) error {
+	if len(key) == 0 {
+		return newIllegalStateError("Key cannot be null nor empty")
+	}
 
-// Has to implement ICompareExchangeValue
+	sessionValue, exists := cto.tryGetCompareExchangeValueFromSession(key)
+	if exists == false {
+		sessionValue, _ = NewCompareExchangeSessionValue(key, 0, compareExchangeValueStateNone)
+		cto.state[key] = sessionValue
+	}
+
+	sessionValue.Delete(index)
+	return nil
+}
