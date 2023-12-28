@@ -84,9 +84,16 @@ type InMemoryDocumentSessionOperations struct {
 	// so we can upcast/downcast between them
 	// In Go we need a backlink to reach DocumentSession
 	session *DocumentSession
+
+	//transaction configuration
+	transactionMode                                     int
+	disableAtomicDocumentWritesInClusterWideTransaction *bool
+	clusterTransactions                                 *ClusterTransactionOperations
+
+	noTracking bool
 }
 
-func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string) *InMemoryDocumentSessionOperations {
+func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, re *RequestExecutor, id string, transactionMode int, disableAtomicDocumentWritesInClusterWideTransaction *bool) *InMemoryDocumentSessionOperations {
 	clientSessionID := newClientSessionID()
 	res := &InMemoryDocumentSessionOperations{
 		id:                            id,
@@ -103,6 +110,8 @@ func newInMemoryDocumentSessionOperations(dbName string, store *DocumentStore, r
 		maxNumberOfRequestsPerSession: re.conventions.MaxNumberOfRequestsPerSession,
 		useOptimisticConcurrency:      re.conventions.UseOptimisticConcurrency,
 		deferredCommandsMap:           map[idTypeAndName]ICommandData{},
+		transactionMode:               transactionMode,
+		disableAtomicDocumentWritesInClusterWideTransaction: disableAtomicDocumentWritesInClusterWideTransaction,
 	}
 
 	genIDFunc := func(entity interface{}) (string, error) {
@@ -770,6 +779,10 @@ func (s *InMemoryDocumentSessionOperations) prepareForSaveChanges() (*saveChange
 	if err != nil {
 		return nil, err
 	}
+	err = s.prepareCompareExchangeEntities(result)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(s.deferredCommands) > 0 {
 		// this allow OnBeforeStore to call Defer during the call to include
@@ -788,6 +801,30 @@ func (s *InMemoryDocumentSessionOperations) UpdateMetadataModifications(document
 	dirty := false
 	metadataInstance := documentInfo.metadataInstance
 	metadata := documentInfo.metadata
+	if metadataInstance != nil {
+		if metadataInstance.IsDirty() {
+			dirty = true
+		}
+		props := metadataInstance.KeySet()
+		for _, prop := range props {
+			propValue, ok := metadataInstance.Get(prop)
+			if !ok {
+				dirty = true
+				continue
+			}
+			if d, ok := propValue.(*MetadataAsDictionary); ok {
+				if d.IsDirty() {
+					dirty = true
+				}
+			}
+			metadata[prop] = propValue
+		}
+	}
+	return dirty
+}
+
+func (s *InMemoryDocumentSessionOperations) UpdateMetadataModificationsTemp(metadataInstance *MetadataAsDictionary, metadata map[string]interface{}) bool {
+	dirty := false
 	if metadataInstance != nil {
 		if metadataInstance.IsDirty() {
 			dirty = true
@@ -938,6 +975,27 @@ func (s *InMemoryDocumentSessionOperations) prepareForEntitiesPuts(result *saveC
 		result.addSessionCommandData(cmdData)
 	}
 	return nil
+}
+
+func (s *InMemoryDocumentSessionOperations) prepareCompareExchangeEntities(result *saveChangesData) error {
+	if s.clusterTransactions == nil {
+		return nil
+	}
+
+	clusterTransactionOperations, err := s.GetClusterSession()
+	if err != nil {
+		return err
+	}
+
+	if clusterTransactionOperations.GetNumberOfTrackedCompareExchangeValues() == 0 {
+		return nil
+	}
+
+	if s.transactionMode != TransactionMode_ClusterWide {
+		return newIllegalStateError("Performing cluster transaction operation require the TransactionMode to be set to TransactionMode_ClusterWide")
+	}
+
+	return clusterTransactionOperations.prepareCompareExchangeEntities(result)
 }
 
 func (s *InMemoryDocumentSessionOperations) throwInvalidModifiedDocumentWithDeferredCommand(resultCommand ICommandData) error {
@@ -1362,4 +1420,14 @@ func (b *IndexesWaitOptsBuilder) ThrowOnTimeout(shouldThrow bool) *IndexesWaitOp
 func (b *IndexesWaitOptsBuilder) WaitForIndexes(indexes ...string) *IndexesWaitOptsBuilder {
 	b.getOptions().waitForSpecificIndexes = indexes
 	return b
+}
+func (s *InMemoryDocumentSessionOperations) GetClusterSession() (*ClusterTransactionOperations, error) {
+	if s.clusterTransactions == nil {
+		if s.transactionMode != TransactionMode_ClusterWide {
+			return nil, newIllegalStateError("This function is part of cluster transaction session, in order to use it you have to open the Session with ClusterWide option.")
+		}
+		s.clusterTransactions = &ClusterTransactionOperations{session: s, state: make(map[string]*CompareExchangeSessionValue)}
+	}
+
+	return s.clusterTransactions, nil
 }

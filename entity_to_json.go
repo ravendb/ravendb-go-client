@@ -26,6 +26,10 @@ func (e *entityToJSON) getMissingDictionary() map[interface{}]map[string]interfa
 }
 
 func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) map[string]interface{} {
+	return convertEntityToJSONRaw(entity, documentInfo, true)
+}
+
+func convertEntityToJSONRaw(entity interface{}, documentInfo *documentInfo, removeIdentityProperty bool) map[string]interface{} {
 	// maybe we don't need to do anything?
 	if v, ok := entity.(map[string]interface{}); ok {
 		return v
@@ -34,7 +38,9 @@ func convertEntityToJSON(entity interface{}, documentInfo *documentInfo) map[str
 
 	entityToJSONWriteMetadata(jsonNode, documentInfo)
 
-	tryRemoveIdentityProperty(jsonNode)
+	if removeIdentityProperty {
+		tryRemoveIdentityProperty(jsonNode)
+	}
 
 	return jsonNode
 }
@@ -179,6 +185,22 @@ func entityToJSONWriteMetadata(jsonNode map[string]interface{}, documentInfo *do
 	if setMetadata {
 		jsonNode[MetadataKey] = metadataNode
 	}
+}
+
+func metadataToObjectNode(metadata map[string]interface{}, metadataInstance *MetadataAsDictionary) map[string]interface{} {
+	var metadataNode map[string]interface{}
+	if len(metadata) > 0 {
+		for property, v := range metadata {
+			v = deepCopy(v)
+			metadataNode[property] = v
+		}
+	} else if metadataInstance != nil {
+		for key, value := range metadataInstance.EntrySet() {
+			metadataNode[key] = value
+		}
+	}
+
+	return metadataNode
 }
 
 /*

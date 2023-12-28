@@ -51,7 +51,7 @@ var (
 	// can be changed via SHUFFLE_CLUSTER_NODES=true env variable
 	shuffleClusterNodes = false
 
-	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/53000" // for local usage
+	ravendbWindowsDownloadURL = "https://hibernatingrhinos.com/downloads/RavenDB%20for%20Windows%20x64/54000" // for local usage
 
 	ravenWindowsZipPath = "ravendb-latest.zip"
 )
@@ -664,6 +664,13 @@ func shutdownTests() {
 
 func openSessionMust(t *testing.T, store *ravendb.DocumentStore) *ravendb.DocumentSession {
 	session, err := store.OpenSession("")
+	assert.NoError(t, err)
+	assert.NotNil(t, session)
+	return session
+}
+
+func openSessionMustWithOptions(t *testing.T, store *ravendb.DocumentStore, options *ravendb.SessionOptions) *ravendb.DocumentSession {
+	session, err := store.OpenSessionWithOptions(options)
 	assert.NoError(t, err)
 	assert.NotNil(t, session)
 	return session

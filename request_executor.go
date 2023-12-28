@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -154,6 +156,18 @@ func (re *RequestExecutor) GetURL() (string, error) {
 
 func (re *RequestExecutor) GetConventions() *DocumentConventions {
 	return re.conventions
+}
+
+// WithFiddler Setup proxy for fiddler. Is used for debugging purposes.
+func WithFiddler() error {
+	transport := http.DefaultTransport.(*http.Transport)
+	proxyUrl, err := url.Parse("http://127.0.0.1:8888")
+	if err != nil {
+		return err
+	}
+
+	transport.Proxy = http.ProxyURL(proxyUrl)
+	return nil
 }
 
 // NewRequestExecutor creates a new executor
@@ -374,8 +388,8 @@ type clusterTopologyCommand struct {
 	RavenCommandBase
 	Response struct {
 		Topology struct {
-			TopologyId string            `json:"TopologyId"`
-			AllNodes   map[string]string `json:"AllNodes"`
+			TopologyId  string            `json:"TopologyId"`
+			AllNodes    map[string]string `json:"AllNodes"`
 			Members     map[string]string `json:"Members"`
 			Promotables map[string]string `json:"Promotables"`
 			Watchers    map[string]string `json:"Watchers"`
@@ -786,7 +800,7 @@ func isNetworkTimeoutError(err error) bool {
 // If nodeIndex is -1, we don't know the index
 func (re *RequestExecutor) Execute(chosenNode *ServerNode, nodeIndex int, command RavenCommand, shouldRetry bool, sessionInfo *SessionInfo) error {
 	// nodeIndex -1 is equivalent to Java's null
-	request, err := re.createRequest(chosenNode, command)
+	request, err := re.createRequest(sessionInfo, chosenNode, command)
 	if err != nil {
 		return err
 	}
@@ -1008,7 +1022,7 @@ func (re *RequestExecutor) executeOnAllToFigureOutTheFastest(chosenNode *ServerN
 
 		go func(nodeIndex int, node *ServerNode) {
 			var response *http.Response
-			request, err := re.createRequest(node, command)
+			request, err := re.createRequest(nil, node, command)
 			if err == nil {
 				response, err = command.Send(re.httpClient, request)
 				n := atomic.AddInt32(&fastestWasRecorded, 1)
@@ -1050,12 +1064,16 @@ func (re *RequestExecutor) getFromCache(command RavenCommand, url string) (*rele
 	return newReleaseCacheItem(nil), nil, nil
 }
 
-func (re *RequestExecutor) createRequest(node *ServerNode, command RavenCommand) (*http.Request, error) {
+func (re *RequestExecutor) createRequest(sessionInfo *SessionInfo, node *ServerNode, command RavenCommand) (*http.Request, error) {
 	request, err := command.CreateRequest(node)
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Set(headersClientVersion, goClientVersion)
+	if sessionInfo != nil && sessionInfo.lastClusterTransactionIndex != nil {
+		request.Header.Set(lastKnownClusterTransactionIndex, strconv.FormatInt(*sessionInfo.lastClusterTransactionIndex, 10))
+	}
+
 	return request, err
 }
 

@@ -14,6 +14,15 @@ type RaftCommandBase struct {
 	raftUniqueRequestId string
 }
 
+func RaftId() (string, error) {
+	newUUID, err := uuid.NewUUID()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%v", newUUID), nil
+}
+
 func (cmd *RaftCommandBase) RaftUniqueRequestId() (string, error) {
 	if cmd.raftUniqueRequestId == "" {
 		newUUID, err := uuid.NewUUID()

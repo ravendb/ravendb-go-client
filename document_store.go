@@ -330,7 +330,16 @@ func (s *DocumentStore) OpenSessionWithOptions(options *SessionOptions) (*Docume
 	if requestExecutor == nil {
 		requestExecutor = s.GetRequestExecutor(databaseName)
 	}
-	session := NewDocumentSession(databaseName, s, sessionID, requestExecutor)
+
+	transactionMode := options.TransactionMode
+	err := assertTransactionMode(transactionMode)
+	if err != nil {
+		return nil, err
+	}
+
+	disableAtomicDocumentWritesInClusterWideTransaction := options.DisableAtomicDocumentWritesInClusterWideTransaction
+
+	session := newDocumentSessionBase(databaseName, s, sessionID, requestExecutor, transactionMode, disableAtomicDocumentWritesInClusterWideTransaction)
 	s.registerEvents(session.InMemoryDocumentSessionOperations)
 	s.afterSessionCreated(session.InMemoryDocumentSessionOperations)
 	return session, nil

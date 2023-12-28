@@ -950,3 +950,17 @@ case <-time.After(time.Second * 5):
 _ = worker.Close()
 ```
 See `subscriptions()` in [examples/main.go](examples/main.go) for full example.
+
+# Cluster wide transactions
+
+## Setup a session
+To set session transaction as cluster wide you've to set `TransactionMode` in `SessionOptions`
+as `TransactionMode_ClusterWide`
+
+```go
+ravendb.SessionOptions{
+                        [...]
+			TransactionMode: ravendb.TransactionMode_ClusterWide,
+}
+```
+

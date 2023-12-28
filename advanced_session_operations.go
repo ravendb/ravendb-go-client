@@ -227,6 +227,14 @@ func (o *AdvancedSessionOperations) SetMaxNumberOfRequestsPerSession(n int) {
 	o.s.maxNumberOfRequestsPerSession = n
 }
 
+func (o *AdvancedSessionOperations) ClusterTransaction() (*ClusterTransactionOperations, error) {
+	return o.s.GetClusterSession()
+}
+
+func (o *AdvancedSessionOperations) SetTransactionMode(mode TransactionMode) {
+	o.s.transactionMode = mode
+}
+
 /*
 String storeIdentifier();
 boolean isUseOptimisticConcurrency();

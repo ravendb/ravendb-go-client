@@ -14,4 +14,6 @@ const (
 	CommandAttachmentDelete    = "ATTACHMENT_DELETE"
 	CommandClientAnyCommand    = "CLIENT_ANY_COMMAND"
 	CommandClientNotAttachment = "CLIENT_NOT_ATTACHMENT"
+	CompareExchangePut         = "COMPARE_EXCHANGE_PUT"
+	CompareExchangeDelete      = "COMPARE_EXCHANGE_DELETE"
 )
