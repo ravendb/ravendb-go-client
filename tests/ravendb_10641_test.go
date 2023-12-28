@@ -112,7 +112,8 @@ func ravendb10641canEditObjectsInMetadata(t *testing.T, driver *RavenTestDriver)
 }
 
 type Document struct {
-	ID string
+	ID   string `json:"ID"`
+	Name string `json:"Name"`
 }
 
 func TestRavenDB10641(t *testing.T) {

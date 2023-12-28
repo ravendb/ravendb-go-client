@@ -23,17 +23,30 @@ type BatchCommand struct {
 	commands          []ICommandData
 	attachmentStreams []io.Reader
 	options           *BatchOptions
+	Result            *JSONArrayResult
 
-	Result *JSONArrayResult
+	transactionMode             int
+	disableAtomicDocumentWrites *bool
+	raftUniqueRequestId         string
 }
 
 // newBatchCommand returns new BatchCommand
-func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions) (*BatchCommand, error) {
+func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, options *BatchOptions, transactionMode int, disableAtomicDocumentWrites *bool) (*BatchCommand, error) {
 	if conventions == nil {
 		return nil, newIllegalStateError("conventions cannot be nil")
 	}
 	if len(commands) == 0 {
 		return nil, newIllegalStateError("commands cannot be empty")
+	}
+
+	raftId, err := "", error(nil)
+
+	if transactionMode == TransactionMode_ClusterWide {
+		raftId, err = RaftId()
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	cmd := &BatchCommand{
@@ -42,6 +55,10 @@ func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, 
 		commands:    commands,
 		options:     options,
 		conventions: conventions,
+
+		transactionMode:             transactionMode,
+		disableAtomicDocumentWrites: disableAtomicDocumentWrites,
+		raftUniqueRequestId:         raftId,
 	}
 
 	for i := 0; i < len(commands); i++ {
@@ -56,6 +73,7 @@ func newBatchCommand(conventions *DocumentConventions, commands []ICommandData, 
 			}
 			cmd.attachmentStreams = append(cmd.attachmentStreams, stream)
 		}
+
 	}
 
 	return cmd, nil
@@ -79,9 +97,15 @@ func (c *BatchCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 		}
 		a = append(a, el)
 	}
+
 	v := map[string]interface{}{
 		"Commands": a,
 	}
+
+	if c.transactionMode == TransactionMode_ClusterWide {
+		v["TransactionMode"] = "ClusterWide"
+	}
+
 	js, err := jsonMarshal(v)
 	if err != nil {
 		return nil, err
@@ -142,11 +166,28 @@ func (c *BatchCommand) SetResponse(response []byte, fromCache bool) error {
 
 func (c *BatchCommand) appendOptions(sb string) string {
 	_options := c.options
-	if _options == nil {
+	if _options == nil && c.transactionMode == TransactionMode_SingleNode {
 		return sb
 	}
 
 	sb += "?"
+
+	if c.transactionMode == TransactionMode_ClusterWide {
+		if c.disableAtomicDocumentWrites != nil {
+			sb += "&disableAtomicDocumentWrites="
+			if *c.disableAtomicDocumentWrites == false {
+				sb += "false"
+			} else {
+				sb += "true"
+			}
+		}
+
+		sb += "&raft-request-id=" + c.raftUniqueRequestId
+
+		if _options == nil {
+			return sb
+		}
+	}
 
 	if _options.waitForReplicas {
 		ts := durationToTimeSpan(_options.waitForReplicasTimeout)
@@ -178,6 +219,7 @@ func (c *BatchCommand) appendOptions(sb string) string {
 			sb += "&waitForSpecificIndex=" + specificIndex
 		}
 	}
+
 	return sb
 }
 

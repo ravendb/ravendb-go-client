@@ -36,4 +36,10 @@ const (
 	headersClientVersion              = "Raven-Client-Version"
 	headersEtag                       = "ETag"
 	headersIfNoneMatch                = "If-None-Match"
+	lastKnownClusterTransactionIndex  = "Known-Raft-Index"
+
+	TransactionMode_SingleNode  = 0
+	TransactionMode_ClusterWide = 1
 )
+
+type TransactionMode = int

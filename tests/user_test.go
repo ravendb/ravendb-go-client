@@ -22,3 +22,7 @@ func (u *User) setName(name string) {
 func (u *User) setLastName(lastName string) {
 	u.LastName = &lastName
 }
+
+func (u *User) setAge(age int) {
+	u.Age = age
+}
