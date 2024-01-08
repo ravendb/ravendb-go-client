@@ -223,14 +223,14 @@ func (cto *ClusterTransactionOperations) getCompareExchangeValueInternal(clazz r
 
 func (cto *ClusterTransactionOperations) registerCompareExchangeValue(value *CompareExchangeValue) (*CompareExchangeSessionValue, error) {
 	if cto.session.noTracking {
-		return NewCompareExchangeSessionValue2(value)
+		return NewCompareExchangeSessionValueWithValue(value)
 	}
 
 	var err error
 	sesionValue, exists := cto.state[value.GetKey()]
 
 	if exists == false || sesionValue == nil {
-		sesionValue, err = NewCompareExchangeSessionValue2(value)
+		sesionValue, err = NewCompareExchangeSessionValueWithValue(value)
 		if err != nil {
 			return nil, err
 		}
