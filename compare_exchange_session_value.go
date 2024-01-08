@@ -12,7 +12,7 @@ type CompareExchangeSessionValue struct {
 	state                CompareExchangeValueState
 }
 
-func NewCompareExchangeSessionValue2(value *CompareExchangeValue) (*CompareExchangeSessionValue, error) {
+func NewCompareExchangeSessionValueWithValue(value *CompareExchangeValue) (*CompareExchangeSessionValue, error) {
 	var status CompareExchangeValueState
 	if value.GetIndex() >= 0 {
 		status = compareExchangeValueStateNone
@@ -27,7 +27,7 @@ func NewCompareExchangeSessionValue2(value *CompareExchangeValue) (*CompareExcha
 
 	if value.GetIndex() > 0 {
 
-		cesv.originalValue = NewCompareExchangeValue(value.GetKey(), value.GetIndex(), convertEntityToJSONRaw(value.Value, nil, true))
+		cesv.originalValue = NewCompareExchangeValue(value.GetKey(), value.GetIndex(), compareExchangeValueOrPrimitiveToJson(value.Value))
 	}
 
 	return cesv, nil
@@ -110,7 +110,7 @@ func (cesv *CompareExchangeSessionValue) UpdateValue(value *CompareExchangeValue
 		}
 	}
 
-	return nil // newNotImplementedError("huhu")
+	return nil
 }
 
 func (cesv *CompareExchangeSessionValue) assertState() error {
@@ -141,26 +141,7 @@ func (cesv *CompareExchangeSessionValue) GetValue(clazz reflect.Type, session *I
 
 		var entityObject interface{}
 		if cesv.originalValue != nil && cesv.originalValue.GetValue() != nil {
-			if isPrimitiveOrWrapper(clazz) || clazz.Kind() == reflect.String {
-				originalValueAsMap, isMap := cesv.originalValue.GetValue().(map[string]interface{})
-				if isMap == false {
-					return nil, newIllegalArgumentError("Expected original as map[string]interface{}")
-				}
-
-				jsString, exists := originalValueAsMap[compareExchangeObjectFieldName]
-				if exists == false {
-					return nil, newIllegalArgumentError("Unable to read compare exchange value")
-				}
-
-				entity, err := treeToValue(clazz, jsString)
-				if err != nil {
-					return nil, newIllegalArgumentError("Cannot deserialize compare exchange object")
-				}
-
-				entityObject = entity
-			} else {
-				entityObject = cesv.originalValue.GetValue()
-			}
+			entityObject = cesv.originalValue.GetValue()
 		}
 
 		ncev := NewCompareExchangeValue(cesv.key, cesv.index, entityObject)
@@ -207,8 +188,8 @@ func (cesv *CompareExchangeSessionValue) GetCommand(session *InMemoryDocumentSes
 
 		var entityToInsert map[string]interface{}
 		if entityJson == nil || metadataHasChanged {
-			entityToInsert = convertEntityToJSONRaw(entity, nil, false)
-			entityToInsert = cesv.convertEntity(metadata, entityToInsert)
+			object := compareExchangeValueOrPrimitiveToJson(entity)
+			entityToInsert = cesv.convertEntity(metadata, object)
 			entityJson = entityToInsert
 		}
 
@@ -247,7 +228,7 @@ func (cesv *CompareExchangeSessionValue) GetCommand(session *InMemoryDocumentSes
 	return nil, newIllegalStateError("Unknown state in GetCommand")
 }
 
-func (cesv *CompareExchangeSessionValue) convertEntity(metadata map[string]interface{}, value map[string]interface{}) map[string]interface{} {
+func (cesv *CompareExchangeSessionValue) convertEntity(metadata map[string]interface{}, value interface{}) map[string]interface{} {
 	objectNode := make(map[string]interface{})
 	objectNode[compareExchangeObjectFieldName] = value
 
@@ -258,6 +239,18 @@ func (cesv *CompareExchangeSessionValue) convertEntity(metadata map[string]inter
 }
 
 type CompareExchangeValueState = int
+
+func compareExchangeValueOrPrimitiveToJson(value interface{}) interface{} {
+	if value == nil {
+		return nil
+	}
+
+	if isPrimitiveOrWrapper(reflect.TypeOf(value)) || reflect.TypeOf(value).Kind() == reflect.String || isInstanceOfArrayOfInterface(value) {
+		return value
+	}
+
+	return convertEntityToJSONRaw(value, nil, true)
+}
 
 func (cesv *CompareExchangeSessionValue) compareExchangeValueToJson(value interface{}, session *InMemoryDocumentSessionOperations) interface{} {
 	if value == nil {
@@ -301,14 +294,6 @@ type PutCompareExchangeCommandData struct {
 	index    int64
 	document interface{}
 }
-
-//type ICommandData interface {
-//	getId() string
-//	getName() string
-//	getChangeVector() *string
-//	getType() CommandType
-//	serialize(conventions *DocumentConventions) (interface{}, error)
-//}
 
 func (pcecd *PutCompareExchangeCommandData) getId() string            { return pcecd.ID }
 func (pcecd *PutCompareExchangeCommandData) getName() string          { return pcecd.Name }

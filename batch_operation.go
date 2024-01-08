@@ -31,7 +31,7 @@ func (b *BatchOperation) createRequest() (*BatchCommand, error) {
 
 	b.entities = result.entities
 
-	return newBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options, b.session.transactionMode, b.session.disableAtomicDocumentWritesInClusterWideTransaction) //todo disableAtomic!!!
+	return newBatchCommand(b.session.GetConventions(), result.sessionCommands, result.options, b.session.transactionMode, b.session.disableAtomicDocumentWritesInClusterWideTransaction)
 }
 
 func (b *BatchOperation) setResult(serverResult *JSONArrayResult) error {

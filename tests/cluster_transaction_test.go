@@ -94,6 +94,123 @@ func testSessionSequance(t *testing.T, driver *RavenTestDriver) {
 	}
 }
 
+func testSessionOnPrimitiveType(t *testing.T, driver *RavenTestDriver) {
+	store := driver.getDocumentStoreMust(t)
+	defer store.Close()
+	dat := true
+	options := &ravendb.SessionOptions{
+		Database:        "",
+		RequestExecutor: nil,
+		TransactionMode: ravendb.TransactionMode_ClusterWide,
+		DisableAtomicDocumentWritesInClusterWideTransaction: &dat,
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+
+		clusterTransaction, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+
+		_, err = clusterTransaction.CreateCompareExchangeValue("int/Key", 1)
+		assert.NoError(t, err)
+
+		_, err = clusterTransaction.CreateCompareExchangeValue("string/Key", "hello")
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+
+		value, err := clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(int(0)), "int/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, 1, value.Value)
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(string("")), "string/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, "hello", value.Value)
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+
+		clusterTransaction, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+
+		value, err := clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(int(0)), "int/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, 1, value.Value)
+		value.Value = 2
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(int(0)), "int/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, value.Value)
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(string("")), "string/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, "hello", value.Value)
+		value.Value = "world"
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(string("")), "string/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, "world", value.Value)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+
+		clusterTransaction, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+
+		value, err := clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(int(0)), "int/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, value.Value)
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(string("")), "string/Key")
+		assert.NoError(t, err)
+		assert.Equal(t, "world", value.Value)
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+
+		clusterTransaction, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+
+		value, err := clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(int(0)), "int/Key")
+		assert.NoError(t, err)
+		err = clusterTransaction.DeleteCompareExchangeValueByKey("int/Key", value.GetIndex())
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(string("")), "string/Key")
+		assert.NoError(t, err)
+		err = clusterTransaction.DeleteCompareExchangeValue(value)
+		assert.NoError(t, err)
+
+		err = session.SaveChanges()
+		assert.NoError(t, err)
+	}
+
+	{
+		session := openSessionMustWithOptions(t, store, options)
+		defer session.Close()
+
+		clusterTransaction, err := session.Advanced().ClusterTransaction()
+		assert.NoError(t, err)
+		value, err := clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(int(0)), "int/Key")
+		assert.NoError(t, err)
+		assert.Nil(t, value)
+
+		value, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(string("")), "string/Key")
+		assert.NoError(t, err)
+		assert.Nil(t, value)
+	}
+}
+
 func canCreateClusterTransactionRequest(t *testing.T, driver *RavenTestDriver) {
 	store := driver.getDocumentStoreMust(t)
 	defer store.Close()
@@ -214,4 +331,5 @@ func TestClusterTransaction(t *testing.T) {
 	testSessionSequance(t, driver)
 	canCreateClusterTransactionRequest(t, driver)
 	canDeleteCompareExchangeValue(t, driver)
+	testSessionOnPrimitiveType(t, driver)
 }
