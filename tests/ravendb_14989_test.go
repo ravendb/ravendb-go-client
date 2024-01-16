@@ -22,10 +22,9 @@ func ravendb14989_should_work(t *testing.T, driver *RavenTestDriver) {
 			Name: &name,
 		}
 
-		clusterTransaction, err := session.Advanced().ClusterTransaction()
-		assert.NoError(t, err)
+		assert.NotNil(t, session.Advanced().ClusterTransaction())
 
-		clusterTransaction.CreateCompareExchangeValue(strings.Repeat("e", 513), user)
+		_, err := session.Advanced().ClusterTransaction().CreateCompareExchangeValue(strings.Repeat("e", 513), user)
 		assert.NoError(t, err)
 
 		err = session.SaveChanges()

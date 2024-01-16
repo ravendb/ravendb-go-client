@@ -227,8 +227,9 @@ func (o *AdvancedSessionOperations) SetMaxNumberOfRequestsPerSession(n int) {
 	o.s.maxNumberOfRequestsPerSession = n
 }
 
-func (o *AdvancedSessionOperations) ClusterTransaction() (*ClusterTransactionOperations, error) {
-	return o.s.GetClusterSession()
+func (o *AdvancedSessionOperations) ClusterTransaction() *ClusterTransactionOperations {
+	clusterSession, _ := o.s.GetClusterSession()
+	return clusterSession
 }
 
 func (o *AdvancedSessionOperations) SetTransactionMode(mode TransactionMode) {

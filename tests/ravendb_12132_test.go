@@ -17,11 +17,10 @@ func canCreateClusterTransactionRequest1(t *testing.T, driver *RavenTestDriver) 
 			DisableAtomicDocumentWritesInClusterWideTransaction: nil,
 		})
 
+		var err error
 		user := &Document{ID: "this/is/my/id", Name: "Grisha"}
-		clusterTransaction, err := session.Advanced().ClusterTransaction()
-		assert.NoError(t, err)
-
-		_, err = clusterTransaction.CreateCompareExchangeValue("usernames/ayende", user)
+		assert.NotNil(t, session.Advanced().ClusterTransaction())
+		_, err = session.Advanced().ClusterTransaction().CreateCompareExchangeValue("usernames/ayende", user)
 
 		assert.NoError(t, err)
 
@@ -29,9 +28,8 @@ func canCreateClusterTransactionRequest1(t *testing.T, driver *RavenTestDriver) 
 		assert.NoError(t, err)
 
 		var result *ravendb.CompareExchangeValue
-		clusterTransaction, err = session.Advanced().ClusterTransaction()
 
-		result, err = clusterTransaction.GetCompareExchangeValue(reflect.TypeOf(&Document{}), "usernames/ayende")
+		result, err = session.Advanced().ClusterTransaction().GetCompareExchangeValue(reflect.TypeOf(&Document{}), "usernames/ayende")
 		userFromCluster, cast := result.GetValue().(*Document)
 		assert.True(t, cast)
 		assert.NoError(t, err)
