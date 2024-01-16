@@ -5,9 +5,9 @@ import (
 )
 
 type ClusterTransactionOperations struct {
-	session                             *InMemoryDocumentSessionOperations
-	state                               map[string]*CompareExchangeSessionValue
-	missingDocumentsTooAtomicGuardIndex map[string]string
+	session                            *InMemoryDocumentSessionOperations
+	state                              map[string]*CompareExchangeSessionValue
+	missingDocumentsToAtomicGuardIndex map[string]string
 }
 
 func (cto *ClusterTransactionOperations) GetNumberOfTrackedCompareExchangeValues() int {
@@ -19,11 +19,11 @@ func (cto *ClusterTransactionOperations) GetNumberOfTrackedCompareExchangeValues
 }
 
 func (cto *ClusterTransactionOperations) TryGetMissingAtomicGuardFor(docId string) (*string, bool) {
-	if cto.missingDocumentsTooAtomicGuardIndex == nil {
+	if cto.missingDocumentsToAtomicGuardIndex == nil {
 		return nil, false
 	}
 
-	value, exists := cto.missingDocumentsTooAtomicGuardIndex[docId]
+	value, exists := cto.missingDocumentsToAtomicGuardIndex[docId]
 	if exists == false {
 		return nil, false
 	}

@@ -958,30 +958,34 @@ To set session transaction as cluster wide you've to set `TransactionMode` in `S
 as `TransactionMode_ClusterWide`
 
 ```go
-ravendb.SessionOptions{
-                        [...]
-			TransactionMode: ravendb.TransactionMode_ClusterWide,
-}
+session, err := store.OpenSessionWithOptions(&ravendb.SessionOptions{
+    Database:        "",
+    RequestExecutor: nil,
+    TransactionMode: ravendb.TransactionMode_ClusterWide,
+    DisableAtomicDocumentWritesInClusterWideTransaction: nil,
+})
+
 ```
+
+
 
 ## Cluster transactions
 
 In order to create cluster transactions you have to get
-cluster transaction object from your session:
+cluster transaction object from your session or you can use it as fluent API.
 
 ```go
-clusterTransaction, err := session.Advanced().ClusterTransaction()
+clusterTransaction := session.Advanced().ClusterTransaction()
 ```
 
-Assert error to make sure your session configuration is correct.
-
+In case of wrong session configuration `clusterTransaction` object will be nil.
 
 ### Inserting new CompareExchangeValue
 
 ```go
-var objectToInsert interface{}
-var id             string
-value, error := clusterTransaction.CreateCompareExchangeValue(key, objectToInsert)
+objectToInsert := &YourStruct{[...]}
+key := "exampleKeyOfItem"
+value, error := session.Advanced().ClusterTransaction().CreateCompareExchangeValue(key, objectToInsert)
 ```
 
 ### Getting existing CompareExchangeValue from server
@@ -989,42 +993,45 @@ You can retrieve your value using various methods.
 
 #### - Get value by key
 ```go
-var dataType reflect.Type // identifies your data-struct type
-var key string
-value, error := clusterTransaction.GetCompareExchangeValue(dataType, key)
+dataType := reflect.TypeOf(&YourStruct{}) // identifies your data-struct type
+key := "exampleKeyOfItem"
+value, error := session.Advanced().ClusterTransaction().GetCompareExchangeValue(dataType, key)
 ```
 
 #### - Get values by keys
 ```go
-var dataType reflect.Type // identifies your data-struct type
-var keys []string
-value, error := clusterTransaction.GetCompareExchangeValuesWithKeys(dataType, keys)
+dataType := reflect.TypeOf(&YourStruct{}) // identifies your data-struct type
+keys := []string{"item/1", "item/2"}
+value, error := session.Advanced().ClusterTransaction().GetCompareExchangeValuesWithKeys(dataType, keys)
 ```
-
-Retruns map where keys are identifiers.
+Returns map where keys are identifiers.
 
 #### Get values whose IDs start with a string
 ```go
-var dataType reflect.Type // identifies your data-struct type
-var startsWith string
-var start int
-var pageSize int
-value, error := clusterTransaction.GetCompareExchangeValues(dataType, startsWith, start, pageSize)
+dataType := reflect.TypeOf(&YourStruct{}) // identifies your data-struct type
+startsWith := "item/"
+start := 0
+pageSize := 25
+values, error := session.Advanced().ClusterTransaction().GetCompareExchangeValues(dataType, startsWith, start, pageSize)
 ```
 
-Retruns map where keys are identifiers.
+Returns map where keys are identifiers.
 
 ### Delete CompareExchangeValue
 
 #### By field key and index
 ```go
-var key string
-var index int64
-err := clusterTransaction.DeleteCompareExchangeValueByKey(key, index)
+key := "item/1"
+index := 5
+err := session.Advanced().ClusterTransaction().DeleteCompareExchangeValueByKey(key, index)
 ```
 
 #### By CompareExchangeValue object
 ```go
 var compareExchangeValue *ravendb.CompareExchangeValue
-err := clusterTransaction.DeleteCompareExchangeValue(compareExchangeValue)
+
+//Load by API
+compareExchangeValue , error := session.Advanced().ClusterTransaction().GetCompareExchangeValue[...]
+
+err := session.Advanced().ClusterTransaction().DeleteCompareExchangeValue(compareExchangeValue)
 ```
