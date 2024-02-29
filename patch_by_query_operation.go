@@ -17,10 +17,17 @@ type PatchByQueryOperation struct {
 	_options       *QueryOperationOptions
 }
 
-func NewPatchByQueryOperation(queryToUpdate string) *PatchByQueryOperation {
-	return &PatchByQueryOperation{
+
+func NewPatchByQueryOperation(queryToUpdate string, opts ...*QueryOperationOptions) *PatchByQueryOperation {
+	op := &PatchByQueryOperation{
 		_queryToUpdate: NewIndexQuery(queryToUpdate),
 	}
+
+	if len(opts) > 0 && opts[0] != nil {
+		op._options = opts[0]
+	}
+
+	return p
 }
 
 func (o *PatchByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
@@ -62,7 +69,7 @@ func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *Ind
 func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	_options := c._options
 
-	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", _options.allowStale)
+	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", _options.AllowStale)
 
 	if _options.maxOpsPerSecond != 0 {
 		url += "&maxOpsPerSec=" + strconv.Itoa(_options.maxOpsPerSecond)

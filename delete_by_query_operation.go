@@ -62,7 +62,7 @@ func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *In
 func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	options := c.options
 
-	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", options.allowStale)
+	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", options.AllowStale)
 
 	if options.maxOpsPerSecond != 0 {
 		url += "&maxOpsPerSec=" + strconv.Itoa(options.maxOpsPerSecond)
