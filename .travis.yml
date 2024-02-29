@@ -12,6 +12,11 @@ notifications:
 
 go:
   - 1.11
+  - 1.15
+  - 1.16
+  - 1.17
+  - 1.20
+
 
 # TODO: maybe use latest build instead of latest stable
 
