@@ -27,7 +27,7 @@ func NewPatchByQueryOperation(queryToUpdate string, opts ...*QueryOperationOptio
 		op._options = opts[0]
 	}
 
-	return p
+	return op
 }
 
 func (o *PatchByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
