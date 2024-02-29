@@ -23,6 +23,13 @@ func NewPatchByQueryOperation(queryToUpdate string) *PatchByQueryOperation {
 	}
 }
 
+func NewPatchByQueryOperationWithOptions(queryToUpdate string, options *QueryOperationOptions) *PatchByQueryOperation {
+	return &PatchByQueryOperation{
+		_queryToUpdate: NewIndexQuery(queryToUpdate),
+		_options:       options,
+	}
+}
+
 func (o *PatchByQueryOperation) GetCommand(store *DocumentStore, conventions *DocumentConventions, cache *httpCache) (RavenCommand, error) {
 	var err error
 	o.Command, err = NewPatchByQueryCommand(conventions, o._queryToUpdate, o._options)
@@ -62,16 +69,16 @@ func NewPatchByQueryCommand(conventions *DocumentConventions, queryToUpdate *Ind
 func (c *PatchByQueryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	_options := c._options
 
-	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", _options.allowStale)
+	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", _options.AllowStale)
 
-	if _options.maxOpsPerSecond != 0 {
-		url += "&maxOpsPerSec=" + strconv.Itoa(_options.maxOpsPerSecond)
+	if _options.MaxOpsPerSecond != 0 {
+		url += "&maxOpsPerSec=" + strconv.Itoa(_options.MaxOpsPerSecond)
 	}
 
-	url += fmt.Sprintf("&details=%v", _options.retrieveDetails)
+	url += fmt.Sprintf("&details=%v", _options.RetrieveDetails)
 
-	if _options.staleTimeout != 0 {
-		url += "&staleTimeout=" + durationToTimeSpan(_options.staleTimeout)
+	if _options.StaleTimeout != 0 {
+		url += "&staleTimeout=" + durationToTimeSpan(_options.StaleTimeout)
 	}
 
 	q := jsonExtensionsWriteIndexQuery(c._conventions, c._queryToUpdate)
