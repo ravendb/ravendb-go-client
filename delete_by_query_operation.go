@@ -62,16 +62,16 @@ func NewDeleteByIndexCommand(conventions *DocumentConventions, queryToDelete *In
 func (c *DeleteByIndexCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
 	options := c.options
 
-	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", options.allowStale)
+	url := node.URL + "/databases/" + node.Database + fmt.Sprintf("/queries?allowStale=%v", options.AllowStale)
 
-	if options.maxOpsPerSecond != 0 {
-		url += "&maxOpsPerSec=" + strconv.Itoa(options.maxOpsPerSecond)
+	if options.MaxOpsPerSecond != 0 {
+		url += "&maxOpsPerSec=" + strconv.Itoa(options.MaxOpsPerSecond)
 	}
 
-	url += fmt.Sprintf("&details=%v", options.retrieveDetails)
+	url += fmt.Sprintf("&details=%v", options.RetrieveDetails)
 
-	if options.staleTimeout != 0 {
-		url += "&staleTimeout=" + durationToTimeSpan(options.staleTimeout)
+	if options.StaleTimeout != 0 {
+		url += "&staleTimeout=" + durationToTimeSpan(options.StaleTimeout)
 	}
 
 	m := jsonExtensionsWriteIndexQuery(c.conventions, c.queryToDelete)
