@@ -1035,3 +1035,48 @@ compareExchangeValue , error := session.Advanced().ClusterTransaction().GetCompa
 
 err := session.Advanced().ClusterTransaction().DeleteCompareExchangeValue(compareExchangeValue)
 ```
+
+## Operations
+
+#### Configure expiration operation
+Options:
+```go
+type ExpirationConfiguration struct {
+	Disabled             bool   `json:"Disabled"`
+	DeleteFrequencyInSec *int64 `json:"DeleteFrequencyInSec"`
+	MaxItemsToProcess    *int64 `json:"MaxItemsToProcess"`
+}
+```
+
+Operation creation is available by passing the `ExpirationConfiguration` object:
+```go
+configureExpiration := ravendb.ExpirationConfiguration{
+    Disabled: false,
+}
+//Method: NewConfigureExpirationOperationWithConfiguration(expirationConfiguration *ExpirationConfiguration) (*ConfigureExpirationOperation, error)
+operation, err := ravendb.NewConfigureExpirationOperationWithConfiguration(&configureExpiration)
+```
+
+Or directly by passing parameters:
+```go
+var deleteFrequency int64 = 60
+//Method: func NewConfigureExpirationOperation(disabled bool, deleteFrequencyInSec *int64, maxItemsToProcess *int64) (*ConfigureExpirationOperation, error) 
+opExpiration, err = ravendb.NewConfigureExpirationOperation(false, &deleteFrequency, nil)
+```
+
+Operation returns object:
+```go
+type ExpirationConfigurationResult struct {
+	RaftCommandIndex *int64 `json:"RaftCommandIndex"`
+}
+```
+
+Example of usage:
+```go
+var deleteFrequency int64 = 60
+opExpiration, err = ravendb.NewConfigureExpirationOperation(false, &deleteFrequency, nil)
+assert.NoError(t, err)
+
+err = store.Maintenance().Send(opExpiration)
+assert.NoError(t, err)
+```
