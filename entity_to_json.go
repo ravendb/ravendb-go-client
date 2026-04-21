@@ -188,7 +188,7 @@ func entityToJSONWriteMetadata(jsonNode map[string]interface{}, documentInfo *do
 }
 
 func metadataToObjectNode(metadata map[string]interface{}, metadataInstance *MetadataAsDictionary) map[string]interface{} {
-	var metadataNode map[string]interface{}
+	metadataNode := make(map[string]interface{})
 	if len(metadata) > 0 {
 		for property, v := range metadata {
 			v = deepCopy(v)
