@@ -339,6 +339,15 @@ func (d *RavenTestDriver) customizeDbRecord(dbRecord *ravendb.DatabaseRecord) {
 	}
 }
 
+// setDefaultSearchEngine sets the search engine on database level, for tests
+// that rely on engine-specific behavior
+func (d *RavenTestDriver) setDefaultSearchEngine(engine ravendb.SearchEngineType) {
+	d.customize = func(r *ravendb.DatabaseRecord) {
+		r.Settings["Indexing.Static.SearchEngineType"] = engine
+		r.Settings["Indexing.Auto.SearchEngineType"] = engine
+	}
+}
+
 func (d *RavenTestDriver) maybeKillServer() bool {
 	if len(d.serverProcesses) < numClusterNodes || len(d.serverProcesses) < 2 {
 		return false
