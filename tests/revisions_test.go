@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"math"
 	"sort"
 	"strconv"
 	"testing"
@@ -128,7 +127,7 @@ func revisionsTestCanListRevisionsBin(t *testing.T, driver *RavenTestDriver) {
 
 		session.Close()
 	}
-	revisionsBinEntryCommand := ravendb.NewGetRevisionsBinEntryCommand(math.MaxInt64, 20)
+	revisionsBinEntryCommand := ravendb.NewGetRevisionsBinEntryCommand(0, 20)
 	err = store.GetRequestExecutor("").ExecuteCommand(revisionsBinEntryCommand, nil)
 	assert.NoError(t, err)
 	result := revisionsBinEntryCommand.Result
