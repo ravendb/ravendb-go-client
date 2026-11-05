@@ -105,7 +105,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 
 		assert.Equal(t, len(results), 1)
 
-		assert.Equal(t, statsRef.IndexName, "Auto/Item2s/BySpatial.point(latitude|longitude)AndSpatial.point(latitude2|longitude2)")
+		assert.Equal(t, statsRef.IndexName, "Auto/Item2s/BySpatial.point(latitude2|longitude2)AndSpatial.point(latitude|longitude)")
 
 		statsRef = nil
 		results = nil
@@ -119,7 +119,7 @@ func ravenDB8328_spatialOnAutoIndex(t *testing.T, driver *RavenTestDriver) {
 
 		assert.Equal(t, len(results), 1)
 
-		assert.Equal(t, statsRef.IndexName, "Auto/Item2s/BySpatial.point(latitude|longitude)AndSpatial.point(latitude2|longitude2)AndSpatial.wkt(shapeWkt)")
+		assert.Equal(t, statsRef.IndexName, "Auto/Item2s/BySpatial.point(latitude2|longitude2)AndSpatial.point(latitude|longitude)AndSpatial.wkt(shapeWkt)")
 	}
 }
 
