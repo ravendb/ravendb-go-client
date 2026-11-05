@@ -284,6 +284,7 @@ func NewUsersByName2() *ravendb.IndexCreationTask {
 
 func TestQueryStreaming(t *testing.T) {
 	driver := createTestDriver(t)
+	driver.setDefaultSearchEngine(ravendb.SearchEngineTypeLucene)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 

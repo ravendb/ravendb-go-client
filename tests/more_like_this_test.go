@@ -722,6 +722,7 @@ func NewComplexDataIndex() *ravendb.IndexCreationTask {
 
 func TestMoreLikeThis(t *testing.T) {
 	driver := createTestDriver(t)
+	driver.setDefaultSearchEngine(ravendb.SearchEngineTypeLucene)
 	destroy := func() { destroyDriver(t, driver) }
 	defer recoverTest(t, destroy)
 
