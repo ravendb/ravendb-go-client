@@ -12,29 +12,43 @@ var (
 type GetRevisionsBinEntryCommand struct {
 	RavenCommandBase
 
-	etag     int64
-	pageSize int
+	start             int
+	pageSize          int
+	continuationToken string
 
 	Result *JSONArrayResult
 }
 
-func NewGetRevisionsBinEntryCommand(etag int64, pageSize int) *GetRevisionsBinEntryCommand {
+func NewGetRevisionsBinEntryCommand(start int, pageSize int) *GetRevisionsBinEntryCommand {
 	cmd := &GetRevisionsBinEntryCommand{
 		RavenCommandBase: NewRavenCommandBase(),
 
-		etag:     etag,
+		start:    start,
 		pageSize: pageSize,
 	}
 	cmd.IsReadRequest = true
 	return cmd
 }
 
+func NewGetRevisionsBinEntryCommandWithContinuationToken(continuationToken string) *GetRevisionsBinEntryCommand {
+	cmd := &GetRevisionsBinEntryCommand{
+		RavenCommandBase: NewRavenCommandBase(),
+
+		continuationToken: continuationToken,
+	}
+	cmd.IsReadRequest = true
+	return cmd
+}
+
 func (c *GetRevisionsBinEntryCommand) CreateRequest(node *ServerNode) (*http.Request, error) {
-	etagStr := i64toa(c.etag)
-	url := node.URL + "/databases/" + node.Database + "/revisions/bin?etag=" + etagStr
+	url := node.URL + "/databases/" + node.Database + "/revisions/bin?start=" + strconv.Itoa(c.start)
 
 	if c.pageSize > 0 {
 		url += "&pageSize=" + strconv.Itoa(c.pageSize)
+	}
+
+	if c.continuationToken != "" {
+		url += "&continuationToken=" + urlUtilsEscapeDataString(c.continuationToken)
 	}
 
 	return newHttpGet(url)
