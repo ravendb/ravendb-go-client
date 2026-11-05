@@ -260,8 +260,8 @@ func suggestionsCanGetSuggestions(t *testing.T, driver *RavenTestDriver) {
 
 		su := suggestionQueryResult["name"].Suggestions
 		assert.Equal(t, len(su), 5)
-		ok := stringArrayContainsSequence(su, []string{"john", "jones", "johnson", "david", "jack"})
-		assert.True(t, ok)
+		// order of suggestions with equal popularity is not stable across server versions
+		assert.Subset(t, su, []string{"john", "jones", "johnson", "david", "jack"})
 
 		session.Close()
 	}
