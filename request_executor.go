@@ -1182,8 +1182,7 @@ func (re *RequestExecutor) checkNodeStatusCallback(nodeStatus *NodeStatus) {
 
 	idx := nodeStatus.nodeIndex
 	// TODO: idx < 0 probably shouldn't happen but it's the only cause of
-	// https://travis-ci.org/kjk/ravendb-go-client/builds/404760557
-	// that I can think of
+	// a failure seen on CI that I can think of
 	if idx < 0 || idx >= len(nodesCopy) {
 		return // topology index changed / removed
 	}

@@ -1,4 +1,4 @@
-[![Linux build Status](https://travis-ci.org/ravendb/ravendb-go-client.svg?branch=master)](https://travis-ci.org/ravendb/ravendb-go-client) [![Windows build status](https://ci.appveyor.com/api/projects/status/rf326yoxl1uf444h/branch/master?svg=true)](https://ci.appveyor.com/project/ravendb/ravendb-go-client/branch/master)
+[![tests](https://github.com/ravendb/ravendb-go-client/actions/workflows/RavenClient.yml/badge.svg)](https://github.com/ravendb/ravendb-go-client/actions/workflows/RavenClient.yml)
 
 # How to install and run
 
