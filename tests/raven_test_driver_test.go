@@ -7,9 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/hashicorp/go-multierror"
-	"github.com/ravendb/ravendb-go-client"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -26,6 +23,10 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
+	"github.com/ravendb/ravendb-go-client"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -139,8 +140,25 @@ func killServer(proc *ravenProcess) {
 	if err != nil {
 		fmt.Printf("cmd.Process.Kill() failed with '%s'\n", err)
 	} else {
+		// reap the process so its files are released before we remove them
+		_ = proc.cmd.Wait()
 		s := strings.Join(proc.cmd.Args, " ")
 		fmt.Printf("RavenDB process %d terminated \nConfiguration arguments: '%s'\n on '%s'\n", proc.pid, s, proc.uri)
+	}
+	removeServerTempFiles(proc.pid)
+}
+
+// removeServerTempFiles deletes storage files left by a killed server.
+// With --RunInMemory the server keeps its storage in <server dir>/Temp/ravendb-<pid>-*
+// (not configurable), and since we kill it with SIGKILL it can't clean them up itself
+// after implementing single server instance (like in JVM driver), just delete files (it's faster than closing server)
+func removeServerTempFiles(pid int) {
+	pattern := filepath.Join(filepath.Dir(ravendbServerExePath), "Temp", fmt.Sprintf("ravendb-%d-*", pid))
+	files, _ := filepath.Glob(pattern)
+	for _, file := range files {
+		if err := os.Remove(file); err != nil {
+			fmt.Printf("os.Remove(%s) failed with '%s'\n", file, err)
+		}
 	}
 }
 
