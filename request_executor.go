@@ -1311,10 +1311,7 @@ func (re *RequestExecutor) createClient() (*http.Client, error) {
 		Transport: http.DefaultTransport,
 	}
 	if re.Certificate != nil || re.TrustStore != nil {
-		tlsConfig, err := newTLSConfig(re.Certificate, re.TrustStore)
-		if err != nil {
-			return nil, err
-		}
+		tlsConfig := newTLSConfig(re.Certificate, re.TrustStore)
 		client.Transport = &http.Transport{
 			TLSClientConfig: tlsConfig,
 		}

@@ -9,11 +9,7 @@ import (
 	"net/url"
 )
 
-func newTLSConfig(certificate *tls.Certificate, trustStore *x509.Certificate) (*tls.Config, error) {
-	if certificate != nil && trustStore == nil {
-		return nil, newIllegalArgumentError("certificates and trustStoreASN1 can't be both empty")
-	}
-
+func newTLSConfig(certificate *tls.Certificate, trustStore *x509.Certificate) *tls.Config {
 	config := &tls.Config{}
 
 	if trustStore != nil {
@@ -21,12 +17,11 @@ func newTLSConfig(certificate *tls.Certificate, trustStore *x509.Certificate) (*
 		roots.AddCert(trustStore)
 		config.RootCAs = roots
 	}
-	// TODO: not sure if this should always (ever?) be set
-	// see setSSLHostnameVerifier and loadTrustMaterial in java code
-	config.InsecureSkipVerify = true
 
-	config.Certificates = []tls.Certificate{*certificate}
-	return config, nil
+	if certificate != nil {
+		config.Certificates = []tls.Certificate{*certificate}
+	}
+	return config
 }
 
 func tcpConnect(uri string, serverCertificateBase64 []byte, clientCertificate *tls.Certificate) (net.Conn, error) {
@@ -41,9 +36,7 @@ func tcpConnect(uri string, serverCertificateBase64 []byte, clientCertificate *t
 
 	if len(serverCertificateBase64) > 0 || clientCertificate != nil {
 		// serverCertificateBase64 is base64-encoded ASN1-encoded certificate
-		// This is a root signing certificate needed for tls.Dial to recognize
-		// data Send by the server (?) as properly signed.
-		// If we didn't have this we could set tls.Config.InsecureSkipVerify to true
+		// The server certificate is supplied as the trust anchor for verifying the TCP TLS peer.
 		var trustStore *x509.Certificate
 		if len(serverCertificateBase64) > 0 {
 			serverCertificate, err := base64.StdEncoding.DecodeString(string(serverCertificateBase64))
@@ -56,10 +49,7 @@ func tcpConnect(uri string, serverCertificateBase64 []byte, clientCertificate *t
 			}
 		}
 
-		config, err := newTLSConfig(clientCertificate, trustStore)
-		if err != nil {
-			return nil, err
-		}
+		config := newTLSConfig(clientCertificate, trustStore)
 		// forcing TLS 1.2 as Java code seems to be doing
 		config.MinVersion = tls.VersionTLS12
 		config.MaxVersion = tls.VersionTLS12

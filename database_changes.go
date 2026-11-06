@@ -637,10 +637,7 @@ func (c *DatabaseChanges) doWorkInner(ctx context.Context) (error, bool) {
 
 	re := c.requestExecutor
 	if re.Certificate != nil || re.TrustStore != nil {
-		dialer.TLSClientConfig, err = newTLSConfig(re.Certificate, re.TrustStore)
-		if err != nil {
-			return err, false
-		}
+		dialer.TLSClientConfig = newTLSConfig(re.Certificate, re.TrustStore)
 	}
 
 	urlString, err := c.requestExecutor.GetURL()
